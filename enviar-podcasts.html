@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="pt-BR">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Enviar podcasts · Estudos Uentzoul</title>
+<style>
+:root{color-scheme:light;--line:#dae3ef;--ink:#172b43;--blue:#2559a2}
+*{box-sizing:border-box}body{font:15px/1.55 system-ui,Segoe UI,Arial,sans-serif;margin:0;background:#f4f7fb;color:var(--ink)}
+main{max-width:810px;margin:34px auto;padding:0 18px 48px}
+section{background:#fff;border:1px solid var(--line);border-radius:16px;padding:24px;margin:18px 0;box-shadow:0 5px 20px #0f284006}
+h1{font-size:26px;line-height:1.2;margin:0 0 7px}h2{font-size:18px;margin:0 0 9px}p{margin:8px 0 15px}
+.sub{color:#5c6f83}label{display:block;font-weight:600;margin-bottom:10px}
+input{display:block;width:100%;margin-top:6px;padding:12px;border:1px solid #b9c9da;border-radius:9px;font:inherit}
+button,.button{background:var(--blue);color:#fff;border:0;border-radius:10px;padding:12px 18px;font:inherit;font-weight:700;cursor:pointer}
+button:disabled{opacity:.45;cursor:wait}.secondary{background:#eaf0f8;color:#244465}
+.row{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.note{background:#eef5fd;border-left:4px solid #3d78ba;border-radius:8px;padding:12px 15px;margin:12px 0}
+.ok{color:#176d54}.err{color:#a22a25}.small{font-size:13px}
+.hidden{display:none!important}.picker{padding:20px;border:2px dashed #b5c6db;border-radius:12px;margin:16px 0}
+.picker label{margin:0}.picker input{padding:8px;background:#fff}
+progress{width:100%;height:22px;accent-color:#2c7d69}
+pre{white-space:pre-wrap;overflow-wrap:anywhere;background:#f2f5f9;border:1px solid #e0e7ef;padding:15px;border-radius:10px;max-height:300px;overflow:auto;font-size:12px;line-height:1.6}
+a{color:#175b9c}
+@media(max-width:500px){main{margin:13px auto}section{padding:17px}h1{font-size:23px}}
+</style></head>
+<body><main>
+<header><p class="sub"><a href="./">← Voltar ao Estudos Uentzoul</a></p><h1>Publicar os podcasts</h1><p class="sub">Envio direto para o armazenamento do site, sem GitHub, ZIPs novos ou programas no computador.</p></header>
+<section id="authPanel"><h2>1. Entrar na conta de administrador</h2><p class="sub">Usa a conta online do Estudos Uentzoul autorizada a publicar os áudios.</p>
+<form id="authForm"><label>E-mail<input name="email" type="email" autocomplete="email" required></label><label>Senha<input name="password" type="password" autocomplete="current-password" required></label><button type="submit" id="loginButton">Entrar</button></form>
+<p class="small" id="loginStatus" aria-live="polite"></p></section>
+<section id="uploadPanel" class="hidden">
+<div class="row"><h2>2. Selecionar os áudios</h2><button class="secondary" id="logoutButton" type="button">Sair</button></div>
+<p id="whoami" class="small sub"></p>
+<div class="note"><strong>Mais fácil:</strong> escolhe os ZIPs dos podcasts que já baixou (podes selecionar vários juntos). O site abre cada ZIP e envia os episódios automaticamente. Também podes selecionar a pasta <strong>audios</strong> já extraída.</div>
+<div class="picker"><label>Selecionar os ZIPs de áudio<input id="zipInput" type="file" accept=".zip,application/zip" multiple></label></div>
+<div class="picker"><label>Ou selecionar a pasta audios extraída<input id="folderInput" type="file" webkitdirectory directory multiple></label></div>
+<div class="picker"><label>Ou selecionar arquivos M4A individualmente<input id="filesInput" type="file" accept=".m4a,audio/mp4" multiple></label></div>
+<p id="selectedStatus" class="sub small">Escolhe os ZIPs ou a pasta para começar.</p>
+<div class="row"><button id="uploadButton" type="button" disabled>Enviar podcasts para o site</button><button type="button" id="checkButton" class="secondary">Verificar arquivos publicados</button></div>
+<div style="margin-top:17px"><progress id="progress" value="0" max="41"></progress><p id="uploadStatus" role="status" aria-live="polite" class="small">Nenhum envio iniciado.</p></div>
+<pre id="log">O histórico do envio aparecerá aqui.</pre>
+<p class="small sub">O envio pode demorar dependendo da velocidade da tua internet. Mantém esta aba aberta até a confirmação.</p>
+</section></main>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.57.0/dist/umd/supabase.min.js"></script>
+<script>
+(function(){
+"use strict";
+var BASE="https://swseibmqoetnuctxyusj.supabase.co";
+var KEY="sb_publishable_Fa12C_gaam8nv3g4fsWy2w_8nWQZWzq";
+var BUCKET="study-podcasts";
+var EXPECTED=["tcc/01_fundamentos_da_terapia_do_esquema.m4a","tcc/02_os_primeiros_nove_esquemas.m4a","tcc/03_os_outros_nove_esquemas.m4a","tcc/04_estilos_de_enfrentamento_e_modos.m4a","tcc/05_terapia_do_esquema_na_pratica.m4a","tcc/06_do_behaviorismo_a_terceira_onda.m4a","tcc/07_act_e_modelo_hexaflex.m4a","tcc/08_dbt_e_mbct.m4a","tcc/09_cft_e_fap.m4a","tcc/10_processos_clinicos_na_terceira_onda.m4a","grupos/01_do_diva_ao_palco_no_psicodrama.m4a","grupos/02_como_o_psicodrama_reescreve_nossos_roteiros.m4a","grupos/03_carl_rogers_e_os_grupos_de_encontro.m4a","grupos/04_como_funcionam_os_grupos_de_encontro_rogerianos.m4a","grupos/05_psicologia_dos_grupos_do_presencial_ao_virtual.m4a","grupos/06_psicodrama_de_moreno_e_grupos_de_rogers_revisao.m4a","familia/01_divorcio_nao_e_o_fim_da_familia.m4a","familia/02_segredos_familiares_lealdades_invisiveis_e_adocao.m4a","familia/03_a_armadilha_psicologica_da_violencia_domestica.m4a","familia/04_os_sinais_ocultos_da_violencia_infantil.m4a","familia/05_as_raizes_familiares_da_dependencia_quimica.m4a","familia/06_o_roteiro_invisivel_das_herancas_familiares.m4a","familia/07_como_as_dinamicas_familiares_atravessam_geracoes_revisao.m4a","meta/01_o_narcisismo_do_mito_grego_a_freud.m4a","meta/02_como_o_edipo_estrutura_a_mente.m4a","meta/03_o_edipo_alem_do_mito.m4a","meta/04_o_conflito_entre_id_ego_e_superego.m4a","meta/05_do_instinto_a_pulsao_de_morte.m4a","meta/06_as_duas_teorias_freudianas_da_angustia.m4a","meta/07_o_mapa_da_metapsicologia_freudiana_revisao.m4a","avaliacao/01_diferencas_entre_os_documentos_psicologicos.m4a","avaliacao/02_documentos_psicologicos_e_fundamentos_de_psicometria.m4a","avaliacao/03_diferencas_entre_laudo_parecer_e_relatorio.m4a","avaliacao/04_a_entrevista_de_anamnese_no_psicodiagnostico.m4a","avaliacao/05_os_pilares_da_psicometria.m4a","social/01_como_a_sociedade_fabrica_quem_somos.m4a","social/02_ideologia_e_fatalismo_em_martin_baro.m4a","social/03_o_estigma_prisional_alem_dos_muros.m4a","social/04_quando_proteger_as_criancas_virou_vigilancia.m4a","social/05_epistemicidio_e_a_falsa_neutralidade_cientifica.m4a","social/06_martin_baro_e_a_psicologia_da_libertacao.m4a"];
+var allowed=new Set(EXPECTED);
+var client=null,selected=null,busy=false;
+var el=function(id){return document.getElementById(id)};
+function say(t,error){el("uploadStatus").textContent=t;el("uploadStatus").className="small "+(error?"err":"");}
+function log(t){if(el("log").textContent==="O histórico do envio aparecerá aqui.")el("log").textContent="";el("log").textContent+=t+"\n";el("log").scrollTop=el("log").scrollHeight}
+function authView(user){el("authPanel").classList.toggle("hidden",!!user);el("uploadPanel").classList.toggle("hidden",!user);if(user)el("whoami").textContent="Conectado como "+(user.email||"administrador")}
+function canonical(path){var p=String(path||"").replace(/\\/g,"/");var m=p.match(/(?:^|\/)(?:audios\/)?(tcc|grupos|familia|meta|avaliacao|social)\/([^/]+\.m4a)$/i);if(m)return m[1].toLowerCase()+"/"+m[2].toLowerCase();var base=p.split("/").pop().toLowerCase();return EXPECTED.find(function(x){return x.split("/").pop()===base})||null}
+async function check(){
+if(!client)return;var found=new Set(),errorCount=0;
+for(var sub of ["tcc","grupos","familia","meta","avaliacao","social"]){
+var r=await client.storage.from(BUCKET).list(sub,{limit:100});
+if(r.error){errorCount++;log("Erro consultando "+sub+": "+r.error.message);continue}
+for(var obj of r.data||[])found.add(sub+"/"+obj.name);
+}
+var missing=EXPECTED.filter(function(x){return !found.has(x)});
+el("progress").value=Math.min(found.size,41);
+say("Publicados: "+(41-missing.length)+" de 41."+(missing.length?" Faltam "+missing.length+" arquivos.":" Todos os 41 podcasts estão no ar."),!!errorCount);
+log(missing.length?"Faltando: "+missing.join(", "):"Verificação concluída: todos os 41 estão presentes.");
+}
+function choose(kind,files){selected={kind:kind,files:Array.from(files)};el("uploadButton").disabled=!selected.files.length;el("selectedStatus").textContent=selected.files.length+" arquivo(s) selecionado(s) — "+(kind==="zip"?"ZIPs":"áudios")+".";}
+el("zipInput").addEventListener("change",function(){el("folderInput").value="";el("filesInput").value="";choose("zip",this.files)});
+el("folderInput").addEventListener("change",function(){el("zipInput").value="";el("filesInput").value="";choose("folder",this.files)});
+el("filesInput").addEventListener("change",function(){el("zipInput").value="";el("folderInput").value="";choose("files",this.files)});
+function jszip(){return new Promise(function(resolve,reject){if(window.JSZip)return resolve(window.JSZip);var sc=document.createElement("script");sc.src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js";sc.onload=function(){window.JSZip?resolve(window.JSZip):reject(Error("Não foi possível carregar o leitor de ZIP"))};sc.onerror=function(){reject(Error("Não foi possível carregar o leitor de ZIP"))};document.head.appendChild(sc)})}
+async function uploadOne(key,blob,count){
+if(!allowed.has(key)){log("Ignorado (não está no catálogo): "+key);return count}
+if(uploaded.has(key)){log("Ignorado repetido: "+key);return count}
+var result=await client.storage.from(BUCKET).upload(key,blob,{upsert:true,contentType:"audio/mp4",cacheControl:"3600"});
+if(result.error){failures.push(key+": "+result.error.message);log("ERRO "+key+" — "+result.error.message)}else{uploaded.add(key);log("OK "+key)}
+el("progress").value=uploaded.size;say("Enviados "+uploaded.size+" de 41. "+failures.length+" falha(s).",failures.length>0);
+return count+1;
+}
+var uploaded,failures;
+async function run(){
+if(busy||!selected||!selected.files.length)return;
+busy=true;uploaded=new Set();failures=[];el("uploadButton").disabled=true;el("checkButton").disabled=true;el("progress").value=0;el("log").textContent="";
+try{
+var count=0;
+if(selected.kind==="zip"){
+var Zip=await jszip();
+for(var file of selected.files){
+log("Abrindo "+file.name+"...");
+var zip=await Zip.loadAsync(file);
+for(var entry of Object.values(zip.files)){
+if(entry.dir||!entry.name.toLowerCase().endsWith(".m4a"))continue;
+var key=canonical(entry.name);
+if(!key){log("Não reconhecido: "+entry.name);continue}
+try{var blob=await entry.async("blob");count=await uploadOne(key,blob,count)}catch(e){failures.push(key+": "+e.message);log("ERRO "+key+": "+e.message)}
+}
+}
+}else{
+for(var file of selected.files){
+if(!file.name.toLowerCase().endsWith(".m4a"))continue;
+var key=canonical(file.webkitRelativePath||file.name);
+if(!key){log("Não reconhecido: "+file.name);continue}
+try{count=await uploadOne(key,file,count)}catch(e){failures.push(key+": "+e.message);log("ERRO "+key+": "+e.message)}
+}
+}
+say("Envio encerrado: "+uploaded.size+" arquivos enviados. "+failures.length+" falha(s). "+(uploaded.size===41?"Todos os podcasts foram enviados!":"Podes selecionar novamente os arquivos restantes e tentar de novo."),failures.length>0);
+await check();
+}catch(e){say("O envio foi interrompido: "+e.message,true);log("Falha geral: "+e.message)}
+finally{busy=false;el("uploadButton").disabled=false;el("checkButton").disabled=false;}
+}
+el("uploadButton").addEventListener("click",run);el("checkButton").addEventListener("click",check);
+el("authForm").addEventListener("submit",async function(e){e.preventDefault();el("loginButton").disabled=true;el("loginStatus").textContent="Entrando...";try{var fd=new FormData(e.target);var r=await client.auth.signInWithPassword({email:String(fd.get("email")).trim(),password:String(fd.get("password"))});if(r.error)throw r.error;authView(r.data.user);el("loginStatus").textContent="";await check()}catch(err){el("loginStatus").textContent="Não foi possível entrar: "+err.message}finally{el("loginButton").disabled=false}});
+el("logoutButton").addEventListener("click",async function(){await client.auth.signOut();authView(null)});
+(async function init(){try{if(!window.supabase)throw Error("Não foi possível carregar o serviço de login.");client=window.supabase.createClient(BASE,KEY);var r=await client.auth.getUser();authView(r.data?.user||null);if(r.data?.user)await check();}catch(e){el("loginStatus").textContent="Erro de conexão: "+e.message}})();
+})();
+</script></body></html>
