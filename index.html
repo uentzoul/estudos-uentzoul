@@ -562,7 +562,7 @@ function registerAudioFile(key,file){
 function currentAudioSource(){return audioObjectURLs[currentEpisodeKey()]||currentAudioPath()}
 function updatePickedAudioLabels(){
  const count=$('audioFilesStatus');
- if(count)count.textContent=`${totalAudioFiles()} de 32 arquivos de áudio selecionados nesta sessão`;
+ if(count)count.textContent=`${totalAudioFiles()} arquivo(s) escolhido(s) manualmente (opcional)`;
  document.querySelectorAll('[data-audio-index]').forEach((el,i)=>{
   const key=episodeKey(current.audioSubject,i);
   const available=!!audioLocalFiles[key];
@@ -684,7 +684,7 @@ function renderAudio(){
  <span class="ep-status ${episodeReady.has(audioKey(k,i))?'ready':''}" data-status-key="${k}:${i}">${readyStatus(k,i)}</span>
  ${doneBox(`audio:${k}:${e.n}`)}</div>`).join('');
  return `${head('Material em áudio','Biblioteca de podcasts','Agora os episódios são baixados individualmente, somente quando tu escolher.')}
- <div class="audio-tabs">${tabs}</div>
+ <div class="audio-tabs">${tabs}</div>${k==='social'?'<p class="small">6 episódios disponíveis; outros 2 ainda não foram enviados.</p>':''}
  <div class="audio-helper"><b>↓ Baixar</b> guarda o episódio no navegador para ouvir depois. <b>▶ Ouvir</b> toca o episódio baixado; se ainda não estiver baixado, faz o download primeiro. Não é preciso baixar todos de uma vez.<p class="small" style="margin:8px 0 0">Os arquivos precisam estar disponíveis no endereço do site. Apenas o HTML, sem os áudios publicados, não consegue baixá-los. O navegador pode apagar arquivos guardados para liberar espaço.</p></div>
  <section class="audio-progress"><div class="statline"><span>Progresso em ${esc(name)}</span><strong id="audioCompletedCount">${done}/${eps.length} concluídos</strong></div><div class="progressline"><div id="audioCompletedBar" style="width:${fmtPct(done,eps.length)}%"></div></div><p class="small" style="margin:8px 0 0">As caixinhas de concluído são independentes dos downloads.</p></section>
  <section class="section"><div class="audiohead"><div class="eyebrow" style="color:#a9bfd5">${k==='tcc'?'TCC: capítulos individuais':'Áudios separados por episódio'}</div><h2 style="margin:0;font-size:20px" id="audioPlayingTitle">${esc(eps[chosen].title)}</h2><p class="small">Escolhe um episódio e toca em ▶; o download ocorrerá apenas para ele.</p>
@@ -729,7 +729,7 @@ async function preparePodcast(k,i,autoplay=false){const key=audioKey(k,i),ep=pod
       const status=$('audioStatus');if(status&&current.page==='audio')status.textContent='Baixando '+ep.title+'…';
       const url=episodeUri(k,i);
       if(!url)throw new Error('Este episódio ainda não tem um link de áudio.');
-      if(!/^https?:$/.test(location.protocol))throw new Error('O download sob demanda requer que o site e os áudios estejam publicados num endereço HTTPS. Abrir só o arquivo HTML não fornece os áudios.');
+      if(!/^https?:$/.test(location.protocol))throw new Error('Para baixar os áudios, abra o site pelo endereço publicado (HTTPS) ou use um servidor local. Abrir apenas o HTML não permite carregar os arquivos.');
       const r=await fetch(url,{credentials:'same-origin'});
       if(!r.ok)throw new Error('Arquivo de áudio indisponível no servidor (HTTP '+r.status+').');
       const type=r.headers.get('content-type')||'';
