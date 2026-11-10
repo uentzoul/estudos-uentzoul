@@ -909,9 +909,23 @@ function reviewHTML(q,answer){if(q.type==='essay')return `<div class="review"><h
  if(q.type==='combo'){let ok=String(answer)===String(q.answer);return `<div class="review"><span class="pill ${ok?'ok':'warn'}">${ok?'Acertou':'Resposta incorreta / não respondida'}</span><div class="why good"><b>Gabarito: ${'ABCDE'[q.answer]}.</b> ${esc(q.options[q.answer])}</div>${q.assertions.map(s=>`<div class="why ${s.truth?'good':'bad'}"><b>${s.l}. ${s.truth?'Verdadeira':'Falsa'}.</b> ${esc(s.why)}</div>`).join('')}<h4 style="margin-top:12px">Por que as alternativas estão certas ou erradas</h4>${q.options.map((o,i)=>`<div class="why ${i===q.answer?'good':'neutral'}"><b>${'ABCDE'[i]} — ${i===q.answer?'correta':'incorreta'}.</b> ${i===q.answer?'Contém exatamente as assertivas verdadeiras.':'Inclui afirmação falsa ou deixa de incluir afirmação verdadeira.'} ${esc(o)}</div>`).join('')}</div>`}
  let ok=String(answer)===String(q.answer);return `<div class="review"><span class="pill ${ok?'ok':'warn'}">${ok?'Acertou':'Resposta incorreta / não respondida'}</span><div class="why good"><b>Alternativa correta: ${'ABCDE'[q.answer]}.</b> ${esc(q.options[q.answer].why)}</div><h4 style="margin-top:12px">Comentário de cada alternativa</h4>${q.options.map((o,i)=>`<div class="why ${i===q.answer?'good':'neutral'}"><b>${'ABCDE'[i]} — ${i===q.answer?'correta':'não é a melhor resposta'}.</b> ${esc(o.why)}</div>`).join('')}</div>`;
 }
-function renderLibrary(){let list=DB.materials.filter(m=>(current.filter==='todos'||m.subject===current.filter)&&(m.title+' '+m.note).toLocaleLowerCase().includes(current.search.toLocaleLowerCase()));let available=list.filter(x=>x.available);let absent=list.filter(x=>!x.available);return `${head('Textos e arquivos','Biblioteca','Textos-base e slides disponíveis; referências sem arquivo aparecem separadas e identificadas.')}
-<div class="panel" style="margin-top:19px"><div class="topline"><div class="filters" id="filterlist">${[['todos','Todos'],['geral','Caderno'],...Object.entries(DB.subjects).map(([k,v])=>[k,v.name])].map(([k,l])=>`<button class="filter ${current.filter===k?'active':''}" data-action="filter:${k}">${esc(l)}</button>`).join('')}</div><input class="searchbox" id="matSearch" placeholder="Buscar material..." value="${esc(current.search)}" aria-label="Buscar material"></div></div>
-<section class="section"><div class="sectiontop"><h2>Arquivos para abrir</h2><span class="small">${available.length} resultados</span></div>${available.length?`<div class="doclist">${available.map(docCard).join('')}</div>`:`<div class="empty">Nenhum arquivo encontrado para essa busca.</div>`}</section>${absent.length?`<section class="section"><div class="sectiontop"><h2>Referências ainda sem arquivo</h2><span class="small">${absent.length} itens</span></div><div class="doclist">${absent.map(docCard).join('')}</div></section>`:''}<div class="footer">Abrir PDF exige manter a pasta “biblioteca” ao lado do arquivo index.html. Links externos precisam de internet.</div>`}
+function renderLibrary(){
+ const list=DB.materials.filter(m=>(current.filter==='todos'||m.subject===current.filter)&&(m.title+' '+m.note).toLocaleLowerCase().includes(current.search.toLocaleLowerCase()));
+ const ids=['geral',...Object.keys(DB.subjects)];
+ const blocks=ids.filter(k=>list.some(m=>m.subject===k)).map(k=>{
+  const materials=list.filter(m=>m.subject===k),label=k==='geral'?'Cadernos integrados':DB.subjects[k].name;
+  const available=materials.filter(m=>m.available).length;
+  return '<section class="library-group" style="--group-accent:'+(k==='geral'?'#7164d9':color(k))+'">'+
+  '<div class="library-head"><span class="library-subject-mark" aria-hidden="true"></span><h2>'+esc(label)+'</h2><span>'+available+' disponíveis · '+(materials.length-available)+' ainda sem arquivo</span></div>'+
+  organizedSubjectMaterials(materials)+'</section>';
+ }).join('');
+ return head('Acervo de estudos','Biblioteca organizada','Materiais separados por disciplina e tipo, com identificação do que já está disponível.')+
+ '<div class="panel library-filter-panel"><div class="topline"><div class="filters" id="filterlist">'+
+ [['todos','Todos'],['geral','Cadernos'],...Object.entries(DB.subjects).map(([k,v])=>[k,v.name])].map(([k,l])=>'<button class="filter '+(current.filter===k?'active':'')+'" data-action="filter:'+k+'">'+esc(l)+'</button>').join('')+
+ '</div><input class="searchbox" id="matSearch" placeholder="Buscar material..." value="'+esc(current.search)+'" aria-label="Buscar material"></div></div>'+
+ (blocks||'<section class="section"><div class="empty">Nenhum material corresponde a essa busca.</div></section>')+
+ '<div class="footer">Arquivos PDF e links externos podem exigir conexão com a internet.</div>';
+}
 function audioSelectionIndex(){return current.audioSubject==='tcc'?currentChapter:currentEpisode;}
 function audioKey(k,i){return k+':'+i;}
 function podcastEpisode(k,i){return audioEpisodes(k)[i];}
@@ -1066,8 +1080,18 @@ document.addEventListener('change',e=>{if(!e.target.matches('[data-complete]'))r
 });
 document.addEventListener('change',e=>{const q=e.target.dataset.qid;if(!q||current.page!=='test')return;if(!store.answers[current.exam])store.answers[current.exam]={};store.answers[current.exam][q]=e.target.value;persist();let line=document.querySelector('.statline span');if(line){const ex=DB.exams.find(x=>x.id===current.exam);let n=ex.questions.filter(x=>String(store.answers[current.exam][x.id]??'').trim()).length;line.textContent=`${n} de ${ex.questions.length} respondidas`;let pb=document.querySelector('.progressline>div');if(pb)pb.style.width=`${n/ex.questions.length*100}%`}});
 document.addEventListener('change',e=>{if(e.target.id==='chooseAllAudio'){addAudioFiles(e.target.files);return}if(e.target.id==='chooseAudio'){addAudioFiles(e.target.files,true);return}if(e.target.id==='importProgress'){const f=e.target.files?.[0];if(!f)return;f.text().then(x=>{try{const d=JSON.parse(x);if(!d||typeof d!=='object'||!d.answers||!d.results)throw 0;store.answers={...store.answers,...d.answers};store.results={...store.results,...d.results};persist();render();toast('Progresso importado.')}catch{toast('Arquivo de progresso inválido.')}});return}},true);
-document.addEventListener('input',e=>{if(e.target.id==='matSearch'){current.search=e.target.value; // Preserve focus and caret by filtering cards only
- const items=[...document.querySelectorAll('.doc')];items.forEach(i=>{let txt=i.textContent.toLocaleLowerCase();i.style.display=txt.includes(current.search.toLocaleLowerCase())?'':'none'});return}if(e.target.matches('.essay')&&current.page==='test'){let q=e.target.dataset.qid;if(!store.answers[current.exam])store.answers[current.exam]={};store.answers[current.exam][q]=e.target.value;persist();}});
+document.addEventListener('input',e=>{if(e.target.id==='matSearch'){current.search=e.target.value;
+ const q=current.search.toLocaleLowerCase();
+ document.querySelectorAll('.library-group').forEach(group=>{
+  let visibleTotal=0;
+  group.querySelectorAll('.material-block').forEach(block=>{
+   let visible=0;
+   block.querySelectorAll('.doc').forEach(item=>{const match=item.textContent.toLocaleLowerCase().includes(q);item.style.display=match?'':'none';if(match)visible++});
+   block.style.display=visible?'':'none';visibleTotal+=visible;
+  });
+  group.style.display=visibleTotal?'':'none';
+ });
+ return}if(e.target.matches('.essay')&&current.page==='test'){let q=e.target.dataset.qid;if(!store.answers[current.exam])store.answers[current.exam]={};store.answers[current.exam][q]=e.target.value;persist();}});
 window.addEventListener('beforeunload',persist);
 if(location.hash.startsWith('#')){const h=decodeURIComponent(location.hash.slice(1));if(DB.subjects[h]){current.page='subject';current.subject=h}else if(DB.exams.some(e=>e.id===h)){current.page='test';current.exam=h}else if(['home','exams','library','audio','calendar'].includes(h))current.page=h}
 try{render();document.documentElement.classList.add('app-ready');}catch(e){console.error('Inicialização da Central falhou',e);}
