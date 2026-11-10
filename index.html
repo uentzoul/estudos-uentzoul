@@ -799,9 +799,14 @@ const go=(page,extra={})=>{
 };
 const button=(label,act,cl='btn light')=>`<button class="${cl}" data-action="${act}">${label}</button>`;
 function subjectCard(id){
- const subj=getSubject(id), exams=DB.exams.filter(e=>e.subject===id), sims=doneCount(exams.map(e=>`sim:${e.id}`));
- const keys=subjectKeys(id), n=doneCount(keys);
- return `<article class="subjectcard" style="--accent:${color(id)}"><div><div class="small">${esc(subj.exam)} · ${dformat(subj.date)}</div><div class="cardtitle">${esc(subj.name)}</div></div><div class="small">${sims} de 3 simulados marcados · ${n}/${keys.length} atividades concluídas</div><div class="progressline"><div style="width:${fmtPct(n,keys.length)}%"></div></div><div class="cardbase"><span class="pill">${fmtPct(n,keys.length)}% concluído</span><button class="plainlink" data-action="subject:${id}">Abrir matéria →</button></div></article>`;
+ const subj=getSubject(id), exams=DB.exams.filter(e=>e.subject===id), sims=doneCount(exams.map(e=>'sim:'+e.id)), keys=subjectKeys(id),n=doneCount(keys);
+ const symbol={tcc:'T',familia:'F',meta:'M',grupos:'G',social:'S',avaliacao:'A'}[id]||'Ψ';
+ return '<article class="subjectcard" style="--accent:'+color(id)+'">'+
+ '<div class="subject-top"><span class="subject-symbol" aria-hidden="true">'+symbol+'</span><span class="subject-date">'+esc(subj.exam)+' · '+dformat(subj.date)+'</span></div>'+
+ '<div class="cardtitle">'+esc(subj.name)+'</div>'+
+ '<div class="subject-meta">'+n+' de '+keys.length+' atividades · '+sims+' de '+exams.length+' simulados</div>'+
+ '<div class="progressline"><div style="width:'+fmtPct(n,keys.length)+'%"></div></div>'+
+ '<div class="cardbase"><span class="pill">'+fmtPct(n,keys.length)+'% concluído</span><button class="plainlink" data-action="subject:'+id+'">Abrir matéria →</button></div></article>';
 }
 function renderNav(){
  document.querySelectorAll('[data-semester]').forEach(b=>{const active=b.dataset.semester===semester;b.classList.toggle('active',active);b.setAttribute('aria-pressed',String(active))});
@@ -810,24 +815,32 @@ function renderNav(){
  const nav=$('subjectNav');nav.innerHTML=Object.keys(DB.subjects).map(k=>`<button class="sidebtn ${current.subject===k && current.page==='subject'?'active':''}" data-action="subject:${k}"><i style="color:${color(k)}">●</i> ${esc(getSubject(k).name)}</button>`).join('');if(!Object.keys(DB.subjects).length)nav.innerHTML='<p class="semester-subjects-empty">As matérias de 2027/1 ainda não foram adicionadas.</p>';document.querySelectorAll('[data-page]').forEach(b=>b.classList.toggle('active',b.dataset.page===current.page));}
 function head(k,h,sub){return `<div class="eyebrow">${esc(k)}</div><h1 class="h1">${esc(h)}</h1>${sub?`<p class="lead">${esc(sub)}</p>`:''}`}
 function renderHome(){
- let order=Object.keys(DB.subjects).sort((a,b)=>getSubject(a).date.localeCompare(getSubject(b).date));
- let graded=Object.keys(store.results).filter(k=>DB.exams.some(e=>e.id===k)).length;
- let all=overallKeys(), total=doneCount(all);
- let audioTotal=Object.keys(DB.audio).reduce((n,k)=>n+audioEpisodes(k).length,0);
- let audioDone=Object.keys(DB.audio).reduce((n,k)=>n+doneCount(audioEpisodes(k).map(e=>`audio:${k}:${e.n}`)),0);
- let topics=Object.keys(DB.topics).reduce((a,k)=>a+DB.topics[k].length,0);
- let topicsDone=Object.keys(DB.topics).reduce((a,k)=>a+doneCount(DB.topics[k].map((_,i)=>topicProgressKey(k,i))),0);
- return `${head('Seu espaço de revisão','Tudo para as próximas provas','Matérias, textos, podcasts e simulados no mesmo lugar. Marca o que já consumiu e acompanha teu progresso.')}
-<section class="section"><div class="sectiontop"><h2>Disciplinas</h2><span class="small">6 matérias · 18 simulados · ${audioTotal} episódios de áudio</span></div><div class="cards">${order.map(subjectCard).join('')}</div></section>
-<section class="section"><div class="two"><div class="panel"><div class="sectiontop"><h2>Próximas avaliações</h2><button class="plainlink" data-action="page:calendar">Ver agenda</button></div><div class="daylist">${order.map(k=>{let s=getSubject(k);return `<div class="dayrow"><span class="daydate date">${dformat(s.date)}</span><span class="daytitle">${esc(s.name)}</span><span class="datecount">${esc(s.exam)}</span></div>`}).join('')}</div><div class="alert info" style="margin-top:14px">Família e TCC usam as datas que tu confirmou depois. Os cronogramas anteriores mostram datas diferentes; confere no Moodle se necessário.</div></div><div class="panel"><div class="sectiontop"><h2>Meu progresso</h2><span class="pill">salvo automaticamente neste navegador</span></div>
-<div class="statline"><span>Atividades marcadas como concluídas</span><strong>${total}/${all.length}</strong></div><div class="progressline"><div style="width:${fmtPct(total,all.length)}%"></div></div>
-<div class="statline" style="margin-top:14px"><span>Episódios / capítulos ouvidos</span><strong>${audioDone}/${audioTotal}</strong></div>
-<div class="statline"><span>Conteúdos teóricos revisados</span><strong>${topicsDone}/${topics}</strong></div>
-<div class="statline"><span>Simulados entregues</span><strong>${graded}/18</strong></div>
-<p class="small" style="margin-top:10px">A caixinha de concluído é uma marcação manual. O resultado do simulado continua registrado separadamente.</p>
-<div class="actions" style="margin-top:16px">${button('Fazer simulados','page:exams','btn')}${button('Ouvir podcasts','page:audio')}</div>
-<div class="actions" style="margin-top:10px">${button('Exportar progresso','export','btn ghost')}${button('Importar progresso','import','btn ghost')}</div><input type="file" accept="application/json,.json" id="importProgress" style="display:none"></div></div></section>
-<div class="footer">As respostas dissertativas são avaliadas por critérios de estudo, não por uma IA conectada. O status salvo só acompanha teu próprio consumo de conteúdos.</div>`;
+ const order=Object.keys(DB.subjects).sort((a,b)=>getSubject(a).date.localeCompare(getSubject(b).date));
+ const graded=Object.keys(store.results).filter(k=>DB.exams.some(e=>e.id===k)).length,all=overallKeys(),total=doneCount(all);
+ const audioTotal=Object.keys(DB.audio).reduce((n,k)=>n+audioEpisodes(k).length,0);
+ const audioDone=Object.keys(DB.audio).reduce((n,k)=>n+doneCount(audioEpisodes(k).map(e=>'audio:'+k+':'+e.n)),0);
+ const topics=Object.keys(DB.topics).reduce((n,k)=>n+DB.topics[k].length,0);
+ const topicsDone=Object.keys(DB.topics).reduce((n,k)=>n+doneCount(DB.topics[k].map((_,i)=>topicProgressKey(k,i))),0);
+ const pct=fmtPct(total,all.length);
+ return '<header class="dashboard-hero"><div class="hero-copy"><span class="hero-kicker"><span class="hero-dot"></span> Psicologia PUCRS · '+esc(semester)+'</span>'+
+ '<h1>Teu espaço de estudos.</h1><p>Conteúdos, arquivos, simulados e podcasts organizados por disciplina. Acompanha teu progresso e encontra o material certo com facilidade.</p>'+
+ '<div class="hero-shortcuts"><button data-action="page:library">Explorar biblioteca ↗</button><button class="secondary" data-action="page:exams">Praticar simulados →</button></div></div>'+
+ '<div class="hero-status"><span>Progresso do semestre</span><strong>'+pct+'%</strong><div class="hero-bar"><b style="width:'+pct+'%"></b></div><span class="hero-label">'+total+' de '+all.length+' atividades</span></div></header>'+
+ '<div class="overview-strip"><div class="overview-stat"><span>Disciplinas</span><strong>'+order.length+'</strong></div>'+
+ '<div class="overview-stat"><span>Simulados feitos</span><strong>'+graded+'/'+DB.exams.length+'</strong></div>'+
+ '<div class="overview-stat"><span>Podcasts ouvidos</span><strong>'+audioDone+'/'+audioTotal+'</strong></div></div>'+
+ '<section class="section"><div class="sectiontop"><h2>Disciplinas</h2><span class="small">'+order.length+' matérias · '+DB.exams.length+' simulados · '+audioTotal+' episódios</span></div><div class="cards">'+order.map(subjectCard).join('')+'</div></section>'+
+ '<section class="section"><div class="two"><div class="panel"><div class="sectiontop"><h2>Agenda de avaliações</h2><button class="plainlink" data-action="page:calendar">Ver agenda →</button></div>'+
+ '<div class="daylist">'+order.map(k=>{const item=getSubject(k);return '<div class="dayrow"><span class="daydate date">'+dformat(item.date)+'</span><span class="daytitle">'+esc(item.name)+'</span><span class="datecount">'+esc(item.exam)+'</span></div>'}).join('')+'</div>'+
+ '<div class="alert info" style="margin-top:11px">Família e TCC seguem as datas mais recentes informadas. Confere o Moodle se houver atualização.</div></div>'+
+ '<div class="panel"><div class="sectiontop"><h2>Meu progresso</h2><span class="pill">Salvo automaticamente</span></div>'+
+ '<div class="statline"><span>Atividades concluídas</span><strong>'+total+'/'+all.length+'</strong></div><div class="progressline"><div style="width:'+pct+'%"></div></div>'+
+ '<div class="statline" style="margin-top:13px"><span>Conteúdos revisados</span><strong>'+topicsDone+'/'+topics+'</strong></div>'+
+ '<div class="statline"><span>Podcasts ouvidos</span><strong>'+audioDone+'/'+audioTotal+'</strong></div>'+
+ '<div class="statline"><span>Simulados respondidos</span><strong>'+graded+'/'+DB.exams.length+'</strong></div>'+
+ '<div class="actions" style="margin-top:13px">'+button('Exportar progresso','export','btn light')+button('Importar progresso','import','btn ghost')+'</div>'+
+ '<input type="file" accept="application/json,.json" id="importProgress" style="display:none"></div></div></section>'+
+ '<div class="footer">O progresso é marcado manualmente. Respostas dissertativas são avaliadas por critérios de estudo.</div>';
 }
 function examCard(e){let r=store.results[e.id];let done=isDone(`sim:${e.id}`);return `<article class="examcard"><div class="topline" style="align-items:center"><span class="pill ${r?'ok':''}">${r?'Entregue':'Não entregue'}</span>${doneBox(`sim:${e.id}`)}</div><h3>${esc(e.title)}</h3><div class="exammeta">${e.questions.length} questões · ${e.questions.filter(q=>q.type==='essay').length} dissertativas</div>${r?`<div class="exammeta" style="margin-top:5px">Objetivas e V/F: ${r.correct}/${r.total} acertos</div>`:''}<button class="btn light wide" data-action="test:${e.id}">${r?'Rever / refazer':'Iniciar simulado'}</button></article>`;}
 function docCard(m){let id=`material:${m.url||m.source}`;return `<div class="doc"><span class="docicon">${m.kind==='Vídeo'?'▶':m.kind==='DOCX'?'DOC':m.kind==='PDF'?'PDF':'TXT'}</span><div class="inlinegrow" style="min-width:0"><div class="docname">${esc(m.title)}</div><div class="docnote">${esc(m.note||m.kind)}</div></div><div class="actions">${m.available?`<a href="${esc(m.url)}" target="_blank" rel="noopener" class="barlink">Abrir ↗</a>`:`<span class="pill">Não anexado</span>`}</div>${m.available?doneBox(id):''}</div>`;}
