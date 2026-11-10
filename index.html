@@ -845,16 +845,51 @@ function renderHome(){
 function examCard(e){let r=store.results[e.id];let done=isDone(`sim:${e.id}`);return `<article class="examcard"><div class="topline" style="align-items:center"><span class="pill ${r?'ok':''}">${r?'Entregue':'Não entregue'}</span>${doneBox(`sim:${e.id}`)}</div><h3>${esc(e.title)}</h3><div class="exammeta">${e.questions.length} questões · ${e.questions.filter(q=>q.type==='essay').length} dissertativas</div>${r?`<div class="exammeta" style="margin-top:5px">Objetivas e V/F: ${r.correct}/${r.total} acertos</div>`:''}<button class="btn light wide" data-action="test:${e.id}">${r?'Rever / refazer':'Iniciar simulado'}</button></article>`;}
 function docCard(m){let id=`material:${m.url||m.source}`;return `<div class="doc"><span class="docicon">${m.kind==='Vídeo'?'▶':m.kind==='DOCX'?'DOC':m.kind==='PDF'?'PDF':'TXT'}</span><div class="inlinegrow" style="min-width:0"><div class="docname">${esc(m.title)}</div><div class="docnote">${esc(m.note||m.kind)}</div></div><div class="actions">${m.available?`<a href="${esc(m.url)}" target="_blank" rel="noopener" class="barlink">Abrir ↗</a>`:`<span class="pill">Não anexado</span>`}</div>${m.available?doneBox(id):''}</div>`;}
 
+function materialGroup(m){
+ const name=(m.title||'').toLocaleLowerCase('pt-BR'),kind=(m.kind||'').toLocaleLowerCase('pt-BR');
+ if(/cronograma|plano e cronograma|calendário/.test(name))return 'Cronogramas e planejamento';
+ if(/caderno|roteiro|estudo dirigido|guia|apostila|matéria da prova|leitura das aulas|revisão/.test(name))return 'Guias e materiais de revisão';
+ if(kind==='vídeo'||kind==='link')return 'Vídeos e referências online';
+ if(kind==='bibliografia'||/cap\.|vocabulário|dicionário|laplanche|roudinesco|manual/.test(name))return 'Textos-base e bibliografia';
+ if(/slides|tópica|édipo|pulsão|angústia|devolução|anamnese|violência intrafamiliar|segredos e adoção|famílias monoparentais|entrevista|esquema/.test(name))return 'Aulas e apresentações';
+ return 'Materiais complementares';
+}
+function organizedMaterialBlock(materials,pending=false){
+ const order=['Cronogramas e planejamento','Aulas e apresentações','Guias e materiais de revisão','Textos-base e bibliografia','Vídeos e referências online','Materiais complementares','Referências ainda sem arquivo'];
+ const groups=new Map();
+ for(const m of materials){const title=pending?'Referências ainda sem arquivo':materialGroup(m);if(!groups.has(title))groups.set(title,[]);groups.get(title).push(m);}
+ return order.filter(name=>groups.has(name)).map(name=>{
+  const list=groups.get(name);
+  return '<div class="material-block"><h3>'+esc(name)+'<span>'+list.length+' '+(list.length===1?'item':'itens')+'</span></h3><div class="doclist">'+list.map(docCard).join('')+'</div></div>';
+ }).join('');
+}
+function organizedSubjectMaterials(materials){
+ const available=materials.filter(m=>m.available),pending=materials.filter(m=>!m.available);
+ return (available.length?organizedMaterialBlock(available):'<div class="empty">Nenhum arquivo disponível.</div>')+(pending.length?organizedMaterialBlock(pending,true):'');
+}
 function renderSubject(k){
- const subj=getSubject(k), docs=DB.materials.filter(x=>x.subject===k), topics=DB.topics[k], tests=DB.exams.filter(x=>x.subject===k);
- const keys=subjectKeys(k), n=doneCount(keys), audioN=audioEpisodes(k).length;
- let stats=[['Tópicos',doneCount(topics.map((_,i)=>topicProgressKey(k,i))),topics.length],['Materiais',doneCount(docs.filter(x=>x.available).map(m=>`material:${m.url||m.source}`)),docs.filter(x=>x.available).length],['Simulados',doneCount(tests.map(e=>`sim:${e.id}`)),tests.length],['Áudios',doneCount(audioEpisodes(k).map(e=>`audio:${k}:${e.n}`)),audioN]];
- return `<div class="crumb"><button class="plainlink" data-action="page:home">Início</button> / ${esc(subj.name)}</div><div class="panel subjecthero" style="--accent:${color(k)}"><div class="subjectheader"><div><div class="eyebrow">${esc(subj.exam)} · ${dformat(subj.date)}</div><h1 class="h1">${esc(subj.name)}</h1><div class="small" style="margin-top:4px">${esc(subj.full)}</div></div><div class="actions">${button('Simulados','scroll:tests','btn')}${button('Textos e PDFs','scroll:docs')}${audioN?button('Ouvir podcasts',`audioFor:${k}`):''}</div></div><div class="tagrow"><span class="pill">${delta(subj.date)}</span><span class="pill" id="subjectDoneCount">${n}/${keys.length} concluídos</span><span class="pill" id="subjectDonePercent">${fmtPct(n,keys.length)}% de progresso</span></div><div class="progressline" style="margin-top:12px"><div id="subjectDoneBar" style="width:${fmtPct(n,keys.length)}%"></div></div><div class="subject-progress-grid">${stats.map(x=>`<div class="subject-progress-cell"><strong data-subject-stat="${x[0]}">${x[1]}/${x[2]}</strong><span>${x[0]}</span></div>`).join('')}</div><div class="subjectline"></div><div class="notebar">${esc(subj.source)}</div></div>
-<section class="section" id="tests"><div class="sectiontop"><h2>Treinar para a prova</h2><span class="small">Marca cada simulado que já concluiu</span></div><div class="examgrid">${tests.map(examCard).join('')}</div><p class="small" style="margin-top:10px">${esc(subj.style)}</p></section>
-<section class="section" id="docs"><div class="sectiontop"><h2>Biblioteca da matéria</h2><span class="small">${docs.filter(d=>d.available).length} arquivos / links disponíveis</span></div><div class="doclist">${docs.map(docCard).join('')}</div></section>
-<section class="section"><div class="sectiontop"><h2>O que revisar</h2><span class="small">Abra um tema para ler a explicação e marque OK quando revisar</span></div><div class="topicgrid">${topics.map((t,i)=>`<div class="topicunit ${isDone(topicProgressKey(k,i))?'is-done':''}"><details class="topic"><summary>${i+1}. ${esc(t.title)}</summary><p>${esc(t.definition)}</p><p><strong>Exemplo:</strong> ${esc(t.scenario)}</p><p><strong>Erro comum:</strong> ${esc(t.myth)}</p></details><div class="topicfoot">${doneBox(topicProgressKey(k,i))}</div></div>`).join('')}</div></section>
-${audioN?`<section class="section"><div class="panel"><div class="sectiontop"><h2>Podcasts de ${esc(subj.name)}</h2><button class="plainlink" data-action="audioFor:${k}">Abrir ${audioN} ${k==='tcc'?'capítulos':'episódios'}</button></div><p class="small">${audioN} ${k==='tcc'?'capítulos reunidos em um áudio':'arquivos de áudio'} disponíveis no player. Cada episódio tem sua própria marcação de concluído.</p>${button('Ir para os podcasts',`audioFor:${k}`,'btn')}</div></section>`:''}
-<div class="footer">Os resumos e os simulados novos são explicações didáticas; não substituem as orientações oficiais dos professores.</div>`;
+ const subj=getSubject(k),docs=DB.materials.filter(x=>x.subject===k),topics=DB.topics[k],tests=DB.exams.filter(x=>x.subject===k);
+ const keys=subjectKeys(k),n=doneCount(keys),audioN=audioEpisodes(k).length;
+ const stats=[['Tópicos',doneCount(topics.map((_,i)=>topicProgressKey(k,i))),topics.length],
+ ['Materiais',doneCount(docs.filter(x=>x.available).map(m=>'material:'+(m.url||m.source))),docs.filter(x=>x.available).length],
+ ['Simulados',doneCount(tests.map(e=>'sim:'+e.id)),tests.length],
+ ['Áudios',doneCount(audioEpisodes(k).map(e=>'audio:'+k+':'+e.n)),audioN]];
+ return '<div class="crumb"><button class="plainlink" data-action="page:home">Início</button> / '+esc(subj.name)+'</div>'+
+ '<div class="panel subjecthero" style="--accent:'+color(k)+'"><div class="subjectheader"><div><div class="eyebrow">'+esc(subj.exam)+' · '+dformat(subj.date)+'</div><h1 class="h1">'+esc(subj.name)+'</h1><div class="small" style="margin-top:5px">'+esc(subj.full)+'</div></div>'+
+ '<div class="actions">'+button('Fazer simulados','scroll:tests','btn')+button('Ver materiais','scroll:docs','btn light')+'</div></div>'+
+ '<div class="tagrow"><span class="pill">'+delta(subj.date)+'</span><span class="pill" id="subjectDoneCount">'+n+'/'+keys.length+' concluídos</span><span class="pill" id="subjectDonePercent">'+fmtPct(n,keys.length)+'% de progresso</span></div>'+
+ '<div class="progressline" style="margin-top:12px"><div id="subjectDoneBar" style="width:'+fmtPct(n,keys.length)+'%"></div></div>'+
+ '<div class="subject-progress-grid">'+stats.map(item=>'<div class="subject-progress-cell"><strong data-subject-stat="'+item[0]+'">'+item[1]+'/'+item[2]+'</strong><span>'+item[0]+'</span></div>').join('')+'</div>'+
+ '<div class="subjectline"></div><div class="notebar">'+esc(subj.source)+'</div></div>'+
+ '<nav class="section-nav" aria-label="Seções da disciplina"><button data-action="scroll:topics">Conteúdos para revisar</button><button data-action="scroll:docs">Materiais e textos</button><button data-action="scroll:tests">Simulados</button>'+(audioN?'<button data-action="audioFor:'+k+'">Podcasts →</button>':'')+'</nav>'+
+ '<section class="section" id="topics"><div class="sectiontop"><h2>Conteúdos para revisar</h2><span class="small">'+topics.length+' tópicos de estudo</span></div>'+
+ '<div class="topicgrid">'+topics.map((t,i)=>'<div class="topicunit '+(isDone(topicProgressKey(k,i))?'is-done':'')+'"><details class="topic"><summary>'+(i+1)+'. '+esc(t.title)+'</summary><p>'+esc(t.definition)+'</p><p><strong>Exemplo:</strong> '+esc(t.scenario)+'</p><p><strong>Erro comum:</strong> '+esc(t.myth)+'</p></details><div class="topicfoot">'+doneBox(topicProgressKey(k,i))+'</div></div>').join('')+'</div></section>'+
+ '<section class="section" id="docs"><div class="sectiontop"><h2>Materiais e textos da disciplina</h2><span class="small">'+docs.filter(m=>m.available).length+' disponíveis · '+docs.filter(m=>!m.available).length+' referências sem arquivo</span></div>'+
+ '<div class="library-group" style="margin-top:0;--group-accent:'+color(k)+'">'+organizedSubjectMaterials(docs)+'</div></section>'+
+ '<section class="section" id="tests"><div class="sectiontop"><h2>Simulados da disciplina</h2><span class="small">'+tests.length+' provas para praticar</span></div>'+
+ '<div class="examgrid">'+tests.map(examCard).join('')+'</div><p class="small" style="margin-top:9px">'+esc(subj.style)+'</p></section>'+
+ (audioN?'<section class="section"><div class="panel"><div class="sectiontop"><h2>Podcasts · '+esc(subj.name)+'</h2><span class="small">'+audioN+' '+(k==='tcc'?'capítulos':'episódios')+'</span></div><p class="small">Ouvir, baixar por episódio e acompanhar o estudo.</p><div class="actions" style="margin-top:11px">'+button('Abrir podcasts','audioFor:'+k,'btn light')+'</div></div></section>':'')+
+ '<div class="footer">Conteúdos de revisão e simulados didáticos; consulta também as orientações dos professores.</div>';
 }
 function renderExams(){return `${head('Simulados','Provas para praticar','Três modelos por disciplina, com questões práticas e comentários detalhados na correção.')}
 <div class="alert info" style="margin-top:19px">As provas anteriores de TCC, Social e Família foram usadas para aproximar a estrutura das questões. Onde não foi possível verificar o modelo do professor, o formato é uma simulação didática, não uma reprodução garantida.</div>${Object.keys(DB.subjects).sort((a,b)=>DB.subjects[a].date.localeCompare(DB.subjects[b].date)).map(k=>`<section class="section"><div class="sectiontop"><h2 style="border-left:4px solid ${color(k)};padding-left:10px">${esc(getSubject(k).name)}</h2><button class="plainlink" data-action="subject:${k}">Ver matéria</button></div><div class="examgrid">${DB.exams.filter(e=>e.subject===k).map(examCard).join('')}</div></section>`).join('')}`}
