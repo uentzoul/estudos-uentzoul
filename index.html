@@ -2392,7 +2392,7 @@ window.addEventListener('uentzoul:auth',()=>{
 /* Simulados inéditos por solicitação: 13 objetivas + 2 dissertativas.
    A correção e o bloqueio de repetição são feitos pelo servidor. */
 const ge={exams:[],submissions:[],shares:[],profiles:[],selected:null,subject:'tcc',difficulty:'normal',
- answers:{},shareTarget:'',loading:false,loaded:false,owner:null,busy:false,notice:'',error:''};
+ answers:{},shareTarget:'',loading:false,loaded:false,owner:null,busy:false,notice:'',error:'',pending:false,lastFetch:0,realtime:null};
 function geSubmission(id){return ge.submissions.find(x=>x.exam_id===id)}
 function geSubjectName(id){return DB.subjects[id]?.name||id}
 function geExamCard(exam){
@@ -2471,12 +2471,13 @@ function geRenderExam(){
   share;
 }
 async function geLoad(){
- if(!geClient()||!geUser()||ge.loading)return;
+ if(!geClient()||!geUser())return;
+ if(ge.loading||ge.busy){ge.pending=true;return;}
  const userId=geUser().id;ge.loading=true;ge.owner=userId;ge.error='';
  if(current.page==='exams'||current.page==='subject')render();
  try{
   const [exams,submissions,shares,profiles]=await Promise.all([
-   geClient().from('uentzoul_generated_exams').select('id,creator_id,semester,subject,difficulty,title,questions,created_at').order('created_at',{ascending:false}).limit(150),
+   geClient().from('uentzoul_generated_exams').select('id,creator_id,semester,subject,difficulty,title,questions,created_at').neq('semester','personal').order('created_at',{ascending:false}).limit(1000),
    geClient().from('uentzoul_generated_exam_submissions').select('exam_id,user_id,answers,feedback,created_at').order('created_at',{ascending:false}).limit(150),
    geClient().from('uentzoul_generated_exam_shares').select('exam_id,sender_id,recipient_id,created_at').order('created_at',{ascending:false}).limit(300),
    geClient().from('uentzoul_profiles').select('user_id,display_name').order('display_name',{ascending:true}).limit(300)
@@ -2485,7 +2486,7 @@ async function geLoad(){
   if(geUser()?.id!==userId)return;
   ge.exams=exams.data||[];ge.submissions=submissions.data||[];ge.shares=shares.data||[];ge.profiles=profiles.data||[];ge.loaded=true;
  }catch(e){ge.error='Não foi possível carregar os simulados: '+(e?.message||'erro de conexão');ge.loaded=true}
- finally{ge.loading=false;if(geUser()?.id===userId&&(current.page==='exams'||current.page==='subject'))render();}
+ finally{ge.loading=false;ge.lastFetch=Date.now();if(geUser()?.id===userId&&(current.page==='exams'||current.page==='subject'))render();if(ge.pending&&geUser()?.id===userId){ge.pending=false;queueMicrotask(geLoad)}}
 }
 async function geCreate(){
  if(ge.busy||!geUser()||!DB.subjects[ge.subject])return;
@@ -2497,7 +2498,7 @@ async function geCreate(){
   ge.exams.unshift(data.generatedExam);ge.selected=data.generatedExam.id;ge.answers[ge.selected]=Array(15).fill('');
   ge.notice='';
  }catch(e){ge.error=e?.message||'Falha ao gerar simulado.';ge.notice=''}
- finally{ge.busy=false;if(current.page==='exams')render()}
+ finally{ge.busy=false;if(current.page==='exams')render();if(ge.pending){ge.pending=false;geLoad()}}
 }
 async function geSubmit(){
  if(ge.busy||!ge.selected||geSubmission(ge.selected))return;
@@ -2514,7 +2515,7 @@ async function geSubmit(){
   ge.submissions.unshift(data.submission);delete ge.answers[ge.selected];
   toast('Simulado entregue. Agora podes consultar a correção.');
  }catch(e){ge.error=e?.message||'Não foi possível entregar a prova.'}
- finally{ge.busy=false;if(current.page==='exams')render()}
+ finally{ge.busy=false;if(current.page==='exams')render();if(ge.pending){ge.pending=false;geLoad()}}
 }
 async function geShare(){
  if(ge.busy||!ge.selected||!ge.shareTarget||!geUser())return;
@@ -2529,7 +2530,7 @@ async function geShare(){
   ge.shares.push(data);ge.shareTarget='';
   toast('Simulado compartilhado. O destinatário já pode responder.');
  }catch(e){ge.error=e?.message||'Não foi possível compartilhar.'}
- finally{ge.busy=false;if(current.page==='exams')render()}
+ finally{ge.busy=false;if(current.page==='exams')render();if(ge.pending){ge.pending=false;geLoad()}}
 }
 const geLegacyRenderSubject=renderSubject;
 renderSubject=function(k){
@@ -2588,9 +2589,32 @@ document.addEventListener('input',e=>{
   ge.answers[ge.selected][Number(e.target.dataset.geAnswer)]=e.target.value;
  }
 });
+
+function geSetupLive(){
+ const sb=geClient(),user=geUser();
+ if(ge.realtime&&sb)try{sb.removeChannel(ge.realtime)}catch(_){}
+ ge.realtime=null;
+ if(!sb||!user)return;
+ try{
+  ge.realtime=sb.channel('uentzoul-exams-'+user.id)
+   .on('postgres_changes',{event:'*',schema:'public',table:'uentzoul_generated_exam_shares'},()=>geLoad())
+   .on('postgres_changes',{event:'*',schema:'public',table:'uentzoul_generated_exams'},()=>geLoad())
+   .on('postgres_changes',{event:'*',schema:'public',table:'uentzoul_generated_exam_submissions'},()=>geLoad())
+   .subscribe(status=>{if(status==='SUBSCRIBED')geLoad()});
+ }catch(e){console.warn('Sincronização instantânea de simulados indisponível',e)}
+}
+document.addEventListener('visibilitychange',()=>{
+ if(document.visibilityState==='visible'&&geUser()&&Date.now()-ge.lastFetch>3000)geLoad()
+});
+window.addEventListener('online',()=>{if(geUser())geLoad()});
+setInterval(()=>{
+ if(geUser()&&document.visibilityState==='visible'&&!ge.busy&&['exams','home','subject'].includes(current.page)&&Date.now()-ge.lastFetch>20000)geLoad();
+},7000);
+
 window.addEventListener('uentzoul:auth',()=>{
  if(!geUser()){ge.exams=[];ge.submissions=[];ge.shares=[];ge.profiles=[];ge.loaded=false;ge.loading=false;ge.selected=null;ge.owner=null;ge.answers={};}
  else if(ge.owner!==geUser().id){ge.exams=[];ge.submissions=[];ge.shares=[];ge.profiles=[];ge.loaded=false;ge.loading=false;ge.selected=null;ge.owner=geUser().id;}
+ geSetupLive();
  if(geUser())queueMicrotask(geLoad);
 });
 window.addEventListener('uentzoul:semester',()=>{ge.selected=null;if(current.page==='exams')render()});
