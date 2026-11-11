@@ -1497,6 +1497,94 @@ html[data-theme="dark"] .admin-profile-role{background:#3c345d;color:#e2d6ff}
 .report-thread{padding:15px 22px}.report-intro{padding:10px 0 16px;border-bottom:1px solid var(--line);margin-bottom:18px}.report-intro h2{font-size:17px;margin:0 0 4px}.report-intro p,.report-menu-note{font-size:12px;color:var(--muted)}.report-menu-note{padding:10px 15px}
 .report-message{border:1px solid var(--line);border-radius:13px;padding:13px 15px;margin-bottom:11px;background:var(--paper)}.report-meta{display:flex;flex-wrap:wrap;justify-content:space-between;gap:6px;margin-bottom:9px}.report-meta strong{font-size:12px}.report-meta time{color:var(--muted);font-size:11px}.report-message p{white-space:pre-wrap;overflow-wrap:anywhere;margin:0;font-size:13px;line-height:1.65}.report-empty{color:var(--muted)}
 @media(max-width:760px){.report-launch{padding:7px 9px;font-size:11px}.report-dialog{padding:18px}.report-thread{padding:12px}.dm-channel-tabs.has-admin button{font-size:10px;min-height:37px}}
+
+/* Biblioteca 2026/2 — visual leve, animações e cartões integralmente clicáveis. */
+.library-page{min-width:0;max-width:1220px;margin:0 auto}
+.library-page .library-overview{position:relative;isolation:isolate;overflow:hidden;display:flex;align-items:center;justify-content:space-between;gap:22px;margin:19px 0 18px;padding:24px 27px;border-radius:24px;border:1px solid #7664c448;color:#fff;background:linear-gradient(115deg,#373275 0%,#5c4ea3 58%,#7763bd 100%);box-shadow:0 14px 30px #55479921}
+.library-page .library-overview::before{content:"";position:absolute;z-index:-1;width:350px;height:350px;right:-85px;top:-230px;border:1px solid #ffffff25;border-radius:50%;box-shadow:0 0 0 35px #ffffff09,0 0 0 80px #ffffff07}
+.library-page .library-overview-kicker{font-size:10px;font-weight:850;letter-spacing:1.4px;color:#dad5ff}
+.library-page .library-overview-title{margin:7px 0 6px;font-weight:820;font-size:clamp(18px,2.3vw,23px);letter-spacing:-.45px;line-height:1.3}
+.library-page .library-overview-message p{margin:0;color:#e5e0ff;font-size:12px;line-height:1.6;max-width:480px}
+.library-page .library-overview-metrics{display:flex;gap:9px;flex-shrink:0;position:relative;z-index:1}
+.library-page .library-overview-metrics>div{min-width:96px;text-align:center;padding:12px 13px;border:1px solid #ffffff42;border-radius:16px;background:#ffffff19;backdrop-filter:blur(5px)}
+.library-page .library-overview-metrics strong{display:block;font-size:23px;line-height:1.15;font-weight:850;color:#fff}
+.library-page .library-overview-metrics span{display:block;margin-top:4px;color:#eeebff;font-size:10px;white-space:nowrap}
+.library-page .library-filter-panel{margin:18px 0 12px;padding:0!important;border:0!important;background:transparent!important;box-shadow:none!important}
+.library-page .library-filter-panel .topline{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.library-page #filterlist{display:flex;flex:1 1 420px;gap:7px;flex-wrap:wrap;align-items:center}
+.library-page #filterlist .filter{border:1px solid #dcd5f0;background:var(--paper);color:var(--muted);padding:9px 13px;border-radius:999px;font-size:11px;font-weight:730;line-height:1.2;min-height:36px;transition:transform .2s ease,color .2s ease,border-color .2s ease,background-color .2s ease,box-shadow .2s ease}
+.library-page #filterlist .filter:hover{transform:translateY(-2px);border-color:#a995e8;color:#6856b3;box-shadow:0 4px 12px #5242a812}
+.library-page #filterlist .filter.active{background:#6655b8;color:#fff;border-color:#6655b8;box-shadow:0 4px 12px #5847af25}
+.library-page #matSearch{width:min(100%,250px);flex:0 1 250px;border:1px solid #d8cfea;border-radius:999px;padding:10px 16px;min-height:38px;background:var(--paper);color:var(--ink);transition:border-color .2s,box-shadow .2s}
+.library-page #matSearch:focus{outline:0;border-color:#9781d7;box-shadow:0 0 0 3px #9280d02b}
+.library-page .library-group{padding:2px 0 12px;margin:18px 0 7px;border:0!important;border-radius:0;background:transparent!important;box-shadow:none;min-width:0}
+.library-page .library-head{display:grid!important;grid-template-columns:5px minmax(0,1fr) auto!important;gap:13px!important;align-items:center!important;border:0!important;margin:0 0 12px!important;padding:12px 2px 7px!important}
+.library-page .library-head .library-subject-mark{width:5px;height:31px;border-radius:7px;background:var(--group-accent,#7267d8);box-shadow:0 0 0 4px color-mix(in srgb,var(--group-accent,#7267d8) 12%,transparent)}
+.library-page .library-head h2{font-size:18px;line-height:1.28;letter-spacing:-.35px;font-weight:830;color:var(--ink);overflow-wrap:anywhere}
+.library-page .library-head>span:last-child{font-size:10px;background:var(--soft);border:1px solid var(--line);border-radius:100px;padding:5px 10px;color:var(--muted);font-weight:650;white-space:normal}
+.library-page .material-block{margin:16px 0 22px!important}
+.library-page .material-block+.material-block{padding-top:12px;border-top:1px solid var(--line)}
+.library-page .material-block h3{display:flex!important;align-items:center;justify-content:space-between;gap:10px;margin:0 0 11px!important;padding:0 2px!important;color:var(--muted);font-size:11px;font-weight:850;letter-spacing:.35px;line-height:1.4}
+.library-page .material-block h3 span{display:inline-flex;align-items:center;justify-content:center;margin:0;padding:3px 9px;background:var(--soft);border-radius:100px;color:var(--muted);font-size:10px;white-space:nowrap}
+.library-page .material-block .doclist{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,265px),1fr));gap:13px;align-items:stretch}
+.library-page .doc.library-resource{position:relative;isolation:isolate;display:flex;flex-direction:column;justify-content:space-between;align-items:stretch;overflow:hidden;min-width:0;min-height:165px;padding:0!important;border:1px solid #e4dcf1;border-radius:20px;background:var(--paper);box-shadow:0 4px 13px #36275b08;transition:transform .25s cubic-bezier(.2,.8,.2,1),border-color .25s ease,box-shadow .25s ease,background .25s ease}
+.library-page .library-resource::before{content:"";position:absolute;z-index:0;inset:0;pointer-events:none;background:radial-gradient(circle at 100% 0%,#c7b9ff39 0%,transparent 54%);opacity:0;transition:opacity .24s ease}
+.library-page .library-resource.is-available:hover,.library-page .library-resource.is-available:focus-within{transform:translateY(-4px);border-color:#b9a5eb;box-shadow:0 14px 29px #5a419425}
+.library-page .library-resource.is-available:hover::before,.library-page .library-resource.is-available:focus-within::before{opacity:1}
+.library-page .library-resource-main{position:relative;display:flex;align-items:flex-start;gap:12px;flex:1;min-width:0;padding:19px 17px 13px;text-decoration:none;background:transparent;color:inherit}
+.library-page a.library-resource-main{cursor:pointer}
+.library-page a.library-resource-main::after{content:"";position:absolute;inset:0;z-index:1;border-radius:20px}
+.library-page a.library-resource-main:focus-visible{outline:0}
+.library-page .library-resource:has(a.library-resource-main:focus-visible){outline:3px solid #9482dd;outline-offset:3px}
+.library-page .library-resource-icon{width:45px;height:49px;flex:0 0 45px;border-radius:14px;background:linear-gradient(145deg,#efebff,#e5defd);color:#6b52b2;display:grid;place-items:center;font-size:12px;font-weight:890;letter-spacing:.15px;transition:transform .25s ease,background .25s ease}
+.library-page .library-resource.type-video .library-resource-icon{background:linear-gradient(145deg,#fceaf2,#f5dfe9);color:#ab507a;font-size:18px}
+.library-page .library-resource.type-doc .library-resource-icon{background:linear-gradient(145deg,#e3f3fe,#dcecff);color:#3676b4}
+.library-page .library-resource.type-link .library-resource-icon{background:linear-gradient(145deg,#e8f8ef,#dcf1e7);color:#268168;font-size:20px}
+.library-page .library-resource-copy{min-width:0;display:flex;flex:1;flex-direction:column;align-items:flex-start;overflow-wrap:anywhere}
+.library-page .library-resource-type{font-size:10px;letter-spacing:.5px;text-transform:uppercase;font-weight:860;color:#7568a2;margin:1px 0 6px}
+.library-page .library-resource .docname{font-size:13px;font-weight:790;letter-spacing:-.08px;line-height:1.43;color:var(--ink)}
+.library-page .library-resource .docnote{font-size:11px;line-height:1.5;color:var(--muted);margin:6px 0 0;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:3;overflow:hidden}
+.library-page .library-resource-arrow{flex:0 0 20px;display:grid;place-items:center;width:20px;height:20px;color:#7861b8;font-size:19px;transition:transform .23s ease,color .23s}
+.library-page .library-resource:hover .library-resource-arrow,.library-page .library-resource:focus-within .library-resource-arrow{transform:translate(3px,-3px);color:#5945b4}
+.library-page .library-resource:hover .library-resource-icon,.library-page .library-resource:focus-within .library-resource-icon{transform:translateY(-2px) rotate(-3deg)}
+.library-page .library-resource-bottom{position:relative;z-index:0;display:flex;align-items:center;justify-content:space-between;gap:10px;margin:0 17px;padding:10px 0 12px;border-top:1px solid var(--line);min-height:45px}
+.library-page .library-resource-status{display:inline-flex;align-items:center;gap:6px;font-size:10px;color:#3c947f;font-weight:750;white-space:nowrap;pointer-events:none}
+.library-page .library-status-dot{width:7px;height:7px;border-radius:50%;background:#3fa38a;box-shadow:0 0 0 3px #3fa38a19}
+.library-page .library-resource-progress{position:relative;z-index:3;display:inline-flex;align-items:center;justify-content:flex-end;min-width:0}
+.library-page .library-resource-progress .donecontrol{margin:0;padding:6px 9px;border-radius:100px;font-size:10px;white-space:nowrap;cursor:pointer}
+.library-page .library-resource-progress input{cursor:pointer}
+.library-page .library-resource.is-pending{border-style:dashed;box-shadow:none;background:color-mix(in srgb,var(--paper) 80%,var(--soft) 20%)}
+.library-page .library-resource.is-pending .library-resource-icon{background:var(--soft);color:var(--muted);filter:saturate(.5)}
+.library-page .library-resource.is-pending .library-resource-type,.library-page .library-resource.is-pending .docname{color:var(--muted)}
+.library-page .library-resource.is-pending .library-resource-status{color:var(--muted)}
+html[data-theme="dark"] .library-page .library-overview{background:linear-gradient(115deg,#292543,#483a76 62%,#554388);border-color:#7764a4;box-shadow:0 10px 26px #0003}
+html[data-theme="dark"] .library-page #filterlist .filter{background:#292640;color:#cfc6e3;border-color:#4c4262}
+html[data-theme="dark"] .library-page #filterlist .filter:hover{background:#3d3154;color:#fff;border-color:#746298}
+html[data-theme="dark"] .library-page #filterlist .filter.active{background:#6952aa!important;color:#fff!important;border-color:#927ad1!important}
+html[data-theme="dark"] .library-page #matSearch{background:#211e34;color:#f4f0ff;border-color:#52476f}
+html[data-theme="dark"] .library-page .doc.library-resource{background:#252238;color:#f3f0fa;border-color:#47405f}
+html[data-theme="dark"] .library-page .library-resource.is-available:hover,html[data-theme="dark"] .library-page .library-resource.is-available:focus-within{background:#2f2948;border-color:#8b75bd;box-shadow:0 13px 26px #0005}
+html[data-theme="dark"] .library-page .library-resource::before{background:radial-gradient(circle at 100% 0%,#9f85e51b 0%,transparent 58%)}
+html[data-theme="dark"] .library-page .library-resource .docname{color:#f0ebff}
+html[data-theme="dark"] .library-page .library-resource-icon{background:#40365b;color:#dfccff}
+html[data-theme="dark"] .library-page .library-resource.type-video .library-resource-icon{background:#50344a;color:#ffc1e0}
+html[data-theme="dark"] .library-page .library-resource.type-doc .library-resource-icon{background:#2a4259;color:#bfddff}
+html[data-theme="dark"] .library-page .library-resource.type-link .library-resource-icon{background:#2d4b46;color:#a7f1d5}
+html[data-theme="dark"] .library-page .library-resource-type{color:#bfafea}
+html[data-theme="dark"] .library-page .library-resource-status{color:#86d4bc}
+html[data-theme="dark"] .library-page .library-resource.is-pending{background:#201e30;border-color:#494358}
+html[data-theme="dark"] .library-page .library-resource.is-pending .docname,html[data-theme="dark"] .library-page .library-resource.is-pending .library-resource-type,html[data-theme="dark"] .library-page .library-resource.is-pending .library-resource-status{color:#a9a2bc}
+html[data-theme="dark"] .library-page .library-resource-arrow{color:#c3b0f1}
+@media (hover:hover) and (prefers-reduced-motion:no-preference){
+ .library-page .library-resource{animation:libraryCardEnter .42s cubic-bezier(.2,.75,.3,1) both;animation-delay:calc(var(--library-seq,0) * 42ms)}
+ .library-page .library-overview{animation:libraryCardEnter .4s ease both}
+}
+@keyframes libraryCardEnter{from{opacity:0;transform:translateY(11px)}to{opacity:1;transform:translateY(0)}}
+@media(prefers-reduced-motion:reduce){.library-page .library-resource,.library-page .library-overview,.library-page .library-resource-icon,.library-page .library-resource-arrow{animation:none!important;transition:none!important}.library-page .library-resource:hover{transform:none!important}}
+@media(max-width:1000px){.library-page .library-overview{flex-wrap:wrap}.library-page .library-overview-metrics{width:100%}.library-page .library-overview-metrics>div{flex:1}.library-page .library-filter-panel .topline{align-items:stretch}.library-page #matSearch{max-width:none;width:100%;flex:1 1 250px}}
+@media(max-width:800px){.library-page .material-block .doclist{grid-template-columns:1fr}.library-page .library-group{margin-top:13px}.library-page .library-overview{padding:21px 19px;border-radius:19px}.library-page .library-resource-main{padding:16px 15px 12px}.library-page .library-resource-bottom{margin:0 15px}}
+@media(max-width:570px){.library-page .library-head{grid-template-columns:5px minmax(0,1fr)!important;row-gap:5px!important}.library-page .library-head .library-subject-mark{grid-row:1/3}.library-page .library-head>span:last-child{grid-column:2;justify-self:start;padding:4px 8px}.library-page .library-head h2{font-size:16px}.library-page .library-overview-metrics>div{min-width:0}.library-page .doc.library-resource{min-height:150px;border-radius:17px}.library-page #filterlist .filter{min-height:34px;padding:8px 11px}.library-page .library-resource-icon{width:40px;height:44px;flex-basis:40px}}
+
 </style>
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2064%2064%22%3E%3Crect%20width%3D%2264%22%20height%3D%2264%22%20rx%3D%2214%22%20fill%3D%22%23192d44%22%2F%3E%3Ctext%20x%3D%2232%22%20y%3D%2246%22%20fill%3D%22white%22%20font-size%3D%2246%22%20font-family%3D%22Georgia%2Cserif%22%20text-anchor%3D%22middle%22%3E%CE%A8%3C%2Ftext%3E%3C%2Fsvg%3E">
 </head>
@@ -2096,6 +2184,31 @@ function examCard(e){
 }
 function docCard(m){let id=`material:${m.url||m.source}`;return `<div class="doc"><span class="docicon">${m.kind==='Vídeo'?'▶':m.kind==='DOCX'?'DOC':m.kind==='PDF'?'PDF':'TXT'}</span><div class="inlinegrow" style="min-width:0"><div class="docname">${esc(m.title)}</div><div class="docnote">${esc(m.note||m.kind)}</div></div><div class="actions">${m.available?`<a href="${esc(m.url)}" target="_blank" rel="noopener" class="barlink">Abrir ↗</a>`:`<span class="pill">Não anexado</span>`}</div>${m.available?doneBox(id):''}</div>`;}
 
+
+/* Cartões da Biblioteca: o próprio cartão é o link, com "Visto" independente. */
+function libraryResourceCard(m,i=0){
+ const rawKind=String(m.kind||'Arquivo');
+ const kind=rawKind.toLocaleLowerCase('pt-BR');
+ const type=kind.includes('vídeo')?'video':kind.includes('pdf')?'pdf':kind.includes('doc')?'doc':kind.includes('link')?'link':'text';
+ const typeLabel=type==='video'?'Vídeo':type==='pdf'?'PDF':type==='doc'?'Documento':type==='link'?'Link':'Material';
+ const glyph=type==='video'?'▶':type==='pdf'?'PDF':type==='doc'?'DOC':type==='link'?'↗':'▤';
+ const isAvailable=!!m.available;
+ const name=esc(m.title||'Material sem título');
+ const note=esc(m.note||m.kind||'Material de estudo');
+ const content='<span class="library-resource-icon" aria-hidden="true">'+glyph+'</span>'+
+  '<span class="library-resource-copy"><span class="library-resource-type">'+esc(typeLabel)+'</span>'+
+  '<strong class="docname">'+name+'</strong><span class="docnote">'+note+'</span></span>'+
+  (isAvailable?'<span class="library-resource-arrow" aria-hidden="true">↗</span>':'');
+ const body=isAvailable?
+  '<a class="library-resource-main" href="'+esc(m.url)+'" target="_blank" rel="noopener noreferrer" aria-label="Abrir '+name+'">'+content+'</a>':
+  '<div class="library-resource-main">'+content+'</div>';
+ const key='material:'+(m.url||m.source);
+ return '<article class="doc library-resource '+(isAvailable?'is-available':'is-pending')+' type-'+type+'" style="--library-seq:'+(i%8)+'">'+
+  body+'<div class="library-resource-bottom"><span class="library-resource-status">'+
+  (isAvailable?'<span class="library-status-dot" aria-hidden="true"></span>Disponível':'Aguardando arquivo')+'</span>'+
+  (isAvailable?'<span class="library-resource-progress">'+doneBox(key)+'</span>':'')+'</div></article>';
+}
+
 function materialGroup(m){
  const name=(m.title||'').toLocaleLowerCase('pt-BR'),kind=(m.kind||'').toLocaleLowerCase('pt-BR');
  if(/cronograma|plano e cronograma|calendário/.test(name))return 'Cronogramas e planejamento';
@@ -2105,18 +2218,18 @@ function materialGroup(m){
  if(/slides|tópica|édipo|pulsão|angústia|devolução|anamnese|violência intrafamiliar|segredos e adoção|famílias monoparentais|entrevista|esquema/.test(name))return 'Aulas e apresentações';
  return 'Materiais complementares';
 }
-function organizedMaterialBlock(materials,pending=false){
+function organizedMaterialBlock(materials,pending=false,libraryView=false){
  const order=['Cronogramas e planejamento','Aulas e apresentações','Guias e materiais de revisão','Textos-base e bibliografia','Vídeos e referências online','Materiais complementares','Referências ainda sem arquivo'];
  const groups=new Map();
  for(const m of materials){const title=pending?'Referências ainda sem arquivo':materialGroup(m);if(!groups.has(title))groups.set(title,[]);groups.get(title).push(m);}
  return order.filter(name=>groups.has(name)).map(name=>{
   const list=groups.get(name);
-  return '<div class="material-block"><h3>'+esc(name)+'<span>'+list.length+' '+(list.length===1?'item':'itens')+'</span></h3><div class="doclist">'+list.map(docCard).join('')+'</div></div>';
+  return '<div class="material-block"><h3>'+esc(name)+'<span>'+list.length+' '+(list.length===1?'item':'itens')+'</span></h3><div class="doclist">'+(libraryView?list.map((m,i)=>libraryResourceCard(m,i)):list.map(docCard)).join('')+'</div></div>';
  }).join('');
 }
-function organizedSubjectMaterials(materials){
+function organizedSubjectMaterials(materials,libraryView=false){
  const available=materials.filter(m=>m.available),pending=materials.filter(m=>!m.available);
- return (available.length?organizedMaterialBlock(available):'<div class="empty">Nenhum arquivo disponível.</div>')+(pending.length?organizedMaterialBlock(pending,true):'');
+ return (available.length?organizedMaterialBlock(available,false,libraryView):'<div class="empty">Nenhum arquivo disponível.</div>')+(pending.length?organizedMaterialBlock(pending,true,libraryView):'');
 }
 function renderSubject(k){
  const subj=getSubject(k),docs=DB.materials.filter(x=>x.subject===k),topics=DB.topics[k],tests=DB.exams.filter(x=>x.subject===k);
@@ -2163,19 +2276,24 @@ function reviewHTML(q,answer){if(q.type==='essay')return `<div class="review"><h
 function renderLibrary(){
  const list=DB.materials.filter(m=>(current.filter==='todos'||m.subject===current.filter)&&(m.title+' '+m.note).toLocaleLowerCase().includes(current.search.toLocaleLowerCase()));
  const ids=['geral',...Object.keys(DB.subjects)];
- const blocks=ids.filter(k=>list.some(m=>m.subject===k)).map(k=>{
+ const groups=ids.filter(k=>list.some(m=>m.subject===k));
+ const total=DB.materials.length;
+ const available=DB.materials.filter(m=>m.available).length;
+ const blocks=groups.map(k=>{
   const materials=list.filter(m=>m.subject===k),label=k==='geral'?'Cadernos integrados':DB.subjects[k].name;
-  const available=materials.filter(m=>m.available).length;
+  const ready=materials.filter(m=>m.available).length;
   return '<section class="library-group" style="--group-accent:'+(k==='geral'?'#7164d9':color(k))+'">'+
-  '<div class="library-head"><span class="library-subject-mark" aria-hidden="true"></span><h2>'+esc(label)+'</h2><span>'+available+' disponíveis · '+(materials.length-available)+' ainda sem arquivo</span></div>'+
-  organizedSubjectMaterials(materials)+'</section>';
+  '<div class="library-head"><span class="library-subject-mark" aria-hidden="true"></span><h2>'+esc(label)+'</h2><span>'+ready+' disponíveis · '+(materials.length-ready)+' ainda sem arquivo</span></div>'+
+  organizedSubjectMaterials(materials,true)+'</section>';
  }).join('');
- return head('Acervo de estudos','Biblioteca organizada','Materiais separados por disciplina e tipo, com identificação do que já está disponível.')+
+ return '<div class="library-page">'+head('Acervo de estudos','Biblioteca','Materiais de aula, leituras e guias organizados por disciplina.')+
+ '<div class="library-overview"><div class="library-overview-message"><span class="library-overview-kicker">ACERVO DIGITAL</span><div class="library-overview-title">Encontre o que precisa para estudar.</div><p>Abra um material tocando em qualquer parte do cartão. Seu progresso continua separado.</p></div>'+
+ '<div class="library-overview-metrics"><div><strong>'+available+'</strong><span>disponíveis</span></div><div><strong>'+total+'</strong><span>no acervo</span></div></div></div>'+
  '<div class="panel library-filter-panel"><div class="topline"><div class="filters" id="filterlist">'+
  [['todos','Todos'],['geral','Cadernos'],...Object.entries(DB.subjects).map(([k,v])=>[k,v.name])].map(([k,l])=>'<button class="filter '+(current.filter===k?'active':'')+'" data-action="filter:'+k+'">'+esc(l)+'</button>').join('')+
  '</div><input class="searchbox" id="matSearch" placeholder="Buscar material..." value="'+esc(current.search)+'" aria-label="Buscar material"></div></div>'+
  (blocks||'<section class="section"><div class="empty">Nenhum material corresponde a essa busca.</div></section>')+
- '<div class="footer">Arquivos PDF e links externos podem exigir conexão com a internet.</div>';
+ '<div class="footer">Arquivos PDF e links externos podem exigir conexão com a internet.</div></div>';
 }
 function audioSelectionIndex(){return current.audioSubject==='tcc'?currentChapter:currentEpisode;}
 function audioKey(k,i){return k+':'+i;}
