@@ -1410,6 +1410,20 @@ html[data-theme="dark"] .pc2-cal-day.today{background:#4c3d6b;color:#f4ebff;bord
  .pc2-calendar-weekdays span{font-size:9px}
 }
 
+
+.qprompt,.ge-prompt,.pc2-prompt{font-size:14px;line-height:1.8;color:var(--ink);font-weight:480;white-space:normal;margin:11px 0 18px}
+.qprompt .exam-paragraph,.ge-prompt .exam-paragraph,.pc2-prompt .exam-paragraph{margin:0 0 13px;line-height:1.85;overflow-wrap:anywhere}
+.qprompt .exam-paragraph:last-child,.ge-prompt .exam-paragraph:last-child,.pc2-prompt .exam-paragraph:last-child{margin-bottom:0}
+.exam-paragraph.exam-task{border-top:1px solid var(--line);padding-top:13px;margin-top:15px!important;font-weight:720;line-height:1.7}
+.exam-assertion{display:grid;grid-template-columns:30px minmax(0,1fr);gap:10px;align-items:start;padding:11px 13px;margin:8px 0;background:var(--soft);border:1px solid var(--line);border-radius:9px;font-size:13px;line-height:1.75;overflow-wrap:anywhere}
+.exam-assertion-label{font-weight:850;color:#6752ad;font-variant-numeric:lining-nums;white-space:nowrap}
+.ge-question .ge-prompt,.pc2-exam-question .pc2-prompt{font-size:14px;margin:13px 0 19px}
+.ge-option span,.pc2-option span,.qopt span{line-height:1.7;white-space:pre-line;overflow-wrap:anywhere}
+.ge-question,.pc2-exam-question,.quizbox{min-width:0;overflow-wrap:anywhere}
+html[data-theme="dark"] .exam-assertion{background:#302b44;border-color:#534768}
+html[data-theme="dark"] .exam-assertion-label{color:#c9b5ff}
+@media(max-width:550px){.qprompt,.ge-prompt,.pc2-prompt{font-size:13px}.exam-assertion{grid-template-columns:26px minmax(0,1fr);gap:8px;padding:10px}.ge-question,.pc2-exam-question,.quizbox{padding:14px}}
+
 </style>
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2064%2064%22%3E%3Crect%20width%3D%2264%22%20height%3D%2264%22%20rx%3D%2214%22%20fill%3D%22%23192d44%22%2F%3E%3Ctext%20x%3D%2232%22%20y%3D%2246%22%20fill%3D%22white%22%20font-size%3D%2246%22%20font-family%3D%22Georgia%2Cserif%22%20text-anchor%3D%22middle%22%3E%CE%A8%3C%2Ftext%3E%3C%2Fsvg%3E">
 </head>
@@ -1757,6 +1771,29 @@ const $=(id)=>document.getElementById(id);
 const getSubject=id=>DB.subjects[id];
 const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const nl=v=>esc(v).replace(/\n/g,'<br>');
+
+function examClean(raw){
+ return String(raw??'').normalize('NFC')
+  .replace(/([0-9#*])\uFE0F?\u20E3/gu,'$1.')
+  .replace(/\p{Extended_Pictographic}[\uFE0E\uFE0F]?/gu,'')
+  .replace(/[\u{1F1E6}-\u{1F1FF}\u200D\uFE0E\uFE0F\u20E3]/gu,'')
+  .replace(/[ \t]{2,}/g,' ').trim();
+}
+function examRich(raw){
+ let t=examClean(raw).replace(/\r\n?/g,'\n').replace(/[ \t]*\n[ \t]*/g,'\n');
+ t=t.replace(/([^\n])\s+((?:VIII|VII|VI|IV|III|II|IX|V|I|X)\s*[.):–—-]\s+)(?=\S)/g,'$1\n$2');
+ t=t.replace(/([^\n])\s+((?:[1-9]|1[0-9])\s*[.):–—-]\s+)(?=\S)/g,'$1\n$2');
+ t=t.replace(/([.!?;:])\s+(?=(?:Assinale|Marque|Indique|Escolha|Qual(?:\s| é)|Quais(?:\s| são)|Com base|A partir|Considerando|Diante disso|Nesse contexto|Em relação|Explique|Justifique|Analise|Identifique)\b)/gi,'$1\n');
+ return t.split(/\n+/).map(x=>x.trim()).filter(Boolean).map(line=>{
+  const assertion=line.match(/^((?:VIII|VII|VI|IV|III|II|IX|V|I|X)|(?:[1-9]|1[0-9]))\s*[.):–—-]\s+([\s\S]+)$/);
+  if(assertion)return '<div class="exam-assertion"><span class="exam-assertion-label">'+esc(assertion[1])+'.</span><span>'+esc(assertion[2])+'</span></div>';
+  const task=/^(?:Assinale|Marque|Indique|Escolha|Qual\b|Quais\b|Com base|A partir|Considerando|Diante disso|Nesse contexto|Em relação|Explique|Justifique|Analise|Identifique)\b/i.test(line);
+  return '<p class="exam-paragraph'+(task?' exam-task':'')+'">'+esc(line)+'</p>';
+ }).join('');
+}
+window.uentzoulExamRich=examRich;
+window.uentzoulExamClean=examClean;
+
 const color=k=>DB.subjects[k]?.color||'#3568ba';
 const xdate=iso=>new Date(iso+'T12:00:00');
 const dformat=iso=>xdate(iso).toLocaleDateString('pt-BR',{day:'2-digit',month:'short'}).replace('.','');
@@ -2018,10 +2055,10 @@ ${r?`<section class="section"><div class="panel"><h2 style="margin:0 0 12px">Res
 <div class="panel" style="display:flex;align-items:center;gap:12px;justify-content:space-between;flex-wrap:wrap"><span class="small">${answered}/${exam.questions.length} questões respondidas · ${exam.questions.filter(q=>q.type==='essay').length} dissertativas</span><div class="actions">${button('Salvar andamento','save','btn ghost')}${button(r?'Voltar aos simulados':'Entregar e corrigir',r?'page:exams':`submit:${id}`,'btn')}</div></div><div class="footer">As correções objetivas explicam todas as opções. As respostas dissertativas exigem julgamento contextual, por isso disponibilizamos critérios e avaliação via ChatGPT em etapa manual.</div>`}
 function questionHTML(q,i,answer,review){let body='';const disabled=review?'disabled':'';if(q.type==='choice'||q.type==='combo'){
  if(q.type==='combo')body+=`<ol class="assertions" type="I">${q.assertions.map(s=>`<li>${esc(s.text)}</li>`).join('')}</ol>`;
- const opts=q.type==='choice'?q.options:q.options.map(x=>({text:x}));body+=opts.map((o,j)=>`<label class="qopt"><input type="radio" name="${q.id}" value="${j}" data-qid="${q.id}" ${String(answer)===String(j)?'checked':''} ${disabled}><span><strong>${'ABCDE'[j]}.</strong> ${esc(o.text)}</span></label>`).join('');
+ const opts=q.type==='choice'?q.options:q.options.map(x=>({text:x}));body+=opts.map((o,j)=>`<label class="qopt"><input type="radio" name="${q.id}" value="${j}" data-qid="${q.id}" ${String(answer)===String(j)?'checked':''} ${disabled}><span><strong>${'ABCDE'[j]}.</strong> ${esc(examClean(o.text))}</span></label>`).join('');
  } else if(q.type==='tf'){body+=['Verdadeiro','Falso'].map((txt,j)=>`<label class="qopt"><input type="radio" name="${q.id}" value="${j===0?'true':'false'}" data-qid="${q.id}" ${String(answer)===String(j===0)?'checked':''} ${disabled}><span>${txt}</span></label>`).join('')}
  else {body+=`<textarea class="essay" aria-label="Resposta da questão ${i+1}" placeholder="Escreva tua resposta aqui..." data-qid="${q.id}" ${disabled}>${esc(answer||'')}</textarea>`}
- return `<article class="quizbox" id="q-${q.id}"><div class="qhead">QUESTÃO ${String(i+1).padStart(2,'0')} · ${q.type==='essay'?'DISSERTATIVA':q.type==='tf'?'VERDADEIRO OU FALSO':'OBJETIVA'}</div><div class="qprompt">${nl(q.prompt)}</div>${body}${review?reviewHTML(q,answer):''}</article>`}
+ return `<article class="quizbox" id="q-${q.id}"><div class="qhead">QUESTÃO ${String(i+1).padStart(2,'0')} · ${q.type==='essay'?'DISSERTATIVA':q.type==='tf'?'VERDADEIRO OU FALSO':'OBJETIVA'}</div><div class="qprompt">${examRich(q.prompt)}</div>${body}${review?reviewHTML(q,answer):''}</article>`}
 function reviewHTML(q,answer){if(q.type==='essay')return `<div class="review"><h4>Critérios para conferir tua resposta</h4><ul class="criteria">${q.criteria.map(c=>`<li>${esc(c)}</li>`).join('')}</ul><h4>Resposta orientativa</h4><div class="essaymodel">${esc(q.model)}</div><p class="small">${esc(q.source)}</p><button class="btn sm light" data-action="ai:${q.id}">Copiar e abrir no ChatGPT para correção</button></div>`;
  if(q.type==='tf'){let ok=String(answer)===String(q.answer);return `<div class="review"><span class="pill ${ok?'ok':'warn'}">${ok?'Acertou':'Resposta incorreta / não respondida'}</span><div class="why ${ok?'good':'bad'}"><b>Resposta:</b> ${q.answer?'Verdadeiro':'Falso'}. ${esc(q.explanation)}</div></div>`}
  if(q.type==='combo'){let ok=String(answer)===String(q.answer);return `<div class="review"><span class="pill ${ok?'ok':'warn'}">${ok?'Acertou':'Resposta incorreta / não respondida'}</span><div class="why good"><b>Gabarito: ${'ABCDE'[q.answer]}.</b> ${esc(q.options[q.answer])}</div>${q.assertions.map(s=>`<div class="why ${s.truth?'good':'bad'}"><b>${s.l}. ${s.truth?'Verdadeira':'Falsa'}.</b> ${esc(s.why)}</div>`).join('')}<h4 style="margin-top:12px">Por que as alternativas estão certas ou erradas</h4>${q.options.map((o,i)=>`<div class="why ${i===q.answer?'good':'neutral'}"><b>${'ABCDE'[i]} — ${i===q.answer?'correta':'incorreta'}.</b> ${i===q.answer?'Contém exatamente as assertivas verdadeiras.':'Inclui afirmação falsa ou deixa de incluir afirmação verdadeira.'} ${esc(o)}</div>`).join('')}</div>`}
@@ -2405,7 +2442,7 @@ function geRenderExam(){
   if(q.type==='choice'){
    body='<fieldset class="ge-options"><legend class="tz-sr-only">Alternativas da questão '+(i+1)+'</legend>'+opt.map((v,j)=>
     '<label class="ge-option '+(review&&feedback?.answer===j?'correct':'')+'"><input type="radio" name="geq_'+i+'" data-ge-answer="'+i+'" value="'+j+'" '+
-    (String(answers[i])===String(j)?'checked':'')+' '+(review?'disabled':'')+'><span><strong>'+('ABCDE'[j]||'')+'.</strong> '+esc(v)+'</span></label>').join('')+'</fieldset>';
+    (String(answers[i])===String(j)?'checked':'')+' '+(review?'disabled':'')+'><span><strong>'+('ABCDE'[j]||'')+'.</strong> '+esc(examClean(v))+'</span></label>').join('')+'</fieldset>';
   }else{
    body='<textarea class="ge-essay" data-ge-answer="'+i+'" rows="6" maxlength="6500" '+(review?'disabled':'')+' placeholder="Escreve tua resposta dissertativa…">'+esc(answers[i]||'')+'</textarea>';
   }
@@ -2413,7 +2450,7 @@ function geRenderExam(){
    '<div class="ge-feedback"><strong>'+(feedback?.correct?'Resposta correta':'Resposta incorreta')+' — alternativa '+('ABCDE'[feedback?.answer]||'?')+'</strong><p>'+esc(feedback?.explanation||'')+'</p></div>':
    '<div class="ge-feedback"><h4>Critérios de correção</h4><ul>'+(feedback?.criteria||[]).map(t=>'<li>'+esc(t)+'</li>').join('')+'</ul><h4>Resposta orientativa</h4><p>'+esc(feedback?.model||'')+'</p></div>'):'';
   return '<article class="ge-question"><span>QUESTÃO '+String(i+1).padStart(2,'0')+' · '+(q.type==='choice'?'OBJETIVA':'DISSERTATIVA')+'</span>'+
-   '<h3>'+esc(q.question)+'</h3>'+body+grade+'</article>';
+   '<div class="ge-prompt">'+examRich(q.question)+'</div>'+body+grade+'</article>';
  }).join('');
  const profiles=ge.profiles.filter(p=>p.user_id!==geUser()?.id);
  const alreadyShared=ge.shares.filter(x=>x.exam_id===exam.id&&x.sender_id===geUser()?.id);
@@ -3539,11 +3576,11 @@ function pcExamView(){
   const isEssay=q.type==='essay';
   const opts=!isEssay?(q.options||[]).map((option,j)=>
     '<label class="pc2-option '+(finished&&details[i]?.answer===j?'correct':'')+'"><input type="radio" name="pc2-q'+i+'" value="'+j+'" data-pc-answer-new="'+i+'" '+
-    (String(answers[i])===String(j)?'checked':'')+' '+(finished?'disabled':'')+'><span><b>'+('ABCDE'[j])+'.</b> '+esc(option)+'</span></label>').join(''):'<textarea data-pc-answer-new="'+i+'" rows="6" maxlength="6500" placeholder="Escreve tua resposta aqui…" '+(finished?'disabled':'')+'>'+esc(answers[i]||'')+'</textarea>';
+    (String(answers[i])===String(j)?'checked':'')+' '+(finished?'disabled':'')+'><span><b>'+('ABCDE'[j])+'.</b> '+esc(window.uentzoulExamClean(option))+'</span></label>').join(''):'<textarea data-pc-answer-new="'+i+'" rows="6" maxlength="6500" placeholder="Escreve tua resposta aqui…" '+(finished?'disabled':'')+'>'+esc(answers[i]||'')+'</textarea>';
   const rev=finished?'<div class="pc2-answer-review">'+(isEssay?
    '<strong>Critérios para conferir tua resposta</strong><ul>'+(details[i]?.criteria||[]).map(x=>'<li>'+esc(x)+'</li>').join('')+'</ul><strong>Resposta orientativa</strong><p>'+esc(details[i]?.model||'')+'</p>':
    '<strong>'+(details[i]?.correct?'Resposta correta':'Resposta incorreta')+' · alternativa '+('ABCDE'[details[i]?.answer]||'?')+'</strong><p>'+esc(details[i]?.explanation||'')+'</p>')+'</div>':'';
-  return '<section class="pc2-exam-question"><span>QUESTÃO '+String(i+1).padStart(2,'0')+' · '+(isEssay?'DISSERTATIVA':'OBJETIVA')+'</span><h3>'+esc(q.question)+'</h3>'+
+  return '<section class="pc2-exam-question"><span>QUESTÃO '+String(i+1).padStart(2,'0')+' · '+(isEssay?'DISSERTATIVA':'OBJETIVA')+'</span><div class="pc2-prompt">'+window.uentzoulExamRich(q.question)+'</div>'+
     (isEssay?opts:'<div class="pc2-options">'+opts+'</div>')+rev+'</section>';
  }).join('');
  return '<button class="pc2-back" data-pc-back-exam>← Voltar aos simulados</button>'+
@@ -3559,8 +3596,8 @@ function pcOldExamView(){
  if(!exam)return '<div class="pc2-empty-mini">Prova antiga indisponível.</div>';
  return '<button class="pc2-back" data-pc-back-exam>← Voltar aos simulados</button>'+
   '<div class="pc2-exam-hero"><h2>'+esc(exam.title)+'</h2><p>Simulado anterior ao novo sistema. Disponível apenas para consulta do gabarito.</p></div>'+
-  (exam.questions||[]).map((q,i)=>'<section class="pc2-exam-question"><span>QUESTÃO '+(i+1)+'</span><h3>'+esc(q.question)+'</h3>'+
-  (q.options||[]).map((x,j)=>'<div class="pc2-legacy-option '+(j===q.answer?'correct':'')+'">'+('ABCDE'[j])+'. '+esc(x)+'</div>').join('')+
+  (exam.questions||[]).map((q,i)=>'<section class="pc2-exam-question"><span>QUESTÃO '+(i+1)+'</span><div class="pc2-prompt">'+window.uentzoulExamRich(q.question)+'</div>'+
+  (q.options||[]).map((x,j)=>'<div class="pc2-legacy-option '+(j===q.answer?'correct':'')+'">'+('ABCDE'[j])+'. '+esc(window.uentzoulExamClean(x))+'</div>').join('')+
   '<div class="pc2-answer-review"><strong>Gabarito: '+('ABCDE'[q.answer]||'?')+'</strong><p>'+esc(q.explanation||'')+'</p></div></section>').join('');
 }
 function pcDocView(){
