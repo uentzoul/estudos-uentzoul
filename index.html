@@ -3053,7 +3053,7 @@ function dmRoom(id){return dm.rooms.find(x=>x.id===id)||null}
 function dmRoomList(){
  const groups=dm.rooms.filter(r=>r.kind==='group');
  return '<div class="dm-group-toolbar"><strong>Meus grupos</strong><button type="button" data-dm-new-group>+ Criar grupo</button></div>'+
- (groups.length?groups.map(r=>'<button type="button" data-dm-room="'+esc(r.id)+'" class="dm-group-entry '+(dm.roomId===r.id?'selected':'')+'"><span class="dm-group-glyph">♧</span><span><strong>'+esc(r.name)+'</strong><small>Grupo privado</small></span></button>').join(''):'<p class="dm-contact-empty">Ainda não participas de grupos. Cria um e convida outros estudantes.</p>');
+ (groups.length?groups.map(r=>'<button type="button" data-dm-room="'+esc(r.id)+'" class="dm-group-entry '+(dm.roomId===r.id?'selected':'')+'"><span class="dm-group-glyph">♧</span><span><strong>'+esc(r.name)+'</strong><small>Grupo privado</small></span></button>').join(''):'<p class="dm-contact-empty">Ainda não há grupos por aqui. Criem um e convidem outros estudantes.</p>');
 }
 function dmGroupModalMarkup(){
  if(!dm.groupModal)return '';
@@ -3084,9 +3084,9 @@ function dmMessageHtml(m,channel='private'){
 }
 function dmThreadHtml(){
  const selected=dm.tab==='private'?dm.peerId:dm.tab==='global'?DM_GLOBAL_ROOM:dm.roomId;
- if(!selected)return '<div class="dm-chat-empty"><span>✉</span><h2>Escolhe uma conversa</h2><p>Seleciona uma pessoa, um grupo ou o chat global.</p></div>';
+ if(!selected)return '<div class="dm-chat-empty"><span>✉</span><h2>'+(dm.tab==='groups'?'Escolham um grupo':'Escolhe uma conversa')+'</h2><p>'+(dm.tab==='groups'?'Selecionem um grupo para conversar.':'Seleciona uma pessoa, um grupo ou o chat global.')+'</p></div>';
  const rows=(dm.tab==='private'?dm.messages.filter(m=>(m.sender_id===dm.owner&&m.recipient_id===selected)||(m.sender_id===selected&&m.recipient_id===dm.owner)):dm.roomMessages.filter(m=>m.room_id===selected)).slice().reverse();
- if(!rows.length)return '<div class="dm-chat-empty"><span>✉</span><h3>Começa a conversa</h3><p>Ainda não há mensagens por aqui.</p></div>';
+ if(!rows.length)return '<div class="dm-chat-empty"><span>✉</span><h3>'+(dm.tab==='private'?'Começa a conversa':'Comecem a conversa')+'</h3><p>Ainda não há mensagens por aqui.</p></div>';
  let day='',output='';
  for(const m of rows){
   const key=dmDateKey(m.created_at);
