@@ -484,6 +484,73 @@ html[data-theme="dark"] .topicgrid .donecontrol.is-checked{
   border-color:#46836d!important;
   color:#ddffed!important;
 }
+
+/* Agenda editorial: duas grandes abas, provas e conteúdo de aula */
+.agenda-switch{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-top:18px}
+.agenda-switch-button{min-width:0;display:flex;align-items:center;gap:13px;text-align:left;border:1px solid #e0dcf0;background:var(--paper);color:var(--ink);padding:16px 18px;border-radius:15px;cursor:pointer;box-shadow:var(--shadow);transition:transform .2s,box-shadow .2s,border-color .2s,background .2s}
+.agenda-switch-button:hover{transform:translateY(-2px);border-color:#a8a0e2;box-shadow:0 8px 20px #4e46871c}
+.agenda-switch-button[aria-selected="true"]{border-color:#9285db;background:linear-gradient(115deg,#f2edff,#fff);box-shadow:0 0 0 1px #b4a5ee,0 7px 19px #594a9c16}
+.agenda-switch-icon{display:grid;place-items:center;flex:none;width:38px;height:38px;border-radius:12px;background:#ece8ff;color:#6254c3;font-size:20px}
+.agenda-switch-copy{display:flex;flex-direction:column;gap:2px;min-width:0}
+.agenda-switch-copy strong{font-size:15px;letter-spacing:-.25px}
+.agenda-switch-copy small{font-size:11px;color:var(--muted);line-height:1.3}
+.agenda-switch-button[aria-selected="true"] .agenda-switch-icon{background:#695bd8;color:white}
+.agenda-toolbar{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:9px;margin:21px 0 12px}
+.agenda-toolbar h2{margin:0;font-size:17px}
+.agenda-toolbar small{color:var(--muted)}
+.agenda-toggle{border:1px solid var(--line);background:var(--paper);color:var(--ink);border-radius:9px;padding:7px 11px;font-size:11px;font-weight:750;transition:background .2s}
+.agenda-toggle:hover{background:var(--soft)}
+.agenda-daygroup{background:var(--paper);border:1px solid var(--line);border-radius:14px;margin:11px 0;overflow:hidden;box-shadow:var(--shadow)}
+.agenda-daytitle{background:#f6f4fd;padding:10px 14px;display:flex;justify-content:space-between;align-items:center;gap:10px;border-bottom:1px solid var(--line)}
+.agenda-daytitle strong{font-size:12px;letter-spacing:.1px}
+.agenda-daytitle span{color:var(--muted);font-size:10.5px}
+.agenda-classrow{display:grid;grid-template-columns:minmax(170px,1fr) minmax(245px,.95fr);gap:15px;padding:14px 15px;align-items:start}
+.agenda-classrow+.agenda-classrow{border-top:1px solid var(--line)}
+.agenda-subject{display:inline-flex;align-items:center;gap:7px;font-weight:770;font-size:10px;letter-spacing:.1px;color:var(--muted)}
+.agenda-subject::before{content:"";width:7px;height:7px;background:var(--accent,#6860df);border-radius:50%;flex:none}
+.agenda-class-title{font-size:13px;font-weight:770;line-height:1.35;margin:6px 0 7px}
+.agenda-classnote{font-size:11px;line-height:1.55;color:var(--muted);margin-top:7px}
+.agenda-classnote.warn{color:#9f692b}
+.agenda-readcolumn{background:#faf9ff;border:1px solid #eae6f8;padding:10px 11px;border-radius:11px;min-width:0}
+.agenda-readcolumn h3{margin:0 0 8px;color:#776db1;font-size:10px;font-weight:850;letter-spacing:.5px;text-transform:uppercase}
+.agenda-reading{padding:0 0 9px;margin-bottom:9px;border-bottom:1px solid #eae7f3}
+.agenda-reading:last-child{margin:0;padding:0;border-bottom:0}
+.agenda-reading strong{font-size:11.5px;line-height:1.35;display:block;overflow-wrap:anywhere}
+.agenda-reading p{font-size:11px;color:var(--muted);margin:4px 0 7px;line-height:1.5}
+.agenda-reading-action{border:0;background:#ece8ff;color:#5648b6;border-radius:8px;font-size:10.5px;font-weight:760;padding:6px 9px;transition:background .2s,transform .2s}
+.agenda-reading-action:hover{background:#dcd5ff;transform:translateY(-1px)}
+.agenda-reading-empty{font-size:11px;line-height:1.5;color:var(--muted)}
+.agenda-examrow{display:flex;align-items:center;gap:12px;padding:14px 15px;border-bottom:1px solid var(--line)}
+.agenda-examrow:last-child{border:0}
+.agenda-examdate{font-size:12px;font-weight:800;min-width:63px;color:#6255b5}
+.agenda-examinfo{min-width:0;flex:1}
+.agenda-examinfo strong{display:block;font-size:12.5px;line-height:1.3}
+.agenda-examinfo small{display:block;color:var(--muted);font-size:10.5px;margin-top:3px;line-height:1.35}
+.agenda-examrow .agenda-reading-action{white-space:nowrap}
+.agenda-caveat{font-size:11px;padding:11px 13px;line-height:1.5;background:#fff9ee;border:1px solid #f1deb3;border-radius:11px;color:#8b6026;margin-top:12px}
+.agenda-secondary{margin-top:16px}
+.agenda-secondary details{padding:12px 15px;border:1px solid var(--line);border-radius:12px;background:var(--paper)}
+.agenda-secondary summary{cursor:pointer;font-size:12px;font-weight:760}
+.agenda-secondary .agenda-examrow:first-child{margin-top:8px;border-top:1px solid var(--line)}
+html[data-theme="dark"] .agenda-switch-button{background:#24243b;border-color:#45415e;color:#f0ebff}
+html[data-theme="dark"] .agenda-switch-button:hover{background:#312c4b;border-color:#7464ab}
+html[data-theme="dark"] .agenda-switch-button[aria-selected="true"]{background:linear-gradient(115deg,#433460,#2d2947);border-color:#9c85d1;box-shadow:0 0 0 1px #7865ab}
+html[data-theme="dark"] .agenda-switch-icon{background:#3b335b;color:#c9b8ff}
+html[data-theme="dark"] .agenda-switch-button[aria-selected="true"] .agenda-switch-icon{background:#7661bf;color:white}
+html[data-theme="dark"] .agenda-daygroup,html[data-theme="dark"] .agenda-secondary details{background:#212239;border-color:#3e3b58}
+html[data-theme="dark"] .agenda-daytitle{background:#2d2b48;border-color:#44405d}
+html[data-theme="dark"] .agenda-readcolumn{background:#2a2943;border-color:#443e61}
+html[data-theme="dark"] .agenda-readcolumn h3{color:#b6a4ec}
+html[data-theme="dark"] .agenda-reading{border-color:#413c5b}
+html[data-theme="dark"] .agenda-reading-action{background:#433562;color:#e7dcff}
+html[data-theme="dark"] .agenda-reading-action:hover{background:#584778;color:white}
+html[data-theme="dark"] .agenda-toggle{background:#2b2a43;border-color:#514765;color:#eae4ff}
+html[data-theme="dark"] .agenda-toggle:hover{background:#413557}
+html[data-theme="dark"] .agenda-examdate{color:#c3b5ff}
+html[data-theme="dark"] .agenda-classnote.warn{color:#efc78f}
+html[data-theme="dark"] .agenda-caveat{background:#3b3028;border-color:#67513e;color:#f5d5a8}
+@media(max-width:780px){.agenda-classrow{grid-template-columns:minmax(0,1fr)}.agenda-readcolumn{max-width:100%}}
+@media(max-width:520px){.agenda-switch{gap:8px}.agenda-switch-button{padding:11px 10px;gap:7px}.agenda-switch-icon{width:30px;height:30px;font-size:16px;border-radius:9px}.agenda-switch-copy strong{font-size:13px}.agenda-switch-copy small{font-size:10px}.agenda-examrow{flex-wrap:wrap}.agenda-examrow .agenda-reading-action{margin-left:auto}}
 </style>
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2064%2064%22%3E%3Crect%20width%3D%2264%22%20height%3D%2264%22%20rx%3D%2214%22%20fill%3D%22%23192d44%22%2F%3E%3Ctext%20x%3D%2232%22%20y%3D%2246%22%20fill%3D%22white%22%20font-size%3D%2246%22%20font-family%3D%22Georgia%2Cserif%22%20text-anchor%3D%22middle%22%3E%CE%A8%3C%2Ftext%3E%3C%2Fsvg%3E">
 </head>
@@ -1136,9 +1203,61 @@ function renderAudio(){
  </div></section>
  <section class="section"><div class="sectiontop"><h2>${k==='tcc'?'Capítulos de TCC':'Episódios de '+esc(name)}</h2><span class="small">${eps.length} episódios · download individual</span></div><div class="audiocards">${cards}</div></section>`;
 }
-function renderCalendar(){let order=Object.keys(DB.subjects).sort((a,b)=>getSubject(a).date.localeCompare(getSubject(b).date));return `${head('Novembro de 2026','Agenda de provas','Somente avaliações e avisos relevantes, sem eventos de aula sem necessidade.')}
-<section class="section"><div class="panel"><h2 style="font-size:18px;margin:0 0 12px">Próximas datas</h2><div class="daylist">${order.map(k=>{const s=getSubject(k);return `<div class="dayrow"><span class="daydate">${dformat(s.date)}</span><span class="daytitle">${esc(s.name)}</span><span class="pill">${esc(s.exam)}</span><button class="plainlink" data-action="subject:${k}">Estudar</button></div>`}).join('')}</div></div></section>
-<section class="section"><div class="alert">Atenção: os cronogramas em PDF registram Família em 25/11 e TCC em 26/11, enquanto a atualização mais recente que tu passou indica Família em 18/11 e TCC em 19/11. Mantive as datas informadas mais recentemente por ti e mostrei a divergência. Vale conferir no Moodle antes da prova.</div></section>`}
+
+const AGENDA_LESSONS_2026_2=[{"d":"2026-11-03","s":"avaliacao","t":"Entrevista de devolução","r":[{"n":"Nobre e colaboradores — caso clínico de devolução","c":"Avaliação psicológica e desenvolvimento humano: casos clínicos (2019), p. 211–228","p":0},{"n":"Entrevista simulada de devolução","c":"Vídeo previsto no cronograma","u":"https://youtu.be/NR6Vidww50M"}]},{"d":"2026-11-04","s":"social","t":"Marcadores sociais: gênero e sexualidade","r":[{"n":"Tema da aula","c":"O plano não indica um texto específico para esta data.","p":11}]},{"d":"2026-11-04","s":"familia","t":"Atendimento familiar na clínica","r":[],"note":"Palestra de estagiárias, sem leitura indicada no cronograma."},{"d":"2026-11-05","s":"avaliacao","t":"Avaliação no contexto organizacional","r":[],"note":"Palestra de Gabryellen Fraga Des Essarts; sem texto indicado."},{"d":"2026-11-05","s":"social","t":"Apresentação — Grupo 2","r":[],"note":"Discussão coletiva; sem leitura específica indicada."},{"d":"2026-11-09","s":"meta","t":"Segunda teoria do aparelho psíquico","r":[{"n":"Laplanche e Pontalis — Vocabulário da Psicanálise","c":"Verbetes selecionados; termos não individualizados no cronograma.","p":1},{"n":"Roudinesco e Plon — Dicionário de Psicanálise","c":"Verbetes selecionados; termos não individualizados no cronograma.","p":1}]},{"d":"2026-11-09","s":"tcc","t":"Terapia de Aceitação e Compromisso — aula 1","r":[{"n":"ACT: introdução ao modelo","c":"O cronograma indica a aula, mas não especifica texto separado para 09/11.","p":8}]},{"d":"2026-11-09","s":"familia","t":"Atendimento familiar no hospital","r":[],"note":"Palestra; o cronograma não indica leitura."},{"d":"2026-11-10","s":"avaliacao","t":"Avaliação psicológica no contexto hospitalar","r":[],"note":"Palestra de Kamilla Antunes Gonçalves; sem texto indicado."},{"d":"2026-11-10","s":"grupos","t":"Apresentação T1 — Rogers e grupos comunitários","r":[],"note":"O plano registra “texto a definir”."},{"d":"2026-11-11","s":"familia","t":"Atendimento familiar na escola","r":[],"note":"Palestra; sem texto-base individualizado."},{"d":"2026-11-11","s":"social","t":"Tecnologias da informação e subjetividade","r":[{"n":"Tecnologias, algoritmos e visibilidade social","c":"O plano indica o tema, sem bibliografia específica nesta data. Revisão do material disponível.","p":5}]},{"d":"2026-11-12","s":"tcc","t":"Terapia de Aceitação e Compromisso — aula 2","r":[{"n":"Hayes e colaboradores (2008) — ACT","c":"Leitura indicada no cronograma. Capítulo ou página não discriminado.","p":8}]},{"d":"2026-11-12","s":"avaliacao","t":"Avaliação psicológica no contexto forense","r":[],"note":"Palestra de Simone Lemes; sem texto indicado."},{"d":"2026-11-12","s":"social","t":"Apresentação — Grupo 3","r":[],"note":"Discussão coletiva; sem texto-base específico."},{"d":"2026-11-16","s":"familia","t":"Atendimento familiar no contexto jurídico","r":[],"note":"Palestra prevista; sem texto-base específico."},{"d":"2026-11-16","s":"tcc","t":"Terapia de Aceitação e Compromisso — aula 3","r":[{"n":"ACT: valores e ação comprometida","c":"Continuação do conteúdo; sem nova leitura individualizada no cronograma.","p":11}]},{"d":"2026-11-16","s":"meta","t":"Dualismos pulsionais","r":[{"n":"Macedo (2015), Neurose: leituras psicanalíticas","c":"Cap. 4 — “Pulsão: entrelaçamentos entre sujeito, vida e morte”, p. 95–103.","p":12},{"n":"Laplanche e Pontalis / Roudinesco e Plon","c":"Verbetes selecionados sobre pulsão; o plano não lista verbetes individualmente.","p":10},{"n":"Freud (1933), Novas conferências introdutórias","c":"Conferência XXXII, indicada no cronograma.","p":12}]},{"d":"2026-11-17","s":"grupos","t":"Grupos virtuais e revisão de conteúdos","r":[{"n":"Pieruccini, Ângela (2005)","c":"“Dinâmica dos Grupos aplicada em grupos virtuais: possibilidade ou ficção?”, Revista da SBDG, n. 2, p. 42–49."}],"note":"Este tema está no cronograma, mas não foi incluído nos três tópicos de revisão selecionados para Grupos."},{"d":"2026-11-17","s":"avaliacao","t":"Avaliação psicológica de pessoas trans","r":[],"note":"Palestra de Nathália de Souza Ávila; sem texto especificado."},{"d":"2026-11-18","s":"familia","t":"Atendimento familiar na Assistência Social","r":[],"note":"Previsto no cronograma original; a data também foi informada posteriormente para a Prova 2. Confere no Moodle.","conflict":true},{"d":"2026-11-18","s":"social","t":"Aula expositivo-dialogada — tema não informado","r":[],"note":"O plano informa aula, mas não registra o tema ou texto de leitura."},{"d":"2026-11-19","s":"tcc","t":"Atualidades em TCCs","r":[],"note":"Previsto no cronograma original; a data também foi informada posteriormente para a Prova 2. Confere no Moodle.","conflict":true},{"d":"2026-11-19","s":"avaliacao","t":"Ética na avaliação psicológica","r":[{"n":"Ética profissional e normas aplicáveis","c":"A aula está prevista, mas o cronograma não atribui uma leitura nova específica.","p":7}]},{"d":"2026-11-19","s":"social","t":"Apresentação — Grupo 4","r":[],"note":"Discussão coletiva; sem texto específico."},{"d":"2026-11-23","s":"familia","t":"Discussão sobre as palestras","r":[],"note":"Retomada dos atendimentos familiar clínico, hospitalar, escolar, jurídico e assistência social."},{"d":"2026-11-23","s":"tcc","t":"Fechamento e revisão para a Prova 2","r":[{"n":"Terapia do Esquema e terapias de terceira onda","c":"Revisão dos temas do semestre; o cronograma não acrescenta capítulo para 23/11.","p":0}]},{"d":"2026-11-24","s":"avaliacao","t":"Palestra — Conselho de Orientação e Fiscalização (COF)","r":[],"note":"Atividade informada no cronograma; sem leitura específica."},{"d":"2026-11-25","s":"social","t":"Integração dos conteúdos","r":[{"n":"Psicologia Social I: conceitos integradores","c":"Sem texto separado para a aula; retomar Psicologia Social Crítica e marcadores sociais.","p":6}]},{"d":"2026-11-30","s":"tcc","t":"Encerramento da disciplina; orientações sobre PS e G2","r":[],"note":"Sem nova leitura indicada."},{"d":"2026-12-02","s":"familia","t":"Entrega de notas e avaliação da disciplina","r":[],"note":"Sem leitura indicada."},{"d":"2026-12-02","s":"social","t":"Devolutiva de notas","r":[],"note":"Aula destinada à devolutiva."},{"d":"2026-12-03","s":"avaliacao","t":"Fechamento da disciplina","r":[],"note":"Sem nova leitura."}];
+const AGENDA_EXTRA_EXAMS_2026_2=[{"d":"2026-11-25","s":"familia","t":"Prova 2 — data do cronograma original","kind":"original"},{"d":"2026-11-26","s":"tcc","t":"Prova 2 — data do cronograma original","kind":"original"},{"d":"2026-11-26","s":"social","t":"Avaliação 4 — conforme plano enviado","kind":"original"},{"d":"2026-11-30","s":"familia","t":"PS (substituição)","kind":"ps"},{"d":"2026-11-30","s":"meta","t":"Prova de substituição","kind":"ps"},{"d":"2026-12-01","s":"grupos","t":"Prova substitutiva (PS)","kind":"ps"},{"d":"2026-12-01","s":"avaliacao","t":"Prova substitutiva cumulativa","kind":"ps"},{"d":"2026-12-03","s":"tcc","t":"Prova de substituição","kind":"ps"},{"d":"2026-12-07","s":"familia","t":"G2","kind":"g2"},{"d":"2026-12-07","s":"meta","t":"G2","kind":"g2"},{"d":"2026-12-08","s":"grupos","t":"G2","kind":"g2"},{"d":"2026-12-08","s":"avaliacao","t":"G2","kind":"g2"},{"d":"2026-12-09","s":"social","t":"PS","kind":"ps"},{"d":"2026-12-10","s":"tcc","t":"G2","kind":"g2"},{"d":"2026-12-16","s":"social","t":"G2","kind":"g2"}];
+let calendarView='provas',calendarShowPast=false;
+function calendarNiceDate(date){return new Date(date+'T12:00:00').toLocaleDateString('pt-BR',{weekday:'long',day:'2-digit',month:'short'}).replace(/^\w/,ch=>ch.toUpperCase())}
+function calendarShortDate(date){return new Date(date+'T12:00:00').toLocaleDateString('pt-BR',{day:'2-digit',month:'short'})}
+function agendaSubjectLabel(k){return DB.subjects[k]?.name||k}
+function calendarDateGroups(events,renderRow){
+ const grouped=new Map();
+ for(const e of [...events].sort((a,b)=>a.d.localeCompare(b.d)||agendaSubjectLabel(a.s).localeCompare(agendaSubjectLabel(b.s),'pt-BR'))){
+  if(!grouped.has(e.d))grouped.set(e.d,[]);
+  grouped.get(e.d).push(e);
+ }
+ return [...grouped].map(([date,list])=>'<div class="agenda-daygroup"><div class="agenda-daytitle"><strong>'+esc(calendarNiceDate(date))+'</strong><span>'+list.length+' '+(list.length===1?'atividade':'atividades')+'</span></div>'+list.map(renderRow).join('')+'</div>').join('');
+}
+function calendarClassRow(e){
+ const readings=e.r.length?e.r.map(r=>
+  '<div class="agenda-reading"><strong>'+esc(r.n)+'</strong><p>'+esc(r.c)+'</p>'+
+  (Number.isInteger(r.p)&&DB.topics[e.s]?.[r.p]?
+   '<button type="button" class="agenda-reading-action" data-action="agenda-topic:'+e.s+':'+r.p+'">Ler revisão deste tópico ↗</button>':'')+
+  (r.u&&/^https:\/\//.test(r.u)?'<a class="agenda-reading-action" href="'+esc(r.u)+'" target="_blank" rel="noopener noreferrer">Abrir material indicado ↗</a>':'')+
+  '</div>').join(''):'<p class="agenda-reading-empty">O cronograma não especifica um capítulo ou texto para esta aula.</p>';
+ return '<div class="agenda-classrow" style="--accent:'+color(e.s)+'"><div><span class="agenda-subject">'+esc(agendaSubjectLabel(e.s))+'</span>'+
+ '<div class="agenda-class-title">'+esc(e.t)+'</div>'+
+ (e.note?'<p class="agenda-classnote '+(e.conflict?'warn':'')+'">'+esc(e.note)+'</p>':'')+
+ '</div><div class="agenda-readcolumn"><h3>Leituras e referências</h3>'+readings+'</div></div>';
+}
+function calendarExamRow(e){
+ const subj=getSubject(e.s);
+ return '<div class="agenda-examrow" style="--accent:'+color(e.s)+'"><span class="agenda-examdate">'+esc(calendarShortDate(e.d))+'</span>'+
+ '<div class="agenda-examinfo"><span class="agenda-subject">'+esc(subj.name)+'</span><strong>'+esc(e.t)+'</strong>'+
+ (e.note?'<small>'+esc(e.note)+'</small>':'')+'</div>'+
+ '<button type="button" class="agenda-reading-action" data-action="subject:'+e.s+'">Revisar matéria ↗</button></div>';
+}
+function renderCalendar(){
+ const exams=Object.keys(DB.subjects).map(k=>({d:getSubject(k).date,s:k,t:getSubject(k).exam,note:k==='familia'||k==='tcc'?'Data atualizada por informação posterior; o cronograma original indica outro dia.':'Data de avaliação registrada no painel de estudos.'})).sort((a,b)=>a.d.localeCompare(b.d));
+ const today=new Date().toLocaleDateString('en-CA',{timeZone:'America/Sao_Paulo'});
+ const upcoming=AGENDA_LESSONS_2026_2.filter(e=>calendarShowPast||e.d>=today);
+ const tabs='<div class="agenda-switch" role="tablist" aria-label="Tipo de agenda">'+
+ [['provas','▤','Provas e avaliações','Datas de provas, PS e G2'],['conteudos','▦','Conteúdos das aulas','Matéria do dia e leituras']].map(([id,icon,name,sub])=>
+ '<button type="button" class="agenda-switch-button" role="tab" aria-selected="'+(calendarView===id)+'" data-action="agenda-tab:'+id+'"><span class="agenda-switch-icon" aria-hidden="true">'+icon+'</span><span class="agenda-switch-copy"><strong>'+name+'</strong><small>'+sub+'</small></span></button>').join('')+'</div>';
+ const caveat='<div class="agenda-caveat">Atenção às datas: Família e TCC tiveram alterações informadas depois da publicação dos cronogramas. O plano enviado de Psicologia Social também traz datas e numeração de avaliação diferentes. Confere o Moodle para confirmar alterações.</div>';
+ const examsView='<div class="agenda-toolbar"><h2>Provas do semestre</h2><small>'+exams.length+' avaliações principais</small></div>'+
+ calendarDateGroups(exams,calendarExamRow)+caveat+
+ '<section class="agenda-secondary"><details><summary>Substitutivas, G2 e datas dos cronogramas originais</summary>'+
+ calendarDateGroups(AGENDA_EXTRA_EXAMS_2026_2.filter(e=>e.kind!=='original'),calendarExamRow)+
+ '<div class="agenda-caveat">Datas distintas no cronograma original: '+AGENDA_EXTRA_EXAMS_2026_2.filter(e=>e.kind==='original').map(e=>esc(agendaSubjectLabel(e.s))+' — '+esc(calendarShortDate(e.d))+' ('+esc(e.t)+')').join('; ')+'.</div></details></section>';
+ const classesView='<div class="agenda-toolbar"><div><h2>Matéria de cada dia</h2><small>Conteúdo previsto e referência indicada no cronograma</small></div>'+
+ '<button type="button" class="agenda-toggle" data-action="agenda-past">'+(calendarShowPast?'Mostrar só próximas':'Incluir aulas anteriores')+'</button></div>'+
+ (upcoming.length?calendarDateGroups(upcoming,calendarClassRow):'<div class="panel">Não há outras aulas cadastradas após hoje. Usa “Incluir aulas anteriores” para consultar o registro.</div>')+
+ '<div class="agenda-caveat">“Ler revisão deste tópico” abre a seção correspondente do próprio site. Não é o texto original do livro. Quando o PDF ou capítulo não está publicado, a referência bibliográfica fica visível sem um link de download inválido.</div>'+caveat;
+ return head('Organização do semestre','Agenda','Acompanha as avaliações e confere a matéria e as leituras previstas para cada aula.')+
+ tabs+'<div role="tabpanel">'+(calendarView==='provas'?examsView:classesView)+'</div>';
+}
+
 function render(){
  renderNav();
  if(!Object.keys(DB.subjects).length){
@@ -1217,7 +1336,22 @@ function currentAudioPath(){return episodeUri(current.audioSubject,audioSelectio
 function downloadEpisodeAction(k,i){if(!DB.audio[k]||!Number.isInteger(i)||i<0||i>=audioEpisodes(k).length)return;preparePodcast(k,i,false);}
 /* Recuperar os episódios baixados quando o site é aberto novamente. */
 const podcastDBOpening=openPodcastDB().then(()=>{const tx=podcastDB.transaction(POD_DB_STORE,'readonly'),req=tx.objectStore(POD_DB_STORE).getAllKeys();req.onsuccess=()=>{req.result.forEach(key=>episodeReady.add(key));if(current.page==='audio')updatePickedAudioLabels()};return podcastDB}).catch(e=>{console.warn('Downloads permanentes indisponíveis',e);return null;});
-function onAction(act){if(act.startsWith('download:')){const [k,i]=act.slice(9).split(':');downloadEpisodeAction(k,Number(i));return;}if(act.startsWith('page:'))return go(act.slice(5));if(act.startsWith('subject:'))return go('subject',{subject:act.slice(8)});if(act.startsWith('test:'))return go('test',{exam:act.slice(5)});if(act.startsWith('audioFor:')){const k=act.slice(9);if(!DB.audio[k])return;current.audioSubject=k;currentEpisode=0;currentChapter=0; if(manualAudioUrl){URL.revokeObjectURL(manualAudioUrl);manualAudioUrl=null;manualAudioName='';}return go('audio');}if(act.startsWith('filter:')){current.filter=act.slice(7);let v=$('matSearch')?.value||current.search;current.search=v;render();return}if(act.startsWith('scroll:'))return document.getElementById(act.slice(7))?.scrollIntoView({behavior:'smooth'});if(act==='save'){persist();return toast('Respostas salvas neste navegador.')}if(act==='export'){const b=new Blob([JSON.stringify(store,null,2)],{type:'application/json'});let u=URL.createObjectURL(b);let a=document.createElement('a');a.href=u;a.download='meu_progresso_psicologia.json';a.click();setTimeout(()=>URL.revokeObjectURL(u),2000);return toast('Progresso exportado. Guarde o arquivo para a próxima versão.')}if(act==='import'){document.getElementById('importProgress')?.click();return}if(act==='print')return window.print();if(act.startsWith('submit:'))return submit(act.slice(7));if(act.startsWith('redo:')){if(confirm('Refazer este simulado? A tentativa anterior será substituída.')){delete store.results[act.slice(5)];store.answers[act.slice(5)]={};persist();render()}return}
+function onAction(act){
+ if(act.startsWith('agenda-tab:')){
+  const tab=act.slice('agenda-tab:'.length);
+  if(tab==='provas'||tab==='conteudos'){calendarView=tab;render()}
+  return;
+ }
+ if(act==='agenda-past'){calendarShowPast=!calendarShowPast;render();return}
+ if(act.startsWith('agenda-topic:')){
+  const [,subject,indexString]=act.split(':');
+  const index=Number(indexString);
+  if(!DB.subjects[subject]||!Number.isInteger(index)||!DB.topics[subject]?.[index])return;
+  go('subject',{subject});
+  const el=document.querySelectorAll('#topics details.topic')[index];
+  if(el){el.open=true;requestAnimationFrame(()=>el.scrollIntoView({behavior:'smooth',block:'start'}))}
+  return;
+ }if(act.startsWith('download:')){const [k,i]=act.slice(9).split(':');downloadEpisodeAction(k,Number(i));return;}if(act.startsWith('page:'))return go(act.slice(5));if(act.startsWith('subject:'))return go('subject',{subject:act.slice(8)});if(act.startsWith('test:'))return go('test',{exam:act.slice(5)});if(act.startsWith('audioFor:')){const k=act.slice(9);if(!DB.audio[k])return;current.audioSubject=k;currentEpisode=0;currentChapter=0; if(manualAudioUrl){URL.revokeObjectURL(manualAudioUrl);manualAudioUrl=null;manualAudioName='';}return go('audio');}if(act.startsWith('filter:')){current.filter=act.slice(7);let v=$('matSearch')?.value||current.search;current.search=v;render();return}if(act.startsWith('scroll:'))return document.getElementById(act.slice(7))?.scrollIntoView({behavior:'smooth'});if(act==='save'){persist();return toast('Respostas salvas neste navegador.')}if(act==='export'){const b=new Blob([JSON.stringify(store,null,2)],{type:'application/json'});let u=URL.createObjectURL(b);let a=document.createElement('a');a.href=u;a.download='meu_progresso_psicologia.json';a.click();setTimeout(()=>URL.revokeObjectURL(u),2000);return toast('Progresso exportado. Guarde o arquivo para a próxima versão.')}if(act==='import'){document.getElementById('importProgress')?.click();return}if(act==='print')return window.print();if(act.startsWith('submit:'))return submit(act.slice(7));if(act.startsWith('redo:')){if(confirm('Refazer este simulado? A tentativa anterior será substituída.')){delete store.results[act.slice(5)];store.answers[act.slice(5)]={};persist();render()}return}
  if(act==='resetAudio'){const a=$('audioPlayer');if(a){a.pause();a.currentTime=0;}toast('Reprodutor reiniciado.');return;}
  if(act.startsWith('chapter:'))return openChapter(+act.slice(8));
  if(act.startsWith('episode:'))return openEpisode(+act.slice(8));
