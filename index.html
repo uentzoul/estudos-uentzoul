@@ -3463,7 +3463,7 @@ document.addEventListener('visibilitychange',()=>{if(!document.hidden&&onlineUse
 /* Espaço Pessoal 2.0: matérias, fontes, agenda, simulados exclusivos e IA */
 const pc={owner:null,loaded:false,loading:false,busy:false,subjects:[],sources:[],agenda:[],exams:[],submissions:[],legacyExams:[],documents:[],
  selected:null,view:'home',tab:'overview',modal:null,editEvent:null,calendarMonth:null,calendarDraftDate:'',examId:null,docId:null,
- answers:{},drafts:{},task:'resumo',request:'',difficulty:'normal',error:'',notice:''};
+ answers:{},drafts:{},task:'resumo',request:'',difficulty:'normal',error:'',notice:'',lastFetch:0,pending:false};
 function pcSubject(){return pc.subjects.find(s=>s.id===pc.selected)||null}
 function pcSources(id){return pc.sources.filter(x=>x.subject_id===id)}
 function pcAgenda(id){return pc.agenda.filter(x=>x.subject_id===id).sort((a,b)=>a.due_at.localeCompare(b.due_at))}
@@ -3526,7 +3526,7 @@ function pcOverview(subject){
 function pcSourcesView(subject){
  const src=pcSources(subject.id);
  const note='<section class="pc2-panel pc2-notes"><header><h3>Anotações principais</h3><small>Material-base da matéria</small></header>'+
-  '<textarea id="pcMainNotes" maxlength="16000" rows="7" placeholder="Cola aqui o conteúdo das aulas, textos-base ou teus próprios apontamentos…">'+esc(subject.description||'')+'</textarea>'+
+  '<textarea id="pcMainNotes" maxlength="16000" rows="7" placeholder="Cola aqui o conteúdo das aulas, textos-base ou teus próprios apontamentos…">'+esc(pc.drafts[subject.id]??subject.description??'')+'</textarea>'+
   '<div class="pc2-toolbar"><small>Até 16.000 caracteres. A IA usa este texto como fonte.</small><button class="pc-primary" data-pc-save-notes>Salvar anotações</button></div></section>';
  const items=src.map(x=>{
   const symbol=x.kind==='arquivo'?'📄':x.kind==='link'?'🔗':'📝';
@@ -3707,10 +3707,19 @@ function pcRender(){
 function pcShow(){
  if(current.page!=='personal')return;
  const main=document.getElementById('main');if(!main)return;
+ const focus=document.activeElement;
+ const focusId=focus&&['pcMainNotes','pcAiPrompt'].includes(focus.id)?focus.id:null;
+ const selection=focusId?{start:focus.selectionStart,end:focus.selectionEnd}:null;
  main.innerHTML=pcRender();
+ if(focusId){
+  const next=document.getElementById(focusId);
+  if(next){next.focus({preventScroll:true});if(selection&&selection.start!==null)next.setSelectionRange(selection.start,selection.end)}
+ }
 }
 async function pcLoad(){
- if(!client||!onlineUser||pc.loading)return;
+ if(!client||!onlineUser)return;
+ if(pc.loading){pc.pending=true;return;}
+ if(pc.busy||pc.modal)return;
  const uid=onlineUser.id;pc.owner=uid;pc.loading=true;pc.error='';
  try{
   const [subjects,sources,agenda,docs,exams,old]=await Promise.all([
@@ -3734,12 +3743,12 @@ async function pcLoad(){
   if(pc.selected&&!pc.subjects.some(x=>x.id===pc.selected)){pc.selected=null;pc.view='home'}
   pc.loaded=true;
  }catch(e){pc.error='Não foi possível carregar teu espaço pessoal: '+(e?.message||'erro de conexão');pc.loaded=true;}
- finally{pc.loading=false;pcShow()}
+ finally{pc.loading=false;pc.lastFetch=Date.now();pcShow();if(pc.pending&&onlineUser?.id===uid&&!pc.busy&&!pc.modal){pc.pending=false;queueMicrotask(pcLoad)}}
 }
 function pcOnLogout(){
  pc.owner=null;pc.loaded=false;pc.loading=false;pc.subjects=[];pc.sources=[];pc.agenda=[];pc.documents=[];
  pc.exams=[];pc.submissions=[];pc.legacyExams=[];pc.selected=null;pc.view='home';pc.tab='overview';pc.modal=null;
- pc.examId=null;pc.docId=null;pc.answers={};pc.error='';pc.notice='';pc.busy=false;pcShow();
+ pc.examId=null;pc.docId=null;pc.answers={};pc.drafts={};pc.error='';pc.notice='';pc.busy=false;pc.pending=false;pc.lastFetch=0;pcShow();
 }
 function pcOnLogin(){
  if(!onlineUser)return;
@@ -3796,10 +3805,10 @@ async function pcEditSubject(form){
 }
 async function pcSaveNotes(){
  const subject=pcSubject();if(!subject)return;
- const text=String(document.getElementById('pcMainNotes')?.value||'').slice(0,16000);
+ const text=String(document.getElementById('pcMainNotes')?.value??pc.drafts[subject.id]??subject.description??'').slice(0,16000);
  const {error}=await client.from('uentzoul_personal_subjects').update({description:text,updated_at:new Date().toISOString()}).eq('id',subject.id).eq('user_id',onlineUser.id);
  if(error){pc.error=error.message;pcShow();return}
- subject.description=text;toast('Anotações salvas.');pcShow();
+ subject.description=text;delete pc.drafts[subject.id];toast('Anotações salvas.');pcShow();
 }
 async function pcCreateSource(form){
  const subject=pcSubject();if(!subject||pc.busy)return;
@@ -3965,7 +3974,19 @@ function pcExportDoc(id,format){
  if(format==='doc')return pcDownload(doc,name+'.doc','application/msword');
  if(format==='pdf'){const w=window.open('','_blank');if(!w){toast('Permite pop-ups para imprimir.');return}w.document.open();w.document.write(doc);w.document.close();w.focus();setTimeout(()=>w.print(),400)}
 }
-window.uentzoulPersonal={render:pcRender,afterRender:pcAfterRender,onLogin:pcOnLogin,onLogout:pcOnLogout};
+
+/* Atualização silenciosa: preserva rascunhos, respostas e documentos já carregados. */
+document.addEventListener('visibilitychange',()=>{
+ if(document.visibilityState==='visible'&&onlineUser&&current.page==='personal'&&Date.now()-pc.lastFetch>3000&&!pc.busy&&!pc.modal&&pc.view!=='exam')pcLoad();
+});
+window.addEventListener('online',()=>{
+ if(onlineUser&&current.page==='personal'&&!pc.busy&&!pc.modal&&pc.view!=='exam')pcLoad();
+});
+setInterval(()=>{
+ if(onlineUser&&current.page==='personal'&&document.visibilityState==='visible'&&!pc.busy&&!pc.modal&&pc.view!=='exam'&&Date.now()-pc.lastFetch>19000)pcLoad();
+},7000);
+
+window.uentzoulPersonal={render:pcRender,afterRender:pcAfterRender,onLogin:pcOnLogin,onLogout:pcOnLogout,refresh:pcLoad};
 document.addEventListener('click',e=>{
  let b=e.target.closest('[data-pc-new]');if(b){pcModalOpen('create');return}
  b=e.target.closest('[data-pc-open-subject]');if(b){pcOpenSubject(b.dataset.pcOpenSubject);return}
@@ -4016,6 +4037,7 @@ document.addEventListener('change',e=>{
  }
 });
 document.addEventListener('input',e=>{
+ if(e.target.id==='pcMainNotes'&&pc.selected)pc.drafts[pc.selected]=e.target.value;
  if(e.target.id==='pcAiPrompt')pc.request=e.target.value;
  if(e.target.matches('textarea[data-pc-answer-new]')&&pc.examId&&!pcSubmission(pc.examId)){
   const ans=pcAnswers(pc.examId);ans[Number(e.target.dataset.pcAnswerNew)]=e.target.value;pcSaveDraft(pc.examId);
