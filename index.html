@@ -727,6 +727,119 @@ html[data-theme="dark"] .tz-shell .tz-composer textarea{color:#f4f0ff}
  .tz-hints span{animation:none;display:none;opacity:1}
  .tz-hints span:first-child{display:block}
 }
+
+/* Perfis públicos e chat entre contas */
+.rank-user-trigger{min-width:0;flex:1;display:flex;align-items:center;gap:7px;text-align:left;border:0;background:transparent;color:inherit;padding:2px 1px;border-radius:8px;cursor:pointer}
+.rank-user-trigger:hover{background:#f0edff}
+.rank-user-trigger:focus-visible{outline:2px solid #8f7cd9;outline-offset:2px}
+.rank-user-trigger .profile-avatar{flex:none}
+.rank-user-trigger .rank-person{display:block;flex:1;min-width:0}
+.rank-user-trigger .rank-person strong{color:var(--ink)}
+html[data-theme="dark"] .rank-user-trigger:hover{background:#3b3355}
+.dm-nav-badge:not([hidden]){font-size:10px;display:inline-flex;justify-content:center;align-items:center;border-radius:100px;padding:1px 5px;min-width:18px;color:white;background:#c14479;font-weight:800;margin-left:3px}
+.dm-profile-overlay[hidden]{display:none!important}
+.dm-profile-overlay{position:fixed;inset:0;background:#141020a8;z-index:210;display:flex;justify-content:center;align-items:center;padding:18px;backdrop-filter:blur(3px)}
+.dm-profile-dialog{position:relative;width:min(100%,440px);background:var(--paper);border-radius:22px;border:1px solid var(--line);box-shadow:0 24px 75px #15102855;padding:32px 24px 25px;text-align:center;max-height:90dvh;overflow-y:auto}
+.dm-profile-close{position:absolute;right:12px;top:10px;border:0;border-radius:10px;width:34px;height:34px;background:var(--soft);color:var(--ink);font-size:24px;cursor:pointer}
+.dm-profile-large .profile-avatar{width:92px;height:92px;font-size:32px;border-radius:50%;margin:2px auto 13px}
+.dm-profile-dialog h2{font-size:21px;margin:0 0 15px;color:var(--ink)}
+.dm-profile-bio{background:var(--soft);border-radius:13px;padding:17px;min-height:68px;font-size:13px;line-height:1.6;color:var(--ink);text-align:left;white-space:normal;overflow-wrap:anywhere;margin:0 0 18px}
+.dm-bio-empty{color:var(--muted)}
+.dm-profile-primary{border:0;border-radius:12px;background:linear-gradient(120deg,#5b4bb7,#7964d4);color:#fff;font-size:13px;font-weight:800;padding:12px 25px;cursor:pointer;transition:transform .2s,box-shadow .2s}
+.dm-profile-primary:hover{transform:translateY(-2px);box-shadow:0 7px 18px #5342a83a}
+.dm-profile-loading{font-size:12px;color:var(--muted)}
+.profile-form textarea[name="bio"]{display:block;width:100%;font-family:inherit;font-size:13px;line-height:1.5;border:1px solid #d7d0e9;background:var(--paper);color:var(--ink);border-radius:10px;padding:10px;resize:vertical}
+.dm-login-panel{max-width:650px;margin:35px auto;text-align:center;background:var(--paper);border:1px solid var(--line);border-radius:18px;padding:35px}
+.dm-login-panel h1{margin:0 0 10px}
+.dm-login-panel p{color:var(--muted);font-size:13px}
+.dm-login-panel .profile-action{max-width:240px;margin:20px auto 0}
+.dm-shell{display:grid;grid-template-columns:minmax(235px,32%) minmax(0,1fr);width:100%;height:calc(100dvh - 100px);min-height:570px;max-height:920px;max-width:1110px;margin:0 auto;border-radius:20px;border:1px solid var(--line);background:var(--paper);box-shadow:0 7px 25px #3e327d0f;overflow:hidden}
+.dm-list{min-width:0;display:flex;flex-direction:column;background:var(--paper);border-right:1px solid var(--line);min-height:0}
+.dm-list-head{display:flex;justify-content:space-between;align-items:center;padding:23px 19px 14px}
+.dm-list-head h1{font-size:21px;letter-spacing:-.4px;margin:0 0 4px}
+.dm-list-head p{margin:0;font-size:11px;color:var(--muted)}
+.dm-online-dot{display:block;width:10px;height:10px;background:#3fb98a;border-radius:50%;box-shadow:0 0 0 3px #3fb98a26}
+.dm-search-label{display:block;margin:0 15px 12px}
+.dm-search-label span{display:block;font-size:10px;color:var(--muted);font-weight:700;margin-bottom:5px}
+.dm-search-label input{display:block;width:100%;background:var(--soft);border:1px solid var(--line);border-radius:11px;color:var(--ink);font-size:13px;padding:11px 12px}
+.dm-contacts{overflow-y:auto;flex:1;min-height:0;padding:3px 8px 12px}
+.dm-contact{display:flex;align-items:center;gap:1px;border:1px solid transparent;border-radius:12px;transition:background .16s}
+.dm-contact:hover{background:#f2effd}
+.dm-contact.selected{background:#eee9fb;border-color:#ded4f5}
+.dm-contact-open{min-width:0;flex:1;display:flex;align-items:center;gap:9px;text-align:left;padding:10px 6px;border:0;background:transparent;color:var(--ink);cursor:pointer}
+.dm-contact-open .profile-avatar{width:37px;height:37px;border-radius:12px;flex:none}
+.dm-contact-text{min-width:0;display:block;flex:1}
+.dm-contact-text strong{display:block;font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dm-contact-text small{display:block;font-size:10px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:3px}
+.dm-contact-meta{display:flex;flex-direction:column;align-items:center;gap:5px;color:var(--muted);font-size:9px}
+.dm-unread{display:grid;place-items:center;border-radius:100px;min-width:19px;height:19px;background:#6656c2;color:white;font-size:10px}
+.dm-contact-profile{border:0;background:transparent;color:#8072ac;font-size:18px;padding:6px;cursor:pointer}
+.dm-contact-profile:hover{color:#5e45bb}
+.dm-contact-empty{color:var(--muted);font-size:12px;padding:15px;line-height:1.5}
+.dm-main{display:flex;flex-direction:column;min-height:0;min-width:0}
+.dm-chat-head{flex:none;display:flex;align-items:center;justify-content:space-between;min-height:75px;padding:13px 18px;border-bottom:1px solid var(--line)}
+.dm-chat-person{display:flex;align-items:center;gap:11px;border:0;background:transparent;color:var(--ink);text-align:left;cursor:pointer;min-width:0}
+.dm-chat-person .profile-avatar{width:40px;height:40px;border-radius:13px}
+.dm-chat-person span{display:block;min-width:0}
+.dm-chat-person strong{display:block;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dm-chat-person small{display:block;margin-top:4px;font-size:10px;color:var(--muted)}
+.dm-back{display:none;border:1px solid var(--line);border-radius:9px;background:var(--soft);color:var(--ink);padding:8px;font-size:11px}
+.dm-messages{min-height:0;flex:1;overflow-y:auto;padding:22px 25px 17px;display:flex;flex-direction:column;gap:10px;overscroll-behavior:contain}
+.dm-day{text-align:center;margin:12px 0 6px}
+.dm-day span{display:inline-block;background:var(--soft);color:var(--muted);border:1px solid var(--line);border-radius:100px;padding:5px 12px;font-size:10px;font-weight:760}
+.dm-message{display:flex}
+.dm-message.mine{justify-content:flex-end}
+.dm-message.theirs{justify-content:flex-start}
+.dm-message-bubble{max-width:min(83%,510px);min-width:70px;background:#f1eff9;border:1px solid #e1dbea;color:var(--ink);border-radius:14px 14px 14px 3px;padding:10px 13px}
+.dm-message.mine .dm-message-bubble{border-radius:14px 14px 3px 14px;background:#e4defe;border-color:#cfc2f0}
+.dm-message-bubble p{font-size:13px;line-height:1.55;white-space:normal;overflow-wrap:anywhere;margin:0 0 5px}
+.dm-message-info{display:flex;justify-content:flex-end;align-items:center;gap:8px;color:#796f91;font-size:9px}
+.dm-chat-empty{margin:auto;text-align:center;max-width:330px;padding:22px 8px;color:var(--muted)}
+.dm-chat-empty>span{font-size:42px;color:#9285c8;display:block;margin-bottom:7px}
+.dm-chat-empty h2,.dm-chat-empty h3{font-size:18px;color:var(--ink);margin:0 0 8px}
+.dm-chat-empty p{font-size:12px;line-height:1.6;margin:0}
+.dm-composer{display:flex;align-items:end;gap:10px;flex:none;margin:10px 18px 18px;border:1px solid #d8ceea;background:var(--soft);border-radius:17px;padding:9px 9px 9px 14px}
+.dm-composer:focus-within{border-color:#9681dc;box-shadow:0 0 0 3px #9874ed22}
+.dm-composer textarea{display:block;min-height:45px;max-height:170px;flex:1;min-width:0;resize:vertical;background:transparent;border:0!important;box-shadow:none!important;outline:0!important;font-size:14px;line-height:1.5;padding:8px 0 6px;color:var(--ink)}
+.dm-composer button{width:40px;height:40px;flex:none;display:grid;place-items:center;border:0;border-radius:12px;background:#6656c9;color:white;cursor:pointer}
+.dm-composer button:disabled{opacity:.5}
+.dm-error{background:#fff0ed;color:#a2403c;font-size:11px;padding:9px 15px;line-height:1.4}
+.dm-visually-hidden{position:absolute!important;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0)}
+html[data-theme="dark"] .dm-shell,html[data-theme="dark"] .dm-list,html[data-theme="dark"] .dm-profile-dialog,html[data-theme="dark"] .dm-login-panel{background:#202238;border-color:#494362}
+html[data-theme="dark"] .dm-contact:hover{background:#34304d}
+html[data-theme="dark"] .dm-contact.selected{background:#3a3059;border-color:#645489}
+html[data-theme="dark"] .dm-message-bubble{background:#323048;border-color:#4e4360}
+html[data-theme="dark"] .dm-message.mine .dm-message-bubble{background:#4a3d70;border-color:#705f91}
+html[data-theme="dark"] .dm-message-info{color:#c9bfe0}
+html[data-theme="dark"] .dm-search-label input,html[data-theme="dark"] .dm-composer,html[data-theme="dark"] .profile-form textarea[name="bio"]{background:#29273e;border-color:#56516c;color:#f2eaff}
+html[data-theme="dark"] .dm-profile-close{background:#34304d}
+@media(max-width:760px){
+ .dm-shell{height:calc(100dvh - 205px);min-height:490px;max-height:none;border-radius:15px;grid-template-columns:minmax(0,1fr)}
+ .dm-list{border-right:0;border-bottom:1px solid var(--line);max-height:210px}
+ .dm-list-head{padding:12px 12px 7px}
+ .dm-list-head h1{font-size:18px}
+ .dm-search-label{margin:0 10px 8px}
+ .dm-search-label span{display:none}
+ .dm-search-label input{font-size:16px;padding:8px 10px}
+ .dm-contacts{display:flex;gap:7px;overflow-x:auto;overflow-y:hidden;padding:3px 9px 8px;min-height:72px}
+ .dm-contact{min-width:170px;max-width:220px}
+ .dm-contact-open{gap:6px;padding:7px 3px}
+ .dm-contact-meta time{display:none}
+ .dm-contact-text strong{font-size:11px}
+ .dm-main{min-height:0;flex:1}
+ .dm-chat-head{min-height:51px;padding:7px 10px}
+ .dm-chat-person .profile-avatar{width:32px;height:32px;border-radius:10px}
+ .dm-chat-person strong{font-size:12px}
+ .dm-back{display:block}
+ .dm-messages{padding:11px 11px;gap:8px}
+ .dm-message-bubble{max-width:88%;padding:8px 10px}
+ .dm-message-bubble p{font-size:12px}
+ .dm-composer{margin:6px 9px 10px;padding:6px 7px 6px 11px}
+ .dm-composer textarea{font-size:16px}
+ .dm-profile-dialog{padding:29px 18px 19px}
+}
+@media(prefers-reduced-motion:reduce){.dm-contact,.dm-profile-primary{transition:none}}
+
 </style>
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2064%2064%22%3E%3Crect%20width%3D%2264%22%20height%3D%2264%22%20rx%3D%2214%22%20fill%3D%22%23192d44%22%2F%3E%3Ctext%20x%3D%2232%22%20y%3D%2246%22%20fill%3D%22white%22%20font-size%3D%2246%22%20font-family%3D%22Georgia%2Cserif%22%20text-anchor%3D%22middle%22%3E%CE%A8%3C%2Ftext%3E%3C%2Fsvg%3E">
 </head>
@@ -1042,6 +1155,7 @@ Qual conceito ou formulação explica MELHOR essa situação?</p><ol type="a"><l
 <button class="sidebtn" data-page="audio"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg> Podcasts</button>
 <button class="sidebtn" data-page="calendar"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M7 3v4M17 3v4M3 10h18M8 14h3M8 17h5"/></svg> Agenda</button>
 <button class="sidebtn" data-page="ai"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="m12 2 2.6 6.9L21 11l-6.4 2.1L12 20l-2.6-6.9L3 11l6.4-2.1L12 2Z"/><path d="m19 18 1 2 2 1-2 1-1 2-1-2-2-1 2-1z"/></svg> IA Tzoul</button>
+<button class="sidebtn" data-page="messages"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.5 8.5 0 0 1-8.5 8.5c-1.5 0-3.1-.4-4.4-1.1L3 20l1.2-4.9A8.5 8.5 0 1 1 21 11.5Z"/><path d="M8 11.5h8M8 14.5h5"/></svg> Mensagens <span class="dm-nav-badge" id="dmNavBadge" hidden></span></button>
 </nav>
   <button type="button" id="mobileNavMoreToggle" class="mobile-nav-more" aria-controls="nav" aria-expanded="false" aria-label="Mostrar mais atalhos" title="Mostrar mais atalhos">
     <span>Mais opções</span><svg viewBox="0 0 24 24" width="17" height="17" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
@@ -1049,6 +1163,7 @@ Qual conceito ou formulação explica MELHOR essa situação?</p><ol type="a"><l
   <div class="navlbl">Disciplinas</div><nav class="menu" id="subjectNav"></nav>
   <div class="sidebarfoot">Atualizado · 10/11/2026 · Progresso por conteúdo<br>Dados salvos neste navegador.</div>
 </aside><main class="main" id="main" aria-live="polite"></main><aside class="profile-sidebar" id="profileSidebar" aria-label="Meu perfil e ranking"><div class="rank-empty">Carregando perfis...</div></aside></div>
+<div class="dm-profile-overlay" id="dmProfileOverlay" hidden><section class="dm-profile-dialog" role="dialog" aria-modal="true" aria-labelledby="dmProfileHeading"><button type="button" class="dm-profile-close" data-dm-close-profile aria-label="Fechar perfil">×</button><div id="dmProfileContent"></div></section></div>
 <div class="profile-overlay" id="profileOverlay" hidden>
 <div class="profile-dialog" role="dialog" aria-modal="true" aria-labelledby="profileDialogTitle">
   <div class="profile-dialog-top"><div><h2 id="profileDialogTitle">Conta online</h2><p class="subtitle">Entra ou cadastra-te para sincronizar os estudos e participar do ranking.</p></div><button type="button" class="profile-close" data-account-action="close" aria-label="Fechar janela">×</button></div>
@@ -1207,6 +1322,7 @@ const go=(page,extra={})=>{
  try{window.scrollTo({top:0,behavior:'auto'})}catch(e){try{window.scrollTo(0,0)}catch(_){}}
  try{history.replaceState(null,'','#'+(page==='subject'?(current.subject||''):page==='test'?current.exam:page))}catch(e){}
 };
+window.uentzoulOpenMessages=(peerId)=>go('messages',{peerId:peerId||null});
 const button=(label,act,cl='btn light')=>`<button class="${cl}" data-action="${act}">${label}</button>`;
 function subjectCard(id){
  const subj=getSubject(id), exams=DB.exams.filter(e=>e.subject===id), sims=doneCount(exams.map(e=>'sim:'+e.id)), keys=subjectKeys(id),n=doneCount(keys);
@@ -1568,13 +1684,13 @@ window.addEventListener('uentzoul:auth',()=>{
 
 function render(){
  renderNav();
- if(!Object.keys(DB.subjects).length&&current.page!=='ai'){
+ if(!Object.keys(DB.subjects).length&&current.page!=='ai'&&current.page!=='messages'){
   const labels={home:['Semestre 2027/1','Um espaço novo para o próximo semestre'],exams:['Simulados','Nenhum simulado cadastrado'],library:['Biblioteca','Nenhum arquivo cadastrado'],audio:['Podcasts','Nenhum podcast cadastrado'],calendar:['Agenda','Nenhuma avaliação cadastrada']};
   const v=labels[current.page]||labels.home;
   $('main').innerHTML=head(semester,v[0],v[1])+'<section class="section"><div class="panel semester-empty"><h2>Este semestre ainda está vazio</h2><p class="muted">As matérias, os textos, os simulados, os podcasts e a agenda de 2027/1 serão adicionados quando estiverem definidos. O conteúdo de 2026/2 continua disponível na outra aba.</p><p class="small">O progresso e a pontuação deste semestre começam em zero e não se misturam com os do semestre anterior.</p></div></section>';
   return;
  }
- let body='';switch(current.page){case 'home':body=renderHome();break;case 'subject':body=renderSubject(current.subject);break;case 'exams':body=renderExams();break;case 'test':body=renderTest(current.exam);break;case 'library':body=renderLibrary();break;case 'audio':body=renderAudio();break;case 'calendar':body=renderCalendar();break;case 'ai':body=renderAI();break;default:body=renderHome()};$('main').innerHTML=body;if(current.page==='audio')setupAudio();}
+ let body='';switch(current.page){case 'home':body=renderHome();break;case 'subject':body=renderSubject(current.subject);break;case 'exams':body=renderExams();break;case 'test':body=renderTest(current.exam);break;case 'library':body=renderLibrary();break;case 'audio':body=renderAudio();break;case 'calendar':body=renderCalendar();break;case 'ai':body=renderAI();break;case 'messages':body=window.uentzoulMessenger?.render()||'<section class="panel">Carregando mensagens…</section>';break;default:body=renderHome()};$('main').innerHTML=body;if(current.page==='audio')setupAudio();if(current.page==='messages')window.uentzoulMessenger?.afterRender(current.peerId||null);}
 /* Armazenamento local de podcasts. A URL de cada episódio é publicada como
    arquivo independente; o HTML não carrega o áudio antecipadamente. */
 const POD_DB_NAME='EstudosUentzoulPodcasts_v1';
@@ -1806,7 +1922,7 @@ function current(){return onlineUser?{name:remoteProfile?.display_name||onlineUs
 function renderAside(){const el=$('profileSidebar');if(!el)return;const p=current(),score=bridge.score(),isOnline=!!onlineUser;const mobile=$('mobileProfileButton');if(mobile)mobile.innerHTML=p?avatar(p.name,p.avatar,true):'👤';
 let rows=isOnline&&(rankingSemester===bridge.semester())?rankData:[];
 if(!bridge.hasSubjects())rows=[];
-const content=rows.length?rows.map((x,i)=>`<div class="rank-entry ${p&&x.id===p.id?'me':''}"><span class="rank-num">${i===0?'🏆':i+1}</span>${avatar(x.display_name,x.avatar_url,true)}<div class="rank-person"><strong>${esc(x.display_name)}</strong><span>${p&&x.id===p.id?'Você · ':''}atividades concluídas</span></div><b class="rank-score">${Number(x.completed_count??x.score)||0}</b></div>`).join(''):`<div class="rank-empty">${!bridge.hasSubjects()?'Nenhuma pontuação em 2027/1. O ranking começará quando adicionarmos as matérias.':isOnline?'Ainda não há participantes no ranking.':'Entra na conta online para visualizar o ranking.'}</div>`;
+const content=rows.length?rows.map((x,i)=>`<div class="rank-entry ${p&&(x.user_id||x.id)===p.id?'me':''}"><span class="rank-num">${i===0?'🏆':i+1}</span><button type="button" class="rank-user-trigger" data-dm-profile="${esc(x.user_id||x.id||'')}" title="Ver perfil de ${esc(x.display_name)}">${avatar(x.display_name,x.avatar_url,true)}<span class="rank-person"><strong>${esc(x.display_name)}</strong><span>${p&&(x.user_id||x.id)===p.id?'Você · ':''}Ver perfil e conversar</span></span></button><b class="rank-score">${Number(x.completed_count??x.score)||0}</b></div>`).join(''):`<div class="rank-empty">${!bridge.hasSubjects()?'Nenhuma pontuação em 2027/1. O ranking começará quando adicionarmos as matérias.':isOnline?'Ainda não há participantes no ranking.':'Entra na conta online para visualizar o ranking.'}</div>`;
 el.innerHTML=`<section class="profile-panel"><div class="profile-panel-top">${avatar(p?.name||'Visitante',p?.avatar)}<div class="profile-panel-info"><strong>${esc(p?.name||'Visitante')}</strong><span>${p?'Conta sincronizada':'Não conectado'}</span></div></div><button class="profile-action" data-account-action="open">${p?'Meu perfil / Configurações':'Entrar / Cadastrar'}</button><span class="profile-note">${p?`${score} atividades concluídas`:'O progresso só é sincronizado quando estás conectado.'}</span></section><div><h2 class="rank-title">Ranking · ${bridge.semester()}</h2><p class="rank-subtitle">${!bridge.hasSubjects()?'Pontuação independente — ainda sem matérias':isOnline?'Classificação da comunidade':'Ranking de contas online'}</p><div class="rank-list">${content}</div><div class="rank-footer">${isOnline?'Pontuação: total de itens marcados como concluídos. O ranking considera o progresso enviado por cada pessoa.':'O ranking e a sincronização funcionam somente com contas online.'}</div></div>`;
 }
 function showModal(view='login'){modalView=view;$('profileOverlay').hidden=false;document.body.style.overflow='hidden';renderModal()}
@@ -1821,7 +1937,7 @@ function renderModal(){
    :'<p class="profile-form-note" role="alert">'+esc(cloudError||'O serviço de login não carregou. Podes tentar novamente sem fechar a página.')+'</p><button type="button" class="profile-secondary" data-account-action="retry-connection">Tentar conectar novamente</button>';
   return;
  }
- if(onlineUser){body.innerHTML=`<div class="profile-person-row">${avatar(remoteProfile?.display_name,remoteProfile?.avatar_url)}<strong>${esc(remoteProfile?.display_name||onlineUser.email)}</strong><span class="profile-badge">Online</span></div><form class="profile-form" id="onlineProfileForm"><label>Nome exibido no ranking<input name="display_name" minlength="2" maxlength="40" required value="${esc(remoteProfile?.display_name||'')}"></label><label>Foto de perfil (JPEG, PNG ou WebP)<input type="file" name="avatar" accept="image/jpeg,image/png,image/webp"></label><button type="submit">Salvar perfil</button></form><p class="profile-form-note">As atividades são sincronizadas automaticamente nesta conta.</p><button class="profile-secondary" data-account-action="logout">Sair da conta</button><p class="profile-message" id="profileMessage"></p>`;return}
+ if(onlineUser){body.innerHTML=`<div class="profile-person-row">${avatar(remoteProfile?.display_name,remoteProfile?.avatar_url)}<strong>${esc(remoteProfile?.display_name||onlineUser.email)}</strong><span class="profile-badge">Online</span></div><form class="profile-form" id="onlineProfileForm"><label>Nome exibido no ranking<input name="display_name" minlength="2" maxlength="40" required value="${esc(remoteProfile?.display_name||'')}"></label><label>Foto de perfil (JPEG, PNG ou WebP)<input type="file" name="avatar" accept="image/jpeg,image/png,image/webp"></label><label>Bio pública (até 300 caracteres)<textarea name="bio" maxlength="300" rows="4" placeholder="Escreve algo sobre ti…">${esc(remoteProfile?.bio||"")}</textarea></label><button type="submit">Salvar perfil</button></form><p class="profile-form-note">As atividades são sincronizadas automaticamente nesta conta.</p><button class="profile-secondary" data-account-action="logout">Sair da conta</button><p class="profile-message" id="profileMessage"></p>`;return}
 body.innerHTML=`<div class="profile-tabs"><button class="${modalView==='login'?'selected':''}" data-account-action="login-view">Entrar</button><button class="${modalView==='register'?'selected':''}" data-account-action="register-view">Cadastrar</button></div><form class="profile-form" id="onlineAuthForm">${modalView==='register'?'<label>Nome público<input name="name" autocomplete="nickname" minlength="2" maxlength="40" required></label>':''}<label>E-mail<input name="email" type="email" autocomplete="email" required></label><label>Senha<input name="password" type="password" autocomplete="${modalView==='register'?'new-password':'current-password'}" minlength="6" required></label><button type="submit">${modalView==='register'?'Criar conta':'Entrar'}</button></form><p class="profile-form-note">A conta online salva o progresso na nuvem e participa do ranking coletivo.</p><button type="button" class="profile-secondary" data-account-action="resend-signup">Reenviar confirmação por e-mail</button><p class="profile-message" id="profileMessage"></p>`;return
 }
 async function photo(file){if(!file||!file.size)return null;if(file.size>6*1024*1024)throw Error('Seleciona uma foto de até 6 MB.');if(!/^image\/(png|jpeg|webp)$/.test(file.type))throw Error('A foto precisa ser PNG, JPEG ou WebP.');return new Promise((resolve,reject)=>{const img=new Image();const object=URL.createObjectURL(file);img.onload=()=>{try{const canvas=document.createElement('canvas');canvas.width=canvas.height=180;const ctx=canvas.getContext('2d');const scale=Math.max(180/img.width,180/img.height),w=img.width*scale,h=img.height*scale;ctx.drawImage(img,(180-w)/2,(180-h)/2,w,h);URL.revokeObjectURL(object);canvas.toBlob(blob=>{if(blob)resolve({blob,url:canvas.toDataURL('image/jpeg',.75)});else reject(Error('Não foi possível processar a foto.'))},'image/jpeg',.75)}catch(e){URL.revokeObjectURL(object);reject(e)}};img.onerror=()=>{URL.revokeObjectURL(object);reject(Error('Não foi possível abrir a imagem.'))};img.src=object})}
@@ -1875,6 +1991,7 @@ async function initCloud(){
      }));
     }
     if(event==='SIGNED_OUT'){
+     window.uentzoulMessenger?.onLogout();
      onlineUser=null;remoteProfile=null;cloudSnapshot=null;rankData=[];rankingSemester=null;
      bridge.switchTo('guest-session',{answers:{},results:{},bookmarks:{},completed:{}});
      renderAside();
@@ -1902,7 +2019,7 @@ async function enterCloud(user){
  if(enteringPromise&&enteringUserId===user.id)return enteringPromise;
  enteringUserId=user.id;
  enteringPromise=(async()=>{
- const {data:prog,error:progErr}=await client.from('uentzoul_progress').select('data').eq('user_id',user.id).maybeSingle();if(progErr)throw progErr;const {data:prof,error:profErr}=await client.from('uentzoul_profiles').select('user_id,display_name,avatar_url').eq('user_id',user.id).maybeSingle();if(profErr)throw profErr;const display_name=(prof?.display_name||user.user_metadata?.display_name||user.email?.split('@')[0]||'Estudante').slice(0,40);if(!prof){const {error}=await client.from('uentzoul_profiles').upsert({user_id:user.id,display_name});if(error)throw error}remoteProfile=prof||{user_id:user.id,display_name,avatar_url:''};const id='cloud:'+user.id,sem=bridge.semester(),remote=prog?.data;
+ const {data:prog,error:progErr}=await client.from('uentzoul_progress').select('data').eq('user_id',user.id).maybeSingle();if(progErr)throw progErr;const {data:prof,error:profErr}=await client.from('uentzoul_profiles').select('user_id,display_name,avatar_url,bio').eq('user_id',user.id).maybeSingle();if(profErr)throw profErr;const display_name=(prof?.display_name||user.user_metadata?.display_name||user.email?.split('@')[0]||'Estudante').slice(0,40);if(!prof){const {error}=await client.from('uentzoul_profiles').upsert({user_id:user.id,display_name});if(error)throw error}remoteProfile=prof||{user_id:user.id,display_name,avatar_url:''};const id='cloud:'+user.id,sem=bridge.semester(),remote=prog?.data;
 const saved=remote&&remote.semesters&&typeof remote.semesters==='object'?remote.semesters:null;
 cloudSnapshot={semesters:{
  '2026/2':saved?.['2026/2']||(remote&&remote.completed?remote:bridge.readSaved(id,'2026/2')),
@@ -1912,7 +2029,7 @@ cloudSnapshot={semesters:{
 for(const item of ['2026/2','2027/1'])bridge.saveForSemester(id,item,cloudSnapshot.semesters[item]);
 onlineUser=user;bridge.switchTo(id,cloudSnapshot.semesters[sem]);
 if(!prog)await saveCloud();
-await loadRanking();renderAside();window.dispatchEvent(new Event('uentzoul:auth'));if(!$('profileOverlay').hidden)renderModal();
+await loadRanking();renderAside();window.uentzoulMessenger?.onLogin();window.dispatchEvent(new Event('uentzoul:auth'));if(!$('profileOverlay').hidden)renderModal();
  })();
  try{return await enteringPromise}finally{enteringUserId=null;enteringPromise=null}
 }
@@ -1937,8 +2054,8 @@ async function loadRanking(){
  finally{rankBusy=false;if(onlineUser&&bridge.semester()!==requested)queueMicrotask(loadRanking)}
 }
 async function handleOnlineAuth(form){if(!client){msg('O serviço de contas ainda não foi conectado.');return}const f=new FormData(form),email=String(f.get('email')||'').trim(),password=String(f.get('password')||''),name=String(f.get('name')||'').trim();if(modalView==='register'){const {data,error}=await client.auth.signUp({email,password,options:{data:{display_name:name},emailRedirectTo:CONFIRMATION_RETURN_URL}});if(error)throw error;if(data.session){await enterCloud(data.user);closeModal()}else msg('Cadastro realizado. Confira o e-mail para confirmar tua conta.',false)}else{const {data,error}=await client.auth.signInWithPassword({email,password});if(error)throw error;await enterCloud(data.user);closeModal()}}
-async function handleOnlineProfile(form){if(!client||!onlineUser)return;const name=String(new FormData(form).get('display_name')||'').trim().slice(0,40);if(name.length<2)throw Error('O nome precisa ter ao menos 2 caracteres.');const file=form.querySelector('[name=avatar]').files[0];let avatar_url=remoteProfile?.avatar_url||'';if(file){const p=await photo(file);const path=`${onlineUser.id}/avatar.jpg`;const up=await client.storage.from('uentzoul-avatars').upload(path,p.blob,{contentType:'image/jpeg',upsert:true});if(up.error)throw up.error;avatar_url=client.storage.from('uentzoul-avatars').getPublicUrl(path).data.publicUrl+'?v='+Date.now()}
-const {error}=await client.from('uentzoul_profiles').upsert({user_id:onlineUser.id,display_name:name,avatar_url});if(error)throw error;remoteProfile={user_id:onlineUser.id,display_name:name,avatar_url};await loadRanking();renderAside();closeModal()}
+async function handleOnlineProfile(form){if(!client||!onlineUser)return;const name=String(new FormData(form).get('display_name')||'').trim().slice(0,40);if(name.length<2)throw Error('O nome precisa ter ao menos 2 caracteres.');const file=form.querySelector('[name=avatar]').files[0];const bio=String(new FormData(form).get('bio')||'').trim().slice(0,300);let avatar_url=remoteProfile?.avatar_url||'';if(file){const p=await photo(file);const path=`${onlineUser.id}/avatar.jpg`;const up=await client.storage.from('uentzoul-avatars').upload(path,p.blob,{contentType:'image/jpeg',upsert:true});if(up.error)throw up.error;avatar_url=client.storage.from('uentzoul-avatars').getPublicUrl(path).data.publicUrl+'?v='+Date.now()}
+const {error}=await client.from('uentzoul_profiles').upsert({user_id:onlineUser.id,display_name:name,avatar_url,bio});if(error)throw error;remoteProfile={user_id:onlineUser.id,display_name:name,avatar_url,bio};await loadRanking();renderAside();window.uentzoulMessenger?.refresh();closeModal()}
 document.addEventListener('click',async e=>{
  if(e.target===$('profileOverlay'))closeModal();
  const b=e.target.closest('[data-account-action]');if(!b)return;
@@ -1961,7 +2078,7 @@ document.addEventListener('click',async e=>{
  }
  if(action==='logout'){
   try{
-   await client?.auth.signOut();onlineUser=null;remoteProfile=null;cloudSnapshot=null;rankData=[];rankingSemester=null;
+   window.uentzoulMessenger?.onLogout();await client?.auth.signOut();onlineUser=null;remoteProfile=null;cloudSnapshot=null;rankData=[];rankingSemester=null;
    bridge.switchTo('guest-session',{answers:{},results:{},bookmarks:{},completed:{}});
    renderAside();window.dispatchEvent(new Event('uentzoul:auth'));closeModal();
   }catch(err){msg(err.message||'Não foi possível sair da conta.')}
@@ -1981,6 +2098,211 @@ window.addEventListener('uentzoul:semester',()=>{
  rankData=[];rankingSemester=null;renderAside();
  if(onlineUser)loadRanking().catch(console.warn);
 });
+
+/* Mensagens privadas e perfis públicos: participantes identificados pela conta Supabase. */
+const dm={owner:null,people:[],messages:[],peerId:null,ready:false,loading:false,loadPromise:null,
+ error:'',draft:'',search:'',sending:false,realtime:null,readBusy:false,profileOpen:null,lastFetch:0};
+function dmValid(id){return typeof id==='string'&&/^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/i.test(id)}
+function dmPerson(id){return dm.people.find(p=>p.user_id===id)||null}
+function dmPrettyPerson(id){const p=dmPerson(id);return p||{user_id:id,display_name:'Estudante',avatar_url:'',bio:''}}
+function dmTime(v){try{return new Intl.DateTimeFormat('pt-BR',{hour:'2-digit',minute:'2-digit'}).format(new Date(v))}catch{return ''}}
+function dmShortDate(v){try{return new Intl.DateTimeFormat('pt-BR',{day:'2-digit',month:'short'}).format(new Date(v))}catch{return ''}}
+function dmDateKey(v){const d=new Date(v);return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
+function dmDateLabel(v){
+ const d=new Date(v),today=new Date(),yesterday=new Date(today);yesterday.setDate(today.getDate()-1);
+ if(dmDateKey(d)===dmDateKey(today))return 'Hoje';
+ if(dmDateKey(d)===dmDateKey(yesterday))return 'Ontem';
+ return new Intl.DateTimeFormat('pt-BR',{day:'numeric',month:'long',year:'numeric'}).format(d);
+}
+function dmConversations(){
+ const byId=new Map();
+ for(const msg of dm.messages){
+  const id=msg.sender_id===dm.owner?msg.recipient_id:msg.sender_id;
+  if(id===dm.owner||!dmValid(id))continue;
+  if(!byId.has(id))byId.set(id,{id,last:msg,unread:0});
+  if(msg.recipient_id===dm.owner&&!msg.read_at)byId.get(id).unread++;
+ }
+ return [...byId.values()].sort((a,b)=>new Date(b.last.created_at)-new Date(a.last.created_at));
+}
+function dmBadge(){
+ const count=dm.messages.filter(m=>m.recipient_id===dm.owner&&!m.read_at).length;
+ const el=document.getElementById('dmNavBadge');if(!el)return;
+ el.hidden=!count;el.textContent=count>99?'99+':String(count);
+ el.setAttribute('aria-label',count+' mensagens não lidas');
+}
+function dmContactRows(){
+ const all=dmConversations(),seen=new Set(),others=[];
+ all.forEach(x=>{seen.add(x.id);others.push(x)});
+ for(const p of dm.people){if(p.user_id!==dm.owner&&!seen.has(p.user_id)){seen.add(p.user_id);others.push({id:p.user_id,last:null,unread:0})}}
+ const term=dm.search.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().trim();
+ const filtered=others.filter(row=>!term||dmPrettyPerson(row.id).display_name.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().includes(term));
+ if(!filtered.length)return '<p class="dm-contact-empty">'+(term?'Nenhuma pessoa encontrada.':'Nenhum estudante disponível para conversar.')+'</p>';
+ return filtered.map(row=>{
+  const p=dmPrettyPerson(row.id),sel=dm.peerId===row.id;
+  const subtitle=row.last?row.last.body:'Iniciar conversa';
+  return '<div class="dm-contact '+(sel?'selected':'')+'"><button type="button" class="dm-contact-open" data-dm-peer="'+esc(row.id)+'" aria-label="Conversar com '+esc(p.display_name)+'">'+
+   avatar(p.display_name,p.avatar_url,true)+'<span class="dm-contact-text"><strong>'+esc(p.display_name)+'</strong><small>'+esc(subtitle.slice(0,70))+'</small></span>'+
+   '<span class="dm-contact-meta">'+(row.last?'<time>'+esc(dmShortDate(row.last.created_at))+'</time>':'')+(row.unread?'<b class="dm-unread">'+row.unread+'</b>':'')+'</span></button>'+
+   '<button type="button" class="dm-contact-profile" data-dm-profile="'+esc(row.id)+'" title="Ver perfil de '+esc(p.display_name)+'" aria-label="Ver perfil de '+esc(p.display_name)+'">ⓘ</button></div>';
+ }).join('');
+}
+function dmChatMessages(id){
+ const msgs=dm.messages.filter(m=>(m.sender_id===dm.owner&&m.recipient_id===id)||(m.sender_id===id&&m.recipient_id===dm.owner)).slice().reverse();
+ if(!msgs.length)return '<div class="dm-chat-empty"><span>✉</span><h3>Começa a conversa</h3><p>Escreve a primeira mensagem. Ela ficará disponível para os dois usuários.</p></div>';
+ let date='';
+ let html='';
+ for(const m of msgs){
+  const day=dmDateKey(m.created_at);
+  if(day!==date){date=day;html+='<div class="dm-day"><span>'+esc(dmDateLabel(m.created_at))+'</span></div>'}
+  const mine=m.sender_id===dm.owner;
+  html+='<div class="dm-message '+(mine?'mine':'theirs')+'"><div class="dm-message-bubble"><p>'+esc(m.body).replace(/\n/g,'<br>')+'</p>'+
+   '<div class="dm-message-info"><time datetime="'+esc(m.created_at)+'" title="'+esc(new Date(m.created_at).toLocaleString('pt-BR'))+'">'+esc(dmTime(m.created_at))+'</time>'+
+   (mine?'<span aria-label="'+(m.read_at?'Mensagem lida':'Mensagem enviada')+'">'+(m.read_at?'✓✓ Lida':'✓ Enviada')+'</span>':'')+'</div></div></div>';
+ }
+ return html;
+}
+function dmRender(){
+ if(!onlineUser)return '<section class="dm-login-panel"><h1>Mensagens</h1><p>Entra na tua conta para conversar com outros estudantes do site.</p><button type="button" data-account-action="open" class="profile-action">Entrar / Cadastrar</button></section>';
+ const peer=dm.peerId?dmPrettyPerson(dm.peerId):null;
+ return '<section class="dm-shell"><div class="dm-list">'+
+ '<header class="dm-list-head"><div><h1>Mensagens</h1><p>Conversas entre estudantes</p></div><span class="dm-online-dot" aria-label="Conta conectada"></span></header>'+
+ '<label class="dm-search-label"><span>Encontrar pessoas</span><input id="dmUserSearch" type="search" placeholder="Buscar estudante pelo nome" value="'+esc(dm.search)+'" autocomplete="off"></label>'+
+ '<div class="dm-contacts" id="dmContacts">'+(dm.loading&&!dm.ready?'<p class="dm-contact-empty">Carregando conversas…</p>':dmContactRows())+'</div>'+
+ '</div><div class="dm-main">'+
+ (peer?'<header class="dm-chat-head"><button type="button" class="dm-chat-person" data-dm-profile="'+esc(peer.user_id)+'" title="Ver perfil">'+avatar(peer.display_name,peer.avatar_url,true)+
+ '<span><strong>'+esc(peer.display_name)+'</strong><small>Ver perfil e bio</small></span></button><button type="button" class="dm-back" data-dm-back>Conversas</button></header>':
+ '<header class="dm-chat-head dm-chat-head-empty"><strong>Escolhe uma conversa</strong></header>')+
+ (dm.error?'<div class="dm-error" role="alert">'+esc(dm.error)+'</div>':'')+
+ '<div class="dm-messages" id="dmMessages" aria-live="polite">'+(peer?dmChatMessages(peer.user_id):'<div class="dm-chat-empty"><span>✉</span><h2>As tuas conversas começam aqui</h2><p>Seleciona alguém do ranking ou procura um estudante à esquerda para mandar uma mensagem.</p></div>')+'</div>'+
+ (peer?'<form id="dmSendForm" class="dm-composer"><label for="dmPrompt" class="dm-visually-hidden">Mensagem para '+esc(peer.display_name)+'</label>'+
+ '<textarea id="dmPrompt" maxlength="3000" rows="2" placeholder="Escreve uma mensagem…" '+(dm.sending?'disabled':'')+'>'+esc(dm.draft)+'</textarea>'+
+ '<button type="submit" '+(dm.sending?'disabled':'')+' aria-label="Enviar mensagem" title="Enviar mensagem"><svg width="19" height="19" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.3" fill="none" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 19V5M5 12l7-7 7 7"/></svg></button></form>':'')+
+ '</div></section>';
+}
+function dmShow(){
+ const main=document.getElementById('main');
+ if(!main||!main.querySelector('.dm-shell')&&!main.querySelector('.dm-login-panel'))return;
+ const scroll=main.querySelector('#dmMessages'),oldHeight=scroll?.scrollHeight||0,oldTop=scroll?.scrollTop||0;
+ const shouldBottom=!scroll||oldHeight-oldTop-scroll.clientHeight<130;
+ main.innerHTML=dmRender();
+ const newList=main.querySelector('#dmMessages');if(newList)newList.scrollTop=shouldBottom?newList.scrollHeight:oldTop;
+}
+async function dmMarkRead(){
+ if(!client||!onlineUser||!dmValid(dm.peerId)||dm.readBusy)return;
+ if(!dm.messages.some(m=>m.sender_id===dm.peerId&&m.recipient_id===onlineUser.id&&!m.read_at))return;
+ dm.readBusy=true;
+ try{const {error}=await client.from('uentzoul_messages').update({read_at:new Date().toISOString()}).eq('recipient_id',onlineUser.id).eq('sender_id',dm.peerId).is('read_at',null);if(error)throw error;
+  dm.messages.forEach(m=>{if(m.sender_id===dm.peerId&&m.recipient_id===onlineUser.id&&!m.read_at)m.read_at=new Date().toISOString()});
+  dmBadge();dmShow();
+ }catch(e){console.warn('Falha ao marcar mensagem como lida',e)}
+ finally{dm.readBusy=false}
+}
+async function dmLoad(){
+ if(!client||!onlineUser||dm.loading)return dm.loadPromise;
+ const id=onlineUser.id;dm.loading=true;dm.error='';
+ dm.loadPromise=(async()=>{
+  try{
+   const [messages,people]=await Promise.all([
+    client.from('uentzoul_messages').select('id,sender_id,recipient_id,body,created_at,read_at').or('sender_id.eq.'+id+',recipient_id.eq.'+id).order('created_at',{ascending:false}).limit(1000),
+    client.from('uentzoul_profiles').select('user_id,display_name,avatar_url,bio').order('display_name',{ascending:true}).limit(300)
+   ]);
+   if(messages.error)throw messages.error;if(people.error)throw people.error;
+   if(onlineUser?.id!==id)return;
+   dm.messages=messages.data||[];dm.people=people.data||[];dm.owner=id;dm.ready=true;dm.lastFetch=Date.now();
+   dmBadge();dmShow();if(dm.peerId)await dmMarkRead();
+  }catch(e){dm.error=e?.message||'Não foi possível carregar as conversas.';dmShow()}
+  finally{dm.loading=false}
+ })();
+ return dm.loadPromise;
+}
+function dmOnLogout(){
+ if(dm.realtime&&client)try{client.removeChannel(dm.realtime)}catch(_){}
+ dm.realtime=null;dm.owner=null;dm.peerId=null;dm.messages=[];dm.people=[];dm.ready=false;dm.loading=false;dm.loadPromise=null;dm.error='';dm.draft='';dm.search='';dm.sending=false;
+ dmBadge();dmShow();dmCloseProfile();
+}
+function dmOnLogin(){
+ if(!client||!onlineUser)return;
+ if(dm.owner!==onlineUser.id){dmOnLogout();dm.owner=onlineUser.id}
+ dmLoad();
+ try{
+  if(dm.realtime)client.removeChannel(dm.realtime);
+  dm.realtime=client.channel('student-dm-'+onlineUser.id).on('postgres_changes',{event:'*',schema:'public',table:'uentzoul_messages'},()=>dmLoad()).subscribe();
+ }catch(err){console.warn('Notificações de chat indisponíveis',err)}
+}
+async function dmAfterRender(peerId){
+ if(!onlineUser)return;
+ if(dmValid(peerId)){if(dm.peerId!==peerId){dm.peerId=peerId;dm.draft=''}}
+ if(!dm.ready){await dmLoad();return}
+ if(dm.peerId){dmShow();dmMarkRead()}
+}
+function dmOpenPeer(id){
+ if(!onlineUser){showModal('login');return}
+ if(!dmValid(id)||id===onlineUser.id)return;
+ dm.peerId=id;dm.draft='';
+ window.uentzoulOpenMessages?.(id);
+}
+async function dmSend(){
+ if(!onlineUser||!client||!dmValid(dm.peerId)||dm.sending)return;
+ const text=String(document.getElementById('dmPrompt')?.value||dm.draft).trim();
+ if(!text||text.length>3000)return;
+ dm.sending=true;dm.error='';dm.draft=text;dmShow();
+ try{
+  const {error}=await client.from('uentzoul_messages').insert({sender_id:onlineUser.id,recipient_id:dm.peerId,body:text});
+  if(error)throw error;
+  dm.draft='';await dmLoad();
+ }catch(e){dm.error=e?.message||'Falha ao enviar mensagem. Tenta novamente.'}
+ finally{dm.sending=false;dmShow();const field=document.getElementById('dmPrompt');if(field&&!dm.error)field.focus()}
+}
+function dmCloseProfile(){
+ const panel=document.getElementById('dmProfileOverlay');
+ if(panel){panel.hidden=true;document.body.style.overflow=''}
+ dm.profileOpen=null;
+}
+async function dmOpenProfile(id){
+ if(!dmValid(id))return;
+ if(!onlineUser){showModal('login');return}
+ const panel=document.getElementById('dmProfileOverlay'),body=document.getElementById('dmProfileContent');
+ if(!panel||!body)return;
+ dm.profileOpen=id;panel.hidden=false;document.body.style.overflow='hidden';
+ body.innerHTML='<p class="dm-profile-loading">Carregando perfil…</p>';
+ try{
+  const {data,error}=await client.from('uentzoul_profiles').select('user_id,display_name,avatar_url,bio').eq('user_id',id).maybeSingle();
+  if(error)throw error;if(!data)throw Error('Este perfil não está disponível.');
+  if(dm.profileOpen!==id)return;
+  const mine=id===onlineUser.id;
+  body.innerHTML='<div class="dm-profile-large">'+avatar(data.display_name,data.avatar_url)+'</div>'+
+   '<h2 id="dmProfileHeading">'+esc(data.display_name)+'</h2>'+
+   '<div class="dm-profile-bio">'+(data.bio?esc(data.bio).replace(/\n/g,'<br>'):'<span class="dm-bio-empty">Esta pessoa ainda não escreveu uma bio.</span>')+'</div>'+
+   (mine?'<button type="button" class="dm-profile-primary" data-dm-edit-profile>Editar meu perfil</button>':
+   '<button type="button" class="dm-profile-primary" data-dm-message="'+esc(data.user_id)+'">Enviar mensagem</button>');
+ }catch(e){body.innerHTML='<p class="dm-error">'+esc(e?.message||'Erro ao abrir o perfil.')+'</p>'}
+}
+window.uentzoulMessenger={render:dmRender,afterRender:dmAfterRender,onLogin:dmOnLogin,onLogout:dmOnLogout,refresh:dmLoad};
+document.addEventListener('click',e=>{
+ const profile=e.target.closest('[data-dm-profile]');
+ if(profile){e.preventDefault();dmOpenProfile(profile.dataset.dmProfile);return}
+ const peer=e.target.closest('[data-dm-peer]');
+ if(peer){e.preventDefault();dmOpenPeer(peer.dataset.dmPeer);return}
+ const direct=e.target.closest('[data-dm-message]');
+ if(direct){e.preventDefault();const id=direct.dataset.dmMessage;dmCloseProfile();dmOpenPeer(id);return}
+ if(e.target.closest('[data-dm-edit-profile]')){e.preventDefault();dmCloseProfile();showModal('edit');return}
+ if(e.target.closest('[data-dm-close-profile]')||e.target.id==='dmProfileOverlay'){e.preventDefault();dmCloseProfile();return}
+ if(e.target.closest('[data-dm-back]')){e.preventDefault();dm.peerId=null;window.uentzoulOpenMessages?.(null)}
+});
+document.addEventListener('input',e=>{
+ if(e.target.id==='dmPrompt')dm.draft=e.target.value;
+ if(e.target.id==='dmUserSearch'){
+  dm.search=e.target.value;const list=document.getElementById('dmContacts');if(list)list.innerHTML=dmContactRows();
+ }
+});
+document.addEventListener('keydown',e=>{
+ if(e.key==='Escape'&&dm.profileOpen){dmCloseProfile();return}
+ if(e.target.id==='dmPrompt'&&e.key==='Enter'&&!e.shiftKey&&!e.isComposing){e.preventDefault();dmSend()}
+});
+document.addEventListener('submit',e=>{if(e.target.id==='dmSendForm'){e.preventDefault();dmSend()}});
+window.addEventListener('focus',()=>{if(onlineUser&&Date.now()-dm.lastFetch>10000)dmLoad()});
+document.addEventListener('visibilitychange',()=>{if(!document.hidden&&onlineUser&&Date.now()-dm.lastFetch>10000)dmLoad()});
+
 window.uentzoulAIAuth={user:()=>onlineUser,getSession:async()=>{if(!client)return null;const r=await client.auth.getSession();return r?.data?.session||null},openLogin:()=>showModal('login')};
 bridge.switchTo('guest-session',{answers:{},results:{},bookmarks:{},completed:{}});
 renderAside();initCloud();
