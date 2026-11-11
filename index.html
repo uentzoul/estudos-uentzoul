@@ -2657,7 +2657,7 @@ renderSubject=function(k){
 function geReadyLibrary(){
  const subjects=Object.keys(DB.subjects);
  return head('Simulados prontos','Provas para praticar','Quatro simulados por disciplina: dois de dificuldade normal e dois difíceis, com correções comentadas.')+
- '<div class="alert info">As provas prontas são exercícios de estudo e não avaliações oficiais. O sistema mantém as tentativas e correções já realizadas.</div>'+
+ '<p class="small muted">Simulados de estudo, não avaliações oficiais.</p>'+
  subjects.map(id=>{
   const all=DB.exams.filter(e=>e.subject===id).sort((a,b)=>Number(a.model)-Number(b.model));
   const normal=all.filter(e=>Number(e.model)<=2).slice(0,2);
