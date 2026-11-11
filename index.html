@@ -3136,145 +3136,549 @@ document.addEventListener('visibilitychange',()=>{if(!document.hidden&&onlineUse
 
 
 /* Matérias complementares privadas — compartilhadas somente dentro da conta do aluno. */
-const pc={owner:null,subjects:[],exams:[],selected:null,examId:null,draft:null,loading:false,busy:false,
- error:'',grade:null,answers:{},loaded:false,loadPromise:null};
-function pcSelected(){return pc.subjects.find(s=>s.id===pc.selected)||null}
-function pcMyExams(){return pc.exams.filter(e=>e.subject_id===pc.selected)}
-function pcRenderQuiz(){
- const exam=pc.exams.find(e=>e.id===pc.examId);
- if(!exam)return '';
- const questions=Array.isArray(exam.questions)?exam.questions:[];
- return '<div class="pc-quiz"><div class="pc-quiz-head"><h2>'+esc(exam.title)+'</h2><button type="button" class="pc-mini" data-pc-close-exam>← Voltar à matéria</button></div>'+
- '<p>Responde às questões. Depois de corrigir, aparecem as explicações. Este simulado pessoal não vale pontos.</p>'+
- questions.map((q,i)=>{
-  const chosen=pc.answers[exam.id]?.[i],graded=pc.grade?.examId===exam.id;
-  return '<section class="pc-question"><h3>'+(i+1)+'. '+esc(q.question)+'</h3>'+
-   (q.options||[]).map((opt,j)=>'<label class="pc-option '+(graded&&j===q.answer?'correct':graded&&chosen===j?'incorrect':'')+'"><input type="radio" name="pc-question-'+i+'" value="'+j+'" data-pc-answer="'+i+'" '+(chosen===j?'checked':'')+' '+(graded?'disabled':'')+'>'+String.fromCharCode(65+j)+'. '+esc(opt)+'</label>').join('')+
-   (graded?'<p class="pc-explanation"><strong>Resposta: '+String.fromCharCode(65+q.answer)+'</strong> · '+esc(q.explanation||'')+'</p>':'')+'</section>'
- }).join('')+
- (pc.grade?.examId===exam.id?'<div class="pc-grade"><strong>'+pc.grade.correct+' de '+questions.length+' acertos</strong><button type="button" data-pc-retry>Refazer</button></div>':
- '<button type="button" data-pc-grade class="pc-primary">Corrigir simulado</button>')+'</div>';
+
+/* Espaço Pessoal 2.0: matérias, fontes, agenda, simulados exclusivos e IA */
+const pc={owner:null,loaded:false,loading:false,busy:false,subjects:[],sources:[],agenda:[],exams:[],submissions:[],legacyExams:[],documents:[],
+ selected:null,view:'home',tab:'overview',modal:null,editEvent:null,examId:null,docId:null,
+ answers:{},drafts:{},task:'resumo',request:'',difficulty:'normal',error:'',notice:''};
+function pcSubject(){return pc.subjects.find(s=>s.id===pc.selected)||null}
+function pcSources(id){return pc.sources.filter(x=>x.subject_id===id)}
+function pcAgenda(id){return pc.agenda.filter(x=>x.subject_id===id).sort((a,b)=>a.due_at.localeCompare(b.due_at))}
+function pcExams(id){return pc.exams.filter(x=>x.personal_subject_id===id)}
+function pcDocs(id){return pc.documents.filter(x=>x.subject_id===id)}
+function pcSubmission(id){return pc.submissions.find(x=>x.exam_id===id)}
+function pcOldExams(id){return pc.legacyExams.filter(x=>x.subject_id===id)}
+function pcIcon(title){return String(title||'M').trim().charAt(0).toLocaleUpperCase('pt-BR')}
+function pcDate(date){return new Date(date).toLocaleDateString('pt-BR',{day:'2-digit',month:'short',year:'numeric'})}
+function pcDateTime(date){return new Date(date).toLocaleString('pt-BR',{day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'})}
+function pcCountSources(id){const subj=pc.subjects.find(x=>x.id===id);return pcSources(id).length+(subj?.description?.trim()?1:0)}
+function pcIconType(type){return ({prova:'📝',trabalho:'📋',aula:'📖',estudo:'✦',outro:'📅'})[type]||'📅'}
+function pcMarkdown(content){
+ const text=String(content||'');
+ return text.split(/\r?\n/).map(line=>{
+  const h=line.match(/^#{1,4}\s+(.+)$/);
+  if(h)return '<h3>'+esc(h[1])+'</h3>';
+  if(/^\s*[-*]\s+/.test(line))return '<p class="pc2-bullet">• '+esc(line.replace(/^\s*[-*]\s+/,''))+'</p>';
+  if(/^\s*\d+[.)]\s+/.test(line))return '<p class="pc2-bullet">'+esc(line)+'</p>';
+  return line.trim()?'<p>'+esc(line).replace(/\*\*([^*]+)\*\*/g,'<strong>$1</strong>')+'</p>':'<div class="pc2-linebreak"></div>';
+ }).join('');
+}
+function pcHome(){
+ const cards=pc.subjects.map((subject,i)=>{
+  const items=pcAgenda(subject.id).filter(x=>!x.completed&&new Date(x.due_at).getTime()>=Date.now()-86400000);
+  const count=pcExams(subject.id).length+pcOldExams(subject.id).length;
+  return '<button type="button" class="pc2-subject-card" style="--pc-index:'+i+';--pc-hue:'+(252+(i*27)%100)+'" data-pc-open-subject="'+esc(subject.id)+'">'+
+   '<span class="pc2-card-orbit" aria-hidden="true"></span><span class="pc2-card-mark">'+esc(pcIcon(subject.title))+'</span>'+
+   '<span class="pc2-card-copy"><strong>'+esc(subject.title)+'</strong><small>'+pcCountSources(subject.id)+' fontes · '+count+' simulados</small></span>'+
+   '<span class="pc2-card-next">'+(items.length?'Próximo: '+esc(items[0].title)+' · '+pcDate(items[0].due_at):'Abre para organizar a matéria')+'</span>'+
+   '<span class="pc2-card-arrow" aria-hidden="true">↗</span></button>';
+ }).join('');
+ return '<header class="pc2-hero"><div><span class="pc2-kicker">TEU ESPAÇO DE APRENDIZAGEM</span><h1>Minhas matérias</h1><p>Reúne materiais, organiza prazos e cria simulados ou textos com a IA Tzoul. Cada matéria tem seu espaço independente.</p></div>'+
+  '<button type="button" class="pc2-create" data-pc-new><span>＋</span> Criar uma nova matéria</button></header>'+
+  (pc.loading?'<div class="pc2-status">Carregando tuas matérias…</div>':
+   pc.subjects.length?'<div class="pc2-grid">'+cards+'</div>':
+   '<div class="pc2-empty"><span>✦</span><h2>Teu espaço começa com uma matéria</h2><p>Adiciona o nome, os textos de aula e os arquivos. Depois, organiza tua agenda e cria recursos para estudar.</p><button type="button" class="pc-primary" data-pc-new>Criar uma nova matéria</button></div>');
+}
+function pcOverview(subject){
+ const agenda=pcAgenda(subject.id).filter(x=>!x.completed).slice(0,3);
+ const exams=pcExams(subject.id).slice(0,3);
+ const docs=pcDocs(subject.id).slice(0,3);
+ const buttons='<div class="pc2-quick-grid">'+
+  '<button data-pc-tab="sources"><span>📚</span><strong>Materiais</strong><small>Arquivos, links e anotações</small></button>'+
+  '<button data-pc-tab="agenda"><span>📅</span><strong>Agenda</strong><small>Provas, trabalhos e estudos</small></button>'+
+  '<button data-pc-tab="exams"><span>✎</span><strong>Simulados</strong><small>13 objetivas + 2 dissertativas</small></button>'+
+  '<button data-pc-tab="ai"><span>✦</span><strong>IA Tzoul</strong><small>Resumos, trabalhos e roteiros</small></button></div>';
+ const upcoming=agenda.length?agenda.map(x=>'<div class="pc2-mini-row"><span>'+pcIconType(x.type)+'</span><div><strong>'+esc(x.title)+'</strong><small>'+pcDateTime(x.due_at)+'</small></div></div>').join(''):
+  '<p class="pc2-muted">Nenhum compromisso pendente.</p>';
+ const latest=exams.length?exams.map(x=>'<button type="button" class="pc2-mini-row pc2-mini-button" data-pc-exam="'+esc(x.id)+'"><span>✎</span><div><strong>'+esc(x.difficulty==='dificil'?'Simulado difícil':'Simulado normal')+'</strong><small>'+(pcSubmission(x.id)?'Entregue · revisão liberada':'Aguardando resposta')+'</small></div><b>↗</b></button>').join(''):
+  '<p class="pc2-muted">Nenhum simulado criado nesta matéria.</p>';
+ return buttons+'<div class="pc2-dashboard">'+
+  '<section class="pc2-panel"><header><h3>Próximos compromissos</h3><button data-pc-tab="agenda">Ver agenda</button></header>'+upcoming+'<button class="pc2-text-action" data-pc-new-event>＋ Adicionar compromisso</button></section>'+
+  '<section class="pc2-panel"><header><h3>Simulados recentes</h3><button data-pc-tab="exams">Ver todos</button></header>'+latest+'<button class="pc2-text-action" data-pc-tab="exams">＋ Criar um simulado</button></section>'+
+  '<section class="pc2-panel pc2-panel-wide"><header><h3>Materiais e produções</h3><button data-pc-tab="sources">Abrir biblioteca pessoal</button></header>'+
+  '<p class="pc2-muted">'+pcCountSources(subject.id)+' fontes cadastradas · '+docs.length+' produções recentes da IA</p>'+
+  (docs.length?'<div class="pc2-doc-links">'+docs.map(d=>'<button data-pc-doc="'+esc(d.id)+'">'+esc(d.title)+' <span>↗</span></button>').join('')+'</div>':'')+
+  '<button class="pc2-text-action" data-pc-tab="ai">✦ Criar um resumo ou trabalho com a IA</button></section></div>';
+}
+function pcSourcesView(subject){
+ const src=pcSources(subject.id);
+ const note='<section class="pc2-panel pc2-notes"><header><h3>Anotações principais</h3><small>Material-base da matéria</small></header>'+
+  '<textarea id="pcMainNotes" maxlength="16000" rows="7" placeholder="Cola aqui o conteúdo das aulas, textos-base ou teus próprios apontamentos…">'+esc(subject.description||'')+'</textarea>'+
+  '<div class="pc2-toolbar"><small>Até 16.000 caracteres. A IA usa este texto como fonte.</small><button class="pc-primary" data-pc-save-notes>Salvar anotações</button></div></section>';
+ const items=src.map(x=>{
+  const symbol=x.kind==='arquivo'?'📄':x.kind==='link'?'🔗':'📝';
+  return '<div class="pc2-source-row"><span class="pc2-source-icon">'+symbol+'</span><div><strong>'+esc(x.title)+'</strong><small>'+
+    (x.kind==='arquivo'?'Arquivo privado':x.kind==='link'?'Link de referência':'Nota de estudo')+
+    ' · '+pcDate(x.created_at)+'</small>'+(x.kind==='nota'?'<p>'+esc(x.content.slice(0,190))+(x.content.length>190?'…':'')+'</p>':'')+'</div>'+
+    '<div class="pc2-row-actions">'+(x.kind==='arquivo'?'<button data-pc-download="'+esc(x.id)+'">Abrir</button>':x.kind==='link'?'<a href="'+esc(x.url)+'" target="_blank" rel="noopener noreferrer">Abrir ↗</a>':
+     '<button data-pc-read-source="'+esc(x.id)+'">Ler</button>')+
+    '<button class="pc2-remove" data-pc-delete-source="'+esc(x.id)+'" aria-label="Remover fonte">×</button></div></div>';
+ }).join('');
+ return '<div class="pc2-section-title"><div><h2>Fontes e materiais</h2><p>Organiza o que a IA deve consultar nesta matéria.</p></div></div>'+
+  '<div class="pc2-add-actions"><button data-pc-add="file">＋ Adicionar arquivo</button><button data-pc-add="note">＋ Colar texto</button><button data-pc-add="link">＋ Adicionar link</button></div>'+
+  note+'<section class="pc2-panel"><header><h3>Outras fontes</h3><small>'+src.length+' itens</small></header>'+
+  (items||'<div class="pc2-empty-mini">Adiciona PDFs, arquivos, referências ou notas para montar a biblioteca desta matéria.</div>')+
+  '<p class="pc2-hint">Arquivos ficam privados na tua conta. A IA pode utilizar PDFs, TXT e Markdown; para documentos Word, adiciona também o texto ou uma versão em PDF.</p></section>';
+}
+function pcAgendaView(subject){
+ const items=pcAgenda(subject.id);
+ const rows=items.map(x=>'<div class="pc2-agenda-row '+(x.completed?'done':'')+'"><label title="Concluído"><input type="checkbox" data-pc-event-done="'+esc(x.id)+'" '+(x.completed?'checked':'')+'></label>'+
+  '<span class="pc2-agenda-icon">'+pcIconType(x.type)+'</span>'+
+  '<div class="pc2-agenda-main"><strong>'+esc(x.title)+'</strong><small>'+pcDateTime(x.due_at)+' · '+esc(({prova:'Prova',trabalho:'Trabalho',aula:'Aula',estudo:'Estudo',outro:'Outro'})[x.type]||'Compromisso')+'</small>'+
+  (x.notes?'<p>'+esc(x.notes)+'</p>':'')+'</div>'+
+  '<div class="pc2-row-actions"><button data-pc-edit-event="'+esc(x.id)+'">Editar</button><button class="pc2-remove" data-pc-delete-event="'+esc(x.id)+'">×</button></div></div>').join('');
+ return '<div class="pc2-section-title"><div><h2>Agenda da matéria</h2><p>Datas de provas, entregas, aulas e sessões de estudo.</p></div><button class="pc-primary" data-pc-new-event>＋ Criar compromisso</button></div>'+
+  '<section class="pc2-panel">'+(rows||'<div class="pc2-empty-mini">Ainda não há compromissos. Cria uma data de prova, trabalho ou estudo.</div>')+'</section>';
+}
+function pcExamsView(subject){
+ const tests=pcExams(subject.id),old=pcOldExams(subject.id);
+ const rows=tests.map(x=>{
+  const sub=pcSubmission(x.id);
+  return '<div class="pc2-test-row"><div><strong>'+esc(x.title)+'</strong><small>'+pcDate(x.created_at)+' · 13 objetivas e 2 dissertativas · '+(x.difficulty==='dificil'?'Difícil':'Normal')+'</small></div>'+
+   '<span class="pc2-test-badge '+(sub?'complete':'')+'">'+(sub?'Entregue':'Não realizado')+'</span><button data-pc-exam="'+esc(x.id)+'">'+(sub?'Rever':'Responder')+'</button></div>';
+ }).join('');
+ return '<div class="pc2-section-title"><div><h2>Simulados desta matéria</h2><p>Provas inéditas e específicas com correção depois da entrega.</p></div></div>'+
+  '<section class="pc2-panel pc2-create-test"><div><h3>Gerar um novo simulado</h3><p>13 questões objetivas e 2 dissertativas, formuladas a partir das fontes cadastradas. Cada simulado pode ser entregue uma única vez.</p></div>'+
+  '<div><label>Dificuldade<select id="pcDifficulty"><option value="normal" '+(pc.difficulty==='normal'?'selected':'')+'>Normal</option><option value="dificil" '+(pc.difficulty==='dificil'?'selected':'')+'>Difícil</option></select></label>'+
+  '<button class="pc-primary" data-pc-generate '+(pc.busy?'disabled':'')+'>'+(pc.busy?'Gerando questões…':'✦ Criar simulado')+'</button></div></section>'+
+  '<section class="pc2-panel"><header><h3>Histórico de simulados</h3><small>'+tests.length+' provas</small></header>'+
+  (rows||'<div class="pc2-empty-mini">Os simulados que criares ficarão salvos aqui.</div>')+
+  (old.length?'<details class="pc2-old"><summary>Simulados do sistema anterior ('+old.length+')</summary>'+
+   old.map(x=>'<button data-pc-old="'+esc(x.id)+'">'+esc(x.title)+' · '+pcDate(x.created_at)+'</button>').join('')+'</details>':'')+
+  '<p class="pc2-hint">A entrega é única. Os simulados gerados aqui não rendem pontos no ranking.</p></section>';
+}
+function pcAIView(subject){
+ const options=[['resumo','Resumo'],['trabalho','Trabalho acadêmico'],['fichamento','Fichamento'],['roteiro','Roteiro de estudo'],['questoes','Questões de revisão'],['texto','Outro pedido']];
+ const docs=pcDocs(subject.id);
+ return '<div class="pc2-section-title"><div><h2>IA para esta matéria</h2><p>Cria conteúdos com base nas fontes que adicionaste.</p></div></div>'+
+  '<section class="pc2-panel pc2-ai-box"><span class="pc2-ai-kicker">✦ IA TZ OUL</span><h3>O que precisas preparar?</h3>'+
+  '<div class="pc2-task-grid">'+options.map(x=>'<button type="button" data-pc-task="'+x[0]+'" class="'+(pc.task===x[0]?'active':'')+'">'+esc(x[1])+'</button>').join('')+'</div>'+
+  '<label for="pcAiPrompt">Instruções para a IA</label><textarea id="pcAiPrompt" rows="5" maxlength="4000" placeholder="Ex.: Faz um resumo completo sobre os conceitos da aula, relaciona as teorias e inclui exemplos.">'+esc(pc.request)+'</textarea>'+
+  '<div class="pc2-toolbar"><small>Usa as anotações, textos e PDFs desta matéria. Cada solicitação consome uma consulta da IA.</small><button class="pc-primary" data-pc-request '+(pc.busy?'disabled':'')+'>'+(pc.busy?'Elaborando conteúdo…':'Gerar com IA Tzoul')+'</button></div></section>'+
+  '<section class="pc2-panel"><header><h3>Documentos salvos</h3><small>'+docs.length+' itens</small></header>'+
+  (docs.length?docs.map(x=>'<button class="pc2-doc-row" data-pc-doc="'+esc(x.id)+'"><span>▤</span><div><strong>'+esc(x.title)+'</strong><small>'+pcDate(x.created_at)+'</small></div><b>↗</b></button>').join(''):
+  '<div class="pc2-empty-mini">Os textos produzidos pela IA aparecerão aqui e poderão ser baixados.</div>')+'</section>';
+}
+function pcExamView(){
+ const exam=pc.exams.find(e=>e.id===pc.examId);if(!exam){pc.view='detail';return pcExamsView(pcSubject())}
+ const sub=pcSubmission(exam.id),finished=!!sub;
+ const answers=finished?sub.answers:pcAnswers(exam.id);
+ const details=finished?(sub.feedback?.details||[]):[];
+ const count=answers.filter((v,i)=>i<13?['0','1','2','3','4'].includes(String(v)):String(v||'').trim().length>=20).length;
+ const questions=exam.questions.map((q,i)=>{
+  const isEssay=q.type==='essay';
+  const opts=!isEssay?(q.options||[]).map((option,j)=>
+    '<label class="pc2-option '+(finished&&details[i]?.answer===j?'correct':'')+'"><input type="radio" name="pc2-q'+i+'" value="'+j+'" data-pc-answer-new="'+i+'" '+
+    (String(answers[i])===String(j)?'checked':'')+' '+(finished?'disabled':'')+'><span><b>'+('ABCDE'[j])+'.</b> '+esc(option)+'</span></label>').join(''):'<textarea data-pc-answer-new="'+i+'" rows="6" maxlength="6500" placeholder="Escreve tua resposta aqui…" '+(finished?'disabled':'')+'>'+esc(answers[i]||'')+'</textarea>';
+  const rev=finished?'<div class="pc2-answer-review">'+(isEssay?
+   '<strong>Critérios para conferir tua resposta</strong><ul>'+(details[i]?.criteria||[]).map(x=>'<li>'+esc(x)+'</li>').join('')+'</ul><strong>Resposta orientativa</strong><p>'+esc(details[i]?.model||'')+'</p>':
+   '<strong>'+(details[i]?.correct?'Resposta correta':'Resposta incorreta')+' · alternativa '+('ABCDE'[details[i]?.answer]||'?')+'</strong><p>'+esc(details[i]?.explanation||'')+'</p>')+'</div>':'';
+  return '<section class="pc2-exam-question"><span>QUESTÃO '+String(i+1).padStart(2,'0')+' · '+(isEssay?'DISSERTATIVA':'OBJETIVA')+'</span><h3>'+esc(q.question)+'</h3>'+
+    (isEssay?opts:'<div class="pc2-options">'+opts+'</div>')+rev+'</section>';
+ }).join('');
+ return '<button class="pc2-back" data-pc-back-exam>← Voltar aos simulados</button>'+
+  '<header class="pc2-exam-hero"><span>SIMULADO PESSOAL · '+(exam.difficulty==='dificil'?'DIFÍCIL':'NORMAL')+'</span><h2>'+esc(pcSubject()?.title||'Matéria pessoal')+'</h2>'+
+  '<p>13 perguntas objetivas e 2 dissertativas. '+(finished?'Prova entregue: somente consulta.':'A entrega é definitiva; revisa antes de enviar.')+'</p>'+
+  '<strong>'+(finished?(sub.feedback?.correct||0)+' de 13 objetivas corretas':count+' de 15 questões respondidas')+'</strong></header>'+
+  '<div class="pc2-exam-questions">'+questions+'</div>'+
+  (finished?'<div class="pc2-submit"><p>As dissertativas têm critérios e respostas-modelo para revisão.</p><button class="pc-secondary" data-pc-back-exam>Voltar à matéria</button></div>':
+  '<div class="pc2-submit"><p>Não será possível refazer após a entrega.</p><button class="pc-primary" data-pc-submit '+(pc.busy?'disabled':'')+'>'+(pc.busy?'Registrando entrega…':'Entregar e corrigir')+'</button></div>');
+}
+function pcOldExamView(){
+ const exam=pc.legacyExams.find(e=>e.id===pc.examId);
+ if(!exam)return '<div class="pc2-empty-mini">Prova antiga indisponível.</div>';
+ return '<button class="pc2-back" data-pc-back-exam>← Voltar aos simulados</button>'+
+  '<div class="pc2-exam-hero"><h2>'+esc(exam.title)+'</h2><p>Simulado anterior ao novo sistema. Disponível apenas para consulta do gabarito.</p></div>'+
+  (exam.questions||[]).map((q,i)=>'<section class="pc2-exam-question"><span>QUESTÃO '+(i+1)+'</span><h3>'+esc(q.question)+'</h3>'+
+  (q.options||[]).map((x,j)=>'<div class="pc2-legacy-option '+(j===q.answer?'correct':'')+'">'+('ABCDE'[j])+'. '+esc(x)+'</div>').join('')+
+  '<div class="pc2-answer-review"><strong>Gabarito: '+('ABCDE'[q.answer]||'?')+'</strong><p>'+esc(q.explanation||'')+'</p></div></section>').join('');
+}
+function pcDocView(){
+ const doc=pc.documents.find(x=>x.id===pc.docId);
+ if(!doc)return '<div class="pc2-empty-mini">Documento não encontrado.</div>';
+ return '<button class="pc2-back" data-pc-back-doc>← Voltar aos documentos</button>'+
+  '<article class="pc2-document"><header><small>'+pcDate(doc.created_at)+' · '+esc(doc.kind)+'</small><h2>'+esc(doc.title)+'</h2>'+
+  '<div class="pc2-document-actions"><button data-pc-copy-doc="'+esc(doc.id)+'">Copiar</button><button data-pc-export="'+esc(doc.id)+':md">Markdown</button><button data-pc-export="'+esc(doc.id)+':txt">TXT</button><button data-pc-export="'+esc(doc.id)+':doc">Word</button><button data-pc-export="'+esc(doc.id)+':pdf">PDF / Imprimir</button></div></header>'+
+  '<div class="pc2-doc-content">'+pcMarkdown(doc.content)+'</div></article>';
+}
+function pcDetail(){
+ const subject=pcSubject();if(!subject){pc.selected=null;pc.view='home';return pcHome()}
+ if(pc.view==='exam')return pcExamView();
+ if(pc.view==='legacy')return pcOldExamView();
+ if(pc.view==='doc')return pcDocView();
+ const tabs=[['overview','Visão geral'],['sources','Materiais'],['agenda','Agenda'],['exams','Simulados'],['ai','IA / Documentos']];
+ const content=pc.tab==='sources'?pcSourcesView(subject):pc.tab==='agenda'?pcAgendaView(subject):pc.tab==='exams'?pcExamsView(subject):pc.tab==='ai'?pcAIView(subject):pcOverview(subject);
+ return '<button class="pc2-back" data-pc-home>← Todas as matérias</button>'+
+  '<header class="pc2-subject-hero"><span class="pc2-subject-avatar">'+esc(pcIcon(subject.title))+'</span><div><small>MATÉRIA PESSOAL</small><h1>'+esc(subject.title)+'</h1>'+
+  '<p>'+pcCountSources(subject.id)+' fontes · '+pcAgenda(subject.id).length+' compromissos · '+pcExams(subject.id).length+' simulados</p></div>'+
+  '<button data-pc-edit-subject title="Editar matéria">Editar matéria</button></header>'+
+  '<nav class="pc2-tabs" aria-label="Seções da matéria">'+tabs.map(x=>'<button data-pc-tab="'+x[0]+'" class="'+(pc.tab===x[0]?'active':'')+'">'+x[1]+'</button>').join('')+'</nav>'+
+  '<div class="pc2-content">'+content+'</div>';
+}
+function pcModalMarkup(){
+ if(!pc.modal)return '';
+ const edit=pc.modal==='edit-subject',subject=pcSubject(),event=pc.editEvent;
+ let title='',body='';
+ if(pc.modal==='create'||edit){
+  title=edit?'Editar matéria':'Criar uma nova matéria';
+  body='<form id="pc2SubjectForm"><label>Nome da matéria<input name="title" minlength="3" maxlength="80" required placeholder="Ex.: Psicologia do Desenvolvimento" value="'+esc(edit?subject?.title||'':'')+'"></label>'+
+  '<label>Conteúdos ou anotações iniciais (opcional)<textarea name="description" maxlength="16000" rows="5" placeholder="Cola aqui o conteúdo, o plano da disciplina ou teus apontamentos…">'+esc(edit?subject?.description||'':'')+'</textarea></label>'+
+  (!edit?'<div class="pc2-modal-extra"><label>Adicionar arquivos de aula (opcional)<input name="files" type="file" multiple accept=".pdf,.docx,.txt,.md,application/pdf,text/plain,text/markdown,application/vnd.openxmlformats-officedocument.wordprocessingml.document"></label>'+
+  '<div class="pc2-modal-cols"><label>Nome de um link (opcional)<input name="link_title" maxlength="180" placeholder="Ex.: Aula 1 — referência"></label>'+
+  '<label>Endereço do link<input name="link_url" type="url" maxlength="2000" placeholder="https://..."></label></div></div>':'')+
+  '<div class="pc2-modal-actions">'+(edit?'<button type="button" class="pc-danger" data-pc-delete-subject>Excluir matéria</button>':'')+
+  '<button type="button" class="pc-secondary" data-pc-close>Cancelar</button><button type="submit" class="pc-primary" '+(pc.busy?'disabled':'')+'>'+(pc.busy?'Salvando…':edit?'Salvar mudanças':'Criar matéria')+'</button></div></form>';
+ }else if(pc.modal==='source'){
+  title='Adicionar material de estudo';
+  body='<form id="pc2SourceForm"><div class="pc2-modal-choice"><label><input type="radio" name="kind" value="arquivo" checked> Arquivo</label><label><input type="radio" name="kind" value="nota"> Texto / anotação</label><label><input type="radio" name="kind" value="link"> Link</label></div>'+
+   '<div id="pc2SourceFields"><label>Arquivo (PDF, DOCX, TXT ou Markdown)<input type="file" name="files" multiple accept=".pdf,.docx,.txt,.md,application/pdf,text/plain,text/markdown,application/vnd.openxmlformats-officedocument.wordprocessingml.document"></label></div>'+
+   '<div class="pc2-modal-actions"><button type="button" class="pc-secondary" data-pc-close>Cancelar</button><button type="submit" class="pc-primary" '+(pc.busy?'disabled':'')+'>'+(pc.busy?'Adicionando…':'Adicionar fonte')+'</button></div></form>';
+ }else if(pc.modal==='agenda'){
+  title=event?'Editar compromisso':'Novo compromisso';
+  const local=event?new Date(new Date(event.due_at).getTime()-new Date(event.due_at).getTimezoneOffset()*60000).toISOString().slice(0,16):'';
+  body='<form id="pc2AgendaForm"><label>Título<input name="title" maxlength="180" required placeholder="Ex.: Prova de teorias" value="'+esc(event?.title||'')+'"></label>'+
+   '<div class="pc2-modal-cols"><label>Quando<input name="due_at" type="datetime-local" required value="'+esc(local)+'"></label>'+
+   '<label>Tipo<select name="type">'+[['aula','Aula'],['prova','Prova'],['trabalho','Trabalho'],['estudo','Sessão de estudo'],['outro','Outro']].map(x=>'<option value="'+x[0]+'" '+((event?.type||'estudo')===x[0]?'selected':'')+'>'+x[1]+'</option>').join('')+'</select></label></div>'+
+   '<label>Observações (opcional)<textarea name="notes" rows="4" maxlength="3500" placeholder="Leituras, conteúdo da avaliação ou orientações…">'+esc(event?.notes||'')+'</textarea></label>'+
+   '<div class="pc2-modal-actions"><button type="button" class="pc-secondary" data-pc-close>Cancelar</button><button type="submit" class="pc-primary" '+(pc.busy?'disabled':'')+'>'+(pc.busy?'Salvando…':event?'Salvar compromisso':'Adicionar à agenda')+'</button></div></form>';
+ }
+ return '<div class="pc2-modal-backdrop" data-pc-modal-backdrop role="presentation"><section class="pc2-modal" role="dialog" aria-modal="true" aria-label="'+esc(title)+'">'+
+  '<header><div><small>ESPAÇO PESSOAL</small><h2>'+esc(title)+'</h2></div><button type="button" data-pc-close aria-label="Fechar">×</button></header>'+
+  '<div class="pc2-modal-body">'+body+'</div></section></div>';
 }
 function pcRender(){
- if(!onlineUser)return '<section class="pc-login"><h1>Meu espaço pessoal</h1><p>Cria matérias complementares e pratica com simulados próprios. Entra na tua conta para salvar tudo.</p><button type="button" data-account-action="open" class="pc-primary">Entrar / Cadastrar</button></section>';
- const selected=pcSelected(),list=pcMyExams();
- return '<div class="pc-page"><header class="pc-hero"><div><span>ÁREA EXCLUSIVA DA TUA CONTA</span><h1>Meu espaço pessoal</h1><p>Cria matérias complementares, organiza apontamentos e gera simulados baseados no conteúdo que adicionares.</p></div><div class="pc-hero-symbol">✦</div></header>'+
- (pc.error?'<p class="pc-error" role="alert">'+esc(pc.error)+'</p>':'')+
- '<div class="pc-layout"><aside class="pc-sidebar"><h2>Minhas matérias <small>'+pc.subjects.length+'</small></h2>'+
- '<div class="pc-subjects">'+(pc.subjects.length?pc.subjects.map(item=>'<button type="button" class="'+(pc.selected===item.id?'selected':'')+'" data-pc-select="'+esc(item.id)+'"><span class="pc-subject-icon">📖</span><strong>'+esc(item.title)+'</strong></button>').join(''):'<p>Ainda não criaste nenhuma matéria complementar.</p>')+'</div>'+
- '<form class="pc-create" id="pcCreateForm"><label>Adicionar matéria<input name="title" type="text" maxlength="80" minlength="3" placeholder="Ex.: Neuropsicologia" required></label><button class="pc-primary" type="submit">+ Criar matéria</button></form>'+
- '<p class="pc-footnote">As matérias pessoais são privadas e independentes dos semestres oficiais.</p></aside>'+
- '<main class="pc-main">'+(pc.examId?pcRenderQuiz():selected?'<div class="pc-editor"><div class="pc-editor-heading"><div><span>MATÉRIA COMPLEMENTAR</span><h2>'+esc(selected.title)+'</h2></div><button type="button" class="pc-danger" data-pc-delete-subject>Excluir matéria</button></div>'+
- '<label for="pcNotes">Conteúdos e anotações da matéria</label><p>Cola aqui teus textos de aula, conceitos, resumos, capítulos ou tópicos. Quanto mais informações concretas, melhores as questões.</p>'+
- '<textarea id="pcNotes" maxlength="16000" rows="11" placeholder="Escreve ou cola o conteúdo desta matéria…">'+esc(pc.draft===null?selected.description||'':pc.draft)+'</textarea>'+
- '<div class="pc-actions"><button type="button" class="pc-secondary" data-pc-save>Salvar conteúdo</button><button type="button" class="pc-primary" data-pc-generate '+(pc.busy?'disabled':'')+'>'+(pc.busy?'Gerando com IA…':'✦ Criar simulado com IA Tzoul')+'</button></div>'+
- '<p class="pc-tip">A IA cria 6 questões objetivas a partir do texto salvo. Depende da disponibilidade da IA Tzoul e utiliza o limite de consultas da conta. Não gera pontos no ranking.</p>'+
- '<div class="pc-exam-list"><h3>Simulados desta matéria</h3>'+(list.length?list.map(e=>'<div class="pc-exam-item"><div><strong>'+esc(e.title)+'</strong><small>'+new Date(e.created_at).toLocaleDateString('pt-BR')+' · 6 questões</small></div><button type="button" data-pc-open="'+esc(e.id)+'">Resolver</button></div>').join(''):'<p>Quando criares um simulado, ele ficará salvo aqui.</p>')+'</div></div>':
- '<div class="pc-empty"><span>📚</span><h2>Cria tua primeira matéria</h2><p>Escolhe um nome à esquerda. Depois, adiciona o conteúdo e pede à IA Tzoul que prepare questões de estudo.</p></div>')+'</main></div></div>';
+ if(!onlineUser)return '<section class="pc-login"><h1>Espaço Pessoal</h1><p>Cria matérias, acrescenta fontes, monta tua agenda e estuda com a IA Tzoul.</p><button type="button" data-account-action="open" class="pc-primary">Entrar / Cadastrar</button></section>';
+ if(!pc.loaded&&!pc.loading)queueMicrotask(pcLoad);
+ return '<div class="pc2-page">'+(pc.error?'<div class="pc-error" role="alert">'+esc(pc.error)+' <button data-pc-clear-error aria-label="Fechar aviso">×</button></div>':'')+
+  (pc.notice?'<div class="pc2-notice" role="status">'+esc(pc.notice)+'</div>':'')+
+  (pc.view==='home'?pcHome():pcDetail())+pcModalMarkup()+'</div>';
 }
 function pcShow(){
- const main=document.getElementById('main');
- if(!main||current.page!=='personal')return;
- const active=document.activeElement,focused=active?.id,caret=active?.selectionStart;
+ if(current.page!=='personal')return;
+ const main=document.getElementById('main');if(!main)return;
  main.innerHTML=pcRender();
- if(focused==='pcNotes'){const target=document.getElementById('pcNotes');if(target){target.focus({preventScroll:true});if(Number.isInteger(caret))target.setSelectionRange(caret,caret)}}
 }
 async function pcLoad(){
- if(!client||!onlineUser||pc.loading)return pc.loadPromise;
- const id=onlineUser.id;pc.loading=true;
- pc.loadPromise=(async()=>{
-  try{
-   const [subjects,exams]=await Promise.all([
-    client.from('uentzoul_personal_subjects').select('id,user_id,title,description,created_at,updated_at').eq('user_id',id).order('created_at',{ascending:false}),
-    client.from('uentzoul_personal_exams').select('id,user_id,subject_id,title,questions,created_at').eq('user_id',id).order('created_at',{ascending:false})
-   ]);
-   if(subjects.error)throw subjects.error;if(exams.error)throw exams.error;
-   if(onlineUser?.id!==id)return;
-   pc.subjects=subjects.data||[];pc.exams=exams.data||[];
-   if(!pc.selected||!pc.subjects.some(s=>s.id===pc.selected)){pc.selected=pc.subjects[0]?.id||null;pc.draft=null;pc.examId=null}
-   pc.owner=id;pc.loaded=true;pc.error='';pcShow();
-  }catch(e){pc.error=e?.message||'Não foi possível carregar as matérias pessoais.';pcShow()}
-  finally{pc.loading=false}
- })();return pc.loadPromise;
+ if(!client||!onlineUser||pc.loading)return;
+ const uid=onlineUser.id;pc.owner=uid;pc.loading=true;pc.error='';
+ try{
+  const [subjects,sources,agenda,docs,exams,old]=await Promise.all([
+   client.from('uentzoul_personal_subjects').select('*').eq('user_id',uid).order('created_at',{ascending:false}),
+   client.from('uentzoul_personal_sources').select('*').eq('user_id',uid).order('created_at',{ascending:false}),
+   client.from('uentzoul_personal_agenda').select('*').eq('user_id',uid).order('due_at',{ascending:true}),
+   client.from('uentzoul_personal_documents').select('*').eq('user_id',uid).order('created_at',{ascending:false}).limit(300),
+   client.from('uentzoul_generated_exams').select('id,creator_id,semester,subject,personal_subject_id,difficulty,title,questions,created_at').eq('creator_id',uid).eq('semester','personal').order('created_at',{ascending:false}).limit(300),
+   client.from('uentzoul_personal_exams').select('id,subject_id,title,questions,created_at').eq('user_id',uid).order('created_at',{ascending:false})
+  ]);
+  for(const res of [subjects,sources,agenda,docs,exams,old])if(res.error)throw res.error;
+  const ids=(exams.data||[]).map(x=>x.id);
+  let submissions=[];
+  if(ids.length){
+   const r=await client.from('uentzoul_generated_exam_submissions').select('exam_id,user_id,answers,feedback,created_at').eq('user_id',uid).in('exam_id',ids);
+   if(r.error)throw r.error;submissions=r.data||[];
+  }
+  if(onlineUser?.id!==uid)return;
+  pc.subjects=subjects.data||[];pc.sources=sources.data||[];pc.agenda=agenda.data||[];
+  pc.documents=docs.data||[];pc.exams=exams.data||[];pc.submissions=submissions;pc.legacyExams=old.data||[];
+  if(pc.selected&&!pc.subjects.some(x=>x.id===pc.selected)){pc.selected=null;pc.view='home'}
+  pc.loaded=true;
+ }catch(e){pc.error='Não foi possível carregar teu espaço pessoal: '+(e?.message||'erro de conexão');pc.loaded=true;}
+ finally{pc.loading=false;pcShow()}
 }
-function pcOnLogout(){pc.owner=null;pc.subjects=[];pc.exams=[];pc.selected=null;pc.examId=null;pc.draft=null;pc.grade=null;pc.answers={};pc.loaded=false;pcShow()}
+function pcOnLogout(){
+ pc.owner=null;pc.loaded=false;pc.loading=false;pc.subjects=[];pc.sources=[];pc.agenda=[];pc.documents=[];
+ pc.exams=[];pc.submissions=[];pc.legacyExams=[];pc.selected=null;pc.view='home';pc.tab='overview';pc.modal=null;
+ pc.examId=null;pc.docId=null;pc.answers={};pc.error='';pc.notice='';pc.busy=false;pcShow();
+}
 function pcOnLogin(){
  if(!onlineUser)return;
  if(pc.owner!==onlineUser.id)pcOnLogout();
  pcLoad();
 }
-function pcAfterRender(){if(!onlineUser)return;if(!pc.loaded&&!pc.loading)pcLoad()}
-async function pcCreate(form){
- const title=String(new FormData(form).get('title')||'').trim();
- if(title.length<3||title.length>80)throw Error('Escreve um nome de 3 a 80 caracteres.');
- const {data,error}=await client.from('uentzoul_personal_subjects').insert({user_id:onlineUser.id,title,description:''}).select('id').single();
- if(error)throw error;pc.selected=data.id;pc.draft=null;pc.examId=null;await pcLoad();pcShow();
+function pcAfterRender(){if(onlineUser&&!pc.loaded&&!pc.loading)pcLoad();}
+function pcOpenSubject(id){if(!pc.subjects.some(x=>x.id===id))return;pc.selected=id;pc.view='detail';pc.tab='overview';pc.modal=null;pc.error='';pcShow();}
+function pcModalOpen(type){pc.error='';pc.editEvent=null;pc.modal=type;pcShow();}
+function pcCloseModal(){if(pc.busy)return;pc.modal=null;pc.editEvent=null;pcShow();}
+async function pcUploadFile(file,subjectId){
+ if(!file||file.size>12582912||!file.size)throw Error('Cada arquivo precisa ter até 12 MB.');
+ const extension=String(file.name.split('.').pop()||'').toLowerCase();
+ const mimes={pdf:'application/pdf',txt:'text/plain',md:'text/markdown',docx:'application/vnd.openxmlformats-officedocument.wordprocessingml.document'};
+ if(!mimes[extension])throw Error('Aceitamos PDFs, TXT, Markdown e Word (.docx).');
+ const mime=mimes[extension];
+ const safe=String(file.name).normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-zA-Z0-9_.-]/g,'_').slice(-120);
+ const path=onlineUser.id+'/'+subjectId+'/'+crypto.randomUUID()+'_'+safe;
+ const upload=await client.storage.from('uentzoul-personal-files').upload(path,file,{contentType:mime,upsert:false});
+ if(upload.error)throw upload.error;
+ const {data,error}=await client.from('uentzoul_personal_sources').insert({user_id:onlineUser.id,subject_id:subjectId,title:file.name.slice(0,180),kind:'arquivo',file_path:path,mime_type:mime}).select('*').single();
+ if(error){await client.storage.from('uentzoul-personal-files').remove([path]);throw error}
+ pc.sources.unshift(data);return data;
 }
-async function pcSave(silent=false){
- const subj=pcSelected();if(!subj)throw Error('Seleciona uma matéria primeiro.');
- const note=String(document.getElementById('pcNotes')?.value??pc.draft??subj.description).trim();
- if(note.length>16000)throw Error('Conteúdo acima do limite de 16.000 caracteres.');
- const {error}=await client.from('uentzoul_personal_subjects').update({description:note,updated_at:new Date().toISOString()}).eq('id',subj.id).eq('user_id',onlineUser.id);
- if(error)throw error;subj.description=note;pc.draft=note;
- if(!silent)toast('Matéria pessoal salva.');
- return note;
-}
-async function pcGenerate(){
- if(!onlineUser||pc.busy)return;
- pc.busy=true;pc.error='';pcShow();
+async function pcCreateSubject(form){
+ if(pc.busy)return;
+ const data=new FormData(form),title=String(data.get('title')||'').trim(),desc=String(data.get('description')||'').trim();
+ const linkTitle=String(data.get('link_title')||'').trim(),link=String(data.get('link_url')||'').trim();
+ if(title.length<3||title.length>80)throw Error('O nome precisa ter entre 3 e 80 caracteres.');
+ if(link&&!/^https:\/\//i.test(link))throw Error('O link deve começar com https://.');
+ if(link&&linkTitle.length<1)throw Error('Escreve um nome para o link.');
+ pc.busy=true;pc.error='';
+ let created=null,failures=[];
  try{
-  const content=await pcSave(true);
-  if(content.length<180)throw Error('Adiciona pelo menos 180 caracteres de conteúdo para gerar um simulado.');
-  const session=await client.auth.getSession();
-  const token=session?.data?.session?.access_token;
-  if(!token)throw Error('Sessão expirada. Entra novamente.');
-  const result=await fetch(cfg.url+'/functions/v1/ia-tzoul',{
-   method:'POST',headers:{Authorization:'Bearer '+token,apikey:cfg.publishableKey,'Content-Type':'application/json'},
-   body:JSON.stringify({message:'Cria um simulado pessoal da minha matéria.',mode:'personal_exam',personalSubjectId:pc.selected})
-  });
-  const response=await result.json().catch(()=>({error:'Resposta inválida da IA.'}));
-  if(!result.ok||!response.personalExam)throw Error(response.error||'A IA não conseguiu gerar o simulado.');
-  pc.exams.unshift(response.personalExam);
-  pc.examId=response.personalExam.id;pc.answers[pc.examId]={};pc.grade=null;pc.draft=null;
- }catch(e){pc.error=e?.message||'Não foi possível gerar o simulado.'}
+  const r=await client.from('uentzoul_personal_subjects').insert({user_id:onlineUser.id,title,description:desc}).select('*').single();
+  if(r.error)throw r.error;created=r.data;pc.subjects.unshift(created);
+  if(link){
+   const x=await client.from('uentzoul_personal_sources').insert({user_id:onlineUser.id,subject_id:created.id,title:linkTitle,kind:'link',url:link}).select('*').single();
+   if(x.error)failures.push('link');else pc.sources.unshift(x.data);
+  }
+  for(const file of data.getAll('files').filter(x=>x instanceof File&&x.size)){
+   try{await pcUploadFile(file,created.id)}catch(e){failures.push(file.name)}
+  }
+  pc.selected=created.id;pc.view='detail';pc.tab='overview';pc.modal=null;pc.notice=failures.length?'Matéria criada, mas alguns materiais não foram adicionados: '+failures.join(', '):'Matéria criada. Organiza as fontes, agenda e simulados por aqui.';
+ }catch(e){pc.error=e.message||'Não foi possível criar a matéria.'}
  finally{pc.busy=false;pcShow()}
 }
-function pcGrade(){
- const exam=pc.exams.find(x=>x.id===pc.examId);if(!exam)return;
- const ans=pc.answers[exam.id]||{};
- const missing=exam.questions.filter((_,i)=>!Number.isInteger(ans[i])).length;
- if(missing&&!confirm('Ainda há '+missing+' questões sem resposta. Corrigir mesmo assim?'))return;
- const correct=exam.questions.filter((q,i)=>ans[i]===q.answer).length;
- pc.grade={examId:exam.id,correct};pcShow();
+async function pcEditSubject(form){
+ const subject=pcSubject();if(!subject||pc.busy)return;
+ const data=new FormData(form),title=String(data.get('title')||'').trim(),description=String(data.get('description')||'').trim();
+ if(title.length<3||title.length>80)throw Error('O nome precisa ter entre 3 e 80 caracteres.');
+ const {data:updated,error}=await client.from('uentzoul_personal_subjects').update({title,description,updated_at:new Date().toISOString()}).eq('id',subject.id).eq('user_id',onlineUser.id).select('*').single();
+ if(error)throw error;Object.assign(subject,updated);pc.modal=null;pcShow();
+}
+async function pcSaveNotes(){
+ const subject=pcSubject();if(!subject)return;
+ const text=String(document.getElementById('pcMainNotes')?.value||'').slice(0,16000);
+ const {error}=await client.from('uentzoul_personal_subjects').update({description:text,updated_at:new Date().toISOString()}).eq('id',subject.id).eq('user_id',onlineUser.id);
+ if(error){pc.error=error.message;pcShow();return}
+ subject.description=text;toast('Anotações salvas.');pcShow();
+}
+async function pcCreateSource(form){
+ const subject=pcSubject();if(!subject||pc.busy)return;
+ const data=new FormData(form),kind=String(data.get('kind')||'arquivo');pc.busy=true;pc.error='';
+ try{
+  if(kind==='arquivo'){
+   const files=data.getAll('files').filter(x=>x instanceof File&&x.size);
+   if(!files.length)throw Error('Escolhe pelo menos um arquivo.');
+   let success=0,failed=[];
+   for(const file of files){try{await pcUploadFile(file,subject.id);success++}catch(e){failed.push(file.name)}}
+   if(!success)throw Error('Não foi possível enviar os arquivos. Confere o formato e o tamanho (até 12 MB).');
+   if(failed.length)pc.notice='Alguns arquivos não foram enviados: '+failed.join(', ');
+  }else{
+   const title=String(data.get('title')||'').trim();
+   if(!title)throw Error('Informa o título da fonte.');
+   const content=kind==='nota'?String(data.get('content')||'').trim():'';
+   const url=kind==='link'?String(data.get('url')||'').trim():'';
+   if(kind==='nota'&&!content)throw Error('Cola o texto da fonte.');
+   if(kind==='link'&&!/^https:\/\//i.test(url))throw Error('Usa um endereço HTTPS válido.');
+   const r=await client.from('uentzoul_personal_sources').insert({user_id:onlineUser.id,subject_id:subject.id,title,kind,content,url}).select('*').single();
+   if(r.error)throw r.error;pc.sources.unshift(r.data);
+  }
+  pc.modal=null;pc.tab='sources';pc.notice=pc.notice||'Fonte adicionada à matéria.';
+ }catch(e){pc.error=e?.message||'Não foi possível adicionar o material.'}
+ finally{pc.busy=false;pcShow()}
+}
+async function pcOpenSource(id){
+ const src=pc.sources.find(x=>x.id===id);if(!src)return;
+ if(src.kind==='nota'){window.alert(src.title+'\n\n'+src.content);return}
+ if(src.kind==='link'){window.open(src.url,'_blank','noopener');return}
+ const {data,error}=await client.storage.from('uentzoul-personal-files').createSignedUrl(src.file_path,120);
+ if(error||!data?.signedUrl){pc.error=error?.message||'Não foi possível abrir o arquivo.';pcShow();return}
+ const link=document.createElement('a');link.href=data.signedUrl;link.target='_blank';link.rel='noopener';link.click();
+}
+async function pcDeleteSource(id){
+ const item=pc.sources.find(x=>x.id===id);if(!item||!confirm('Remover esta fonte da matéria?'))return;
+ if(item.kind==='arquivo'){
+  const r=await client.storage.from('uentzoul-personal-files').remove([item.file_path]);
+  if(r.error){pc.error='Erro ao excluir o arquivo: '+r.error.message;pcShow();return}
+ }
+ const r=await client.from('uentzoul_personal_sources').delete().eq('id',id).eq('user_id',onlineUser.id);
+ if(r.error){pc.error=r.error.message;pcShow();return}
+ pc.sources=pc.sources.filter(x=>x.id!==id);pcShow();
 }
 async function pcDeleteSubject(){
- const id=pc.selected;if(!id||!confirm('Excluir esta matéria e todos os seus simulados pessoais?'))return;
- const {error}=await client.from('uentzoul_personal_subjects').delete().eq('id',id).eq('user_id',onlineUser.id);
- if(error){pc.error=error.message;pcShow();return}
- pc.selected=null;pc.examId=null;pc.draft=null;await pcLoad();
+ const subject=pcSubject();if(!subject||!confirm('Excluir a matéria '+subject.title+' com os materiais, agenda e simulados? Esta ação não pode ser desfeita.'))return;
+ pc.busy=true;pc.error='';
+ try{
+  const paths=pcSources(subject.id).filter(x=>x.kind==='arquivo').map(x=>x.file_path);
+  if(paths.length){const res=await client.storage.from('uentzoul-personal-files').remove(paths);if(res.error)throw res.error}
+  const r=await client.from('uentzoul_personal_subjects').delete().eq('id',subject.id).eq('user_id',onlineUser.id);
+  if(r.error)throw r.error;
+  pc.subjects=pc.subjects.filter(x=>x.id!==subject.id);pc.sources=pc.sources.filter(x=>x.subject_id!==subject.id);
+  pc.agenda=pc.agenda.filter(x=>x.subject_id!==subject.id);pc.documents=pc.documents.filter(x=>x.subject_id!==subject.id);
+  pc.exams=pc.exams.filter(x=>x.personal_subject_id!==subject.id);
+  pc.selected=null;pc.view='home';pc.modal=null;pc.notice='Matéria excluída.';
+ }catch(e){pc.error=e.message||'Não foi possível excluir a matéria.'}
+ finally{pc.busy=false;pcShow()}
+}
+async function pcSaveEvent(form){
+ const subject=pcSubject();if(!subject||pc.busy)return;
+ const fd=new FormData(form),title=String(fd.get('title')||'').trim(),time=String(fd.get('due_at')||''),notes=String(fd.get('notes')||'').trim(),type=String(fd.get('type')||'estudo');
+ const date=new Date(time);
+ if(!title||!Number.isFinite(date.getTime()))throw Error('Preenche o título e a data do compromisso.');
+ pc.busy=true;pc.error='';
+ try{
+  const payload={title,due_at:date.toISOString(),notes,type};
+  if(pc.editEvent){
+   const r=await client.from('uentzoul_personal_agenda').update(payload).eq('id',pc.editEvent.id).eq('user_id',onlineUser.id).select('*').single();
+   if(r.error)throw r.error;pc.agenda=pc.agenda.map(x=>x.id===r.data.id?r.data:x);
+  }else{
+   const r=await client.from('uentzoul_personal_agenda').insert({...payload,user_id:onlineUser.id,subject_id:subject.id}).select('*').single();
+   if(r.error)throw r.error;pc.agenda.push(r.data);
+  }
+  pc.modal=null;pc.editEvent=null;pc.tab='agenda';pc.notice='Agenda atualizada.';
+ }catch(e){pc.error=e.message||'Falha ao salvar compromisso.'}
+ finally{pc.busy=false;pcShow()}
+}
+async function pcToggleEvent(id,checked){
+ const r=await client.from('uentzoul_personal_agenda').update({completed:checked}).eq('id',id).eq('user_id',onlineUser.id).select('*').single();
+ if(r.error){pc.error=r.error.message;pcShow();return}
+ pc.agenda=pc.agenda.map(x=>x.id===id?r.data:x);pcShow();
+}
+async function pcDeleteEvent(id){
+ if(!confirm('Excluir este compromisso da agenda?'))return;
+ const r=await client.from('uentzoul_personal_agenda').delete().eq('id',id).eq('user_id',onlineUser.id);
+ if(r.error){pc.error=r.error.message;pcShow();return}
+ pc.agenda=pc.agenda.filter(x=>x.id!==id);pcShow();
+}
+async function pcAIRequest(payload){
+ const session=await client.auth.getSession(),token=session?.data?.session?.access_token;
+ if(!token)throw Error('Sessão expirada. Entra novamente.');
+ const response=await fetch(cfg.url+'/functions/v1/ia-tzoul',{method:'POST',headers:{Authorization:'Bearer '+token,apikey:cfg.publishableKey,'Content-Type':'application/json'},body:JSON.stringify(payload)});
+ const data=await response.json().catch(()=>({error:'Resposta inválida do servidor.'}));
+ if(!response.ok)throw Error(data.error||'A IA não conseguiu concluir o pedido.');
+ return data;
+}
+async function pcGenerateExam(){
+ const subject=pcSubject();if(!subject||pc.busy)return;
+ pc.busy=true;pc.error='';pc.notice='A IA está preparando uma prova inédita a partir do material desta matéria.';pcShow();
+ try{
+  const r=await pcAIRequest({mode:'personal_exam_new',message:'Criar simulado pessoal',personalSubjectId:subject.id,difficulty:pc.difficulty});
+  if(!r.generatedExam)throw Error('O servidor não retornou o simulado.');
+  pc.exams.unshift(r.generatedExam);pc.examId=r.generatedExam.id;pc.view='exam';pc.notice='';
+ }catch(e){pc.error=e.message||'Não foi possível gerar o simulado.';pc.notice=''}
+ finally{pc.busy=false;pcShow()}
+}
+function pcAnswers(id){
+ if(pcSubmission(id))return pcSubmission(id).answers;
+ if(!pc.answers[id]){
+  let fromDisk=null;try{fromDisk=JSON.parse(localStorage.getItem('pc_exam_draft_'+onlineUser.id+'_'+id)||'null')}catch(_){}
+  pc.answers[id]=Array.isArray(fromDisk)&&fromDisk.length===15?fromDisk:Array(15).fill('');
+ }
+ return pc.answers[id];
+}
+function pcSaveDraft(id){
+ try{localStorage.setItem('pc_exam_draft_'+onlineUser.id+'_'+id,JSON.stringify(pc.answers[id]))}catch(_){}
+}
+async function pcSubmitExam(){
+ const exam=pc.exams.find(x=>x.id===pc.examId);if(!exam||pc.busy||pcSubmission(exam.id))return;
+ const answers=pcAnswers(exam.id).map(String);
+ if(answers.slice(0,13).some(x=>!['0','1','2','3','4'].includes(x))||answers.slice(13).some(x=>x.trim().length<20)){
+  pc.error='Responde às 13 objetivas e escreve pelo menos 20 caracteres em cada dissertativa.';pcShow();return;
+ }
+ if(!confirm('Entregar este simulado definitivamente? Depois não será possível refazê-lo.'))return;
+ pc.busy=true;pc.error='';pcShow();
+ try{
+  const r=await pcAIRequest({mode:'generated_exam_submit',message:'Entregar simulado pessoal',examId:exam.id,answers});
+  if(!r.submission)throw Error('O servidor não confirmou a entrega.');
+  pc.submissions.unshift(r.submission);delete pc.answers[exam.id];
+  try{localStorage.removeItem('pc_exam_draft_'+onlineUser.id+'_'+exam.id)}catch(_){}
+  pc.notice='Prova entregue. A correção já está disponível para consulta.';
+ }catch(e){pc.error=e?.message||'Não foi possível enviar as respostas.'}
+ finally{pc.busy=false;pcShow()}
+}
+async function pcGenerateDocument(){
+ const subject=pcSubject();if(!subject||pc.busy)return;
+ const prompt=String(document.getElementById('pcAiPrompt')?.value||pc.request||'').trim();
+ pc.request=prompt;
+ const defaults={resumo:'Produz um resumo didático completo, com exemplos e conceitos essenciais.',trabalho:'Redige um trabalho acadêmico completo com introdução, desenvolvimento e conclusão.',fichamento:'Cria um fichamento estruturado dos conteúdos disponíveis.',roteiro:'Cria um roteiro de estudo aprofundado, com exemplos e objetivos.',questoes:'Cria questões de revisão comentadas sobre o conteúdo.',texto:'Elabora um material acadêmico útil e bem fundamentado a partir das fontes.'};
+ pc.busy=true;pc.error='';pc.notice='A IA está elaborando o conteúdo com as fontes da matéria.';pcShow();
+ try{
+  const r=await pcAIRequest({mode:'personal_assistant',message:prompt||defaults[pc.task],personalSubjectId:subject.id,task:pc.task});
+  if(!r.answer)throw Error('A IA não retornou conteúdo.');
+  const titles={resumo:'Resumo',trabalho:'Trabalho acadêmico',fichamento:'Fichamento',roteiro:'Roteiro de estudo',questoes:'Questões de revisão',texto:'Material de estudo'};
+  const title=titles[pc.task]+' — '+subject.title;
+  const saved=await client.from('uentzoul_personal_documents').insert({user_id:onlineUser.id,subject_id:subject.id,title,kind:pc.task,content:r.answer.slice(0,65000)}).select('*').single();
+  if(saved.error)throw Error('A IA gerou o texto, mas não foi possível salvá-lo: '+saved.error.message);
+  pc.documents.unshift(saved.data);pc.docId=saved.data.id;pc.view='doc';pc.notice='Conteúdo gerado e salvo nesta matéria.';pc.request='';
+ }catch(e){pc.error=e.message||'A IA não conseguiu gerar o texto.';pc.notice=''}
+ finally{pc.busy=false;pcShow()}
+}
+function pcDownload(content,filename,type){
+ const url=URL.createObjectURL(new Blob([content],{type}));const a=document.createElement('a');
+ a.href=url;a.download=filename;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1600);
+}
+function pcExportDoc(id,format){
+ const d=pc.documents.find(x=>x.id===id);if(!d)return;
+ const name=d.title.replace(/[^a-z0-9_-]+/gi,'_').slice(0,70)||'Material';
+ if(format==='txt')return pcDownload(d.content,name+'.txt','text/plain;charset=utf-8');
+ if(format==='md')return pcDownload('# '+d.title+'\n\n'+d.content,name+'.md','text/markdown;charset=utf-8');
+ const doc='<!doctype html><html><head><meta charset="utf-8"><title>'+esc(d.title)+'</title><style>body{font:15px/1.7 Georgia,serif;max-width:800px;margin:40px auto;padding:0 25px;color:#222}main{white-space:pre-wrap}</style></head><body><h1>'+esc(d.title)+'</h1><main>'+esc(d.content)+'</main></body></html>';
+ if(format==='doc')return pcDownload(doc,name+'.doc','application/msword');
+ if(format==='pdf'){const w=window.open('','_blank');if(!w){toast('Permite pop-ups para imprimir.');return}w.document.open();w.document.write(doc);w.document.close();w.focus();setTimeout(()=>w.print(),400)}
 }
 window.uentzoulPersonal={render:pcRender,afterRender:pcAfterRender,onLogin:pcOnLogin,onLogout:pcOnLogout};
 document.addEventListener('click',e=>{
- const select=e.target.closest('[data-pc-select]');if(select){pc.selected=select.dataset.pcSelect;pc.examId=null;pc.draft=null;pc.grade=null;pcShow();return}
- const open=e.target.closest('[data-pc-open]');if(open){pc.examId=open.dataset.pcOpen;pc.grade=null;pcShow();return}
- if(e.target.closest('[data-pc-close-exam]')){pc.examId=null;pc.grade=null;pcShow();return}
- if(e.target.closest('[data-pc-save]')){pcSave().catch(e=>{pc.error=e.message;pcShow()});return}
- if(e.target.closest('[data-pc-generate]')){pcGenerate();return}
- if(e.target.closest('[data-pc-grade]')){pcGrade();return}
- if(e.target.closest('[data-pc-delete-subject]')){pcDeleteSubject();return}
- if(e.target.closest('[data-pc-retry]')){pc.grade=null;pc.answers[pc.examId]={};pcShow();return}
+ let b=e.target.closest('[data-pc-new]');if(b){pcModalOpen('create');return}
+ b=e.target.closest('[data-pc-open-subject]');if(b){pcOpenSubject(b.dataset.pcOpenSubject);return}
+ b=e.target.closest('[data-pc-home]');if(b){pc.view='home';pc.selected=null;pc.modal=null;pcShow();return}
+ b=e.target.closest('[data-pc-tab]');if(b){pc.tab=b.dataset.pcTab;pc.view='detail';pcShow();return}
+ b=e.target.closest('[data-pc-edit-subject]');if(b){pcModalOpen('edit-subject');return}
+ b=e.target.closest('[data-pc-add]');if(b){pcModalOpen('source');requestAnimationFrame(()=>{const radio=document.querySelector('#pc2SourceForm [name=kind][value="'+(b.dataset.pcAdd==='file'?'arquivo':b.dataset.pcAdd==='note'?'nota':'link')+'"]');if(radio){radio.checked=true;pcSourceFields(radio.value)}});return}
+ b=e.target.closest('[data-pc-new-event]');if(b){pcModalOpen('agenda');return}
+ b=e.target.closest('[data-pc-edit-event]');if(b){pc.editEvent=pc.agenda.find(x=>x.id===b.dataset.pcEditEvent)||null;pc.modal='agenda';pcShow();return}
+ b=e.target.closest('[data-pc-delete-event]');if(b){pcDeleteEvent(b.dataset.pcDeleteEvent);return}
+ b=e.target.closest('[data-pc-download]');if(b){pcOpenSource(b.dataset.pcDownload);return}
+ b=e.target.closest('[data-pc-read-source]');if(b){pcOpenSource(b.dataset.pcReadSource);return}
+ b=e.target.closest('[data-pc-delete-source]');if(b){pcDeleteSource(b.dataset.pcDeleteSource);return}
+ b=e.target.closest('[data-pc-save-notes]');if(b){pcSaveNotes();return}
+ b=e.target.closest('[data-pc-generate]');if(b){pc.difficulty=document.getElementById('pcDifficulty')?.value||pc.difficulty;pcGenerateExam();return}
+ b=e.target.closest('[data-pc-exam]');if(b){pc.examId=b.dataset.pcExam;pc.view='exam';pc.error='';pcShow();return}
+ b=e.target.closest('[data-pc-old]');if(b){pc.examId=b.dataset.pcOld;pc.view='legacy';pcShow();return}
+ b=e.target.closest('[data-pc-back-exam]');if(b){pc.view='detail';pc.tab='exams';pc.examId=null;pcShow();return}
+ b=e.target.closest('[data-pc-submit]');if(b){pcSubmitExam();return}
+ b=e.target.closest('[data-pc-task]');if(b){pc.task=b.dataset.pcTask;pc.request=document.getElementById('pcAiPrompt')?.value||pc.request;pcShow();return}
+ b=e.target.closest('[data-pc-request]');if(b){pcGenerateDocument();return}
+ b=e.target.closest('[data-pc-doc]');if(b){pc.docId=b.dataset.pcDoc;pc.view='doc';pcShow();return}
+ b=e.target.closest('[data-pc-back-doc]');if(b){pc.docId=null;pc.view='detail';pc.tab='ai';pcShow();return}
+ b=e.target.closest('[data-pc-copy-doc]');if(b){const d=pc.documents.find(x=>x.id===b.dataset.pcCopyDoc);if(d)navigator.clipboard?.writeText(d.content).then(()=>toast('Texto copiado.'));return}
+ b=e.target.closest('[data-pc-export]');if(b){const [id,fmt]=b.dataset.pcExport.split(':');pcExportDoc(id,fmt);return}
+ b=e.target.closest('[data-pc-delete-subject]');if(b){pcDeleteSubject();return}
+ b=e.target.closest('[data-pc-clear-error]');if(b){pc.error='';pcShow();return}
+ b=e.target.closest('[data-pc-close]');if(b){pcCloseModal();return}
+ if(e.target.matches('[data-pc-modal-backdrop]'))pcCloseModal();
 });
-document.addEventListener('input',e=>{if(e.target.id==='pcNotes')pc.draft=e.target.value});
+function pcSourceFields(kind){
+ const el=document.getElementById('pc2SourceFields');if(!el)return;
+ if(kind==='arquivo')el.innerHTML='<label>Arquivos de aula (até 12 MB cada)<input type="file" name="files" multiple accept=".pdf,.docx,.txt,.md"></label>';
+ else if(kind==='nota')el.innerHTML='<label>Título<input name="title" maxlength="180" required placeholder="Ex.: Slides da aula 3"></label>'+
+  '<label>Texto ou anotações<textarea name="content" maxlength="35000" rows="7" required placeholder="Cola o conteúdo para a IA consultar…"></textarea></label>';
+ else el.innerHTML='<label>Nome da referência<input name="title" maxlength="180" required placeholder="Ex.: Texto indicado pelo professor"></label>'+
+  '<label>Endereço HTTPS<input name="url" type="url" maxlength="2000" required placeholder="https://..."></label>';
+}
 document.addEventListener('change',e=>{
- if(!e.target.hasAttribute('data-pc-answer')||!pc.examId)return;
- if(!pc.answers[pc.examId])pc.answers[pc.examId]={};
- pc.answers[pc.examId][Number(e.target.dataset.pcAnswer)]=Number(e.target.value);
+ if(e.target.matches('#pc2SourceForm [name=kind]')){pcSourceFields(e.target.value);return}
+ if(e.target.matches('[data-pc-event-done]')){pcToggleEvent(e.target.dataset.pcEventDone,e.target.checked);return}
+ if(e.target.id==='pcDifficulty'){pc.difficulty=e.target.value;return}
+ if(e.target.matches('input[data-pc-answer-new]')&&pc.examId&&!pcSubmission(pc.examId)){
+  const ans=pcAnswers(pc.examId);ans[Number(e.target.dataset.pcAnswerNew)]=String(e.target.value);pcSaveDraft(pc.examId);
+ }
+});
+document.addEventListener('input',e=>{
+ if(e.target.id==='pcAiPrompt')pc.request=e.target.value;
+ if(e.target.matches('textarea[data-pc-answer-new]')&&pc.examId&&!pcSubmission(pc.examId)){
+  const ans=pcAnswers(pc.examId);ans[Number(e.target.dataset.pcAnswerNew)]=e.target.value;pcSaveDraft(pc.examId);
+ }
 });
 document.addEventListener('submit',async e=>{
- if(e.target.id!=='pcCreateForm')return;e.preventDefault();
- const button=e.target.querySelector('[type=submit]');if(button)button.disabled=true;
- try{await pcCreate(e.target)}catch(err){pc.error=err?.message||'Erro ao criar matéria.';pcShow()}
- finally{if(button)button.disabled=false}
+ const form=e.target;
+ if(!['pc2SubjectForm','pc2SourceForm','pc2AgendaForm'].includes(form.id))return;
+ e.preventDefault();
+ try{
+  if(form.id==='pc2SubjectForm')await(pc.modal==='edit-subject'?pcEditSubject(form):pcCreateSubject(form));
+  else if(form.id==='pc2SourceForm')await pcCreateSource(form);
+  else await pcSaveEvent(form);
+ }catch(err){pc.error=err?.message||'Não foi possível salvar.';pcShow()}
+});
+document.addEventListener('keydown',e=>{
+ if(e.key==='Escape'&&pc.modal&&!pc.busy)pcCloseModal();
 });
 
 window.uentzoulAIAuth={user:()=>onlineUser,client:()=>client,getSession:async()=>{if(!client)return null;const r=await client.auth.getSession();return r?.data?.session||null},openLogin:()=>showModal('login')};
