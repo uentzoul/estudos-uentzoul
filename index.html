@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="color-scheme" content="light dark">
-<meta name="site-build" content="auto-update-20261111-biblioteca-3">
+<meta name="site-build" content="auto-update-20261111-library-upload-1">
 <script>try{document.documentElement.dataset.theme=localStorage.getItem("uentzoul_theme_v1")==="dark"?"dark":"light"}catch(e){document.documentElement.dataset.theme="light"}</script>
 <title>Psicologia PUCRS 2026/2</title>
 <style>
@@ -1594,6 +1594,7 @@ html[data-theme="dark"] .library-page .library-click-ripple{background:radial-gr
 @media(prefers-reduced-motion:reduce){.library-page .library-click-ripple{display:none!important}.library-page .library-resource.library-pressed{transform:none!important}}
 </style>
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2064%2064%22%3E%3Crect%20width%3D%2264%22%20height%3D%2264%22%20rx%3D%2214%22%20fill%3D%22%23192d44%22%2F%3E%3Ctext%20x%3D%2232%22%20y%3D%2246%22%20fill%3D%22white%22%20font-size%3D%2246%22%20font-family%3D%22Georgia%2Cserif%22%20text-anchor%3D%22middle%22%3E%CE%A8%3C%2Ftext%3E%3C%2Fsvg%3E">
+<link rel="stylesheet" href="library-manager.css?v=20261111-1">
 </head>
 <body>
 <section id="staticFallback" class="static-fallback" aria-label="Central de Estudos — modo de leitura compatível com celular">
@@ -1948,6 +1949,45 @@ const SEMESTER_DB={
 let semester='2026/2';
 try{if(localStorage.getItem(SEMESTER_PREF)==='2027/1')semester='2027/1'}catch{}
 let DB=SEMESTER_DB[semester];
+
+const LIBRARY_MATERIALS=SEMESTER_DB['2026/2'].materials;
+let libraryAdminEnabled=false,libraryRecords=new Map();
+const libraryKey=m=>String(m.subject||'geral')+'::'+String(m.title||'');
+for(const m of LIBRARY_MATERIALS){
+ m._libraryKey=libraryKey(m);
+ m._libraryLegacyUrl=String(m.url||'');
+ m._libraryBaseAvailable=!!m.available;
+ m._libraryWasLocal=/^biblioteca\/doc_\d+\.(?:pdf|docx)$/i.test(m._libraryLegacyUrl);
+ m._libraryUpload=null;
+ if(m._libraryWasLocal){m.available=false;m.url='';}
+}
+window.uentzoulLibraryApp={
+ items:()=>LIBRARY_MATERIALS.filter(m=>m._libraryWasLocal||!m._libraryBaseAvailable).map(m=>({
+  key:m._libraryKey,title:m.title,subject:m.subject,source:m.source||'',
+  legacyUrl:m._libraryLegacyUrl,uploaded:!!m._libraryUpload
+ })),
+ record:key=>libraryRecords.get(key)||null,
+ setAdmin:flag=>{
+  const next=flag===true;
+  if(libraryAdminEnabled===next)return;
+  libraryAdminEnabled=next;
+  if(current.page==='library'&&semester==='2026/2')render();
+ },
+ applyRows:rows=>{
+  const next=new Map((rows||[]).map(r=>[r.resource_key,r]));
+  const changed=JSON.stringify([...next])!==JSON.stringify([...libraryRecords]);
+  libraryRecords=next;
+  for(const m of LIBRARY_MATERIALS){
+   const record=next.get(m._libraryKey)||null;
+   m._libraryUpload=record;
+   m.available=!!record||(!m._libraryWasLocal&&m._libraryBaseAvailable);
+   m.url=record?'':m._libraryLegacyUrl;
+  }
+  if(changed&&semester==='2026/2'&&(current.page==='library'||current.page==='subject'))render();
+ },
+ refresh:()=>{if(semester==='2026/2'&&current.page==='library')render();}
+};
+
 const $=(id)=>document.getElementById(id);
 const getSubject=id=>DB.subjects[id];
 const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -2189,8 +2229,14 @@ function examCard(e){
  (r?'<div class="exammeta" style="margin-top:5px">Objetivas e V/F: '+r.correct+'/'+r.total+' acertos</div>':'')+
  '<button class="btn light wide" data-action="test:'+e.id+'">'+(r?'Rever / refazer':'Iniciar simulado')+'</button></article>';
 }
-function docCard(m){let id=`material:${m.url||m.source}`;return `<div class="doc"><span class="docicon">${m.kind==='Vídeo'?'▶':m.kind==='DOCX'?'DOC':m.kind==='PDF'?'PDF':'TXT'}</span><div class="inlinegrow" style="min-width:0"><div class="docname">${esc(m.title)}</div><div class="docnote">${esc(m.note||m.kind)}</div></div><div class="actions">${m.available?`<a href="${esc(m.url)}" target="_blank" rel="noopener" class="barlink">Abrir ↗</a>`:`<span class="pill">Não anexado</span>`}</div>${m.available?doneBox(id):''}</div>`;}
-
+function docCard(m){
+ let id='material:'+(m._libraryLegacyUrl||m.source||m._libraryKey||m.url);
+ const url=m._libraryUpload?'#':m.url,attr=m._libraryUpload?' data-library-file="'+esc(m._libraryKey)+'"':'';
+ return '<div class="doc"><span class="docicon">'+(m._libraryUpload?.filename?.toLowerCase().endsWith('.docx')?'DOC':m.kind==='Vídeo'?'▶':m.kind==='PDF'?'PDF':'TXT')+'</span>'+
+ '<div class="inlinegrow" style="min-width:0"><div class="docname">'+esc(m.title)+'</div><div class="docnote">'+esc(m.note||m.kind)+'</div></div><div class="actions">'+
+ (m.available?'<a href="'+esc(url)+'"'+attr+' target="_blank" rel="noopener" class="barlink">Abrir ↗</a>':'<span class="pill">Aguardando arquivo</span>')+
+ '</div>'+(m.available?doneBox(id):'')+'</div>';
+}
 
 /* Cartões da Biblioteca: o próprio cartão é o link, com "Visto" independente. */
 
@@ -2238,10 +2284,12 @@ function libraryResourceCard(m,i=0){
   '<span class="library-resource-copy"><span class="library-resource-type">'+esc(typeLabel)+'</span>'+
   '<strong class="docname">'+name+'</strong><span class="docnote">'+note+'</span></span>'+
   (isAvailable?'<span class="library-resource-arrow" aria-hidden="true">↗</span>':'');
+ const url=m._libraryUpload?'#':m.url;
+ const uploadAttr=m._libraryUpload?' data-library-file="'+esc(m._libraryKey)+'"':'';
  const body=isAvailable?
-  '<a class="library-resource-main" href="'+esc(m.url)+'" target="_blank" rel="noopener noreferrer" aria-label="Abrir '+name+'">'+content+'</a>':
+  '<a class="library-resource-main" href="'+esc(url)+'"'+uploadAttr+' target="_blank" rel="noopener noreferrer" aria-label="Abrir '+name+'">'+content+'</a>':
   '<div class="library-resource-main">'+content+'</div>';
- const key='material:'+(m.url||m.source);
+ const key='material:'+(m._libraryLegacyUrl||m.source||m._libraryKey||m.url);
  return '<article class="doc library-resource '+(isAvailable?'is-available':'is-pending')+' type-'+type+'" style="--library-seq:'+(i%8)+'">'+
   body+'<div class="library-resource-bottom"><span class="library-resource-status">'+
   (isAvailable?'<span class="library-status-dot" aria-hidden="true"></span>Disponível':'Aguardando arquivo')+'</span>'+
@@ -2312,6 +2360,29 @@ function reviewHTML(q,answer){if(q.type==='essay')return `<div class="review"><h
  if(q.type==='combo'){let ok=String(answer)===String(q.answer);return `<div class="review"><span class="pill ${ok?'ok':'warn'}">${ok?'Acertou':'Resposta incorreta / não respondida'}</span><div class="why good"><b>Gabarito: ${'ABCDE'[q.answer]}.</b> ${esc(q.options[q.answer])}</div>${q.assertions.map(s=>`<div class="why ${s.truth?'good':'bad'}"><b>${s.l}. ${s.truth?'Verdadeira':'Falsa'}.</b> ${esc(s.why)}</div>`).join('')}<h4 style="margin-top:12px">Por que as alternativas estão certas ou erradas</h4>${q.options.map((o,i)=>`<div class="why ${i===q.answer?'good':'neutral'}"><b>${'ABCDE'[i]} — ${i===q.answer?'correta':'incorreta'}.</b> ${i===q.answer?'Contém exatamente as assertivas verdadeiras.':'Inclui afirmação falsa ou deixa de incluir afirmação verdadeira.'} ${esc(o)}</div>`).join('')}</div>`}
  let ok=String(answer)===String(q.answer);return `<div class="review"><span class="pill ${ok?'ok':'warn'}">${ok?'Acertou':'Resposta incorreta / não respondida'}</span><div class="why good"><b>Alternativa correta: ${'ABCDE'[q.answer]}.</b> ${esc(q.options[q.answer].why)}</div><h4 style="margin-top:12px">Comentário de cada alternativa</h4>${q.options.map((o,i)=>`<div class="why ${i===q.answer?'good':'neutral'}"><b>${'ABCDE'[i]} — ${i===q.answer?'correta':'não é a melhor resposta'}.</b> ${esc(o.why)}</div>`).join('')}</div>`;
 }
+function libraryAdminPanel(){
+ if(!libraryAdminEnabled||semester!=='2026/2')return '';
+ const candidates=LIBRARY_MATERIALS.filter(m=>m._libraryWasLocal||!m._libraryBaseAvailable);
+ const options=candidates.map(m=>{
+  const label=m.subject==='geral'?'Cadernos integrados':DB.subjects[m.subject]?.name||m.subject;
+  return '<option value="'+esc(m._libraryKey)+'">'+esc(label)+' · '+esc(m.title)+(m._libraryUpload?' (substituir)':'')+'</option>';
+ }).join('');
+ return '<section class="library-manager" aria-labelledby="libraryUploadTitle">'+
+ '<div class="library-manager-head"><div><span class="library-manager-kicker">GESTÃO DA BIBLIOTECA</span><h2 id="libraryUploadTitle">Adicionar materiais</h2>'+
+ '<p>Envie PDFs e documentos diretamente pelo site. Eles serão vinculados automaticamente à Biblioteca.</p></div>'+
+ '<span class="library-admin-mark">✦ Administrador</span></div>'+
+ '<form id="libraryUploadForm" class="library-upload-form"><div>'+
+ '<input id="libraryFileInput" type="file" accept=".pdf,.docx,.pptx,application/pdf" multiple hidden>'+
+ '<button type="button" class="library-upload-drop" data-library-upload-drop aria-label="Selecionar ou arrastar arquivos para enviar">'+
+ '<span class="library-upload-drop-icon" aria-hidden="true">↑</span><strong>Arraste os arquivos ou clique para selecionar</strong>'+
+ '<small>PDF, DOCX ou PPTX · até 50 MB por arquivo<br>É possível selecionar vários arquivos de uma vez.</small></button></div>'+
+ '<div class="library-upload-controls"><label for="libraryUploadTarget">Destino (para um arquivo por vez)</label>'+
+ '<select id="libraryUploadTarget"><option value="">Identificar automaticamente pelo nome</option>'+options+'</select>'+
+ '<p class="library-upload-hint">Arquivos com nome original ou doc_01.pdf, doc_02.pdf etc. são identificados automaticamente. Para outro nome, escolha o material e envie individualmente.</p>'+
+ '<button type="submit" class="library-upload-submit" id="libraryUploadSend" disabled>Enviar para a Biblioteca</button></div>'+
+ '</form><div class="library-upload-feedback" id="libraryUploadFeedback" role="status" aria-live="polite">Selecione os arquivos para começar.</div></section>';
+}
+
 function renderLibrary(){
  const list=DB.materials.filter(m=>(current.filter==='todos'||m.subject===current.filter)&&(m.title+' '+m.note).toLocaleLowerCase().includes(current.search.toLocaleLowerCase()));
  const ids=['geral',...Object.keys(DB.subjects)];
@@ -2328,6 +2399,7 @@ function renderLibrary(){
  return '<div class="library-page">'+head('Acervo de estudos','Biblioteca','Materiais de aula, leituras e guias organizados por disciplina.')+
  '<div class="library-overview"><div class="library-overview-message"><span class="library-overview-kicker">ACERVO DIGITAL</span><div class="library-overview-title">Encontre o que precisa para estudar.</div><p>Abra um material tocando em qualquer parte do cartão. Seu progresso continua separado.</p></div>'+
  '<div class="library-overview-metrics"><div><strong>'+available+'</strong><span>disponíveis</span></div><div><strong>'+total+'</strong><span>no acervo</span></div></div></div>'+
+ libraryAdminPanel()+
  '<div class="panel library-filter-panel"><div class="topline"><div class="filters" id="filterlist">'+
  [['todos','Todos'],['geral','Cadernos'],...Object.entries(DB.subjects).map(([k,v])=>[k,v.name])].map(([k,l])=>'<button class="filter '+(current.filter===k?'active':'')+'" data-action="filter:'+k+'">'+esc(l)+'</button>').join('')+
  '</div><input class="searchbox" id="matSearch" placeholder="Buscar material..." value="'+esc(current.search)+'" aria-label="Buscar material"></div></div>'+
@@ -4681,4 +4753,5 @@ document.addEventListener("click",e=>{if(!e.target.closest("[data-theme-toggle]"
  });
 })();
 </script>
+<script src="library-manager.js?v=20261111-1"></script>
 </body></html>
