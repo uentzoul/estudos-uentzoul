@@ -23,7 +23,7 @@ function typeOf(file){const ext=String(file.name||'').split('.').pop().toLowerCa
 function entries(){return api()?.items?.()||[];}
 function getTarget(file){
  const name=norm(file.name);
- const matches=entries().filter(x=>[x.source,x.legacyUrl,x.title+'.'+typeOf(file).ext].some(v=>v&&norm(v)===name));
+ const matches=entries().filter(x=>[x.source,x.legacyUrl?.split('/').pop(),x.legacyUrl,x.title+'.'+typeOf(file).ext].some(v=>v&&norm(v)===name));
  return matches.length===1?matches[0]:null;
 }
 function show(message){
