@@ -49,6 +49,19 @@ Limitação: o HTML histórico ainda inclui gabaritos necessários à correção
 
 ### Aba Pessoal
 
-Cada estudante autenticado pode criar uma matéria complementar com título e conteúdo próprio (até 16.000 caracteres), editar as notas, excluir a matéria e gerar um simulado pessoal de seis questões de múltipla escolha. As questões e explicações são criadas pela IA Tzoul e ficam salvas exclusivamente na conta.
+A aba **Pessoal** foi reconstruída como um espaço de estudo privado por matéria:
 
-O servidor usa o conteúdo da matéria do próprio estudante e verifica seu ID de usuário com RLS. A geração depende de a função **ia-tzoul** estar configurada com uma **OPENAI_API_KEY** válida, com saldo disponível e dentro da cota diária. Falhas da API não criam questões fictícias. Os simulados pessoais ficam separados do ranking competitivo.
+- Na tela inicial, o estudante vê cartões animados com os nomes das matérias e pode selecionar **Criar uma nova matéria**.
+- O cadastro abre uma janela para informar nome, anotações iniciais, arquivos e referências.
+- Cada matéria reúne **Visão geral**, **Materiais**, **Agenda**, **Simulados** e **IA / Documentos**.
+- Fontes: anotações, links HTTPS e arquivos PDF, DOCX, PPTX, TXT e Markdown (até 12 MB por arquivo). São enviados a um bucket privado e protegidos por políticas RLS. Links são referências; o conteúdo de páginas externas não é extraído automaticamente.
+- Agenda: calendário mensal interativo, compromissos com data, hora, tipo, observações e conclusão.
+- Simulados: uma prova inédita por solicitação, com 13 objetivas e 2 dissertativas, dificuldade normal ou difícil, apenas uma entrega por pessoa e histórico de revisão. Simulados anteriores de seis questões continuam em consulta.
+- IA Tzoul: criação de resumos, fichamentos, trabalhos, roteiros de estudo, questões e pedidos personalizados. Os textos ficam salvos na própria matéria e podem ser exportados.
+- As anotações e os simulados antigos das contas cadastradas foram preservados. O conteúdo das matérias é privado, independente do ranking e das disciplinas oficiais.
+
+A Edge Function **ia-tzoul** valida a sessão e confere a titularidade da matéria antes de consultar os materiais. A geração usa a **OPENAI_API_KEY** do servidor e depende dos créditos disponíveis e da cota diária. O servidor mantém os gabaritos das novas provas separados do conteúdo fornecido antes da entrega.
+
+### Interface e comunicação
+
+A Biblioteca foi alinhada com títulos, contadores e materiais distribuídos em grades estáveis para computador e celular. Em mensagens de grupos e no chat global, avisos destinados à coletividade utilizam tratamento no plural.
