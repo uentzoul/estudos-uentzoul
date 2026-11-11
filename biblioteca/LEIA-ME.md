@@ -1,11 +1,17 @@
-# Arquivos da Biblioteca
+# Biblioteca — como publicar materiais
 
-Os materiais apontados pelo site devem ser enviados para esta pasta (`biblioteca/`) com os nomes exatos referenciados no `index.html`, como `doc_01.pdf`.
+Os documentos agora são enviados diretamente pelo site, em **Biblioteca > Adicionar materiais**, quando você entra na conta administradora.
 
-Para adicionar: abra a pasta no GitHub, use **Add file > Upload files**, selecione os PDFs/DOCX **extraídos do ZIP** e confirme em **Commit changes**. Enviar apenas o ZIP não disponibiliza os arquivos individualmente.
+**Endereço:** https://uentzoul.github.io/estudos-uentzoul/#library
 
-Dois arquivos ainda precisam ser recuperados e adicionados separadamente:
-- `doc_38.pdf` — `Avaliacao_Psicologica_P2_Materia_Para_Estudar.pdf`
-- `doc_43.pdf` — `Capítulo - RABELO, I.S., BRITTO, L., REGO, M.G.S._Padronização e Normatização de Testes Psicológicos.pdf`
+- Clique na área de upload ou arraste PDFs, DOCX e PPTX.
+- Se os arquivos mantiverem os nomes originais ou `doc_01.pdf`, `doc_02.pdf` etc., a associação à disciplina é automática.
+- Para nomes diferentes, selecione o material de destino e envie individualmente.
+- O site grava os arquivos no bucket privado `uentzoul-library-files` do Supabase Storage e registra o vínculo em `public.uentzoul_library_uploads`.
+- Estudantes autenticados podem abrir os materiais por URLs temporárias.
 
-Não exclua os materiais já enviados. Conteúdos marcados como pendentes e links externos não precisam de upload até que haja um arquivo correspondente.
+**Atenção:** enviar somente um PDF ao GitHub ou ao painel de Storage do Supabase não registra a associação no site. Use a interface administrativa dentro da Biblioteca.
+
+Arquivos ainda não recuperados do acervo antigo: `doc_38.pdf` e `doc_43.pdf`.
+
+Nenhum dado de mensagens, simulados, podcasts ou progresso é alterado pelos envios de materiais.
