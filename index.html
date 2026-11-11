@@ -2666,10 +2666,7 @@ async function geShare(){
      .insert({exam_id:examId,sender_id:geUser().id,recipient_id:recipientId}).select('*').single();
     if(result.error)throw result.error;
     const invite=result.data;ge.invites.push(invite);
-    const sent=await geClient().from('uentzoul_messages').insert({
-     sender_id:geUser().id,recipient_id:recipientId,kind:'text',body:'Convite de simulado: '+invite.id+'\n'+geSubjectName(exam.subject)+' · '+(exam.difficulty==='dificil'?'Difícil':'Normal')
-    });
-    if(sent.error)throw sent.error;
+
    }catch(e){failed.push(name+': '+(e?.message||'erro'));}
   }
   ge.shareTarget=[];ge.shareExamId=null;
