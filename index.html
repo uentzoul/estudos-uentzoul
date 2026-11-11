@@ -857,26 +857,7 @@ html[data-theme="dark"] .tz-retry-button:hover{background:#52427f}
 @media(prefers-reduced-motion:reduce){.tz-retry-button{transition:none}}
 
 /* Login do site: somente e-mail e senha. */
-.ms-auth{margin:16px 0 6px;padding:15px;background:var(--soft);border:1px solid var(--line);border-radius:14px}
-.ms-auth-label{font-size:10px;font-weight:830;letter-spacing:.7px;text-transform:uppercase;color:var(--muted);margin-bottom:10px}
-.ms-auth-button{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;min-height:44px;border:1px solid #b4a8db;background:var(--paper);color:var(--ink);border-radius:11px;font-size:12px;cursor:pointer;padding:10px 12px;box-shadow:0 2px 8px #46347a0d;transition:transform .2s ease,border-color .2s ease,box-shadow .2s ease}
-.ms-auth-button:hover:not(:disabled){transform:translateY(-2px);border-color:#8976d7;box-shadow:0 6px 16px #6354b427}
-.ms-auth-button:disabled{opacity:.7;cursor:not-allowed}
-.ms-auth-button:focus-visible{outline:3px solid #9b88f0;outline-offset:2px}
-.ms-auth-button.ms-connected{border-color:#55a58c;background:#e7f8ef;color:#1e6954}
-.ms-logo{display:grid;grid-template-columns:repeat(2,9px);grid-template-rows:repeat(2,9px);gap:2px;flex:none}
-.ms-logo i:nth-child(1){background:#ef5841}.ms-logo i:nth-child(2){background:#78b94f}.ms-logo i:nth-child(3){background:#46a8e7}.ms-logo i:nth-child(4){background:#f1bc41}
-.ms-check{font-size:15px;font-weight:900;margin-left:auto}
-.ms-auth-help,.ms-auth-hint{font-size:11px;line-height:1.5;color:var(--muted);margin:9px 0 0}
-.ms-auth-hint{font-size:10px;margin-top:6px}
-.ms-auth-error{font-size:11px;line-height:1.5;color:#ad3b47;margin:9px 0 0}
-.ms-auth-success{background:#e8f7ef;border:1px solid #8ed2ae;color:#236f4f;border-radius:10px;font-size:11px;padding:10px}
-html[data-theme="dark"] .ms-auth{background:#2a2740;border-color:#51496a}
-html[data-theme="dark"] .ms-auth-button{background:#34304a;border-color:#5e5279;color:#f4efff}
-html[data-theme="dark"] .ms-auth-button.ms-connected{background:#274b40;color:#d4ffed;border-color:#4b9a7d}
-html[data-theme="dark"] .ms-auth-error{color:#f0a1ac}
-html[data-theme="dark"] .ms-auth-success{background:#244436;color:#d3ffe9;border-color:#4c9770}
-@media(prefers-reduced-motion:reduce){.ms-auth-button{transition:none}}
+
 
 /* Conversa unificada: DMs, grupos e global */
 .dm-channel-tabs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:4px;padding:5px;margin:0 12px 13px;border-radius:12px;background:#eeebf9}
@@ -948,9 +929,9 @@ html[data-theme=dark] .dm-sticker-menu button:hover{background:#49385f}
 .dm-about-title small{font-size:10px;color:var(--muted)}
 .dm-profile-about .dm-profile-bio{background:var(--soft);border:1px solid var(--line);font-size:13px;line-height:1.75;min-height:85px;padding:15px 17px;border-radius:13px;white-space:pre-wrap;overflow-wrap:anywhere;margin:0 0 16px}
 .dm-profile-dialog .dm-profile-primary{margin-top:0}
-.ms-bio-editor>span{font-size:11px;display:block;font-weight:500;color:var(--muted);margin:3px 0 7px}
-.ms-bio-editor textarea[name=bio]{line-height:1.7;border-radius:13px;padding:14px;font-size:13px;resize:vertical;min-height:95px}
-.ms-bio-editor small{font-size:10px;color:var(--muted);text-align:right}
+.profile-bio-editor>span{font-size:11px;display:block;font-weight:500;color:var(--muted);margin:3px 0 7px}
+.profile-bio-editor textarea[name=bio]{line-height:1.7;border-radius:13px;padding:14px;font-size:13px;resize:vertical;min-height:95px}
+.profile-bio-editor small{font-size:10px;color:var(--muted);text-align:right}
 @media(max-width:760px){
  .dm-channel-tabs{margin:0 9px 7px;padding:4px}
  .dm-channel-tabs button{min-height:34px;font-size:10px}
@@ -1716,7 +1697,7 @@ function getAnswers(id){return store.answers[id]||{};}
 function renderTest(id){const exam=DB.exams.find(e=>e.id===id);if(!exam)return renderHome();const subj=getSubject(exam.subject),ans=getAnswers(id),r=store.results[id];const answered=exam.questions.filter(q=>String(ans[q.id]??'').trim()!=='').length;return `<button class="back" data-action="subject:${exam.subject}">← Voltar para ${esc(subj.name)}</button><div class="panel" style="border-top:3px solid ${color(exam.subject)}"><div class="eyebrow">${esc(subj.name)} · ${esc(exam.title)}</div><h1 class="h1">Simulado ${exam.model}</h1><div class="exam-test-difficulty" aria-label="Dificuldade ${difficultyStep(exam)} de 5 estrelas">${difficultyStars(difficultyStep(exam))}<span>${esc(DIFFICULTY_STEPS[difficultyStep(exam)-1].label)}</span></div><div style="margin:10px 0 14px">${doneBox(`sim:${id}`)}</div><p class="lead">${esc(subj.style)}</p><div class="statline"><span>${answered} de ${exam.questions.length} respondidas</span><span>${r?'Correção liberada':'Em andamento'}</span></div><div class="progressline"><div style="width:${answered/exam.questions.length*100}%"></div></div></div>
 ${r?`<section class="section"><div class="panel"><h2 style="margin:0 0 12px">Resultado da tentativa</h2><div class="resultstats"><div class="resultstat"><strong>${r.correct}/${r.total}</strong><span class="small">Objetivas / V-F</span></div><div class="resultstat"><strong>${Math.round(100*r.correct/(r.total||1))}%</strong><span class="small">Aproveitamento objetivo</span></div><div class="resultstat"><strong>${exam.questions.filter(q=>q.type==='essay').length}</strong><span class="small">Dissertativas para revisar</span></div></div><div class="alert info" style="margin-top:12px">As dissertativas não recebem nota automática: veja os critérios, compare com a resposta orientativa e use a opção de correção pelo ChatGPT quando quiser uma avaliação de conteúdo e gramática.</div><div class="actions" style="margin-top:14px">${button('Imprimir correção','print','btn ghost')}</div></div></section>`:''}
 <section class="section">${exam.questions.map((q,i)=>questionHTML(q,i,ans[q.id],!!r)).join('')}</section>
-<div class="panel" style="display:flex;align-items:center;gap:12px;justify-content:space-between;flex-wrap:wrap"><span class="small">${answered}/${exam.questions.length} questões respondidas · ${exam.questions.filter(q=>q.type==='essay').length} dissertativas</span><div class="actions">${button('Salvar andamento','save','btn ghost')}${button(r?'Ver resultado novamente':'Entregar e corrigir',`submit:${id}`,'btn')}</div></div><div class="footer">As correções objetivas explicam todas as opções. As respostas dissertativas exigem julgamento contextual, por isso disponibilizamos critérios e avaliação via ChatGPT em etapa manual.</div>`}
+<div class="panel" style="display:flex;align-items:center;gap:12px;justify-content:space-between;flex-wrap:wrap"><span class="small">${answered}/${exam.questions.length} questões respondidas · ${exam.questions.filter(q=>q.type==='essay').length} dissertativas</span><div class="actions">${button('Salvar andamento','save','btn ghost')}${button(r?'Voltar aos simulados':'Entregar e corrigir',r?'page:exams':`submit:${id}`,'btn')}</div></div><div class="footer">As correções objetivas explicam todas as opções. As respostas dissertativas exigem julgamento contextual, por isso disponibilizamos critérios e avaliação via ChatGPT em etapa manual.</div>`}
 function questionHTML(q,i,answer,review){let body='';const disabled=review?'disabled':'';if(q.type==='choice'||q.type==='combo'){
  if(q.type==='combo')body+=`<ol class="assertions" type="I">${q.assertions.map(s=>`<li>${esc(s.text)}</li>`).join('')}</ol>`;
  const opts=q.type==='choice'?q.options:q.options.map(x=>({text:x}));body+=opts.map((o,j)=>`<label class="qopt"><input type="radio" name="${q.id}" value="${j}" data-qid="${q.id}" ${String(answer)===String(j)?'checked':''} ${disabled}><span><strong>${'ABCDE'[j]}.</strong> ${esc(o.text)}</span></label>`).join('');
@@ -2361,6 +2342,7 @@ function onAction(act){
  if(act==='nextAudio')return current.audioSubject==='tcc'?openChapter(currentChapter+1):openEpisode(currentEpisode+1);
  if(act.startsWith('ai:'))return copyForAI(act.slice(3));}
 async function submit(id){
+ if(store.results[id]){toast('Esta tentativa já foi entregue e só pode ser consultada.');return;}
  const exam=DB.exams.find(e=>e.id===id);if(!exam)return;
  const answers=getAnswers(id),objective=exam.questions.filter(q=>q.type!=='essay');
  const blanks=exam.questions.filter(q=>String(answers[q.id]??'').trim()==='').length;
@@ -2543,7 +2525,7 @@ function renderModal(){
    :'<p class="profile-form-note" role="alert">'+esc(cloudError||'O serviço de login não carregou. Podes tentar novamente sem fechar a página.')+'</p><button type="button" class="profile-secondary" data-account-action="retry-connection">Tentar conectar novamente</button>';
   return;
  }
- if(onlineUser){body.innerHTML=`<div class="profile-person-row">${avatar(remoteProfile?.display_name,remoteProfile?.avatar_url)}<strong>${esc(remoteProfile?.display_name||onlineUser.email)}</strong><span class="profile-badge">Online</span></div><form class="profile-form" id="onlineProfileForm"><label>Nome exibido no ranking<input name="display_name" minlength="2" maxlength="40" required value="${esc(remoteProfile?.display_name||'')}"></label><label>Foto de perfil (JPEG, PNG ou WebP)<input type="file" name="avatar" accept="image/jpeg,image/png,image/webp"></label><label class="ms-bio-editor">Bio pública <span>Apresenta-te aos colegas</span><textarea name="bio" maxlength="300" rows="4" placeholder="Ex.: Estudo Psicologia e gosto de Psicologia Social, música e cinema.">${esc(remoteProfile?.bio||"")}</textarea><small id="dmBioCounter">${(remoteProfile?.bio||"").length}/300 caracteres</small></label><button type="submit">Salvar perfil</button></form><p class="profile-form-note">As atividades são sincronizadas automaticamente nesta conta.</p><button class="profile-secondary" data-account-action="logout">Sair da conta</button><p class="profile-message" id="profileMessage"></p>`;return}
+ if(onlineUser){body.innerHTML=`<div class="profile-person-row">${avatar(remoteProfile?.display_name,remoteProfile?.avatar_url)}<strong>${esc(remoteProfile?.display_name||onlineUser.email)}</strong><span class="profile-badge">Online</span></div><form class="profile-form" id="onlineProfileForm"><label>Nome exibido no ranking<input name="display_name" minlength="2" maxlength="40" required value="${esc(remoteProfile?.display_name||'')}"></label><label>Foto de perfil (JPEG, PNG ou WebP)<input type="file" name="avatar" accept="image/jpeg,image/png,image/webp"></label><label class="profile-bio-editor">Bio pública <span>Apresenta-te aos colegas</span><textarea name="bio" maxlength="300" rows="4" placeholder="Ex.: Estudo Psicologia e gosto de Psicologia Social, música e cinema.">${esc(remoteProfile?.bio||"")}</textarea><small id="dmBioCounter">${(remoteProfile?.bio||"").length}/300 caracteres</small></label><button type="submit">Salvar perfil</button></form><p class="profile-form-note">As atividades são sincronizadas automaticamente nesta conta.</p><button class="profile-secondary" data-account-action="logout">Sair da conta</button><p class="profile-message" id="profileMessage"></p>`;return}
 body.innerHTML=`<div class="profile-tabs"><button class="${modalView==='login'?'selected':''}" data-account-action="login-view">Entrar</button><button class="${modalView==='register'?'selected':''}" data-account-action="register-view">Cadastrar</button></div><form class="profile-form" id="onlineAuthForm">${modalView==='register'?'<label>Nome público<input name="name" autocomplete="nickname" minlength="2" maxlength="40" required></label>':''}<label>E-mail<input name="email" type="email" autocomplete="email" required></label><label>Senha<input name="password" type="password" autocomplete="${modalView==='register'?'new-password':'current-password'}" minlength="6" required></label><button type="submit">${modalView==='register'?'Criar conta':'Entrar'}</button></form><p class="profile-form-note">A conta online salva o progresso na nuvem e participa do ranking coletivo.</p><button type="button" class="profile-secondary" data-account-action="resend-signup">Reenviar confirmação por e-mail</button><p class="profile-message" id="profileMessage"></p>`;return
 }
 async function photo(file){if(!file||!file.size)return null;if(file.size>6*1024*1024)throw Error('Seleciona uma foto de até 6 MB.');if(!/^image\/(png|jpeg|webp)$/.test(file.type))throw Error('A foto precisa ser PNG, JPEG ou WebP.');return new Promise((resolve,reject)=>{const img=new Image();const object=URL.createObjectURL(file);img.onload=()=>{try{const canvas=document.createElement('canvas');canvas.width=canvas.height=180;const ctx=canvas.getContext('2d');const scale=Math.max(180/img.width,180/img.height),w=img.width*scale,h=img.height*scale;ctx.drawImage(img,(180-w)/2,(180-h)/2,w,h);URL.revokeObjectURL(object);canvas.toBlob(blob=>{if(blob)resolve({blob,url:canvas.toDataURL('image/jpeg',.75)});else reject(Error('Não foi possível processar a foto.'))},'image/jpeg',.75)}catch(e){URL.revokeObjectURL(object);reject(e)}};img.onerror=()=>{URL.revokeObjectURL(object);reject(Error('Não foi possível abrir a imagem.'))};img.src=object})}
