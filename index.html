@@ -3053,7 +3053,7 @@ window.addEventListener('uentzoul:semester',()=>{
 
 /* Mensagens privadas e perfis públicos: participantes identificados pela conta Supabase. */
 const dm={owner:null,people:[],messages:[],peerId:null,ready:false,loading:false,loadPromise:null,
- error:'',draft:'',search:'',sending:false,realtime:null,readBusy:false,profileOpen:null,lastFetch:0,
+ error:'',draft:'',search:'',sending:false,realtime:null,readBusy:false,profileOpen:null,lastFetch:0,pending:false,syncTimer:null,channelStatus:'',
  tab:'private',roomId:null,rooms:[],roomMessages:[],stickerOpen:false,groupModal:false,mediaFile:null,mediaCache:new Map(),mediaRequests:new Set()};
 function dmValid(id){return typeof id==='string'&&/^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/i.test(id)}
 function dmPerson(id){return dm.people.find(p=>p.user_id===id)||null}
@@ -3253,7 +3253,8 @@ async function dmMarkRead(){
  finally{dm.readBusy=false}
 }
 async function dmLoad(){
- if(!client||!onlineUser||dm.loading)return dm.loadPromise;
+ if(!client||!onlineUser)return dm.loadPromise;
+ if(dm.loading){dm.pending=true;return dm.loadPromise;}
  const id=onlineUser.id;dm.loading=true;dm.error='';
  dm.loadPromise=(async()=>{
  try{
@@ -3273,11 +3274,12 @@ async function dmLoad(){
   dm.owner=id;dm.ready=true;dm.lastFetch=Date.now();
   dmBadge();dmShow();if(dm.tab==='private'&&dm.peerId)await dmMarkRead();
  }catch(e){dm.error=e?.message||'Não foi possível carregar as conversas.';dmShow()}
- finally{dm.loading=false}
+ finally{dm.loading=false;if(dm.pending&&onlineUser?.id===id){dm.pending=false;queueMicrotask(dmLoad)}}
  })();
  return dm.loadPromise;
 }
 function dmOnLogout(){
+ if(dm.syncTimer)clearInterval(dm.syncTimer);dm.syncTimer=null;dm.pending=false;dm.channelStatus='';
  if(dm.realtime&&client)try{client.removeChannel(dm.realtime)}catch(_){}
  dm.realtime=null;dm.owner=null;dm.peerId=null;dm.messages=[];dm.people=[];dm.ready=false;dm.loading=false;dm.loadPromise=null;dm.error='';dm.draft='';dm.search='';dm.sending=false;
  dm.rooms=[];dm.roomMessages=[];dm.tab='private';dm.roomId=null;dm.mediaFile=null;dm.stickerOpen=false;dm.groupModal=false;dm.mediaCache.clear();dmBadge();dmShow();dmCloseProfile();
@@ -3288,8 +3290,19 @@ function dmOnLogin(){
  dmLoad();
  try{
   if(dm.realtime)client.removeChannel(dm.realtime);
-  dm.realtime=client.channel('student-dm-'+onlineUser.id).on('postgres_changes',{event:'*',schema:'public',table:'uentzoul_messages'},()=>dmLoad()).on('postgres_changes',{event:'*',schema:'public',table:'uentzoul_room_messages'},()=>dmLoad()).on('postgres_changes',{event:'*',schema:'public',table:'uentzoul_chat_rooms'},()=>dmLoad()).subscribe();
+  dm.realtime=client.channel('student-dm-'+onlineUser.id)
+  .on('postgres_changes',{event:'*',schema:'public',table:'uentzoul_messages'},()=>dmLoad())
+  .on('postgres_changes',{event:'*',schema:'public',table:'uentzoul_room_messages'},()=>dmLoad())
+  .on('postgres_changes',{event:'*',schema:'public',table:'uentzoul_chat_rooms'},()=>dmLoad())
+  .subscribe(status=>{dm.channelStatus=status;if(status==='SUBSCRIBED')dmLoad()});
  }catch(err){console.warn('Notificações de chat indisponíveis',err)}
+ if(dm.syncTimer)clearInterval(dm.syncTimer);
+ dm.syncTimer=setInterval(()=>{
+  if(!onlineUser||document.visibilityState!=='visible')return;
+  const opened=!!document.querySelector('.dm-shell');
+  if(opened&&Date.now()-dm.lastFetch>12000)dmLoad();
+  else if(!opened&&Date.now()-dm.lastFetch>60000)dmLoad();
+ },5000);
 }
 async function dmAfterRender(peerId){
  if(!onlineUser)return;
@@ -3360,6 +3373,13 @@ async function dmOpenProfile(id){
    '<button type="button" class="dm-profile-primary" data-dm-message="'+esc(data.user_id)+'">Enviar mensagem</button>');
  }catch(e){body.innerHTML='<p class="dm-error">'+esc(e?.message||'Erro ao abrir o perfil.')+'</p>'}
 }
+
+document.addEventListener('visibilitychange',()=>{
+ if(document.visibilityState==='visible'&&onlineUser&&Date.now()-dm.lastFetch>1500)dmLoad();
+});
+window.addEventListener('focus',()=>{if(onlineUser&&Date.now()-dm.lastFetch>4000)dmLoad()});
+window.addEventListener('online',()=>{if(onlineUser)dmLoad()});
+
 window.uentzoulMessenger={render:dmRender,afterRender:dmAfterRender,onLogin:dmOnLogin,onLogout:dmOnLogout,refresh:dmLoad};
 document.addEventListener('click',e=>{
  const profile=e.target.closest('[data-dm-profile]');
