@@ -2671,7 +2671,7 @@ renderExams=function(){
  if(ge.selected){ge.tab='ai';return geRenderExam();}
  const tabs='<div class="ge-tabs" role="tablist" aria-label="Tipo de simulado">'+
  '<button type="button" role="tab" aria-selected="'+(ge.tab==='ready')+'" class="'+(ge.tab==='ready'?'active':'')+'" data-ge-tab="ready">Simulados prontos</button>'+
- '<button type="button" role="tab" aria-selected="'+(ge.tab==='ai')+'" class="'+(ge.tab==='ai'?'active':'')+'" data-ge-tab="ai">Criar com IA</button></div>';
+ '<button type="button" role="tab" aria-selected="'+(ge.tab==='ai')+'" class="'+(ge.tab==='ai'?'active':'')+'" data-ge-tab="ai">Criar simulado</button></div>';
  return tabs+(ge.tab==='ready'?geReadyLibrary():geRenderList());
 };
 async function geHideExam(id){
