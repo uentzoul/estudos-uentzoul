@@ -1455,6 +1455,28 @@ html[data-theme="dark"] .exam-assertion-label{color:#c9b5ff}
 .rank-rules-row{border-bottom:1px solid var(--line);padding:13px 0;display:grid;grid-template-columns:1fr auto;gap:0 8px}
 .rank-rules-row strong{font-size:13px}.rank-rules-row span{font-size:12px;font-weight:750}
 .rank-rules-row p{grid-column:1/-1;font-size:12px;margin:5px 0 0;color:var(--muted)}
+
+/* Ajustes de contraste no ranking e bio pública — 11/11/2026 */
+.rank-entry{transition:background-color .18s ease,border-color .18s ease,transform .18s ease}
+.rank-entry:hover,.rank-entry:focus-within{background:#eeeaff;border-color:#d8cffc;transform:translateX(2px)}
+.rank-entry:hover .rank-user-trigger,.rank-entry:focus-within .rank-user-trigger{background:transparent;color:#242044}
+.rank-entry:hover .rank-person strong,.rank-entry:focus-within .rank-person strong{color:#242044}
+.rank-entry:hover .rank-person span,.rank-entry:focus-within .rank-person span{color:#534a75}
+.rank-entry:hover .rank-num,.rank-entry:focus-within .rank-num,.rank-entry:hover .rank-score,.rank-entry:focus-within .rank-score{color:#51429c}
+.rank-user-trigger:hover,.rank-user-trigger:focus-visible{background:transparent}
+html[data-theme="dark"] .rank-entry:hover,html[data-theme="dark"] .rank-entry:focus-within{background:#343052!important;border-color:#665b96}
+html[data-theme="dark"] .rank-entry:hover .rank-user-trigger,html[data-theme="dark"] .rank-entry:focus-within .rank-user-trigger{background:transparent;color:#f5f1ff}
+html[data-theme="dark"] .rank-entry:hover .rank-person strong,html[data-theme="dark"] .rank-entry:focus-within .rank-person strong{color:#fff!important}
+html[data-theme="dark"] .rank-entry:hover .rank-person span,html[data-theme="dark"] .rank-entry:focus-within .rank-person span{color:#d4caed!important}
+html[data-theme="dark"] .rank-entry:hover .rank-num,html[data-theme="dark"] .rank-entry:focus-within .rank-num,html[data-theme="dark"] .rank-entry:hover .rank-score,html[data-theme="dark"] .rank-entry:focus-within .rank-score{color:#dfd1ff!important}
+.dm-profile-about{padding:3px 25px 0}
+.dm-about-title{margin:0 0 6px;align-items:center}
+.dm-about-title span{font-size:12px;letter-spacing:.025em;color:var(--muted)}
+.dm-about-title small{display:none}
+.dm-profile-about .dm-profile-bio{background:transparent!important;border:0!important;border-left:3px solid #9480da!important;border-radius:0!important;box-shadow:none!important;min-height:0!important;margin:0 0 22px;padding:3px 0 3px 14px;font-size:14px;line-height:1.7;color:var(--ink);white-space:pre-wrap;overflow-wrap:anywhere}
+.dm-profile-about .dm-bio-empty{font-style:italic;color:var(--muted)}
+html[data-theme="dark"] .dm-profile-about .dm-profile-bio{border-left-color:#a996f0!important;color:#f4efff}
+@media(max-width:760px){.rank-entry:hover,.rank-entry:focus-within{transform:none}.dm-profile-about{padding-left:20px;padding-right:20px}}
 </style>
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2064%2064%22%3E%3Crect%20width%3D%2264%22%20height%3D%2264%22%20rx%3D%2214%22%20fill%3D%22%23192d44%22%2F%3E%3Ctext%20x%3D%2232%22%20y%3D%2246%22%20fill%3D%22white%22%20font-size%3D%2246%22%20font-family%3D%22Georgia%2Cserif%22%20text-anchor%3D%22middle%22%3E%CE%A8%3C%2Ftext%3E%3C%2Fsvg%3E">
 </head>
@@ -1792,9 +1814,8 @@ Qual conceito ou formulação explica MELHOR essa situação?</p><ol type="a"><l
 <div class="rank-rules-content">
 <p>Os pontos são registrados pelo servidor. Cada atividade tem requisitos e limites para evitar duplicações.</p>
 <div class="rank-rules-row"><strong>Entrada diária</strong><span>2 pontos</span><p>Uma vez por dia ao entrar na conta, pelo horário de Brasília.</p></div>
-<div class="rank-rules-row"><strong>Simulado normal</strong><span>10 pontos</span><p>Na primeira tentativa, com pelo menos 70% de acertos nas objetivas.</p></div>
-<div class="rank-rules-row"><strong>Simulado intermediário</strong><span>15 pontos</span><p>Modelo de nível 3, também com pelo menos 70% na primeira tentativa.</p></div>
-<div class="rank-rules-row"><strong>Simulado difícil</strong><span>20 pontos</span><p>Modelos de nível 4 ou 5, com pelo menos 70% na primeira tentativa.</p></div>
+<div class="rank-rules-row"><strong>Simulado normal</strong><span>10 pontos</span><p>Na primeira tentativa de um simulado normal, com pelo menos 70% de acertos nas objetivas.</p></div>
+<div class="rank-rules-row"><strong>Simulado difícil</strong><span>20 pontos</span><p>Na primeira tentativa de um simulado difícil, com pelo menos 70% de acertos nas objetivas.</p></div>
 <div class="rank-rules-row"><strong>Podcast</strong><span>5 pontos</span><p>Ouvir pelo menos 70% do episódio no reprodutor do site. Pular trechos ou apenas baixar não conta. Uma recompensa por episódio.</p></div>
 <div class="rank-rules-row"><strong>7 dias de estudos seguidos</strong><span>15 pontos</span><p>É preciso concluir uma atividade validada a cada dia: uma tentativa de simulado pronto com pelo menos 50% de acertos, ou 70% de um podcast.</p></div>
 <div class="rank-rules-row"><strong>30 dias de estudos seguidos</strong><span>40 pontos</span><p>A mesma regra de atividade diária, mantida durante 30 dias consecutivos.</p></div>
@@ -2031,11 +2052,11 @@ function renderHome(){
  '<div class="footer">O progresso é marcado manualmente. Respostas dissertativas são avaliadas por critérios de estudo.</div>';
 }
 const DIFFICULTY_STEPS=[
- {label:'Moderado',summary:'Moderado, sem questões introdutórias.'},
- {label:'Moderado + difícil',summary:'Predominantemente moderado, com questões difíceis.'},
- {label:'Difícil',summary:'Exige interpretação e integração de conceitos.'},
- {label:'Muito difícil',summary:'Casos complexos e alternativas próximas.'},
- {label:'Desafio máximo',summary:'Todas as questões exigem análise aprofundada.'}
+ {label:'Normal',summary:'Questões de dificuldade normal.'},
+ {label:'Normal',summary:'Questões de dificuldade normal com maior interpretação.'},
+ {label:'Normal',summary:'Questões normais que exigem integração de conceitos.'},
+ {label:'Difícil',summary:'Casos complexos e alternativas próximas.'},
+ {label:'Difícil',summary:'Todas as questões exigem análise aprofundada.'}
 ];
 function difficultyStep(exam){return Math.max(1,Math.min(5,Number(exam.model)||1))}
 function difficultyStars(level){return '<span class="stars" aria-hidden="true">'+Array.from({length:5},(_,i)=>'<span class="star'+(i<level?' filled':'')+'">'+(i<level?'★':'☆')+'</span>').join('')+'</span>'}
@@ -2100,7 +2121,7 @@ function renderSubject(k){
  (audioN?'<section class="section"><div class="panel"><div class="sectiontop"><h2>Podcasts · '+esc(subj.name)+'</h2><span class="small">'+audioN+' '+(k==='tcc'?'capítulos':'episódios')+'</span></div><p class="small">Ouvir, baixar por episódio e acompanhar o estudo.</p><div class="actions" style="margin-top:11px">'+button('Abrir podcasts','audioFor:'+k,'btn light')+'</div></div></section>':'')+
  '<div class="footer">Conteúdos de revisão e simulados didáticos; consulta também as orientações dos professores.</div>';
 }
-function renderExams(){return `${head('Simulados','Provas para praticar','Cinco simulados por disciplina, de moderado a desafio máximo, com correções comentadas. Só os simulados oficiais validados no servidor podem gerar pontos.')}
+function renderExams(){return `${head('Simulados','Provas para praticar','Cinco simulados por disciplina, classificados como Normal ou Difícil, com correções comentadas. Só os simulados oficiais validados no servidor podem gerar pontos.')}
 <p class="small muted" style="margin-top:19px">No ranking, somente a primeira tentativa válida de cada simulado oficial pode render pontos. Outras tentativas servem para estudo.</p>${Object.keys(DB.subjects).sort((a,b)=>DB.subjects[a].date.localeCompare(DB.subjects[b].date)).map(k=>`<section class="section"><div class="sectiontop"><h2 style="border-left:4px solid ${color(k)};padding-left:10px">${esc(getSubject(k).name)}</h2><button class="plainlink" data-action="subject:${k}">Ver matéria</button></div><div class="examgrid exam-grid-5">${DB.exams.filter(e=>e.subject===k).map(examCard).join('')}</div></section>`).join('')}`}
 function getAnswers(id){return store.answers[id]||{};}
 function renderTest(id){const exam=DB.exams.find(e=>e.id===id);if(!exam)return renderHome();const subj=getSubject(exam.subject),ans=getAnswers(id),r=store.results[id];const answered=exam.questions.filter(q=>String(ans[q.id]??'').trim()!=='').length;return `<button class="back" data-action="subject:${exam.subject}">← Voltar para ${esc(subj.name)}</button><div class="panel" style="border-top:3px solid ${color(exam.subject)}"><div class="eyebrow">${esc(subj.name)} · ${esc(exam.title)}</div><h1 class="h1">Simulado ${exam.model}</h1><div class="exam-test-difficulty" aria-label="Dificuldade ${difficultyStep(exam)} de 5 estrelas">${difficultyStars(difficultyStep(exam))}<span>${esc(DIFFICULTY_STEPS[difficultyStep(exam)-1].label)}</span></div><div style="margin:10px 0 14px">${doneBox(`sim:${id}`)}</div><p class="lead">${esc(subj.style)}</p><div class="statline"><span>${answered} de ${exam.questions.length} respondidas</span><span>${r?'Correção liberada':'Em andamento'}</span></div><div class="progressline"><div style="width:${answered/exam.questions.length*100}%"></div></div></div>
