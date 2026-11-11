@@ -3483,7 +3483,7 @@ document.addEventListener('visibilitychange',()=>{if(!document.hidden&&onlineUse
 /* Espaço Pessoal 2.0: matérias, fontes, agenda, simulados exclusivos e IA */
 const pc={owner:null,loaded:false,loading:false,busy:false,subjects:[],sources:[],agenda:[],exams:[],submissions:[],legacyExams:[],documents:[],
  selected:null,view:'home',tab:'overview',modal:null,editEvent:null,calendarMonth:null,calendarDraftDate:'',examId:null,docId:null,
- answers:{},drafts:{},task:'resumo',request:'',difficulty:'normal',error:'',notice:'',lastFetch:0,pending:false};
+ answers:{},drafts:{},task:'resumo',request:'',difficulty:'normal',error:'',notice:'',lastFetch:0,pending:false,realtime:null};
 function pcSubject(){return pc.subjects.find(s=>s.id===pc.selected)||null}
 function pcSources(id){return pc.sources.filter(x=>x.subject_id===id)}
 function pcAgenda(id){return pc.agenda.filter(x=>x.subject_id===id).sort((a,b)=>a.due_at.localeCompare(b.due_at))}
@@ -3738,8 +3738,7 @@ function pcShow(){
 }
 async function pcLoad(){
  if(!client||!onlineUser)return;
- if(pc.loading){pc.pending=true;return;}
- if(pc.busy||pc.modal)return;
+ if(pc.loading||pc.busy||pc.modal){pc.pending=true;return;}
  const uid=onlineUser.id;pc.owner=uid;pc.loading=true;pc.error='';
  try{
   const [subjects,sources,agenda,docs,exams,old]=await Promise.all([
@@ -3766,19 +3765,47 @@ async function pcLoad(){
  finally{pc.loading=false;pc.lastFetch=Date.now();pcShow();if(pc.pending&&onlineUser?.id===uid&&!pc.busy&&!pc.modal){pc.pending=false;queueMicrotask(pcLoad)}}
 }
 function pcOnLogout(){
+ if(pc.realtime&&client)try{client.removeChannel(pc.realtime)}catch(_){}
+ pc.realtime=null;
  pc.owner=null;pc.loaded=false;pc.loading=false;pc.subjects=[];pc.sources=[];pc.agenda=[];pc.documents=[];
  pc.exams=[];pc.submissions=[];pc.legacyExams=[];pc.selected=null;pc.view='home';pc.tab='overview';pc.modal=null;
  pc.examId=null;pc.docId=null;pc.answers={};pc.drafts={};pc.error='';pc.notice='';pc.busy=false;pc.pending=false;pc.lastFetch=0;pcShow();
 }
+function pcSetupLive(){
+ if(pc.realtime&&client)try{client.removeChannel(pc.realtime)}catch(_){}
+ pc.realtime=null;
+ if(!client||!onlineUser)return;
+ try{
+  pc.realtime=client.channel('personal-studies-'+onlineUser.id)
+   .on('postgres_changes',{event:'*',schema:'public',table:'uentzoul_personal_subjects'},()=>pcLoad())
+   .on('postgres_changes',{event:'*',schema:'public',table:'uentzoul_personal_sources'},()=>pcLoad())
+   .on('postgres_changes',{event:'*',schema:'public',table:'uentzoul_personal_agenda'},()=>pcLoad())
+   .on('postgres_changes',{event:'*',schema:'public',table:'uentzoul_personal_documents'},()=>pcLoad())
+   .on('postgres_changes',{event:'*',schema:'public',table:'uentzoul_personal_exams'},()=>pcLoad())
+   .on('postgres_changes',{event:'*',schema:'public',table:'uentzoul_generated_exams'},()=>pcLoad())
+   .on('postgres_changes',{event:'*',schema:'public',table:'uentzoul_generated_exam_submissions'},()=>pcLoad())
+   .subscribe(status=>{if(status==='SUBSCRIBED')pcLoad()});
+ }catch(e){console.warn('Sincronização das matérias pessoais indisponível',e)}
+}
+document.addEventListener('visibilitychange',()=>{
+ if(document.visibilityState==='visible'&&onlineUser&&Date.now()-pc.lastFetch>5000)pcLoad();
+});
+window.addEventListener('online',()=>{if(onlineUser)pcLoad()});
+setInterval(()=>{
+ if(onlineUser&&document.visibilityState==='visible'&&!pc.busy&&!pc.modal
+  &&current.page==='personal'&&Date.now()-pc.lastFetch>22000)pcLoad();
+},7000);
+
 function pcOnLogin(){
  if(!onlineUser)return;
  if(pc.owner!==onlineUser.id)pcOnLogout();
+ pcSetupLive();
  pcLoad();
 }
 function pcAfterRender(){if(onlineUser&&!pc.loaded&&!pc.loading)pcLoad();}
 function pcOpenSubject(id){if(!pc.subjects.some(x=>x.id===id))return;pc.selected=id;pc.view='detail';pc.tab='overview';pc.modal=null;pc.error='';pcShow();}
 function pcModalOpen(type){pc.error='';pc.editEvent=null;if(type==='agenda')pc.calendarDraftDate='';pc.modal=type;pcShow();}
-function pcCloseModal(){if(pc.busy)return;pc.modal=null;pc.editEvent=null;pcShow();}
+function pcCloseModal(){if(pc.busy)return;pc.modal=null;pc.editEvent=null;pcShow();if(pc.pending){pc.pending=false;pcLoad()}}
 async function pcUploadFile(file,subjectId){
  if(!file||file.size>12582912||!file.size)throw Error('Cada arquivo precisa ter até 12 MB.');
  const extension=String(file.name.split('.').pop()||'').toLowerCase();
