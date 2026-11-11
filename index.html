@@ -3460,7 +3460,7 @@ function pcSourcesView(subject){
   '<div class="pc2-add-actions"><button data-pc-add="file">＋ Adicionar arquivo</button><button data-pc-add="note">＋ Colar texto</button><button data-pc-add="link">＋ Adicionar link</button></div>'+
   note+'<section class="pc2-panel"><header><h3>Outras fontes</h3><small>'+src.length+' itens</small></header>'+
   (items||'<div class="pc2-empty-mini">Adiciona PDFs, arquivos, referências ou notas para montar a biblioteca desta matéria.</div>')+
-  '<p class="pc2-hint">Arquivos ficam privados na tua conta. A IA pode consultar PDFs, documentos Word, apresentações PowerPoint, TXT e Markdown. Links externos servem como referências, não como páginas lidas automaticamente.</p></section>';
+  '<p class="pc2-hint">Arquivos ficam privados na tua conta. A IA consulta as anotações e até 3 arquivos PDF, Word ou PowerPoint por solicitação, priorizando os mais recentes. TXT e Markdown também são lidos. Links externos são referências, não páginas lidas automaticamente.</p></section>';
 }
 
 function pcCalendarGrid(subject){
@@ -3521,7 +3521,7 @@ function pcAIView(subject){
  const options=[['resumo','Resumo'],['trabalho','Trabalho acadêmico'],['fichamento','Fichamento'],['roteiro','Roteiro de estudo'],['questoes','Questões de revisão'],['texto','Outro pedido']];
  const docs=pcDocs(subject.id);
  return '<div class="pc2-section-title"><div><h2>IA para esta matéria</h2><p>Cria conteúdos com base nas fontes que adicionaste.</p></div></div>'+
-  '<section class="pc2-panel pc2-ai-box"><span class="pc2-ai-kicker">✦ IA TZOUL</span><h3>O que precisas preparar?</h3>'+
+  '<section class="pc2-panel pc2-ai-box"><span class="pc2-ai-kicker">✦ IA Tzoul</span><h3>O que precisas preparar?</h3>'+
   '<div class="pc2-task-grid">'+options.map(x=>'<button type="button" data-pc-task="'+x[0]+'" class="'+(pc.task===x[0]?'active':'')+'">'+esc(x[1])+'</button>').join('')+'</div>'+
   '<label for="pcAiPrompt">Instruções para a IA</label><textarea id="pcAiPrompt" rows="5" maxlength="4000" placeholder="Ex.: Faz um resumo completo sobre os conceitos da aula, relaciona as teorias e inclui exemplos.">'+esc(pc.request)+'</textarea>'+
   '<div class="pc2-toolbar"><small>Usa as anotações, textos e PDFs desta matéria. Cada solicitação consome uma consulta da IA.</small><button class="pc-primary" data-pc-request '+(pc.busy?'disabled':'')+'>'+(pc.busy?'Elaborando conteúdo…':'Gerar com IA Tzoul')+'</button></div></section>'+
