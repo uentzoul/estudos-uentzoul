@@ -856,7 +856,7 @@ html[data-theme="dark"] .tz-retry-button{background:#46396d;border-color:#8771c5
 html[data-theme="dark"] .tz-retry-button:hover{background:#52427f}
 @media(prefers-reduced-motion:reduce){.tz-retry-button{transition:none}}
 
-/* Conta institucional Microsoft PUCRS, condicionada à aprovação do tenant */
+/* Login do site: somente e-mail e senha. */
 .ms-auth{margin:16px 0 6px;padding:15px;background:var(--soft);border:1px solid var(--line);border-radius:14px}
 .ms-auth-label{font-size:10px;font-weight:830;letter-spacing:.7px;text-transform:uppercase;color:var(--muted);margin-bottom:10px}
 .ms-auth-button{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;min-height:44px;border:1px solid #b4a8db;background:var(--paper);color:var(--ink);border-radius:11px;font-size:12px;cursor:pointer;padding:10px 12px;box-shadow:0 2px 8px #46347a0d;transition:transform .2s ease,border-color .2s ease,box-shadow .2s ease}
@@ -1041,6 +1041,42 @@ html[data-theme=dark] .pc-error{background:#542b2e;color:#ffd3d2;border-color:#9
 @media(max-width:940px){.pc-layout{grid-template-columns:minmax(0,1fr)}.pc-subjects{display:flex;overflow-x:auto;max-height:none}.pc-subjects button{min-width:148px;flex:none}.pc-sidebar{padding:14px}}
 @media(max-width:760px){.pc-hero{padding:18px;border-radius:15px}.pc-hero h1{font-size:24px}.pc-hero-symbol{font-size:36px}.pc-main{padding:14px}.pc-editor-heading{flex-wrap:wrap}.pc-editor-heading h2{font-size:18px}.pc-actions>*{flex:1;min-width:150px}.pc-quiz-head{flex-wrap:wrap}.pc-question{padding:12px}}
 @media(prefers-reduced-motion:reduce){.pc-primary,.pc-subjects button{transition:none}}
+
+
+/* IA Tzoul: navegação persistente entre conversas e apresentação didática */
+.tz-body{display:grid;grid-template-columns:252px minmax(0,1fr);flex:1;min-height:0}
+.tz-sidebar{background:var(--paper);border-right:1px solid var(--line);min-width:0;display:flex;flex-direction:column;overflow:hidden}
+.tz-sidebar-header{display:flex;align-items:center;justify-content:space-between;padding:15px 13px 10px;gap:8px;color:var(--ink);font-size:12px}
+.tz-sidebar-header button{border:1px solid var(--line);background:transparent;color:var(--ink);border-radius:9px;width:30px;height:30px;font-size:20px}
+.tz-history{overflow-y:auto;overscroll-behavior:contain;flex:1;padding:0 8px 10px;scrollbar-width:thin}
+.tz-history-item{display:flex;gap:2px;align-items:center;border:1px solid transparent;border-radius:10px;padding:2px;margin:2px 0}
+.tz-history-item:hover{background:#f3f0fc}.tz-history-item.selected{background:#ede9fa;border-color:#d6cafa}
+.tz-history-open{display:flex;flex:1;flex-direction:column;gap:4px;min-width:0;border:0;background:transparent;text-align:left;color:var(--ink);padding:8px 6px;font-size:11.5px;cursor:pointer}
+.tz-history-open span{overflow:hidden;white-space:nowrap;text-overflow:ellipsis;font-weight:670}
+.tz-history-open small{font-size:9.5px;color:var(--muted)}
+.tz-history-menu{border:0;background:transparent;color:var(--muted);font-size:15px;min-width:21px;padding:5px 1px;border-radius:6px}
+.tz-history-menu:hover{background:#ddd5f8;color:#51439a}
+.tz-history-empty{color:var(--muted);font-size:11px;line-height:1.5;margin:16px 10px}
+.tz-shell .tz-bubble p{margin:0 0 10px;line-height:1.7}.tz-shell .tz-bubble p:last-child{margin-bottom:0}
+.tz-shell .tz-bubble ul,.tz-shell .tz-bubble ol{padding-left:22px;margin:10px 0}
+.tz-shell .tz-bubble li{margin:5px 0}.tz-shell .tz-bubble h3{margin:17px 0 8px;font-size:15px}
+.tz-shell .tz-bubble h4{margin:14px 0 6px;font-size:13.5px}
+.tz-shell .tz-bubble pre{white-space:pre-wrap;overflow-wrap:anywhere;background:#242236;color:#f5f1ff;padding:13px;border-radius:9px;overflow:auto}
+.tz-shell .tz-bubble code{font-family:ui-monospace,SFMono-Regular,Consolas,monospace;font-size:.93em}
+.tz-shell .tz-bubble p code{background:#ddd7f3;padding:2px 4px;border-radius:5px}
+html[data-theme="dark"] .tz-sidebar{background:#212136}
+html[data-theme="dark"] .tz-history-item:hover{background:#35304a}
+html[data-theme="dark"] .tz-history-item.selected{background:#3b3458;border-color:#62557f}
+html[data-theme="dark"] .tz-shell .tz-bubble p code{background:#454061}
+@media(max-width:760px){
+ .tz-body{display:flex;flex-direction:column}
+ .tz-sidebar{flex:none;max-height:104px;border-right:0;border-bottom:1px solid var(--line)}
+ .tz-sidebar-header{padding:4px 10px;font-size:10px}
+ .tz-sidebar-header button{width:24px;height:24px;font-size:16px}
+ .tz-history{display:flex;overflow-x:auto;overflow-y:hidden;padding:2px 7px 6px;min-height:54px;gap:5px}
+ .tz-history-item{flex:none;width:165px;margin:0}.tz-history-open{padding:6px 3px;font-size:10.5px}
+ .tz-history-open small{font-size:9px}.tz-history-menu{font-size:12px;min-width:15px}
+}
 
 </style>
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2064%2064%22%3E%3Crect%20width%3D%2264%22%20height%3D%2264%22%20rx%3D%2214%22%20fill%3D%22%23192d44%22%2F%3E%3Ctext%20x%3D%2232%22%20y%3D%2246%22%20fill%3D%22white%22%20font-size%3D%2246%22%20font-family%3D%22Georgia%2Cserif%22%20text-anchor%3D%22middle%22%3E%CE%A8%3C%2Ftext%3E%3C%2Fsvg%3E">
@@ -1759,9 +1795,31 @@ function renderCalendar(){
 
 
 const TZ_AVATAR_URL='https://swseibmqoetnuctxyusj.supabase.co/storage/v1/object/public/uentzoul-avatars/11eadb0a-c79b-4347-be3b-20f2d31c18c7/avatar.jpg?v=1794341942331';
-const tz={messages:[],subject:'todos',material:'',mode:'chat',draft:'',busy:false,note:'',ready:null,checking:false,remaining:null,contextOpen:false};
+const tz={messages:[],subject:'todos',material:'',mode:'chat',quality:'standard',draft:'',busy:false,note:'',ready:null,checking:false,remaining:null,contextOpen:false,conversations:[],active:null,loaded:false,loading:false,owner:null};
 const tzAvatar=()=>'<span class="tz-avatar"><img src="'+esc(TZ_AVATAR_URL)+'" alt="Foto da IA Tzoul" loading="lazy"></span>';
-function tzMarkdown(t){return esc(t).replace(/^###\s*(.+)$/gm,'<h4>$1</h4>').replace(/^##\s*(.+)$/gm,'<h3>$1</h3>').replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>').replace(/\n/g,'<br>')}
+function tzInline(raw){
+ let s=esc(raw);
+ s=s.replace(/\[([^\]]+)\]\((https:\/\/[^\s)]+)\)/g,'<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>');
+ s=s.replace(/`([^`]+)`/g,'<code>$1</code>').replace(/\*\*([^*]+)\*\*/g,'<strong>$1</strong>').replace(/\*([^*\n]+)\*/g,'<em>$1</em>');
+ return s;
+}
+function tzMarkdown(raw){
+ const lines=String(raw||'').replace(/\r\n/g,'\n').split('\n');
+ let html='',list='',code=false,pre='';
+ function stop(){if(list){html+='</'+list+'>';list=''}}
+ for(const line of lines){
+  if(line.trim().startsWith('```')){stop();if(code){html+='<pre><code>'+esc(pre.replace(/\n$/,''))+'</code></pre>';pre=''}code=!code;continue}
+  if(code){pre+=line+'\n';continue}
+  if(!line.trim()){stop();continue}
+  const h=line.match(/^(#{1,4})\s+(.+)$/);
+  if(h){stop();const tag=h[1].length<=2?'h3':'h4';html+='<'+tag+'>'+tzInline(h[2])+'</'+tag+'>';continue}
+  const bullet=line.match(/^\s*[-*]\s+(.+)$/),ordered=line.match(/^\s*\d+[.)]\s+(.+)$/);
+  if(bullet||ordered){const kind=bullet?'ul':'ol';if(list!==kind){stop();html+='<'+kind+'>';list=kind}html+='<li>'+tzInline((bullet||ordered)[1])+'</li>';continue}
+  stop();html+='<p>'+tzInline(line)+'</p>';
+ }
+ stop();if(code)html+='<pre><code>'+esc(pre)+'</code></pre>';
+ return html;
+}
 function tzFiles(){const seen=new Set();return DB.materials.filter(m=>{
  if(!m.available||!/^biblioteca\/[a-z0-9_.-]+\.(pdf|docx|txt)$/i.test(m.url||''))return false;
  if(tz.subject!=='todos'&&tz.subject!==m.subject)return false;
@@ -1790,7 +1848,7 @@ function renderAI(){
  const html='<section class="tz-shell" aria-label="Conversa com a IA Tzoul">'+
  '<header class="tz-topline">'+tzAvatar()+'<div class="tz-title"><h1>IA Tzoul</h1><span>'+esc(status)+'</span></div>'+
  '<button type="button" class="tz-mini" data-tz-reset="1" title="Iniciar outra conversa">+ Nova conversa</button></header>'+
- '<div class="tz-chat" role="region" aria-label="Chat de estudos">'+
+ '<div class="tz-body"><aside class="tz-sidebar" aria-label="Conversas anteriores"><div class="tz-sidebar-header"><strong>Conversas</strong><button type="button" data-tz-reset="1" title="Criar conversa">+</button></div><div class="tz-history">'+(tz.loading?'<p class="tz-history-empty">Carregando…</p>':tz.conversations.length?tz.conversations.map(c=>'<div class="tz-history-item '+(tz.active===c.id?'selected':'')+'"><button type="button" class="tz-history-open" data-tz-open="'+esc(c.id)+'" title="'+esc(c.title)+'"><span>'+esc(c.title)+'</span><small>'+new Date(c.updated_at).toLocaleDateString('pt-BR')+'</small></button><button type="button" class="tz-history-menu" data-tz-rename="'+esc(c.id)+'" title="Renomear conversa">✎</button><button type="button" class="tz-history-menu" data-tz-delete="'+esc(c.id)+'" title="Excluir conversa">×</button></div>').join(''):'<p class="tz-history-empty">As tuas conversas vão aparecer aqui.</p>')+'</div></aside><div class="tz-chat" role="region" aria-label="Chat de estudos">'+
  '<div class="tz-thread" id="tzThread" aria-live="polite">'+messages+(tz.busy?'<div class="tz-thinking">IA Tzoul está respondendo</div>':'')+'</div>'+
  (notice?'<div class="tz-notice" role="status">'+esc(notice)+(logged&&tz.ready===false?'<div class="tz-retry-area"><button type="button" class="tz-retry-button" data-tz-retry="1">↻ Testar conexão novamente</button><small>Se a chave acabou de ser configurada no servidor, verifica aqui sem precisar sair do site.</small></div>':'')+'</div>':'')+
  (!logged&&hasContent?'<div class="tz-login"><button type="button" class="tz-send" data-action="tz-login">Entrar / Cadastrar</button></div>':'')+
@@ -1805,7 +1863,7 @@ function renderAI(){
  '</select></label><label>Arquivo da biblioteca (opcional)<select id="tzMaterial" class="tz-select"><option value="">Consultar os conteúdos indexados</option>'+
  files.map(m=>'<option value="'+esc(m.url)+'" '+(tz.material===m.url?'selected':'')+'>'+esc(m.title)+'</option>').join('')+
  '</select></label></div>'+
- '<div class="tz-context-mode"><span>Tipo de resposta</span><div class="tz-modes"><button type="button" data-tz-mode="chat" class="tz-mode '+(tz.mode==='chat'?'selected':'')+'">Conversa</button><button type="button" data-tz-mode="document" class="tz-mode '+(tz.mode==='document'?'selected':'')+'">Documento</button></div></div>'+
+ '<div class="tz-context-mode"><span>Tipo de resposta</span><div class="tz-modes"><button type="button" data-tz-mode="chat" class="tz-mode '+(tz.mode==='chat'?'selected':'')+'">Conversa</button><button type="button" data-tz-mode="document" class="tz-mode '+(tz.mode==='document'?'selected':'')+'">Documento</button></div></div><div class="tz-context-mode"><span>Profundidade</span><div class="tz-modes"><button type="button" data-tz-quality="standard" class="tz-mode '+(tz.quality==='standard'?'selected':'')+'">Padrão</button><button type="button" data-tz-quality="deep" class="tz-mode '+(tz.quality==='deep'?'selected':'')+'">Aprofundada</button></div></div>'+
  '<p class="tz-context-note">Um material só pode ser lido integralmente se o arquivo estiver acessível. Os demais conteúdos são consultados pela base indexada.</p></div></details>'+
  '<div class="tz-composer"><label for="tzPrompt" class="tz-sr-only">Escreve uma mensagem à IA Tzoul</label>'+
  '<textarea id="tzPrompt" rows="2" maxlength="4000" aria-label="Mensagem para a IA Tzoul" placeholder=" " '+(!logged||!hasContent||tz.busy||tz.ready===false?'disabled':'')+'>'+esc(tz.draft)+'</textarea>'+
@@ -1813,8 +1871,9 @@ function renderAI(){
  '<button type="submit" class="tz-send" aria-label="Enviar mensagem" title="Enviar mensagem" '+(!logged||!hasContent||tz.busy||tz.ready===false?'disabled':'')+'>'+
  '<svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 19V5M5 12l7-7 7 7"/></svg></button></div>'+
  '<div class="tz-composer-foot"><small>Respostas sobre as matérias e materiais do site</small><small>Enter para enviar · Shift + Enter para nova linha</small></div>'+
- '</form></div></section>';
+ '</form></div></div></section>';
  if(logged&&tz.ready===null&&!tz.checking)queueMicrotask(tzCheck);
+ if(logged&&!tz.loaded&&!tz.loading)queueMicrotask(tzLoad);
  return html;
 }
 async function tzFetch(method,payload){
@@ -1833,20 +1892,86 @@ async function tzCheck(){
  catch(e){tz.ready=false;tz.note=e.message;}
  finally{tz.checking=false;if(current.page==='ai')render();}
 }
+
+async function tzLoad(){
+ const user=window.uentzoulAIAuth?.user();if(!client||!user||tz.loading)return;
+ const uid=user.id;tz.loading=true;tz.owner=uid;
+ try{
+  const {data,error}=await client.from('uentzoul_ai_conversations').select('id,user_id,title,semester,subject,material_path,mode,messages,created_at,updated_at').order('updated_at',{ascending:false}).limit(100);
+  if(error)throw error;
+  if(window.uentzoulAIAuth?.user()?.id!==uid)return;
+  tz.conversations=data||[];tz.loaded=true;
+  const chosen=tz.conversations.find(c=>c.id===tz.active);
+  if(chosen)tzApplyConversation(chosen);
+  else if(!tz.messages.length){tz.active=null;}
+ }catch(e){tz.note='Não foi possível carregar o histórico: '+(e?.message||'erro desconhecido');tz.loaded=false;}
+ finally{tz.loading=false;if(current.page==='ai'&&window.uentzoulAIAuth?.user()?.id===uid)render()}
+}
+function tzApplyConversation(c){
+ tz.active=c?.id||null;tz.messages=Array.isArray(c?.messages)?c.messages:[];tz.subject=DB.subjects[c?.subject]?c.subject:'todos';
+ tz.material=String(c?.material_path||'');tz.mode=c?.mode==='document'?'document':'chat';tz.draft='';tz.note='';
+}
+async function tzNewConversation(){
+ if(tz.busy)return;tz.active=null;tz.messages=[];tz.draft='';tz.note='';tz.subject='todos';tz.material='';tz.mode='chat';render();
+}
+async function tzCreateConversation(firstMessage){
+ if(!client||!window.uentzoulAIAuth?.user())throw Error('Entre na tua conta para guardar a conversa.');
+ const title=(firstMessage.replace(/\s+/g,' ').trim().slice(0,64)||'Nova conversa');
+ const uid=window.uentzoulAIAuth.user().id;
+ const {data,error}=await client.from('uentzoul_ai_conversations').insert({user_id:uid,title,semester,subject:tz.subject,material_path:tz.material,mode:tz.mode,messages:[]}).select('*').single();
+ if(error)throw error;
+ tz.active=data.id;tz.conversations.unshift(data);return data.id;
+}
+async function tzStoreMessages(id,messages){
+ const uid=window.uentzoulAIAuth?.user()?.id;if(!client||!uid)return;
+ const {data,error}=await client.from('uentzoul_ai_conversations').update({
+  messages:messages.slice(-90).map(m=>({role:m.role,content:String(m.content||'').slice(0,18000),sources:m.sources||[]})),
+  subject:tz.subject,material_path:tz.material,mode:tz.mode,updated_at:new Date().toISOString()
+ }).eq('id',id).eq('user_id',uid).select('*').single();
+ if(error)throw error;
+ const index=tz.conversations.findIndex(c=>c.id===id);if(index>=0)tz.conversations.splice(index,1);
+ tz.conversations.unshift(data);
+}
+async function tzDeleteConversation(id){
+ if(tz.busy)return;
+ if(!confirm('Excluir esta conversa e todas as mensagens dela?'))return;
+ const {error}=await client.from('uentzoul_ai_conversations').delete().eq('id',id);
+ if(error){tz.note=error.message;render();return}
+ tz.conversations=tz.conversations.filter(c=>c.id!==id);
+ if(tz.active===id){tz.active=null;tz.messages=[];tz.draft='';tz.note='';}
+ render();
+}
+async function tzRenameConversation(id){
+ if(tz.busy)return;
+ const c=tz.conversations.find(x=>x.id===id);if(!c)return;
+ const name=prompt('Nome da conversa:',c.title);if(!name||!name.trim())return;
+ const {error}=await client.from('uentzoul_ai_conversations').update({title:name.trim().slice(0,100)}).eq('id',id);
+ if(error){tz.note=error.message;render();return}
+ c.title=name.trim().slice(0,100);render();
+}
+
 async function tzAsk(){
  if(tz.busy)return;
  const message=$('tzPrompt')?.value.trim()||'';
  if(!message)return;
- const history=tz.messages.slice(-10).map(m=>({role:m.role,content:m.content}));
- tz.draft=message;tz.note='';tz.busy=true;tz.messages.push({role:'user',content:message});render();
+ const history=tz.messages.slice(-12).map(m=>({role:m.role,content:m.content}));
+ tz.draft=message;tz.note='';tz.busy=true;
+ let id=tz.active;let userAdded=false;
  try{
-  const answer=await tzFetch('POST',{message,history,subject:tz.subject,materialPath:tz.material,mode:tz.mode});
+  if(!id)id=await tzCreateConversation(message);
+  tz.messages.push({role:'user',content:message});userAdded=true;render();
+  const answer=await tzFetch('POST',{message,history,subject:tz.subject,materialPath:tz.material,mode:tz.mode,quality:tz.quality});
   if(!answer.answer)throw Error('A IA não retornou texto.');
   tz.messages.push({role:'assistant',content:answer.answer,sources:answer.sources||[]});
   tz.remaining=typeof answer.remaining==='number'?answer.remaining:null;tz.draft='';
   if(tz.material&&!answer.usedMaterial)tz.note='O texto integral do arquivo não pôde ser lido. A resposta usou o material indexado.';
- }catch(e){tz.messages.pop();tz.note=e.message;}
- finally{tz.busy=false;if(current.page==='ai'){render();const el=$('tzThread');if(el)el.scrollTop=el.scrollHeight;}}
+ }catch(e){
+  if(userAdded&&tz.messages[tz.messages.length-1]?.role==='user')tz.messages.pop();
+  tz.note=e?.message||'Falha ao responder.';
+ }finally{
+  if(id&&userAdded){try{await tzStoreMessages(id,tz.messages)}catch(e){tz.note='Não foi possível salvar o histórico: '+e.message;}}
+  tz.busy=false;if(current.page==='ai'){render();const el=$('tzThread');if(el)el.scrollTop=el.scrollHeight;}
+ }
 }
 function tzDownload(content,name,type){
  const url=URL.createObjectURL(new Blob([content],{type}));
@@ -1875,7 +2000,12 @@ document.addEventListener('click',e=>{
  b=e.target.closest('[data-tz-retry]');
  if(b){if(tz.checking||tz.busy)return;tz.ready=null;tz.note='';render();return;}
  b=e.target.closest('[data-tz-reset]');
- if(b){if(tz.busy)return;tz.messages=[];tz.draft='';tz.note='';render();return;}
+ if(b){tzNewConversation();return;}
+ b=e.target.closest('[data-tz-open]');
+ if(b){if(tz.busy)return;const c=tz.conversations.find(x=>x.id===b.dataset.tzOpen);if(c){tzApplyConversation(c);render();const thread=$('tzThread');if(thread)thread.scrollTop=thread.scrollHeight;}return;}
+ b=e.target.closest('[data-tz-delete]');if(b){tzDeleteConversation(b.dataset.tzDelete);return;}
+ b=e.target.closest('[data-tz-rename]');if(b){tzRenameConversation(b.dataset.tzRename);return;}
+ b=e.target.closest('[data-tz-quality]');if(b){tz.quality=b.dataset.tzQuality;tz.draft=$('tzPrompt')?.value||tz.draft;render();return;}
  b=e.target.closest('[data-tz-copy]');
  if(b){const m=tz.messages[Number(b.dataset.tzCopy)];if(m)navigator.clipboard?.writeText(m.content).then(()=>toast('Resposta copiada.'));return;}
  b=e.target.closest('[data-tz-export]');
@@ -1883,7 +2013,8 @@ document.addEventListener('click',e=>{
 });
 window.addEventListener('uentzoul:auth',()=>{
  tz.ready=null;tz.note='';
- if(!window.uentzoulAIAuth?.user()){tz.messages=[];tz.draft='';tz.remaining=null;}
+ if(!window.uentzoulAIAuth?.user()){tz.messages=[];tz.draft='';tz.remaining=null;tz.active=null;tz.conversations=[];tz.owner=null;tz.loaded=false;tz.loading=false;}
+ else if(tz.owner!==window.uentzoulAIAuth.user().id){tz.messages=[];tz.active=null;tz.conversations=[];tz.loaded=false;tz.loading=false;tz.owner=null;}
  if(current.page==='ai')render();
 });
 
@@ -2147,110 +2278,9 @@ window.uentzoulSubmitVerifiedExam=async(exam,answers)=>{
 };
 const $=id=>document.getElementById(id), esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;','\'':'&#39;'}[c]));
 let onlineUser=null,remoteProfile=null,client=null,modalView='login',busy=false,syncTimer=null,rankData=[],rankBusy=false,cloudSnapshot=null,rankingSemester=null,cloudLoading=false,cloudError='',cloudInitPromise=null,enteringUserId=null,enteringPromise=null;
-const microsoftPUCRS={checked:false,enabled:false,checking:false,linked:null,linkBusy:false,error:'',notice:''};
-const MICROSOFT_PUCRS_INTENT='pucrs_microsoft_link_attempt_v1';
 const cfg=(()=>{try{return JSON.parse($('uentzoul-auth-config').textContent)}catch{return {}}})();
 const backendReady=!!(cfg.url&&cfg.publishableKey&&/^https:\/\//.test(cfg.url));
 const CONFIRMATION_RETURN_URL='https://uentzoul.github.io/estudos-uentzoul/';
-// Só habilite depois que o aplicativo Microsoft Entra for autorizado/configurado
-// para o tenant institucional da PUCRS, com verificação de e-mail (xms_edov).
-// Esta marca é pública; as credenciais secretas ficam exclusivamente no Supabase.
-const MICROSOFT_PUCRS_TENANT_APPROVED=cfg.microsoftPucrsTenantApproved===true;
-const microsoftReady=()=>MICROSOFT_PUCRS_TENANT_APPROVED&&microsoftPUCRS.checked&&microsoftPUCRS.enabled;
-function microsoftMarkup(existing){
- const connected=existing&&microsoftPUCRS.linked===true;
- const loading=existing&&microsoftPUCRS.linked===null;
- const ready=microsoftReady();
- const disabled=!ready||microsoftPUCRS.linkBusy||connected||loading;
- const caption=connected?'Conta Microsoft conectada':existing?'Vincular Microsoft PUCRS':'Entrar com Microsoft PUCRS';
- const status=connected?'Conta vinculada ao teu cadastro atual. Pontuação, bio e mensagens permanecem nesta conta.':
-  !MICROSOFT_PUCRS_TENANT_APPROVED?'Disponível após autorização e configuração institucional da PUCRS.':
-  !microsoftPUCRS.checked?'Verificando o provedor Microsoft…':
-  !microsoftPUCRS.enabled?'A configuração Microsoft ainda não está ativa no servidor.':
-  loading?'Conferindo contas vinculadas…':
-  existing?'Entre com tua conta institucional para associá-la ao cadastro atual.':
-  'Usa a conta institucional PUCRS; o site não recebe tua senha Microsoft.';
- return '<section class="ms-auth"><div class="ms-auth-label">Acesso institucional</div>'+
-  '<button type="button" class="ms-auth-button '+(connected?'ms-connected':'')+'" data-account-action="'+(existing?'microsoft-link':'microsoft-signin')+'" '+(disabled?'disabled':'')+'>'+
-  '<span class="ms-logo" aria-hidden="true"><i></i><i></i><i></i><i></i></span><strong>'+caption+'</strong>'+(connected?'<span class="ms-check">✓</span>':'')+'</button>'+
-  '<p class="ms-auth-help">'+status+'</p>'+
-  (!existing?'<p class="ms-auth-hint">Já tens uma conta neste site? Entra com e-mail e senha primeiro e vincula a Microsoft em Meu perfil, para manter teus dados.</p>':'')+
-  (microsoftPUCRS.error?'<p class="ms-auth-error" role="alert">'+esc(microsoftPUCRS.error)+'</p>':'')+'</section>';
-}
-async function microsoftCheckProvider(){
- if(!client||microsoftPUCRS.checking)return;
- microsoftPUCRS.checking=true;
- try{
-  const controller=new AbortController(),timeout=setTimeout(()=>controller.abort(),9000);
-  let res;try{
-   res=await fetch(cfg.url+'/auth/v1/settings',{method:'GET',headers:{apikey:cfg.publishableKey},signal:controller.signal,cache:'no-store'});
-  }finally{clearTimeout(timeout)}
-  if(!res.ok)throw Error('Falha ao verificar o provedor Microsoft.');
-  const data=await res.json();
-  microsoftPUCRS.enabled=data?.external?.azure===true;
-  microsoftPUCRS.checked=true;
- }catch(e){microsoftPUCRS.checked=true;microsoftPUCRS.enabled=false;console.warn('Microsoft Auth',e)}
- finally{microsoftPUCRS.checking=false;if(!$('profileOverlay').hidden)renderModal()}
-}
-async function microsoftCheckLinked(){
- if(!client||!onlineUser)return;
- const expected=onlineUser.id;
- try{
-  const {data,error}=await client.auth.getUserIdentities();
-  if(error)throw error;
-  if(onlineUser?.id!==expected)return;
-  microsoftPUCRS.linked=Array.isArray(data?.identities)&&data.identities.some(i=>i.provider==='azure');
- }catch(e){microsoftPUCRS.linked=null;console.warn('Identidades Microsoft',e)}
- if(!$('profileOverlay').hidden&&modalView==='edit')renderModal();
-}
-async function microsoftStart(link){
- if(!client||!microsoftReady()){
-  microsoftPUCRS.error='O login institucional ainda precisa ser habilitado e validado pela PUCRS.';
-  if(!$('profileOverlay').hidden)renderModal();
-  return;
- }
- if(microsoftPUCRS.linkBusy)return;
- if(link&&!onlineUser){showModal('login');return}
- if(!link&&onlineUser){microsoftPUCRS.error='Para manter teu cadastro, usa a opção de vincular no perfil.';renderModal();return}
- microsoftPUCRS.linkBusy=true;microsoftPUCRS.error='';
- try{
-  if(link){
-   const {data:userData,error:userError}=await client.auth.getUser();
-   if(userError||!userData?.user||userData.user.id!==onlineUser.id)throw Error('A sessão expirou. Entre novamente no teu cadastro antes de vincular.');
-   const {data:identities,error:identityError}=await client.auth.getUserIdentities();
-   if(identityError)throw identityError;
-   if(identities?.identities?.some(i=>i.provider==='azure')){microsoftPUCRS.linked=true;renderModal();return}
-   try{sessionStorage.setItem(MICROSOFT_PUCRS_INTENT,JSON.stringify({userId:onlineUser.id,at:Date.now()}))}catch(_){}
-  }
-  const options={scopes:'email',redirectTo:CONFIRMATION_RETURN_URL};
-  const {error}=link?await client.auth.linkIdentity({provider:'azure',options}):await client.auth.signInWithOAuth({provider:'azure',options});
-  if(error)throw error;
- }catch(e){
-  if(link)try{sessionStorage.removeItem(MICROSOFT_PUCRS_INTENT)}catch(_){}
-  microsoftPUCRS.error=e?.message||'Não foi possível abrir o acesso Microsoft.';
-  if(!$('profileOverlay').hidden)renderModal();
- }finally{microsoftPUCRS.linkBusy=false}
-}
-async function microsoftCheckReturn(){
- let pending=null;
- try{
-  const raw=sessionStorage.getItem(MICROSOFT_PUCRS_INTENT);
-  if(raw){pending=JSON.parse(raw);sessionStorage.removeItem(MICROSOFT_PUCRS_INTENT)}
- }catch(_){}
- if(!pending||!pending.at||Date.now()-pending.at>12*60*1000)return;
- await microsoftCheckLinked();
- if(onlineUser?.id!==pending.userId){
-  microsoftPUCRS.error='A vinculação não foi confirmada na conta original. Entra com teu cadastro anterior antes de tentar novamente. Nenhum progresso ou mensagem foi mesclado.';
-  showModal('login');return;
- }
- if(microsoftPUCRS.linked===true){
-  microsoftPUCRS.notice='Conta Microsoft vinculada. O cadastro original e todos os dados foram preservados.';
-  showModal('edit');return;
- }
- microsoftPUCRS.error='Não foi possível confirmar a vinculação Microsoft. Confere a conta institucional ou tenta novamente.';
- showModal('edit');
-}
-
 const initials=name=>(name||'?').trim().split(/\s+/).slice(0,2).map(x=>x[0]||'').join('').toUpperCase();
 function avatar(name,src,small=false){const safe=typeof src==='string'&&(/^(data:image\/(jpeg|png|webp);base64,)/.test(src)||/^https:\/\//.test(src))?src:'';return `<div class="profile-avatar${small?' sm':''}">${safe?`<img alt="" src="${esc(safe)}">`:esc(initials(name))}</div>`;}
 function current(){return onlineUser?{name:remoteProfile?.display_name||onlineUser.email||'Estudante',avatar:remoteProfile?.avatar_url||'',online:true,id:onlineUser.id}:null}
@@ -2272,8 +2302,8 @@ function renderModal(){
    :'<p class="profile-form-note" role="alert">'+esc(cloudError||'O serviço de login não carregou. Podes tentar novamente sem fechar a página.')+'</p><button type="button" class="profile-secondary" data-account-action="retry-connection">Tentar conectar novamente</button>';
   return;
  }
- if(onlineUser){body.innerHTML=`<div class="profile-person-row">${avatar(remoteProfile?.display_name,remoteProfile?.avatar_url)}<strong>${esc(remoteProfile?.display_name||onlineUser.email)}</strong><span class="profile-badge">Online</span></div><form class="profile-form" id="onlineProfileForm"><label>Nome exibido no ranking<input name="display_name" minlength="2" maxlength="40" required value="${esc(remoteProfile?.display_name||'')}"></label><label>Foto de perfil (JPEG, PNG ou WebP)<input type="file" name="avatar" accept="image/jpeg,image/png,image/webp"></label><label class="ms-bio-editor">Bio pública <span>Apresenta-te aos colegas</span><textarea name="bio" maxlength="300" rows="4" placeholder="Ex.: Estudo Psicologia e gosto de Psicologia Social, música e cinema.">${esc(remoteProfile?.bio||"")}</textarea><small id="dmBioCounter">${(remoteProfile?.bio||"").length}/300 caracteres</small></label><button type="submit">Salvar perfil</button></form>${microsoftMarkup(true)}<p class="profile-form-note">As atividades são sincronizadas automaticamente nesta conta.</p>${microsoftPUCRS.notice?`<p class="ms-auth-success" role="status">${esc(microsoftPUCRS.notice)}</p>`:''}<button class="profile-secondary" data-account-action="logout">Sair da conta</button><p class="profile-message" id="profileMessage"></p>`;return}
-body.innerHTML=`<div class="profile-tabs"><button class="${modalView==='login'?'selected':''}" data-account-action="login-view">Entrar</button><button class="${modalView==='register'?'selected':''}" data-account-action="register-view">Cadastrar</button></div><form class="profile-form" id="onlineAuthForm">${modalView==='register'?'<label>Nome público<input name="name" autocomplete="nickname" minlength="2" maxlength="40" required></label>':''}<label>E-mail<input name="email" type="email" autocomplete="email" required></label><label>Senha<input name="password" type="password" autocomplete="${modalView==='register'?'new-password':'current-password'}" minlength="6" required></label><button type="submit">${modalView==='register'?'Criar conta':'Entrar'}</button></form>${microsoftMarkup(false)}<p class="profile-form-note">A conta online salva o progresso na nuvem e participa do ranking coletivo.</p><button type="button" class="profile-secondary" data-account-action="resend-signup">Reenviar confirmação por e-mail</button><p class="profile-message" id="profileMessage"></p>`;return
+ if(onlineUser){body.innerHTML=`<div class="profile-person-row">${avatar(remoteProfile?.display_name,remoteProfile?.avatar_url)}<strong>${esc(remoteProfile?.display_name||onlineUser.email)}</strong><span class="profile-badge">Online</span></div><form class="profile-form" id="onlineProfileForm"><label>Nome exibido no ranking<input name="display_name" minlength="2" maxlength="40" required value="${esc(remoteProfile?.display_name||'')}"></label><label>Foto de perfil (JPEG, PNG ou WebP)<input type="file" name="avatar" accept="image/jpeg,image/png,image/webp"></label><label class="ms-bio-editor">Bio pública <span>Apresenta-te aos colegas</span><textarea name="bio" maxlength="300" rows="4" placeholder="Ex.: Estudo Psicologia e gosto de Psicologia Social, música e cinema.">${esc(remoteProfile?.bio||"")}</textarea><small id="dmBioCounter">${(remoteProfile?.bio||"").length}/300 caracteres</small></label><button type="submit">Salvar perfil</button></form><p class="profile-form-note">As atividades são sincronizadas automaticamente nesta conta.</p><button class="profile-secondary" data-account-action="logout">Sair da conta</button><p class="profile-message" id="profileMessage"></p>`;return}
+body.innerHTML=`<div class="profile-tabs"><button class="${modalView==='login'?'selected':''}" data-account-action="login-view">Entrar</button><button class="${modalView==='register'?'selected':''}" data-account-action="register-view">Cadastrar</button></div><form class="profile-form" id="onlineAuthForm">${modalView==='register'?'<label>Nome público<input name="name" autocomplete="nickname" minlength="2" maxlength="40" required></label>':''}<label>E-mail<input name="email" type="email" autocomplete="email" required></label><label>Senha<input name="password" type="password" autocomplete="${modalView==='register'?'new-password':'current-password'}" minlength="6" required></label><button type="submit">${modalView==='register'?'Criar conta':'Entrar'}</button></form><p class="profile-form-note">A conta online salva o progresso na nuvem e participa do ranking coletivo.</p><button type="button" class="profile-secondary" data-account-action="resend-signup">Reenviar confirmação por e-mail</button><p class="profile-message" id="profileMessage"></p>`;return
 }
 async function photo(file){if(!file||!file.size)return null;if(file.size>6*1024*1024)throw Error('Seleciona uma foto de até 6 MB.');if(!/^image\/(png|jpeg|webp)$/.test(file.type))throw Error('A foto precisa ser PNG, JPEG ou WebP.');return new Promise((resolve,reject)=>{const img=new Image();const object=URL.createObjectURL(file);img.onload=()=>{try{const canvas=document.createElement('canvas');canvas.width=canvas.height=180;const ctx=canvas.getContext('2d');const scale=Math.max(180/img.width,180/img.height),w=img.width*scale,h=img.height*scale;ctx.drawImage(img,(180-w)/2,(180-h)/2,w,h);URL.revokeObjectURL(object);canvas.toBlob(blob=>{if(blob)resolve({blob,url:canvas.toDataURL('image/jpeg',.75)});else reject(Error('Não foi possível processar a foto.'))},'image/jpeg',.75)}catch(e){URL.revokeObjectURL(object);reject(e)}};img.onerror=()=>{URL.revokeObjectURL(object);reject(Error('Não foi possível abrir a imagem.'))};img.src=object})}
 
@@ -2315,7 +2345,6 @@ async function initCloud(){
   try{
    await loadOnlineLibrary();
    client=window.supabase.createClient(cfg.url,cfg.publishableKey);
-   microsoftCheckProvider().catch(console.warn);
    cloudLoading=false;
    if(!$('profileOverlay').hidden)renderModal();
    client.auth.onAuthStateChange((event,session)=>{
@@ -2327,7 +2356,6 @@ async function initCloud(){
      }));
     }
     if(event==='SIGNED_OUT'){
-     microsoftPUCRS.linked=null;microsoftPUCRS.notice='';microsoftPUCRS.error='';
      window.uentzoulMessenger?.onLogout();window.uentzoulPersonal?.onLogout();
      onlineUser=null;remoteProfile=null;cloudSnapshot=null;rankData=[];rankingSemester=null;
      bridge.switchTo('guest-session',{answers:{},results:{},bookmarks:{},completed:{}});
@@ -2338,7 +2366,6 @@ async function initCloud(){
    const {data,error}=await client.auth.getSession();
    if(error)throw error;
    if(data?.session?.user)await enterCloud(data.session.user);
-   if(data?.session?.user)await microsoftCheckReturn();
   }catch(err){
    cloudError=err?.message||'Falha ao inicializar a conta online.';
    console.warn('Contas online',err);
@@ -2353,7 +2380,7 @@ async function initCloud(){
 }
 async function enterCloud(user){
  if(!client||!user?.id)return;
- if(onlineUser?.id===user.id){microsoftCheckLinked().catch(console.warn);return;}
+ if(onlineUser?.id===user.id)return;
  if(enteringPromise&&enteringUserId===user.id)return enteringPromise;
  enteringUserId=user.id;
  enteringPromise=(async()=>{
@@ -2367,7 +2394,7 @@ cloudSnapshot={semesters:{
 for(const item of ['2026/2','2027/1'])bridge.saveForSemester(id,item,cloudSnapshot.semesters[item]);
 onlineUser=user;bridge.switchTo(id,cloudSnapshot.semesters[sem]);
 if(!prog)await saveCloud();
-await loadRanking();renderAside();window.uentzoulMessenger?.onLogin();window.uentzoulPersonal?.onLogin();microsoftCheckLinked().catch(console.warn);window.dispatchEvent(new Event('uentzoul:auth'));if(!$('profileOverlay').hidden)renderModal();
+await loadRanking();renderAside();window.uentzoulMessenger?.onLogin();window.uentzoulPersonal?.onLogin();window.dispatchEvent(new Event('uentzoul:auth'));if(!$('profileOverlay').hidden)renderModal();
  })();
  try{return await enteringPromise}finally{enteringUserId=null;enteringPromise=null}
 }
@@ -2410,8 +2437,6 @@ document.addEventListener('click',async e=>{
  if(action==='open'){showModal(onlineUser?'edit':'login');return}
  if(action==='close'){closeModal();return}
  if(action==='retry-connection'){initCloud();return}
- if(action==='microsoft-signin'){await microsoftStart(false);return}
- if(action==='microsoft-link'){await microsoftStart(true);return}
  if(action==='login-view'||action==='register-view'){modalView=action==='login-view'?'login':'register';renderModal();return}
  if(action==='resend-signup'){
   if(!client){msg('Serviço de contas indisponível.');return}
