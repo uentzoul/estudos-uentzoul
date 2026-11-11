@@ -1267,6 +1267,7 @@ Qual conceito ou formulação explica MELHOR essa situação?</p><ol type="a"><l
 <button class="sidebtn" data-page="calendar"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M7 3v4M17 3v4M3 10h18M8 14h3M8 17h5"/></svg> Agenda</button>
 <button class="sidebtn" data-page="ai"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="m12 2 2.6 6.9L21 11l-6.4 2.1L12 20l-2.6-6.9L3 11l6.4-2.1L12 2Z"/><path d="m19 18 1 2 2 1-2 1-1 2-1-2-2-1 2-1z"/></svg> IA Tzoul</button>
 <button class="sidebtn" data-page="messages"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.5 8.5 0 0 1-8.5 8.5c-1.5 0-3.1-.4-4.4-1.1L3 20l1.2-4.9A8.5 8.5 0 1 1 21 11.5Z"/><path d="M8 11.5h8M8 14.5h5"/></svg> Mensagens <span class="dm-nav-badge" id="dmNavBadge" hidden></span></button>
+<button class="sidebtn" data-page="personal"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 3 8l9 5 9-5-9-5Z"/><path d="M6 10v7c3 3 9 3 12 0v-7"/><path d="M21 8v7"/></svg> Pessoal</button>
 </nav>
   <button type="button" id="mobileNavMoreToggle" class="mobile-nav-more" aria-controls="nav" aria-expanded="false" aria-label="Mostrar mais atalhos" title="Mostrar mais atalhos">
     <span>Mais opções</span><svg viewBox="0 0 24 24" width="17" height="17" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg><span id="dmMobileUnread" class="dm-mobile-unread" hidden></span>
@@ -1795,13 +1796,13 @@ window.addEventListener('uentzoul:auth',()=>{
 
 function render(){
  renderNav();
- if(!Object.keys(DB.subjects).length&&current.page!=='ai'&&current.page!=='messages'){
+ if(!Object.keys(DB.subjects).length&&current.page!=='ai'&&current.page!=='messages'&&current.page!=='personal'){
   const labels={home:['Semestre 2027/1','Um espaço novo para o próximo semestre'],exams:['Simulados','Nenhum simulado cadastrado'],library:['Biblioteca','Nenhum arquivo cadastrado'],audio:['Podcasts','Nenhum podcast cadastrado'],calendar:['Agenda','Nenhuma avaliação cadastrada']};
   const v=labels[current.page]||labels.home;
   $('main').innerHTML=head(semester,v[0],v[1])+'<section class="section"><div class="panel semester-empty"><h2>Este semestre ainda está vazio</h2><p class="muted">As matérias, os textos, os simulados, os podcasts e a agenda de 2027/1 serão adicionados quando estiverem definidos. O conteúdo de 2026/2 continua disponível na outra aba.</p><p class="small">O progresso e a pontuação deste semestre começam em zero e não se misturam com os do semestre anterior.</p></div></section>';
   return;
  }
- let body='';switch(current.page){case 'home':body=renderHome();break;case 'subject':body=renderSubject(current.subject);break;case 'exams':body=renderExams();break;case 'test':body=renderTest(current.exam);break;case 'library':body=renderLibrary();break;case 'audio':body=renderAudio();break;case 'calendar':body=renderCalendar();break;case 'ai':body=renderAI();break;case 'messages':body=window.uentzoulMessenger?.render()||'<section class="panel">Carregando mensagens…</section>';break;default:body=renderHome()};$('main').innerHTML=body;if(current.page==='audio')setupAudio();if(current.page==='messages')window.uentzoulMessenger?.afterRender(current.peerId||null);}
+ let body='';switch(current.page){case 'home':body=renderHome();break;case 'subject':body=renderSubject(current.subject);break;case 'exams':body=renderExams();break;case 'test':body=renderTest(current.exam);break;case 'library':body=renderLibrary();break;case 'audio':body=renderAudio();break;case 'calendar':body=renderCalendar();break;case 'ai':body=renderAI();break;case 'messages':body=window.uentzoulMessenger?.render()||'<section class="panel">Carregando mensagens…</section>';break;case 'personal':body=window.uentzoulPersonal?.render()||'<section class="panel">Carregando matérias pessoais…</section>';break;default:body=renderHome()};$('main').innerHTML=body;if(current.page==='audio')setupAudio();if(current.page==='messages')window.uentzoulMessenger?.afterRender(current.peerId||null);if(current.page==='personal')window.uentzoulPersonal?.afterRender();}
 /* Armazenamento local de podcasts. A URL de cada episódio é publicada como
    arquivo independente; o HTML não carrega o áudio antecipadamente. */
 const POD_DB_NAME='EstudosUentzoulPodcasts_v1';
@@ -2233,7 +2234,7 @@ async function initCloud(){
     }
     if(event==='SIGNED_OUT'){
      microsoftPUCRS.linked=null;microsoftPUCRS.notice='';microsoftPUCRS.error='';
-     window.uentzoulMessenger?.onLogout();
+     window.uentzoulMessenger?.onLogout();window.uentzoulPersonal?.onLogout();
      onlineUser=null;remoteProfile=null;cloudSnapshot=null;rankData=[];rankingSemester=null;
      bridge.switchTo('guest-session',{answers:{},results:{},bookmarks:{},completed:{}});
      renderAside();
@@ -2272,7 +2273,7 @@ cloudSnapshot={semesters:{
 for(const item of ['2026/2','2027/1'])bridge.saveForSemester(id,item,cloudSnapshot.semesters[item]);
 onlineUser=user;bridge.switchTo(id,cloudSnapshot.semesters[sem]);
 if(!prog)await saveCloud();
-await loadRanking();renderAside();window.uentzoulMessenger?.onLogin();microsoftCheckLinked().catch(console.warn);window.dispatchEvent(new Event('uentzoul:auth'));if(!$('profileOverlay').hidden)renderModal();
+await loadRanking();renderAside();window.uentzoulMessenger?.onLogin();window.uentzoulPersonal?.onLogin();microsoftCheckLinked().catch(console.warn);window.dispatchEvent(new Event('uentzoul:auth'));if(!$('profileOverlay').hidden)renderModal();
  })();
  try{return await enteringPromise}finally{enteringUserId=null;enteringPromise=null}
 }
@@ -2323,7 +2324,7 @@ document.addEventListener('click',async e=>{
  }
  if(action==='logout'){
   try{
-   window.uentzoulMessenger?.onLogout();await client?.auth.signOut();onlineUser=null;remoteProfile=null;cloudSnapshot=null;rankData=[];rankingSemester=null;
+   window.uentzoulMessenger?.onLogout();window.uentzoulPersonal?.onLogout();await client?.auth.signOut();onlineUser=null;remoteProfile=null;cloudSnapshot=null;rankData=[];rankingSemester=null;
    bridge.switchTo('guest-session',{answers:{},results:{},bookmarks:{},completed:{}});
    renderAside();window.dispatchEvent(new Event('uentzoul:auth'));closeModal();
   }catch(err){msg(err.message||'Não foi possível sair da conta.')}
@@ -2705,6 +2706,149 @@ document.addEventListener('submit',async e=>{
 });
 window.addEventListener('focus',()=>{if(onlineUser&&Date.now()-dm.lastFetch>10000)dmLoad()});
 document.addEventListener('visibilitychange',()=>{if(!document.hidden&&onlineUser&&Date.now()-dm.lastFetch>10000)dmLoad()});
+
+
+/* Matérias complementares privadas — compartilhadas somente dentro da conta do aluno. */
+const pc={owner:null,subjects:[],exams:[],selected:null,examId:null,draft:null,loading:false,busy:false,
+ error:'',grade:null,answers:{},loaded:false,loadPromise:null};
+function pcSelected(){return pc.subjects.find(s=>s.id===pc.selected)||null}
+function pcMyExams(){return pc.exams.filter(e=>e.subject_id===pc.selected)}
+function pcRenderQuiz(){
+ const exam=pc.exams.find(e=>e.id===pc.examId);
+ if(!exam)return '';
+ const questions=Array.isArray(exam.questions)?exam.questions:[];
+ return '<div class="pc-quiz"><div class="pc-quiz-head"><h2>'+esc(exam.title)+'</h2><button type="button" class="pc-mini" data-pc-close-exam>← Voltar à matéria</button></div>'+
+ '<p>Responde às questões. Depois de corrigir, aparecem as explicações. Este simulado pessoal não vale pontos.</p>'+
+ questions.map((q,i)=>{
+  const chosen=pc.answers[exam.id]?.[i],graded=pc.grade?.examId===exam.id;
+  return '<section class="pc-question"><h3>'+(i+1)+'. '+esc(q.question)+'</h3>'+
+   (q.options||[]).map((opt,j)=>'<label class="pc-option '+(graded&&j===q.answer?'correct':graded&&chosen===j?'incorrect':'')+'"><input type="radio" name="pc-question-'+i+'" value="'+j+'" data-pc-answer="'+i+'" '+(chosen===j?'checked':'')+' '+(graded?'disabled':'')+'>'+String.fromCharCode(65+j)+'. '+esc(opt)+'</label>').join('')+
+   (graded?'<p class="pc-explanation"><strong>Resposta: '+String.fromCharCode(65+q.answer)+'</strong> · '+esc(q.explanation||'')+'</p>':'')+'</section>'
+ }).join('')+
+ (pc.grade?.examId===exam.id?'<div class="pc-grade"><strong>'+pc.grade.correct+' de '+questions.length+' acertos</strong><button type="button" data-pc-retry>Refazer</button></div>':
+ '<button type="button" data-pc-grade class="pc-primary">Corrigir simulado</button>')+'</div>';
+}
+function pcRender(){
+ if(!onlineUser)return '<section class="pc-login"><h1>Meu espaço pessoal</h1><p>Cria matérias complementares e pratica com simulados próprios. Entra na tua conta para salvar tudo.</p><button type="button" data-account-action="open" class="pc-primary">Entrar / Cadastrar</button></section>';
+ const selected=pcSelected(),list=pcMyExams();
+ return '<div class="pc-page"><header class="pc-hero"><div><span>ÁREA EXCLUSIVA DA TUA CONTA</span><h1>Meu espaço pessoal</h1><p>Cria matérias complementares, organiza apontamentos e gera simulados baseados no conteúdo que adicionares.</p></div><div class="pc-hero-symbol">✦</div></header>'+
+ (pc.error?'<p class="pc-error" role="alert">'+esc(pc.error)+'</p>':'')+
+ '<div class="pc-layout"><aside class="pc-sidebar"><h2>Minhas matérias <small>'+pc.subjects.length+'</small></h2>'+
+ '<div class="pc-subjects">'+(pc.subjects.length?pc.subjects.map(item=>'<button type="button" class="'+(pc.selected===item.id?'selected':'')+'" data-pc-select="'+esc(item.id)+'"><span class="pc-subject-icon">📖</span><strong>'+esc(item.title)+'</strong></button>').join(''):'<p>Ainda não criaste nenhuma matéria complementar.</p>')+'</div>'+
+ '<form class="pc-create" id="pcCreateForm"><label>Adicionar matéria<input name="title" type="text" maxlength="80" minlength="3" placeholder="Ex.: Neuropsicologia" required></label><button class="pc-primary" type="submit">+ Criar matéria</button></form>'+
+ '<p class="pc-footnote">As matérias pessoais são privadas e independentes dos semestres oficiais.</p></aside>'+
+ '<main class="pc-main">'+(pc.examId?pcRenderQuiz():selected?'<div class="pc-editor"><div class="pc-editor-heading"><div><span>MATÉRIA COMPLEMENTAR</span><h2>'+esc(selected.title)+'</h2></div><button type="button" class="pc-danger" data-pc-delete-subject>Excluir matéria</button></div>'+
+ '<label for="pcNotes">Conteúdos e anotações da matéria</label><p>Cola aqui teus textos de aula, conceitos, resumos, capítulos ou tópicos. Quanto mais informações concretas, melhores as questões.</p>'+
+ '<textarea id="pcNotes" maxlength="16000" rows="11" placeholder="Escreve ou cola o conteúdo desta matéria…">'+esc(pc.draft===null?selected.description||'':pc.draft)+'</textarea>'+
+ '<div class="pc-actions"><button type="button" class="pc-secondary" data-pc-save>Salvar conteúdo</button><button type="button" class="pc-primary" data-pc-generate '+(pc.busy?'disabled':'')+'>'+(pc.busy?'Gerando com IA…':'✦ Criar simulado com IA Tzoul')+'</button></div>'+
+ '<p class="pc-tip">A IA cria 6 questões objetivas a partir do texto salvo. Depende da disponibilidade da IA Tzoul e utiliza o limite de consultas da conta. Não gera pontos no ranking.</p>'+
+ '<div class="pc-exam-list"><h3>Simulados desta matéria</h3>'+(list.length?list.map(e=>'<div class="pc-exam-item"><div><strong>'+esc(e.title)+'</strong><small>'+new Date(e.created_at).toLocaleDateString('pt-BR')+' · 6 questões</small></div><button type="button" data-pc-open="'+esc(e.id)+'">Resolver</button></div>').join(''):'<p>Quando criares um simulado, ele ficará salvo aqui.</p>')+'</div></div>':
+ '<div class="pc-empty"><span>📚</span><h2>Cria tua primeira matéria</h2><p>Escolhe um nome à esquerda. Depois, adiciona o conteúdo e pede à IA Tzoul que prepare questões de estudo.</p></div>')+'</main></div></div>';
+}
+function pcShow(){
+ const main=document.getElementById('main');
+ if(!main||current.page!=='personal')return;
+ const active=document.activeElement,focused=active?.id,caret=active?.selectionStart;
+ main.innerHTML=pcRender();
+ if(focused==='pcNotes'){const target=document.getElementById('pcNotes');if(target){target.focus({preventScroll:true});if(Number.isInteger(caret))target.setSelectionRange(caret,caret)}}
+}
+async function pcLoad(){
+ if(!client||!onlineUser||pc.loading)return pc.loadPromise;
+ const id=onlineUser.id;pc.loading=true;
+ pc.loadPromise=(async()=>{
+  try{
+   const [subjects,exams]=await Promise.all([
+    client.from('uentzoul_personal_subjects').select('id,user_id,title,description,created_at,updated_at').eq('user_id',id).order('created_at',{ascending:false}),
+    client.from('uentzoul_personal_exams').select('id,user_id,subject_id,title,questions,created_at').eq('user_id',id).order('created_at',{ascending:false})
+   ]);
+   if(subjects.error)throw subjects.error;if(exams.error)throw exams.error;
+   if(onlineUser?.id!==id)return;
+   pc.subjects=subjects.data||[];pc.exams=exams.data||[];
+   if(!pc.selected||!pc.subjects.some(s=>s.id===pc.selected)){pc.selected=pc.subjects[0]?.id||null;pc.draft=null;pc.examId=null}
+   pc.owner=id;pc.loaded=true;pc.error='';pcShow();
+  }catch(e){pc.error=e?.message||'Não foi possível carregar as matérias pessoais.';pcShow()}
+  finally{pc.loading=false}
+ })();return pc.loadPromise;
+}
+function pcOnLogout(){pc.owner=null;pc.subjects=[];pc.exams=[];pc.selected=null;pc.examId=null;pc.draft=null;pc.grade=null;pc.answers={};pc.loaded=false;pcShow()}
+function pcOnLogin(){
+ if(!onlineUser)return;
+ if(pc.owner!==onlineUser.id)pcOnLogout();
+ pcLoad();
+}
+function pcAfterRender(){if(!onlineUser)return;if(!pc.loaded&&!pc.loading)pcLoad()}
+async function pcCreate(form){
+ const title=String(new FormData(form).get('title')||'').trim();
+ if(title.length<3||title.length>80)throw Error('Escreve um nome de 3 a 80 caracteres.');
+ const {data,error}=await client.from('uentzoul_personal_subjects').insert({user_id:onlineUser.id,title,description:''}).select('id').single();
+ if(error)throw error;pc.selected=data.id;pc.draft=null;pc.examId=null;await pcLoad();pcShow();
+}
+async function pcSave(silent=false){
+ const subj=pcSelected();if(!subj)throw Error('Seleciona uma matéria primeiro.');
+ const note=String(document.getElementById('pcNotes')?.value??pc.draft??subj.description).trim();
+ if(note.length>16000)throw Error('Conteúdo acima do limite de 16.000 caracteres.');
+ const {error}=await client.from('uentzoul_personal_subjects').update({description:note,updated_at:new Date().toISOString()}).eq('id',subj.id).eq('user_id',onlineUser.id);
+ if(error)throw error;subj.description=note;pc.draft=note;
+ if(!silent)toast('Matéria pessoal salva.');
+ return note;
+}
+async function pcGenerate(){
+ if(!onlineUser||pc.busy)return;
+ pc.busy=true;pc.error='';pcShow();
+ try{
+  const content=await pcSave(true);
+  if(content.length<180)throw Error('Adiciona pelo menos 180 caracteres de conteúdo para gerar um simulado.');
+  const session=await client.auth.getSession();
+  const token=session?.data?.session?.access_token;
+  if(!token)throw Error('Sessão expirada. Entra novamente.');
+  const result=await fetch(cfg.url+'/functions/v1/ia-tzoul',{
+   method:'POST',headers:{Authorization:'Bearer '+token,apikey:cfg.publishableKey,'Content-Type':'application/json'},
+   body:JSON.stringify({message:'Cria um simulado pessoal da minha matéria.',mode:'personal_exam',personalSubjectId:pc.selected})
+  });
+  const response=await result.json().catch(()=>({error:'Resposta inválida da IA.'}));
+  if(!result.ok||!response.personalExam)throw Error(response.error||'A IA não conseguiu gerar o simulado.');
+  pc.exams.unshift(response.personalExam);
+  pc.examId=response.personalExam.id;pc.answers[pc.examId]={};pc.grade=null;pc.draft=null;
+ }catch(e){pc.error=e?.message||'Não foi possível gerar o simulado.'}
+ finally{pc.busy=false;pcShow()}
+}
+function pcGrade(){
+ const exam=pc.exams.find(x=>x.id===pc.examId);if(!exam)return;
+ const ans=pc.answers[exam.id]||{};
+ const missing=exam.questions.filter((_,i)=>!Number.isInteger(ans[i])).length;
+ if(missing&&!confirm('Ainda há '+missing+' questões sem resposta. Corrigir mesmo assim?'))return;
+ const correct=exam.questions.filter((q,i)=>ans[i]===q.answer).length;
+ pc.grade={examId:exam.id,correct};pcShow();
+}
+async function pcDeleteSubject(){
+ const id=pc.selected;if(!id||!confirm('Excluir esta matéria e todos os seus simulados pessoais?'))return;
+ const {error}=await client.from('uentzoul_personal_subjects').delete().eq('id',id).eq('user_id',onlineUser.id);
+ if(error){pc.error=error.message;pcShow();return}
+ pc.selected=null;pc.examId=null;pc.draft=null;await pcLoad();
+}
+window.uentzoulPersonal={render:pcRender,afterRender:pcAfterRender,onLogin:pcOnLogin,onLogout:pcOnLogout};
+document.addEventListener('click',e=>{
+ const select=e.target.closest('[data-pc-select]');if(select){pc.selected=select.dataset.pcSelect;pc.examId=null;pc.draft=null;pc.grade=null;pcShow();return}
+ const open=e.target.closest('[data-pc-open]');if(open){pc.examId=open.dataset.pcOpen;pc.grade=null;pcShow();return}
+ if(e.target.closest('[data-pc-close-exam]')){pc.examId=null;pc.grade=null;pcShow();return}
+ if(e.target.closest('[data-pc-save]')){pcSave().catch(e=>{pc.error=e.message;pcShow()});return}
+ if(e.target.closest('[data-pc-generate]')){pcGenerate();return}
+ if(e.target.closest('[data-pc-grade]')){pcGrade();return}
+ if(e.target.closest('[data-pc-delete-subject]')){pcDeleteSubject();return}
+ if(e.target.closest('[data-pc-retry]')){pc.grade=null;pc.answers[pc.examId]={};pcShow();return}
+});
+document.addEventListener('input',e=>{if(e.target.id==='pcNotes')pc.draft=e.target.value});
+document.addEventListener('change',e=>{
+ if(!e.target.hasAttribute('data-pc-answer')||!pc.examId)return;
+ if(!pc.answers[pc.examId])pc.answers[pc.examId]={};
+ pc.answers[pc.examId][Number(e.target.dataset.pcAnswer)]=Number(e.target.value);
+});
+document.addEventListener('submit',async e=>{
+ if(e.target.id!=='pcCreateForm')return;e.preventDefault();
+ const button=e.target.querySelector('[type=submit]');if(button)button.disabled=true;
+ try{await pcCreate(e.target)}catch(err){pc.error=err?.message||'Erro ao criar matéria.';pcShow()}
+ finally{if(button)button.disabled=false}
+});
 
 window.uentzoulAIAuth={user:()=>onlineUser,getSession:async()=>{if(!client)return null;const r=await client.auth.getSession();return r?.data?.session||null},openLogin:()=>showModal('login')};
 bridge.switchTo('guest-session',{answers:{},results:{},bookmarks:{},completed:{}});
