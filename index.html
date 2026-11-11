@@ -1385,6 +1385,31 @@ html[data-theme="dark"] .pc2-notice{background:#332d51;color:#e7dbff;border-colo
 }
 @media(prefers-reduced-motion:reduce){.pc2-subject-card,.pc2-card-orbit,.pc2-modal,.pc2-create{animation:none;transition:none}}
 
+
+/* Calendário pessoal por matéria */
+.pc2-calendar{width:100%;max-width:100%;min-width:0}
+.pc2-calendar-top{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px}
+.pc2-calendar-top h3{font-size:15px;margin:0;line-height:1.4}
+.pc2-calendar-top>div{display:flex;gap:5px;align-items:center}
+.pc2-calendar-top button{border:1px solid var(--line);color:var(--ink);background:var(--paper);border-radius:9px;height:30px;min-width:34px;padding:0 9px;font-size:14px;font-weight:730}
+.pc2-calendar-top button:hover{border-color:#9883d8;background:var(--soft)}
+.pc2-calendar-weekdays,.pc2-calendar-days{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:6px}
+.pc2-calendar-weekdays{margin-bottom:7px}
+.pc2-calendar-weekdays span{font-size:10.5px;font-weight:800;color:var(--muted);text-align:center;padding:7px 0}
+.pc2-cal-day{position:relative;display:grid;place-items:center;min-width:0;min-height:53px;border:1px solid var(--line);border-radius:9px;color:var(--ink);background:var(--paper);font-size:12px;font-weight:720;transition:background .15s,border-color .15s}
+.pc2-cal-day:hover{border-color:#9d8bdd;background:var(--soft)}
+.pc2-cal-day.other{opacity:.35}.pc2-cal-day.today{background:#eae4ff;border-color:#9d89e1;color:#4a399b}
+.pc2-cal-dot{position:absolute;bottom:7px;width:5px;height:5px;border-radius:50%;background:#806ad8}
+.pc2-cal-day.has-due .pc2-cal-dot{background:#d08753}
+.pc2-calendar>p{font-size:10.5px;color:var(--muted);margin:12px 2px 0}
+html[data-theme="dark"] .pc2-cal-day.today{background:#4c3d6b;color:#f4ebff;border-color:#9379d1}
+@media(max-width:570px){
+ .pc2-calendar-days,.pc2-calendar-weekdays{gap:4px}
+ .pc2-cal-day{min-height:43px;font-size:11px;border-radius:7px}
+ .pc2-calendar-top h3{font-size:13px}
+ .pc2-calendar-weekdays span{font-size:9px}
+}
+
 </style>
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2064%2064%22%3E%3Crect%20width%3D%2264%22%20height%3D%2264%22%20rx%3D%2214%22%20fill%3D%22%23192d44%22%2F%3E%3Ctext%20x%3D%2232%22%20y%3D%2246%22%20fill%3D%22white%22%20font-size%3D%2246%22%20font-family%3D%22Georgia%2Cserif%22%20text-anchor%3D%22middle%22%3E%CE%A8%3C%2Ftext%3E%3C%2Fsvg%3E">
 </head>
@@ -3356,7 +3381,7 @@ document.addEventListener('visibilitychange',()=>{if(!document.hidden&&onlineUse
 
 /* Espaço Pessoal 2.0: matérias, fontes, agenda, simulados exclusivos e IA */
 const pc={owner:null,loaded:false,loading:false,busy:false,subjects:[],sources:[],agenda:[],exams:[],submissions:[],legacyExams:[],documents:[],
- selected:null,view:'home',tab:'overview',modal:null,editEvent:null,examId:null,docId:null,
+ selected:null,view:'home',tab:'overview',modal:null,editEvent:null,calendarMonth:null,calendarDraftDate:'',examId:null,docId:null,
  answers:{},drafts:{},task:'resumo',request:'',difficulty:'normal',error:'',notice:''};
 function pcSubject(){return pc.subjects.find(s=>s.id===pc.selected)||null}
 function pcSources(id){return pc.sources.filter(x=>x.subject_id===id)}
@@ -3437,6 +3462,34 @@ function pcSourcesView(subject){
   (items||'<div class="pc2-empty-mini">Adiciona PDFs, arquivos, referências ou notas para montar a biblioteca desta matéria.</div>')+
   '<p class="pc2-hint">Arquivos ficam privados na tua conta. A IA pode utilizar PDFs, TXT e Markdown; para documentos Word, adiciona também o texto ou uma versão em PDF.</p></section>';
 }
+
+function pcCalendarGrid(subject){
+ const today=new Date();
+ const chosen=pc.calendarMonth?new Date(pc.calendarMonth+'T12:00:00'):new Date(today.getFullYear(),today.getMonth(),1,12);
+ const first=new Date(chosen.getFullYear(),chosen.getMonth(),1,12);
+ const offset=(first.getDay()+6)%7;
+ const events=pcAgenda(subject.id);
+ const month=first.toLocaleDateString('pt-BR',{month:'long',year:'numeric'});
+ const two=n=>String(n).padStart(2,'0');
+ let cells='';
+ for(let i=0;i<42;i++){
+  const date=new Date(first.getFullYear(),first.getMonth(),i-offset+1,12);
+  const dayKey=date.getFullYear()+'-'+two(date.getMonth()+1)+'-'+two(date.getDate());
+  const todayKey=today.getFullYear()+'-'+two(today.getMonth()+1)+'-'+two(today.getDate());
+  const list=events.filter(x=>{const d=new Date(x.due_at);return d.getFullYear()===date.getFullYear()&&d.getMonth()===date.getMonth()&&d.getDate()===date.getDate()});
+  cells+='<button type="button" class="pc2-cal-day '+(date.getMonth()!==first.getMonth()?'other ':'')+(dayKey===todayKey?'today ':'')+
+    (list.some(x=>!x.completed)?'has-due ':'')+'" data-pc-calendar-day="'+dayKey+'" title="'+
+    esc(dayKey+(list.length?' · '+list.map(x=>x.title).join(', '):' · Adicionar compromisso'))+'">'+
+    '<span>'+date.getDate()+'</span>'+(list.length?'<i class="pc2-cal-dot"></i>':'')+'</button>';
+ }
+ return '<div class="pc2-calendar"><div class="pc2-calendar-top"><h3>'+esc(month.charAt(0).toUpperCase()+month.slice(1))+'</h3>'+
+  '<div><button type="button" data-pc-calendar-nav="-1" aria-label="Mês anterior">‹</button>'+
+  '<button type="button" data-pc-calendar-today>Hoje</button>'+
+  '<button type="button" data-pc-calendar-nav="1" aria-label="Próximo mês">›</button></div></div>'+
+  '<div class="pc2-calendar-weekdays">'+['Seg','Ter','Qua','Qui','Sex','Sáb','Dom'].map(x=>'<span>'+x+'</span>').join('')+'</div>'+
+  '<div class="pc2-calendar-days">'+cells+'</div><p>Clica em um dia para adicionar um compromisso.</p></div>';
+}
+
 function pcAgendaView(subject){
  const items=pcAgenda(subject.id);
  const rows=items.map(x=>'<div class="pc2-agenda-row '+(x.completed?'done':'')+'"><label title="Concluído"><input type="checkbox" data-pc-event-done="'+esc(x.id)+'" '+(x.completed?'checked':'')+'></label>'+
@@ -3445,7 +3498,7 @@ function pcAgendaView(subject){
   (x.notes?'<p>'+esc(x.notes)+'</p>':'')+'</div>'+
   '<div class="pc2-row-actions"><button data-pc-edit-event="'+esc(x.id)+'">Editar</button><button class="pc2-remove" data-pc-delete-event="'+esc(x.id)+'">×</button></div></div>').join('');
  return '<div class="pc2-section-title"><div><h2>Agenda da matéria</h2><p>Datas de provas, entregas, aulas e sessões de estudo.</p></div><button class="pc-primary" data-pc-new-event>＋ Criar compromisso</button></div>'+
-  '<section class="pc2-panel">'+(rows||'<div class="pc2-empty-mini">Ainda não há compromissos. Cria uma data de prova, trabalho ou estudo.</div>')+'</section>';
+  '<section class="pc2-panel">'+pcCalendarGrid(subject)+'</section><section class="pc2-panel"><header><h3>Compromissos cadastrados</h3><small>'+items.length+' itens</small></header>'+(rows||'<div class="pc2-empty-mini">Ainda não há compromissos. Clica em uma data do calendário para começar.</div>')+'</section>';
 }
 function pcExamsView(subject){
  const tests=pcExams(subject.id),old=pcOldExams(subject.id);
@@ -3468,7 +3521,7 @@ function pcAIView(subject){
  const options=[['resumo','Resumo'],['trabalho','Trabalho acadêmico'],['fichamento','Fichamento'],['roteiro','Roteiro de estudo'],['questoes','Questões de revisão'],['texto','Outro pedido']];
  const docs=pcDocs(subject.id);
  return '<div class="pc2-section-title"><div><h2>IA para esta matéria</h2><p>Cria conteúdos com base nas fontes que adicionaste.</p></div></div>'+
-  '<section class="pc2-panel pc2-ai-box"><span class="pc2-ai-kicker">✦ IA TZ OUL</span><h3>O que precisas preparar?</h3>'+
+  '<section class="pc2-panel pc2-ai-box"><span class="pc2-ai-kicker">✦ IA TZOUL</span><h3>O que precisas preparar?</h3>'+
   '<div class="pc2-task-grid">'+options.map(x=>'<button type="button" data-pc-task="'+x[0]+'" class="'+(pc.task===x[0]?'active':'')+'">'+esc(x[1])+'</button>').join('')+'</div>'+
   '<label for="pcAiPrompt">Instruções para a IA</label><textarea id="pcAiPrompt" rows="5" maxlength="4000" placeholder="Ex.: Faz um resumo completo sobre os conceitos da aula, relaciona as teorias e inclui exemplos.">'+esc(pc.request)+'</textarea>'+
   '<div class="pc2-toolbar"><small>Usa as anotações, textos e PDFs desta matéria. Cada solicitação consome uma consulta da IA.</small><button class="pc-primary" data-pc-request '+(pc.busy?'disabled':'')+'>'+(pc.busy?'Elaborando conteúdo…':'Gerar com IA Tzoul')+'</button></div></section>'+
@@ -3552,7 +3605,7 @@ function pcModalMarkup(){
    '<div class="pc2-modal-actions"><button type="button" class="pc-secondary" data-pc-close>Cancelar</button><button type="submit" class="pc-primary" '+(pc.busy?'disabled':'')+'>'+(pc.busy?'Adicionando…':'Adicionar fonte')+'</button></div></form>';
  }else if(pc.modal==='agenda'){
   title=event?'Editar compromisso':'Novo compromisso';
-  const local=event?new Date(new Date(event.due_at).getTime()-new Date(event.due_at).getTimezoneOffset()*60000).toISOString().slice(0,16):'';
+  const local=event?new Date(new Date(event.due_at).getTime()-new Date(event.due_at).getTimezoneOffset()*60000).toISOString().slice(0,16):(pc.calendarDraftDate?pc.calendarDraftDate+'T14:00':'');
   body='<form id="pc2AgendaForm"><label>Título<input name="title" maxlength="180" required placeholder="Ex.: Prova de teorias" value="'+esc(event?.title||'')+'"></label>'+
    '<div class="pc2-modal-cols"><label>Quando<input name="due_at" type="datetime-local" required value="'+esc(local)+'"></label>'+
    '<label>Tipo<select name="type">'+[['aula','Aula'],['prova','Prova'],['trabalho','Trabalho'],['estudo','Sessão de estudo'],['outro','Outro']].map(x=>'<option value="'+x[0]+'" '+((event?.type||'estudo')===x[0]?'selected':'')+'>'+x[1]+'</option>').join('')+'</select></label></div>'+
@@ -3614,7 +3667,7 @@ function pcOnLogin(){
 }
 function pcAfterRender(){if(onlineUser&&!pc.loaded&&!pc.loading)pcLoad();}
 function pcOpenSubject(id){if(!pc.subjects.some(x=>x.id===id))return;pc.selected=id;pc.view='detail';pc.tab='overview';pc.modal=null;pc.error='';pcShow();}
-function pcModalOpen(type){pc.error='';pc.editEvent=null;pc.modal=type;pcShow();}
+function pcModalOpen(type){pc.error='';pc.editEvent=null;if(type==='agenda')pc.calendarDraftDate='';pc.modal=type;pcShow();}
 function pcCloseModal(){if(pc.busy)return;pc.modal=null;pc.editEvent=null;pcShow();}
 async function pcUploadFile(file,subjectId){
  if(!file||file.size>12582912||!file.size)throw Error('Cada arquivo precisa ter até 12 MB.');
@@ -3740,7 +3793,7 @@ async function pcSaveEvent(form){
    const r=await client.from('uentzoul_personal_agenda').insert({...payload,user_id:onlineUser.id,subject_id:subject.id}).select('*').single();
    if(r.error)throw r.error;pc.agenda.push(r.data);
   }
-  pc.modal=null;pc.editEvent=null;pc.tab='agenda';pc.notice='Agenda atualizada.';
+  pc.modal=null;pc.editEvent=null;pc.calendarDraftDate='';pc.tab='agenda';pc.notice='Agenda atualizada.';
  }catch(e){pc.error=e.message||'Falha ao salvar compromisso.'}
  finally{pc.busy=false;pcShow()}
 }
@@ -3840,6 +3893,9 @@ document.addEventListener('click',e=>{
  b=e.target.closest('[data-pc-edit-subject]');if(b){pcModalOpen('edit-subject');return}
  b=e.target.closest('[data-pc-add]');if(b){pcModalOpen('source');requestAnimationFrame(()=>{const radio=document.querySelector('#pc2SourceForm [name=kind][value="'+(b.dataset.pcAdd==='file'?'arquivo':b.dataset.pcAdd==='note'?'nota':'link')+'"]');if(radio){radio.checked=true;pcSourceFields(radio.value)}});return}
  b=e.target.closest('[data-pc-new-event]');if(b){pcModalOpen('agenda');return}
+ b=e.target.closest('[data-pc-calendar-nav]');if(b){const base=pc.calendarMonth?new Date(pc.calendarMonth+'T12:00:00'):new Date();const next=new Date(base.getFullYear(),base.getMonth()+Number(b.dataset.pcCalendarNav),1,12);pc.calendarMonth=next.getFullYear()+'-'+String(next.getMonth()+1).padStart(2,'0')+'-01';pcShow();return}
+ b=e.target.closest('[data-pc-calendar-today]');if(b){pc.calendarMonth=null;pcShow();return}
+ b=e.target.closest('[data-pc-calendar-day]');if(b){pc.calendarDraftDate=b.dataset.pcCalendarDay;pc.editEvent=null;pc.modal='agenda';pcShow();return}
  b=e.target.closest('[data-pc-edit-event]');if(b){pc.editEvent=pc.agenda.find(x=>x.id===b.dataset.pcEditEvent)||null;pc.modal='agenda';pcShow();return}
  b=e.target.closest('[data-pc-delete-event]');if(b){pcDeleteEvent(b.dataset.pcDeleteEvent);return}
  b=e.target.closest('[data-pc-download]');if(b){pcOpenSource(b.dataset.pcDownload);return}
