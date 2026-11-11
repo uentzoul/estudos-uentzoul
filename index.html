@@ -375,6 +375,57 @@ html[data-theme="dark"] .card-open-indicator{background:#35304c;border-color:#4f
 html[data-theme="dark"] button.subjectcard:hover .card-open-indicator{background:#403660;color:#f0eaff}
 @media(max-width:760px){.semester-selector{margin:0 0 6px}.semester-current{min-height:40px;padding:5px 10px}.semester-current-icon{width:26px;height:26px}.semester-dropdown{top:calc(100% + 4px)}}
 @media(prefers-reduced-motion:reduce){.subject-click-ripple{display:none}.semester-dropdown{animation:none}button.subjectcard.is-activating{transform:none}}
+
+/* Simulados: estrelas e ajustes de contraste no tema escuro */
+.exam-difficulty{display:flex;align-items:center;gap:9px;margin:9px 0 6px;flex-wrap:wrap}
+.exam-difficulty .stars,.exam-test-difficulty .stars{display:inline-flex;gap:2px;line-height:1;font-size:18px;color:#c6c0d0}
+.exam-difficulty .star.filled,.exam-test-difficulty .star.filled{color:#b48a48}
+.exam-difficulty .difficulty-caption{font-size:11px;font-weight:750;color:#66617a}
+.examcard{position:relative;border-top:3px solid var(--accent,#8374e5)}
+.examcard .exammeta{font-size:11px}
+.exam-grid-5{grid-template-columns:repeat(3,minmax(0,1fr))}
+.exam-test-difficulty{display:inline-flex;align-items:center;gap:10px;border:1px solid #e8d5af;background:#f8f1e6;color:#866333;border-radius:9px;padding:7px 11px;font-size:11px;font-weight:750;margin:12px 0 3px}
+html[data-theme="dark"] .sidebar,html[data-theme="dark"] .profile-sidebar{background:#181a2b!important;border-color:#33334d!important}
+html[data-theme="dark"] #nav .sidebtn,html[data-theme="dark"] #subjectNav .sidebtn{background:transparent!important;color:#cbc7e2!important;border:1px solid transparent!important}
+html[data-theme="dark"] #nav .sidebtn:hover,html[data-theme="dark"] #subjectNav .sidebtn:hover{background:#312d4d!important;color:#faf7ff!important;border-color:#4e446b!important}
+html[data-theme="dark"] #nav .sidebtn.active,html[data-theme="dark"] #subjectNav .sidebtn.active{background:linear-gradient(110deg,#43365e,#362d53)!important;color:#f5edff!important;border-color:#68568d!important}
+html[data-theme="dark"] .semester-selector{background:transparent!important}
+html[data-theme="dark"] .semester-current{background:#29253f!important;border-color:#4d4267!important;color:#f0e9ff!important}
+html[data-theme="dark"] .semester-current:hover,html[data-theme="dark"] .semester-current[aria-expanded="true"]{background:#383050!important;border-color:#7865a6!important}
+html[data-theme="dark"] .semester-current-icon{background:#443764!important;color:#d8c8ff!important}
+html[data-theme="dark"] .semester-dropdown{background:#252138!important;border-color:#504569!important}
+html[data-theme="dark"] .semester-option{background:transparent!important;color:#e2dbef!important}
+html[data-theme="dark"] .semester-option:hover{background:#40335a!important;color:#fff!important}
+html[data-theme="dark"] .semester-option[aria-current="true"]{background:#393150!important;color:#dccdff!important}
+html[data-theme="dark"] :is(.panel,.subjectcard,.examcard,.quizbox,.doc,.topicunit,.episodeunit,.library-group,.overview-stat){border-color:#3e3a57}
+html[data-theme="dark"] .exam-difficulty .stars{color:#6c637b}
+html[data-theme="dark"] .exam-difficulty .star.filled,html[data-theme="dark"] .exam-test-difficulty .star.filled{color:#f2be7b}
+html[data-theme="dark"] .exam-difficulty .difficulty-caption{color:#e0d5ef}
+html[data-theme="dark"] .exam-test-difficulty{background:#362c38;color:#f1d9a9;border-color:#6c5539}
+html[data-theme="dark"] .filter{color:#d9d0eb;background:#292640;border-color:#4c4262}
+html[data-theme="dark"] .filter:hover{background:#3d3154;border-color:#746298;color:white}
+html[data-theme="dark"] .filter.active{background:#4f416e!important;color:#fff!important;border-color:#8d72bc!important}
+html[data-theme="dark"] .section-nav button{background:#302b45;color:#e0d6fa;border-color:#514661}
+html[data-theme="dark"] .section-nav button:hover{background:#463857;color:#fff;border-color:#8068a9}
+html[data-theme="dark"] .audio-tab{background:#25243b!important;color:#f0edff!important;border-color:#474159!important}
+html[data-theme="dark"] .audio-tab:hover{background:#35304f!important;border-color:#7862a4!important}
+html[data-theme="dark"] .audio-tab.selected{background:#483866!important;border-color:#967cc4!important;box-shadow:inset 0 0 0 1px #967cc4}
+html[data-theme="dark"] .audio-tab small{color:#c6bed9}
+html[data-theme="dark"] .material-block h3,html[data-theme="dark"] .library-head h2{color:#eae1ff}
+html[data-theme="dark"] .material-block h3 span,html[data-theme="dark"] .library-head span{color:#bdb4cd}
+html[data-theme="dark"] .docicon{background:#403455;color:#e6ccff}
+html[data-theme="dark"] .subject-symbol{background:#32304b}
+html[data-theme="dark"] .subjectcard .subject-meta{color:#bcb6d0}
+html[data-theme="dark"] .subjectcard .pill{background:#352f48;color:#e5daf7}
+html[data-theme="dark"] .topic[open] summary{background:#39304f!important;color:#f2eaff!important}
+html[data-theme="dark"] .donecontrol{background:#29283f;color:#e3ddf1;border-color:#48405d}
+html[data-theme="dark"] .donecontrol.is-checked{background:#243f35;color:#d3ffe7;border-color:#4f806b}
+html[data-theme="dark"] :is(.audio-progress,.subject-progress-cell,.notebar){background:#29283f!important;border-color:#45405e!important;color:#d9d2ec!important}
+html[data-theme="dark"] .rank-score{color:#d4c5ff}
+html[data-theme="dark"] #subjectNav.menu{background:#242137!important}
+@media(max-width:1050px) and (min-width:761px){.exam-grid-5{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:760px){.exam-grid-5{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:520px){.exam-grid-5{grid-template-columns:1fr}}
 </style>
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2064%2064%22%3E%3Crect%20width%3D%2264%22%20height%3D%2264%22%20rx%3D%2214%22%20fill%3D%22%23192d44%22%2F%3E%3Ctext%20x%3D%2232%22%20y%3D%2246%22%20fill%3D%22white%22%20font-size%3D%2246%22%20font-family%3D%22Georgia%2Cserif%22%20text-anchor%3D%22middle%22%3E%CE%A8%3C%2Ftext%3E%3C%2Fsvg%3E">
 </head>
@@ -897,7 +948,28 @@ function renderHome(){
  '<input type="file" accept="application/json,.json" id="importProgress" style="display:none"></div></div></section>'+
  '<div class="footer">O progresso é marcado manualmente. Respostas dissertativas são avaliadas por critérios de estudo.</div>';
 }
-function examCard(e){let r=store.results[e.id];let done=isDone(`sim:${e.id}`);return `<article class="examcard"><div class="topline" style="align-items:center"><span class="pill ${r?'ok':''}">${r?'Entregue':'Não entregue'}</span>${doneBox(`sim:${e.id}`)}</div><h3>${esc(e.title)}</h3><div class="exammeta">${e.questions.length} questões · ${e.questions.filter(q=>q.type==='essay').length} dissertativas</div>${r?`<div class="exammeta" style="margin-top:5px">Objetivas e V/F: ${r.correct}/${r.total} acertos</div>`:''}<button class="btn light wide" data-action="test:${e.id}">${r?'Rever / refazer':'Iniciar simulado'}</button></article>`;}
+const DIFFICULTY_STEPS=[
+ {label:'Moderado',summary:'Moderado, sem questões introdutórias.'},
+ {label:'Moderado + difícil',summary:'Predominantemente moderado, com questões difíceis.'},
+ {label:'Difícil',summary:'Exige interpretação e integração de conceitos.'},
+ {label:'Muito difícil',summary:'Casos complexos e alternativas próximas.'},
+ {label:'Desafio máximo',summary:'Todas as questões exigem análise aprofundada.'}
+];
+function difficultyStep(exam){return Math.max(1,Math.min(5,Number(exam.model)||1))}
+function difficultyStars(level){return '<span class="stars" aria-hidden="true">'+Array.from({length:5},(_,i)=>'<span class="star'+(i<level?' filled':'')+'">'+(i<level?'★':'☆')+'</span>').join('')+'</span>'}
+function examDifficulty(exam){const level=difficultyStep(exam),data=DIFFICULTY_STEPS[level-1];
+ return '<div class="exam-difficulty" aria-label="Dificuldade '+level+' de 5 estrelas: '+data.label+'">'+difficultyStars(level)+'<span class="difficulty-caption">'+esc(data.label)+'</span></div>';
+}
+function examCard(e){
+ const r=store.results[e.id],level=difficultyStep(e),meta=DIFFICULTY_STEPS[level-1];
+ return '<article class="examcard" style="--accent:'+color(e.subject)+'">'+
+ '<div class="topline" style="align-items:center"><span class="pill '+(r?'ok':'')+'">'+(r?'Entregue':'Não entregue')+'</span>'+doneBox('sim:'+e.id)+'</div>'+
+ '<h3>'+esc(e.title)+'</h3>'+examDifficulty(e)+
+ '<div class="exammeta">'+esc(meta.summary)+'</div>'+
+ '<div class="exammeta" style="margin-top:6px">'+e.questions.length+' questões · '+e.questions.filter(q=>q.type==='essay').length+' dissertativas</div>'+
+ (r?'<div class="exammeta" style="margin-top:5px">Objetivas e V/F: '+r.correct+'/'+r.total+' acertos</div>':'')+
+ '<button class="btn light wide" data-action="test:'+e.id+'">'+(r?'Rever / refazer':'Iniciar simulado')+'</button></article>';
+}
 function docCard(m){let id=`material:${m.url||m.source}`;return `<div class="doc"><span class="docicon">${m.kind==='Vídeo'?'▶':m.kind==='DOCX'?'DOC':m.kind==='PDF'?'PDF':'TXT'}</span><div class="inlinegrow" style="min-width:0"><div class="docname">${esc(m.title)}</div><div class="docnote">${esc(m.note||m.kind)}</div></div><div class="actions">${m.available?`<a href="${esc(m.url)}" target="_blank" rel="noopener" class="barlink">Abrir ↗</a>`:`<span class="pill">Não anexado</span>`}</div>${m.available?doneBox(id):''}</div>`;}
 
 function materialGroup(m){
@@ -942,14 +1014,14 @@ function renderSubject(k){
  '<section class="section" id="docs"><div class="sectiontop"><h2>Materiais e textos da disciplina</h2><span class="small">'+docs.filter(m=>m.available).length+' disponíveis · '+docs.filter(m=>!m.available).length+' referências sem arquivo</span></div>'+
  '<div class="library-group" style="margin-top:0;--group-accent:'+color(k)+'">'+organizedSubjectMaterials(docs)+'</div></section>'+
  '<section class="section" id="tests"><div class="sectiontop"><h2>Simulados da disciplina</h2><span class="small">'+tests.length+' provas para praticar</span></div>'+
- '<div class="examgrid">'+tests.map(examCard).join('')+'</div><p class="small" style="margin-top:9px">'+esc(subj.style)+'</p></section>'+
+ '<div class="examgrid exam-grid-5">'+tests.map(examCard).join('')+'</div><p class="small" style="margin-top:9px">'+esc(subj.style)+'</p></section>'+
  (audioN?'<section class="section"><div class="panel"><div class="sectiontop"><h2>Podcasts · '+esc(subj.name)+'</h2><span class="small">'+audioN+' '+(k==='tcc'?'capítulos':'episódios')+'</span></div><p class="small">Ouvir, baixar por episódio e acompanhar o estudo.</p><div class="actions" style="margin-top:11px">'+button('Abrir podcasts','audioFor:'+k,'btn light')+'</div></div></section>':'')+
  '<div class="footer">Conteúdos de revisão e simulados didáticos; consulta também as orientações dos professores.</div>';
 }
-function renderExams(){return `${head('Simulados','Provas para praticar','Três modelos por disciplina, com questões práticas e comentários detalhados na correção.')}
-<div class="alert info" style="margin-top:19px">As provas anteriores de TCC, Social e Família foram usadas para aproximar a estrutura das questões. Onde não foi possível verificar o modelo do professor, o formato é uma simulação didática, não uma reprodução garantida.</div>${Object.keys(DB.subjects).sort((a,b)=>DB.subjects[a].date.localeCompare(DB.subjects[b].date)).map(k=>`<section class="section"><div class="sectiontop"><h2 style="border-left:4px solid ${color(k)};padding-left:10px">${esc(getSubject(k).name)}</h2><button class="plainlink" data-action="subject:${k}">Ver matéria</button></div><div class="examgrid">${DB.exams.filter(e=>e.subject===k).map(examCard).join('')}</div></section>`).join('')}`}
+function renderExams(){return `${head('Simulados','Provas para praticar','Cinco simulados por disciplina, de moderado a desafio máximo, com correções comentadas.')}
+<div class="alert info" style="margin-top:19px">As provas anteriores de TCC, Social e Família foram usadas para aproximar a estrutura das questões. Onde não foi possível verificar o modelo do professor, o formato é uma simulação didática, não uma reprodução garantida.</div>${Object.keys(DB.subjects).sort((a,b)=>DB.subjects[a].date.localeCompare(DB.subjects[b].date)).map(k=>`<section class="section"><div class="sectiontop"><h2 style="border-left:4px solid ${color(k)};padding-left:10px">${esc(getSubject(k).name)}</h2><button class="plainlink" data-action="subject:${k}">Ver matéria</button></div><div class="examgrid exam-grid-5">${DB.exams.filter(e=>e.subject===k).map(examCard).join('')}</div></section>`).join('')}`}
 function getAnswers(id){return store.answers[id]||{};}
-function renderTest(id){const exam=DB.exams.find(e=>e.id===id);if(!exam)return renderHome();const subj=getSubject(exam.subject),ans=getAnswers(id),r=store.results[id];const answered=exam.questions.filter(q=>String(ans[q.id]??'').trim()!=='').length;return `<button class="back" data-action="subject:${exam.subject}">← Voltar para ${esc(subj.name)}</button><div class="panel" style="border-top:3px solid ${color(exam.subject)}"><div class="eyebrow">${esc(subj.name)} · ${esc(exam.title)}</div><h1 class="h1">Simulado ${exam.model}</h1><div style="margin:10px 0 14px">${doneBox(`sim:${id}`)}</div><p class="lead">${esc(subj.style)}</p><div class="statline"><span>${answered} de ${exam.questions.length} respondidas</span><span>${r?'Correção liberada':'Em andamento'}</span></div><div class="progressline"><div style="width:${answered/exam.questions.length*100}%"></div></div></div>
+function renderTest(id){const exam=DB.exams.find(e=>e.id===id);if(!exam)return renderHome();const subj=getSubject(exam.subject),ans=getAnswers(id),r=store.results[id];const answered=exam.questions.filter(q=>String(ans[q.id]??'').trim()!=='').length;return `<button class="back" data-action="subject:${exam.subject}">← Voltar para ${esc(subj.name)}</button><div class="panel" style="border-top:3px solid ${color(exam.subject)}"><div class="eyebrow">${esc(subj.name)} · ${esc(exam.title)}</div><h1 class="h1">Simulado ${exam.model}</h1><div class="exam-test-difficulty" aria-label="Dificuldade ${difficultyStep(exam)} de 5 estrelas">${difficultyStars(difficultyStep(exam))}<span>${esc(DIFFICULTY_STEPS[difficultyStep(exam)-1].label)}</span></div><div style="margin:10px 0 14px">${doneBox(`sim:${id}`)}</div><p class="lead">${esc(subj.style)}</p><div class="statline"><span>${answered} de ${exam.questions.length} respondidas</span><span>${r?'Correção liberada':'Em andamento'}</span></div><div class="progressline"><div style="width:${answered/exam.questions.length*100}%"></div></div></div>
 ${r?`<section class="section"><div class="panel"><h2 style="margin:0 0 12px">Resultado da tentativa</h2><div class="resultstats"><div class="resultstat"><strong>${r.correct}/${r.total}</strong><span class="small">Objetivas / V-F</span></div><div class="resultstat"><strong>${Math.round(100*r.correct/(r.total||1))}%</strong><span class="small">Aproveitamento objetivo</span></div><div class="resultstat"><strong>${exam.questions.filter(q=>q.type==='essay').length}</strong><span class="small">Dissertativas para revisar</span></div></div><div class="alert info" style="margin-top:12px">As dissertativas não recebem nota automática: veja os critérios, compare com a resposta orientativa e use a opção de correção pelo ChatGPT quando quiser uma avaliação de conteúdo e gramática.</div><div class="actions" style="margin-top:14px">${button('Refazer o simulado',`redo:${id}`,'btn light')}${button('Imprimir correção','print','btn ghost')}</div></div></section>`:''}
 <section class="section">${exam.questions.map((q,i)=>questionHTML(q,i,ans[q.id],!!r)).join('')}</section>
 <div class="panel" style="display:flex;align-items:center;gap:12px;justify-content:space-between;flex-wrap:wrap"><span class="small">${answered}/${exam.questions.length} questões respondidas · ${exam.questions.filter(q=>q.type==='essay').length} dissertativas</span><div class="actions">${button('Salvar andamento','save','btn ghost')}${button(r?'Ver resultado novamente':'Entregar e corrigir',`submit:${id}`,'btn')}</div></div><div class="footer">As correções objetivas explicam todas as opções. As respostas dissertativas exigem julgamento contextual, por isso disponibilizamos critérios e avaliação via ChatGPT em etapa manual.</div>`}
