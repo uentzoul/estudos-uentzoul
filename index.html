@@ -426,6 +426,64 @@ html[data-theme="dark"] #subjectNav.menu{background:#242137!important}
 @media(max-width:1050px) and (min-width:761px){.exam-grid-5{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:760px){.exam-grid-5{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:520px){.exam-grid-5{grid-template-columns:1fr}}
+
+/* Correção: elimina faixas claras dos tópicos de revisão no modo escuro. */
+html[data-theme="dark"] .topicgrid .topicunit,
+html[data-theme="dark"] .topicgrid .topicunit .topic,
+html[data-theme="dark"] .topicgrid .topicunit .topicfoot{
+  background:#202138!important;
+  color:#eae7f5!important;
+  border-color:#41415d!important;
+}
+html[data-theme="dark"] .topicgrid .topicunit{
+  overflow:hidden;
+  border:1px solid #41415d!important;
+}
+html[data-theme="dark"] .topicgrid .topicunit .topic{
+  border:0!important;
+  border-radius:0;
+}
+html[data-theme="dark"] .topicgrid .topicunit .topic summary{
+  background:#282941!important;
+  color:#eeeafa!important;
+  transition:background .2s ease,color .2s ease;
+}
+html[data-theme="dark"] .topicgrid .topicunit .topic summary:hover,
+html[data-theme="dark"] .topicgrid .topicunit .topic[open] summary{
+  background:#353152!important;
+  color:#fff!important;
+}
+html[data-theme="dark"] .topicgrid .topicunit .topic p{
+  background:transparent!important;
+  color:#d5d2e8!important;
+}
+html[data-theme="dark"] .topicgrid .topicunit .topicfoot{
+  padding:7px 12px 11px;
+  border-top:1px solid #34364f!important;
+}
+html[data-theme="dark"] .topicgrid .topicunit.is-done,
+html[data-theme="dark"] .topicgrid .topicunit.is-done .topic,
+html[data-theme="dark"] .topicgrid .topicunit.is-done .topicfoot{
+  background:#20332f!important;
+  border-color:#37665b!important;
+}
+html[data-theme="dark"] .topicgrid .topicunit.is-done .topic summary{
+  background:#283d38!important;
+}
+html[data-theme="dark"] .topicgrid .topicunit.is-done .topic[open] summary,
+html[data-theme="dark"] .topicgrid .topicunit.is-done .topic summary:hover{
+  background:#305048!important;
+}
+html[data-theme="dark"] .topicgrid .donecontrol{
+  background:#303048!important;
+  color:#e9e5f7!important;
+  border-color:#53516d!important;
+}
+html[data-theme="dark"] .topicgrid .donecontrol.is-checked{
+  background:#2b5345!important;
+  border-color:#46836d!important;
+  color:#ddffed!important;
+}
 </style>
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2064%2064%22%3E%3Crect%20width%3D%2264%22%20height%3D%2264%22%20rx%3D%2214%22%20fill%3D%22%23192d44%22%2F%3E%3Ctext%20x%3D%2232%22%20y%3D%2246%22%20fill%3D%22white%22%20font-size%3D%2246%22%20font-family%3D%22Georgia%2Cserif%22%20text-anchor%3D%22middle%22%3E%CE%A8%3C%2Ftext%3E%3C%2Fsvg%3E">
 </head>
