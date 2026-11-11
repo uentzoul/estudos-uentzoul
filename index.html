@@ -845,6 +845,17 @@ html[data-theme="dark"] .dm-profile-close{background:#34304d}
 @media(prefers-reduced-motion:reduce){.dm-contact,.dm-profile-primary{transition:none}}
 
 
+
+/* Recuperação da conexão com a IA Tzoul após configuração no servidor */
+.tz-retry-area{display:flex;flex-wrap:wrap;align-items:center;gap:9px;margin-top:11px}
+.tz-retry-button{display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:35px;padding:8px 13px;border:1px solid #9480d6;border-radius:10px;background:#eeebfc;color:#5141a9;font-size:11px;font-weight:800;cursor:pointer;transition:transform .2s,box-shadow .2s,background .2s}
+.tz-retry-button:hover{transform:translateY(-2px);box-shadow:0 5px 14px #594cba24;background:#ded6fb}
+.tz-retry-button:focus-visible{outline:3px solid #9480d6;outline-offset:2px}
+.tz-retry-area small{font-size:10px;color:var(--muted);line-height:1.5}
+html[data-theme="dark"] .tz-retry-button{background:#46396d;border-color:#8771c5;color:#eee5ff}
+html[data-theme="dark"] .tz-retry-button:hover{background:#52427f}
+@media(prefers-reduced-motion:reduce){.tz-retry-button{transition:none}}
+
 /* Conta institucional Microsoft PUCRS, condicionada à aprovação do tenant */
 .ms-auth{margin:16px 0 6px;padding:15px;background:var(--soft);border:1px solid var(--line);border-radius:14px}
 .ms-auth-label{font-size:10px;font-weight:830;letter-spacing:.7px;text-transform:uppercase;color:var(--muted);margin-bottom:10px}
@@ -1781,7 +1792,7 @@ function renderAI(){
  '<button type="button" class="tz-mini" data-tz-reset="1" title="Iniciar outra conversa">+ Nova conversa</button></header>'+
  '<div class="tz-chat" role="region" aria-label="Chat de estudos">'+
  '<div class="tz-thread" id="tzThread" aria-live="polite">'+messages+(tz.busy?'<div class="tz-thinking">IA Tzoul está respondendo</div>':'')+'</div>'+
- (notice?'<div class="tz-notice" role="status">'+esc(notice)+'</div>':'')+
+ (notice?'<div class="tz-notice" role="status">'+esc(notice)+(logged&&tz.ready===false?'<div class="tz-retry-area"><button type="button" class="tz-retry-button" data-tz-retry="1">↻ Testar conexão novamente</button><small>Se a chave acabou de ser configurada no servidor, verifica aqui sem precisar sair do site.</small></div>':'')+'</div>':'')+
  (!logged&&hasContent?'<div class="tz-login"><button type="button" class="tz-send" data-action="tz-login">Entrar / Cadastrar</button></div>':'')+
  '<form class="tz-form" id="tzForm">'+
  '<details class="tz-context" id="tzContext" '+(tz.contextOpen?'open':'')+'>'+
@@ -1797,9 +1808,9 @@ function renderAI(){
  '<div class="tz-context-mode"><span>Tipo de resposta</span><div class="tz-modes"><button type="button" data-tz-mode="chat" class="tz-mode '+(tz.mode==='chat'?'selected':'')+'">Conversa</button><button type="button" data-tz-mode="document" class="tz-mode '+(tz.mode==='document'?'selected':'')+'">Documento</button></div></div>'+
  '<p class="tz-context-note">Um material só pode ser lido integralmente se o arquivo estiver acessível. Os demais conteúdos são consultados pela base indexada.</p></div></details>'+
  '<div class="tz-composer"><label for="tzPrompt" class="tz-sr-only">Escreve uma mensagem à IA Tzoul</label>'+
- '<textarea id="tzPrompt" rows="2" maxlength="4000" aria-label="Mensagem para a IA Tzoul" placeholder=" " '+(!logged||!hasContent||tz.busy?'disabled':'')+'>'+esc(tz.draft)+'</textarea>'+
+ '<textarea id="tzPrompt" rows="2" maxlength="4000" aria-label="Mensagem para a IA Tzoul" placeholder=" " '+(!logged||!hasContent||tz.busy||tz.ready===false?'disabled':'')+'>'+esc(tz.draft)+'</textarea>'+
  '<div class="tz-hints" aria-hidden="true"><span>Corrigir trabalhos com base nos materiais da aula</span><span>Encontrar textos e trechos específicos dos conteúdos</span><span>Resumir um capítulo ou uma parte do material</span><span>Criar documentos, questões e roteiros de estudo</span></div>'+
- '<button type="submit" class="tz-send" aria-label="Enviar mensagem" title="Enviar mensagem" '+(!logged||!hasContent||tz.busy?'disabled':'')+'>'+
+ '<button type="submit" class="tz-send" aria-label="Enviar mensagem" title="Enviar mensagem" '+(!logged||!hasContent||tz.busy||tz.ready===false?'disabled':'')+'>'+
  '<svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 19V5M5 12l7-7 7 7"/></svg></button></div>'+
  '<div class="tz-composer-foot"><small>Respostas sobre as matérias e materiais do site</small><small>Enter para enviar · Shift + Enter para nova linha</small></div>'+
  '</form></div></section>';
@@ -1818,7 +1829,7 @@ async function tzFetch(method,payload){
 async function tzCheck(){
  if(current.page!=='ai'||tz.checking||tz.ready!==null||!window.uentzoulAIAuth?.user())return;
  tz.checking=true;
- try{const data=await tzFetch('GET');tz.ready=!!data.available;if(!data.available)tz.note=data.reason||'A chave da IA ainda não foi configurada.';}
+ try{const data=await tzFetch('GET');tz.ready=!!data.available;tz.note=data.available?'':(data.reason||'A chave da IA ainda não foi configurada.');}
  catch(e){tz.ready=false;tz.note=e.message;}
  finally{tz.checking=false;if(current.page==='ai')render();}
 }
@@ -1861,6 +1872,8 @@ document.addEventListener('toggle',e=>{if(e.target.id==='tzContext')tz.contextOp
 document.addEventListener('click',e=>{
  let b=e.target.closest('[data-tz-mode]');
  if(b){tz.draft=$('tzPrompt')?.value||tz.draft;tz.mode=b.dataset.tzMode;render();return;}
+ b=e.target.closest('[data-tz-retry]');
+ if(b){if(tz.checking||tz.busy)return;tz.ready=null;tz.note='';render();return;}
  b=e.target.closest('[data-tz-reset]');
  if(b){if(tz.busy)return;tz.messages=[];tz.draft='';tz.note='';render();return;}
  b=e.target.closest('[data-tz-copy]');
