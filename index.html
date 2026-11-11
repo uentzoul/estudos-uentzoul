@@ -1479,7 +1479,7 @@ try{render();document.documentElement.classList.add('app-ready');}catch(e){conso
 (()=>{'use strict';
 const bridge=window.uentzoulProfileBridge;if(!bridge)return;
 const $=id=>document.getElementById(id), esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;','\'':'&#39;'}[c]));
-let onlineUser=null,remoteProfile=null,client=null,modalView='login',busy=false,syncTimer=null,rankData=[],rankBusy=false,cloudSnapshot=null,rankingSemester=null;
+let onlineUser=null,remoteProfile=null,client=null,modalView='login',busy=false,syncTimer=null,rankData=[],rankBusy=false,cloudSnapshot=null,rankingSemester=null,cloudLoading=false,cloudError='',cloudInitPromise=null,enteringUserId=null,enteringPromise=null;
 const cfg=(()=>{try{return JSON.parse($('uentzoul-auth-config').textContent)}catch{return {}}})();
 const backendReady=!!(cfg.url&&cfg.publishableKey&&/^https:\/\//.test(cfg.url));
 const CONFIRMATION_RETURN_URL='https://uentzoul.github.io/estudos-uentzoul/';
@@ -1498,14 +1498,94 @@ function msg(text,bad=true){const e=$('profileMessage');if(e){e.textContent=text
 function renderModal(){
  const body=$('profileDialogBody');
  if(!backendReady){body.innerHTML='<p class="profile-form-note">Serviço de contas online não configurado.</p>';return}
- if(!client){body.innerHTML='<p class="profile-form-note">Não foi possível conectar. Verifica tua internet e recarrega a página.</p>';return}
+ if(!client){
+  body.innerHTML=cloudLoading
+   ?'<p class="profile-form-note" role="status">Conectando à conta online…</p>'
+   :'<p class="profile-form-note" role="alert">'+esc(cloudError||'O serviço de login não carregou. Podes tentar novamente sem fechar a página.')+'</p><button type="button" class="profile-secondary" data-account-action="retry-connection">Tentar conectar novamente</button>';
+  return;
+ }
  if(onlineUser){body.innerHTML=`<div class="profile-person-row">${avatar(remoteProfile?.display_name,remoteProfile?.avatar_url)}<strong>${esc(remoteProfile?.display_name||onlineUser.email)}</strong><span class="profile-badge">Online</span></div><form class="profile-form" id="onlineProfileForm"><label>Nome exibido no ranking<input name="display_name" minlength="2" maxlength="40" required value="${esc(remoteProfile?.display_name||'')}"></label><label>Foto de perfil (JPEG, PNG ou WebP)<input type="file" name="avatar" accept="image/jpeg,image/png,image/webp"></label><button type="submit">Salvar perfil</button></form><p class="profile-form-note">As atividades são sincronizadas automaticamente nesta conta.</p><button class="profile-secondary" data-account-action="logout">Sair da conta</button><p class="profile-message" id="profileMessage"></p>`;return}
 body.innerHTML=`<div class="profile-tabs"><button class="${modalView==='login'?'selected':''}" data-account-action="login-view">Entrar</button><button class="${modalView==='register'?'selected':''}" data-account-action="register-view">Cadastrar</button></div><form class="profile-form" id="onlineAuthForm">${modalView==='register'?'<label>Nome público<input name="name" autocomplete="nickname" minlength="2" maxlength="40" required></label>':''}<label>E-mail<input name="email" type="email" autocomplete="email" required></label><label>Senha<input name="password" type="password" autocomplete="${modalView==='register'?'new-password':'current-password'}" minlength="6" required></label><button type="submit">${modalView==='register'?'Criar conta':'Entrar'}</button></form><p class="profile-form-note">A conta online salva o progresso na nuvem e participa do ranking coletivo.</p><button type="button" class="profile-secondary" data-account-action="resend-signup">Reenviar confirmação por e-mail</button><p class="profile-message" id="profileMessage"></p>`;return
 }
 async function photo(file){if(!file||!file.size)return null;if(file.size>6*1024*1024)throw Error('Seleciona uma foto de até 6 MB.');if(!/^image\/(png|jpeg|webp)$/.test(file.type))throw Error('A foto precisa ser PNG, JPEG ou WebP.');return new Promise((resolve,reject)=>{const img=new Image();const object=URL.createObjectURL(file);img.onload=()=>{try{const canvas=document.createElement('canvas');canvas.width=canvas.height=180;const ctx=canvas.getContext('2d');const scale=Math.max(180/img.width,180/img.height),w=img.width*scale,h=img.height*scale;ctx.drawImage(img,(180-w)/2,(180-h)/2,w,h);URL.revokeObjectURL(object);canvas.toBlob(blob=>{if(blob)resolve({blob,url:canvas.toDataURL('image/jpeg',.75)});else reject(Error('Não foi possível processar a foto.'))},'image/jpeg',.75)}catch(e){URL.revokeObjectURL(object);reject(e)}};img.onerror=()=>{URL.revokeObjectURL(object);reject(Error('Não foi possível abrir a imagem.'))};img.src=object})}
 
-async function initCloud(){if(!backendReady)return;try{if(!window.supabase)await new Promise((resolve,reject)=>{const sc=document.createElement('script');sc.src='https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js';sc.onload=resolve;sc.onerror=()=>reject(Error('Não foi possível carregar o serviço de contas.'));document.head.appendChild(sc)});client=window.supabase.createClient(cfg.url,cfg.publishableKey);const {data}=await client.auth.getSession();if(data?.session?.user)await enterCloud(data.session.user);client.auth.onAuthStateChange((event,session)=>{if(event==='SIGNED_IN'&&session?.user&&!onlineUser)queueMicrotask(()=>enterCloud(session.user).catch(console.warn));if(event==='SIGNED_OUT'&&onlineUser){onlineUser=null;remoteProfile=null;cloudSnapshot=null;rankData=[];rankingSemester=null;bridge.switchTo('guest-session',{answers:{},results:{},bookmarks:{},completed:{}});renderAside()}});if(!$('profileOverlay').hidden)renderModal()}catch(e){console.warn('Contas online indisponíveis',e);client=null;if(!$('profileOverlay').hidden)renderModal()}}
-async function enterCloud(user){if(!client)return;const {data:prog,error:progErr}=await client.from('uentzoul_progress').select('data').eq('user_id',user.id).maybeSingle();if(progErr)throw progErr;const {data:prof,error:profErr}=await client.from('uentzoul_profiles').select('user_id,display_name,avatar_url').eq('user_id',user.id).maybeSingle();if(profErr)throw profErr;const display_name=(prof?.display_name||user.user_metadata?.display_name||user.email?.split('@')[0]||'Estudante').slice(0,40);if(!prof){const {error}=await client.from('uentzoul_profiles').upsert({user_id:user.id,display_name});if(error)throw error}remoteProfile=prof||{user_id:user.id,display_name,avatar_url:''};const id='cloud:'+user.id,remote=prog?.data;
+async function loadOnlineLibrary(){
+ if(window.supabase?.createClient)return;
+ const sources=[
+  'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js',
+  'https://unpkg.com/@supabase/supabase-js@2/dist/umd/supabase.js'
+ ];
+ let lastError=null;
+ for(const src of sources){
+  try{
+   await new Promise((resolve,reject)=>{
+    const script=document.createElement('script');
+    let finished=false;
+    const finish=error=>{
+     if(finished)return;
+     finished=true;clearTimeout(timeout);
+     if(error){script.remove();reject(error)}else resolve();
+    };
+    const timeout=setTimeout(()=>finish(Error('Tempo esgotado ao carregar serviço de contas.')),10000);
+    script.src=src;script.async=true;
+    script.onload=()=>window.supabase?.createClient?finish(null):finish(Error('Biblioteca de contas indisponível.'));
+    script.onerror=()=>finish(Error('Não foi possível carregar esta fonte de autenticação.'));
+    document.head.appendChild(script);
+   });
+   if(window.supabase?.createClient)return;
+  }catch(error){lastError=error;console.warn('Tentativa alternativa de autenticação',error)}
+ }
+ throw lastError||Error('O serviço de autenticação não pôde ser carregado.');
+}
+async function initCloud(){
+ if(!backendReady){cloudError='A configuração das contas online está incompleta.';if(!$('profileOverlay').hidden)renderModal();return}
+ if(client){cloudLoading=false;if(!$('profileOverlay').hidden)renderModal();return}
+ if(cloudInitPromise)return cloudInitPromise;
+ cloudLoading=true;cloudError='';
+ if(!$('profileOverlay').hidden)renderModal();
+ cloudInitPromise=(async()=>{
+  try{
+   await loadOnlineLibrary();
+   client=window.supabase.createClient(cfg.url,cfg.publishableKey);
+   cloudLoading=false;
+   if(!$('profileOverlay').hidden)renderModal();
+   client.auth.onAuthStateChange((event,session)=>{
+    if(event==='SIGNED_IN'&&session?.user&&(!onlineUser||onlineUser.id!==session.user.id)){
+     queueMicrotask(()=>enterCloud(session.user).catch(err=>{
+      console.warn('Falha ao carregar perfil online',err);
+      cloudError='A conta foi autenticada, mas não foi possível sincronizar o perfil. Tenta novamente.';
+      if(!$('profileOverlay').hidden)renderModal();
+     }));
+    }
+    if(event==='SIGNED_OUT'){
+     onlineUser=null;remoteProfile=null;cloudSnapshot=null;rankData=[];rankingSemester=null;
+     bridge.switchTo('guest-session',{answers:{},results:{},bookmarks:{},completed:{}});
+     renderAside();
+     if(!$('profileOverlay').hidden)renderModal();
+    }
+   });
+   const {data,error}=await client.auth.getSession();
+   if(error)throw error;
+   if(data?.session?.user)await enterCloud(data.session.user);
+  }catch(err){
+   cloudError=err?.message||'Falha ao inicializar a conta online.';
+   console.warn('Contas online',err);
+   // Erros ao recuperar o perfil não invalidam o cliente de autenticação.
+   if(!client)console.warn('Falha ao carregar biblioteca de autenticação.');
+  }finally{
+   cloudLoading=false;cloudInitPromise=null;
+   if(!$('profileOverlay').hidden)renderModal();
+  }
+ })();
+ return cloudInitPromise;
+}
+async function enterCloud(user){
+ if(!client||!user?.id)return;
+ if(onlineUser?.id===user.id)return;
+ if(enteringPromise&&enteringUserId===user.id)return enteringPromise;
+ enteringUserId=user.id;
+ enteringPromise=(async()=>{
+ const {data:prog,error:progErr}=await client.from('uentzoul_progress').select('data').eq('user_id',user.id).maybeSingle();if(progErr)throw progErr;const {data:prof,error:profErr}=await client.from('uentzoul_profiles').select('user_id,display_name,avatar_url').eq('user_id',user.id).maybeSingle();if(profErr)throw profErr;const display_name=(prof?.display_name||user.user_metadata?.display_name||user.email?.split('@')[0]||'Estudante').slice(0,40);if(!prof){const {error}=await client.from('uentzoul_profiles').upsert({user_id:user.id,display_name});if(error)throw error}remoteProfile=prof||{user_id:user.id,display_name,avatar_url:''};const id='cloud:'+user.id,sem=bridge.semester(),remote=prog?.data;
 const saved=remote&&remote.semesters&&typeof remote.semesters==='object'?remote.semesters:null;
 cloudSnapshot={semesters:{
  '2026/2':saved?.['2026/2']||(remote&&remote.completed?remote:bridge.readSaved(id,'2026/2')),
@@ -1515,7 +1595,10 @@ cloudSnapshot={semesters:{
 for(const item of ['2026/2','2027/1'])bridge.saveForSemester(id,item,cloudSnapshot.semesters[item]);
 onlineUser=user;bridge.switchTo(id,cloudSnapshot.semesters[sem]);
 if(!prog)await saveCloud();
-await loadRanking();renderAside();if(!$('profileOverlay').hidden)renderModal()}
+await loadRanking();renderAside();if(!$('profileOverlay').hidden)renderModal();
+ })();
+ try{return await enteringPromise}finally{enteringUserId=null;enteringPromise=null}
+}
 async function saveCloud(){
  if(!client||!onlineUser)return;
  if(!cloudSnapshot)cloudSnapshot={semesters:{}};
@@ -1545,6 +1628,7 @@ document.addEventListener('click',async e=>{
  e.preventDefault();const action=b.dataset.accountAction;
  if(action==='open'){showModal(onlineUser?'edit':'login');return}
  if(action==='close'){closeModal();return}
+ if(action==='retry-connection'){initCloud();return}
  if(action==='login-view'||action==='register-view'){modalView=action==='login-view'?'login':'register';renderModal();return}
  if(action==='resend-signup'){
   if(!client){msg('Serviço de contas indisponível.');return}
