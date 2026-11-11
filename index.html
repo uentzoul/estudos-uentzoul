@@ -1477,6 +1477,26 @@ html[data-theme="dark"] .rank-entry:hover .rank-num,html[data-theme="dark"] .ran
 .dm-profile-about .dm-bio-empty{font-style:italic;color:var(--muted)}
 html[data-theme="dark"] .dm-profile-about .dm-profile-bio{border-left-color:#a996f0!important;color:#f4efff}
 @media(max-width:760px){.rank-entry:hover,.rank-entry:focus-within{transform:none}.dm-profile-about{padding-left:20px;padding-right:20px}}
+
+/* Central de erros e perfil administrativo */
+.report-launch{display:inline-flex;align-items:center;justify-content:center;min-height:35px;padding:7px 12px;background:#ede9fa;border:1px solid #c5b9ec;color:#504394;border-radius:9px;font-size:12px;font-weight:750;white-space:nowrap}
+.report-launch:hover{background:#ded5f7;color:#36286a}
+html[data-theme="dark"] .report-launch{background:#353054;border-color:#655b8b;color:#efe9ff}
+html[data-theme="dark"] .report-launch:hover{background:#514675}
+.report-overlay[hidden]{display:none!important}.report-overlay{position:fixed;inset:0;z-index:250;background:#0f1225a8;display:grid;place-items:center;padding:16px;backdrop-filter:blur(3px)}
+.report-dialog{width:min(100%,480px);background:var(--paper);color:var(--ink);border:1px solid var(--line);border-radius:20px;padding:24px;box-shadow:0 18px 55px #0003}
+.report-dialog-head{display:flex;align-items:start;justify-content:space-between;gap:12px}.report-dialog h2{font-size:20px;margin:0 0 5px}.report-dialog p{margin:0 0 17px;color:var(--muted);font-size:13px}
+.report-dialog-close{border:0;border-radius:8px;background:var(--soft);color:var(--ink);padding:5px 11px;font-size:22px}
+.report-dialog textarea{display:block;width:100%;min-height:165px;resize:vertical;border:1px solid var(--line);border-radius:11px;background:var(--paper);color:var(--ink);padding:12px;line-height:1.55;font-size:13px}
+.report-dialog label{display:block;margin-bottom:8px;font-weight:750;font-size:13px}.report-dialog-foot{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-top:13px}
+.report-submit{border:0;border-radius:10px;padding:10px 16px;background:#6050b9;color:#fff;font-weight:750}.report-submit:disabled{opacity:.55;cursor:wait}
+.report-status{font-size:12px;color:var(--muted);margin:12px 0 0!important}.dm-channel-tabs.has-admin{grid-template-columns:repeat(2,minmax(0,1fr))}
+.admin-mini-label{font-size:10px!important;font-weight:800!important;color:#7251c7!important}
+.admin-profile-role{display:table;margin:-8px auto 18px;padding:5px 14px;border-radius:20px;background:#eee9fb;color:#5c48ac;font-size:12px;font-weight:800}
+html[data-theme="dark"] .admin-profile-role{background:#3c345d;color:#e2d6ff}
+.report-thread{padding:15px 22px}.report-intro{padding:10px 0 16px;border-bottom:1px solid var(--line);margin-bottom:18px}.report-intro h2{font-size:17px;margin:0 0 4px}.report-intro p,.report-menu-note{font-size:12px;color:var(--muted)}.report-menu-note{padding:10px 15px}
+.report-message{border:1px solid var(--line);border-radius:13px;padding:13px 15px;margin-bottom:11px;background:var(--paper)}.report-meta{display:flex;flex-wrap:wrap;justify-content:space-between;gap:6px;margin-bottom:9px}.report-meta strong{font-size:12px}.report-meta time{color:var(--muted);font-size:11px}.report-message p{white-space:pre-wrap;overflow-wrap:anywhere;margin:0;font-size:13px;line-height:1.65}.report-empty{color:var(--muted)}
+@media(max-width:760px){.report-launch{padding:7px 9px;font-size:11px}.report-dialog{padding:18px}.report-thread{padding:12px}.dm-channel-tabs.has-admin button{font-size:10px;min-height:37px}}
 </style>
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2064%2064%22%3E%3Crect%20width%3D%2264%22%20height%3D%2264%22%20rx%3D%2214%22%20fill%3D%22%23192d44%22%2F%3E%3Ctext%20x%3D%2232%22%20y%3D%2246%22%20fill%3D%22white%22%20font-size%3D%2246%22%20font-family%3D%22Georgia%2Cserif%22%20text-anchor%3D%22middle%22%3E%CE%A8%3C%2Ftext%3E%3C%2Fsvg%3E">
 </head>
@@ -1765,7 +1785,7 @@ Qual conceito ou formulação explica MELHOR essa situação?</p><ol type="a"><l
 <li>25/11/2026 — Psicologia Social · Avaliação 3</li>
 <li>26/11/2026 — Avaliação Psicológica · Prova 3</li>
 </ul></section></section>
-<div class="app"><div class="theme-topbar" role="group" aria-label="Aparência"><span class="theme-caption">Aparência</span><button type="button" class="theme-toggle" data-theme-toggle aria-label="Ativar modo escuro">☾ <span class="theme-toggle-text">Modo escuro</span></button></div><aside class="sidebar" id="siteSidebar">
+<div class="app"><div class="theme-topbar" role="group" aria-label="Aparência"><button type="button" class="report-launch" data-report-open>Relatar erro</button><span class="theme-caption">Aparência</span><button type="button" class="theme-toggle" data-theme-toggle aria-label="Ativar modo escuro">☾ <span class="theme-toggle-text">Modo escuro</span></button></div><aside class="sidebar" id="siteSidebar">
   <div class="mobile-brand">
     <span class="mobile-brand-mark psychology-mark" aria-label="Símbolo da Psicologia">Ψ</span>
     <div class="mobile-heading"><strong>Psicologia PUCRS 2026/2</strong><span>by: Enzo F.B.</span></div>
@@ -1801,6 +1821,7 @@ Qual conceito ou formulação explica MELHOR essa situação?</p><ol type="a"><l
   <div class="navlbl">Disciplinas</div><nav class="menu" id="subjectNav"></nav>
   <div class="sidebarfoot">Atualizado · 10/11/2026 · Progresso por conteúdo<br>Dados salvos neste navegador.</div>
 </aside><main class="main" id="main" aria-live="polite"></main><aside class="profile-sidebar" id="profileSidebar" aria-label="Meu perfil e ranking"><div class="rank-empty">Carregando perfis...</div></aside></div>
+<div class="report-overlay" id="errorReportOverlay" hidden><section class="report-dialog" role="dialog" aria-modal="true" aria-labelledby="reportDialogTitle"><div class="report-dialog-head"><h2 id="reportDialogTitle">Relatar erro</h2><button type="button" class="report-dialog-close" data-report-close aria-label="Fechar">×</button></div><p>Descreva o erro ou uma sugestão de melhoria. O relato chegará anonimamente à administração, sem identificar quem enviou.</p><form id="errorReportForm"><label for="errorReportBody">Descreva o problema</label><textarea id="errorReportBody" maxlength="3000" minlength="15" required placeholder="Explique o que aconteceu, em qual página e como reproduzir o problema."></textarea><div class="report-dialog-foot"><small id="reportCharCount">0 / 3000</small><button type="submit" class="report-submit" id="reportSubmit">Enviar relato</button></div><p class="report-status" id="reportStatus" role="status"></p></form></section></div>
 <div class="dm-profile-overlay" id="dmProfileOverlay" hidden><section class="dm-profile-dialog" role="dialog" aria-modal="true" aria-labelledby="dmProfileHeading"><button type="button" class="dm-profile-close" data-dm-close-profile aria-label="Fechar perfil">×</button><div id="dmProfileContent"></div></section></div>
 <div class="profile-overlay" id="profileOverlay" hidden>
 <div class="profile-dialog" role="dialog" aria-modal="true" aria-labelledby="profileDialogTitle">
@@ -3141,7 +3162,7 @@ function renderAside(){const el=$('profileSidebar');if(!el)return;const p=curren
 let rows=isOnline&&(rankingSemester===bridge.semester())?rankData:[];
 if(!bridge.hasSubjects())rows=[];
 const content=rows.length?rows.map((x,i)=>`<div class="rank-entry ${p&&(x.user_id||x.id)===p.id?'me':''}"><span class="rank-num">${i===0?'🏆':i+1}</span><button type="button" class="rank-user-trigger" data-dm-profile="${esc(x.user_id||x.id||'')}" title="Ver perfil de ${esc(x.display_name)}">${avatar(x.display_name,x.avatar_url,true)}<span class="rank-person"><strong>${esc(x.display_name)}</strong><span>${p&&(x.user_id||x.id)===p.id?'Você · ':''}Ver perfil e conversar</span></span></button><b class="rank-score">${Number(x.completed_count??x.score)||0}</b></div>`).join(''):`<div class="rank-empty">${!bridge.hasSubjects()?'Nenhuma pontuação em 2027/1. O ranking começará quando adicionarmos as matérias.':isOnline?'Ainda não há participantes no ranking.':'Entra na conta online para visualizar o ranking.'}</div>`;
-el.innerHTML=`<section class="profile-panel"><div class="profile-panel-top">${avatar(p?.name||'Visitante',p?.avatar)}<div class="profile-panel-info"><strong>${esc(p?.name||'Visitante')}</strong><span>${p?'Conta sincronizada':'Não conectado'}</span></div></div><button class="profile-action" data-account-action="open">${p?'Meu perfil / Configurações':'Entrar / Cadastrar'}</button><span class="profile-note">${p?`${score} pontos no ranking`:'O progresso só é sincronizado quando estás conectado.'}</span></section><div><h2 class="rank-title">Ranking · ${bridge.semester()}</h2><p class="rank-subtitle">${!bridge.hasSubjects()?'Pontuação independente — ainda sem matérias':isOnline?'Classificação da comunidade':'Ranking de contas online'}</p><div class="rank-list">${content}</div><div class="rank-footer"><button type="button" class="rank-rules-button" data-ranking-rules>Como ganhar pontos</button></div></div>`;
+el.innerHTML=`<section class="profile-panel"><div class="profile-panel-top">${avatar(p?.name||'Visitante',p?.avatar)}<div class="profile-panel-info"><strong>${esc(p?.name||'Visitante')}</strong>${p?.id==='11eadb0a-c79b-4347-be3b-20f2d31c18c7'?'<span class="admin-mini-label">✦ Administrador</span>':''}<span>${p?'Conta sincronizada':'Não conectado'}</span></div></div><button class="profile-action" data-account-action="open">${p?'Meu perfil / Configurações':'Entrar / Cadastrar'}</button><span class="profile-note">${p?`${score} pontos no ranking`:'O progresso só é sincronizado quando estás conectado.'}</span></section><div><h2 class="rank-title">Ranking · ${bridge.semester()}</h2><p class="rank-subtitle">${!bridge.hasSubjects()?'Pontuação independente — ainda sem matérias':isOnline?'Classificação da comunidade':'Ranking de contas online'}</p><div class="rank-list">${content}</div><div class="rank-footer"><button type="button" class="rank-rules-button" data-ranking-rules>Como ganhar pontos</button></div></div>`;
 }
 function showModal(view='login'){modalView=view;$('profileOverlay').hidden=false;document.body.style.overflow='hidden';renderModal()}
 function closeModal(){$('profileOverlay').hidden=true;document.body.style.overflow=''}
@@ -3346,7 +3367,7 @@ window.addEventListener('uentzoul:semester',()=>{
 });
 
 /* Mensagens privadas e perfis públicos: participantes identificados pela conta Supabase. */
-const dm={owner:null,people:[],messages:[],invites:[],peerId:null,ready:false,loading:false,loadPromise:null,
+const dm={reports:[],isAdmin:false,owner:null,people:[],messages:[],invites:[],peerId:null,ready:false,loading:false,loadPromise:null,
  error:'',draft:'',search:'',sending:false,realtime:null,readBusy:false,profileOpen:null,lastFetch:0,pending:false,syncTimer:null,channelStatus:'',
  tab:'private',roomId:null,rooms:[],roomMessages:[],stickerOpen:false,groupModal:false,mediaFile:null,mediaCache:new Map(),mediaRequests:new Set()};
 function dmValid(id){return typeof id==='string'&&/^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/i.test(id)}
@@ -3493,7 +3514,8 @@ async function dmDelete(type,id){
  await dmLoad();dmShow();
 }
 function dmSelectTab(tab){
- if(!['private','groups','global'].includes(tab))return;
+ if(!['private','groups','global','reports'].includes(tab))return;
+ if(tab==='reports'&&!dm.isAdmin)return;
  dm.tab=tab;dm.stickerOpen=false;dm.mediaFile=null;dm.draft='';
  if(tab==='global')dm.roomId=DM_GLOBAL_ROOM;
  if(tab==='private')dm.roomId=null;
@@ -3517,8 +3539,17 @@ function dmContactRows(){
  }).join('');
 }
 function dmChatMessages(id){return dmThreadHtml()}
+function dmReportList(){
+ const rows=dm.reports||[];
+ return '<div class="report-intro"><h2>Report de Erros</h2><p>Relatos anônimos dos usuários. Visíveis apenas para a administração.</p></div>'+
+ (rows.length?rows.map(r=>'<article class="report-message"><div class="report-meta"><strong>Relato anônimo</strong><time>'+esc(new Date(r.created_at).toLocaleString('pt-BR',{dateStyle:'short',timeStyle:'short'}))+'</time></div><p>'+esc(r.body)+'</p></article>').join(''):'<p class="report-empty">Nenhum relato recebido ainda.</p>');
+}
 function dmRender(){
  if(!onlineUser)return '<section class="dm-login-panel"><h1>Mensagens</h1><p>Entra na tua conta para conversar com outros estudantes do site.</p><button type="button" data-account-action="open" class="profile-action">Entrar / Cadastrar</button></section>';
+ if(dm.tab==='reports'&&dm.isAdmin){
+  const tabs=[['private','Privadas'],['groups','Grupos'],['global','Global'],['reports','Report de Erros']];
+  return '<section class="dm-shell"><div class="dm-list"><header class="dm-list-head"><div><h1>Mensagens</h1><p>Central de mensagens</p></div></header><nav class="dm-channel-tabs has-admin">'+tabs.map(t=>'<button type="button" data-dm-tab="'+t[0]+'" class="'+(dm.tab===t[0]?'selected':'')+'">'+t[1]+'</button>').join('')+'</nav><p class="report-menu-note">Caixa exclusiva da administração</p></div><div class="dm-main"><header class="dm-chat-head"><span class="dm-room-heading"><strong>Report de Erros</strong><small>Relatos anônimos · '+dm.reports.length+'</small></span></header><div class="dm-messages report-thread" id="dmMessages">'+dmReportList()+'</div></div></section>';
+ }
  const selected=dm.tab==='private'?dm.peerId:dm.tab==='global'?DM_GLOBAL_ROOM:dm.roomId;
  const peer=dm.tab==='private'&&selected?dmPrettyPerson(selected):null;
  const room=dm.tab==='global'?{name:'Chat global',kind:'global'}:dm.tab==='groups'?dmRoom(selected):null;
@@ -3527,8 +3558,8 @@ function dmRender(){
   dm.tab==='groups'?'<div class="dm-contacts dm-room-contacts">'+dmRoomList()+'</div>':'<div class="dm-global-info"><span>🌍</span><h3>Chat global do app</h3><p>Um espaço de conversa para todas as pessoas do site. Respeitem os colegas e evitem compartilhar dados pessoais.</p></div>';
  return '<section class="dm-shell"><div class="dm-list">'+
  '<header class="dm-list-head"><div><h1>Mensagens</h1><p>Conversas entre estudantes</p></div><span class="dm-online-dot"></span></header>'+
- '<nav class="dm-channel-tabs" aria-label="Tipos de conversa">'+
- [['private','Privadas'],['groups','Grupos'],['global','Global']].map(t=>'<button type="button" data-dm-tab="'+t[0]+'" class="'+(dm.tab===t[0]?'selected':'')+'" aria-pressed="'+(dm.tab===t[0])+'">'+t[1]+'</button>').join('')+'</nav>'+
+ '<nav class="dm-channel-tabs '+(dm.isAdmin?'has-admin':'')+'" aria-label="Tipos de conversa">'+
+ [['private','Privadas'],['groups','Grupos'],['global','Global'],...(dm.isAdmin?[['reports','Report de Erros']]:[])].map(t=>'<button type="button" data-dm-tab="'+t[0]+'" class="'+(dm.tab===t[0]?'selected':'')+'" aria-pressed="'+(dm.tab===t[0])+'">'+t[1]+'</button>').join('')+'</nav>'+
  list+'</div><div class="dm-main"><header class="dm-chat-head">'+heading+'<button type="button" class="dm-back" data-dm-back>Conversas</button></header>'+
  (dm.error?'<div class="dm-error" role="alert">'+esc(dm.error)+'</div>':'')+
  '<div class="dm-messages" id="dmMessages" aria-live="polite">'+dmThreadHtml()+'</div>'+
@@ -3575,6 +3606,8 @@ async function dmLoad(){
   if(groupMsgs.error)throw groupMsgs.error;
   if(onlineUser?.id!==id)return;
   dm.messages=messages.data||[];dm.people=people.data||[];dm.rooms=rooms.data||[];
+  if(dm.isAdmin){const reports=await client.rpc('uentzoul_list_error_reports');if(!reports.error)dm.reports=reports.data||[];else console.warn('Falha ao carregar relatos',reports.error);}
+
   const invitationRows=await client.from('uentzoul_exam_invites').select('id,exam_id,sender_id,recipient_id,status,created_at').limit(1000);
   if(!invitationRows.error)dm.invites=invitationRows.data||[];dm.roomMessages=groupMsgs.data||[];
   dm.owner=id;dm.ready=true;dm.lastFetch=Date.now();
@@ -3588,12 +3621,13 @@ function dmOnLogout(){
  if(dm.syncTimer)clearInterval(dm.syncTimer);dm.syncTimer=null;dm.pending=false;dm.channelStatus='';
  if(dm.realtime&&client)try{client.removeChannel(dm.realtime)}catch(_){}
  dm.realtime=null;dm.owner=null;dm.peerId=null;dm.messages=[];dm.people=[];dm.invites=[];dm.ready=false;dm.loading=false;dm.loadPromise=null;dm.error='';dm.draft='';dm.search='';dm.sending=false;
- dm.rooms=[];dm.roomMessages=[];dm.tab='private';dm.roomId=null;dm.mediaFile=null;dm.stickerOpen=false;dm.groupModal=false;dm.mediaCache.clear();dmBadge();dmShow();dmCloseProfile();
+ dm.rooms=[];dm.roomMessages=[];dm.reports=[];dm.isAdmin=false;dm.tab='private';dm.roomId=null;dm.mediaFile=null;dm.stickerOpen=false;dm.groupModal=false;dm.mediaCache.clear();dmBadge();dmShow();dmCloseProfile();
 }
 function dmOnLogin(){
  if(!client||!onlineUser)return;
  if(dm.owner!==onlineUser.id){dmOnLogout();dm.owner=onlineUser.id}
  dmLoad();
+ client.rpc('uentzoul_is_admin').then(({data,error})=>{if(!error&&onlineUser?.id===dm.owner){dm.isAdmin=data===true;renderAside();dmLoad();dmShow()}}).catch(console.warn);
  try{
   if(dm.realtime)client.removeChannel(dm.realtime);
   dm.realtime=client.channel('student-dm-'+onlineUser.id)
@@ -3601,6 +3635,7 @@ function dmOnLogin(){
   .on('postgres_changes',{event:'*',schema:'public',table:'uentzoul_exam_invites'},()=>dmLoad())
   .on('postgres_changes',{event:'*',schema:'public',table:'uentzoul_room_messages'},()=>dmLoad())
   .on('postgres_changes',{event:'*',schema:'public',table:'uentzoul_chat_rooms'},()=>dmLoad())
+  .on('postgres_changes',{event:'INSERT',schema:'public',table:'uentzoul_error_reports'},()=>{if(dm.isAdmin)dmLoad()})
   .subscribe(status=>{dm.channelStatus=status;if(status==='SUBSCRIBED')dmLoad()});
  }catch(err){console.warn('Notificações de chat indisponíveis',err)}
  if(dm.syncTimer)clearInterval(dm.syncTimer);
@@ -3674,8 +3709,8 @@ async function dmOpenProfile(id){
   if(dm.profileOpen!==id)return;
   const mine=id===onlineUser.id;
   body.innerHTML='<div class="dm-profile-cover"><span>PSICOLOGIA · PUCRS</span></div><div class="dm-profile-large">'+avatar(data.display_name,data.avatar_url)+'</div>'+
-   '<h2 id="dmProfileHeading">'+esc(data.display_name)+'</h2>'+
-   '<div class="dm-profile-about"><div class="dm-about-title"><span>Sobre</span><small>Bio do perfil</small></div><div class="dm-profile-bio">'+(data.bio?esc(data.bio).replace(/\n/g,'<br>'):'<span class="dm-bio-empty">Esta pessoa ainda não escreveu uma bio.</span>')+'</div></div>'+
+   '<h2 id="dmProfileHeading">'+esc(data.display_name)+'</h2>'+ (id==='11eadb0a-c79b-4347-be3b-20f2d31c18c7'?'<div class="admin-profile-role">✦ Administrador</div>':'')+
+   '<div class="dm-profile-about"><div class="dm-about-title"><span>Bio</span><small>Apresentação</small></div><div class="dm-profile-bio">'+(data.bio?esc(data.bio).replace(/\n/g,'<br>'):'<span class="dm-bio-empty">Esta pessoa ainda não escreveu uma bio.</span>')+'</div></div>'+
    (mine?'<button type="button" class="dm-profile-primary" data-dm-edit-profile>Editar meu perfil</button>':
    '<button type="button" class="dm-profile-primary" data-dm-message="'+esc(data.user_id)+'">Enviar mensagem</button>');
  }catch(e){body.innerHTML='<p class="dm-error">'+esc(e?.message||'Erro ao abrir o perfil.')+'</p>'}
@@ -4462,6 +4497,31 @@ document.addEventListener("click",e=>{if(!e.target.closest("[data-theme-toggle]"
   if(e.target.closest('[data-ranking-close]')||e.target.id==='rankRulesOverlay')close();
  });
  document.addEventListener('keydown',e=>{if(e.key==='Escape')close()});
+})();
+</script>
+<script>
+(function(){
+ const overlay=document.getElementById('errorReportOverlay'),field=document.getElementById('errorReportBody'),status=document.getElementById('reportStatus');
+ const close=()=>{overlay.hidden=true;document.body.style.overflow=''};
+ document.addEventListener('click',e=>{
+  if(e.target.closest('[data-report-open]')){e.preventDefault();overlay.hidden=false;status.textContent='';document.body.style.overflow='hidden';field.focus();return}
+  if(e.target.closest('[data-report-close]')||e.target===overlay){e.preventDefault();close()}
+ });
+ document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!overlay.hidden)close()});
+ field.addEventListener('input',()=>{document.getElementById('reportCharCount').textContent=field.value.length+' / 3000'});
+ document.getElementById('errorReportForm').addEventListener('submit',async e=>{
+  e.preventDefault();
+  if(typeof client==='undefined'||!client||typeof onlineUser==='undefined'||!onlineUser){status.textContent='Entre na sua conta para enviar o relato.';return}
+  const description=field.value.trim();
+  if(description.length<15){status.textContent='Descreva o problema com pelo menos 15 caracteres.';return}
+  const button=document.getElementById('reportSubmit');button.disabled=true;status.textContent='Enviando…';
+  try{
+   const {error}=await client.rpc('uentzoul_submit_error_report',{p_body:description});if(error)throw error;
+   field.value='';document.getElementById('reportCharCount').textContent='0 / 3000';status.textContent='Relato enviado anonimamente. Obrigado por ajudar a melhorar o site.';
+   if(typeof dm!=='undefined'&&dm.isAdmin)dmLoad();
+  }catch(err){status.textContent=err?.message||'Não foi possível enviar. Tente novamente.'}
+  finally{button.disabled=false}
+ });
 })();
 </script>
 </body></html>
