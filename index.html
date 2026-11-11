@@ -614,74 +614,119 @@ html[data-theme="dark"] .tz-notice{background:#3b2e29;border-color:#72543d;color
 }
 @media(min-width:761px){.mobile-nav-more{display:none!important}}
 
-/* IA Tzoul: conversa ampla, sem blocos laterais */
-.tz-shell{display:flex;flex-direction:column;max-width:1040px;width:100%;height:min(820px,calc(100dvh - 155px));min-height:560px;margin:0 auto;background:var(--paper);border:1px solid var(--line);border-radius:19px;overflow:hidden;box-shadow:0 8px 30px #332b6812}
-.tz-topline{display:flex;align-items:center;gap:11px;padding:18px 23px 10px;flex:none}
+/* IA Tzoul: visual de conversa em tela inteira */
+.tz-shell{display:flex;flex-direction:column;width:100%;max-width:1080px;height:calc(100dvh - 100px);min-height:600px;max-height:1020px;margin:0 auto;border:1px solid var(--line);border-radius:22px;background:var(--paper);overflow:hidden;box-shadow:0 12px 34px #342c6510}
+.tz-topline{display:flex;align-items:center;gap:12px;min-height:75px;flex:none;padding:14px 24px;border-bottom:1px solid var(--line)}
 .tz-topline .tz-avatar{width:45px;height:45px;border-radius:14px;border:1px solid #d8d2f0}
-.tz-title{display:flex;flex-direction:column;gap:3px;min-width:0;flex:1}
-.tz-title h1{font-size:20px;letter-spacing:-.5px;margin:0;line-height:1.15;color:var(--ink)}
+.tz-title{display:flex;flex-direction:column;gap:4px;min-width:0;flex:1}
+.tz-title h1{font-size:21px;letter-spacing:-.55px;margin:0;line-height:1.1;color:var(--ink)}
 .tz-title span{font-size:11px;color:var(--muted);font-weight:550}
-.tz-topline .tz-mini{white-space:nowrap;padding:9px 11px;border-radius:10px;font-size:11px}
-.tz-info{margin:0;padding:0 23px 16px;color:var(--muted);font-size:12px;line-height:1.55;border-bottom:1px solid var(--line)}
+.tz-topline .tz-mini{white-space:nowrap;padding:9px 12px;border-radius:11px;font-size:11px;font-weight:750;transition:transform .2s,background .2s,border-color .2s}
+.tz-topline .tz-mini:hover{transform:translateY(-2px);border-color:#afa0df}
 .tz-shell .tz-chat{display:flex;flex:1;flex-direction:column;min-height:0;overflow:hidden;background:transparent;box-shadow:none;border:0;border-radius:0}
-.tz-shell .tz-thread{flex:1;min-height:0;max-height:none;overflow-y:auto;overscroll-behavior:contain;display:flex;flex-direction:column;gap:20px;padding:22px clamp(16px,4%,38px);scrollbar-width:thin}
-.tz-shell .tz-empty{margin:auto;max-width:600px;text-align:center;padding:25px 5px}
-.tz-shell .tz-empty .tz-avatar{width:63px;height:63px;border-radius:20px;margin:0 auto 17px}
-.tz-shell .tz-empty h2{font-size:21px;letter-spacing:-.4px;margin:0 0 8px}
-.tz-shell .tz-empty p{font-size:13px;line-height:1.6;max-width:450px;margin:0 auto}
-.tz-shell .tz-examples{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:22px;text-align:left}
-.tz-shell .tz-examples button{font-size:12px;line-height:1.5;padding:13px 14px;border-radius:13px;min-height:64px}
-.tz-shell .tz-msg-body{max-width:min(88%,720px)}
-.tz-shell .tz-bubble{font-size:13px;line-height:1.75;padding:13px 16px;border-radius:13px}
+.tz-shell .tz-thread{flex:1;min-height:0;max-height:none;overflow-y:auto;overscroll-behavior:contain;display:flex;flex-direction:column;gap:24px;padding:26px clamp(18px,5%,65px);scrollbar-width:thin}
+.tz-shell .tz-empty{display:flex;flex-direction:column;align-items:center;justify-content:center;margin:auto;text-align:center;max-width:550px;padding:24px 10px}
+.tz-shell .tz-empty .tz-avatar{width:68px;height:68px;border-radius:20px;margin:0 auto 16px}
+.tz-shell .tz-empty h2{font-size:23px;letter-spacing:-.45px;margin:0 0 8px}
+.tz-shell .tz-empty p{font-size:13px;line-height:1.6;max-width:440px;margin:0;color:var(--muted)}
+.tz-shell .tz-msg-body{max-width:min(88%,750px)}
+.tz-shell .tz-bubble{font-size:13.5px;line-height:1.75;padding:14px 17px;border-radius:15px}
 .tz-shell .tz-actions button{font-size:11px;padding:7px 10px}
-.tz-shell .tz-notice{margin:8px 20px 0;flex:none}
+.tz-shell .tz-notice{margin:7px clamp(15px,4%,50px) 0;flex:none}
 .tz-login{padding:8px 20px}
-.tz-shell .tz-form{flex:none;padding:12px 20px 17px;background:var(--paper);border-top:1px solid var(--line)}
-.tz-context{margin:0 0 10px;padding:0}
-.tz-context summary{display:inline-flex;align-items:center;gap:6px;cursor:pointer;font-weight:700;font-size:11px;color:#6656b3;padding:4px 0}
-.tz-context[open] summary{margin-bottom:10px}
-.tz-context summary:hover{color:#4b3ca2}
-.tz-context .tz-options{margin-bottom:8px}
-.tz-context .tz-select{font-size:12px;padding:9px}
-.tz-context-mode{display:flex;align-items:center;gap:10px;margin:8px 0 6px;flex-wrap:wrap}
+.tz-shell .tz-form{flex:none;margin:0 auto;width:100%;max-width:930px;padding:9px clamp(14px,4%,45px) 19px;background:transparent;border-top:0}
+.tz-context{margin:0 0 13px;padding:0;width:fit-content;max-width:100%;position:relative;z-index:3}
+.tz-context summary{list-style:none;display:flex;align-items:center;gap:8px;max-width:100%;border:1px solid #bcb1f0;border-radius:13px;background:linear-gradient(115deg,#f0edff,#e9e4ff);color:#4b3ca0;box-shadow:0 3px 13px #6152bd15;font-size:12px;font-weight:810;padding:10px 13px;cursor:pointer;user-select:none;transition:transform .22s cubic-bezier(.2,.9,.2,1),background .22s,border-color .22s,box-shadow .22s}
+.tz-context summary::-webkit-details-marker{display:none}
+.tz-context summary::marker{content:""}
+.tz-context summary:hover{transform:translateY(-2px);background:linear-gradient(110deg,#e4deff,#d9d1fc);border-color:#8b79da;box-shadow:0 6px 18px #6152bd2b}
+.tz-context summary:focus-visible{outline:3px solid #9e8cfa;outline-offset:3px}
+.tz-context[open] summary{background:linear-gradient(115deg,#6153ca,#8270e0);color:#fff;border-color:#7b68d6;box-shadow:0 6px 19px #6551ca35}
+.tz-filter-icon{flex:none;transition:transform .22s ease}
+.tz-context summary:hover .tz-filter-icon{transform:scale(1.12) rotate(-5deg)}
+.tz-filter-title{white-space:nowrap;letter-spacing:-.08px}
+.tz-filter-current{font-size:10px;font-weight:660;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:155px;opacity:.82;border-left:1px solid currentColor;padding-left:9px}
+.tz-filter-chevron{flex:none;margin-left:auto;transition:transform .24s ease}
+.tz-context[open] .tz-filter-chevron{transform:rotate(180deg)}
+.tz-filter-panel{padding:14px 15px 12px;margin-top:8px;width:min(570px,calc(100vw - 48px));max-width:100%;background:var(--paper);border:1px solid #d9d1ee;border-radius:15px;box-shadow:0 12px 28px #41347a18;animation:tzFilterOpen .25s cubic-bezier(.2,.8,.2,1) both}
+@keyframes tzFilterOpen{from{opacity:0;transform:translateY(-7px) scale(.986)}to{opacity:1;transform:translateY(0) scale(1)}}
+.tz-context .tz-options{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:10px;margin:0 0 12px}
+.tz-context .tz-options label{color:var(--muted);font-size:11px;font-weight:740}
+.tz-context .tz-select{margin-top:5px;font-size:12px;padding:10px 11px;border-radius:10px}
+.tz-context-mode{display:flex;align-items:center;gap:12px;margin:7px 0 6px;flex-wrap:wrap}
 .tz-context-mode>span{font-size:11px;color:var(--muted);font-weight:720}
-.tz-context .tz-modes{display:inline-grid;grid-template-columns:repeat(2,minmax(100px,1fr));width:auto}
-.tz-context-note{color:var(--muted);font-size:10.5px;line-height:1.45;margin:8px 0 4px}
-.tz-shell .tz-prompt-label{display:none}
-.tz-shell .tz-form textarea{margin:0;border-radius:15px;min-height:65px;max-height:175px;resize:vertical;font-size:15px;line-height:1.5;padding:13px 15px}
-.tz-shell .tz-form-bottom{margin-top:9px}
-.tz-shell .tz-send{font-size:12px;border-radius:11px;padding:11px 18px}
-html[data-theme="dark"] .tz-shell{background:#202238;border-color:#45405f;box-shadow:0 9px 26px #09081328}
-html[data-theme="dark"] .tz-shell .tz-chat,html[data-theme="dark"] .tz-shell .tz-form{background:#202238}
-html[data-theme="dark"] .tz-info{border-color:#45405f}
-html[data-theme="dark"] .tz-context summary{color:#c2b3f6}
-html[data-theme="dark"] .tz-context summary:hover{color:#f0e9ff}
+.tz-context .tz-modes{display:inline-grid;grid-template-columns:repeat(2,minmax(96px,1fr));width:auto}
+.tz-context-note{color:var(--muted);font-size:10.5px;line-height:1.5;margin:10px 0 2px}
+.tz-shell .tz-composer{display:flex;align-items:flex-end;position:relative;gap:9px;padding:9px 9px 9px 18px;border:1.5px solid #d5ceea;border-radius:25px;background:#f9f8fd;box-shadow:0 5px 21px #51498514;transition:border-color .2s,box-shadow .2s,background .2s}
+.tz-shell .tz-composer:focus-within{background:var(--paper);border-color:#8673dc;box-shadow:0 0 0 3px #9787ef20,0 5px 22px #51498518}
+.tz-shell .tz-composer textarea{display:block;flex:1;min-width:0;width:100%;border:0!important;outline:0!important;box-shadow:none!important;background:transparent!important;color:var(--ink);margin:0;padding:9px 0 7px!important;min-height:49px;max-height:200px;resize:vertical;font:inherit;font-size:15px;line-height:1.55}
+.tz-composer textarea:focus{outline:none!important}
+.tz-hints{position:absolute;left:19px;top:18px;right:70px;min-height:42px;pointer-events:none;overflow:hidden;color:#8a859b;transition:opacity .16s}
+.tz-hints span{position:absolute;left:0;right:0;top:0;opacity:0;font-size:13px;font-weight:475;line-height:1.45;animation:tzHintCycle 20s ease-in-out infinite both}
+.tz-hints span:nth-child(2){animation-delay:5s}
+.tz-hints span:nth-child(3){animation-delay:10s}
+.tz-hints span:nth-child(4){animation-delay:15s}
+@keyframes tzHintCycle{0%{opacity:0;transform:translateY(5px)}3%,20%{opacity:1;transform:translateY(0)}25%,100%{opacity:0;transform:translateY(-4px)}}
+.tz-shell .tz-composer:focus-within .tz-hints,.tz-composer textarea:not(:placeholder-shown)~.tz-hints,.tz-composer textarea:disabled~.tz-hints{opacity:0;visibility:hidden}
+.tz-shell .tz-send{display:grid;place-items:center;width:42px;height:42px;min-width:42px;flex:none;padding:0;border-radius:15px;font-size:16px;transition:transform .2s,box-shadow .2s,filter .2s}
+.tz-shell .tz-send:hover:not(:disabled){transform:translateY(-2px) scale(1.05);box-shadow:0 5px 14px #5d48c851;filter:brightness(1.05)}
+.tz-shell .tz-send svg{display:block}
+.tz-shell .tz-composer-foot{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;padding:9px 4px 0}
+.tz-shell .tz-composer-foot small{color:var(--muted);font-size:10px;line-height:1.3}
+.tz-sr-only{position:absolute!important;width:1px!important;height:1px!important;padding:0!important;margin:-1px!important;overflow:hidden!important;clip:rect(0,0,0,0)!important;white-space:nowrap!important;border:0!important}
+html[data-theme="dark"] .tz-shell{background:#202238;border-color:#45405f;box-shadow:0 12px 32px #09081328}
+html[data-theme="dark"] .tz-shell .tz-chat,html[data-theme="dark"] .tz-shell .tz-form{background:transparent}
+html[data-theme="dark"] .tz-topline{border-color:#45405f}
+html[data-theme="dark"] .tz-context summary{background:linear-gradient(115deg,#3a315e,#4c3e76);border-color:#6f5c9e;color:#e7ddff}
+html[data-theme="dark"] .tz-context summary:hover{background:linear-gradient(115deg,#4f407d,#63508e);border-color:#a38adf}
+html[data-theme="dark"] .tz-context[open] summary{background:linear-gradient(115deg,#6451b0,#8167c4);color:#fff}
+html[data-theme="dark"] .tz-filter-panel{background:#28253f;border-color:#56486c;box-shadow:0 12px 24px #0005}
+html[data-theme="dark"] .tz-composer{background:#29283f;border-color:#57506b;box-shadow:0 5px 18px #07071125}
+html[data-theme="dark"] .tz-composer:focus-within{background:#2c2945;border-color:#a48be9}
+html[data-theme="dark"] .tz-hints{color:#b1acc8}
+html[data-theme="dark"] .tz-shell .tz-composer textarea{color:#f4f0ff}
 @media(max-width:760px){
- .tz-shell{height:max(515px,calc(100dvh - 208px));min-height:0;border-radius:16px}
- .tz-topline{padding:13px 13px 7px;gap:9px}
- .tz-topline .tz-avatar{width:37px;height:37px;border-radius:11px}
- .tz-title h1{font-size:17px}
+ .tz-shell{height:calc(100dvh - 202px);min-height:470px;max-height:none;border-radius:16px}
+ .tz-topline{min-height:58px;padding:11px 13px;gap:9px}
+ .tz-topline .tz-avatar{width:39px;height:39px;border-radius:12px}
+ .tz-title h1{font-size:18px}
  .tz-title span{font-size:10px}
  .tz-topline .tz-mini{font-size:10px;padding:8px 9px}
- .tz-info{padding:0 14px 10px;font-size:11px;line-height:1.45}
- .tz-shell .tz-thread{padding:13px 12px;gap:14px}
- .tz-shell .tz-empty{padding:13px 1px}
- .tz-shell .tz-empty .tz-avatar{width:46px;height:46px;border-radius:14px;margin-bottom:9px}
- .tz-shell .tz-empty h2{font-size:17px}
- .tz-shell .tz-empty p{font-size:11.5px}
- .tz-shell .tz-examples{grid-template-columns:minmax(0,1fr);gap:6px;margin-top:14px}
- .tz-shell .tz-examples button{min-height:0;padding:9px 11px;font-size:11px}
- .tz-shell .tz-form{padding:10px 11px 12px}
+ .tz-shell .tz-thread{padding:16px 12px;gap:17px}
+ .tz-shell .tz-empty{padding:12px 2px}
+ .tz-shell .tz-empty .tz-avatar{width:51px;height:51px;border-radius:16px;margin-bottom:11px}
+ .tz-shell .tz-empty h2{font-size:17px;line-height:1.25}
+ .tz-shell .tz-empty p{font-size:11.5px;line-height:1.5}
  .tz-shell .tz-msg-body{max-width:calc(100% - 39px)}
  .tz-shell .tz-bubble{padding:10px 12px;font-size:12px}
- .tz-shell .tz-form textarea{min-height:58px;padding:11px 12px;font-size:16px}
- .tz-shell .tz-form-bottom small{font-size:10px}
- .tz-shell .tz-send{min-width:86px}
+ .tz-shell .tz-form{padding:8px 10px 11px}
+ .tz-context{margin-bottom:9px}
+ .tz-context summary{padding:9px 11px;font-size:11.5px;gap:6px}
+ .tz-filter-current{max-width:106px;font-size:9.5px}
+ .tz-filter-panel{width:min(570px,calc(100vw - 47px));padding:11px 10px}
  .tz-context .tz-options{grid-template-columns:minmax(0,1fr)}
- .tz-shell .tz-notice{margin:5px 10px}
+ .tz-shell .tz-composer{border-radius:19px;padding:6px 7px 6px 13px;gap:7px}
+ .tz-shell .tz-composer textarea{min-height:45px;font-size:16px;padding:7px 0 5px!important}
+ .tz-hints{left:14px;right:56px;top:14px}
+ .tz-hints span{font-size:11.5px}
+ .tz-shell .tz-send{width:38px;height:38px;min-width:38px;border-radius:13px}
+ .tz-shell .tz-composer-foot{padding-top:7px}
+ .tz-shell .tz-composer-foot small{font-size:9px}
+ .tz-shell .tz-composer-foot small:last-child{display:none}
+ .tz-shell .tz-notice{margin:4px 10px}
 }
-@media(max-width:380px){.tz-shell .tz-form-bottom{flex-wrap:nowrap}.tz-shell .tz-send{width:auto;min-width:75px;padding:10px}.tz-shell .tz-topline{gap:5px}}
-@media(prefers-reduced-motion:reduce){.mobile-nav-more svg{transition:none}}
+@media(max-width:380px){
+ .tz-topline{gap:5px}
+ .tz-filter-current{max-width:77px}
+ .tz-context summary{gap:5px;padding:8px}
+ .tz-shell .tz-send{width:38px;min-width:38px}
+}
+@media(prefers-reduced-motion:reduce){
+ .tz-context summary,.tz-filter-icon,.tz-filter-chevron,.tz-shell .tz-send{transition:none}
+ .tz-filter-panel{animation:none}
+ .tz-hints span{animation:none;display:none;opacity:1}
+ .tz-hints span:first-child{display:block}
+}
 </style>
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2064%2064%22%3E%3Crect%20width%3D%2264%22%20height%3D%2264%22%20rx%3D%2214%22%20fill%3D%22%23192d44%22%2F%3E%3Ctext%20x%3D%2232%22%20y%3D%2246%22%20fill%3D%22white%22%20font-size%3D%2246%22%20font-family%3D%22Georgia%2Cserif%22%20text-anchor%3D%22middle%22%3E%CE%A8%3C%2Ftext%3E%3C%2Fsvg%3E">
 </head>
@@ -1419,37 +1464,37 @@ function renderAI(){
  if(!hasContent)notice='O semestre 2027/1 ainda não possui materiais. Escolhe 2026/2 para consultar as aulas.';
  else if(!logged)notice='Entra na tua conta online para conversar com a IA.';
  else if(tz.ready===false&&!notice)notice='A conexão com a IA ainda não foi ativada no servidor.';
- const examples=[
-  ['Corrige este trabalho de Psicologia da Família que vou colar aqui.','familia'],
-  ['Localiza os conceitos de ideologização e fatalismo nos materiais.','social'],
-  ['Resume a segunda teoria do aparelho psíquico com exemplos.','meta'],
-  ['Cria 10 questões de revisão sobre terapia do esquema.','tcc']
- ];
- const empty='<div class="tz-empty">'+tzAvatar()+'<h2>O que vamos estudar?</h2><p>Pergunta sobre uma aula ou pede ajuda com os materiais do semestre.</p><div class="tz-examples">'+examples.map(x=>
-  '<button type="button" data-tz-quick="'+esc(x[0])+'" data-tz-subject="'+x[1]+'">'+esc(x[0])+'</button>').join('')+'</div></div>';
+ const empty='<div class="tz-empty">'+tzAvatar()+'<h2>Como posso ajudar nos teus estudos?</h2><p>Conversa comigo sobre os conteúdos da PUCRS ou pede ajuda com os materiais de aula.</p></div>';
  const messages=tz.messages.length?tz.messages.map(tzMessage).join(''):empty;
- const status=!logged?'Entre na conta para conversar':tz.ready===true?'IA conectada':tz.ready===false?'IA indisponível':'Verificando conexão';
+ const status=!logged?'Entre na conta para conversar':tz.ready===true?'Conectada':tz.ready===false?'Indisponível':'Verificando conexão';
+ const subjectName=tz.subject==='todos'?'Todas as matérias':(DB.subjects[tz.subject]?.name||'Matéria selecionada');
  const html='<section class="tz-shell" aria-label="Conversa com a IA Tzoul">'+
  '<header class="tz-topline">'+tzAvatar()+'<div class="tz-title"><h1>IA Tzoul</h1><span>'+esc(status)+'</span></div>'+
- '<button type="button" class="tz-mini" data-tz-reset="1">+ Nova conversa</button></header>'+
- '<p class="tz-info">Explica conteúdos, corrige trabalhos, encontra trechos das aulas, resume materiais e cria questões ou documentos.</p>'+
+ '<button type="button" class="tz-mini" data-tz-reset="1" title="Iniciar outra conversa">+ Nova conversa</button></header>'+
  '<div class="tz-chat" role="region" aria-label="Chat de estudos">'+
  '<div class="tz-thread" id="tzThread" aria-live="polite">'+messages+(tz.busy?'<div class="tz-thinking">IA Tzoul está respondendo</div>':'')+'</div>'+
  (notice?'<div class="tz-notice" role="status">'+esc(notice)+'</div>':'')+
  (!logged&&hasContent?'<div class="tz-login"><button type="button" class="tz-send" data-action="tz-login">Entrar / Cadastrar</button></div>':'')+
  '<form class="tz-form" id="tzForm">'+
- '<details class="tz-context" id="tzContext" '+(tz.contextOpen?'open':'')+'><summary>Escolher matéria, referência ou tipo de resposta</summary>'+
- '<div class="tz-options"><label>Matéria<select id="tzSubject" class="tz-select"><option value="todos">Todas as disciplinas</option>'+
+ '<details class="tz-context" id="tzContext" '+(tz.contextOpen?'open':'')+'>'+
+ '<summary aria-label="Filtrar matérias, materiais e tipo de resposta">'+
+ '<svg class="tz-filter-icon" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h16M7 12h10M10 17h4"/></svg>'+
+ '<span class="tz-filter-title">Filtrar matérias</span><span class="tz-filter-current">'+esc(subjectName)+'</span>'+
+ '<svg class="tz-filter-chevron" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></summary>'+
+ '<div class="tz-filter-panel"><div class="tz-options"><label>Matéria<select id="tzSubject" class="tz-select"><option value="todos">Todas as disciplinas</option>'+
  Object.entries(DB.subjects).map(([k,v])=>'<option value="'+k+'" '+(tz.subject===k?'selected':'')+'>'+esc(v.name)+'</option>').join('')+
- '</select></label><label>Referência da biblioteca (opcional)<select id="tzMaterial" class="tz-select"><option value="">Usar os conteúdos indexados</option>'+
+ '</select></label><label>Arquivo da biblioteca (opcional)<select id="tzMaterial" class="tz-select"><option value="">Consultar os conteúdos indexados</option>'+
  files.map(m=>'<option value="'+esc(m.url)+'" '+(tz.material===m.url?'selected':'')+'>'+esc(m.title)+'</option>').join('')+
  '</select></label></div>'+
  '<div class="tz-context-mode"><span>Tipo de resposta</span><div class="tz-modes"><button type="button" data-tz-mode="chat" class="tz-mode '+(tz.mode==='chat'?'selected':'')+'">Conversa</button><button type="button" data-tz-mode="document" class="tz-mode '+(tz.mode==='document'?'selected':'')+'">Documento</button></div></div>'+
- '<p class="tz-context-note">A IA consulta os conteúdos cadastrados. A leitura integral de um PDF depende da disponibilidade do arquivo original.</p></details>'+
- '<label class="tz-prompt-label" for="tzPrompt">Mensagem</label>'+
- '<textarea id="tzPrompt" rows="2" maxlength="4000" placeholder="Pergunta alguma coisa sobre as aulas..." '+(!logged||!hasContent||tz.busy?'disabled':'')+'>'+esc(tz.draft)+'</textarea>'+
- '<div class="tz-form-bottom"><small>Enter para enviar · Shift + Enter para nova linha</small><button type="submit" class="tz-send" '+(!logged||!hasContent||tz.busy?'disabled':'')+'>'+(tz.busy?'Respondendo…':'Enviar ↗')+'</button></div></form>'+
- '</div></section>';
+ '<p class="tz-context-note">Um material só pode ser lido integralmente se o arquivo estiver acessível. Os demais conteúdos são consultados pela base indexada.</p></div></details>'+
+ '<div class="tz-composer"><label for="tzPrompt" class="tz-sr-only">Escreve uma mensagem à IA Tzoul</label>'+
+ '<textarea id="tzPrompt" rows="2" maxlength="4000" aria-label="Mensagem para a IA Tzoul" placeholder=" " '+(!logged||!hasContent||tz.busy?'disabled':'')+'>'+esc(tz.draft)+'</textarea>'+
+ '<div class="tz-hints" aria-hidden="true"><span>Corrigir trabalhos com base nos materiais da aula</span><span>Encontrar textos e trechos específicos dos conteúdos</span><span>Resumir um capítulo ou uma parte do material</span><span>Criar documentos, questões e roteiros de estudo</span></div>'+
+ '<button type="submit" class="tz-send" aria-label="Enviar mensagem" title="Enviar mensagem" '+(!logged||!hasContent||tz.busy?'disabled':'')+'>'+
+ '<svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 19V5M5 12l7-7 7 7"/></svg></button></div>'+
+ '<div class="tz-composer-foot"><small>Respostas sobre as matérias e materiais do site</small><small>Enter para enviar · Shift + Enter para nova linha</small></div>'+
+ '</form></div></section>';
  if(logged&&tz.ready===null&&!tz.checking)queueMicrotask(tzCheck);
  return html;
 }
@@ -1508,8 +1553,6 @@ document.addEventListener('toggle',e=>{if(e.target.id==='tzContext')tz.contextOp
 document.addEventListener('click',e=>{
  let b=e.target.closest('[data-tz-mode]');
  if(b){tz.draft=$('tzPrompt')?.value||tz.draft;tz.mode=b.dataset.tzMode;render();return;}
- b=e.target.closest('[data-tz-quick]');
- if(b){tz.subject=b.dataset.tzSubject||'todos';tz.material='';tz.draft=b.dataset.tzQuick;render();$('tzPrompt')?.focus();return;}
  b=e.target.closest('[data-tz-reset]');
  if(b){if(tz.busy)return;tz.messages=[];tz.draft='';tz.note='';render();return;}
  b=e.target.closest('[data-tz-copy]');
