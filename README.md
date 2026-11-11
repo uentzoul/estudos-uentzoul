@@ -65,3 +65,13 @@ A Edge Function **ia-tzoul** valida a sessão e confere a titularidade da matér
 ### Interface e comunicação
 
 A Biblioteca foi alinhada com títulos, contadores e materiais distribuídos em grades estáveis para computador e celular. Em mensagens de grupos e no chat global, avisos destinados à coletividade utilizam tratamento no plural.
+
+## Política de preservação de dados (obrigatória nas atualizações)
+
+**Não apagar ou reinicializar mensagens, conversas, simulados, respostas, provas entregues, matérias pessoais, agenda, histórico ou progresso ao atualizar a aparência ou funcionalidades do site.** Fazer alterações incrementais no código e migrações não destrutivas. Não usar TRUNCATE, DROP TABLE, migrações que esvaziem registros, nem sobrescrever históricos com arrays vazios em atualização automática. Exclusão só pode ocorrer por ação explícita e confirmada da própria pessoa sobre o seu conteúdo. Testar antes de publicar.
+
+## Atualização sem recarregar a página
+
+As mensagens privadas, dos grupos e do chat global utilizam Supabase Realtime e verificação de segurança periódica na aba aberta, inclusive ao retornar ao site. Compartilhamentos e novos simulados gerais também são atualizados por eventos e checagem periódica. A área Pessoal atualiza seus conteúdos sem recarregamento da página e preserva anotações em edição. O andamento de simulados gerais e pessoais fica salvo localmente durante a tentativa, além de as entregas concluídas permanecerem no Supabase.
+
+Os enunciados dos simulados usam separação de parágrafos, assertivas I/II/III em blocos próprios e destaque do comando final. Emojis decorativos são suprimidos apenas na exibição, sem alterar as questões já salvas; a IA foi orientada a não gerá-los em provas novas.
