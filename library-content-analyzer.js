@@ -8,7 +8,7 @@ const rules={
  avaliacao:[['devolução e documentos',['entrevista de devolução','devolutiva','laudo psicológico','parecer psicológico','elaboração de documentos','resolução cfp 06/2019']],['ética e normas',['ética na avaliação psicológica','resolução cfp 31/2022','resolução cfp 31','sigilo profissional','satepsi','código de ética']],['contexto organizacional',['contexto organizacional','avaliação organizacional','recrutamento e seleção','saúde do trabalhador']],['contexto hospitalar',['contexto hospitalar','psicologia hospitalar','hospitalização']],['contexto forense',['contexto forense','avaliação forense','perícia psicológica','psicologia jurídica','contexto judicial']],['atendimento a pessoas trans',['pessoas trans','população trans','identidade de gênero','transexualidade']],['instrumentos de avaliação',['avaliação psicológica','testes psicológicos','psicometria','validade de testes','precisão de testes','padronização','adaptação de instrumentos','bateria de testes','anamnese']]],
  grupos:[['Psicodrama',['psicodrama','jacob levy moreno','sociometria','protagonista','dramatização']],['Carl Rogers',['carl rogers','grupos de encontro','abordagem centrada na pessoa','consideração positiva incondicional']],['Escritores da Liberdade',['escritores da liberdade','freedom writers','erin gruwell']],['processos grupais',['psicologia dos grupos','dinâmica de grupos','cohesão grupal','coesão grupal']]]
 };
-const filenames={meta:'Metapsicologia',familia:'Psicologia da Família',tcc:'TCC',social:'Psicologia Social',avaliacao:'Avaliação Psicológica',grupos:'Psicologia dos Grupos'};
+const filenames={geral:'Cadernos integrados',meta:'Metapsicologia',familia:'Psicologia da Família',tcc:'TCC',social:'Psicologia Social',avaliacao:'Avaliação Psicológica',grupos:'Psicologia dos Grupos'};
 const normalize=s=>String(s||'').toLocaleLowerCase('pt-BR').normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[\u00ad]/g,'').replace(/\s+/g,' ').trim();
 function load(src,check){if(check())return Promise.resolve();return new Promise((res,rej)=>{const el=document.createElement('script');el.src=src;el.onload=()=>check()?res():rej(Error('Biblioteca de leitura indisponível'));el.onerror=()=>rej(Error('Sem conexão com o leitor de documentos'));document.head.append(el)})}
 function pages(n){const arr=[];for(let i=1;i<=Math.min(12,n);i++)arr.push(i);for(const f of [.25,.5,.75,1])arr.push(Math.max(1,Math.min(n,Math.floor(n*f))));return [...new Set(arr)].sort((a,b)=>a-b).slice(0,16)}
@@ -26,6 +26,15 @@ async function pptx(file){
  const zip=await window.JSZip.loadAsync(await file.arrayBuffer());const slides=Object.keys(zip.files).filter(x=>/^ppt\/slides\/slide\d+\.xml$/.test(x)).sort((a,b)=>parseInt(a.match(/slide(\d+)/)[1])-parseInt(b.match(/slide(\d+)/)[1]));
  let result='';for(const name of slides.slice(0,35)){let xml=await zip.file(name).async('string');const parts=[...xml.matchAll(/<a:t>([\s\S]*?)<\/a:t>/g)].map(m=>m[1].replace(/&(?:amp|lt|gt|quot|apos);/g,c=>({'&amp;':'&','&lt;':'<','&gt;':'>','&quot;':'"','&apos;':"'"}[c])));result+=' '+parts.join(' ');if(result.length>40000)break}return result.slice(0,40000);
 }
+const finalExamFocus={
+ meta:['segunda tópica','id, ego e superego','Édipo','narcisismo','pulsões','angústia','recalcamento'],
+ familia:['divórcio e recasamento','segredos e adoção','violência intrafamiliar','luto','dependência química','atendimento familiar'],
+ tcc:['Terapia do Esquema','ACT / flexibilidade','terapias de terceira onda'],
+ social:['psicologia social crítica','ideologia e marcadores sociais','algoritmos e polarização','interações sociais'],
+ avaliacao:['ética e normas','contexto organizacional','contexto hospitalar','contexto forense','atendimento a pessoas trans'],
+ grupos:['Psicodrama','Carl Rogers','Escritores da Liberdade','processos grupais']
+};
+const finalExamSupport={avaliacao:['devolução e documentos','instrumentos de avaliação']};
 const weakTokens=['psicologia social','psicanálise','freud','avaliação psicológica','psicologia dos grupos','terapia cognitiva de beck','modelo abc'];
 function score(text){
  const flat=normalize(text);const ranked=Object.entries(rules).map(([subject,topics])=>{
@@ -43,9 +52,15 @@ async function analyze(file){
  const meaningful=normalize(text).length>=80;const ranked=meaningful?score(text):[];
  const best=ranked[0]||null;const runner=ranked[1]||null;
  const confident=!!(best&&best.score>=6&&best.score>=((runner?.score||0)+3));
+ let examMatch='incerto';
+ if(confident&&best){
+  if((finalExamFocus[best.subject]||[]).some(t=>best.topics.includes(t)))examMatch='principal';
+  else if((finalExamSupport[best.subject]||[]).some(t=>best.topics.includes(t)))examMatch='complementar';
+  else examMatch='fora';
+ }
  const preview=text.replace(/\s+/g,' ').trim().slice(0,360);
  return {quality:meaningful?'texto':(error?'indisponivel':'sem_texto'),error,textLength:text.length,preview,
-  ranked,subject:confident?best.subject:'',topics:best?.topics||[],hits:best?.hits||[],
+  ranked,subject:confident?best.subject:'',topics:best?.topics||[],hits:best?.hits||[],examMatch,
   confidence:confident?((runner?.score||0)<=best.score/2?'alta':'moderada'):'revisao',
   summary:meaningful?('Conteúdo identificado: '+(best?.topics?.slice(0,6).join(', ')||'sem assunto identificado')+'. Amostra: '+preview.slice(0,180)):'Não foi possível extrair texto verificável; classificação manual necessária.'};
 }
