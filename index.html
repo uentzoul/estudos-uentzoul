@@ -2508,15 +2508,66 @@ async function geLoad(){
 }
 async function geCreate(){
  if(ge.busy||!geUser()||!DB.subjects[ge.subject])return;
+ const userId=geUser().id,requestedSubject=ge.subject,requestedSemester=semester,requestedDifficulty=ge.difficulty;
+ const startedAt=new Date().toISOString();
  ge.busy=true;ge.error='';ge.notice='A IA está montando a prova a partir dos materiais da disciplina.';
  render();
- try{
-  const data=await tzFetch('POST',{mode:'generated_exam_create',message:'Gerar prova inédita',subject:ge.subject,semester,difficulty:ge.difficulty});
-  if(!data.generatedExam)throw Error('A prova não foi retornada pelo servidor.');
-  ge.exams.unshift(data.generatedExam);ge.selected=data.generatedExam.id;ge.answers[ge.selected]=Array(15).fill('');
-  ge.notice='';
- }catch(e){ge.error=e?.message||'Falha ao gerar simulado.';ge.notice=''}
- finally{ge.busy=false;if(current.page==='exams')render();if(ge.pending){ge.pending=false;geLoad()}}
+ let finished=false,polling=false,pollTimer=null,timeoutTimer=null;
+ const finish=(exam,error)=>{
+  if(finished)return;
+  finished=true;
+  if(pollTimer!==null)clearInterval(pollTimer);
+  if(timeoutTimer!==null)clearTimeout(timeoutTimer);
+  if(geUser()?.id!==userId){ge.busy=false;return;}
+  if(exam){
+   if(!ge.exams.some(e=>e.id===exam.id))ge.exams.unshift(exam);
+   ge.selected=exam.id;
+   if(!ge.answers[exam.id])ge.answers[exam.id]=Array(15).fill('');
+   ge.error='';ge.notice='';
+  }else{
+   ge.error=error||'Não foi possível confirmar a criação do simulado. Verifica o histórico antes de tentar novamente.';
+   ge.notice='';
+  }
+  ge.busy=false;
+  if(current.page==='exams')render();
+  if(ge.pending){ge.pending=false;queueMicrotask(geLoad);}
+ };
+ // A resposta HTTP pode ficar pendente mesmo depois da gravação no banco.
+ // Consultar o registro salvo permite abrir a prova sem atualizar a página.
+ const checkSaved=async()=>{
+  if(finished||polling||!geClient()||geUser()?.id!==userId)return;
+  polling=true;
+  try{
+   const {data,error}=await geClient().from('uentzoul_generated_exams')
+    .select('id,creator_id,semester,subject,difficulty,title,questions,created_at')
+    .eq('creator_id',userId).eq('semester',requestedSemester)
+    .eq('subject',requestedSubject).eq('difficulty',requestedDifficulty)
+    .gte('created_at',startedAt).order('created_at',{ascending:false}).limit(5);
+   if(error)throw error;
+   const exam=(data||[]).find(e=>Array.isArray(e.questions)&&e.questions.length===15);
+   if(exam)finish(exam);
+  }catch(e){console.warn('Consulta automática do simulado:',e);}
+  finally{polling=false;}
+ };
+ pollTimer=setInterval(checkSaved,2500);
+ timeoutTimer=setTimeout(async()=>{
+  if(finished)return;
+  await checkSaved();
+  if(!finished)finish(null,'A geração está demorando mais que o esperado. Consulta o histórico antes de solicitar outra prova.');
+ },150000);
+ // Fazemos o acompanhamento independentemente da resposta da Edge Function.
+ tzFetch('POST',{mode:'generated_exam_create',message:'Gerar prova inédita',
+  subject:requestedSubject,semester:requestedSemester,difficulty:requestedDifficulty})
+  .then(data=>{
+   if(finished)return;
+   if(data?.generatedExam)finish(data.generatedExam);
+   else checkSaved().then(()=>{if(!finished)finish(null,'O servidor não retornou a prova. Verifica o histórico.');});
+  })
+  .catch(async e=>{
+   if(finished)return;
+   await checkSaved();
+   if(!finished)finish(null,e?.message||'Falha ao gerar simulado.');
+  });
 }
 async function geSubmit(){
  if(ge.busy||!ge.selected||geSubmission(ge.selected))return;
