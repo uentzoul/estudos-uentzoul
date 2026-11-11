@@ -11,7 +11,7 @@ const FORMATS={
  pptx:'application/vnd.openxmlformats-officedocument.presentationml.presentation'
 };
 let client=null,user=null,isAdmin=false,isBusy=false,chosenFiles=[],logEntries=[],refreshing=false,adminCheckedFor=null,initialized=false;
-let lastRowsSignature='',lastAdmin=false;
+let lastRowsSignature='',lastAdmin=false,refreshPending=false;
 const api=()=>window.uentzoulLibraryApp;
 const auth=()=>window.uentzoulAIAuth;
 function clean(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;','\'':'&#39;'}[c]));}
@@ -46,7 +46,8 @@ function paint(){
  el.innerHTML=html||'Os materiais enviados ficam disponíveis no site sem precisar abrir o GitHub.';
 }
 async function refresh(){
- if(refreshing||isBusy)return;
+ if(refreshing){refreshPending=true;return;}
+ if(isBusy)return;
  const a=auth(), c=a?.client?.();
  if(!c||!api())return;
  refreshing=true;
@@ -70,7 +71,7 @@ async function refresh(){
   if(signature!==lastRowsSignature){lastRowsSignature=signature;api().applyRows(rows);}
   initialized=true;paint();
  }catch(err){console.warn('Não foi possível atualizar os arquivos da Biblioteca:',err);if(isAdmin)show('Falha ao consultar a Biblioteca: '+(err?.message||'tente novamente'))}
- finally{refreshing=false;}
+ finally{refreshing=false;if(refreshPending){refreshPending=false;queueMicrotask(refresh);}}
 }
 function select(files){
  if(isBusy)return;
