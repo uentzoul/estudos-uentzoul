@@ -1774,10 +1774,20 @@ const nl=v=>esc(v).replace(/\n/g,'<br>');
 
 function examClean(raw){
  return String(raw??'').normalize('NFC')
-  .replace(/([0-9#*])\uFE0F?\u20E3/gu,'$1.')
-  .replace(/\p{Extended_Pictographic}[\uFE0E\uFE0F]?/gu,'')
-  .replace(/[\u{1F1E6}-\u{1F1FF}\u200D\uFE0E\uFE0F\u20E3]/gu,'')
-  .replace(/[ \t]{2,}/g,' ').trim();
+  // Remove emoji presentation sequences, pictographs and keycap symbols, including
+  // characters that might otherwise be rendered as emoji by the browser.
+  .replace(/(?:[0-9#*]\\uFE0F?\\u20E3)/gu,'')
+  .replace(/[\\u{1F000}-\\u{1FAFF}\\u{1FC00}-\\u{1FFFF}\\u{2600}-\\u{27BF}]/gu,'')
+  .replace(/\\p{Extended_Pictographic}/gu,'')
+  .replace(/[\\u200D\\uFE0E\\uFE0F\\u20E3\\u{1F3FB}-\\u{1F3FF}]/gu,'')
+  .replace(/[ \\t]{2,}/g,' ').trim();
+}
+function examOptionClean(raw){
+ return examClean(raw)
+  // The interface prints the option letter; remove prefixes supplied by the AI.
+  .replace(/^\\s*(?:alternativa\\s+)?[A-E]\\s*[).:\\-–—]\\s*/i,'')
+  .replace(/^\\s*\\([A-E]\\)\\s*/i,'')
+  .trim();
 }
 function examRich(raw){
  let t=examClean(raw).replace(/\r\n?/g,'\n').replace(/[ \t]*\n[ \t]*/g,'\n');
@@ -2460,7 +2470,7 @@ function geRenderExam(){
   if(q.type==='choice'){
    body='<fieldset class="ge-options"><legend class="tz-sr-only">Alternativas da questão '+(i+1)+'</legend>'+opt.map((v,j)=>
     '<label class="ge-option '+(review&&feedback?.answer===j?'correct':'')+'"><input type="radio" name="geq_'+i+'" data-ge-answer="'+i+'" value="'+j+'" '+
-    (String(answers[i])===String(j)?'checked':'')+' '+(review?'disabled':'')+'><span><strong>'+('ABCDE'[j]||'')+'.</strong> '+esc(examClean(v))+'</span></label>').join('')+'</fieldset>';
+    (String(answers[i])===String(j)?'checked':'')+' '+(review?'disabled':'')+'><span><strong>'+('ABCDE'[j]||'')+'.</strong> '+esc(examOptionClean(v))+'</span></label>').join('')+'</fieldset>';
   }else{
    body='<textarea class="ge-essay" data-ge-answer="'+i+'" rows="6" maxlength="6500" '+(review?'disabled':'')+' placeholder="Escreve tua resposta dissertativa…">'+esc(answers[i]||'')+'</textarea>';
   }
