@@ -1784,10 +1784,10 @@ function examRich(raw){
  t=t.replace(/([^\n])\s+((?:VIII|VII|VI|IV|III|II|IX|V|I|X)\s*[.):–—-]\s+)(?=\S)/g,'$1\n$2');
  t=t.replace(/([^\n])\s+((?:[1-9]|1[0-9])\s*[.):–—-]\s+)(?=\S)/g,'$1\n$2');
  t=t.replace(/([.!?;:])\s+(?=(?:Assinale|Marque|Indique|Escolha|Qual(?:\s| é)|Quais(?:\s| são)|Com base|A partir|Considerando|Diante disso|Nesse contexto|Em relação|Explique|Justifique|Analise|Identifique)\b)/gi,'$1\n');
- return t.split(/\n+/).map(x=>x.trim()).filter(Boolean).map(line=>{
+ return t.split(/\n+/).map(x=>x.trim()).filter(Boolean).map((line,index,all)=>{
   const assertion=line.match(/^((?:VIII|VII|VI|IV|III|II|IX|V|I|X)|(?:[1-9]|1[0-9]))\s*[.):–—-]\s+([\s\S]+)$/);
   if(assertion)return '<div class="exam-assertion"><span class="exam-assertion-label">'+esc(assertion[1])+'.</span><span>'+esc(assertion[2])+'</span></div>';
-  const task=/^(?:Assinale|Marque|Indique|Escolha|Qual\b|Quais\b|Com base|A partir|Considerando|Diante disso|Nesse contexto|Em relação|Explique|Justifique|Analise|Identifique)\b/i.test(line);
+  const task=index===all.length-1&&/^(?:Assinale|Marque|Indique|Escolha|Qual\b|Quais\b|Com base|A partir|Considerando|Diante disso|Nesse contexto|Em relação|Explique|Justifique|Analise|Identifique)\b/i.test(line);
   return '<p class="exam-paragraph'+(task?' exam-task':'')+'">'+esc(line)+'</p>';
  }).join('');
 }
