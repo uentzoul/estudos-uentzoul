@@ -2667,7 +2667,7 @@ async function geShare(){
     if(result.error)throw result.error;
     const invite=result.data;ge.invites.push(invite);
     const sent=await geClient().from('uentzoul_messages').insert({
-     sender_id:geUser().id,recipient_id:recipientId,kind:'text',body:'Convite de simulado: '+invite.id
+     sender_id:geUser().id,recipient_id:recipientId,kind:'text',body:'Convite de simulado: '+invite.id+'\n'+geSubjectName(exam.subject)+' · '+(exam.difficulty==='dificil'?'Difícil':'Normal')
     });
     if(sent.error)throw sent.error;
    }catch(e){failed.push(name+': '+(e?.message||'erro'));}
@@ -2821,6 +2821,7 @@ window.addEventListener('uentzoul:auth',()=>{
  if(geUser())queueMicrotask(geLoad);
 });
 window.addEventListener('uentzoul:semester',()=>{ge.selected=null;if(current.page==='exams')render()});
+window.addEventListener('uentzoul:exam-invite-updated',()=>geLoad());
 
 function render(){
  renderNav();
@@ -3379,14 +3380,13 @@ function dmGroupModalMarkup(){
 function dmMessageMedia(m){
  if(m.deleted_at)return '<p class="dm-deleted">Mensagem apagada</p>';
  const label=m.body&&m.body!=='[Imagem]'?'<p>'+esc(m.body).replace(/\n/g,'<br>')+'</p>':'';
- const inviteId=String(m.body||'').match(/^Convite de simulado: ([0-9a-f-]{36})$/i)?.[1];
+ const inviteId=String(m.body||'').match(/^Convite de simulado: ([0-9a-f-]{36})(?:\n|$)/i)?.[1];
  if(inviteId){
   const invite=dm.invites.find(x=>x.id===inviteId&&x.sender_id===m.sender_id&&x.recipient_id===m.recipient_id);
   if(!invite)return '<p>Convite de simulado</p>';
-  const subject=ge.exams.find(e=>e.id===invite.exam_id);
-  const label=subject?geSubjectName(subject.subject)+' · '+(subject.difficulty==='dificil'?'Difícil':'Normal'):'Simulado personalizado';
+  const examLabel=String(m.body||'').split('\n').slice(1).join(' ').slice(0,120)||'Simulado personalizado';
   const pending=invite.status==='pending',recipient=invite.recipient_id===dm.owner;
-  return '<div class="dm-exam-invite"><strong>Convite de simulado</strong><p>'+esc(label)+'</p>'+
+  return '<div class="dm-exam-invite"><strong>Convite de simulado</strong><p>'+esc(examLabel)+'</p>'+
    (pending&&recipient?'<div class="dm-exam-invite-actions"><button type="button" data-dm-exam-accept="'+esc(invite.id)+'">Adicionar aos meus simulados</button><button type="button" data-dm-exam-decline="'+esc(invite.id)+'">Recusar</button></div>':
    '<small>'+(invite.status==='accepted'?'Aceito e adicionado':invite.status==='declined'?'Recusado':'Aguardando resposta')+'</small>')+'</div>';
  }
@@ -3680,7 +3680,7 @@ async function dmRespondExamInvite(id,decision){
   if(error)throw error;
   invite.status=data.status;
   toast(decision==='accepted'?'Simulado adicionado à tua biblioteca.':'Convite recusado.');
-  if(decision==='accepted')geLoad();
+  if(decision==='accepted')window.dispatchEvent(new Event('uentzoul:exam-invite-updated'));
   dmShow();
  }catch(e){dm.error=e?.message||'Não foi possível responder ao convite.';dmShow();}
 }
