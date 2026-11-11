@@ -331,6 +331,50 @@ html[data-theme="dark"] :is(.filter.active,.audio-tab.selected){background:#4539
 @media(max-width:355px){.cards{grid-template-columns:1fr}.subjectcard{min-height:132px}}
 @media(hover:none){.sidebtn:hover,.subjectcard:hover,.examcard:hover,.doc:hover,.episodeunit:hover,.audio-tab:hover{transform:none}}
 @media(prefers-reduced-motion:reduce){*,*:before,*:after{animation-duration:.001ms!important;transition-duration:.001ms!important;scroll-behavior:auto!important}}
+
+/* Cartões clicáveis com resposta visual no ponto do clique */
+button.subjectcard{appearance:none;-webkit-appearance:none;width:100%;font:inherit;text-align:left;color:var(--ink);cursor:pointer;display:flex;flex-direction:column;align-items:stretch;touch-action:manipulation;-webkit-tap-highlight-color:transparent}
+button.subjectcard .subject-top,button.subjectcard .cardtitle,button.subjectcard .subject-meta,button.subjectcard .progressline,button.subjectcard .cardbase{position:relative;z-index:1}
+button.subjectcard .progressline{display:block;overflow:hidden}
+button.subjectcard .progressline>span{display:block;height:100%;background:linear-gradient(90deg,#6660d8,#9b7ced);border-radius:6px}
+button.subjectcard .subject-top{display:flex}
+button.subjectcard .cardtitle{display:block}
+button.subjectcard .subject-meta{display:block}
+button.subjectcard .cardbase{display:flex}
+.card-open-indicator{display:grid;place-items:center;height:28px;width:28px;border-radius:9px;border:1px solid #dedbf5;color:#625ac4;background:#f4f1ff;font-size:16px;line-height:1;transition:transform .22s ease,background .22s ease,color .22s ease}
+button.subjectcard:hover .card-open-indicator{transform:translate(2px,-2px);background:#ded9ff;color:#4c41b1}
+button.subjectcard:active,button.subjectcard.is-activating{transform:translateY(-1px) scale(.985);border-color:#b9b0ef;box-shadow:0 7px 22px #6960b52b}
+.subject-click-ripple{position:absolute;pointer-events:none;z-index:0;transform:translate(-50%,-50%) scale(0);width:470px;height:470px;border-radius:50%;background:radial-gradient(circle,color-mix(in srgb,var(--accent,#8075df) 28%,transparent) 0%,color-mix(in srgb,var(--accent,#8075df) 12%,transparent) 50%,transparent 72%);animation:subjectClickPulse .55s ease-out forwards}
+@keyframes subjectClickPulse{0%{opacity:.5;transform:translate(-50%,-50%) scale(0)}65%{opacity:.84}100%{opacity:0;transform:translate(-50%,-50%) scale(1)}}
+/* Semestres em menu suspenso, com somente o ativo visível quando fechado */
+.semester-selector{position:relative;z-index:75;display:block;padding:0;margin:0 4px 13px;border:0;border-radius:12px;background:transparent;overflow:visible}
+.semester-current{display:flex;align-items:center;gap:10px;text-align:left;width:100%;min-height:48px;border:1px solid #e1def4;border-radius:12px;background:linear-gradient(120deg,#f0edff,#faf9ff);color:#403b85;padding:8px 11px;box-shadow:0 2px 7px #3b35860d;transition:border-color .2s ease,box-shadow .2s ease,background .2s ease;cursor:pointer}
+.semester-current:hover{background:#eae6ff;border-color:#cfc7f6;box-shadow:0 6px 14px #554cb51b}
+.semester-current-icon{width:28px;height:28px;border-radius:8px;background:#e0dbff;color:#6557b6;display:grid;place-items:center;flex:none;font-size:18px;font-weight:800}
+.semester-current-copy{display:flex;flex-direction:column;flex:1;min-width:0;gap:1px}
+.semester-current-caption{font-size:9px;font-weight:800;color:#857bad;letter-spacing:1.1px}
+.semester-current-copy strong{font-size:13px;font-weight:800;line-height:1.2}
+.semester-chevron{flex:none;color:#796cba;transition:transform .22s ease}
+.semester-current[aria-expanded="true"] .semester-chevron{transform:rotate(180deg)}
+.semester-dropdown{position:absolute;left:0;right:0;top:calc(100% + 6px);z-index:90;background:var(--paper);border:1px solid var(--line);border-radius:12px;padding:5px;box-shadow:0 15px 30px #27215b24;animation:semesterMenuIn .18s ease-out both}
+.semester-dropdown[hidden]{display:none!important}
+.semester-option{width:100%;display:flex;justify-content:space-between;align-items:center;gap:8px;text-align:left;padding:10px 11px;border:0;border-radius:8px;background:transparent;color:var(--ink);font-size:12px;font-weight:720;cursor:pointer;transition:background .17s,color .17s}
+.semester-option:hover,.semester-option:focus-visible{background:#f0edff;color:#5546b2}
+.semester-option[aria-current="true"]{background:#f4f2ff;color:#5a4bb5}
+.semester-option-check{visibility:hidden;color:#6154cb}
+.semester-option[aria-current="true"] .semester-option-check{visibility:visible}
+@keyframes semesterMenuIn{from{opacity:0;transform:translateY(-5px)}to{opacity:1;transform:translateY(0)}}
+html[data-theme="dark"] .semester-current{background:#292642;border-color:#484166;color:#f0ebff}
+html[data-theme="dark"] .semester-current:hover{background:#353051;border-color:#6f609d}
+html[data-theme="dark"] .semester-current-icon{background:#403764;color:#c9b9ff}
+html[data-theme="dark"] .semester-current-caption{color:#b4a6d3}
+html[data-theme="dark"] .semester-dropdown{background:#23223a;border-color:#484160;box-shadow:0 15px 30px #0006}
+html[data-theme="dark"] .semester-option{color:#e9e5ff}
+html[data-theme="dark"] .semester-option:hover,html[data-theme="dark"] .semester-option[aria-current="true"]{background:#373055;color:#e6dbff}
+html[data-theme="dark"] .card-open-indicator{background:#35304c;border-color:#4f4672;color:#c4b8ff}
+html[data-theme="dark"] button.subjectcard:hover .card-open-indicator{background:#403660;color:#f0eaff}
+@media(max-width:760px){.semester-selector{margin:0 0 6px}.semester-current{min-height:40px;padding:5px 10px}.semester-current-icon{width:26px;height:26px}.semester-dropdown{top:calc(100% + 4px)}}
+@media(prefers-reduced-motion:reduce){.subject-click-ripple{display:none}.semester-dropdown{animation:none}button.subjectcard.is-activating{transform:none}}
 </style>
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2064%2064%22%3E%3Crect%20width%3D%2264%22%20height%3D%2264%22%20rx%3D%2214%22%20fill%3D%22%23192d44%22%2F%3E%3Ctext%20x%3D%2232%22%20y%3D%2246%22%20fill%3D%22white%22%20font-size%3D%2246%22%20font-family%3D%22Georgia%2Cserif%22%20text-anchor%3D%22middle%22%3E%CE%A8%3C%2Ftext%3E%3C%2Fsvg%3E">
 </head>
@@ -628,7 +672,17 @@ Qual conceito ou formulação explica MELHOR essa situação?</p><ol type="a"><l
     <button type="button" id="mobileSubjectToggle" class="mobile-subject-toggle" aria-expanded="false" aria-controls="subjectNav" aria-label="Abrir menu de disciplinas">Matérias <span aria-hidden="true">⌄</span></button>
   </div>
   <div class="logo"><span class="mark psychology-mark" aria-label="Símbolo da Psicologia">Ψ</span><div class="brand"><strong>Psicologia PUCRS 2026/2</strong><span>by: Enzo F.B.</span></div></div>
-  <div class="semester-selector" role="group" aria-label="Selecionar semestre"><button type="button" class="semester-tab active" data-semester="2026/2" aria-pressed="true">2026/2</button><button type="button" class="semester-tab" data-semester="2027/1" aria-pressed="false">2027/1</button></div>
+  <div class="semester-selector" id="semesterSelector">
+  <button type="button" class="semester-current" id="semesterCurrent" aria-label="Escolher semestre" aria-haspopup="true" aria-controls="semesterDropdown" aria-expanded="false">
+    <span class="semester-current-icon" aria-hidden="true">◈</span>
+    <span class="semester-current-copy"><span class="semester-current-caption">SEMESTRE</span><strong id="semesterCurrentLabel">2026/2</strong></span>
+    <svg class="semester-chevron" aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+  </button>
+  <div class="semester-dropdown" id="semesterDropdown" role="group" aria-label="Semestres disponíveis" hidden>
+    <button type="button" class="semester-option active" data-semester="2026/2" aria-current="true"><span>2026/2</span><span class="semester-option-check" aria-hidden="true">✓</span></button>
+    <button type="button" class="semester-option" data-semester="2027/1"><span>2027/1</span><span class="semester-option-check" aria-hidden="true">✓</span></button>
+  </div>
+</div>
   <nav class="menu" id="nav">
 <button class="sidebtn active" data-page="home"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="m3 10 9-7 9 7v10a1 1 0 0 1-1 1h-5v-7H9v7H4a1 1 0 0 1-1-1z"/></svg> Início</button>
 <button class="sidebtn" data-page="exams"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="3" width="14" height="18" rx="2"/><path d="M9 8h6M9 12h6M9 16h3"/></svg> Simulados</button>
@@ -801,15 +855,16 @@ const button=(label,act,cl='btn light')=>`<button class="${cl}" data-action="${a
 function subjectCard(id){
  const subj=getSubject(id), exams=DB.exams.filter(e=>e.subject===id), sims=doneCount(exams.map(e=>'sim:'+e.id)), keys=subjectKeys(id),n=doneCount(keys);
  const symbol={tcc:'T',familia:'F',meta:'M',grupos:'G',social:'S',avaliacao:'A'}[id]||'Ψ';
- return '<article class="subjectcard" style="--accent:'+color(id)+'">'+
- '<div class="subject-top"><span class="subject-symbol" aria-hidden="true">'+symbol+'</span><span class="subject-date">'+esc(subj.exam)+' · '+dformat(subj.date)+'</span></div>'+
- '<div class="cardtitle">'+esc(subj.name)+'</div>'+
- '<div class="subject-meta">'+n+' de '+keys.length+' atividades · '+sims+' de '+exams.length+' simulados</div>'+
- '<div class="progressline"><div style="width:'+fmtPct(n,keys.length)+'%"></div></div>'+
- '<div class="cardbase"><span class="pill">'+fmtPct(n,keys.length)+'% concluído</span><button class="plainlink" data-action="subject:'+id+'">Abrir matéria →</button></div></article>';
+ return '<button type="button" class="subjectcard" data-action="subject:'+id+'" aria-label="Abrir '+esc(subj.name)+'" style="--accent:'+color(id)+'">'+
+ '<span class="subject-top"><span class="subject-symbol" aria-hidden="true">'+symbol+'</span><span class="subject-date">'+esc(subj.exam)+' · '+dformat(subj.date)+'</span></span>'+
+ '<span class="cardtitle">'+esc(subj.name)+'</span>'+
+ '<span class="subject-meta">'+n+' de '+keys.length+' atividades · '+sims+' de '+exams.length+' simulados</span>'+
+ '<span class="progressline"><span style="width:'+fmtPct(n,keys.length)+'%"></span></span>'+
+ '<span class="cardbase"><span class="pill">'+fmtPct(n,keys.length)+'% concluído</span><span class="card-open-indicator" aria-hidden="true">↗</span></span></button>';
 }
 function renderNav(){
- document.querySelectorAll('[data-semester]').forEach(b=>{const active=b.dataset.semester===semester;b.classList.toggle('active',active);b.setAttribute('aria-pressed',String(active))});
+ document.querySelectorAll('[data-semester]').forEach(b=>{const active=b.dataset.semester===semester;b.classList.toggle('active',active);if(active)b.setAttribute('aria-current','true');else b.removeAttribute('aria-current')});
+ const currentLabel=$('semesterCurrentLabel');if(currentLabel)currentLabel.textContent=semester;
  document.querySelectorAll('.brand strong,.mobile-heading strong').forEach(el=>el.textContent='Psicologia PUCRS '+semester);
  document.title='Psicologia PUCRS '+semester;
  const nav=$('subjectNav');nav.innerHTML=Object.keys(DB.subjects).map(k=>`<button class="sidebtn ${current.subject===k && current.page==='subject'?'active':''}" data-action="subject:${k}"><i style="color:${color(k)}">●</i> ${esc(getSubject(k).name)}</button>`).join('');if(!Object.keys(DB.subjects).length)nav.innerHTML='<p class="semester-subjects-empty">As matérias de 2027/1 ainda não foram adicionadas.</p>';document.querySelectorAll('[data-page]').forEach(b=>b.classList.toggle('active',b.dataset.page===current.page));}
@@ -1052,10 +1107,69 @@ mobileSubjectsButton?.addEventListener('click',(e)=>{e.stopPropagation();const o
 document.addEventListener('click',(e)=>{if(e.target.closest('#subjectNav [data-action], #nav [data-page]'))closeMobileSubjects();else if(!e.target.closest('#siteSidebar'))closeMobileSubjects();});
 document.addEventListener('keydown',(e)=>{if(e.key==='Escape')closeMobileSubjects();});
 try{const medium=window.matchMedia('(min-width:761px)');const cb=(event)=>{if(event.matches)closeMobileSubjects();};if(medium.addEventListener)medium.addEventListener('change',cb);else if(medium.addListener)medium.addListener(cb);}catch(e){}
+function closeSemesterDropdown(){
+ const menu=$('semesterDropdown'),trigger=$('semesterCurrent');
+ if(!menu||!trigger)return;
+ menu.hidden=true;trigger.setAttribute('aria-expanded','false');
+}
+function triggerSubjectRipple(card,event){
+ if(!card||window.matchMedia('(prefers-reduced-motion: reduce)').matches)return;
+ const rect=card.getBoundingClientRect();
+ const isPointer=event&&event.detail>0&&Number.isFinite(event.clientX);
+ const x=isPointer?event.clientX-rect.left:rect.width/2;
+ const y=isPointer?event.clientY-rect.top:rect.height/2;
+ const ripple=document.createElement('span');
+ ripple.className='subject-click-ripple';
+ ripple.style.left=x+'px';ripple.style.top=y+'px';
+ card.appendChild(ripple);
+ ripple.addEventListener('animationend',()=>ripple.remove(),{once:true});
+}
 document.addEventListener('click',e=>{
+ const trigger=e.target.closest('#semesterCurrent');
+ if(trigger){
+  e.preventDefault();
+  const menu=$('semesterDropdown');
+  const open=menu.hidden;
+  menu.hidden=!open;
+  trigger.setAttribute('aria-expanded',String(open));
+  return;
+ }
  const semesterButton=e.target.closest('[data-semester]');
- if(semesterButton){e.preventDefault();switchSemester(semesterButton.dataset.semester);return;}
- const a=e.target.closest('[data-action]');if(a){e.preventDefault();onAction(a.dataset.action);return}let b=e.target.closest('[data-page]');if(b){e.preventDefault();go(b.dataset.page)}});
+ if(semesterButton){
+  e.preventDefault();
+  closeSemesterDropdown();
+  switchSemester(semesterButton.dataset.semester);
+  $('semesterCurrent')?.focus();
+  return;
+ }
+ if(!e.target.closest('#semesterSelector'))closeSemesterDropdown();
+ const card=e.target.closest('.subjectcard[data-action^="subject:"]');
+ if(card){
+  e.preventDefault();
+  if(card.classList.contains('is-activating'))return;
+  card.classList.add('is-activating');
+  triggerSubjectRipple(card,e);
+  const action=card.dataset.action;
+  const reduced=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  setTimeout(()=>onAction(action),reduced?0:260);
+  return;
+ }
+ const a=e.target.closest('[data-action]');
+ if(a){e.preventDefault();onAction(a.dataset.action);return}
+ const b=e.target.closest('[data-page]');
+ if(b){e.preventDefault();go(b.dataset.page)}
+});
+document.addEventListener('keydown',e=>{
+ if(e.key==='Escape'&&!$('semesterDropdown')?.hidden){
+  e.preventDefault();closeSemesterDropdown();$('semesterCurrent')?.focus();
+ }
+ if(e.key==='ArrowDown'&&e.target.id==='semesterCurrent'){
+  e.preventDefault();
+  const dropdown=$('semesterDropdown');dropdown.hidden=false;
+  $('semesterCurrent').setAttribute('aria-expanded','true');
+  dropdown.querySelector('.semester-option:not([aria-current="true"])')?.focus();
+ }
+});
 document.addEventListener('change',e=>{if(!e.target.matches('[data-complete]'))return;
  const id=e.target.dataset.complete;store.completed[id]=e.target.checked;persist();
  if(current.page==='audio'){
