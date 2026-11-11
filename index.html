@@ -1225,7 +1225,7 @@ let activeStoreKey=semester==='2026/2'?key:'central_psi_2027_1_v1',store=baseSto
 try{store=sanitizedStore(JSON.parse(localStorage.getItem(activeStoreKey)||'{}'));}catch{}
 const persist=()=>{try{localStorage.setItem(activeStoreKey,JSON.stringify(store));}catch{};window.dispatchEvent(new Event('uentzoul:progress'));};
 const isDone=id=>!!store.completed[id];
-const doneBox=(id,label='Concluído')=>`<label class="donecontrol ${isDone(id)?'is-checked':''}"><input type="checkbox" data-complete="${esc(id)}" aria-label="Marcar como ${esc(label.toLowerCase())}" ${isDone(id)?'checked':''}><span>${isDone(id)?'✓ OK':esc(label)}</span></label>`;
+const doneBox=(id,label='Marcar como visto')=>`<label class="donecontrol ${isDone(id)?'is-checked':''}" title="Registro pessoal de leitura. Não concede pontos no ranking."><input type="checkbox" data-complete="${esc(id)}" aria-label="Marcar como visto" ${isDone(id)?'checked':''}><span>${isDone(id)?'✓ Visto':esc(label)}</span></label>`;
 const audioEpisodes=k=>DB.audio[k]?.episodes||[];
 const doneCount=(items)=>items.filter(i=>isDone(i)).length;
 const topicProgressKey=(k,i)=>k==='grupos'?`topic:grupos:foco-v3:${i}`:`topic:${k}:${i}`;
@@ -1265,7 +1265,7 @@ window.uentzoulProfileBridge={
  readSaved:readSavedProfile,
  saveForSemester,
  countData:data=>{const valid=new Set(overallKeys());return Object.entries(data?.completed||{}).filter(([k,v])=>valid.has(k)&&v===true).length},
- score:()=>doneCount(overallKeys()),
+ score:()=>Number(window.uentzoulVerifiedScore||0),
  switchTo:(id,data)=>{activeProfileId=id;activeStoreKey=profileStoreKey(id);store=sanitizedStore(data||readSavedProfile(id));persist();render()}
 };
 
@@ -1465,8 +1465,8 @@ function renderSubject(k){
  (audioN?'<section class="section"><div class="panel"><div class="sectiontop"><h2>Podcasts · '+esc(subj.name)+'</h2><span class="small">'+audioN+' '+(k==='tcc'?'capítulos':'episódios')+'</span></div><p class="small">Ouvir, baixar por episódio e acompanhar o estudo.</p><div class="actions" style="margin-top:11px">'+button('Abrir podcasts','audioFor:'+k,'btn light')+'</div></div></section>':'')+
  '<div class="footer">Conteúdos de revisão e simulados didáticos; consulta também as orientações dos professores.</div>';
 }
-function renderExams(){return `${head('Simulados','Provas para praticar','Cinco simulados por disciplina, de moderado a desafio máximo, com correções comentadas.')}
-<div class="alert info" style="margin-top:19px">As provas anteriores de TCC, Social e Família foram usadas para aproximar a estrutura das questões. Onde não foi possível verificar o modelo do professor, o formato é uma simulação didática, não uma reprodução garantida.</div>${Object.keys(DB.subjects).sort((a,b)=>DB.subjects[a].date.localeCompare(DB.subjects[b].date)).map(k=>`<section class="section"><div class="sectiontop"><h2 style="border-left:4px solid ${color(k)};padding-left:10px">${esc(getSubject(k).name)}</h2><button class="plainlink" data-action="subject:${k}">Ver matéria</button></div><div class="examgrid exam-grid-5">${DB.exams.filter(e=>e.subject===k).map(examCard).join('')}</div></section>`).join('')}`}
+function renderExams(){return `${head('Simulados','Provas para praticar','Cinco simulados por disciplina, de moderado a desafio máximo, com correções comentadas. Só os simulados oficiais validados no servidor podem gerar pontos.')}
+<div class="alert info" style="margin-top:19px">Ranking: cada simulado oficial pode render 10 pontos uma única vez após 70% de acerto nas questões objetivas. São limitadas as tentativas; leituras, podcasts, materiais e marcações “Visto” não valem pontos. Simulados pessoais também não.</div><div class="alert info" style="margin-top:19px">As provas anteriores de TCC, Social e Família foram usadas para aproximar a estrutura das questões. Onde não foi possível verificar o modelo do professor, o formato é uma simulação didática, não uma reprodução garantida.</div>${Object.keys(DB.subjects).sort((a,b)=>DB.subjects[a].date.localeCompare(DB.subjects[b].date)).map(k=>`<section class="section"><div class="sectiontop"><h2 style="border-left:4px solid ${color(k)};padding-left:10px">${esc(getSubject(k).name)}</h2><button class="plainlink" data-action="subject:${k}">Ver matéria</button></div><div class="examgrid exam-grid-5">${DB.exams.filter(e=>e.subject===k).map(examCard).join('')}</div></section>`).join('')}`}
 function getAnswers(id){return store.answers[id]||{};}
 function renderTest(id){const exam=DB.exams.find(e=>e.id===id);if(!exam)return renderHome();const subj=getSubject(exam.subject),ans=getAnswers(id),r=store.results[id];const answered=exam.questions.filter(q=>String(ans[q.id]??'').trim()!=='').length;return `<button class="back" data-action="subject:${exam.subject}">← Voltar para ${esc(subj.name)}</button><div class="panel" style="border-top:3px solid ${color(exam.subject)}"><div class="eyebrow">${esc(subj.name)} · ${esc(exam.title)}</div><h1 class="h1">Simulado ${exam.model}</h1><div class="exam-test-difficulty" aria-label="Dificuldade ${difficultyStep(exam)} de 5 estrelas">${difficultyStars(difficultyStep(exam))}<span>${esc(DIFFICULTY_STEPS[difficultyStep(exam)-1].label)}</span></div><div style="margin:10px 0 14px">${doneBox(`sim:${id}`)}</div><p class="lead">${esc(subj.style)}</p><div class="statline"><span>${answered} de ${exam.questions.length} respondidas</span><span>${r?'Correção liberada':'Em andamento'}</span></div><div class="progressline"><div style="width:${answered/exam.questions.length*100}%"></div></div></div>
 ${r?`<section class="section"><div class="panel"><h2 style="margin:0 0 12px">Resultado da tentativa</h2><div class="resultstats"><div class="resultstat"><strong>${r.correct}/${r.total}</strong><span class="small">Objetivas / V-F</span></div><div class="resultstat"><strong>${Math.round(100*r.correct/(r.total||1))}%</strong><span class="small">Aproveitamento objetivo</span></div><div class="resultstat"><strong>${exam.questions.filter(q=>q.type==='essay').length}</strong><span class="small">Dissertativas para revisar</span></div></div><div class="alert info" style="margin-top:12px">As dissertativas não recebem nota automática: veja os critérios, compare com a resposta orientativa e use a opção de correção pelo ChatGPT quando quiser uma avaliação de conteúdo e gramática.</div><div class="actions" style="margin-top:14px">${button('Refazer o simulado',`redo:${id}`,'btn light')}${button('Imprimir correção','print','btn ghost')}</div></div></section>`:''}
@@ -1809,8 +1809,25 @@ function onAction(act){
  if(act==='prevAudio')return current.audioSubject==='tcc'?openChapter(currentChapter-1):openEpisode(currentEpisode-1);
  if(act==='nextAudio')return current.audioSubject==='tcc'?openChapter(currentChapter+1):openEpisode(currentEpisode+1);
  if(act.startsWith('ai:'))return copyForAI(act.slice(3));}
-function submit(id){const exam=DB.exams.find(e=>e.id===id);if(!exam)return;const answers=getAnswers(id);let blank=exam.questions.filter(q=>String(answers[q.id]??'').trim()==='').length;if(blank&&!store.results[id]&&!confirm(`${blank} questão(ões) ainda não respondida(s). Deseja corrigir mesmo assim?`))return;
- let obj=exam.questions.filter(q=>q.type!=='essay');let correct=obj.filter(q=>String(answers[q.id])===String(q.answer)).length;store.results[id]={correct,total:obj.length,date:new Date().toISOString()};store.completed[`sim:${id}`]=true;persist();render();window.scrollTo({top:0,behavior:'smooth'});toast('Correção liberada — veja os comentários de todas as alternativas.');}
+async function submit(id){
+ const exam=DB.exams.find(e=>e.id===id);if(!exam)return;
+ const answers=getAnswers(id),objective=exam.questions.filter(q=>q.type!=='essay');
+ const blanks=exam.questions.filter(q=>String(answers[q.id]??'').trim()==='').length;
+ if(blanks&&!store.results[id]&&!confirm(blanks+' questão(ões) ainda não respondida(s). Corrigir mesmo assim?'))return;
+ let verified=null,officialError='';
+ if(window.uentzoulAIAuth?.user()&&semester==='2026/2'&&!store.results[id]){
+  try{verified=await window.uentzoulSubmitVerifiedExam(exam,answers)}
+  catch(e){officialError=String(e?.message||'Não foi possível validar a pontuação.')}
+ }
+ const correct=objective.filter(q=>String(answers[q.id])===String(q.answer)).length;
+ store.results[id]={correct,total:objective.length,date:new Date().toISOString(),verifiedPoints:verified?.awarded?10:0};
+ store.completed['sim:'+id]=true;persist();render();
+ try{window.scrollTo({top:0,behavior:'smooth'})}catch(_){}
+ if(officialError)toast('Correção liberada, sem pontos: '+officialError);
+ else if(verified?.awarded)toast('Simulado aprovado: +10 pontos validados pelo servidor.');
+ else if(verified)toast('Correção liberada. '+(verified.eligible?'Pontos já registrados anteriormente.':'Mínimo de 70% para pontuar.'));
+ else toast('Correção liberada. Entra na conta para acumular pontos oficiais.');
+}
 function copyForAI(qid){const exam=DB.exams.find(e=>e.id===current.exam);const q=exam?.questions.find(x=>x.id===qid);if(!q)return;const ans=getAnswers(exam.id)[qid]||'[sem resposta]';const prompt=`Corrige esta resposta dissertativa de Psicologia no estilo universitário, com rigor e linguagem natural. Avalia o conteúdo, identifica erros conceituais e omissões, corrige a gramática SEM alterar o sentido e apresenta nota orientativa de 0 a 10 e uma versão revisada. Usa critérios explicitados.\n\nQuestão: ${q.prompt}\n\nMinha resposta: ${ans}\n\nCritérios: ${q.criteria.join('; ')}\n\nResposta orientativa: ${q.model}\n\nSe minha resposta trouxer ideia válida não presente na referência, considera-a com cuidado.`;
  const open=()=>{toast('Texto copiado. Cola-o no ChatGPT.');window.open('https://chatgpt.com/','_blank','noopener');};if(navigator.clipboard?.writeText){navigator.clipboard.writeText(prompt).then(open).catch(()=>{window.prompt('Copia o texto para o ChatGPT:',prompt)})}else window.prompt('Copia o texto para o ChatGPT:',prompt);}
 // Navigation and form persistence.
@@ -1897,12 +1914,12 @@ document.addEventListener('change',e=>{if(!e.target.matches('[data-complete]'))r
  const id=e.target.dataset.complete;store.completed[id]=e.target.checked;persist();
  if(current.page==='audio'){
   const k=current.audioSubject,eps=audioEpisodes(k),n=doneCount(eps.map(item=>`audio:${k}:${item.n}`));
-  const parent=e.target.closest('.donecontrol');if(parent){parent.classList.toggle('is-checked',e.target.checked);const label=parent.querySelector('span');if(label)label.textContent=e.target.checked?'✓ OK':'Concluído';}
+  const parent=e.target.closest('.donecontrol');if(parent){parent.classList.toggle('is-checked',e.target.checked);const label=parent.querySelector('span');if(label)label.textContent=e.target.checked?'✓ Visto':'Marcar como visto';}
   const wrap=e.target.closest('.episodeunit');if(wrap)wrap.classList.toggle('is-done',e.target.checked);
   const c=$('audioCompletedCount'),bar=$('audioCompletedBar');if(c)c.textContent=`${n}/${eps.length} concluídos`;if(bar)bar.style.width=`${fmtPct(n,eps.length)}%`;
   document.querySelectorAll('.audio-tab').forEach((b,i)=>{const sk=['tcc','grupos','familia','meta','avaliacao','social'][i],n=doneCount(audioEpisodes(sk).map(ep=>`audio:${sk}:${ep.n}`)),label=b.querySelector('small');if(label)label.textContent=`${n}/${audioEpisodes(sk).length} concluídos`;});
  }else{
-  const parent=e.target.closest('.donecontrol');if(parent){parent.classList.toggle('is-checked',e.target.checked);const label=parent.querySelector('span');if(label)label.textContent=e.target.checked?'✓ OK':'Concluído';}
+  const parent=e.target.closest('.donecontrol');if(parent){parent.classList.toggle('is-checked',e.target.checked);const label=parent.querySelector('span');if(label)label.textContent=e.target.checked?'✓ Visto':'Marcar como visto';}
   const topic=e.target.closest('.topicunit');if(topic)topic.classList.toggle('is-done',e.target.checked);
   if(current.page==='subject'){
    const k=current.subject,keys=subjectKeys(k),n=doneCount(keys);
@@ -1937,6 +1954,17 @@ try{render();document.documentElement.classList.add('app-ready');}catch(e){conso
 /* Perfis e ranking online — contas Supabase */
 (()=>{'use strict';
 const bridge=window.uentzoulProfileBridge;if(!bridge)return;
+window.uentzoulVerifiedScore=0;
+window.uentzoulSubmitVerifiedExam=async(exam,answers)=>{
+ if(!client||!onlineUser)throw Error('Entra na tua conta para acumular pontos.');
+ const objective=exam.questions.filter(q=>q.type!=='essay');
+ if(objective.some(q=>String(answers[q.id]??'').trim()===''))throw Error('Para pontuar, responde todas as questões objetivas antes de corrigir.');
+ const payload=Object.fromEntries(objective.map(q=>[q.id,String(answers[q.id])]));
+ const {data,error}=await client.rpc('uentzoul_submit_exam',{p_exam_id:exam.id,p_answers:payload});
+ if(error)throw Error(error.message||'Não foi possível validar a tentativa.');
+ window.uentzoulVerifiedScore=Number(data.score||0);
+ await loadRanking();return data;
+};
 const $=id=>document.getElementById(id), esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;','\'':'&#39;'}[c]));
 let onlineUser=null,remoteProfile=null,client=null,modalView='login',busy=false,syncTimer=null,rankData=[],rankBusy=false,cloudSnapshot=null,rankingSemester=null,cloudLoading=false,cloudError='',cloudInitPromise=null,enteringUserId=null,enteringPromise=null;
 const microsoftPUCRS={checked:false,enabled:false,checking:false,linked:null,linkBusy:false,error:'',notice:''};
@@ -2050,7 +2078,7 @@ function renderAside(){const el=$('profileSidebar');if(!el)return;const p=curren
 let rows=isOnline&&(rankingSemester===bridge.semester())?rankData:[];
 if(!bridge.hasSubjects())rows=[];
 const content=rows.length?rows.map((x,i)=>`<div class="rank-entry ${p&&(x.user_id||x.id)===p.id?'me':''}"><span class="rank-num">${i===0?'🏆':i+1}</span><button type="button" class="rank-user-trigger" data-dm-profile="${esc(x.user_id||x.id||'')}" title="Ver perfil de ${esc(x.display_name)}">${avatar(x.display_name,x.avatar_url,true)}<span class="rank-person"><strong>${esc(x.display_name)}</strong><span>${p&&(x.user_id||x.id)===p.id?'Você · ':''}Ver perfil e conversar</span></span></button><b class="rank-score">${Number(x.completed_count??x.score)||0}</b></div>`).join(''):`<div class="rank-empty">${!bridge.hasSubjects()?'Nenhuma pontuação em 2027/1. O ranking começará quando adicionarmos as matérias.':isOnline?'Ainda não há participantes no ranking.':'Entra na conta online para visualizar o ranking.'}</div>`;
-el.innerHTML=`<section class="profile-panel"><div class="profile-panel-top">${avatar(p?.name||'Visitante',p?.avatar)}<div class="profile-panel-info"><strong>${esc(p?.name||'Visitante')}</strong><span>${p?'Conta sincronizada':'Não conectado'}</span></div></div><button class="profile-action" data-account-action="open">${p?'Meu perfil / Configurações':'Entrar / Cadastrar'}</button><span class="profile-note">${p?`${score} atividades concluídas`:'O progresso só é sincronizado quando estás conectado.'}</span></section><div><h2 class="rank-title">Ranking · ${bridge.semester()}</h2><p class="rank-subtitle">${!bridge.hasSubjects()?'Pontuação independente — ainda sem matérias':isOnline?'Classificação da comunidade':'Ranking de contas online'}</p><div class="rank-list">${content}</div><div class="rank-footer">${isOnline?'Pontuação: total de itens marcados como concluídos. O ranking considera o progresso enviado por cada pessoa.':'O ranking e a sincronização funcionam somente com contas online.'}</div></div>`;
+el.innerHTML=`<section class="profile-panel"><div class="profile-panel-top">${avatar(p?.name||'Visitante',p?.avatar)}<div class="profile-panel-info"><strong>${esc(p?.name||'Visitante')}</strong><span>${p?'Conta sincronizada':'Não conectado'}</span></div></div><button class="profile-action" data-account-action="open">${p?'Meu perfil / Configurações':'Entrar / Cadastrar'}</button><span class="profile-note">${p?`${score} atividades concluídas`:'O progresso só é sincronizado quando estás conectado.'}</span></section><div><h2 class="rank-title">Ranking · ${bridge.semester()}</h2><p class="rank-subtitle">${!bridge.hasSubjects()?'Pontuação independente — ainda sem matérias':isOnline?'Classificação da comunidade':'Ranking de contas online'}</p><div class="rank-list">${content}</div><div class="rank-footer">${isOnline?'Pontuação validada pelo servidor: 10 pontos por simulado oficial aprovado (mínimo de 70%), uma única vez por simulado. Marcar itens como vistos não pontua.':'O ranking e a sincronização funcionam somente com contas online.'}</div></div>`;
 }
 function showModal(view='login'){modalView=view;$('profileOverlay').hidden=false;document.body.style.overflow='hidden';renderModal()}
 function closeModal(){$('profileOverlay').hidden=true;document.body.style.overflow=''}
@@ -2179,7 +2207,7 @@ async function loadRanking(){
  try{
   const {data,error}=await client.rpc('uentzoul_leaderboard_semester',{p_semester:requested,max_rows:20});
   if(error)throw error;
-  if(bridge.semester()===requested){rankData=data||[];rankingSemester=requested;renderAside()}
+  if(bridge.semester()===requested){rankData=data||[];rankingSemester=requested;window.uentzoulVerifiedScore=Number(rankData.find(x=>x.user_id===onlineUser.id)?.score||0);renderAside()}
  }catch(e){console.warn('Ranking indisponível',e)}
  finally{rankBusy=false;if(onlineUser&&bridge.semester()!==requested)queueMicrotask(loadRanking)}
 }
@@ -2227,7 +2255,7 @@ window.addEventListener('uentzoul:progress',()=>{
  }
 });
 window.addEventListener('uentzoul:semester',()=>{
- rankData=[];rankingSemester=null;renderAside();
+ rankData=[];rankingSemester=null;window.uentzoulVerifiedScore=0;renderAside();
  if(onlineUser)loadRanking().catch(console.warn);
 });
 
