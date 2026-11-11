@@ -551,6 +551,53 @@ html[data-theme="dark"] .agenda-classnote.warn{color:#efc78f}
 html[data-theme="dark"] .agenda-caveat{background:#3b3028;border-color:#67513e;color:#f5d5a8}
 @media(max-width:780px){.agenda-classrow{grid-template-columns:minmax(0,1fr)}.agenda-readcolumn{max-width:100%}}
 @media(max-width:520px){.agenda-switch{gap:8px}.agenda-switch-button{padding:11px 10px;gap:7px}.agenda-switch-icon{width:30px;height:30px;font-size:16px;border-radius:9px}.agenda-switch-copy strong{font-size:13px}.agenda-switch-copy small{font-size:10px}.agenda-examrow{flex-wrap:wrap}.agenda-examrow .agenda-reading-action{margin-left:auto}}
+
+/* IA Tzoul — interface de aprendizagem */
+.tz-hero{display:flex;align-items:center;gap:13px;background:linear-gradient(115deg,#383184,#6154c5,#8063d8);border-radius:18px;color:white;padding:18px 19px;box-shadow:0 10px 25px #483d8a22}
+.tz-hero h1{font-size:24px;margin:0;letter-spacing:-.6px}.tz-hero p{color:#eee9ff;font-size:11px;line-height:1.5;margin:5px 0 0}.tz-kicker{font-size:10px;letter-spacing:1.2px;color:#e3dcff;font-weight:800;margin-bottom:5px}
+.tz-avatar{height:36px;width:36px;border-radius:11px;background:#d3cafa;color:#4a3b9a;display:flex;align-items:center;justify-content:center;flex:none;overflow:hidden;border:1px solid #ffffff99}
+.tz-avatar img{height:100%;width:100%;object-fit:cover}.tz-hero .tz-avatar{width:58px;height:58px;border-radius:17px;border:2px solid #f2eaff}
+.tz-status{margin-left:auto;white-space:nowrap;font-size:10px;border:1px solid #ffffff4f;background:#ffffff1a;padding:7px 9px;border-radius:10px}
+.tz-grid{display:grid;grid-template-columns:minmax(0,1fr) 220px;gap:12px;margin-top:13px;align-items:start}
+.tz-chat,.tz-panel{background:var(--paper);border:1px solid var(--line);border-radius:15px;overflow:hidden;box-shadow:var(--shadow);min-width:0}
+.tz-head{display:flex;align-items:center;justify-content:space-between;gap:9px;padding:12px 14px;background:#f8f6ff;border-bottom:1px solid #e7e2f3}
+.tz-head strong{font-size:12px}.tz-head small{display:block;font-size:10px;color:var(--muted);margin-top:3px}
+.tz-mini{background:var(--paper);border:1px solid #ded9f0;padding:6px 9px;border-radius:8px;color:#5b4ab1;font-size:10px;font-weight:750;transition:background .2s}.tz-mini:hover{background:#eeeaff}
+.tz-thread{padding:16px 14px;min-height:310px;max-height:550px;overflow-y:auto;display:flex;flex-direction:column;gap:15px}
+.tz-empty{text-align:center;margin:auto;max-width:350px}.tz-empty .tz-avatar{width:55px;height:55px;border-radius:17px;margin:0 auto 11px}.tz-empty h2{font-size:17px;margin:0 0 7px}.tz-empty p{font-size:12px;color:var(--muted);line-height:1.6;margin:0}
+.tz-examples{display:grid;gap:7px;margin-top:13px}.tz-examples button{background:var(--paper);border:1px solid var(--line);border-radius:9px;padding:9px 10px;text-align:left;color:var(--ink);font-size:11px;transition:background .2s,transform .2s,border-color .2s}.tz-examples button:hover{background:#f3f0ff;border-color:#b5a9e2;transform:translateY(-2px)}
+.tz-msg{display:flex;align-items:flex-start;gap:9px}.tz-msg.user{flex-direction:row-reverse}.tz-msg .tz-avatar{width:31px;height:31px;border:1px solid #e7dcfa}
+.tz-me{display:grid;place-items:center;flex:none;width:31px;height:31px;border-radius:10px;background:#e9e5f7;color:#5347a3;font-size:10px;font-weight:800}
+.tz-msg-body{max-width:calc(100% - 42px);min-width:0}.tz-who{display:block;font-size:10px;color:var(--muted);font-weight:760;margin:0 0 5px}.tz-msg.user .tz-who{text-align:right}
+.tz-bubble{border-radius:4px 12px 12px 12px;background:#f6f3ff;border:1px solid #e8e2f6;color:var(--ink);font-size:12px;line-height:1.7;padding:11px 13px;overflow-wrap:anywhere}
+.tz-msg.user .tz-bubble{background:#ebe7ff;border-color:#d6cffa;border-radius:12px 4px 12px 12px}.tz-bubble h3{font-size:14px;margin:8px 0 3px}.tz-bubble h4{font-size:12px;margin:7px 0 2px}
+.tz-actions,.tz-sources{display:flex;flex-wrap:wrap;gap:5px;margin-top:8px}.tz-actions button,.tz-sources button{border:1px solid #ddd6f0;border-radius:8px;background:var(--paper);color:#5e50b3;font-size:10px;font-weight:710;padding:5px 8px;transition:background .2s}.tz-actions button:hover,.tz-sources button:hover{background:#ece7ff}
+.tz-form{padding:12px;border-top:1px solid var(--line);background:#fbfaff}
+.tz-options{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px}.tz-form label{display:block;color:var(--muted);font-size:10px;font-weight:750}
+.tz-select{width:100%;display:block;background:var(--paper);border:1px solid #ded8ef;border-radius:9px;color:var(--ink);margin-top:5px;min-width:0;padding:8px;font-size:11px}
+.tz-form textarea{width:100%;box-sizing:border-box;display:block;border:1px solid #dad4ef;border-radius:10px;background:var(--paper);color:var(--ink);padding:11px 12px;margin-top:6px;min-height:87px;max-height:210px;resize:vertical;font:inherit;font-size:12px;line-height:1.5}
+.tz-form textarea:focus,.tz-select:focus{outline:2px solid #afa3ec}
+.tz-form-bottom{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:9px}.tz-form-bottom small{font-size:10px;color:var(--muted)}
+.tz-send{background:linear-gradient(100deg,#5850c9,#8065db);border:0;color:white;padding:10px 13px;border-radius:9px;font-size:11px;font-weight:790;transition:transform .2s}.tz-send:hover:not(:disabled){transform:translateY(-2px)}.tz-send:disabled{opacity:.5;cursor:default}
+.tz-notice{font-size:11px;line-height:1.5;color:#906325;background:#fff8ec;border:1px solid #eedcb5;border-radius:10px;padding:10px 11px;margin:10px 12px}
+.tz-aside{display:flex;flex-direction:column;gap:10px}.tz-panel{padding:13px}.tz-panel h3{font-size:12px;margin:0 0 8px}.tz-panel p{font-size:11px;line-height:1.6;color:var(--muted);margin:5px 0}
+.tz-modes{display:grid;grid-template-columns:1fr 1fr;gap:4px;padding:4px;background:#eeebf8;border-radius:9px}.tz-mode{border:0;background:transparent;color:#796f98;border-radius:7px;padding:8px 3px;font-size:10.5px;font-weight:750}.tz-mode.selected{background:white;color:#5547af;box-shadow:0 2px 6px #33316b1a}
+.tz-thinking{font-size:12px;color:var(--muted);padding:10px 12px}.tz-thinking:after{content:" ● ● ●";animation:tzPulse 1s ease-in-out infinite alternate;color:#8e79df}@keyframes tzPulse{to{opacity:.28}}
+html[data-theme="dark"] .tz-chat,html[data-theme="dark"] .tz-panel{background:#202238;border-color:#45405f}
+html[data-theme="dark"] .tz-head{background:#292943;border-color:#48405e}
+html[data-theme="dark"] .tz-form{background:#24243d;border-color:#45405e}
+html[data-theme="dark"] .tz-bubble{background:#2d2c47;border-color:#484060;color:#f0ebff}
+html[data-theme="dark"] .tz-msg.user .tz-bubble{background:#40345e;border-color:#69538e}
+html[data-theme="dark"] .tz-examples button,html[data-theme="dark"] .tz-actions button,html[data-theme="dark"] .tz-sources button,html[data-theme="dark"] .tz-mini{background:#302e4a;color:#eee5ff;border-color:#51466c}
+html[data-theme="dark"] .tz-examples button:hover,html[data-theme="dark"] .tz-actions button:hover{background:#43355f}
+html[data-theme="dark"] .tz-select,html[data-theme="dark"] .tz-form textarea{background:#2d2b45;border-color:#5b4d74;color:#fff}
+html[data-theme="dark"] .tz-modes{background:#302a45}.tz-mode.selected{color:#5547af}
+html[data-theme="dark"] .tz-mode.selected{background:#53416e;color:#f4eaff}
+html[data-theme="dark"] .tz-notice{background:#3b2e29;border-color:#72543d;color:#f4d6b1}
+@media(max-width:1210px){.tz-grid{grid-template-columns:1fr}.tz-aside{display:grid;grid-template-columns:1fr 1fr}}
+@media(max-width:650px){.tz-aside{grid-template-columns:1fr}.tz-status{display:none}.tz-hero h1{font-size:21px}.tz-hero .tz-avatar{width:48px;height:48px}.tz-options{grid-template-columns:1fr}.tz-form-bottom{flex-wrap:wrap}.tz-thread{min-height:265px;max-height:450px;padding:13px 11px}}
+@media(max-width:380px){.tz-send{width:100%}}
+@media(prefers-reduced-motion:reduce){.tz-thinking:after{animation:none}}
 </style>
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2064%2064%22%3E%3Crect%20width%3D%2264%22%20height%3D%2264%22%20rx%3D%2214%22%20fill%3D%22%23192d44%22%2F%3E%3Ctext%20x%3D%2232%22%20y%3D%2246%22%20fill%3D%22white%22%20font-size%3D%2246%22%20font-family%3D%22Georgia%2Cserif%22%20text-anchor%3D%22middle%22%3E%CE%A8%3C%2Ftext%3E%3C%2Fsvg%3E">
 </head>
@@ -865,6 +912,7 @@ Qual conceito ou formulação explica MELHOR essa situação?</p><ol type="a"><l
 <button class="sidebtn" data-page="library"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h5v16H4zM9 4h5v16H9zM17 7l4 12-4 1-4-12z"/></svg> Biblioteca</button>
 <button class="sidebtn" data-page="audio"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg> Podcasts</button>
 <button class="sidebtn" data-page="calendar"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M7 3v4M17 3v4M3 10h18M8 14h3M8 17h5"/></svg> Agenda</button>
+<button class="sidebtn" data-page="ai"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="m12 2 2.6 6.9L21 11l-6.4 2.1L12 20l-2.6-6.9L3 11l6.4-2.1L12 2Z"/><path d="m19 18 1 2 2 1-2 1-1 2-1-2-2-1 2-1z"/></svg> IA Tzoul</button>
 </nav>
   <div class="navlbl">Disciplinas</div><nav class="menu" id="subjectNav"></nav>
   <div class="sidebarfoot">Atualizado · 10/11/2026 · Progresso por conteúdo<br>Dados salvos neste navegador.</div>
@@ -1258,15 +1306,132 @@ function renderCalendar(){
  tabs+'<div role="tabpanel">'+(calendarView==='provas'?examsView:classesView)+'</div>';
 }
 
+
+const TZ_AVATAR_URL='https://swseibmqoetnuctxyusj.supabase.co/storage/v1/object/public/uentzoul-avatars/11eadb0a-c79b-4347-be3b-20f2d31c18c7/avatar.jpg?v=1794341942331';
+const tz={messages:[],subject:'todos',material:'',mode:'chat',draft:'',busy:false,note:'',ready:null,checking:false,remaining:null};
+const tzAvatar=()=>'<span class="tz-avatar"><img src="'+esc(TZ_AVATAR_URL)+'" alt="Foto da IA Tzoul" loading="lazy"></span>';
+function tzMarkdown(t){return esc(t).replace(/^###\s*(.+)$/gm,'<h4>$1</h4>').replace(/^##\s*(.+)$/gm,'<h3>$1</h3>').replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>').replace(/\n/g,'<br>')}
+function tzFiles(){const seen=new Set();return DB.materials.filter(m=>{
+ if(!m.available||!/^biblioteca\/[a-z0-9_.-]+\.(pdf|docx|txt)$/i.test(m.url||''))return false;
+ if(tz.subject!=='todos'&&tz.subject!==m.subject)return false;
+ if(seen.has(m.url))return false;
+ seen.add(m.url);return true;
+})}
+function tzMessage(m,i){
+ const answer=m.role==='assistant';
+ const sources=answer&&m.sources?.length?'<div class="tz-sources">'+m.sources.slice(0,4).map(v=>
+ '<button type="button" data-action="'+(DB.subjects[v.subject]?'subject:'+v.subject:'page:library')+'">'+esc(v.title)+'</button>').join('')+'</div>':'';
+ return '<div class="tz-msg '+(answer?'assistant':'user')+'">'+(answer?tzAvatar():'<span class="tz-me">EU</span>')+
+ '<div class="tz-msg-body"><span class="tz-who">'+(answer?'IA Tzoul':'Tu')+'</span><div class="tz-bubble">'+tzMarkdown(m.content)+'</div>'+
+ sources+(answer?'<div class="tz-actions"><button data-tz-copy="'+i+'">Copiar</button><button data-tz-export="'+i+':txt">TXT</button><button data-tz-export="'+i+':md">Markdown</button><button data-tz-export="'+i+':doc">Word</button><button data-tz-export="'+i+':pdf">PDF</button></div>':'')+'</div></div>';
+}
+function renderAI(){
+ const logged=!!window.uentzoulAIAuth?.user(),hasContent=Object.keys(DB.subjects).length>0;
+ const files=tzFiles();
+ let notice=tz.note;
+ if(!hasContent)notice='O semestre 2027/1 ainda não possui materiais. Escolhe 2026/2 para consultar as aulas.';
+ else if(!logged)notice='Entra na tua conta online para conversar com a IA.';
+ else if(tz.ready===false&&!notice)notice='O serviço de IA ainda precisa da chave OpenAI no servidor.';
+ const examples=[['Explica a segunda teoria do aparelho psíquico com exemplos','meta'],['Cria 10 questões difíceis sobre terapia do esquema','tcc'],['Faz um fichamento sobre Martín-Baró','social']];
+ const empty='<div class="tz-empty">'+tzAvatar()+'<h2>O que vamos estudar?</h2><p>Tira dúvidas sobre as aulas, pede questões, roteiros, fichamentos e documentos relacionados aos materiais do site.</p><div class="tz-examples">'+examples.map(x=>
+  '<button data-tz-quick="'+esc(x[0])+'" data-tz-subject="'+x[1]+'">'+esc(x[0])+' →</button>').join('')+'</div></div>';
+ const messages=tz.messages.length?tz.messages.map(tzMessage).join(''):empty;
+ const status=!logged?'Acesso online':tz.ready===true?'Conectada':tz.ready===false?'Aguardando ativação':'Conectando';
+ const html='<header class="tz-hero">'+tzAvatar()+'<div><div class="tz-kicker">ASSISTENTE ACADÊMICA</div><h1>IA Tzoul</h1><p>Respostas e documentos sobre as disciplinas de Psicologia PUCRS.</p></div><span class="tz-status">'+esc(status)+'</span></header>'+
+ '<div class="tz-grid"><section class="tz-chat"><div class="tz-head"><div><strong>Conversa de estudos</strong><small>Baseada na API da OpenAI e no acervo do site</small></div><button class="tz-mini" data-tz-reset="1">Nova conversa</button></div>'+
+ '<div class="tz-thread" id="tzThread" aria-live="polite">'+messages+(tz.busy?'<div class="tz-thinking">IA Tzoul preparando resposta</div>':'')+'</div>'+
+ (notice?'<div class="tz-notice" role="status">'+esc(notice)+'</div>':'')+
+ (!logged&&hasContent?'<div style="padding:0 12px 12px"><button class="tz-send" data-action="tz-login">Entrar / Cadastrar</button></div>':'')+
+ '<form class="tz-form" id="tzForm"><div class="tz-options"><label>Disciplina<select id="tzSubject" class="tz-select"><option value="todos">Todas as disciplinas</option>'+
+ Object.entries(DB.subjects).map(([k,v])=>'<option value="'+k+'" '+(tz.subject===k?'selected':'')+'>'+esc(v.name)+'</option>').join('')+
+ '</select></label><label>Arquivo específico (opcional)<select id="tzMaterial" class="tz-select"><option value="">Usar base de estudos</option>'+
+ files.map(m=>'<option value="'+esc(m.url)+'" '+(tz.material===m.url?'selected':'')+'>'+esc(m.title)+'</option>').join('')+
+ '</select></label></div><label for="tzPrompt">Pergunta ou pedido<textarea id="tzPrompt" maxlength="4000" placeholder="Ex.: Prepara um roteiro sobre o capítulo de pulsão..." '+(!logged||!hasContent||tz.busy?'disabled':'')+'>'+esc(tz.draft)+'</textarea></label>'+
+ '<div class="tz-form-bottom"><small>Ctrl + Enter para enviar · Respostas exportáveis</small><button type="submit" class="tz-send" '+(!logged||!hasContent||tz.busy?'disabled':'')+'>'+(tz.busy?'Respondendo…':'Enviar pergunta ↗')+'</button></div></form></section>'+
+ '<aside class="tz-aside"><div class="tz-panel"><h3>Tipo de pedido</h3><div class="tz-modes"><button data-tz-mode="chat" class="tz-mode '+(tz.mode==='chat'?'selected':'')+'">Perguntas</button><button data-tz-mode="document" class="tz-mode '+(tz.mode==='document'?'selected':'')+'">Documentos</button></div><p>'+(tz.mode==='document'?'Cria materiais de estudo, fichamentos e textos estruturados para exportar em Word ou PDF.':'Explica teorias, compara conceitos, comenta questões e orienta revisões.')+'</p></div>'+
+ '<div class="tz-panel"><h3>Materiais da PUCRS</h3><p>Consulta os 79 tópicos, 30 simulados, cronogramas e referências do site.</p><p>Seleciona um arquivo disponível para solicitar análise do texto original. Referências sem PDF não são tratadas como texto integral.</p></div>'+
+ '<div class="tz-panel"><h3>Foco exclusivo nos estudos</h3><p>Responde somente sobre os conteúdos das disciplinas, aulas e trabalhos relacionados.</p><p>'+(tz.remaining===null?'A conversa fica nesta sessão.':'Consultas restantes hoje: '+tz.remaining+'.')+'</p></div></aside></div>';
+ if(logged&&tz.ready===null&&!tz.checking)queueMicrotask(tzCheck);
+ return html;
+}
+async function tzFetch(method,payload){
+ const session=await window.uentzoulAIAuth?.getSession();
+ if(!session?.access_token)throw Error('A sessão expirou. Entra na tua conta.');
+ const cfg=JSON.parse($('uentzoul-auth-config').textContent);
+ const r=await fetch(cfg.url+'/functions/v1/ia-tzoul',{method,headers:{Authorization:'Bearer '+session.access_token,apikey:cfg.publishableKey,'Content-Type':'application/json'},body:method==='POST'?JSON.stringify(payload):undefined});
+ const data=await r.json().catch(()=>({error:'Resposta inválida do servidor.'}));
+ if(!r.ok)throw Error(data.error||'A IA não conseguiu responder agora.');
+ return data;
+}
+async function tzCheck(){
+ if(current.page!=='ai'||tz.checking||tz.ready!==null||!window.uentzoulAIAuth?.user())return;
+ tz.checking=true;
+ try{const data=await tzFetch('GET');tz.ready=!!data.available;if(!data.available)tz.note=data.reason||'A chave da IA ainda não foi configurada.';}
+ catch(e){tz.ready=false;tz.note=e.message;}
+ finally{tz.checking=false;if(current.page==='ai')render();}
+}
+async function tzAsk(){
+ if(tz.busy)return;
+ const message=$('tzPrompt')?.value.trim()||'';
+ if(!message)return;
+ const history=tz.messages.slice(-10).map(m=>({role:m.role,content:m.content}));
+ tz.draft=message;tz.note='';tz.busy=true;tz.messages.push({role:'user',content:message});render();
+ try{
+  const answer=await tzFetch('POST',{message,history,subject:tz.subject,materialPath:tz.material,mode:tz.mode});
+  if(!answer.answer)throw Error('A IA não retornou texto.');
+  tz.messages.push({role:'assistant',content:answer.answer,sources:answer.sources||[]});
+  tz.remaining=typeof answer.remaining==='number'?answer.remaining:null;tz.draft='';
+  if(tz.material&&!answer.usedMaterial)tz.note='O texto integral do arquivo não pôde ser lido. A resposta usou o material indexado.';
+ }catch(e){tz.messages.pop();tz.note=e.message;}
+ finally{tz.busy=false;if(current.page==='ai'){render();const el=$('tzThread');if(el)el.scrollTop=el.scrollHeight;}}
+}
+function tzDownload(content,name,type){
+ const url=URL.createObjectURL(new Blob([content],{type}));
+ const a=document.createElement('a');a.href=url;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1500);
+}
+function tzExport(index,format){
+ const m=tz.messages[index];if(!m||m.role!=='assistant')return;
+ const name='IA_Tzoul_Estudo_'+(index+1);
+ if(format==='txt')return tzDownload(m.content,name+'.txt','text/plain;charset=utf-8');
+ if(format==='md')return tzDownload('# IA Tzoul — Material de estudo\n\n'+m.content,name+'.md','text/markdown;charset=utf-8');
+ const doc='<!doctype html><html><head><meta charset="utf-8"><title>IA Tzoul</title><style>body{font-family:Arial,sans-serif;color:#222;line-height:1.7;max-width:760px;margin:40px auto;padding:0 20px}main{white-space:pre-wrap;font-size:13px}</style></head><body><h1>IA Tzoul — Material de estudo</h1><main>'+esc(m.content)+'</main></body></html>';
+ if(format==='doc')return tzDownload(doc,name+'.doc','application/msword');
+ if(format==='pdf'){const w=window.open('','_blank');if(!w)return toast('Permite pop-ups para salvar como PDF.');w.document.open();w.document.write(doc);w.document.close();w.focus();setTimeout(()=>w.print(),350);}
+}
+document.addEventListener('submit',e=>{if(e.target.id==='tzForm'){e.preventDefault();tzAsk();}});
+document.addEventListener('input',e=>{if(e.target.id==='tzPrompt')tz.draft=e.target.value;});
+document.addEventListener('change',e=>{
+ if(e.target.id==='tzSubject'){tz.draft=$('tzPrompt')?.value||'';tz.subject=e.target.value;tz.material='';render();}
+ if(e.target.id==='tzMaterial')tz.material=e.target.value;
+});
+document.addEventListener('keydown',e=>{if(e.target.id==='tzPrompt'&&e.key==='Enter'&&(e.ctrlKey||e.metaKey)){e.preventDefault();tzAsk();}});
+document.addEventListener('click',e=>{
+ let b=e.target.closest('[data-tz-mode]');
+ if(b){tz.draft=$('tzPrompt')?.value||tz.draft;tz.mode=b.dataset.tzMode;render();return;}
+ b=e.target.closest('[data-tz-quick]');
+ if(b){tz.subject=b.dataset.tzSubject||'todos';tz.material='';tz.draft=b.dataset.tzQuick;render();$('tzPrompt')?.focus();return;}
+ b=e.target.closest('[data-tz-reset]');
+ if(b){if(tz.busy)return;tz.messages=[];tz.draft='';tz.note='';render();return;}
+ b=e.target.closest('[data-tz-copy]');
+ if(b){const m=tz.messages[Number(b.dataset.tzCopy)];if(m)navigator.clipboard?.writeText(m.content).then(()=>toast('Resposta copiada.'));return;}
+ b=e.target.closest('[data-tz-export]');
+ if(b){const [index,format]=b.dataset.tzExport.split(':');tzExport(Number(index),format);return;}
+});
+window.addEventListener('uentzoul:auth',()=>{
+ tz.ready=null;tz.note='';
+ if(!window.uentzoulAIAuth?.user()){tz.messages=[];tz.draft='';tz.remaining=null;}
+ if(current.page==='ai')render();
+});
+
 function render(){
  renderNav();
- if(!Object.keys(DB.subjects).length){
+ if(!Object.keys(DB.subjects).length&&current.page!=='ai'){
   const labels={home:['Semestre 2027/1','Um espaço novo para o próximo semestre'],exams:['Simulados','Nenhum simulado cadastrado'],library:['Biblioteca','Nenhum arquivo cadastrado'],audio:['Podcasts','Nenhum podcast cadastrado'],calendar:['Agenda','Nenhuma avaliação cadastrada']};
   const v=labels[current.page]||labels.home;
   $('main').innerHTML=head(semester,v[0],v[1])+'<section class="section"><div class="panel semester-empty"><h2>Este semestre ainda está vazio</h2><p class="muted">As matérias, os textos, os simulados, os podcasts e a agenda de 2027/1 serão adicionados quando estiverem definidos. O conteúdo de 2026/2 continua disponível na outra aba.</p><p class="small">O progresso e a pontuação deste semestre começam em zero e não se misturam com os do semestre anterior.</p></div></section>';
   return;
  }
- let body='';switch(current.page){case 'home':body=renderHome();break;case 'subject':body=renderSubject(current.subject);break;case 'exams':body=renderExams();break;case 'test':body=renderTest(current.exam);break;case 'library':body=renderLibrary();break;case 'audio':body=renderAudio();break;case 'calendar':body=renderCalendar();break;default:body=renderHome()};$('main').innerHTML=body;if(current.page==='audio')setupAudio();}
+ let body='';switch(current.page){case 'home':body=renderHome();break;case 'subject':body=renderSubject(current.subject);break;case 'exams':body=renderExams();break;case 'test':body=renderTest(current.exam);break;case 'library':body=renderLibrary();break;case 'audio':body=renderAudio();break;case 'calendar':body=renderCalendar();break;case 'ai':body=renderAI();break;default:body=renderHome()};$('main').innerHTML=body;if(current.page==='audio')setupAudio();}
 /* Armazenamento local de podcasts. A URL de cada episódio é publicada como
    arquivo independente; o HTML não carrega o áudio antecipadamente. */
 const POD_DB_NAME='EstudosUentzoulPodcasts_v1';
@@ -1337,6 +1502,7 @@ function downloadEpisodeAction(k,i){if(!DB.audio[k]||!Number.isInteger(i)||i<0||
 /* Recuperar os episódios baixados quando o site é aberto novamente. */
 const podcastDBOpening=openPodcastDB().then(()=>{const tx=podcastDB.transaction(POD_DB_STORE,'readonly'),req=tx.objectStore(POD_DB_STORE).getAllKeys();req.onsuccess=()=>{req.result.forEach(key=>episodeReady.add(key));if(current.page==='audio')updatePickedAudioLabels()};return podcastDB}).catch(e=>{console.warn('Downloads permanentes indisponíveis',e);return null;});
 function onAction(act){
+ if(act==='tz-login'){window.uentzoulAIAuth?.openLogin();return}
  if(act.startsWith('agenda-tab:')){
   const tab=act.slice('agenda-tab:'.length);
   if(tab==='provas'||tab==='conteudos'){calendarView=tab;render()}
@@ -1595,7 +1761,7 @@ cloudSnapshot={semesters:{
 for(const item of ['2026/2','2027/1'])bridge.saveForSemester(id,item,cloudSnapshot.semesters[item]);
 onlineUser=user;bridge.switchTo(id,cloudSnapshot.semesters[sem]);
 if(!prog)await saveCloud();
-await loadRanking();renderAside();if(!$('profileOverlay').hidden)renderModal();
+await loadRanking();renderAside();window.dispatchEvent(new Event('uentzoul:auth'));if(!$('profileOverlay').hidden)renderModal();
  })();
  try{return await enteringPromise}finally{enteringUserId=null;enteringPromise=null}
 }
@@ -1646,7 +1812,7 @@ document.addEventListener('click',async e=>{
   try{
    await client?.auth.signOut();onlineUser=null;remoteProfile=null;cloudSnapshot=null;rankData=[];rankingSemester=null;
    bridge.switchTo('guest-session',{answers:{},results:{},bookmarks:{},completed:{}});
-   renderAside();closeModal();
+   renderAside();window.dispatchEvent(new Event('uentzoul:auth'));closeModal();
   }catch(err){msg(err.message||'Não foi possível sair da conta.')}
  }
 });
@@ -1664,6 +1830,7 @@ window.addEventListener('uentzoul:semester',()=>{
  rankData=[];rankingSemester=null;renderAside();
  if(onlineUser)loadRanking().catch(console.warn);
 });
+window.uentzoulAIAuth={user:()=>onlineUser,getSession:async()=>{if(!client)return null;const r=await client.auth.getSession();return r?.data?.session||null},openLogin:()=>showModal('login')};
 bridge.switchTo('guest-session',{answers:{},results:{},bookmarks:{},completed:{}});
 renderAside();initCloud();
 })();
