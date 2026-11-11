@@ -936,7 +936,7 @@ html[data-theme=dark] .dm-group-glyph{background:#514473;color:#dfd1ff}
 html[data-theme=dark] .dm-message-bubble .dm-author{color:#c6b1ef}
 html[data-theme=dark] .dm-sticker-menu button:hover{background:#49385f}
 /* Perfil e bio com hierarquia visual */
-.dm-profile-dialog{padding:0 0 24px;overflow:hidden}
+.dm-profile-dialog{padding:0 0 24px;overflow-x:hidden;overflow-y:auto}
 .dm-profile-cover{height:125px;display:flex;align-items:start;justify-content:start;padding:20px;background:linear-gradient(130deg,#3e358d,#7b65d1 63%,#a68cdc);color:#ffffffd9}
 .dm-profile-cover span{font-size:9px;font-weight:840;letter-spacing:1.5px}
 .dm-profile-large{position:relative;margin-top:-48px;display:flex;justify-content:center}
@@ -2470,12 +2470,12 @@ function dmConversations(){
   const id=msg.sender_id===dm.owner?msg.recipient_id:msg.sender_id;
   if(id===dm.owner||!dmValid(id))continue;
   if(!byId.has(id))byId.set(id,{id,last:msg,unread:0});
-  if(msg.recipient_id===dm.owner&&!msg.read_at)byId.get(id).unread++;
+  if(msg.recipient_id===dm.owner&&!msg.read_at&&!msg.deleted_at)byId.get(id).unread++;
  }
  return [...byId.values()].sort((a,b)=>new Date(b.last.created_at)-new Date(a.last.created_at));
 }
 function dmBadge(){
- const count=dm.messages.filter(m=>m.recipient_id===dm.owner&&!m.read_at).length;
+ const count=dm.messages.filter(m=>m.recipient_id===dm.owner&&!m.read_at&&!m.deleted_at).length;
  const el=document.getElementById('dmNavBadge');if(!el)return;
  el.hidden=!count;el.textContent=count>99?'99+':String(count);
  el.setAttribute('aria-label',count+' mensagens não lidas');
