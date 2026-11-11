@@ -866,6 +866,91 @@ html[data-theme="dark"] .ms-auth-button.ms-connected{background:#274b40;color:#d
 html[data-theme="dark"] .ms-auth-error{color:#f0a1ac}
 html[data-theme="dark"] .ms-auth-success{background:#244436;color:#d3ffe9;border-color:#4c9770}
 @media(prefers-reduced-motion:reduce){.ms-auth-button{transition:none}}
+
+/* Conversa unificada: DMs, grupos e global */
+.dm-channel-tabs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:4px;padding:5px;margin:0 12px 13px;border-radius:12px;background:#eeebf9}
+.dm-channel-tabs button{background:transparent;color:#756b92;border:0;border-radius:9px;font-size:11px;font-weight:780;min-height:39px;cursor:pointer;transition:background .18s,color .18s,transform .18s}
+.dm-channel-tabs button:hover{transform:translateY(-2px);color:#5140a5}
+.dm-channel-tabs button.selected{background:#fff;color:#5746ba;box-shadow:0 2px 9px #34235d1b}
+.dm-group-toolbar{display:flex;align-items:center;justify-content:space-between;gap:7px;padding:11px 5px}
+.dm-group-toolbar strong{font-size:12px}
+.dm-group-toolbar button{border:1px solid #b2a6df;border-radius:9px;background:var(--soft);color:#5b4cb1;padding:8px 9px;font-size:10px;font-weight:780;cursor:pointer}
+.dm-group-entry{width:100%;display:flex;gap:9px;align-items:center;min-height:55px;background:transparent;border:1px solid transparent;border-radius:11px;color:var(--ink);text-align:left;padding:8px;cursor:pointer}
+.dm-group-entry:hover,.dm-group-entry.selected{background:#f0edff;border-color:#d3cbf1}
+.dm-group-glyph{display:grid;place-items:center;border-radius:12px;background:#dcd6fa;color:#5e4db9;width:38px;height:38px;font-size:25px}
+.dm-group-entry strong,.dm-group-entry small{display:block}
+.dm-group-entry strong{font-size:12px}
+.dm-group-entry small{font-size:10px;color:var(--muted);margin-top:4px}
+.dm-room-heading strong,.dm-room-heading small{display:block}
+.dm-room-heading strong{font-size:14px}
+.dm-room-heading small{font-size:10px;color:var(--muted);margin-top:5px}
+.dm-global-info{padding:35px 15px;text-align:center;color:var(--muted)}
+.dm-global-info span{font-size:38px}
+.dm-global-info h3{color:var(--ink);font-size:14px;margin:10px 0}
+.dm-global-info p{font-size:11px;line-height:1.7}
+.dm-message-bubble .dm-author{font-weight:800;font-size:10px;color:#6556a3;display:block;margin:0 0 5px}
+.dm-sticker-art{font-size:63px;line-height:1.2;padding:3px 8px 10px;filter:drop-shadow(1px 5px 3px #17102623)}
+.dm-attachment{max-width:340px;margin:0 0 8px}
+.dm-attachment img{display:block;max-width:100%;max-height:310px;min-width:95px;min-height:65px;object-fit:contain;border-radius:10px;background:#e6e1f5;cursor:zoom-in}
+.dm-attachment span{display:block;margin-top:5px;font-size:9px;color:var(--muted)}
+.dm-deleted{font-size:12px;color:var(--muted);font-style:italic}
+.dm-message-info button{border:0;background:transparent;color:#73678d;font-size:10px;cursor:pointer;padding:2px}
+.dm-message-info button:hover{color:#b24d65;text-decoration:underline}
+.dm-composer-wrap{position:relative;flex:none;padding:0;margin:0}
+.dm-composer-wrap .dm-composer{display:flex;align-items:center;gap:5px;padding:7px;margin:10px 15px 14px}
+.dm-composer-wrap .dm-composer-action{background:transparent!important;border:0!important;width:32px;height:36px;min-width:32px;color:#7765a1!important;font-size:24px;cursor:pointer}
+.dm-composer-wrap .dm-composer-action:hover{background:#e4dafa!important}
+.dm-composer-wrap .dm-send-button{background:#6656c9}
+.dm-media-selected{background:var(--soft);border:1px solid var(--line);border-radius:9px;margin:-4px 16px 10px;padding:7px 10px;color:var(--muted);font-size:10px}
+.dm-media-selected button{border:0;background:transparent;color:#af4573;font-weight:750;cursor:pointer}
+.dm-sticker-menu{position:absolute;bottom:100%;left:17px;right:17px;display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:5px;padding:11px;border:1px solid var(--line);border-radius:14px;background:var(--paper);box-shadow:0 12px 27px #14102830}
+.dm-sticker-menu button{background:var(--soft);border:1px solid var(--line);border-radius:9px;font-size:29px;cursor:pointer;min-height:47px}
+.dm-sticker-menu button:hover{transform:scale(1.06);background:#e7def8}
+.dm-group-overlay{position:fixed;inset:0;z-index:240;display:grid;place-items:center;background:#151122b5;backdrop-filter:blur(3px);padding:15px}
+.dm-group-dialog{background:var(--paper);border:1px solid var(--line);border-radius:18px;padding:22px;width:min(100%,500px);max-height:85dvh;overflow-y:auto}
+.dm-group-heading{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px}
+.dm-group-heading h2{margin:0;font-size:19px}
+.dm-group-heading button{border:0;background:var(--soft);border-radius:8px;font-size:24px;color:var(--ink);width:32px;height:32px}
+.dm-group-dialog label{display:block;color:var(--muted);font-size:12px;font-weight:750}
+.dm-group-dialog input[type=text]{display:block;width:100%;margin-top:6px;padding:11px;border:1px solid var(--line);border-radius:10px;background:var(--paper);color:var(--ink);font-size:15px}
+.dm-group-dialog p{font-size:11px;color:var(--muted);margin-top:14px}
+.dm-group-users{display:grid;gap:6px;max-height:240px;overflow-y:auto;margin:9px 0 15px}
+.dm-group-users label{display:flex;align-items:center;gap:9px;padding:8px;border:1px solid var(--line);border-radius:9px}
+.dm-group-users .profile-avatar{width:28px;height:28px;flex:none}
+html[data-theme=dark] .dm-channel-tabs{background:#302b47}
+html[data-theme=dark] .dm-channel-tabs button{color:#c3b5df}
+html[data-theme=dark] .dm-channel-tabs button.selected{background:#534170;color:#fff}
+html[data-theme=dark] .dm-group-entry:hover,html[data-theme=dark] .dm-group-entry.selected{background:#363052;border-color:#65568d}
+html[data-theme=dark] .dm-group-glyph{background:#514473;color:#dfd1ff}
+html[data-theme=dark] .dm-message-bubble .dm-author{color:#c6b1ef}
+html[data-theme=dark] .dm-sticker-menu button:hover{background:#49385f}
+/* Perfil e bio com hierarquia visual */
+.dm-profile-dialog{padding:0 0 24px;overflow:hidden}
+.dm-profile-cover{height:125px;display:flex;align-items:start;justify-content:start;padding:20px;background:linear-gradient(130deg,#3e358d,#7b65d1 63%,#a68cdc);color:#ffffffd9}
+.dm-profile-cover span{font-size:9px;font-weight:840;letter-spacing:1.5px}
+.dm-profile-large{position:relative;margin-top:-48px;display:flex;justify-content:center}
+.dm-profile-large .profile-avatar{background:#fff;border:5px solid var(--paper);box-sizing:content-box;width:92px;height:92px;box-shadow:0 6px 15px #211c4822}
+.dm-profile-dialog h2{font-size:22px;margin:7px 20px 18px;letter-spacing:-.45px}
+.dm-profile-about{padding:0 23px}
+.dm-about-title{display:flex;align-items:baseline;justify-content:space-between;gap:10px;margin:0 0 8px;text-align:left}
+.dm-about-title span{font-size:13px;font-weight:820;color:var(--ink)}
+.dm-about-title small{font-size:10px;color:var(--muted)}
+.dm-profile-about .dm-profile-bio{background:var(--soft);border:1px solid var(--line);font-size:13px;line-height:1.75;min-height:85px;padding:15px 17px;border-radius:13px;white-space:pre-wrap;overflow-wrap:anywhere;margin:0 0 16px}
+.dm-profile-dialog .dm-profile-primary{margin-top:0}
+.ms-bio-editor>span{font-size:11px;display:block;font-weight:500;color:var(--muted);margin:3px 0 7px}
+.ms-bio-editor textarea[name=bio]{line-height:1.7;border-radius:13px;padding:14px;font-size:13px;resize:vertical;min-height:95px}
+.ms-bio-editor small{font-size:10px;color:var(--muted);text-align:right}
+@media(max-width:760px){
+ .dm-channel-tabs{margin:0 9px 7px;padding:4px}
+ .dm-channel-tabs button{min-height:34px;font-size:10px}
+ .dm-sticker-menu{grid-template-columns:repeat(5,minmax(0,1fr))}
+ .dm-sticker-menu button{font-size:26px}
+ .dm-global-info{padding:10px 15px}
+ .dm-global-info span{font-size:27px}
+ .dm-global-info h3{margin:5px}
+ .dm-profile-cover{height:105px}
+}
+@media(prefers-reduced-motion:reduce){.dm-channel-tabs button,.dm-sticker-menu button{transition:none}}
 </style>
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2064%2064%22%3E%3Crect%20width%3D%2264%22%20height%3D%2264%22%20rx%3D%2214%22%20fill%3D%22%23192d44%22%2F%3E%3Ctext%20x%3D%2232%22%20y%3D%2246%22%20fill%3D%22white%22%20font-size%3D%2246%22%20font-family%3D%22Georgia%2Cserif%22%20text-anchor%3D%22middle%22%3E%CE%A8%3C%2Ftext%3E%3C%2Fsvg%3E">
 </head>
@@ -2092,7 +2177,7 @@ function renderModal(){
    :'<p class="profile-form-note" role="alert">'+esc(cloudError||'O serviço de login não carregou. Podes tentar novamente sem fechar a página.')+'</p><button type="button" class="profile-secondary" data-account-action="retry-connection">Tentar conectar novamente</button>';
   return;
  }
- if(onlineUser){body.innerHTML=`<div class="profile-person-row">${avatar(remoteProfile?.display_name,remoteProfile?.avatar_url)}<strong>${esc(remoteProfile?.display_name||onlineUser.email)}</strong><span class="profile-badge">Online</span></div><form class="profile-form" id="onlineProfileForm"><label>Nome exibido no ranking<input name="display_name" minlength="2" maxlength="40" required value="${esc(remoteProfile?.display_name||'')}"></label><label>Foto de perfil (JPEG, PNG ou WebP)<input type="file" name="avatar" accept="image/jpeg,image/png,image/webp"></label><label>Bio pública (até 300 caracteres)<textarea name="bio" maxlength="300" rows="4" placeholder="Escreve algo sobre ti…">${esc(remoteProfile?.bio||"")}</textarea></label><button type="submit">Salvar perfil</button></form>${microsoftMarkup(true)}<p class="profile-form-note">As atividades são sincronizadas automaticamente nesta conta.</p>${microsoftPUCRS.notice?`<p class="ms-auth-success" role="status">${esc(microsoftPUCRS.notice)}</p>`:''}<button class="profile-secondary" data-account-action="logout">Sair da conta</button><p class="profile-message" id="profileMessage"></p>`;return}
+ if(onlineUser){body.innerHTML=`<div class="profile-person-row">${avatar(remoteProfile?.display_name,remoteProfile?.avatar_url)}<strong>${esc(remoteProfile?.display_name||onlineUser.email)}</strong><span class="profile-badge">Online</span></div><form class="profile-form" id="onlineProfileForm"><label>Nome exibido no ranking<input name="display_name" minlength="2" maxlength="40" required value="${esc(remoteProfile?.display_name||'')}"></label><label>Foto de perfil (JPEG, PNG ou WebP)<input type="file" name="avatar" accept="image/jpeg,image/png,image/webp"></label><label class="ms-bio-editor">Bio pública <span>Apresenta-te aos colegas</span><textarea name="bio" maxlength="300" rows="4" placeholder="Ex.: Estudo Psicologia e gosto de Psicologia Social, música e cinema.">${esc(remoteProfile?.bio||"")}</textarea><small id="dmBioCounter">${(remoteProfile?.bio||"").length}/300 caracteres</small></label><button type="submit">Salvar perfil</button></form>${microsoftMarkup(true)}<p class="profile-form-note">As atividades são sincronizadas automaticamente nesta conta.</p>${microsoftPUCRS.notice?`<p class="ms-auth-success" role="status">${esc(microsoftPUCRS.notice)}</p>`:''}<button class="profile-secondary" data-account-action="logout">Sair da conta</button><p class="profile-message" id="profileMessage"></p>`;return}
 body.innerHTML=`<div class="profile-tabs"><button class="${modalView==='login'?'selected':''}" data-account-action="login-view">Entrar</button><button class="${modalView==='register'?'selected':''}" data-account-action="register-view">Cadastrar</button></div><form class="profile-form" id="onlineAuthForm">${modalView==='register'?'<label>Nome público<input name="name" autocomplete="nickname" minlength="2" maxlength="40" required></label>':''}<label>E-mail<input name="email" type="email" autocomplete="email" required></label><label>Senha<input name="password" type="password" autocomplete="${modalView==='register'?'new-password':'current-password'}" minlength="6" required></label><button type="submit">${modalView==='register'?'Criar conta':'Entrar'}</button></form>${microsoftMarkup(false)}<p class="profile-form-note">A conta online salva o progresso na nuvem e participa do ranking coletivo.</p><button type="button" class="profile-secondary" data-account-action="resend-signup">Reenviar confirmação por e-mail</button><p class="profile-message" id="profileMessage"></p>`;return
 }
 async function photo(file){if(!file||!file.size)return null;if(file.size>6*1024*1024)throw Error('Seleciona uma foto de até 6 MB.');if(!/^image\/(png|jpeg|webp)$/.test(file.type))throw Error('A foto precisa ser PNG, JPEG ou WebP.');return new Promise((resolve,reject)=>{const img=new Image();const object=URL.createObjectURL(file);img.onload=()=>{try{const canvas=document.createElement('canvas');canvas.width=canvas.height=180;const ctx=canvas.getContext('2d');const scale=Math.max(180/img.width,180/img.height),w=img.width*scale,h=img.height*scale;ctx.drawImage(img,(180-w)/2,(180-h)/2,w,h);URL.revokeObjectURL(object);canvas.toBlob(blob=>{if(blob)resolve({blob,url:canvas.toDataURL('image/jpeg',.75)});else reject(Error('Não foi possível processar a foto.'))},'image/jpeg',.75)}catch(e){URL.revokeObjectURL(object);reject(e)}};img.onerror=()=>{URL.revokeObjectURL(object);reject(Error('Não foi possível abrir a imagem.'))};img.src=object})}
@@ -2561,9 +2646,9 @@ async function dmOpenProfile(id){
   if(error)throw error;if(!data)throw Error('Este perfil não está disponível.');
   if(dm.profileOpen!==id)return;
   const mine=id===onlineUser.id;
-  body.innerHTML='<div class="dm-profile-large">'+avatar(data.display_name,data.avatar_url)+'</div>'+
+  body.innerHTML='<div class="dm-profile-cover"><span>PSICOLOGIA · PUCRS</span></div><div class="dm-profile-large">'+avatar(data.display_name,data.avatar_url)+'</div>'+
    '<h2 id="dmProfileHeading">'+esc(data.display_name)+'</h2>'+
-   '<div class="dm-profile-bio">'+(data.bio?esc(data.bio).replace(/\n/g,'<br>'):'<span class="dm-bio-empty">Esta pessoa ainda não escreveu uma bio.</span>')+'</div>'+
+   '<div class="dm-profile-about"><div class="dm-about-title"><span>Sobre</span><small>Bio do perfil</small></div><div class="dm-profile-bio">'+(data.bio?esc(data.bio).replace(/\n/g,'<br>'):'<span class="dm-bio-empty">Esta pessoa ainda não escreveu uma bio.</span>')+'</div></div>'+
    (mine?'<button type="button" class="dm-profile-primary" data-dm-edit-profile>Editar meu perfil</button>':
    '<button type="button" class="dm-profile-primary" data-dm-message="'+esc(data.user_id)+'">Enviar mensagem</button>');
  }catch(e){body.innerHTML='<p class="dm-error">'+esc(e?.message||'Erro ao abrir o perfil.')+'</p>'}
@@ -2601,6 +2686,7 @@ document.addEventListener('change',e=>{
 });
 document.addEventListener('input',e=>{
  if(e.target.id==='dmPrompt')dm.draft=e.target.value;
+ if(e.target.name==='bio'&&e.target.closest('#onlineProfileForm')){const el=document.getElementById('dmBioCounter');if(el)el.textContent=e.target.value.length+'/300 caracteres'}
  if(e.target.id==='dmUserSearch'){
   dm.search=e.target.value;const list=document.getElementById('dmContacts');if(list)list.innerHTML=dmContactRows();
  }
