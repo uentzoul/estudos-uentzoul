@@ -2406,75 +2406,7 @@ function tzExport(index,format){
  const name='IA_Tzoul_Estudo_'+(index+1);
  if(format==='txt')return tzDownload(m.content,name+'.txt','text/plain;charset=utf-8');
  if(format==='md')return tzDownload('# IA Tzoul — Material de estudo\n\n'+m.content,name+'.md','text/markdown;charset=utf-8');
- const doc='<!doctype html><html><head><meta charset="utf-8"><title>IA Tzoul</title><style>body{font-family:Arial,sans-serif;color:#222;line-height:1.7;max-width:760px;margin:40px auto;padding:0 20px}main{white-space:pre-wrap;font-size:13px}</style></head><body><h1>IA Tzoul — Material de estudo</h1><main>'+esc(m.content)+'</main><script>
-/* Atualização automática: acompanha novas versões do HTML no GitHub Pages
-   sem exigir F5 e sem interromper provas, formulários ou envios. */
-(function(){
- const localVersion=document.querySelector('meta[name="site-build"]')?.content||'';
- const pageUrl=location.pathname.replace(/[^/]*$/,'')+'index.html';
- let baseline=null,updated=false,checking=false,lastInput=Date.now(),reloading=false;
- const readToken=(headers)=>headers.get('etag')||headers.get('last-modified')||'';
- async function checkVersion(){
-  if(checking||document.visibilityState==='hidden'||!navigator.onLine)return;
-  checking=true;
-  try{
-   const url=pageUrl+'?version_check='+Date.now();
-   const controller=new AbortController();
-   const response=await fetch(url,{cache:'no-store',signal:controller.signal});
-   if(!response.ok||!response.body)return;
-   const token=readToken(response.headers);
-   const reader=response.body.getReader();
-   const first=await reader.read();
-   const chunk=new TextDecoder().decode(first.value||new Uint8Array());
-   const remoteVersion=chunk.match(/<meta name="site-build" content="([^"]+)"/)?.[1]||'';
-   // Cancela o restante do HTML (mais de 1 MB) após ler o cabeçalho.
-   await reader.cancel().catch(()=>{});
-   controller.abort();
-   if(remoteVersion&&remoteVersion!==localVersion)updated=true;
-   else if(baseline&&token&&baseline!==token)updated=true;
-   if(token&&!baseline)baseline=token;
-   applyVersion();
-  }catch(err){if(err?.name!=='AbortError')console.warn('Verificação de versão indisponível:',err);}
-  finally{checking=false;}
- }
- function unsafeToReload(){
-  const active=document.activeElement;
-  if(active&&active.matches('input,textarea,select,[contenteditable="true"]'))return true;
-  if(Date.now()-lastInput<12000)return true;
-  // Nunca interrompe geração de prova, correção, chat, uploads ou formulários.
-  if(document.querySelector('[data-ge-create][disabled], [data-ge-submit][disabled], [data-tz-send][disabled]'))return true;
-  if(document.querySelector('input[type="file"]')?.files?.length)return true;
-  if(document.querySelector('form:focus-within, dialog[open], [role="dialog"]:not([hidden])'))return true;
-  // Evita perder respostas já iniciadas nas provas em andamento.
-  if(location.hash.startsWith('#test')||document.querySelector('.ge-questions textarea:not([disabled]):focus'))return true;
-  return false;
- }
- function applyVersion(){
-  if(!updated||reloading||document.visibilityState==='hidden'||unsafeToReload())return;
-  reloading=true;
-  // A navegação atual é mantida pelo hash; o armazenamento do site não é limpo.
-  location.reload();
- }
- ['input','keydown','change','pointerdown'].forEach(type=>document.addEventListener(type,()=>{lastInput=Date.now()},{passive:true,capture:true}));
- document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'){checkVersion();applyVersion();}});
- window.addEventListener('online',checkVersion);
- window.addEventListener('focus',()=>{checkVersion();applyVersion();});
- setInterval(()=>{checkVersion();applyVersion();},45000);
- setInterval(applyVersion,5000);
- // A primeira consulta também compara a versão embutida com a publicada.
- setTimeout(checkVersion,5000);
-})();
-</script>
-<script>
-(function(){
- function close(){const el=document.getElementById('rankRulesOverlay');if(el){el.hidden=true;document.body.style.overflow=''}}
- document.addEventListener('click',e=>{
-  if(e.target.closest('[data-ranking-rules]')){const el=document.getElementById('rankRulesOverlay');el.hidden=false;document.body.style.overflow='hidden';return;}
-  if(e.target.closest('[data-ranking-close]')||e.target.id==='rankRulesOverlay')close();
- });
- document.addEventListener('keydown',e=>{if(e.key==='Escape')close()});
-})();
-</script></body></html>';
+ const doc='<!doctype html><html><head><meta charset="utf-8"><title>IA Tzoul</title><style>body{font-family:Arial,sans-serif;color:#222;line-height:1.7;max-width:760px;margin:40px auto;padding:0 20px}main{white-space:pre-wrap;font-size:13px}</style></head><body><h1>IA Tzoul — Material de estudo</h1><main>'+esc(m.content)+'</main></body></html>';
  if(format==='doc')return tzDownload(doc,name+'.doc','application/msword');
  if(format==='pdf'){const w=window.open('','_blank');if(!w)return toast('Permite pop-ups para salvar como PDF.');w.document.open();w.document.write(doc);w.document.close();w.focus();setTimeout(()=>w.print(),350);}
 }
@@ -4427,4 +4359,73 @@ renderAside();initCloud();
 (function(){const key="uentzoul_theme_v1";let theme=document.documentElement.dataset.theme==="dark"?"dark":"light";
 function apply(){document.documentElement.dataset.theme=theme;document.querySelectorAll("[data-theme-toggle]").forEach(b=>{b.innerHTML=theme==="dark"?'☀ <span class="theme-toggle-text">Modo claro</span>':'☾ <span class="theme-toggle-text">Modo escuro</span>';b.setAttribute("aria-label",theme==="dark"?"Ativar modo claro":"Ativar modo escuro");b.setAttribute("aria-pressed",theme==="dark"?"true":"false");b.title=theme==="dark"?"Ativar modo claro":"Ativar modo escuro"})}
 document.addEventListener("click",e=>{if(!e.target.closest("[data-theme-toggle]"))return;theme=theme==="dark"?"light":"dark";try{localStorage.setItem(key,theme)}catch(e){}apply()});apply()})();
-</script></body></html>
+</script><script>
+/* Atualização automática: acompanha novas versões do HTML no GitHub Pages
+   sem exigir F5 e sem interromper provas, formulários ou envios. */
+(function(){
+ const localVersion=document.querySelector('meta[name="site-build"]')?.content||'';
+ const pageUrl=location.pathname.replace(/[^/]*$/,'')+'index.html';
+ let baseline=null,updated=false,checking=false,lastInput=Date.now(),reloading=false;
+ const readToken=(headers)=>headers.get('etag')||headers.get('last-modified')||'';
+ async function checkVersion(){
+  if(checking||document.visibilityState==='hidden'||!navigator.onLine)return;
+  checking=true;
+  try{
+   const url=pageUrl+'?version_check='+Date.now();
+   const controller=new AbortController();
+   const response=await fetch(url,{cache:'no-store',signal:controller.signal});
+   if(!response.ok||!response.body)return;
+   const token=readToken(response.headers);
+   const reader=response.body.getReader();
+   const first=await reader.read();
+   const chunk=new TextDecoder().decode(first.value||new Uint8Array());
+   const remoteVersion=chunk.match(/<meta name="site-build" content="([^"]+)"/)?.[1]||'';
+   // Cancela o restante do HTML (mais de 1 MB) após ler o cabeçalho.
+   await reader.cancel().catch(()=>{});
+   controller.abort();
+   if(remoteVersion&&remoteVersion!==localVersion)updated=true;
+   else if(baseline&&token&&baseline!==token)updated=true;
+   if(token&&!baseline)baseline=token;
+   applyVersion();
+  }catch(err){if(err?.name!=='AbortError')console.warn('Verificação de versão indisponível:',err);}
+  finally{checking=false;}
+ }
+ function unsafeToReload(){
+  const active=document.activeElement;
+  if(active&&active.matches('input,textarea,select,[contenteditable="true"]'))return true;
+  if(Date.now()-lastInput<12000)return true;
+  // Nunca interrompe geração de prova, correção, chat, uploads ou formulários.
+  if(document.querySelector('[data-ge-create][disabled], [data-ge-submit][disabled], [data-tz-send][disabled]'))return true;
+  if(document.querySelector('input[type="file"]')?.files?.length)return true;
+  if(document.querySelector('form:focus-within, dialog[open], [role="dialog"]:not([hidden])'))return true;
+  // Evita perder respostas já iniciadas nas provas em andamento.
+  if(location.hash.startsWith('#test')||document.querySelector('.ge-questions textarea:not([disabled]):focus'))return true;
+  return false;
+ }
+ function applyVersion(){
+  if(!updated||reloading||document.visibilityState==='hidden'||unsafeToReload())return;
+  reloading=true;
+  // A navegação atual é mantida pelo hash; o armazenamento do site não é limpo.
+  location.reload();
+ }
+ ['input','keydown','change','pointerdown'].forEach(type=>document.addEventListener(type,()=>{lastInput=Date.now()},{passive:true,capture:true}));
+ document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'){checkVersion();applyVersion();}});
+ window.addEventListener('online',checkVersion);
+ window.addEventListener('focus',()=>{checkVersion();applyVersion();});
+ setInterval(()=>{checkVersion();applyVersion();},45000);
+ setInterval(applyVersion,5000);
+ // A primeira consulta também compara a versão embutida com a publicada.
+ setTimeout(checkVersion,5000);
+})();
+</script>
+<script>
+(function(){
+ function close(){const el=document.getElementById('rankRulesOverlay');if(el){el.hidden=true;document.body.style.overflow=''}}
+ document.addEventListener('click',e=>{
+  if(e.target.closest('[data-ranking-rules]')){const el=document.getElementById('rankRulesOverlay');el.hidden=false;document.body.style.overflow='hidden';return;}
+  if(e.target.closest('[data-ranking-close]')||e.target.id==='rankRulesOverlay')close();
+ });
+ document.addEventListener('keydown',e=>{if(e.key==='Escape')close()});
+})();
+</script>
+</body></html>
