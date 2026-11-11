@@ -1827,6 +1827,8 @@ function renderCalendar(){
 }
 
 
+const geUser=()=>window.uentzoulAIAuth?.user()||null;
+const geClient=()=>window.uentzoulAIAuth?.client?.()||null;
 const TZ_AVATAR_URL='https://swseibmqoetnuctxyusj.supabase.co/storage/v1/object/public/uentzoul-avatars/11eadb0a-c79b-4347-be3b-20f2d31c18c7/avatar.jpg?v=1794341942331';
 const tz={messages:[],subject:'todos',material:'',mode:'chat',quality:'standard',draft:'',busy:false,note:'',ready:null,checking:false,remaining:null,contextOpen:false,conversations:[],active:null,loaded:false,loading:false,owner:null};
 const tzAvatar=()=>'<span class="tz-avatar"><img src="'+esc(TZ_AVATAR_URL)+'" alt="Foto da IA Tzoul" loading="lazy"></span>';
@@ -1927,10 +1929,10 @@ async function tzCheck(){
 }
 
 async function tzLoad(){
- const user=window.uentzoulAIAuth?.user();if(!client||!user||tz.loading)return;
+ const user=window.uentzoulAIAuth?.user();if(!geClient()||!user||tz.loading)return;
  const uid=user.id;tz.loading=true;tz.owner=uid;
  try{
-  const {data,error}=await client.from('uentzoul_ai_conversations').select('id,user_id,title,semester,subject,material_path,mode,messages,created_at,updated_at').order('updated_at',{ascending:false}).limit(100);
+  const {data,error}=await geClient().from('uentzoul_ai_conversations').select('id,user_id,title,semester,subject,material_path,mode,messages,created_at,updated_at').order('updated_at',{ascending:false}).limit(100);
   if(error)throw error;
   if(window.uentzoulAIAuth?.user()?.id!==uid)return;
   tz.conversations=data||[];tz.loaded=true;
@@ -1948,16 +1950,16 @@ async function tzNewConversation(){
  if(tz.busy)return;tz.active=null;tz.messages=[];tz.draft='';tz.note='';tz.subject='todos';tz.material='';tz.mode='chat';render();
 }
 async function tzCreateConversation(firstMessage){
- if(!client||!window.uentzoulAIAuth?.user())throw Error('Entre na tua conta para guardar a conversa.');
+ if(!geClient()||!window.uentzoulAIAuth?.user())throw Error('Entre na tua conta para guardar a conversa.');
  const title=(firstMessage.replace(/\s+/g,' ').trim().slice(0,64)||'Nova conversa');
  const uid=window.uentzoulAIAuth.user().id;
- const {data,error}=await client.from('uentzoul_ai_conversations').insert({user_id:uid,title,semester,subject:tz.subject,material_path:tz.material,mode:tz.mode,messages:[]}).select('*').single();
+ const {data,error}=await geClient().from('uentzoul_ai_conversations').insert({user_id:uid,title,semester,subject:tz.subject,material_path:tz.material,mode:tz.mode,messages:[]}).select('*').single();
  if(error)throw error;
  tz.active=data.id;tz.conversations.unshift(data);return data.id;
 }
 async function tzStoreMessages(id,messages){
- const uid=window.uentzoulAIAuth?.user()?.id;if(!client||!uid)return;
- const {data,error}=await client.from('uentzoul_ai_conversations').update({
+ const uid=window.uentzoulAIAuth?.user()?.id;if(!geClient()||!uid)return;
+ const {data,error}=await geClient().from('uentzoul_ai_conversations').update({
   messages:messages.slice(-90).map(m=>({role:m.role,content:String(m.content||'').slice(0,18000),sources:m.sources||[]})),
   subject:tz.subject,material_path:tz.material,mode:tz.mode,updated_at:new Date().toISOString()
  }).eq('id',id).eq('user_id',uid).select('*').single();
@@ -1968,7 +1970,7 @@ async function tzStoreMessages(id,messages){
 async function tzDeleteConversation(id){
  if(tz.busy)return;
  if(!confirm('Excluir esta conversa e todas as mensagens dela?'))return;
- const {error}=await client.from('uentzoul_ai_conversations').delete().eq('id',id);
+ const {error}=await geClient().from('uentzoul_ai_conversations').delete().eq('id',id);
  if(error){tz.note=error.message;render();return}
  tz.conversations=tz.conversations.filter(c=>c.id!==id);
  if(tz.active===id){tz.active=null;tz.messages=[];tz.draft='';tz.note='';}
@@ -1978,7 +1980,7 @@ async function tzRenameConversation(id){
  if(tz.busy)return;
  const c=tz.conversations.find(x=>x.id===id);if(!c)return;
  const name=prompt('Nome da conversa:',c.title);if(!name||!name.trim())return;
- const {error}=await client.from('uentzoul_ai_conversations').update({title:name.trim().slice(0,100)}).eq('id',id);
+ const {error}=await geClient().from('uentzoul_ai_conversations').update({title:name.trim().slice(0,100)}).eq('id',id);
  if(error){tz.note=error.message;render();return}
  c.title=name.trim().slice(0,100);render();
 }
@@ -2059,7 +2061,7 @@ const ge={exams:[],submissions:[],shares:[],profiles:[],selected:null,subject:'t
 function geSubmission(id){return ge.submissions.find(x=>x.exam_id===id)}
 function geSubjectName(id){return DB.subjects[id]?.name||id}
 function geExamCard(exam){
- const submitted=geSubmission(exam.id),mine=exam.creator_id===onlineUser?.id;
+ const submitted=geSubmission(exam.id),mine=exam.creator_id===geUser()?.id;
  return '<article class="ge-card" style="--accent:'+color(exam.subject)+'">'+
   '<div class="ge-card-head"><span class="pill">'+(mine?'Meu simulado':'Compartilhado comigo')+'</span><span class="ge-difficulty">'+(exam.difficulty==='dificil'?'Difícil':'Normal')+'</span></div>'+
   '<h3>'+esc(geSubjectName(exam.subject))+'</h3><p>13 objetivas e 2 dissertativas</p><small>'+
@@ -2068,7 +2070,7 @@ function geExamCard(exam){
   '<button type="button" data-ge-open="'+esc(exam.id)+'">'+(submitted?'Rever':'Responder')+'</button></div></article>';
 }
 function geRenderList(){
- const logged=!!onlineUser;
+ const logged=!!geUser();
  if(logged&&!ge.loaded&&!ge.loading)queueMicrotask(geLoad);
  if(!logged)return head('Simulados','Criar simulados personalizados','A IA gera uma prova nova para cada solicitação, baseada no conteúdo da disciplina e no estilo do professor.')+
   '<section class="panel ge-panel"><h2>Entra na tua conta</h2><p>Para gerar, guardar e compartilhar provas, é necessário entrar na conta do site.</p><button class="btn" data-action="tz-login">Entrar / Cadastrar</button></section>';
@@ -2078,8 +2080,8 @@ function geRenderList(){
   '<label>Dificuldade<select id="geDifficulty"><option value="normal" '+(ge.difficulty==='normal'?'selected':'')+'>Normal</option><option value="dificil" '+(ge.difficulty==='dificil'?'selected':'')+'>Difícil</option></select></label>'+
   '<button type="button" class="btn ge-primary" data-ge-create '+(ge.busy?'disabled':'')+'>'+(ge.busy?'Preparando as 15 questões…':'Gerar novo simulado')+'</button></div></div>':
   '<div class="ge-generator"><h2>Sem disciplinas cadastradas em '+esc(semester)+'</h2><p>Volta ao semestre 2026/2 para gerar provas com os materiais disponíveis.</p></div>';
- const owned=ge.exams.filter(e=>e.creator_id===onlineUser.id);
- const received=ge.exams.filter(e=>e.creator_id!==onlineUser.id);
+ const owned=ge.exams.filter(e=>e.creator_id===geUser().id);
+ const received=ge.exams.filter(e=>e.creator_id!==geUser().id);
  const section=(title,rows,empty)=>'<section class="section ge-section"><div class="sectiontop"><h2>'+title+'</h2><small>'+rows.length+' provas</small></div>'+
   (rows.length?'<div class="ge-grid">'+rows.map(geExamCard).join('')+'</div>':'<p class="ge-muted">'+empty+'</p>')+'</section>';
  return head('Simulados','Simulados sob medida','Uma prova nova a cada solicitação, guardada na tua conta. Depois de entregar, só é possível rever.')+
@@ -2096,7 +2098,7 @@ function geRenderExam(){
  const submission=geSubmission(exam.id),review=!!submission,answers=review?submission.answers:(ge.answers[exam.id]||Array(15).fill(''));
  const details=review?(submission.feedback?.details||[]):[];
  const complete=answers.filter((v,i)=>i<13?["0","1","2","3","4"].includes(String(v)):String(v).trim().length>=20).length;
- const mine=exam.creator_id===onlineUser?.id;
+ const mine=exam.creator_id===geUser()?.id;
  const questions=exam.questions.map((q,i)=>{
   const feedback=details[i],opt=Array.isArray(q.options)?q.options:[];
   let body='';
@@ -2113,8 +2115,8 @@ function geRenderExam(){
   return '<article class="ge-question"><span>QUESTÃO '+String(i+1).padStart(2,'0')+' · '+(q.type==='choice'?'OBJETIVA':'DISSERTATIVA')+'</span>'+
    '<h3>'+esc(q.question)+'</h3>'+body+grade+'</article>';
  }).join('');
- const profiles=ge.profiles.filter(p=>p.user_id!==onlineUser?.id);
- const alreadyShared=ge.shares.filter(x=>x.exam_id===exam.id&&x.sender_id===onlineUser?.id);
+ const profiles=ge.profiles.filter(p=>p.user_id!==geUser()?.id);
+ const alreadyShared=ge.shares.filter(x=>x.exam_id===exam.id&&x.sender_id===geUser()?.id);
  const share=review&&mine?'<section class="ge-share"><h3>Compartilhar este simulado</h3><p>Envia a prova para outra pessoa cadastrada no site. Ela poderá responder uma única vez, sem alterar a tua tentativa.</p>'+
   '<div class="ge-share-form"><select id="geShareTarget"><option value="">Seleciona uma pessoa</option>'+
   profiles.map(p=>'<option value="'+esc(p.user_id)+'" '+(ge.shareTarget===p.user_id?'selected':'')+'>'+esc(p.display_name||'Estudante')+'</option>').join('')+
@@ -2132,24 +2134,24 @@ function geRenderExam(){
   share;
 }
 async function geLoad(){
- if(!client||!onlineUser||ge.loading)return;
- const userId=onlineUser.id;ge.loading=true;ge.owner=userId;ge.error='';
+ if(!geClient()||!geUser()||ge.loading)return;
+ const userId=geUser().id;ge.loading=true;ge.owner=userId;ge.error='';
  if(current.page==='exams'||current.page==='subject')render();
  try{
   const [exams,submissions,shares,profiles]=await Promise.all([
-   client.from('uentzoul_generated_exams').select('id,creator_id,semester,subject,difficulty,title,questions,created_at').order('created_at',{ascending:false}).limit(150),
-   client.from('uentzoul_generated_exam_submissions').select('exam_id,user_id,answers,feedback,created_at').order('created_at',{ascending:false}).limit(150),
-   client.from('uentzoul_generated_exam_shares').select('exam_id,sender_id,recipient_id,created_at').order('created_at',{ascending:false}).limit(300),
-   client.from('uentzoul_profiles').select('user_id,display_name').order('display_name',{ascending:true}).limit(300)
+   geClient().from('uentzoul_generated_exams').select('id,creator_id,semester,subject,difficulty,title,questions,created_at').order('created_at',{ascending:false}).limit(150),
+   geClient().from('uentzoul_generated_exam_submissions').select('exam_id,user_id,answers,feedback,created_at').order('created_at',{ascending:false}).limit(150),
+   geClient().from('uentzoul_generated_exam_shares').select('exam_id,sender_id,recipient_id,created_at').order('created_at',{ascending:false}).limit(300),
+   geClient().from('uentzoul_profiles').select('user_id,display_name').order('display_name',{ascending:true}).limit(300)
   ]);
   for(const item of [exams,submissions,shares,profiles])if(item.error)throw item.error;
-  if(onlineUser?.id!==userId)return;
+  if(geUser()?.id!==userId)return;
   ge.exams=exams.data||[];ge.submissions=submissions.data||[];ge.shares=shares.data||[];ge.profiles=profiles.data||[];ge.loaded=true;
  }catch(e){ge.error='Não foi possível carregar os simulados: '+(e?.message||'erro de conexão');ge.loaded=false}
- finally{ge.loading=false;if(onlineUser?.id===userId&&(current.page==='exams'||current.page==='subject'))render();}
+ finally{ge.loading=false;if(geUser()?.id===userId&&(current.page==='exams'||current.page==='subject'))render();}
 }
 async function geCreate(){
- if(ge.busy||!onlineUser||!DB.subjects[ge.subject])return;
+ if(ge.busy||!geUser()||!DB.subjects[ge.subject])return;
  ge.busy=true;ge.error='';ge.notice='A IA está montando a prova a partir dos materiais da disciplina.';
  render();
  try{
@@ -2178,14 +2180,14 @@ async function geSubmit(){
  finally{ge.busy=false;if(current.page==='exams')render()}
 }
 async function geShare(){
- if(ge.busy||!ge.selected||!ge.shareTarget||!onlineUser)return;
+ if(ge.busy||!ge.selected||!ge.shareTarget||!geUser())return;
  const exam=ge.exams.find(x=>x.id===ge.selected);
- if(!exam||exam.creator_id!==onlineUser.id||!geSubmission(ge.selected))return;
+ if(!exam||exam.creator_id!==geUser().id||!geSubmission(ge.selected))return;
  if(ge.shares.some(x=>x.exam_id===ge.selected&&x.recipient_id===ge.shareTarget)){ge.error='Já compartilhaste esta prova com essa pessoa.';render();return}
  ge.busy=true;ge.error='';
  try{
-  const {data,error}=await client.from('uentzoul_generated_exam_shares')
-   .insert({exam_id:ge.selected,sender_id:onlineUser.id,recipient_id:ge.shareTarget}).select('*').single();
+  const {data,error}=await geClient().from('uentzoul_generated_exam_shares')
+   .insert({exam_id:ge.selected,sender_id:geUser().id,recipient_id:ge.shareTarget}).select('*').single();
   if(error)throw error;
   ge.shares.push(data);ge.shareTarget='';
   toast('Simulado compartilhado. O destinatário já pode responder.');
@@ -2198,7 +2200,7 @@ renderSubject=function(k){
  const start=html.indexOf('<section class="section" id="tests">');
  const end=start>=0?html.indexOf('</section>',start):-1;
  if(start>=0&&end>start){
-  const tests=ge.exams.filter(e=>e.subject===k&&e.semester===semester&&onlineUser&&(e.creator_id===onlineUser.id||true));
+  const tests=ge.exams.filter(e=>e.subject===k&&e.semester===semester&&geUser()&&(e.creator_id===geUser().id||true));
   const section='<section class="section" id="tests"><div class="sectiontop"><h2>Simulados da disciplina</h2><button class="plainlink" data-action="page:exams">Gerar novo simulado →</button></div>'+
     (tests.length?'<div class="ge-grid">'+tests.map(geExamCard).join('')+'</div>':
     '<div class="panel ge-panel"><p>Agora os simulados são inéditos e gerados pela IA quando tu solicitares. Escolhe a dificuldade e cria uma prova com 13 objetivas e 2 dissertativas.</p>'+
@@ -2250,9 +2252,9 @@ document.addEventListener('input',e=>{
  }
 });
 window.addEventListener('uentzoul:auth',()=>{
- if(!onlineUser){ge.exams=[];ge.submissions=[];ge.shares=[];ge.profiles=[];ge.loaded=false;ge.loading=false;ge.selected=null;ge.owner=null;ge.answers={};}
- else if(ge.owner!==onlineUser.id){ge.exams=[];ge.submissions=[];ge.shares=[];ge.profiles=[];ge.loaded=false;ge.loading=false;ge.selected=null;ge.owner=onlineUser.id;}
- if(onlineUser)queueMicrotask(geLoad);
+ if(!geUser()){ge.exams=[];ge.submissions=[];ge.shares=[];ge.profiles=[];ge.loaded=false;ge.loading=false;ge.selected=null;ge.owner=null;ge.answers={};}
+ else if(ge.owner!==geUser().id){ge.exams=[];ge.submissions=[];ge.shares=[];ge.profiles=[];ge.loaded=false;ge.loading=false;ge.selected=null;ge.owner=geUser().id;}
+ if(geUser())queueMicrotask(geLoad);
 });
 window.addEventListener('uentzoul:semester',()=>{ge.selected=null;if(current.page==='exams')render()});
 
@@ -3216,7 +3218,7 @@ document.addEventListener('submit',async e=>{
  finally{if(button)button.disabled=false}
 });
 
-window.uentzoulAIAuth={user:()=>onlineUser,getSession:async()=>{if(!client)return null;const r=await client.auth.getSession();return r?.data?.session||null},openLogin:()=>showModal('login')};
+window.uentzoulAIAuth={user:()=>onlineUser,client:()=>client,getSession:async()=>{if(!client)return null;const r=await client.auth.getSession();return r?.data?.session||null},openLogin:()=>showModal('login')};
 bridge.switchTo('guest-session',{answers:{},results:{},bookmarks:{},completed:{}});
 renderAside();initCloud();
 })();
