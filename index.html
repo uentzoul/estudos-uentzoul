@@ -2394,6 +2394,24 @@ window.addEventListener('uentzoul:auth',()=>{
 const ge={exams:[],submissions:[],shares:[],profiles:[],selected:null,subject:'tcc',difficulty:'normal',
  answers:{},shareTarget:'',loading:false,loaded:false,owner:null,busy:false,notice:'',error:'',pending:false,lastFetch:0,realtime:null};
 function geSubmission(id){return ge.submissions.find(x=>x.exam_id===id)}
+
+function geDraft(id){
+ if(ge.answers[id])return ge.answers[id];
+ let draft=null;
+ try{draft=JSON.parse(localStorage.getItem('uentzoul_exam_draft_'+(geUser()?.id||'')+'_'+id)||'null')}catch(_){}
+ ge.answers[id]=Array.isArray(draft)&&draft.length===15?draft:Array(15).fill('');
+ return ge.answers[id];
+}
+function geSaveDraft(id){
+ if(!id||!geUser())return;
+ try{localStorage.setItem('uentzoul_exam_draft_'+geUser().id+'_'+id,JSON.stringify(ge.answers[id]))}catch(_){}
+}
+function geFinishDraft(id){
+ if(!geUser()||!id)return;
+ try{localStorage.removeItem('uentzoul_exam_draft_'+geUser().id+'_'+id)}catch(_){}
+ delete ge.answers[id];
+}
+
 function geSubjectName(id){return DB.subjects[id]?.name||id}
 function geExamCard(exam){
  const submitted=geSubmission(exam.id),mine=exam.creator_id===geUser()?.id;
@@ -2432,7 +2450,7 @@ function geRenderList(){
 }
 function geRenderExam(){
  const exam=ge.exams.find(e=>e.id===ge.selected);if(!exam){ge.selected=null;return geRenderList()}
- const submission=geSubmission(exam.id),review=!!submission,answers=review?submission.answers:(ge.answers[exam.id]||Array(15).fill(''));
+ const submission=geSubmission(exam.id),review=!!submission,answers=review?submission.answers:geDraft(exam.id);
  const details=review?(submission.feedback?.details||[]):[];
  const complete=answers.filter((v,i)=>i<13?["0","1","2","3","4"].includes(String(v)):String(v).trim().length>=20).length;
  const mine=exam.creator_id===geUser()?.id;
@@ -2486,7 +2504,7 @@ async function geLoad(){
   if(geUser()?.id!==userId)return;
   ge.exams=exams.data||[];ge.submissions=submissions.data||[];ge.shares=shares.data||[];ge.profiles=profiles.data||[];ge.loaded=true;
  }catch(e){ge.error='Não foi possível carregar os simulados: '+(e?.message||'erro de conexão');ge.loaded=true}
- finally{ge.loading=false;ge.lastFetch=Date.now();if(geUser()?.id===userId&&(current.page==='exams'||current.page==='subject'))render();if(ge.pending&&geUser()?.id===userId){ge.pending=false;queueMicrotask(geLoad)}}
+ finally{ge.loading=false;ge.lastFetch=Date.now();if(geUser()?.id===userId&&(current.page==='exams'||current.page==='subject')&&!document.activeElement?.matches('.ge-essay,.ge-option input'))render();if(ge.pending&&geUser()?.id===userId){ge.pending=false;queueMicrotask(geLoad)}}
 }
 async function geCreate(){
  if(ge.busy||!geUser()||!DB.subjects[ge.subject])return;
@@ -2502,7 +2520,7 @@ async function geCreate(){
 }
 async function geSubmit(){
  if(ge.busy||!ge.selected||geSubmission(ge.selected))return;
- const values=ge.answers[ge.selected]||Array(15).fill('');
+ const values=geDraft(ge.selected);
  if(values.slice(0,13).some(v=>!["0","1","2","3","4"].includes(String(v)))||
   values.slice(13).some(v=>String(v).trim().length<20)){
   ge.error='Responde todas as 13 objetivas e escreve pelo menos 20 caracteres em cada dissertativa.';render();return;
@@ -2512,7 +2530,7 @@ async function geSubmit(){
  try{
   const data=await tzFetch('POST',{mode:'generated_exam_submit',message:'Entregar simulado',examId:ge.selected,answers:values.map(String)});
   if(!data.submission)throw Error('A entrega não foi confirmada.');
-  ge.submissions.unshift(data.submission);delete ge.answers[ge.selected];
+  ge.submissions.unshift(data.submission);geFinishDraft(ge.selected);
   toast('Simulado entregue. Agora podes consultar a correção.');
  }catch(e){ge.error=e?.message||'Não foi possível entregar a prova.'}
  finally{ge.busy=false;if(current.page==='exams')render();if(ge.pending){ge.pending=false;geLoad()}}
@@ -2579,14 +2597,16 @@ document.addEventListener('change',e=>{
  if(e.target.id==='geShareTarget'){ge.shareTarget=e.target.value;return}
  if(e.target.matches('[data-ge-answer][type=radio]')){
   if(!ge.selected||geSubmission(ge.selected))return;
-  if(!ge.answers[ge.selected])ge.answers[ge.selected]=Array(15).fill('');
-  ge.answers[ge.selected][Number(e.target.dataset.geAnswer)]=String(e.target.value);
+  const answers=geDraft(ge.selected);
+  answers[Number(e.target.dataset.geAnswer)]=String(e.target.value);
+  geSaveDraft(ge.selected);
  }
 });
 document.addEventListener('input',e=>{
  if(e.target.matches('textarea[data-ge-answer]')&&ge.selected&&!geSubmission(ge.selected)){
-  if(!ge.answers[ge.selected])ge.answers[ge.selected]=Array(15).fill('');
-  ge.answers[ge.selected][Number(e.target.dataset.geAnswer)]=e.target.value;
+  const answers=geDraft(ge.selected);
+  answers[Number(e.target.dataset.geAnswer)]=e.target.value;
+  geSaveDraft(ge.selected);
  }
 });
 
