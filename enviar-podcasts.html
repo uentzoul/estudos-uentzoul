@@ -34,9 +34,22 @@ a{color:#175b9c}
 <div class="picker"><label>Selecionar os ZIPs de áudio<input id="zipInput" type="file" accept=".zip,application/zip" multiple></label></div>
 <div class="picker"><label>Ou selecionar a pasta audios extraída<input id="folderInput" type="file" webkitdirectory directory multiple></label></div>
 <div class="picker"><label>Ou selecionar arquivos M4A individualmente<input id="filesInput" type="file" accept=".m4a,audio/mp4" multiple></label></div>
+
+<div class="note" style="border-left-color:#6b5bdd;background:#f4f1ff">
+  <h3 style="margin:0 0 6px;font-size:16px">Adicionar os dois podcasts pendentes de Psicologia Social</h3>
+  <p class="small" style="margin:3px 0 11px">Escolhe o arquivo M4A correspondente a cada título. Não precisas renomear os arquivos: o painel coloca cada um no episódio certo.</p>
+  <label>Episódio 7 — Identidade e representações sociais — revisão
+    <input id="social7Input" type="file" accept=".m4a,audio/mp4">
+  </label>
+  <label>Episódio 8 — Revisão integradora — questões objetivas e dissertativas
+    <input id="social8Input" type="file" accept=".m4a,audio/mp4">
+  </label>
+  <button id="uploadSocialExtras" type="button">Enviar episódio(s) 7 e 8</button>
+  <p id="socialExtraStatus" class="small sub" role="status" aria-live="polite">Seleciona um ou ambos os arquivos e clica em enviar.</p>
+</div>
 <p id="selectedStatus" class="sub small">Escolhe os ZIPs ou a pasta para começar.</p>
 <div class="row"><button id="uploadButton" type="button" disabled>Enviar podcasts para o site</button><button type="button" id="checkButton" class="secondary">Verificar arquivos publicados</button></div>
-<div style="margin-top:17px"><progress id="progress" value="0" max="41"></progress><p id="uploadStatus" role="status" aria-live="polite" class="small">Nenhum envio iniciado.</p></div>
+<div style="margin-top:17px"><progress id="progress" value="0" max="43"></progress><p id="uploadStatus" role="status" aria-live="polite" class="small">Nenhum envio iniciado.</p></div>
 <pre id="log">O histórico do envio aparecerá aqui.</pre>
 <p class="small sub">O envio pode demorar dependendo da velocidade da tua internet. Mantém esta aba aberta até a confirmação.</p>
 </section></main>
@@ -47,8 +60,8 @@ a{color:#175b9c}
 var BASE="https://swseibmqoetnuctxyusj.supabase.co";
 var KEY="sb_publishable_Fa12C_gaam8nv3g4fsWy2w_8nWQZWzq";
 var BUCKET="study-podcasts";
-var EXPECTED=["tcc/01_fundamentos_da_terapia_do_esquema.m4a","tcc/02_os_primeiros_nove_esquemas.m4a","tcc/03_os_outros_nove_esquemas.m4a","tcc/04_estilos_de_enfrentamento_e_modos.m4a","tcc/05_terapia_do_esquema_na_pratica.m4a","tcc/06_do_behaviorismo_a_terceira_onda.m4a","tcc/07_act_e_modelo_hexaflex.m4a","tcc/08_dbt_e_mbct.m4a","tcc/09_cft_e_fap.m4a","tcc/10_processos_clinicos_na_terceira_onda.m4a","grupos/01_do_diva_ao_palco_no_psicodrama.m4a","grupos/02_como_o_psicodrama_reescreve_nossos_roteiros.m4a","grupos/03_carl_rogers_e_os_grupos_de_encontro.m4a","grupos/04_como_funcionam_os_grupos_de_encontro_rogerianos.m4a","grupos/05_psicologia_dos_grupos_do_presencial_ao_virtual.m4a","grupos/06_psicodrama_de_moreno_e_grupos_de_rogers_revisao.m4a","familia/01_divorcio_nao_e_o_fim_da_familia.m4a","familia/02_segredos_familiares_lealdades_invisiveis_e_adocao.m4a","familia/03_a_armadilha_psicologica_da_violencia_domestica.m4a","familia/04_os_sinais_ocultos_da_violencia_infantil.m4a","familia/05_as_raizes_familiares_da_dependencia_quimica.m4a","familia/06_o_roteiro_invisivel_das_herancas_familiares.m4a","familia/07_como_as_dinamicas_familiares_atravessam_geracoes_revisao.m4a","meta/01_o_narcisismo_do_mito_grego_a_freud.m4a","meta/02_como_o_edipo_estrutura_a_mente.m4a","meta/03_o_edipo_alem_do_mito.m4a","meta/04_o_conflito_entre_id_ego_e_superego.m4a","meta/05_do_instinto_a_pulsao_de_morte.m4a","meta/06_as_duas_teorias_freudianas_da_angustia.m4a","meta/07_o_mapa_da_metapsicologia_freudiana_revisao.m4a","avaliacao/01_diferencas_entre_os_documentos_psicologicos.m4a","avaliacao/02_documentos_psicologicos_e_fundamentos_de_psicometria.m4a","avaliacao/03_diferencas_entre_laudo_parecer_e_relatorio.m4a","avaliacao/04_a_entrevista_de_anamnese_no_psicodiagnostico.m4a","avaliacao/05_os_pilares_da_psicometria.m4a","social/01_como_a_sociedade_fabrica_quem_somos.m4a","social/02_ideologia_e_fatalismo_em_martin_baro.m4a","social/03_o_estigma_prisional_alem_dos_muros.m4a","social/04_quando_proteger_as_criancas_virou_vigilancia.m4a","social/05_epistemicidio_e_a_falsa_neutralidade_cientifica.m4a","social/06_martin_baro_e_a_psicologia_da_libertacao.m4a"];
-var allowed=new Set(EXPECTED);
+var EXPECTED=["tcc/01_fundamentos_da_terapia_do_esquema.m4a","tcc/02_os_primeiros_nove_esquemas.m4a","tcc/03_os_outros_nove_esquemas.m4a","tcc/04_estilos_de_enfrentamento_e_modos.m4a","tcc/05_terapia_do_esquema_na_pratica.m4a","tcc/06_do_behaviorismo_a_terceira_onda.m4a","tcc/07_act_e_modelo_hexaflex.m4a","tcc/08_dbt_e_mbct.m4a","tcc/09_cft_e_fap.m4a","tcc/10_processos_clinicos_na_terceira_onda.m4a","grupos/01_do_diva_ao_palco_no_psicodrama.m4a","grupos/02_como_o_psicodrama_reescreve_nossos_roteiros.m4a","grupos/03_carl_rogers_e_os_grupos_de_encontro.m4a","grupos/04_como_funcionam_os_grupos_de_encontro_rogerianos.m4a","grupos/05_psicologia_dos_grupos_do_presencial_ao_virtual.m4a","grupos/06_psicodrama_de_moreno_e_grupos_de_rogers_revisao.m4a","familia/01_divorcio_nao_e_o_fim_da_familia.m4a","familia/02_segredos_familiares_lealdades_invisiveis_e_adocao.m4a","familia/03_a_armadilha_psicologica_da_violencia_domestica.m4a","familia/04_os_sinais_ocultos_da_violencia_infantil.m4a","familia/05_as_raizes_familiares_da_dependencia_quimica.m4a","familia/06_o_roteiro_invisivel_das_herancas_familiares.m4a","familia/07_como_as_dinamicas_familiares_atravessam_geracoes_revisao.m4a","meta/01_o_narcisismo_do_mito_grego_a_freud.m4a","meta/02_como_o_edipo_estrutura_a_mente.m4a","meta/03_o_edipo_alem_do_mito.m4a","meta/04_o_conflito_entre_id_ego_e_superego.m4a","meta/05_do_instinto_a_pulsao_de_morte.m4a","meta/06_as_duas_teorias_freudianas_da_angustia.m4a","meta/07_o_mapa_da_metapsicologia_freudiana_revisao.m4a","avaliacao/01_diferencas_entre_os_documentos_psicologicos.m4a","avaliacao/02_documentos_psicologicos_e_fundamentos_de_psicometria.m4a","avaliacao/03_diferencas_entre_laudo_parecer_e_relatorio.m4a","avaliacao/04_a_entrevista_de_anamnese_no_psicodiagnostico.m4a","avaliacao/05_os_pilares_da_psicometria.m4a","social/01_como_a_sociedade_fabrica_quem_somos.m4a","social/02_ideologia_e_fatalismo_em_martin_baro.m4a","social/03_o_estigma_prisional_alem_dos_muros.m4a","social/04_quando_proteger_as_criancas_virou_vigilancia.m4a","social/05_epistemicidio_e_a_falsa_neutralidade_cientifica.m4a","social/06_martin_baro_e_a_psicologia_da_libertacao.m4a","social/07_identidade_e_representacoes_sociais_revisao.m4a","social/08_revisao_integradora_questoes_objetivas_e_dissertativas.m4a"];
+var allowed=new Set(EXPECTED);var TOTAL=EXPECTED.length;
 var client=null,selected=null,busy=false;
 var el=function(id){return document.getElementById(id)};
 function say(t,error){el("uploadStatus").textContent=t;el("uploadStatus").className="small "+(error?"err":"");}
@@ -63,9 +76,9 @@ if(r.error){errorCount++;log("Erro consultando "+sub+": "+r.error.message);conti
 for(var obj of r.data||[])found.add(sub+"/"+obj.name);
 }
 var missing=EXPECTED.filter(function(x){return !found.has(x)});
-el("progress").value=Math.min(found.size,41);
-say("Publicados: "+(41-missing.length)+" de 41."+(missing.length?" Faltam "+missing.length+" arquivos.":" Todos os 41 podcasts estão no ar."),!!errorCount);
-log(missing.length?"Faltando: "+missing.join(", "):"Verificação concluída: todos os 41 estão presentes.");
+el("progress").value=Math.min(found.size,TOTAL);
+say("Publicados: "+(TOTAL-missing.length)+" de "+TOTAL+"."+(missing.length?" Faltam "+missing.length+" arquivos.":" Todos os "+TOTAL+" podcasts estão no ar."),!!errorCount);
+log(missing.length?"Faltando: "+missing.join(", "):"Verificação concluída: todos os "+TOTAL+" estão presentes.");
 }
 function choose(kind,files){selected={kind:kind,files:Array.from(files)};el("uploadButton").disabled=!selected.files.length;el("selectedStatus").textContent=selected.files.length+" arquivo(s) selecionado(s) — "+(kind==="zip"?"ZIPs":"áudios")+".";}
 el("zipInput").addEventListener("change",function(){el("folderInput").value="";el("filesInput").value="";choose("zip",this.files)});
@@ -106,11 +119,44 @@ if(!key){log("Não reconhecido: "+file.name);continue}
 try{count=await uploadOne(key,file,count)}catch(e){failures.push(key+": "+e.message);log("ERRO "+key+": "+e.message)}
 }
 }
-say("Envio encerrado: "+uploaded.size+" arquivos enviados. "+failures.length+" falha(s). "+(uploaded.size===41?"Todos os podcasts foram enviados!":"Podes selecionar novamente os arquivos restantes e tentar de novo."),failures.length>0);
+say("Envio encerrado: "+uploaded.size+" arquivos enviados. "+failures.length+" falha(s). "+(uploaded.size===TOTAL?"Todos os podcasts foram enviados!":"Podes selecionar novamente os arquivos restantes e tentar de novo."),failures.length>0);
 await check();
 }catch(e){say("O envio foi interrompido: "+e.message,true);log("Falha geral: "+e.message)}
 finally{busy=false;el("uploadButton").disabled=false;el("checkButton").disabled=false;}
 }
+async function uploadSocialExtras(){
+ if(busy)return;
+ var selectedFiles=[
+  {key:"social/07_identidade_e_representacoes_sociais_revisao.m4a",file:el("social7Input").files[0]},
+  {key:"social/08_revisao_integradora_questoes_objetivas_e_dissertativas.m4a",file:el("social8Input").files[0]}
+ ].filter(function(item){return !!item.file});
+ var status=el("socialExtraStatus");
+ if(!selectedFiles.length){status.textContent="Escolhe pelo menos um arquivo M4A.";status.className="small err";return;}
+ var invalid=selectedFiles.find(function(item){return !/\.m4a$/i.test(item.file.name)});
+ if(invalid){status.textContent="É necessário selecionar arquivos .m4a.";status.className="small err";return;}
+ if(!client){status.textContent="Conecta-te à conta de administrador primeiro.";status.className="small err";return;}
+ busy=true;uploaded=new Set();failures=[];
+ el("uploadSocialExtras").disabled=true;el("uploadButton").disabled=true;el("checkButton").disabled=true;
+ status.textContent="Enviando os arquivos selecionados...";status.className="small sub";
+ try{
+  for(var item of selectedFiles){
+   await uploadOne(item.key,item.file,0);
+  }
+  if(failures.length){
+   status.textContent="Alguns arquivos falharam: "+failures.join("; ");
+   status.className="small err";
+  }else{
+   status.textContent="Pronto! Episódio(s) publicado(s) no armazenamento do site.";
+   status.className="small ok";
+  }
+  await check();
+ }catch(err){
+  status.textContent="Falha ao enviar: "+err.message;status.className="small err";
+ }finally{
+  busy=false;el("uploadSocialExtras").disabled=false;el("uploadButton").disabled=false;el("checkButton").disabled=false;
+ }
+}
+el("uploadSocialExtras").addEventListener("click",uploadSocialExtras);
 el("uploadButton").addEventListener("click",run);el("checkButton").addEventListener("click",check);
 el("authForm").addEventListener("submit",async function(e){e.preventDefault();el("loginButton").disabled=true;el("loginStatus").textContent="Entrando...";try{var fd=new FormData(e.target);var r=await client.auth.signInWithPassword({email:String(fd.get("email")).trim(),password:String(fd.get("password"))});if(r.error)throw r.error;authView(r.data.user);el("loginStatus").textContent="";await check()}catch(err){el("loginStatus").textContent="Não foi possível entrar: "+err.message}finally{el("loginButton").disabled=false}});
 el("logoutButton").addEventListener("click",async function(){await client.auth.signOut();authView(null)});
