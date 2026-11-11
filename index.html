@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="color-scheme" content="light dark">
-<meta name="site-build" content="auto-update-20261111-final-exams-meta-1">
+<meta name="site-build" content="auto-update-20261111-final-exams-meta-2">
 <script>try{document.documentElement.dataset.theme=localStorage.getItem("uentzoul_theme_v1")==="dark"?"dark":"light"}catch(e){document.documentElement.dataset.theme="light"}</script>
 <title>Psicologia PUCRS 2026/2</title>
 <style>
@@ -1594,7 +1594,7 @@ html[data-theme="dark"] .library-page .library-click-ripple{background:radial-gr
 @media(prefers-reduced-motion:reduce){.library-page .library-click-ripple{display:none!important}.library-page .library-resource.library-pressed{transform:none!important}}
 
 /* Revisão final 2026/2: a biblioteca de podcasts permanece arquivada, sem exclusão de dados. */
-body:has(#main) .sidebtn[data-page="audio"]{display:none!important}
+html[data-exam-focus="2026/2"] .sidebtn[data-page="audio"]{display:none!important}
 .meta-route{margin-top:25px;padding:clamp(22px,3vw,32px);border-radius:24px;border:1px solid #c7b7e9;background:linear-gradient(110deg,#f0eafa,#fcfbff);display:flex;align-items:center;gap:22px;box-shadow:0 15px 45px #6856a30b;overflow:hidden}
 .meta-route-orbit{flex:0 0 72px;width:72px;height:72px;border-radius:24px;background:#6c55a3;color:#fff;display:grid;place-items:center;font-size:35px;font-family:Georgia,serif;transform:rotate(-8deg)}
 .meta-route-copy{min-width:0}.meta-route-tag{font-size:10px;letter-spacing:1.3px;color:#7154b4;font-weight:850}.meta-route h2{font-size:clamp(18px,2.6vw,23px);letter-spacing:-.45px;line-height:1.3;margin:8px 0}.meta-route p{font-size:12px;color:#695c80;max-width:670px;margin:0 0 15px}.meta-route-button{display:inline-flex;gap:14px;align-items:center;border-radius:13px;padding:11px 15px;background:#6c55a3;color:#fff!important;font-weight:800;font-size:12px;text-decoration:none}.meta-route-button:hover{background:#513c86;text-decoration:none}
@@ -2195,6 +2195,7 @@ function subjectCard(id){
  '<span class="cardbase"><span class="pill">'+fmtPct(n,keys.length)+'% concluído</span><span class="card-open-indicator" aria-hidden="true">↗</span></span></button>';
 }
 function renderNav(){
+ document.documentElement.dataset.examFocus=semester==='2026/2'?'2026/2':'none';
  document.querySelectorAll('[data-semester]').forEach(b=>{const active=b.dataset.semester===semester;b.classList.toggle('active',active);if(active)b.setAttribute('aria-current','true');else b.removeAttribute('aria-current')});
  const currentLabel=$('semesterCurrentLabel');if(currentLabel)currentLabel.textContent=semester;
  document.querySelectorAll('.brand strong,.mobile-heading strong').forEach(el=>el.textContent='Psicologia PUCRS '+semester);
