@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="color-scheme" content="light dark">
-<meta name="site-build" content="auto-update-20261111-library-upload-3">
+<meta name="site-build" content="auto-update-20261111-final-exams-meta-1">
 <script>try{document.documentElement.dataset.theme=localStorage.getItem("uentzoul_theme_v1")==="dark"?"dark":"light"}catch(e){document.documentElement.dataset.theme="light"}</script>
 <title>Psicologia PUCRS 2026/2</title>
 <style>
@@ -1592,6 +1592,14 @@ html[data-theme="dark"] .library-page .library-resource-arrow{color:#c3b0f1}
 @keyframes libraryClickPulse{0%{opacity:.65;transform:translate(-50%,-50%) scale(0)}60%{opacity:.78}100%{opacity:0;transform:translate(-50%,-50%) scale(1)}}
 html[data-theme="dark"] .library-page .library-click-ripple{background:radial-gradient(circle,#b9a0f659 0%,#a789eb20 48%,transparent 72%)}
 @media(prefers-reduced-motion:reduce){.library-page .library-click-ripple{display:none!important}.library-page .library-resource.library-pressed{transform:none!important}}
+
+/* Revisão final 2026/2: a biblioteca de podcasts permanece arquivada, sem exclusão de dados. */
+body:has(#main) .sidebtn[data-page="audio"]{display:none!important}
+.meta-route{margin-top:25px;padding:clamp(22px,3vw,32px);border-radius:24px;border:1px solid #c7b7e9;background:linear-gradient(110deg,#f0eafa,#fcfbff);display:flex;align-items:center;gap:22px;box-shadow:0 15px 45px #6856a30b;overflow:hidden}
+.meta-route-orbit{flex:0 0 72px;width:72px;height:72px;border-radius:24px;background:#6c55a3;color:#fff;display:grid;place-items:center;font-size:35px;font-family:Georgia,serif;transform:rotate(-8deg)}
+.meta-route-copy{min-width:0}.meta-route-tag{font-size:10px;letter-spacing:1.3px;color:#7154b4;font-weight:850}.meta-route h2{font-size:clamp(18px,2.6vw,23px);letter-spacing:-.45px;line-height:1.3;margin:8px 0}.meta-route p{font-size:12px;color:#695c80;max-width:670px;margin:0 0 15px}.meta-route-button{display:inline-flex;gap:14px;align-items:center;border-radius:13px;padding:11px 15px;background:#6c55a3;color:#fff!important;font-weight:800;font-size:12px;text-decoration:none}.meta-route-button:hover{background:#513c86;text-decoration:none}
+[data-theme="dark"] .meta-route{background:linear-gradient(110deg,#292039,#1d1a2c);border-color:#51436b}[data-theme="dark"] .meta-route p{color:#c7b9da}
+@media(max-width:630px){.meta-route{flex-direction:column;align-items:flex-start;gap:13px}.meta-route-orbit{width:53px;height:53px;flex-basis:53px;font-size:25px;border-radius:16px}}
 </style>
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2064%2064%22%3E%3Crect%20width%3D%2264%22%20height%3D%2264%22%20rx%3D%2214%22%20fill%3D%22%23192d44%22%2F%3E%3Ctext%20x%3D%2232%22%20y%3D%2246%22%20fill%3D%22white%22%20font-size%3D%2246%22%20font-family%3D%22Georgia%2Cserif%22%20text-anchor%3D%22middle%22%3E%CE%A8%3C%2Ftext%3E%3C%2Fsvg%3E">
 <link rel="stylesheet" href="library-manager.css?v=20261111-1">
@@ -1949,6 +1957,20 @@ const SEMESTER_DB={
 let semester='2026/2';
 try{if(localStorage.getItem(SEMESTER_PREF)==='2027/1')semester='2027/1'}catch{}
 let DB=SEMESTER_DB[semester];
+
+// Foco temporário nas avaliações finais de novembro de 2026.
+// Os itens anteriores não são excluídos do repositório, do Supabase nem do histórico:
+// apenas deixam de ser exibidos no acervo/revisão do semestre corrente.
+const FINAL_EXAM_LIBRARY_KEYS=new Set(["tcc::Cronograma de TCC","tcc::Terapia do Esquema — 41 slides","tcc::TCCs de Terceira Onda — 39 slides","tcc::Young, Klosko e Weishaar — cap. 1–2","tcc::Hayes e colaboradores — ACT","familia::Cronograma de Psicologia da Família","familia::Famílias monoparentais, divórcio e recasamento","familia::Segredos e adoção","familia::Violência intrafamiliar","familia::Luto — Manual de Terapia Familiar, cap. 27","familia::Dependência Química na visão sistêmica — Payá, cap. 56","familia::Atendimentos clínico, hospitalar, escolar, jurídico e assistência social","meta::Plano e cronograma de Metapsicologia","meta::Segunda Tópica — slides","meta::Édipo — slides","meta::Pulsão — slides","meta::Angústia — slides","meta::Estudo Dirigido P2","meta::Leitura das aulas 19 e 26 de outubro","meta::Vocabulário da Psicanálise — Laplanche e Pontalis","meta::Dicionário de Psicanálise — Roudinesco e Plon","social::Cronograma de Psicologia Social","social::Psicologia Social Crítica — Martín-Baró","social::Seminário sobre algoritmos e polarização","social::Texto-base sobre relações étnico-raciais","social::Texto-base sobre gênero e sexualidade","avaliacao::Cronograma de Avaliação Psicológica","avaliacao::Entrevista de devolução — slides","avaliacao::Avaliação no contexto organizacional","avaliacao::Avaliação nos contextos hospitalar e forense","avaliacao::Avaliação de pessoas trans e ética profissional","avaliacao::Entrevista simulada de devolução — vídeo","grupos::Moreno — Psicodrama","grupos::Carl Rogers — Grupos de Encontro","grupos::Escritores da Liberdade — sinopse oficial","grupos::Escritores da Liberdade — análise do filme","grupos::Escritores da Liberdade — guia de estudo (PDF)"]);
+SEMESTER_DB['2026/2'].materials=SEMESTER_DB['2026/2'].materials.filter(m=>FINAL_EXAM_LIBRARY_KEYS.has(String(m.subject||'')+'::'+String(m.title||'')));
+SEMESTER_DB['2026/2'].topics.avaliacao=SEMESTER_DB['2026/2'].topics.avaliacao.filter(t=>[
+'Entrevista de devolução','Linguagem e comunicação na devolução','Sigilo e compartilhamento ético',
+'Avaliação no contexto organizacional','Avaliação hospitalar','Avaliação forense',
+'Atendimento a pessoas trans','Ética na avaliação psicológica',
+'Resolução CFP 31/2022 e fontes de informação'
+].includes(t.title));
+// Os capítulos comparativos da primeira tópica continuam em Metapsicologia,
+// pois o Estudo Dirigido P2 pede expressamente as diferenças entre os modelos.
 
 const LIBRARY_MATERIALS=SEMESTER_DB['2026/2'].materials;
 let libraryAdminEnabled=false,libraryRecords=new Map();
@@ -2320,19 +2342,20 @@ function organizedSubjectMaterials(materials,libraryView=false){
 }
 function renderSubject(k){
  const subj=getSubject(k),docs=DB.materials.filter(x=>x.subject===k),topics=DB.topics[k],tests=DB.exams.filter(x=>x.subject===k);
- const keys=subjectKeys(k),n=doneCount(keys),audioN=audioEpisodes(k).length;
+ const keys=subjectKeys(k),n=doneCount(keys),audioN=semester==='2026/2'?0:audioEpisodes(k).length;
  const stats=[['Tópicos',doneCount(topics.map((_,i)=>topicProgressKey(k,i))),topics.length],
  ['Materiais',doneCount(docs.filter(x=>x.available).map(m=>'material:'+(m.url||m.source))),docs.filter(x=>x.available).length],
  ['Simulados',doneCount(tests.map(e=>'sim:'+e.id)),tests.length],
- ['Áudios',doneCount(audioEpisodes(k).map(e=>'audio:'+k+':'+e.n)),audioN]];
+ ['Áudios',doneCount(audioEpisodes(k).map(e=>'audio:'+k+':'+e.n)),audioN]].filter(item=>semester!=='2026/2'||item[0]!=='Áudios');
  return '<div class="crumb"><button class="plainlink" data-action="page:home">Início</button> / '+esc(subj.name)+'</div>'+
  '<div class="panel subjecthero" style="--accent:'+color(k)+'"><div class="subjectheader"><div><div class="eyebrow">'+esc(subj.exam)+' · '+dformat(subj.date)+'</div><h1 class="h1">'+esc(subj.name)+'</h1><div class="small" style="margin-top:5px">'+esc(subj.full)+'</div></div>'+
- '<div class="actions">'+button('Fazer simulados','scroll:tests','btn')+button('Ver materiais','scroll:docs','btn light')+'</div></div>'+
+ '<div class="actions">'+(k==='meta'&&semester==='2026/2'?'<a class="btn" href="metapsicologia-p2.html">▶ Trilha de videoaulas</a>':'')+button('Fazer simulados','scroll:tests','btn')+button('Ver materiais','scroll:docs','btn light')+'</div></div>'+
  '<div class="tagrow"><span class="pill">'+delta(subj.date)+'</span><span class="pill" id="subjectDoneCount">'+n+'/'+keys.length+' concluídos</span><span class="pill" id="subjectDonePercent">'+fmtPct(n,keys.length)+'% de progresso</span></div>'+
  '<div class="progressline" style="margin-top:12px"><div id="subjectDoneBar" style="width:'+fmtPct(n,keys.length)+'%"></div></div>'+
  '<div class="subject-progress-grid">'+stats.map(item=>'<div class="subject-progress-cell"><strong data-subject-stat="'+item[0]+'">'+item[1]+'/'+item[2]+'</strong><span>'+item[0]+'</span></div>').join('')+'</div>'+
  '<div class="subjectline"></div><div class="notebar">'+esc(subj.source)+'</div></div>'+
  '<nav class="section-nav" aria-label="Seções da disciplina"><button data-action="scroll:topics">Conteúdos para revisar</button><button data-action="scroll:docs">Materiais e textos</button><button data-action="scroll:tests">Simulados</button>'+(audioN?'<button data-action="audioFor:'+k+'">Podcasts →</button>':'')+'</nav>'+
+ (k==='meta'&&semester==='2026/2'?'<section class="meta-route"><div class="meta-route-orbit" aria-hidden="true">Ψ</div><div class="meta-route-copy"><div class="meta-route-tag">TRILHA ESPECIAL · PROVA P2</div><h2>Os seis vídeos do professor, organizados por assunto.</h2><p>95 capítulos com minutagens, explicações, exemplos e revisão. Clique no trecho e assista diretamente no player do YouTube, sem baixar o vídeo.</p><a href="metapsicologia-p2.html" class="meta-route-button">Abrir minha trilha de Metapsicologia <span aria-hidden="true">↗</span></a></div></section>':'')+
  '<section class="section" id="topics"><div class="sectiontop"><h2>Conteúdos para revisar</h2><span class="small">'+topics.length+' tópicos de estudo</span></div>'+
  '<div class="topicgrid">'+topics.map((t,i)=>'<div class="topicunit '+(isDone(topicProgressKey(k,i))?'is-done':'')+'"><details class="topic"><summary>'+(i+1)+'. '+esc(t.title)+'</summary><p>'+esc(t.definition)+'</p><p><strong>Exemplo:</strong> '+esc(t.scenario)+'</p><p><strong>Erro comum:</strong> '+esc(t.myth)+'</p></details><div class="topicfoot">'+doneBox(topicProgressKey(k,i))+'</div></div>').join('')+'</div></section>'+
  '<section class="section" id="docs"><div class="sectiontop"><h2>Materiais e textos da disciplina</h2><span class="small">'+docs.filter(m=>m.available).length+' disponíveis · '+docs.filter(m=>!m.available).length+' referências sem arquivo</span></div>'+
@@ -2396,8 +2419,8 @@ function renderLibrary(){
   '<div class="library-head"><span class="library-subject-mark" aria-hidden="true"></span><h2>'+esc(label)+'</h2><span>'+ready+' disponíveis · '+(materials.length-ready)+' ainda sem arquivo</span></div>'+
   organizedSubjectMaterials(materials,true)+'</section>';
  }).join('');
- return '<div class="library-page">'+head('Acervo de estudos','Biblioteca','Materiais de aula, leituras e guias organizados por disciplina.')+
- '<div class="library-overview"><div class="library-overview-message"><span class="library-overview-kicker">ACERVO DIGITAL</span><div class="library-overview-title">Encontre o que precisa para estudar.</div><p>Abra um material tocando em qualquer parte do cartão. Seu progresso continua separado.</p></div>'+
+ return '<div class="library-page">'+head('Revisão de novembro','Biblioteca das provas finais','Apenas materiais das avaliações de 18 a 26 de novembro de 2026, agrupados por disciplina.')+
+ '<div class="library-overview"><div class="library-overview-message"><span class="library-overview-kicker">ACERVO DIGITAL</span><div class="library-overview-title">Só o conteúdo das provas finais.</div><p>Abra um material tocando em qualquer parte do cartão. Seu progresso continua separado.</p></div>'+
  '<div class="library-overview-metrics"><div><strong>'+available+'</strong><span>disponíveis</span></div><div><strong>'+total+'</strong><span>no acervo</span></div></div></div>'+
  libraryAdminPanel()+
  '<div class="panel library-filter-panel"><div class="topline"><div class="filters" id="filterlist">'+
