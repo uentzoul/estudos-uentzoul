@@ -2155,7 +2155,7 @@ function renderAudio(){
  <div class="audio-helper"><b>↓ Baixar</b> guarda o episódio no navegador para ouvir depois. <b>▶ Ouvir</b> toca o episódio baixado; se ainda não estiver baixado, faz o download primeiro. Não é preciso baixar todos de uma vez.<p class="small" style="margin:8px 0 0">Os arquivos precisam estar disponíveis no endereço do site. Apenas o HTML, sem os áudios publicados, não consegue baixá-los. O navegador pode apagar arquivos guardados para liberar espaço.</p></div>
  <section class="audio-progress"><div class="statline"><span>Progresso em ${esc(name)}</span><strong id="audioCompletedCount">${done}/${eps.length} concluídos</strong></div><div class="progressline"><div id="audioCompletedBar" style="width:${fmtPct(done,eps.length)}%"></div></div><p class="small" style="margin:8px 0 0">As caixinhas de concluído são independentes dos downloads.</p></section>
  <section class="section"><div class="audiohead"><div class="eyebrow" style="color:#a9bfd5">${k==='tcc'?'TCC: capítulos individuais':'Áudios separados por episódio'}</div><h2 style="margin:0;font-size:20px" id="audioPlayingTitle">${esc(eps[chosen].title)}</h2><p class="small">Escolhe um episódio e toca em ▶; o download ocorrerá apenas para ele.</p>
- <audio id="audioPlayer" controls preload="none" style="width:100%;margin-top:10px"></audio><div class="small" id="audioStatus" role="status" aria-live="polite">Escolhe um episódio para ouvir.</div>
+ <audio id="audioPlayer" controls preload="none" style="width:100%;margin-top:10px"></audio><div class="small" id="audioStatus" role="status" aria-live="polite">Escolhe um episódio para ouvir.</div><p class="small muted" id="podcastPointsStatus" aria-live="polite">Ouve pelo menos 70% do episódio no player para receber 5 pontos.</p>
  <div class="actions" style="margin-top:11px"><button class="btn sm light" data-action="prevAudio">◂ Anterior</button><button class="btn sm light" data-action="nextAudio">Próximo ▸</button><button class="btn sm light" data-action="resetAudio">Reiniciar áudio</button></div>
  </div></section>
  <section class="section"><div class="sectiontop"><h2>${k==='tcc'?'Capítulos de TCC':'Episódios de '+esc(name)}</h2><span class="small">${eps.length} episódios · download individual</span></div><div class="audiocards">${cards}</div></section>`;
@@ -2865,6 +2865,7 @@ async function podcastReport(p){
  try{
   const {data,error}=await geClient().rpc('uentzoul_track_podcast',{p_episode_id:episodeId,p_position:p.currentTime,p_duration:p.duration});
   if(error)throw error;
+  const progress=$('podcastPointsStatus');if(progress&&current.page==='audio'&&podcastPlayerKey===id){progress.textContent=data?.completed?'Escuta validada: 70% ou mais · 5 pontos registrados.':'Escuta validada: '+Math.round(Number(data?.percent||0))+'% do episódio. Meta: 70%.';}
   if(data?.awarded){
    podcastMetrics.awarded.add(geUser().id+':'+episodeId);
    toast('Podcast concluído: +5 pontos no ranking.');
@@ -2921,7 +2922,7 @@ async function preparePodcast(k,i,autoplay=false){const key=audioKey(k,i),ep=pod
 function updatePickedAudioLabels(){for(const key of episodeReady){const [k,i]=key.split(':');updateDownloadVisual(k,Number(i));}}
 function currentAudioSource(){return ''}
 function loadSelectedAudio({autoplay=false}={}){if(autoplay)preparePodcast(current.audioSubject,audioSelectionIndex(),true);}
-function refreshAudioSelection(){const k=current.audioSubject,eps=audioEpisodes(k),selected=audioSelectionIndex();document.querySelectorAll('[data-audio-index]').forEach((el,i)=>el.classList.toggle('active',i===selected));const title=$('audioPlayingTitle');if(title)title.textContent=eps[selected]?.title||'Selecione um episódio';const status=$('audioStatus');if(status)status.textContent=`Selecionado: ${eps[selected]?.title||''}.`;}
+function refreshAudioSelection(){const k=current.audioSubject,eps=audioEpisodes(k),selected=audioSelectionIndex();document.querySelectorAll('[data-audio-index]').forEach((el,i)=>el.classList.toggle('active',i===selected));const title=$('audioPlayingTitle');if(title)title.textContent=eps[selected]?.title||'Selecione um episódio';const status=$('audioStatus');if(status)status.textContent=`Selecionado: ${eps[selected]?.title||''}.`;const points=$('podcastPointsStatus');if(points)points.textContent=eps[selected]?.duration?'Ouve pelo menos 70% do episódio para receber 5 pontos.':'Este áudio não tem duração cadastrada para pontuação.';}
 function startPlayback(p){try{p.play()}catch(e){}}
 function openChapter(i){currentChapter=Math.min(Math.max(i,0),DB.audio.tcc.episodes.length-1);refreshAudioSelection();preparePodcast('tcc',currentChapter,true);}
 function openEpisode(i){const eps=audioEpisodes(current.audioSubject);currentEpisode=Math.min(Math.max(i,0),eps.length-1);refreshAudioSelection();preparePodcast(current.audioSubject,currentEpisode,true);}
