@@ -1796,7 +1796,7 @@ Qual conceito ou formulação explica MELHOR essa situação?</p><ol type="a"><l
 <div class="rank-rules-row"><strong>Simulado intermediário</strong><span>15 pontos</span><p>Modelo de nível 3, também com pelo menos 70% na primeira tentativa.</p></div>
 <div class="rank-rules-row"><strong>Simulado difícil</strong><span>20 pontos</span><p>Modelos de nível 4 ou 5, com pelo menos 70% na primeira tentativa.</p></div>
 <div class="rank-rules-row"><strong>Podcast</strong><span>5 pontos</span><p>Ouvir pelo menos 70% do episódio no reprodutor do site. Pular trechos ou apenas baixar não conta. Uma recompensa por episódio.</p></div>
-<div class="rank-rules-row"><strong>7 dias de estudos seguidos</strong><span>15 pontos</span><p>É preciso concluir uma atividade validada a cada dia: uma tentativa de simulado pronto ou 70% de um podcast.</p></div>
+<div class="rank-rules-row"><strong>7 dias de estudos seguidos</strong><span>15 pontos</span><p>É preciso concluir uma atividade validada a cada dia: uma tentativa de simulado pronto com pelo menos 50% de acertos, ou 70% de um podcast.</p></div>
 <div class="rank-rules-row"><strong>30 dias de estudos seguidos</strong><span>40 pontos</span><p>A mesma regra de atividade diária, mantida durante 30 dias consecutivos.</p></div>
 <p class="small muted">Marcar um conteúdo como “Visto”, apenas abrir uma página ou atualizar o navegador não conta como atividade de estudo para a sequência. Simulados pessoais ou criados por IA não atribuem pontos no ranking.</p>
 </div></section></div>
@@ -2504,7 +2504,7 @@ function geRenderList(){
   (rows.length?'<div class="ge-grid">'+rows.map(geExamCard).join('')+'</div>':'<p class="ge-muted">'+empty+'</p>')+'</section>';
  return head('Simulados','Simulados sob medida','Uma prova nova a cada solicitação, guardada na tua conta. Depois de entregar, só é possível rever.')+
   form+(ge.error?'<div class="tz-notice" role="alert">'+esc(ge.error)+'</div>':'')+
-  (ge.notice?'<p class="small muted" role="status">'+esc(ge.notice)+'</div>':'')+
+  (ge.notice?'<p class="small muted" role="status">'+esc(ge.notice)+'</p>':'')+
   '<div class="ge-toolbar"><span>Histórico salvo na tua conta</span><div class="ge-toolbar-actions">'+(ge.hidden.length?'<button type="button" class="btn sm light" data-ge-restore>Restaurar ocultados ('+ge.hidden.length+')</button>':'')+'<button type="button" class="btn sm light" data-ge-refresh '+(ge.loading?'disabled':'')+'>Atualizar histórico</button></div></div>'+
   (ge.loading?'<div class="panel ge-panel">Carregando simulados salvos…</div>':
   section('Meus simulados',owned,'Ainda não criaste um simulado.')+
@@ -2859,16 +2859,16 @@ async function podcastReport(p){
  const [subject,indexText]=id.split(':'),index=Number(indexText),episode=podcastEpisode(subject,index);
  if(!episode?.duration||!Number.parseInt(episode.duration,10))return;
  const episodeId=subject+':'+episode.n;
- if(podcastMetrics.awarded.has(episodeId)||podcastMetrics.inFlight||Date.now()-podcastMetrics.lastCall<9000)return;
+ if(podcastMetrics.awarded.has(geUser().id+':'+episodeId)||podcastMetrics.inFlight||Date.now()-podcastMetrics.lastCall<9000)return;
  podcastMetrics.inFlight=true;podcastMetrics.lastCall=Date.now();
  try{
   const {data,error}=await geClient().rpc('uentzoul_track_podcast',{p_episode_id:episodeId,p_position:p.currentTime,p_duration:p.duration});
   if(error)throw error;
   if(data?.awarded){
-   podcastMetrics.awarded.add(episodeId);
+   podcastMetrics.awarded.add(geUser().id+':'+episodeId);
    toast('Podcast concluído: +5 pontos no ranking.');
    window.dispatchEvent(new Event('uentzoul:ranking-refresh'));
-  }else if(data?.completed)podcastMetrics.awarded.add(episodeId);
+  }else if(data?.completed)podcastMetrics.awarded.add(geUser().id+':'+episodeId);
  }catch(e){console.warn('Registro de escuta indisponível',e)}
  finally{podcastMetrics.inFlight=false;}
 }
@@ -3211,6 +3211,23 @@ async function initCloud(){
  })();
  return cloudInitPromise;
 }
+let dailyCheckinKey='',dailyCheckinInFlight=false;
+async function claimDailyPoints(){
+ if(!client||!onlineUser||dailyCheckinInFlight||document.visibilityState==='hidden')return;
+ const today=new Intl.DateTimeFormat('en-CA',{timeZone:'America/Sao_Paulo',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date());
+ const key=onlineUser.id+':'+today;
+ if(key===dailyCheckinKey)return;
+ dailyCheckinInFlight=true;dailyCheckinKey=key;
+ try{
+  const {data,error}=await client.rpc('uentzoul_daily_checkin');
+  if(error)throw error;
+  if(data?.awarded)window.dispatchEvent(new Event('uentzoul:ranking-refresh'));
+ }catch(e){dailyCheckinKey='';console.warn('Pontuação diária indisponível',e)}
+ finally{dailyCheckinInFlight=false;}
+}
+document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')claimDailyPoints()});
+window.addEventListener('focus',claimDailyPoints);
+setInterval(()=>{if(document.visibilityState==='visible')claimDailyPoints()},300000);
 async function enterCloud(user){
  if(!client||!user?.id)return;
  if(onlineUser?.id===user.id)return;
@@ -3227,7 +3244,7 @@ cloudSnapshot={semesters:{
 for(const item of ['2026/2','2027/1'])bridge.saveForSemester(id,item,cloudSnapshot.semesters[item]);
 onlineUser=user;bridge.switchTo(id,cloudSnapshot.semesters[sem]);
 if(!prog)await saveCloud();
-try{await client.rpc('uentzoul_daily_checkin');}catch(e){console.warn('Registro diário indisponível',e)}
+await claimDailyPoints();
 await loadRanking();renderAside();window.uentzoulMessenger?.onLogin();window.uentzoulPersonal?.onLogin();window.dispatchEvent(new Event('uentzoul:auth'));if(!$('profileOverlay').hidden)renderModal();
  })();
  try{return await enteringPromise}finally{enteringUserId=null;enteringPromise=null}
