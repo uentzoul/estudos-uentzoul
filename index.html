@@ -648,7 +648,7 @@ html[data-theme="dark"] .tz-notice{background:#3b2e29;border-color:#72543d;color
 .tz-filter-current{font-size:10px;font-weight:660;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:155px;opacity:.82;border-left:1px solid currentColor;padding-left:9px}
 .tz-filter-chevron{flex:none;margin-left:auto;transition:transform .24s ease}
 .tz-context[open] .tz-filter-chevron{transform:rotate(180deg)}
-.tz-filter-panel{padding:14px 15px 12px;margin-top:8px;width:min(570px,calc(100vw - 48px));max-width:100%;background:var(--paper);border:1px solid #d9d1ee;border-radius:15px;box-shadow:0 12px 28px #41347a18;animation:tzFilterOpen .25s cubic-bezier(.2,.8,.2,1) both}
+.tz-filter-panel{position:absolute;left:0;bottom:calc(100% + 9px);z-index:10;padding:14px 15px 12px;margin-top:0;width:min(570px,calc(100vw - 48px));max-width:none;max-height:min(55dvh,390px);overflow-y:auto;overscroll-behavior:contain;background:var(--paper);border:1px solid #d9d1ee;border-radius:15px;box-shadow:0 12px 28px #41347a18;animation:tzFilterOpen .25s cubic-bezier(.2,.8,.2,1) both}
 @keyframes tzFilterOpen{from{opacity:0;transform:translateY(-7px) scale(.986)}to{opacity:1;transform:translateY(0) scale(1)}}
 .tz-context .tz-options{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:10px;margin:0 0 12px}
 .tz-context .tz-options label{color:var(--muted);font-size:11px;font-weight:740}
@@ -668,9 +668,9 @@ html[data-theme="dark"] .tz-notice{background:#3b2e29;border-color:#72543d;color
 .tz-hints span:nth-child(4){animation-delay:15s}
 @keyframes tzHintCycle{0%{opacity:0;transform:translateY(5px)}3%,20%{opacity:1;transform:translateY(0)}25%,100%{opacity:0;transform:translateY(-4px)}}
 .tz-shell .tz-composer:focus-within .tz-hints,.tz-composer textarea:not(:placeholder-shown)~.tz-hints,.tz-composer textarea:disabled~.tz-hints{opacity:0;visibility:hidden}
-.tz-shell .tz-send{display:grid;place-items:center;width:42px;height:42px;min-width:42px;flex:none;padding:0;border-radius:15px;font-size:16px;transition:transform .2s,box-shadow .2s,filter .2s}
-.tz-shell .tz-send:hover:not(:disabled){transform:translateY(-2px) scale(1.05);box-shadow:0 5px 14px #5d48c851;filter:brightness(1.05)}
-.tz-shell .tz-send svg{display:block}
+.tz-shell .tz-composer .tz-send{display:grid;place-items:center;width:42px;height:42px;min-width:42px;flex:none;padding:0;border-radius:15px;font-size:16px;transition:transform .2s,box-shadow .2s,filter .2s}
+.tz-shell .tz-composer .tz-send:hover:not(:disabled){transform:translateY(-2px) scale(1.05);box-shadow:0 5px 14px #5d48c851;filter:brightness(1.05)}
+.tz-shell .tz-composer .tz-send svg{display:block}
 .tz-shell .tz-composer-foot{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;padding:9px 4px 0}
 .tz-shell .tz-composer-foot small{color:var(--muted);font-size:10px;line-height:1.3}
 .tz-sr-only{position:absolute!important;width:1px!important;height:1px!important;padding:0!important;margin:-1px!important;overflow:hidden!important;clip:rect(0,0,0,0)!important;white-space:nowrap!important;border:0!important}
@@ -709,7 +709,7 @@ html[data-theme="dark"] .tz-shell .tz-composer textarea{color:#f4f0ff}
  .tz-shell .tz-composer textarea{min-height:45px;font-size:16px;padding:7px 0 5px!important}
  .tz-hints{left:14px;right:56px;top:14px}
  .tz-hints span{font-size:11.5px}
- .tz-shell .tz-send{width:38px;height:38px;min-width:38px;border-radius:13px}
+ .tz-shell .tz-composer .tz-send{width:38px;height:38px;min-width:38px;border-radius:13px}
  .tz-shell .tz-composer-foot{padding-top:7px}
  .tz-shell .tz-composer-foot small{font-size:9px}
  .tz-shell .tz-composer-foot small:last-child{display:none}
@@ -719,7 +719,7 @@ html[data-theme="dark"] .tz-shell .tz-composer textarea{color:#f4f0ff}
  .tz-topline{gap:5px}
  .tz-filter-current{max-width:77px}
  .tz-context summary{gap:5px;padding:8px}
- .tz-shell .tz-send{width:38px;min-width:38px}
+ .tz-shell .tz-composer .tz-send{width:38px;min-width:38px}
 }
 @media(prefers-reduced-motion:reduce){
  .tz-context summary,.tz-filter-icon,.tz-filter-chevron,.tz-shell .tz-send{transition:none}
