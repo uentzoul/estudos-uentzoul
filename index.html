@@ -1478,7 +1478,6 @@ const topicProgressKey=(k,i)=>k==='grupos'?`topic:grupos:foco-v3:${i}`:`topic:${
 const subjectKeys=k=>[
  ...DB.topics[k].map((_,i)=>topicProgressKey(k,i)),
  ...DB.materials.filter(x=>x.subject===k&&x.available).map(m=>`material:${m.url||m.source}`),
- ...DB.exams.filter(x=>x.subject===k).map(e=>`sim:${e.id}`),
  ...audioEpisodes(k).map(e=>`audio:${k}:${e.n}`)];
 const overallKeys=()=>[
  ...Object.keys(DB.subjects).flatMap(k=>subjectKeys(k)),
@@ -1628,7 +1627,7 @@ function renderHome(){
  '<div class="overview-strip"><div class="overview-stat"><span>Disciplinas</span><strong>'+order.length+'</strong></div>'+
  '<div class="overview-stat"><span>Simulados feitos</span><strong>'+graded+'/'+DB.exams.length+'</strong></div>'+
  '<div class="overview-stat"><span>Podcasts ouvidos</span><strong>'+audioDone+'/'+audioTotal+'</strong></div></div>'+
- '<section class="section"><div class="sectiontop"><h2>Disciplinas</h2><span class="small">'+order.length+' matérias · '+DB.exams.length+' simulados · '+audioTotal+' episódios</span></div><div class="cards">'+order.map(subjectCard).join('')+'</div></section>'+
+ '<section class="section"><div class="sectiontop"><h2>Disciplinas</h2><span class="small">'+order.length+' matérias · simulados sob demanda · '+audioTotal+' episódios</span></div><div class="cards">'+order.map(subjectCard).join('')+'</div></section>'+
  '<section class="section"><div class="two"><div class="panel"><div class="sectiontop"><h2>Agenda de avaliações</h2><button class="plainlink" data-action="page:calendar">Ver agenda →</button></div>'+
  '<div class="daylist">'+order.map(k=>{const item=getSubject(k);return '<div class="dayrow"><span class="daydate date">'+dformat(item.date)+'</span><span class="daytitle">'+esc(item.name)+'</span><span class="datecount">'+esc(item.exam)+'</span></div>'}).join('')+'</div>'+
  '<div class="alert info" style="margin-top:11px">Família e TCC seguem as datas mais recentes informadas. Confere o Moodle se houver atualização.</div></div>'+
@@ -1715,7 +1714,7 @@ function renderExams(){return `${head('Simulados','Provas para praticar','Cinco 
 <div class="alert info" style="margin-top:19px">Ranking: somente a primeira tentativa válida de cada simulado oficial pode render 10 pontos (mínimo de 70% nas objetivas). As demais tentativas servem para estudo. São limitadas as tentativas; leituras, podcasts, materiais e marcações “Visto” não valem pontos. Simulados pessoais também não.</div><div class="alert info" style="margin-top:19px">As provas anteriores de TCC, Social e Família foram usadas para aproximar a estrutura das questões. Onde não foi possível verificar o modelo do professor, o formato é uma simulação didática, não uma reprodução garantida.</div>${Object.keys(DB.subjects).sort((a,b)=>DB.subjects[a].date.localeCompare(DB.subjects[b].date)).map(k=>`<section class="section"><div class="sectiontop"><h2 style="border-left:4px solid ${color(k)};padding-left:10px">${esc(getSubject(k).name)}</h2><button class="plainlink" data-action="subject:${k}">Ver matéria</button></div><div class="examgrid exam-grid-5">${DB.exams.filter(e=>e.subject===k).map(examCard).join('')}</div></section>`).join('')}`}
 function getAnswers(id){return store.answers[id]||{};}
 function renderTest(id){const exam=DB.exams.find(e=>e.id===id);if(!exam)return renderHome();const subj=getSubject(exam.subject),ans=getAnswers(id),r=store.results[id];const answered=exam.questions.filter(q=>String(ans[q.id]??'').trim()!=='').length;return `<button class="back" data-action="subject:${exam.subject}">← Voltar para ${esc(subj.name)}</button><div class="panel" style="border-top:3px solid ${color(exam.subject)}"><div class="eyebrow">${esc(subj.name)} · ${esc(exam.title)}</div><h1 class="h1">Simulado ${exam.model}</h1><div class="exam-test-difficulty" aria-label="Dificuldade ${difficultyStep(exam)} de 5 estrelas">${difficultyStars(difficultyStep(exam))}<span>${esc(DIFFICULTY_STEPS[difficultyStep(exam)-1].label)}</span></div><div style="margin:10px 0 14px">${doneBox(`sim:${id}`)}</div><p class="lead">${esc(subj.style)}</p><div class="statline"><span>${answered} de ${exam.questions.length} respondidas</span><span>${r?'Correção liberada':'Em andamento'}</span></div><div class="progressline"><div style="width:${answered/exam.questions.length*100}%"></div></div></div>
-${r?`<section class="section"><div class="panel"><h2 style="margin:0 0 12px">Resultado da tentativa</h2><div class="resultstats"><div class="resultstat"><strong>${r.correct}/${r.total}</strong><span class="small">Objetivas / V-F</span></div><div class="resultstat"><strong>${Math.round(100*r.correct/(r.total||1))}%</strong><span class="small">Aproveitamento objetivo</span></div><div class="resultstat"><strong>${exam.questions.filter(q=>q.type==='essay').length}</strong><span class="small">Dissertativas para revisar</span></div></div><div class="alert info" style="margin-top:12px">As dissertativas não recebem nota automática: veja os critérios, compare com a resposta orientativa e use a opção de correção pelo ChatGPT quando quiser uma avaliação de conteúdo e gramática.</div><div class="actions" style="margin-top:14px">${button('Refazer o simulado',`redo:${id}`,'btn light')}${button('Imprimir correção','print','btn ghost')}</div></div></section>`:''}
+${r?`<section class="section"><div class="panel"><h2 style="margin:0 0 12px">Resultado da tentativa</h2><div class="resultstats"><div class="resultstat"><strong>${r.correct}/${r.total}</strong><span class="small">Objetivas / V-F</span></div><div class="resultstat"><strong>${Math.round(100*r.correct/(r.total||1))}%</strong><span class="small">Aproveitamento objetivo</span></div><div class="resultstat"><strong>${exam.questions.filter(q=>q.type==='essay').length}</strong><span class="small">Dissertativas para revisar</span></div></div><div class="alert info" style="margin-top:12px">As dissertativas não recebem nota automática: veja os critérios, compare com a resposta orientativa e use a opção de correção pelo ChatGPT quando quiser uma avaliação de conteúdo e gramática.</div><div class="actions" style="margin-top:14px">${button('Imprimir correção','print','btn ghost')}</div></div></section>`:''}
 <section class="section">${exam.questions.map((q,i)=>questionHTML(q,i,ans[q.id],!!r)).join('')}</section>
 <div class="panel" style="display:flex;align-items:center;gap:12px;justify-content:space-between;flex-wrap:wrap"><span class="small">${answered}/${exam.questions.length} questões respondidas · ${exam.questions.filter(q=>q.type==='essay').length} dissertativas</span><div class="actions">${button('Salvar andamento','save','btn ghost')}${button(r?'Ver resultado novamente':'Entregar e corrigir',`submit:${id}`,'btn')}</div></div><div class="footer">As correções objetivas explicam todas as opções. As respostas dissertativas exigem julgamento contextual, por isso disponibilizamos critérios e avaliação via ChatGPT em etapa manual.</div>`}
 function questionHTML(q,i,answer,review){let body='';const disabled=review?'disabled':'';if(q.type==='choice'||q.type==='combo'){
@@ -1939,7 +1938,7 @@ async function tzLoad(){
   const chosen=tz.conversations.find(c=>c.id===tz.active);
   if(chosen)tzApplyConversation(chosen);
   else if(!tz.messages.length){tz.active=null;}
- }catch(e){tz.note='Não foi possível carregar o histórico: '+(e?.message||'erro desconhecido');tz.loaded=false;}
+ }catch(e){tz.note='Não foi possível carregar o histórico: '+(e?.message||'erro desconhecido');tz.loaded=true;}
  finally{tz.loading=false;if(current.page==='ai'&&window.uentzoulAIAuth?.user()?.id===uid)render()}
 }
 function tzApplyConversation(c){
@@ -2082,6 +2081,7 @@ function geRenderList(){
   '<div class="ge-generator"><h2>Sem disciplinas cadastradas em '+esc(semester)+'</h2><p>Volta ao semestre 2026/2 para gerar provas com os materiais disponíveis.</p></div>';
  const owned=ge.exams.filter(e=>e.creator_id===geUser().id);
  const received=ge.exams.filter(e=>e.creator_id!==geUser().id);
+ const archived=DB.exams.filter(e=>!!store.results[e.id]);
  const section=(title,rows,empty)=>'<section class="section ge-section"><div class="sectiontop"><h2>'+title+'</h2><small>'+rows.length+' provas</small></div>'+
   (rows.length?'<div class="ge-grid">'+rows.map(geExamCard).join('')+'</div>':'<p class="ge-muted">'+empty+'</p>')+'</section>';
  return head('Simulados','Simulados sob medida','Uma prova nova a cada solicitação, guardada na tua conta. Depois de entregar, só é possível rever.')+
@@ -2091,6 +2091,7 @@ function geRenderList(){
   (ge.loading?'<div class="panel ge-panel">Carregando simulados salvos…</div>':
   section('Meus simulados',owned,'Ainda não criaste um simulado.')+
   section('Compartilhados comigo',received,'Quando um colega compartilhar uma prova contigo, ela aparecerá aqui.'))+
+  (archived.length?'<section class="section ge-section"><div class="sectiontop"><h2>Provas anteriores (somente consulta)</h2></div><div class="ge-grid">'+archived.map(e=>'<article class="ge-card"><h3>'+esc(e.title)+'</h3><p>Modelo anterior · tentativa registrada</p><button class="btn sm light" data-action="test:'+esc(e.id)+'">Rever prova</button></article>').join('')+'</div></section>':'')+
   '<p class="small">As questões são geradas com base nos materiais cadastrados. O formato se aproxima das provas dos professores quando há exemplos disponíveis; não é uma prova oficial. Simulados gerados não atribuem pontos no ranking.</p>';
 }
 function geRenderExam(){
@@ -2147,7 +2148,7 @@ async function geLoad(){
   for(const item of [exams,submissions,shares,profiles])if(item.error)throw item.error;
   if(geUser()?.id!==userId)return;
   ge.exams=exams.data||[];ge.submissions=submissions.data||[];ge.shares=shares.data||[];ge.profiles=profiles.data||[];ge.loaded=true;
- }catch(e){ge.error='Não foi possível carregar os simulados: '+(e?.message||'erro de conexão');ge.loaded=false}
+ }catch(e){ge.error='Não foi possível carregar os simulados: '+(e?.message||'erro de conexão');ge.loaded=true}
  finally{ge.loading=false;if(geUser()?.id===userId&&(current.page==='exams'||current.page==='subject'))render();}
 }
 async function geCreate(){
@@ -2352,7 +2353,7 @@ function onAction(act){
   const el=document.querySelectorAll('#topics details.topic')[index];
   if(el){el.open=true;requestAnimationFrame(()=>el.scrollIntoView({behavior:'smooth',block:'start'}))}
   return;
- }if(act.startsWith('download:')){const [k,i]=act.slice(9).split(':');downloadEpisodeAction(k,Number(i));return;}if(act.startsWith('page:'))return go(act.slice(5));if(act.startsWith('subject:'))return go('subject',{subject:act.slice(8)});if(act.startsWith('test:'))return go('test',{exam:act.slice(5)});if(act.startsWith('audioFor:')){const k=act.slice(9);if(!DB.audio[k])return;current.audioSubject=k;currentEpisode=0;currentChapter=0; if(manualAudioUrl){URL.revokeObjectURL(manualAudioUrl);manualAudioUrl=null;manualAudioName='';}return go('audio');}if(act.startsWith('filter:')){current.filter=act.slice(7);let v=$('matSearch')?.value||current.search;current.search=v;render();return}if(act.startsWith('scroll:'))return document.getElementById(act.slice(7))?.scrollIntoView({behavior:'smooth'});if(act==='save'){persist();return toast('Respostas salvas neste navegador.')}if(act==='export'){const b=new Blob([JSON.stringify(store,null,2)],{type:'application/json'});let u=URL.createObjectURL(b);let a=document.createElement('a');a.href=u;a.download='meu_progresso_psicologia.json';a.click();setTimeout(()=>URL.revokeObjectURL(u),2000);return toast('Progresso exportado. Guarde o arquivo para a próxima versão.')}if(act==='import'){document.getElementById('importProgress')?.click();return}if(act==='print')return window.print();if(act.startsWith('submit:'))return submit(act.slice(7));if(act.startsWith('redo:')){if(confirm('Refazer este simulado? A tentativa anterior será substituída.')){delete store.results[act.slice(5)];store.answers[act.slice(5)]={};persist();render()}return}
+ }if(act.startsWith('download:')){const [k,i]=act.slice(9).split(':');downloadEpisodeAction(k,Number(i));return;}if(act.startsWith('page:'))return go(act.slice(5));if(act.startsWith('subject:'))return go('subject',{subject:act.slice(8)});if(act.startsWith('test:'))return go('test',{exam:act.slice(5)});if(act.startsWith('audioFor:')){const k=act.slice(9);if(!DB.audio[k])return;current.audioSubject=k;currentEpisode=0;currentChapter=0; if(manualAudioUrl){URL.revokeObjectURL(manualAudioUrl);manualAudioUrl=null;manualAudioName='';}return go('audio');}if(act.startsWith('filter:')){current.filter=act.slice(7);let v=$('matSearch')?.value||current.search;current.search=v;render();return}if(act.startsWith('scroll:'))return document.getElementById(act.slice(7))?.scrollIntoView({behavior:'smooth'});if(act==='save'){persist();return toast('Respostas salvas neste navegador.')}if(act==='export'){const b=new Blob([JSON.stringify(store,null,2)],{type:'application/json'});let u=URL.createObjectURL(b);let a=document.createElement('a');a.href=u;a.download='meu_progresso_psicologia.json';a.click();setTimeout(()=>URL.revokeObjectURL(u),2000);return toast('Progresso exportado. Guarde o arquivo para a próxima versão.')}if(act==='import'){document.getElementById('importProgress')?.click();return}if(act==='print')return window.print();if(act.startsWith('submit:'))return submit(act.slice(7));if(act.startsWith('redo:')){toast('Este simulado já foi entregue e não pode ser refeito.');return}
  if(act==='resetAudio'){const a=$('audioPlayer');if(a){a.pause();a.currentTime=0;}toast('Reprodutor reiniciado.');return;}
  if(act.startsWith('chapter:'))return openChapter(+act.slice(8));
  if(act.startsWith('episode:'))return openEpisode(+act.slice(8));
