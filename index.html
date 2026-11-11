@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="color-scheme" content="light dark">
-<meta name="site-build" content="auto-update-20261111-library-review-1">
+<meta name="site-build" content="auto-update-20261111-library-review-2">
 <script>try{document.documentElement.dataset.theme=localStorage.getItem("uentzoul_theme_v1")==="dark"?"dark":"light"}catch(e){document.documentElement.dataset.theme="light"}</script>
 <title>Psicologia PUCRS 2026/2</title>
 <style>
@@ -2023,7 +2023,7 @@ window.uentzoulLibraryApp={
     shown.push(existing);known.add(r.resource_key);continue;
    }
    const subject=String(r.file_subject||''),title=String(r.display_title||'').trim();
-   if(!SEMESTER_DB['2026/2'].subjects[subject]||!title)continue;
+   if(!(subject==='geral'||SEMESTER_DB['2026/2'].subjects[subject])||!title)continue;
    shown.push({subject,title,note:r.content_summary||'Material adicionado pelo administrador.',source:r.filename,
      url:'',available:true,_libraryKey:r.resource_key,_libraryUpload:r,_libraryWasLocal:false,_libraryBaseAvailable:false,
      _libraryLegacyUrl:'',_fromUpload:true});
@@ -4796,6 +4796,6 @@ document.addEventListener("click",e=>{if(!e.target.closest("[data-theme-toggle]"
  });
 })();
 </script>
-<script src="library-content-analyzer.js?v=20261111-1"></script>
-<script src="library-manager.js?v=20261111-4"></script>
+<script src="library-content-analyzer.js?v=20261111-2"></script>
+<script src="library-manager.js?v=20261111-5"></script>
 </body></html>
