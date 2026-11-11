@@ -951,6 +951,86 @@ html[data-theme=dark] .dm-sticker-menu button:hover{background:#49385f}
  .dm-profile-cover{height:105px}
 }
 @media(prefers-reduced-motion:reduce){.dm-channel-tabs button,.dm-sticker-menu button{transition:none}}
+
+/* Espaço Pessoal: matérias complementares e simulados autorais */
+.pc-page{max-width:1150px;margin:0 auto}
+.pc-hero{display:flex;align-items:center;justify-content:space-between;gap:15px;background:linear-gradient(122deg,#3d368d,#6657c4 62%,#8c78d9);color:#fff;border-radius:20px;padding:27px 29px;box-shadow:0 9px 25px #483d8a21}
+.pc-hero span{display:block;font-size:10px;font-weight:800;color:#d7cbff;letter-spacing:1.1px;margin-bottom:8px}
+.pc-hero h1{font-size:29px;line-height:1.2;margin:0 0 9px;letter-spacing:-.7px}
+.pc-hero p{font-size:12px;line-height:1.6;color:#ebe5ff;margin:0;max-width:590px}
+.pc-hero-symbol{font-size:55px;color:#e9dbff;opacity:.78}
+.pc-layout{display:grid;grid-template-columns:minmax(215px,270px) minmax(0,1fr);gap:17px;align-items:start;margin-top:18px}
+.pc-sidebar,.pc-main{background:var(--paper);border:1px solid var(--line);border-radius:17px;min-width:0;box-shadow:var(--shadow)}
+.pc-sidebar{padding:17px}
+.pc-sidebar h2{font-size:15px;margin:0 0 12px;display:flex;align-items:center;gap:8px}
+.pc-sidebar h2 small{background:var(--soft);border:1px solid var(--line);color:var(--muted);padding:3px 7px;border-radius:7px;font-size:10px}
+.pc-subjects{display:grid;gap:7px;max-height:360px;overflow:auto}
+.pc-subjects button{display:flex;align-items:center;gap:8px;text-align:left;padding:11px 9px;border:1px solid var(--line);border-radius:10px;color:var(--ink);background:transparent;cursor:pointer;transition:transform .18s,background .18s,border-color .18s}
+.pc-subjects button strong{font-size:11px;line-height:1.4;overflow-wrap:anywhere}
+.pc-subjects button:hover{transform:translateX(2px);border-color:#b8a6ee;background:#f3f0ff}
+.pc-subjects button.selected{background:#eee9ff;border-color:#9485df;color:#5445ac}
+.pc-subjects p{font-size:12px;color:var(--muted);line-height:1.5}
+.pc-subject-icon{width:25px;height:25px;flex:none;display:grid;place-items:center;background:#e9e5fb;border-radius:7px;font-size:14px}
+.pc-create{border-top:1px solid var(--line);padding-top:15px;margin-top:16px;display:grid;gap:9px}
+.pc-create label{font-size:11px;font-weight:780;color:var(--muted)}
+.pc-create input{display:block;width:100%;background:var(--paper);color:var(--ink);border:1px solid var(--line);border-radius:9px;padding:10px;font-size:13px;margin-top:7px}
+.pc-primary{display:inline-flex;align-items:center;justify-content:center;gap:7px;background:linear-gradient(120deg,#5748ba,#8069d5);color:#fff;border:0;padding:11px 14px;border-radius:11px;font-size:12px;font-weight:800;cursor:pointer;transition:transform .2s,box-shadow .2s}
+.pc-primary:hover:not(:disabled){transform:translateY(-2px);box-shadow:0 6px 15px #6551bd38}
+.pc-primary:disabled{opacity:.6;cursor:default}
+.pc-secondary,.pc-mini{border:1px solid #c1b5e8;border-radius:10px;background:var(--paper);color:#5b49b7;font-size:12px;font-weight:780;cursor:pointer;padding:10px 13px}
+.pc-secondary:hover,.pc-mini:hover{background:#ece7fc}
+.pc-footnote{font-size:10px;line-height:1.6;color:var(--muted);margin:15px 0 0}
+.pc-main{padding:23px;min-height:370px}
+.pc-editor-heading,.pc-quiz-head{display:flex;justify-content:space-between;align-items:center;gap:15px;margin-bottom:19px}
+.pc-editor-heading span{font-size:10px;font-weight:830;color:#8170b7;letter-spacing:.8px}
+.pc-editor-heading h2,.pc-quiz-head h2{font-size:20px;margin:5px 0 0;letter-spacing:-.3px}
+.pc-danger{background:#fff5f5;color:#b34b52;border:1px solid #f0d8d9;border-radius:10px;padding:9px 12px;cursor:pointer;font-size:11px;white-space:nowrap}
+.pc-editor label{font-size:12px;font-weight:800;color:var(--ink);display:block}
+.pc-editor p{font-size:11px;line-height:1.6;color:var(--muted)}
+.pc-editor textarea{display:block;min-height:230px;width:100%;margin:10px 0 0;padding:15px;background:var(--paper);border:1px solid var(--line);border-radius:13px;color:var(--ink);font:inherit;font-size:13px;line-height:1.7;resize:vertical}
+.pc-editor textarea:focus,.pc-create input:focus{outline:2px solid #af9be4;outline-offset:1px}
+.pc-actions{display:flex;align-items:center;flex-wrap:wrap;gap:9px;margin-top:12px}
+.pc-tip{border:1px solid var(--line);background:var(--soft);border-radius:11px;padding:12px;margin-top:13px!important}
+.pc-exam-list{margin-top:22px;padding-top:16px;border-top:1px solid var(--line)}
+.pc-exam-list h3{font-size:15px;margin:0 0 14px}
+.pc-exam-list>p{font-size:12px;color:var(--muted)}
+.pc-exam-item{display:flex;justify-content:space-between;align-items:center;gap:9px;background:var(--soft);border:1px solid var(--line);border-radius:11px;padding:11px 13px;margin:8px 0}
+.pc-exam-item strong{display:block;font-size:12px}
+.pc-exam-item small{display:block;color:var(--muted);font-size:10px;margin-top:5px}
+.pc-exam-item button{border:1px solid #bbaee6;background:var(--paper);color:#5d4ab2;border-radius:9px;padding:8px 12px;cursor:pointer;font-weight:750}
+.pc-empty{display:flex;align-items:center;justify-content:center;flex-direction:column;text-align:center;min-height:340px;padding:22px}
+.pc-empty span{font-size:52px;margin-bottom:11px}
+.pc-empty h2{font-size:20px;margin:0 0 9px}
+.pc-empty p{font-size:12px;color:var(--muted);max-width:400px;line-height:1.65}
+.pc-error{padding:12px;margin:12px 0;background:#fff2f0;border:1px solid #efc4c0;color:#9f3c39;border-radius:11px;font-size:12px}
+.pc-login{max-width:650px;margin:30px auto;text-align:center;padding:35px;background:var(--paper);border:1px solid var(--line);border-radius:17px}
+.pc-login h1{font-size:21px}
+.pc-login p{font-size:13px;line-height:1.6;color:var(--muted)}
+.pc-quiz-head{margin-bottom:12px}
+.pc-quiz>p{font-size:12px;color:var(--muted);line-height:1.5}
+.pc-question{padding:15px;border-radius:13px;border:1px solid var(--line);margin:13px 0}
+.pc-question h3{font-size:14px;line-height:1.6;margin:0 0 13px}
+.pc-option{display:flex;gap:9px;align-items:start;padding:11px;border:1px solid var(--line);border-radius:9px;margin:7px 0;cursor:pointer;font-size:12px;line-height:1.5}
+.pc-option:hover{background:var(--soft)}
+.pc-option input{flex:none;margin-top:3px}
+.pc-option.correct{background:#e8f8ee;border-color:#85cda5;color:#255b3f}
+.pc-option.incorrect{background:#fff0f0;border-color:#e9abaa;color:#8f3c3c}
+.pc-explanation{background:var(--soft);border-left:3px solid #7f6ab8;padding:11px;font-size:12px;line-height:1.7}
+.pc-grade{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:14px;background:var(--soft);border-radius:10px}
+.pc-grade button{background:var(--paper);color:var(--ink);border:1px solid var(--line);border-radius:10px;padding:8px 12px}
+html[data-theme=dark] .pc-hero{background:linear-gradient(120deg,#352954,#57428a,#7764b6)}
+html[data-theme=dark] .pc-subjects button:hover,html[data-theme=dark] .pc-subjects button.selected{background:#40345e;color:#f4eaff;border-color:#7966a8}
+html[data-theme=dark] .pc-subject-icon{background:#4a3d65}
+html[data-theme=dark] .pc-secondary,html[data-theme=dark] .pc-mini,html[data-theme=dark] .pc-exam-item button{background:#342d4b;color:#ded0ff;border-color:#726297}
+html[data-theme=dark] .pc-primary{background:linear-gradient(120deg,#6452b5,#866ec6)}
+html[data-theme=dark] .pc-danger{background:#493039;color:#ffc6c7;border-color:#92575a}
+html[data-theme=dark] .pc-option.correct{background:#244839;color:#d6ffe5;border-color:#477b5f}
+html[data-theme=dark] .pc-option.incorrect{background:#513439;color:#ffdee0;border-color:#945764}
+html[data-theme=dark] .pc-error{background:#542b2e;color:#ffd3d2;border-color:#9c5757}
+@media(max-width:940px){.pc-layout{grid-template-columns:minmax(0,1fr)}.pc-subjects{display:flex;overflow-x:auto;max-height:none}.pc-subjects button{min-width:148px;flex:none}.pc-sidebar{padding:14px}}
+@media(max-width:760px){.pc-hero{padding:18px;border-radius:15px}.pc-hero h1{font-size:24px}.pc-hero-symbol{font-size:36px}.pc-main{padding:14px}.pc-editor-heading{flex-wrap:wrap}.pc-editor-heading h2{font-size:18px}.pc-actions>*{flex:1;min-width:150px}.pc-quiz-head{flex-wrap:wrap}.pc-question{padding:12px}}
+@media(prefers-reduced-motion:reduce){.pc-primary,.pc-subjects button{transition:none}}
+
 </style>
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2064%2064%22%3E%3Crect%20width%3D%2264%22%20height%3D%2264%22%20rx%3D%2214%22%20fill%3D%22%23192d44%22%2F%3E%3Ctext%20x%3D%2232%22%20y%3D%2246%22%20fill%3D%22white%22%20font-size%3D%2246%22%20font-family%3D%22Georgia%2Cserif%22%20text-anchor%3D%22middle%22%3E%CE%A8%3C%2Ftext%3E%3C%2Fsvg%3E">
 </head>
