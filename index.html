@@ -2369,11 +2369,20 @@ async function saveCloud(){
 }
 async function loadRanking(){
  if(!onlineUser||!client||rankBusy)return;
- rankBusy=true;const requested=bridge.semester();
+ rankBusy=true;
+ const requested=bridge.semester(),uid=onlineUser.id;
  try{
-  const {data,error}=await client.rpc('uentzoul_leaderboard_semester',{p_semester:requested,max_rows:20});
-  if(error)throw error;
-  if(bridge.semester()===requested){rankData=data||[];rankingSemester=requested;window.uentzoulVerifiedScore=Number(rankData.find(x=>x.user_id===onlineUser.id)?.score||0);renderAside()}
+  const [ranking,awards]=await Promise.all([
+   client.rpc('uentzoul_leaderboard_semester',{p_semester:requested,max_rows:20}),
+   client.from('uentzoul_exam_awards').select('points').eq('user_id',uid).eq('semester',requested)
+  ]);
+  if(ranking.error)throw ranking.error;
+  if(awards.error)throw awards.error;
+  if(bridge.semester()===requested&&onlineUser?.id===uid){
+   rankData=ranking.data||[];rankingSemester=requested;
+   window.uentzoulVerifiedScore=(awards.data||[]).reduce((sum,a)=>sum+Number(a.points||0),0);
+   renderAside();
+  }
  }catch(e){console.warn('Ranking indisponível',e)}
  finally{rankBusy=false;if(onlineUser&&bridge.semester()!==requested)queueMicrotask(loadRanking)}
 }
