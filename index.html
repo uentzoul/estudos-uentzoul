@@ -1547,10 +1547,10 @@ html[data-theme="dark"] .admin-profile-role{background:#3c345d;color:#e2d6ff}
 .library-page .library-resource-arrow{flex:0 0 20px;display:grid;place-items:center;width:20px;height:20px;color:#7861b8;font-size:19px;transition:transform .23s ease,color .23s}
 .library-page .library-resource:hover .library-resource-arrow,.library-page .library-resource:focus-within .library-resource-arrow{transform:translate(3px,-3px);color:#5945b4}
 .library-page .library-resource:hover .library-resource-icon,.library-page .library-resource:focus-within .library-resource-icon{transform:translateY(-2px) rotate(-3deg)}
-.library-page .library-resource-bottom{position:relative;z-index:0;display:flex;align-items:center;justify-content:space-between;gap:10px;margin:0 17px;padding:10px 0 12px;border-top:1px solid var(--line);min-height:45px}
+.library-page .library-resource-bottom{position:relative;z-index:2;pointer-events:none;display:flex;align-items:center;justify-content:space-between;gap:10px;margin:0 17px;padding:10px 0 12px;border-top:1px solid var(--line);min-height:45px}
 .library-page .library-resource-status{display:inline-flex;align-items:center;gap:6px;font-size:10px;color:#3c947f;font-weight:750;white-space:nowrap;pointer-events:none}
 .library-page .library-status-dot{width:7px;height:7px;border-radius:50%;background:#3fa38a;box-shadow:0 0 0 3px #3fa38a19}
-.library-page .library-resource-progress{position:relative;z-index:3;display:inline-flex;align-items:center;justify-content:flex-end;min-width:0}
+.library-page .library-resource-progress{position:relative;z-index:3;pointer-events:auto;display:inline-flex;align-items:center;justify-content:flex-end;min-width:0}
 .library-page .library-resource-progress .donecontrol{margin:0;padding:6px 9px;border-radius:100px;font-size:10px;white-space:nowrap;cursor:pointer}
 .library-page .library-resource-progress input{cursor:pointer}
 .library-page .library-resource.is-pending{border-style:dashed;box-shadow:none;background:color-mix(in srgb,var(--paper) 80%,var(--soft) 20%)}
@@ -1585,6 +1585,13 @@ html[data-theme="dark"] .library-page .library-resource-arrow{color:#c3b0f1}
 @media(max-width:800px){.library-page .material-block .doclist{grid-template-columns:1fr}.library-page .library-group{margin-top:13px}.library-page .library-overview{padding:21px 19px;border-radius:19px}.library-page .library-resource-main{padding:16px 15px 12px}.library-page .library-resource-bottom{margin:0 15px}}
 @media(max-width:570px){.library-page .library-head{grid-template-columns:5px minmax(0,1fr)!important;row-gap:5px!important}.library-page .library-head .library-subject-mark{grid-row:1/3}.library-page .library-head>span:last-child{grid-column:2;justify-self:start;padding:4px 8px}.library-page .library-head h2{font-size:16px}.library-page .library-overview-metrics>div{min-width:0}.library-page .doc.library-resource{min-height:150px;border-radius:17px}.library-page #filterlist .filter{min-height:34px;padding:8px 11px}.library-page .library-resource-icon{width:40px;height:44px;flex-basis:40px}}
 
+
+/* O efeito de clique acompanha o ponto tocado, como nos cartões das disciplinas. */
+.library-page .library-resource.is-available.library-pressed{transform:translateY(-1px) scale(.992);border-color:#9e87d8;box-shadow:0 6px 18px #57459b20}
+.library-page .library-click-ripple{position:absolute;z-index:3;pointer-events:none;width:430px;height:430px;border-radius:50%;transform:translate(-50%,-50%) scale(0);background:radial-gradient(circle,#9b87de54 0%,#9b87de20 48%,transparent 72%);animation:libraryClickPulse .58s ease-out both}
+@keyframes libraryClickPulse{0%{opacity:.65;transform:translate(-50%,-50%) scale(0)}60%{opacity:.78}100%{opacity:0;transform:translate(-50%,-50%) scale(1)}}
+html[data-theme="dark"] .library-page .library-click-ripple{background:radial-gradient(circle,#b9a0f659 0%,#a789eb20 48%,transparent 72%)}
+@media(prefers-reduced-motion:reduce){.library-page .library-click-ripple{display:none!important}.library-page .library-resource.library-pressed{transform:none!important}}
 </style>
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2064%2064%22%3E%3Crect%20width%3D%2264%22%20height%3D%2264%22%20rx%3D%2214%22%20fill%3D%22%23192d44%22%2F%3E%3Ctext%20x%3D%2232%22%20y%3D%2246%22%20fill%3D%22white%22%20font-size%3D%2246%22%20font-family%3D%22Georgia%2Cserif%22%20text-anchor%3D%22middle%22%3E%CE%A8%3C%2Ftext%3E%3C%2Fsvg%3E">
 </head>
@@ -2186,6 +2193,38 @@ function docCard(m){let id=`material:${m.url||m.source}`;return `<div class="doc
 
 
 /* Cartões da Biblioteca: o próprio cartão é o link, com "Visto" independente. */
+
+/* Microinteração no clique: nunca intercepta o link nem o controle de visto. */
+(function(){
+ function pulse(link,event){
+  if(!link||window.matchMedia('(prefers-reduced-motion: reduce)').matches)return;
+  const card=link.closest('.library-resource.is-available');
+  if(!card)return;
+  const box=card.getBoundingClientRect();
+  const pointer=event&&typeof event.clientX==='number'&&event.clientX>0;
+  const x=pointer?event.clientX-box.left:box.width/2;
+  const y=pointer?event.clientY-box.top:box.height/2;
+  const effect=document.createElement('span');
+  effect.className='library-click-ripple';
+  effect.style.left=x+'px';effect.style.top=y+'px';
+  card.querySelectorAll('.library-click-ripple').forEach(el=>el.remove());
+  card.appendChild(effect);
+  effect.addEventListener('animationend',()=>effect.remove(),{once:true});
+  card.classList.add('library-pressed');
+  setTimeout(()=>card.classList.remove('library-pressed'),220);
+ }
+ document.addEventListener('pointerdown',event=>{
+  if(event.button!==0)return;
+  const a=event.target.closest('.library-page .library-resource.is-available a.library-resource-main');
+  if(a)pulse(a,event);
+ },{passive:true});
+ document.addEventListener('keydown',event=>{
+  if(event.key!=='Enter')return;
+  const a=event.target.closest('.library-page .library-resource.is-available a.library-resource-main');
+  if(a)pulse(a,null);
+ });
+})();
+
 function libraryResourceCard(m,i=0){
  const rawKind=String(m.kind||'Arquivo');
  const kind=rawKind.toLocaleLowerCase('pt-BR');
