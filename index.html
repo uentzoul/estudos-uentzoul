@@ -598,6 +598,90 @@ html[data-theme="dark"] .tz-notice{background:#3b2e29;border-color:#72543d;color
 @media(max-width:650px){.tz-aside{grid-template-columns:1fr}.tz-status{display:none}.tz-hero h1{font-size:21px}.tz-hero .tz-avatar{width:48px;height:48px}.tz-options{grid-template-columns:1fr}.tz-form-bottom{flex-wrap:wrap}.tz-thread{min-height:265px;max-height:450px;padding:13px 11px}}
 @media(max-width:380px){.tz-send{width:100%}}
 @media(prefers-reduced-motion:reduce){.tz-thinking:after{animation:none}}
+
+/* Navegação móvel: a segunda linha de atalhos pode ser recolhida */
+.mobile-nav-more{display:none}
+@media(max-width:760px){
+ #nav.menu:not(.unused-selector) .sidebtn:nth-child(n+6){display:none}
+ .sidebar.nav-expanded #nav.menu .sidebtn:nth-child(n+6){display:flex}
+ .mobile-nav-more{display:flex;align-items:center;justify-content:center;gap:5px;width:130px;margin:0 auto;padding:4px 8px;min-height:27px;border:0;border-radius:0 0 10px 10px;background:transparent;color:#7067b4;font-size:10px;font-weight:760;letter-spacing:.1px;cursor:pointer}
+ .mobile-nav-more svg{transition:transform .2s ease}
+ .mobile-nav-more[aria-expanded="true"] svg{transform:rotate(180deg)}
+ .mobile-nav-more:hover{background:#ece9fa}
+ .mobile-nav-more:focus-visible{outline:2px solid #9d90de;outline-offset:2px}
+ html[data-theme="dark"] .mobile-nav-more{color:#c9b8f4}
+ html[data-theme="dark"] .mobile-nav-more:hover{background:#342d4e}
+}
+@media(min-width:761px){.mobile-nav-more{display:none!important}}
+
+/* IA Tzoul: conversa ampla, sem blocos laterais */
+.tz-shell{display:flex;flex-direction:column;max-width:1040px;width:100%;height:min(820px,calc(100dvh - 155px));min-height:560px;margin:0 auto;background:var(--paper);border:1px solid var(--line);border-radius:19px;overflow:hidden;box-shadow:0 8px 30px #332b6812}
+.tz-topline{display:flex;align-items:center;gap:11px;padding:18px 23px 10px;flex:none}
+.tz-topline .tz-avatar{width:45px;height:45px;border-radius:14px;border:1px solid #d8d2f0}
+.tz-title{display:flex;flex-direction:column;gap:3px;min-width:0;flex:1}
+.tz-title h1{font-size:20px;letter-spacing:-.5px;margin:0;line-height:1.15;color:var(--ink)}
+.tz-title span{font-size:11px;color:var(--muted);font-weight:550}
+.tz-topline .tz-mini{white-space:nowrap;padding:9px 11px;border-radius:10px;font-size:11px}
+.tz-info{margin:0;padding:0 23px 16px;color:var(--muted);font-size:12px;line-height:1.55;border-bottom:1px solid var(--line)}
+.tz-shell .tz-chat{display:flex;flex:1;flex-direction:column;min-height:0;overflow:hidden;background:transparent;box-shadow:none;border:0;border-radius:0}
+.tz-shell .tz-thread{flex:1;min-height:0;max-height:none;overflow-y:auto;overscroll-behavior:contain;display:flex;flex-direction:column;gap:20px;padding:22px clamp(16px,4%,38px);scrollbar-width:thin}
+.tz-shell .tz-empty{margin:auto;max-width:600px;text-align:center;padding:25px 5px}
+.tz-shell .tz-empty .tz-avatar{width:63px;height:63px;border-radius:20px;margin:0 auto 17px}
+.tz-shell .tz-empty h2{font-size:21px;letter-spacing:-.4px;margin:0 0 8px}
+.tz-shell .tz-empty p{font-size:13px;line-height:1.6;max-width:450px;margin:0 auto}
+.tz-shell .tz-examples{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:22px;text-align:left}
+.tz-shell .tz-examples button{font-size:12px;line-height:1.5;padding:13px 14px;border-radius:13px;min-height:64px}
+.tz-shell .tz-msg-body{max-width:min(88%,720px)}
+.tz-shell .tz-bubble{font-size:13px;line-height:1.75;padding:13px 16px;border-radius:13px}
+.tz-shell .tz-actions button{font-size:11px;padding:7px 10px}
+.tz-shell .tz-notice{margin:8px 20px 0;flex:none}
+.tz-login{padding:8px 20px}
+.tz-shell .tz-form{flex:none;padding:12px 20px 17px;background:var(--paper);border-top:1px solid var(--line)}
+.tz-context{margin:0 0 10px;padding:0}
+.tz-context summary{display:inline-flex;align-items:center;gap:6px;cursor:pointer;font-weight:700;font-size:11px;color:#6656b3;padding:4px 0}
+.tz-context[open] summary{margin-bottom:10px}
+.tz-context summary:hover{color:#4b3ca2}
+.tz-context .tz-options{margin-bottom:8px}
+.tz-context .tz-select{font-size:12px;padding:9px}
+.tz-context-mode{display:flex;align-items:center;gap:10px;margin:8px 0 6px;flex-wrap:wrap}
+.tz-context-mode>span{font-size:11px;color:var(--muted);font-weight:720}
+.tz-context .tz-modes{display:inline-grid;grid-template-columns:repeat(2,minmax(100px,1fr));width:auto}
+.tz-context-note{color:var(--muted);font-size:10.5px;line-height:1.45;margin:8px 0 4px}
+.tz-shell .tz-prompt-label{display:none}
+.tz-shell .tz-form textarea{margin:0;border-radius:15px;min-height:65px;max-height:175px;resize:vertical;font-size:15px;line-height:1.5;padding:13px 15px}
+.tz-shell .tz-form-bottom{margin-top:9px}
+.tz-shell .tz-send{font-size:12px;border-radius:11px;padding:11px 18px}
+html[data-theme="dark"] .tz-shell{background:#202238;border-color:#45405f;box-shadow:0 9px 26px #09081328}
+html[data-theme="dark"] .tz-shell .tz-chat,html[data-theme="dark"] .tz-shell .tz-form{background:#202238}
+html[data-theme="dark"] .tz-info{border-color:#45405f}
+html[data-theme="dark"] .tz-context summary{color:#c2b3f6}
+html[data-theme="dark"] .tz-context summary:hover{color:#f0e9ff}
+@media(max-width:760px){
+ .tz-shell{height:max(515px,calc(100dvh - 208px));min-height:0;border-radius:16px}
+ .tz-topline{padding:13px 13px 7px;gap:9px}
+ .tz-topline .tz-avatar{width:37px;height:37px;border-radius:11px}
+ .tz-title h1{font-size:17px}
+ .tz-title span{font-size:10px}
+ .tz-topline .tz-mini{font-size:10px;padding:8px 9px}
+ .tz-info{padding:0 14px 10px;font-size:11px;line-height:1.45}
+ .tz-shell .tz-thread{padding:13px 12px;gap:14px}
+ .tz-shell .tz-empty{padding:13px 1px}
+ .tz-shell .tz-empty .tz-avatar{width:46px;height:46px;border-radius:14px;margin-bottom:9px}
+ .tz-shell .tz-empty h2{font-size:17px}
+ .tz-shell .tz-empty p{font-size:11.5px}
+ .tz-shell .tz-examples{grid-template-columns:minmax(0,1fr);gap:6px;margin-top:14px}
+ .tz-shell .tz-examples button{min-height:0;padding:9px 11px;font-size:11px}
+ .tz-shell .tz-form{padding:10px 11px 12px}
+ .tz-shell .tz-msg-body{max-width:calc(100% - 39px)}
+ .tz-shell .tz-bubble{padding:10px 12px;font-size:12px}
+ .tz-shell .tz-form textarea{min-height:58px;padding:11px 12px;font-size:16px}
+ .tz-shell .tz-form-bottom small{font-size:10px}
+ .tz-shell .tz-send{min-width:86px}
+ .tz-context .tz-options{grid-template-columns:minmax(0,1fr)}
+ .tz-shell .tz-notice{margin:5px 10px}
+}
+@media(max-width:380px){.tz-shell .tz-form-bottom{flex-wrap:nowrap}.tz-shell .tz-send{width:auto;min-width:75px;padding:10px}.tz-shell .tz-topline{gap:5px}}
+@media(prefers-reduced-motion:reduce){.mobile-nav-more svg{transition:none}}
 </style>
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2064%2064%22%3E%3Crect%20width%3D%2264%22%20height%3D%2264%22%20rx%3D%2214%22%20fill%3D%22%23192d44%22%2F%3E%3Ctext%20x%3D%2232%22%20y%3D%2246%22%20fill%3D%22white%22%20font-size%3D%2246%22%20font-family%3D%22Georgia%2Cserif%22%20text-anchor%3D%22middle%22%3E%CE%A8%3C%2Ftext%3E%3C%2Fsvg%3E">
 </head>
@@ -914,6 +998,9 @@ Qual conceito ou formulação explica MELHOR essa situação?</p><ol type="a"><l
 <button class="sidebtn" data-page="calendar"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M7 3v4M17 3v4M3 10h18M8 14h3M8 17h5"/></svg> Agenda</button>
 <button class="sidebtn" data-page="ai"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="m12 2 2.6 6.9L21 11l-6.4 2.1L12 20l-2.6-6.9L3 11l6.4-2.1L12 2Z"/><path d="m19 18 1 2 2 1-2 1-1 2-1-2-2-1 2-1z"/></svg> IA Tzoul</button>
 </nav>
+  <button type="button" id="mobileNavMoreToggle" class="mobile-nav-more" aria-controls="nav" aria-expanded="false" aria-label="Mostrar mais atalhos" title="Mostrar mais atalhos">
+    <span>Mais opções</span><svg viewBox="0 0 24 24" width="17" height="17" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+  </button>
   <div class="navlbl">Disciplinas</div><nav class="menu" id="subjectNav"></nav>
   <div class="sidebarfoot">Atualizado · 10/11/2026 · Progresso por conteúdo<br>Dados salvos neste navegador.</div>
 </aside><main class="main" id="main" aria-live="polite"></main><aside class="profile-sidebar" id="profileSidebar" aria-label="Meu perfil e ranking"><div class="rank-empty">Carregando perfis...</div></aside></div>
@@ -1308,7 +1395,7 @@ function renderCalendar(){
 
 
 const TZ_AVATAR_URL='https://swseibmqoetnuctxyusj.supabase.co/storage/v1/object/public/uentzoul-avatars/11eadb0a-c79b-4347-be3b-20f2d31c18c7/avatar.jpg?v=1794341942331';
-const tz={messages:[],subject:'todos',material:'',mode:'chat',draft:'',busy:false,note:'',ready:null,checking:false,remaining:null};
+const tz={messages:[],subject:'todos',material:'',mode:'chat',draft:'',busy:false,note:'',ready:null,checking:false,remaining:null,contextOpen:false};
 const tzAvatar=()=>'<span class="tz-avatar"><img src="'+esc(TZ_AVATAR_URL)+'" alt="Foto da IA Tzoul" loading="lazy"></span>';
 function tzMarkdown(t){return esc(t).replace(/^###\s*(.+)$/gm,'<h4>$1</h4>').replace(/^##\s*(.+)$/gm,'<h3>$1</h3>').replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>').replace(/\n/g,'<br>')}
 function tzFiles(){const seen=new Set();return DB.materials.filter(m=>{
@@ -1331,26 +1418,38 @@ function renderAI(){
  let notice=tz.note;
  if(!hasContent)notice='O semestre 2027/1 ainda não possui materiais. Escolhe 2026/2 para consultar as aulas.';
  else if(!logged)notice='Entra na tua conta online para conversar com a IA.';
- else if(tz.ready===false&&!notice)notice='O serviço de IA ainda precisa da chave OpenAI no servidor.';
- const examples=[['Explica a segunda teoria do aparelho psíquico com exemplos','meta'],['Cria 10 questões difíceis sobre terapia do esquema','tcc'],['Faz um fichamento sobre Martín-Baró','social']];
- const empty='<div class="tz-empty">'+tzAvatar()+'<h2>O que vamos estudar?</h2><p>Tira dúvidas sobre as aulas, pede questões, roteiros, fichamentos e documentos relacionados aos materiais do site.</p><div class="tz-examples">'+examples.map(x=>
-  '<button data-tz-quick="'+esc(x[0])+'" data-tz-subject="'+x[1]+'">'+esc(x[0])+' →</button>').join('')+'</div></div>';
+ else if(tz.ready===false&&!notice)notice='A conexão com a IA ainda não foi ativada no servidor.';
+ const examples=[
+  ['Quero que tu corrijas um trabalho de Psicologia da Família que vou enviar.','familia'],
+  ['Localiza os conceitos de ideologização e fatalismo nos materiais.','social'],
+  ['Resume a segunda teoria do aparelho psíquico com exemplos.','meta'],
+  ['Cria 10 questões de revisão sobre terapia do esquema.','tcc']
+ ];
+ const empty='<div class="tz-empty">'+tzAvatar()+'<h2>O que vamos estudar?</h2><p>Pergunta sobre uma aula ou pede ajuda com os materiais do semestre.</p><div class="tz-examples">'+examples.map(x=>
+  '<button type="button" data-tz-quick="'+esc(x[0])+'" data-tz-subject="'+x[1]+'">'+esc(x[0])+'</button>').join('')+'</div></div>';
  const messages=tz.messages.length?tz.messages.map(tzMessage).join(''):empty;
- const status=!logged?'Acesso online':tz.ready===true?'Conectada':tz.ready===false?'Aguardando ativação':'Conectando';
- const html='<header class="tz-hero">'+tzAvatar()+'<div><div class="tz-kicker">ASSISTENTE ACADÊMICA</div><h1>IA Tzoul</h1><p>Respostas e documentos sobre as disciplinas de Psicologia PUCRS.</p></div><span class="tz-status">'+esc(status)+'</span></header>'+
- '<div class="tz-grid"><section class="tz-chat"><div class="tz-head"><div><strong>Conversa de estudos</strong><small>Baseada na API da OpenAI e no acervo do site</small></div><button class="tz-mini" data-tz-reset="1">Nova conversa</button></div>'+
- '<div class="tz-thread" id="tzThread" aria-live="polite">'+messages+(tz.busy?'<div class="tz-thinking">IA Tzoul preparando resposta</div>':'')+'</div>'+
+ const status=!logged?'Entre na conta para conversar':tz.ready===true?'IA conectada':tz.ready===false?'IA indisponível':'Verificando conexão';
+ const html='<section class="tz-shell" aria-label="Conversa com a IA Tzoul">'+
+ '<header class="tz-topline">'+tzAvatar()+'<div class="tz-title"><h1>IA Tzoul</h1><span>'+esc(status)+'</span></div>'+
+ '<button type="button" class="tz-mini" data-tz-reset="1">+ Nova conversa</button></header>'+
+ '<p class="tz-info">Explica conteúdos, corrige trabalhos, encontra trechos das aulas, resume materiais e cria questões ou documentos.</p>'+
+ '<div class="tz-chat" role="region" aria-label="Chat de estudos">'+
+ '<div class="tz-thread" id="tzThread" aria-live="polite">'+messages+(tz.busy?'<div class="tz-thinking">IA Tzoul está respondendo</div>':'')+'</div>'+
  (notice?'<div class="tz-notice" role="status">'+esc(notice)+'</div>':'')+
- (!logged&&hasContent?'<div style="padding:0 12px 12px"><button class="tz-send" data-action="tz-login">Entrar / Cadastrar</button></div>':'')+
- '<form class="tz-form" id="tzForm"><div class="tz-options"><label>Disciplina<select id="tzSubject" class="tz-select"><option value="todos">Todas as disciplinas</option>'+
+ (!logged&&hasContent?'<div class="tz-login"><button type="button" class="tz-send" data-action="tz-login">Entrar / Cadastrar</button></div>':'')+
+ '<form class="tz-form" id="tzForm">'+
+ '<details class="tz-context" id="tzContext" '+(tz.contextOpen?'open':'')+'><summary>Escolher matéria, referência ou tipo de resposta</summary>'+
+ '<div class="tz-options"><label>Matéria<select id="tzSubject" class="tz-select"><option value="todos">Todas as disciplinas</option>'+
  Object.entries(DB.subjects).map(([k,v])=>'<option value="'+k+'" '+(tz.subject===k?'selected':'')+'>'+esc(v.name)+'</option>').join('')+
- '</select></label><label>Arquivo específico (opcional)<select id="tzMaterial" class="tz-select"><option value="">Usar base de estudos</option>'+
+ '</select></label><label>Referência da biblioteca (opcional)<select id="tzMaterial" class="tz-select"><option value="">Usar os conteúdos indexados</option>'+
  files.map(m=>'<option value="'+esc(m.url)+'" '+(tz.material===m.url?'selected':'')+'>'+esc(m.title)+'</option>').join('')+
- '</select></label></div><label for="tzPrompt">Pergunta ou pedido<textarea id="tzPrompt" maxlength="4000" placeholder="Ex.: Prepara um roteiro sobre o capítulo de pulsão..." '+(!logged||!hasContent||tz.busy?'disabled':'')+'>'+esc(tz.draft)+'</textarea></label>'+
- '<div class="tz-form-bottom"><small>Ctrl + Enter para enviar · Respostas exportáveis</small><button type="submit" class="tz-send" '+(!logged||!hasContent||tz.busy?'disabled':'')+'>'+(tz.busy?'Respondendo…':'Enviar pergunta ↗')+'</button></div></form></section>'+
- '<aside class="tz-aside"><div class="tz-panel"><h3>Tipo de pedido</h3><div class="tz-modes"><button data-tz-mode="chat" class="tz-mode '+(tz.mode==='chat'?'selected':'')+'">Perguntas</button><button data-tz-mode="document" class="tz-mode '+(tz.mode==='document'?'selected':'')+'">Documentos</button></div><p>'+(tz.mode==='document'?'Cria materiais de estudo, fichamentos e textos estruturados para exportar em Word ou PDF.':'Explica teorias, compara conceitos, comenta questões e orienta revisões.')+'</p></div>'+
- '<div class="tz-panel"><h3>Materiais da PUCRS</h3><p>Consulta os 79 tópicos, 30 simulados, cronogramas e referências do site.</p><p>Seleciona um arquivo disponível para solicitar análise do texto original. Referências sem PDF não são tratadas como texto integral.</p></div>'+
- '<div class="tz-panel"><h3>Foco exclusivo nos estudos</h3><p>Responde somente sobre os conteúdos das disciplinas, aulas e trabalhos relacionados.</p><p>'+(tz.remaining===null?'A conversa fica nesta sessão.':'Consultas restantes hoje: '+tz.remaining+'.')+'</p></div></aside></div>';
+ '</select></label></div>'+
+ '<div class="tz-context-mode"><span>Tipo de resposta</span><div class="tz-modes"><button type="button" data-tz-mode="chat" class="tz-mode '+(tz.mode==='chat'?'selected':'')+'">Conversa</button><button type="button" data-tz-mode="document" class="tz-mode '+(tz.mode==='document'?'selected':'')+'">Documento</button></div></div>'+
+ '<p class="tz-context-note">A IA consulta os conteúdos cadastrados. A leitura integral de um PDF depende da disponibilidade do arquivo original.</p></details>'+
+ '<label class="tz-prompt-label" for="tzPrompt">Mensagem</label>'+
+ '<textarea id="tzPrompt" rows="2" maxlength="4000" placeholder="Pergunta alguma coisa sobre as aulas..." '+(!logged||!hasContent||tz.busy?'disabled':'')+'>'+esc(tz.draft)+'</textarea>'+
+ '<div class="tz-form-bottom"><small>Enter para enviar · Shift + Enter para nova linha</small><button type="submit" class="tz-send" '+(!logged||!hasContent||tz.busy?'disabled':'')+'>'+(tz.busy?'Respondendo…':'Enviar ↗')+'</button></div></form>'+
+ '</div></section>';
  if(logged&&tz.ready===null&&!tz.checking)queueMicrotask(tzCheck);
  return html;
 }
@@ -1404,7 +1503,8 @@ document.addEventListener('change',e=>{
  if(e.target.id==='tzSubject'){tz.draft=$('tzPrompt')?.value||'';tz.subject=e.target.value;tz.material='';render();}
  if(e.target.id==='tzMaterial')tz.material=e.target.value;
 });
-document.addEventListener('keydown',e=>{if(e.target.id==='tzPrompt'&&e.key==='Enter'&&(e.ctrlKey||e.metaKey)){e.preventDefault();tzAsk();}});
+document.addEventListener('keydown',e=>{if(e.target.id==='tzPrompt'&&e.key==='Enter'&&!e.shiftKey&&!e.isComposing){e.preventDefault();tzAsk();}});
+document.addEventListener('toggle',e=>{if(e.target.id==='tzContext')tz.contextOpen=e.target.open;},true);
 document.addEventListener('click',e=>{
  let b=e.target.closest('[data-tz-mode]');
  if(b){tz.draft=$('tzPrompt')?.value||tz.draft;tz.mode=b.dataset.tzMode;render();return;}
@@ -1532,6 +1632,14 @@ function copyForAI(qid){const exam=DB.exams.find(e=>e.id===current.exam);const q
 // Navigation mobile: abrir disciplinas e fechar depois da escolha.
 const mobileSubjectsButton=document.getElementById('mobileSubjectToggle');
 const mobileSidebar=document.getElementById('siteSidebar');
+const mobileNavMoreToggle=document.getElementById('mobileNavMoreToggle');
+mobileNavMoreToggle?.addEventListener('click',()=>{
+ const expanded=mobileSidebar.classList.toggle('nav-expanded');
+ mobileNavMoreToggle.setAttribute('aria-expanded',String(expanded));
+ mobileNavMoreToggle.setAttribute('aria-label',expanded?'Recolher atalhos extras':'Mostrar mais atalhos');
+ mobileNavMoreToggle.title=expanded?'Recolher atalhos extras':'Mostrar mais atalhos';
+ mobileNavMoreToggle.querySelector('span').textContent=expanded?'Menos opções':'Mais opções';
+});
 function closeMobileSubjects(){if(!mobileSidebar)return;mobileSidebar.classList.remove('mobile-open');mobileSubjectsButton?.setAttribute('aria-expanded','false');}
 mobileSubjectsButton?.addEventListener('click',(e)=>{e.stopPropagation();const opened=mobileSidebar.classList.toggle('mobile-open');mobileSubjectsButton.setAttribute('aria-expanded',String(opened));});
 document.addEventListener('click',(e)=>{if(e.target.closest('#subjectNav [data-action], #nav [data-page]'))closeMobileSubjects();else if(!e.target.closest('#siteSidebar'))closeMobileSubjects();});
