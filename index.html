@@ -3460,7 +3460,7 @@ function pcSourcesView(subject){
   '<div class="pc2-add-actions"><button data-pc-add="file">＋ Adicionar arquivo</button><button data-pc-add="note">＋ Colar texto</button><button data-pc-add="link">＋ Adicionar link</button></div>'+
   note+'<section class="pc2-panel"><header><h3>Outras fontes</h3><small>'+src.length+' itens</small></header>'+
   (items||'<div class="pc2-empty-mini">Adiciona PDFs, arquivos, referências ou notas para montar a biblioteca desta matéria.</div>')+
-  '<p class="pc2-hint">Arquivos ficam privados na tua conta. A IA pode utilizar PDFs, TXT e Markdown; para documentos Word, adiciona também o texto ou uma versão em PDF.</p></section>';
+  '<p class="pc2-hint">Arquivos ficam privados na tua conta. A IA pode consultar PDFs, documentos Word, apresentações PowerPoint, TXT e Markdown. Links externos servem como referências, não como páginas lidas automaticamente.</p></section>';
 }
 
 function pcCalendarGrid(subject){
@@ -3593,7 +3593,7 @@ function pcModalMarkup(){
   title=edit?'Editar matéria':'Criar uma nova matéria';
   body='<form id="pc2SubjectForm"><label>Nome da matéria<input name="title" minlength="3" maxlength="80" required placeholder="Ex.: Psicologia do Desenvolvimento" value="'+esc(edit?subject?.title||'':'')+'"></label>'+
   '<label>Conteúdos ou anotações iniciais (opcional)<textarea name="description" maxlength="16000" rows="5" placeholder="Cola aqui o conteúdo, o plano da disciplina ou teus apontamentos…">'+esc(edit?subject?.description||'':'')+'</textarea></label>'+
-  (!edit?'<div class="pc2-modal-extra"><label>Adicionar arquivos de aula (opcional)<input name="files" type="file" multiple accept=".pdf,.docx,.txt,.md,application/pdf,text/plain,text/markdown,application/vnd.openxmlformats-officedocument.wordprocessingml.document"></label>'+
+  (!edit?'<div class="pc2-modal-extra"><label>Adicionar arquivos de aula (opcional)<input name="files" type="file" multiple accept=".pdf,.docx,.pptx,.txt,.md,application/pdf,text/plain,text/markdown,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.openxmlformats-officedocument.presentationml.presentation"></label>'+
   '<div class="pc2-modal-cols"><label>Nome de um link (opcional)<input name="link_title" maxlength="180" placeholder="Ex.: Aula 1 — referência"></label>'+
   '<label>Endereço do link<input name="link_url" type="url" maxlength="2000" placeholder="https://..."></label></div></div>':'')+
   '<div class="pc2-modal-actions">'+(edit?'<button type="button" class="pc-danger" data-pc-delete-subject>Excluir matéria</button>':'')+
@@ -3601,7 +3601,7 @@ function pcModalMarkup(){
  }else if(pc.modal==='source'){
   title='Adicionar material de estudo';
   body='<form id="pc2SourceForm"><div class="pc2-modal-choice"><label><input type="radio" name="kind" value="arquivo" checked> Arquivo</label><label><input type="radio" name="kind" value="nota"> Texto / anotação</label><label><input type="radio" name="kind" value="link"> Link</label></div>'+
-   '<div id="pc2SourceFields"><label>Arquivo (PDF, DOCX, TXT ou Markdown)<input type="file" name="files" multiple accept=".pdf,.docx,.txt,.md,application/pdf,text/plain,text/markdown,application/vnd.openxmlformats-officedocument.wordprocessingml.document"></label></div>'+
+   '<div id="pc2SourceFields"><label>Arquivo (PDF, Word, PowerPoint, TXT ou Markdown)<input type="file" name="files" multiple accept=".pdf,.docx,.pptx,.txt,.md,application/pdf,text/plain,text/markdown,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.openxmlformats-officedocument.presentationml.presentation"></label></div>'+
    '<div class="pc2-modal-actions"><button type="button" class="pc-secondary" data-pc-close>Cancelar</button><button type="submit" class="pc-primary" '+(pc.busy?'disabled':'')+'>'+(pc.busy?'Adicionando…':'Adicionar fonte')+'</button></div></form>';
  }else if(pc.modal==='agenda'){
   title=event?'Editar compromisso':'Novo compromisso';
@@ -3672,8 +3672,8 @@ function pcCloseModal(){if(pc.busy)return;pc.modal=null;pc.editEvent=null;pcShow
 async function pcUploadFile(file,subjectId){
  if(!file||file.size>12582912||!file.size)throw Error('Cada arquivo precisa ter até 12 MB.');
  const extension=String(file.name.split('.').pop()||'').toLowerCase();
- const mimes={pdf:'application/pdf',txt:'text/plain',md:'text/markdown',docx:'application/vnd.openxmlformats-officedocument.wordprocessingml.document'};
- if(!mimes[extension])throw Error('Aceitamos PDFs, TXT, Markdown e Word (.docx).');
+ const mimes={pdf:'application/pdf',txt:'text/plain',md:'text/markdown',docx:'application/vnd.openxmlformats-officedocument.wordprocessingml.document',pptx:'application/vnd.openxmlformats-officedocument.presentationml.presentation'};
+ if(!mimes[extension])throw Error('Aceitamos PDF, Word (.docx), PowerPoint (.pptx), TXT e Markdown.');
  const mime=mimes[extension];
  const safe=String(file.name).normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-zA-Z0-9_.-]/g,'_').slice(-120);
  const path=onlineUser.id+'/'+subjectId+'/'+crypto.randomUUID()+'_'+safe;
@@ -3920,7 +3920,7 @@ document.addEventListener('click',e=>{
 });
 function pcSourceFields(kind){
  const el=document.getElementById('pc2SourceFields');if(!el)return;
- if(kind==='arquivo')el.innerHTML='<label>Arquivos de aula (até 12 MB cada)<input type="file" name="files" multiple accept=".pdf,.docx,.txt,.md"></label>';
+ if(kind==='arquivo')el.innerHTML='<label>Arquivos de aula (até 12 MB cada)<input type="file" name="files" multiple accept=".pdf,.docx,.pptx,.txt,.md"></label>';
  else if(kind==='nota')el.innerHTML='<label>Título<input name="title" maxlength="180" required placeholder="Ex.: Slides da aula 3"></label>'+
   '<label>Texto ou anotações<textarea name="content" maxlength="35000" rows="7" required placeholder="Cola o conteúdo para a IA consultar…"></textarea></label>';
  else el.innerHTML='<label>Nome da referência<input name="title" maxlength="180" required placeholder="Ex.: Texto indicado pelo professor"></label>'+
