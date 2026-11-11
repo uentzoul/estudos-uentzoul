@@ -58,7 +58,7 @@ async function refresh(){
    isAdmin=false;
    if(id){
     const status=await c.rpc('uentzoul_is_admin');
-    if(status.error)throw status.error;
+    if(status.error){adminCheckedFor=null;throw status.error;}
     isAdmin=status.data===true;
    }
   }
