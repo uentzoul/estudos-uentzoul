@@ -1440,6 +1440,11 @@ html[data-theme="dark"] .exam-assertion-label{color:#c9b5ff}
 .ge-ready-group h3{margin:0 0 12px;font-size:15px}
 .ge-ready-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
 @media(max-width:760px){.ge-ready-grid{grid-template-columns:minmax(0,1fr)}.ge-tabs{max-width:none}.ge-card-actions .btn{flex:1}}
+
+.dm-exam-invite{padding:10px 12px;border:1px solid var(--line);border-radius:11px;background:var(--paper);color:var(--ink);min-width:210px}
+.dm-exam-invite p{margin:5px 0 9px}.dm-exam-invite small{color:var(--muted)}
+.dm-exam-invite-actions{display:flex;gap:7px;flex-wrap:wrap}.dm-exam-invite-actions button{border:1px solid var(--line);border-radius:8px;padding:8px;background:var(--paper);color:var(--ink);font-size:11px}
+.ge-inline-share select[multiple],.ge-share-form select[multiple]{min-height:85px;max-height:180px}
 </style>
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2064%2064%22%3E%3Crect%20width%3D%2264%22%20height%3D%2264%22%20rx%3D%2214%22%20fill%3D%22%23192d44%22%2F%3E%3Ctext%20x%3D%2232%22%20y%3D%2246%22%20fill%3D%22white%22%20font-size%3D%2246%22%20font-family%3D%22Georgia%2Cserif%22%20text-anchor%3D%22middle%22%3E%CE%A8%3C%2Ftext%3E%3C%2Fsvg%3E">
 </head>
@@ -2476,8 +2481,8 @@ window.addEventListener('uentzoul:auth',()=>{
 
 /* Simulados inéditos por solicitação: 13 objetivas + 2 dissertativas.
    A correção e o bloqueio de repetição são feitos pelo servidor. */
-const ge={exams:[],submissions:[],shares:[],profiles:[],hidden:[],tab:'ready',shareExamId:null,selected:null,subject:'tcc',difficulty:'normal',
- answers:{},shareTarget:'',loading:false,loaded:false,owner:null,busy:false,notice:'',error:'',pending:false,lastFetch:0,realtime:null};
+const ge={exams:[],submissions:[],shares:[],profiles:[],hidden:[],invites:[],tab:'ready',shareExamId:null,selected:null,subject:'tcc',difficulty:'normal',
+ answers:{},shareTarget:[],loading:false,loaded:false,owner:null,busy:false,notice:'',error:'',pending:false,lastFetch:0,realtime:null};
 function geSubmission(id){return ge.submissions.find(x=>x.exam_id===id)}
 
 function geDraft(id){
@@ -2501,7 +2506,7 @@ function geSubjectName(id){return DB.subjects[id]?.name||id}
 function geExamCard(exam){
  const submitted=geSubmission(exam.id),mine=exam.creator_id===geUser()?.id,sharing=ge.shareExamId===exam.id;
  const recipients=ge.profiles.filter(p=>p.user_id!==geUser()?.id);
- const sent=ge.shares.filter(x=>x.exam_id===exam.id&&x.sender_id===geUser()?.id);
+ const sent=ge.invites.filter(x=>x.exam_id===exam.id&&x.sender_id===geUser()?.id);
  return '<article class="ge-card" style="--accent:'+color(exam.subject)+'">'+
   '<div class="ge-card-head"><span class="pill">'+(mine?'Meu simulado':'Compartilhado comigo')+'</span><span class="ge-difficulty">'+(exam.difficulty==='dificil'?'Difícil':'Normal')+'</span></div>'+
   '<h3>'+esc(geSubjectName(exam.subject))+'</h3><p>13 objetivas e 2 dissertativas</p><small>'+
@@ -2511,10 +2516,10 @@ function geExamCard(exam){
   '<div class="ge-card-actions">'+
   (mine?'<button type="button" class="btn sm light" data-ge-share-open="'+esc(exam.id)+'">Compartilhar'+(sent.length?' ('+sent.length+')':'')+'</button>':'')+
   '<button type="button" class="btn sm light" data-ge-hide="'+esc(exam.id)+'">Retirar da minha lista</button></div>'+
-  (sharing&&mine?'<div class="ge-inline-share"><label>Compartilhar com colega<select id="geShareTarget" aria-label="Escolhe uma pessoa para compartilhar"><option value="">Seleciona uma pessoa</option>'+
-  recipients.map(p=>'<option value="'+esc(p.user_id)+'" '+(ge.shareTarget===p.user_id?'selected':'')+'>'+esc(p.display_name||'Estudante')+'</option>').join('')+
+  (sharing&&mine?'<div class="ge-inline-share"><label>Convidar pelo chat<select id="geShareTarget" multiple size="'+Math.min(5,Math.max(2,recipients.length))+'" aria-label="Seleciona uma ou mais pessoas">'+
+  recipients.map(p=>'<option value="'+esc(p.user_id)+'" '+(ge.shareTarget.includes(p.user_id)?'selected':'')+'>'+esc(p.display_name||'Estudante')+'</option>').join('')+
   '</select></label><button type="button" class="btn sm" data-ge-share '+(ge.busy?'disabled':'')+'>Enviar simulado</button>'+
-  (sent.length?'<p class="small">Já compartilhado com '+sent.length+' pessoa(s).</p>':'')+'</div>':'')+
+  (sent.length?'<p class="small">Convites enviados: '+sent.length+'.</p>':'')+'</div>':'')+
   '</article>';
 }
 function geRenderList(){
@@ -2530,7 +2535,7 @@ function geRenderList(){
   '<div class="ge-generator"><h2>Sem disciplinas cadastradas em '+esc(semester)+'</h2><p>Volta ao semestre 2026/2 para gerar provas com os materiais disponíveis.</p></div>';
  const visible=ge.exams.filter(e=>!ge.hidden.some(h=>h.exam_id===e.id));
  const owned=visible.filter(e=>e.creator_id===geUser().id);
- const received=visible.filter(e=>e.creator_id!==geUser().id);
+ const received=visible.filter(e=>e.creator_id!==geUser().id&&ge.shares.some(x=>x.exam_id===e.id&&x.recipient_id===geUser().id));
  const section=(title,rows,empty)=>'<section class="section ge-section"><div class="sectiontop"><h2>'+title+'</h2><small>'+rows.length+' provas</small></div>'+
   (rows.length?'<div class="ge-grid">'+rows.map(geExamCard).join('')+'</div>':'<p class="ge-muted">'+empty+'</p>')+'</section>';
  return head('Simulados','Simulados sob medida','Uma prova nova a cada solicitação, guardada na tua conta. Depois de entregar, só é possível rever.')+
@@ -2566,9 +2571,9 @@ function geRenderExam(){
  }).join('');
  const profiles=ge.profiles.filter(p=>p.user_id!==geUser()?.id);
  const alreadyShared=ge.shares.filter(x=>x.exam_id===exam.id&&x.sender_id===geUser()?.id);
- const share=mine?'<section class="ge-share"><h3>Compartilhar este simulado</h3><p>Envia a prova para outra pessoa cadastrada no site. Ela poderá responder uma única vez, sem alterar a tua tentativa.</p>'+
-  '<div class="ge-share-form"><select id="geShareTarget"><option value="">Seleciona uma pessoa</option>'+
-  profiles.map(p=>'<option value="'+esc(p.user_id)+'" '+(ge.shareTarget===p.user_id?'selected':'')+'>'+esc(p.display_name||'Estudante')+'</option>').join('')+
+ const share=mine?'<section class="ge-share"><h3>Enviar simulado pelo chat</h3><p>Seleciona uma ou mais pessoas. Cada uma decide se deseja adicionar a prova à própria biblioteca.</p>'+
+  '<div class="ge-share-form"><select id="geShareTarget" multiple size="'+Math.min(5,Math.max(2,profiles.length))+'">'+
+  profiles.map(p=>'<option value="'+esc(p.user_id)+'" '+(ge.shareTarget.includes(p.user_id)?'selected':'')+'>'+esc(p.display_name||'Estudante')+'</option>').join('')+
   '</select><button type="button" class="btn light" data-ge-share '+(ge.busy?'disabled':'')+'>Compartilhar</button></div>'+
   (alreadyShared.length?'<p class="small">Enviado para '+alreadyShared.length+' pessoa(s).</p>':'')+'</section>':'';
  return '<button class="back" type="button" data-ge-back>← Voltar aos simulados</button>'+
@@ -2588,16 +2593,17 @@ async function geLoad(){
  const userId=geUser().id;ge.loading=true;ge.owner=userId;ge.error='';
  if(current.page==='exams'||current.page==='subject')render();
  try{
-  const [exams,submissions,shares,profiles,hidden]=await Promise.all([
+  const [exams,submissions,shares,profiles,hidden,invites]=await Promise.all([
    geClient().from('uentzoul_generated_exams').select('id,creator_id,semester,subject,difficulty,title,questions,created_at').neq('semester','personal').order('created_at',{ascending:false}).limit(1000),
    geClient().from('uentzoul_generated_exam_submissions').select('exam_id,user_id,answers,feedback,created_at').order('created_at',{ascending:false}).limit(150),
    geClient().from('uentzoul_generated_exam_shares').select('exam_id,sender_id,recipient_id,created_at').order('created_at',{ascending:false}).limit(300),
    geClient().from('uentzoul_profiles').select('user_id,display_name').order('display_name',{ascending:true}).limit(300),
-   geClient().from('uentzoul_generated_exam_hidden').select('exam_id,user_id').eq('user_id',userId).limit(1000)
+   geClient().from('uentzoul_generated_exam_hidden').select('exam_id,user_id').eq('user_id',userId).limit(1000),
+   geClient().from('uentzoul_exam_invites').select('id,exam_id,sender_id,recipient_id,status,created_at').limit(1000)
   ]);
-  for(const item of [exams,submissions,shares,profiles,hidden])if(item.error)throw item.error;
+  for(const item of [exams,submissions,shares,profiles,hidden,invites])if(item.error)throw item.error;
   if(geUser()?.id!==userId)return;
-  ge.exams=exams.data||[];ge.submissions=submissions.data||[];ge.shares=shares.data||[];ge.profiles=profiles.data||[];ge.hidden=hidden.data||[];ge.loaded=true;
+  ge.exams=exams.data||[];ge.submissions=submissions.data||[];ge.shares=shares.data||[];ge.profiles=profiles.data||[];ge.hidden=hidden.data||[];ge.invites=invites.data||[];ge.loaded=true;
  }catch(e){ge.error='Não foi possível carregar os simulados: '+(e?.message||'erro de conexão');ge.loaded=true}
  finally{ge.loading=false;ge.lastFetch=Date.now();if(geUser()?.id===userId&&(current.page==='exams'||current.page==='subject')&&!document.activeElement?.matches('.ge-essay,.ge-option input'))render();if(ge.pending&&geUser()?.id===userId){ge.pending=false;queueMicrotask(geLoad)}}
 }
@@ -2682,20 +2688,31 @@ async function geSubmit(){
  finally{ge.busy=false;if(current.page==='exams')render();if(ge.pending){ge.pending=false;geLoad()}}
 }
 async function geShare(){
- if(ge.busy||!(ge.shareExamId||ge.selected)||!ge.shareTarget||!geUser())return;
- const examId=ge.shareExamId||ge.selected;
- const exam=ge.exams.find(x=>x.id===examId);
+ if(ge.busy||!(ge.shareExamId||ge.selected)||!ge.shareTarget.length||!geUser())return;
+ const examId=ge.shareExamId||ge.selected,exam=ge.exams.find(x=>x.id===examId);
  if(!exam||exam.creator_id!==geUser().id)return;
- if(ge.shares.some(x=>x.exam_id===examId&&x.recipient_id===ge.shareTarget)){ge.error='Já compartilhaste esta prova com essa pessoa.';render();return}
  ge.busy=true;ge.error='';
+ const recipients=[...new Set(ge.shareTarget)],failed=[];
  try{
-  const {data,error}=await geClient().from('uentzoul_generated_exam_shares')
-   .insert({exam_id:examId,sender_id:geUser().id,recipient_id:ge.shareTarget}).select('*').single();
-  if(error)throw error;
-  ge.shares.push(data);ge.shareTarget='';ge.shareExamId=null;
-  toast('Simulado compartilhado. O destinatário já pode responder.');
- }catch(e){ge.error=e?.message||'Não foi possível compartilhar.'}
- finally{ge.busy=false;if(current.page==='exams')render();if(ge.pending){ge.pending=false;geLoad()}}
+  for(const recipientId of recipients){
+   const name=ge.profiles.find(p=>p.user_id===recipientId)?.display_name||'Colega';
+   try{
+    if(ge.invites.some(x=>x.exam_id===examId&&x.recipient_id===recipientId)){failed.push(name+': convite já enviado');continue;}
+    const result=await geClient().from('uentzoul_exam_invites')
+     .insert({exam_id:examId,sender_id:geUser().id,recipient_id:recipientId}).select('*').single();
+    if(result.error)throw result.error;
+    const invite=result.data;ge.invites.push(invite);
+    const sent=await geClient().from('uentzoul_messages').insert({
+     sender_id:geUser().id,recipient_id:recipientId,kind:'text',body:'Convite de simulado: '+invite.id
+    });
+    if(sent.error)throw sent.error;
+   }catch(e){failed.push(name+': '+(e?.message||'erro'));}
+  }
+  ge.shareTarget=[];ge.shareExamId=null;
+  if(failed.length)ge.error='Alguns convites não foram enviados: '+failed.join('; ');
+  else toast('Convites enviados pelo chat. Cada colega poderá aceitar ou recusar.');
+  window.uentzoulMessenger?.refresh?.();
+ }finally{ge.busy=false;if(current.page==='exams')render();if(ge.pending){ge.pending=false;geLoad()}}
 }
 const geLegacyRenderSubject=renderSubject;
 renderSubject=function(k){
@@ -2782,7 +2799,7 @@ subjectCard=function(id){
 };
 document.addEventListener('click',e=>{
  let b=e.target.closest('[data-ge-tab]');if(b){ge.tab=b.dataset.geTab;ge.selected=null;ge.shareExamId=null;ge.error='';render();return}
- b=e.target.closest('[data-ge-share-open]');if(b){ge.tab='ai';ge.shareExamId=ge.shareExamId===b.dataset.geShareOpen?null:b.dataset.geShareOpen;ge.shareTarget='';render();return}
+ b=e.target.closest('[data-ge-share-open]');if(b){ge.tab='ai';ge.shareExamId=ge.shareExamId===b.dataset.geShareOpen?null:b.dataset.geShareOpen;ge.shareTarget=[];render();return}
  b=e.target.closest('[data-ge-hide]');if(b){geHideExam(b.dataset.geHide);return}
  if(e.target.closest('[data-ge-restore]')){geRestoreHidden();return}
  b=e.target.closest('[data-ge-open]');if(b){ge.tab='ai';ge.selected=b.dataset.geOpen;ge.shareExamId=null;ge.error='';render();return}
@@ -2795,7 +2812,7 @@ document.addEventListener('click',e=>{
 document.addEventListener('change',e=>{
  if(e.target.id==='geSubject'){ge.subject=e.target.value;return}
  if(e.target.id==='geDifficulty'){ge.difficulty=e.target.value;return}
- if(e.target.id==='geShareTarget'){ge.shareTarget=e.target.value;return}
+ if(e.target.id==='geShareTarget'){ge.shareTarget=Array.from(e.target.selectedOptions).map(o=>o.value);return}
  if(e.target.matches('[data-ge-answer][type=radio]')){
   if(!ge.selected||geSubmission(ge.selected))return;
   const answers=geDraft(ge.selected);
@@ -2819,6 +2836,7 @@ function geSetupLive(){
  try{
   ge.realtime=sb.channel('uentzoul-exams-'+user.id)
    .on('postgres_changes',{event:'*',schema:'public',table:'uentzoul_generated_exam_shares'},()=>geLoad())
+   .on('postgres_changes',{event:'*',schema:'public',table:'uentzoul_exam_invites'},()=>geLoad())
    .on('postgres_changes',{event:'*',schema:'public',table:'uentzoul_generated_exams'},()=>geLoad())
    .on('postgres_changes',{event:'*',schema:'public',table:'uentzoul_generated_exam_submissions'},()=>geLoad())
    .subscribe(status=>{if(status==='SUBSCRIBED')geLoad()});
@@ -3297,7 +3315,7 @@ window.addEventListener('uentzoul:semester',()=>{
 });
 
 /* Mensagens privadas e perfis públicos: participantes identificados pela conta Supabase. */
-const dm={owner:null,people:[],messages:[],peerId:null,ready:false,loading:false,loadPromise:null,
+const dm={owner:null,people:[],messages:[],invites:[],peerId:null,ready:false,loading:false,loadPromise:null,
  error:'',draft:'',search:'',sending:false,realtime:null,readBusy:false,profileOpen:null,lastFetch:0,pending:false,syncTimer:null,channelStatus:'',
  tab:'private',roomId:null,rooms:[],roomMessages:[],stickerOpen:false,groupModal:false,mediaFile:null,mediaCache:new Map(),mediaRequests:new Set()};
 function dmValid(id){return typeof id==='string'&&/^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/i.test(id)}
@@ -3350,6 +3368,17 @@ function dmGroupModalMarkup(){
 function dmMessageMedia(m){
  if(m.deleted_at)return '<p class="dm-deleted">Mensagem apagada</p>';
  const label=m.body&&m.body!=='[Imagem]'?'<p>'+esc(m.body).replace(/\n/g,'<br>')+'</p>':'';
+ const inviteId=String(m.body||'').match(/^Convite de simulado: ([0-9a-f-]{36})$/i)?.[1];
+ if(inviteId){
+  const invite=dm.invites.find(x=>x.id===inviteId&&x.sender_id===m.sender_id&&x.recipient_id===m.recipient_id);
+  if(!invite)return '<p>Convite de simulado</p>';
+  const subject=ge.exams.find(e=>e.id===invite.exam_id);
+  const label=subject?geSubjectName(subject.subject)+' · '+(subject.difficulty==='dificil'?'Difícil':'Normal'):'Simulado personalizado';
+  const pending=invite.status==='pending',recipient=invite.recipient_id===dm.owner;
+  return '<div class="dm-exam-invite"><strong>Convite de simulado</strong><p>'+esc(label)+'</p>'+
+   (pending&&recipient?'<div class="dm-exam-invite-actions"><button type="button" data-dm-exam-accept="'+esc(invite.id)+'">Adicionar aos meus simulados</button><button type="button" data-dm-exam-decline="'+esc(invite.id)+'">Recusar</button></div>':
+   '<small>'+(invite.status==='accepted'?'Aceito e adicionado':invite.status==='declined'?'Recusado':'Aguardando resposta')+'</small>')+'</div>';
+ }
  if(m.kind==='sticker')return '<div class="dm-sticker-art" role="img" aria-label="Sticker">'+esc(m.body)+'</div>';
  if(m.kind==='image'&&m.media_path)return '<div class="dm-attachment"><img alt="Imagem enviada no chat" data-dm-media="'+esc(m.media_path)+'" loading="lazy"><span>Imagem compartilhada</span></div>'+label;
  return '<p>'+esc(m.body).replace(/\n/g,'<br>')+'</p>';
@@ -3515,7 +3544,9 @@ async function dmLoad(){
   const groupMsgs=ids.length?await client.from('uentzoul_room_messages').select('id,room_id,sender_id,body,created_at,kind,media_path,deleted_at').in('room_id',ids).order('created_at',{ascending:false}).limit(1000):{data:[]};
   if(groupMsgs.error)throw groupMsgs.error;
   if(onlineUser?.id!==id)return;
-  dm.messages=messages.data||[];dm.people=people.data||[];dm.rooms=rooms.data||[];dm.roomMessages=groupMsgs.data||[];
+  dm.messages=messages.data||[];dm.people=people.data||[];dm.rooms=rooms.data||[];
+  const invitationRows=await client.from('uentzoul_exam_invites').select('id,exam_id,sender_id,recipient_id,status,created_at').limit(1000);
+  if(!invitationRows.error)dm.invites=invitationRows.data||[];dm.roomMessages=groupMsgs.data||[];
   dm.owner=id;dm.ready=true;dm.lastFetch=Date.now();
   dmBadge();dmShow();if(dm.tab==='private'&&dm.peerId)await dmMarkRead();
  }catch(e){dm.error=e?.message||'Não foi possível carregar as conversas.';dmShow()}
@@ -3526,7 +3557,7 @@ async function dmLoad(){
 function dmOnLogout(){
  if(dm.syncTimer)clearInterval(dm.syncTimer);dm.syncTimer=null;dm.pending=false;dm.channelStatus='';
  if(dm.realtime&&client)try{client.removeChannel(dm.realtime)}catch(_){}
- dm.realtime=null;dm.owner=null;dm.peerId=null;dm.messages=[];dm.people=[];dm.ready=false;dm.loading=false;dm.loadPromise=null;dm.error='';dm.draft='';dm.search='';dm.sending=false;
+ dm.realtime=null;dm.owner=null;dm.peerId=null;dm.messages=[];dm.people=[];dm.invites=[];dm.ready=false;dm.loading=false;dm.loadPromise=null;dm.error='';dm.draft='';dm.search='';dm.sending=false;
  dm.rooms=[];dm.roomMessages=[];dm.tab='private';dm.roomId=null;dm.mediaFile=null;dm.stickerOpen=false;dm.groupModal=false;dm.mediaCache.clear();dmBadge();dmShow();dmCloseProfile();
 }
 function dmOnLogin(){
@@ -3537,6 +3568,7 @@ function dmOnLogin(){
   if(dm.realtime)client.removeChannel(dm.realtime);
   dm.realtime=client.channel('student-dm-'+onlineUser.id)
   .on('postgres_changes',{event:'*',schema:'public',table:'uentzoul_messages'},()=>dmLoad())
+  .on('postgres_changes',{event:'*',schema:'public',table:'uentzoul_exam_invites'},()=>dmLoad())
   .on('postgres_changes',{event:'*',schema:'public',table:'uentzoul_room_messages'},()=>dmLoad())
   .on('postgres_changes',{event:'*',schema:'public',table:'uentzoul_chat_rooms'},()=>dmLoad())
   .subscribe(status=>{dm.channelStatus=status;if(status==='SUBSCRIBED')dmLoad()});
@@ -3626,7 +3658,26 @@ window.addEventListener('focus',()=>{if(onlineUser&&Date.now()-dm.lastFetch>4000
 window.addEventListener('online',()=>{if(onlineUser)dmLoad()});
 
 window.uentzoulMessenger={render:dmRender,afterRender:dmAfterRender,onLogin:dmOnLogin,onLogout:dmOnLogout,refresh:dmLoad};
+async function dmRespondExamInvite(id,decision){
+ if(!client||!onlineUser)return;
+ const invite=dm.invites.find(x=>x.id===id&&x.recipient_id===onlineUser.id&&x.status==='pending');
+ if(!invite)return;
+ try{
+  const {data,error}=await client.from('uentzoul_exam_invites')
+   .update({status:decision,responded_at:new Date().toISOString()}).eq('id',id)
+   .eq('recipient_id',onlineUser.id).eq('status','pending').select('*').single();
+  if(error)throw error;
+  invite.status=data.status;
+  toast(decision==='accepted'?'Simulado adicionado à tua biblioteca.':'Convite recusado.');
+  if(decision==='accepted')geLoad();
+  dmShow();
+ }catch(e){dm.error=e?.message||'Não foi possível responder ao convite.';dmShow();}
+}
 document.addEventListener('click',e=>{
+ const accept=e.target.closest('[data-dm-exam-accept]');
+ if(accept){e.preventDefault();dmRespondExamInvite(accept.dataset.dmExamAccept,'accepted');return;}
+ const decline=e.target.closest('[data-dm-exam-decline]');
+ if(decline){e.preventDefault();dmRespondExamInvite(decline.dataset.dmExamDecline,'declined');return;}
  const profile=e.target.closest('[data-dm-profile]');
  if(profile){e.preventDefault();dmOpenProfile(profile.dataset.dmProfile);return}
  const peer=e.target.closest('[data-dm-peer]');
