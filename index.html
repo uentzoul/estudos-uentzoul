@@ -1424,6 +1424,21 @@ html[data-theme="dark"] .exam-assertion{background:#302b44;border-color:#534768}
 html[data-theme="dark"] .exam-assertion-label{color:#c9b5ff}
 @media(max-width:550px){.qprompt,.ge-prompt,.pc2-prompt{font-size:13px}.exam-assertion{grid-template-columns:26px minmax(0,1fr);gap:8px;padding:10px}.ge-question,.pc2-exam-question,.quizbox{padding:14px}}
 
+
+/* Abas de simulados e ações individuais de compartilhamento/ocultação */
+.ge-tabs{display:flex;align-items:center;gap:8px;margin:12px 0 24px;padding:5px;border:1px solid var(--line);border-radius:14px;background:var(--paper);max-width:510px}
+.ge-tabs button{flex:1;border:0;background:transparent;color:var(--muted);border-radius:10px;padding:12px 14px;font:inherit;font-size:13px;font-weight:700;cursor:pointer}
+.ge-tabs button.active{background:#50439a;color:#fff}
+.ge-card-actions{display:flex;gap:8px;flex-wrap:wrap;border-top:1px solid var(--line);margin-top:13px;padding-top:12px}
+.ge-inline-share{margin-top:12px;padding:13px;border:1px solid var(--line);border-radius:10px;display:flex;flex-wrap:wrap;align-items:end;gap:9px}
+.ge-inline-share label{flex:1;min-width:180px;font-size:12px;font-weight:650}
+.ge-inline-share select{display:block;margin-top:7px;width:100%;padding:10px;border-radius:9px;background:var(--paper);color:var(--ink);border:1px solid var(--line)}
+.ge-inline-share p{flex-basis:100%;margin:0}
+.ge-toolbar-actions{display:flex;align-items:center;gap:7px;flex-wrap:wrap}
+.ge-ready-group{margin:16px 0 25px}
+.ge-ready-group h3{margin:0 0 12px;font-size:15px}
+.ge-ready-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+@media(max-width:760px){.ge-ready-grid{grid-template-columns:minmax(0,1fr)}.ge-tabs{max-width:none}.ge-card-actions .btn{flex:1}}
 </style>
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2064%2064%22%3E%3Crect%20width%3D%2264%22%20height%3D%2264%22%20rx%3D%2214%22%20fill%3D%22%23192d44%22%2F%3E%3Ctext%20x%3D%2232%22%20y%3D%2246%22%20fill%3D%22white%22%20font-size%3D%2246%22%20font-family%3D%22Georgia%2Cserif%22%20text-anchor%3D%22middle%22%3E%CE%A8%3C%2Ftext%3E%3C%2Fsvg%3E">
 </head>
@@ -2401,7 +2416,7 @@ window.addEventListener('uentzoul:auth',()=>{
 
 /* Simulados inéditos por solicitação: 13 objetivas + 2 dissertativas.
    A correção e o bloqueio de repetição são feitos pelo servidor. */
-const ge={exams:[],submissions:[],shares:[],profiles:[],selected:null,subject:'tcc',difficulty:'normal',
+const ge={exams:[],submissions:[],shares:[],profiles:[],hidden:[],tab:'ready',shareExamId:null,selected:null,subject:'tcc',difficulty:'normal',
  answers:{},shareTarget:'',loading:false,loaded:false,owner:null,busy:false,notice:'',error:'',pending:false,lastFetch:0,realtime:null};
 function geSubmission(id){return ge.submissions.find(x=>x.exam_id===id)}
 
@@ -2424,13 +2439,23 @@ function geFinishDraft(id){
 
 function geSubjectName(id){return DB.subjects[id]?.name||id}
 function geExamCard(exam){
- const submitted=geSubmission(exam.id),mine=exam.creator_id===geUser()?.id;
+ const submitted=geSubmission(exam.id),mine=exam.creator_id===geUser()?.id,sharing=ge.shareExamId===exam.id;
+ const recipients=ge.profiles.filter(p=>p.user_id!==geUser()?.id);
+ const sent=ge.shares.filter(x=>x.exam_id===exam.id&&x.sender_id===geUser()?.id);
  return '<article class="ge-card" style="--accent:'+color(exam.subject)+'">'+
   '<div class="ge-card-head"><span class="pill">'+(mine?'Meu simulado':'Compartilhado comigo')+'</span><span class="ge-difficulty">'+(exam.difficulty==='dificil'?'Difícil':'Normal')+'</span></div>'+
   '<h3>'+esc(geSubjectName(exam.subject))+'</h3><p>13 objetivas e 2 dissertativas</p><small>'+
   new Date(exam.created_at).toLocaleDateString('pt-BR',{day:'2-digit',month:'short',year:'numeric'})+
-  '</small><div class="ge-card-foot"><span class="pill '+(submitted?'ok':'')+'">'+(submitted?'Entregue · não permite refazer':'Ainda não entregue')+'</span>'+
-  '<button type="button" data-ge-open="'+esc(exam.id)+'">'+(submitted?'Rever':'Responder')+'</button></div></article>';
+  '</small><div class="ge-card-foot"><span class="pill '+(submitted?'ok':'')+'">'+(submitted?'Entregue':'Não entregue')+'</span>'+
+  '<button type="button" data-ge-open="'+esc(exam.id)+'">'+(submitted?'Rever':'Responder')+'</button></div>'+
+  '<div class="ge-card-actions">'+
+  (mine?'<button type="button" class="btn sm light" data-ge-share-open="'+esc(exam.id)+'">Compartilhar'+(sent.length?' ('+sent.length+')':'')+'</button>':'')+
+  '<button type="button" class="btn sm light" data-ge-hide="'+esc(exam.id)+'">Retirar da minha lista</button></div>'+
+  (sharing&&mine?'<div class="ge-inline-share"><label>Compartilhar com colega<select id="geShareTarget" aria-label="Escolhe uma pessoa para compartilhar"><option value="">Seleciona uma pessoa</option>'+
+  recipients.map(p=>'<option value="'+esc(p.user_id)+'" '+(ge.shareTarget===p.user_id?'selected':'')+'>'+esc(p.display_name||'Estudante')+'</option>').join('')+
+  '</select></label><button type="button" class="btn sm" data-ge-share '+(ge.busy?'disabled':'')+'>Enviar simulado</button>'+
+  (sent.length?'<p class="small">Já compartilhado com '+sent.length+' pessoa(s).</p>':'')+'</div>':'')+
+  '</article>';
 }
 function geRenderList(){
  const logged=!!geUser();
@@ -2443,19 +2468,18 @@ function geRenderList(){
   '<label>Dificuldade<select id="geDifficulty"><option value="normal" '+(ge.difficulty==='normal'?'selected':'')+'>Normal</option><option value="dificil" '+(ge.difficulty==='dificil'?'selected':'')+'>Difícil</option></select></label>'+
   '<button type="button" class="btn ge-primary" data-ge-create '+(ge.busy?'disabled':'')+'>'+(ge.busy?'Preparando as 15 questões…':'Gerar novo simulado')+'</button></div></div>':
   '<div class="ge-generator"><h2>Sem disciplinas cadastradas em '+esc(semester)+'</h2><p>Volta ao semestre 2026/2 para gerar provas com os materiais disponíveis.</p></div>';
- const owned=ge.exams.filter(e=>e.creator_id===geUser().id);
- const received=ge.exams.filter(e=>e.creator_id!==geUser().id);
- const archived=DB.exams.filter(e=>!!store.results[e.id]);
+ const visible=ge.exams.filter(e=>!ge.hidden.some(h=>h.exam_id===e.id));
+ const owned=visible.filter(e=>e.creator_id===geUser().id);
+ const received=visible.filter(e=>e.creator_id!==geUser().id);
  const section=(title,rows,empty)=>'<section class="section ge-section"><div class="sectiontop"><h2>'+title+'</h2><small>'+rows.length+' provas</small></div>'+
   (rows.length?'<div class="ge-grid">'+rows.map(geExamCard).join('')+'</div>':'<p class="ge-muted">'+empty+'</p>')+'</section>';
  return head('Simulados','Simulados sob medida','Uma prova nova a cada solicitação, guardada na tua conta. Depois de entregar, só é possível rever.')+
   form+(ge.error?'<div class="tz-notice" role="alert">'+esc(ge.error)+'</div>':'')+
   (ge.notice?'<div class="alert info" role="status">'+esc(ge.notice)+'</div>':'')+
-  '<div class="ge-toolbar"><span>Histórico salvo na tua conta</span><button type="button" class="btn sm light" data-ge-refresh '+(ge.loading?'disabled':'')+'>Atualizar histórico</button></div>'+
+  '<div class="ge-toolbar"><span>Histórico salvo na tua conta</span><div class="ge-toolbar-actions">'+(ge.hidden.length?'<button type="button" class="btn sm light" data-ge-restore>Restaurar ocultados ('+ge.hidden.length+')</button>':'')+'<button type="button" class="btn sm light" data-ge-refresh '+(ge.loading?'disabled':'')+'>Atualizar histórico</button></div></div>'+
   (ge.loading?'<div class="panel ge-panel">Carregando simulados salvos…</div>':
   section('Meus simulados',owned,'Ainda não criaste um simulado.')+
   section('Compartilhados comigo',received,'Quando um colega compartilhar uma prova contigo, ela aparecerá aqui.'))+
-  (archived.length?'<section class="section ge-section"><div class="sectiontop"><h2>Provas anteriores (somente consulta)</h2></div><div class="ge-grid">'+archived.map(e=>'<article class="ge-card"><h3>'+esc(e.title)+'</h3><p>Modelo anterior · tentativa registrada</p><button class="btn sm light" data-action="test:'+esc(e.id)+'">Rever prova</button></article>').join('')+'</div></section>':'')+
   '<p class="small">As questões são geradas com base nos materiais cadastrados. O formato se aproxima das provas dos professores quando há exemplos disponíveis; não é uma prova oficial. Simulados gerados não atribuem pontos no ranking.</p>';
 }
 function geRenderExam(){
@@ -2482,7 +2506,7 @@ function geRenderExam(){
  }).join('');
  const profiles=ge.profiles.filter(p=>p.user_id!==geUser()?.id);
  const alreadyShared=ge.shares.filter(x=>x.exam_id===exam.id&&x.sender_id===geUser()?.id);
- const share=review&&mine?'<section class="ge-share"><h3>Compartilhar este simulado</h3><p>Envia a prova para outra pessoa cadastrada no site. Ela poderá responder uma única vez, sem alterar a tua tentativa.</p>'+
+ const share=mine?'<section class="ge-share"><h3>Compartilhar este simulado</h3><p>Envia a prova para outra pessoa cadastrada no site. Ela poderá responder uma única vez, sem alterar a tua tentativa.</p>'+
   '<div class="ge-share-form"><select id="geShareTarget"><option value="">Seleciona uma pessoa</option>'+
   profiles.map(p=>'<option value="'+esc(p.user_id)+'" '+(ge.shareTarget===p.user_id?'selected':'')+'>'+esc(p.display_name||'Estudante')+'</option>').join('')+
   '</select><button type="button" class="btn light" data-ge-share '+(ge.busy?'disabled':'')+'>Compartilhar</button></div>'+
@@ -2504,15 +2528,16 @@ async function geLoad(){
  const userId=geUser().id;ge.loading=true;ge.owner=userId;ge.error='';
  if(current.page==='exams'||current.page==='subject')render();
  try{
-  const [exams,submissions,shares,profiles]=await Promise.all([
+  const [exams,submissions,shares,profiles,hidden]=await Promise.all([
    geClient().from('uentzoul_generated_exams').select('id,creator_id,semester,subject,difficulty,title,questions,created_at').neq('semester','personal').order('created_at',{ascending:false}).limit(1000),
    geClient().from('uentzoul_generated_exam_submissions').select('exam_id,user_id,answers,feedback,created_at').order('created_at',{ascending:false}).limit(150),
    geClient().from('uentzoul_generated_exam_shares').select('exam_id,sender_id,recipient_id,created_at').order('created_at',{ascending:false}).limit(300),
-   geClient().from('uentzoul_profiles').select('user_id,display_name').order('display_name',{ascending:true}).limit(300)
+   geClient().from('uentzoul_profiles').select('user_id,display_name').order('display_name',{ascending:true}).limit(300),
+   geClient().from('uentzoul_generated_exam_hidden').select('exam_id,user_id').eq('user_id',userId).limit(1000)
   ]);
-  for(const item of [exams,submissions,shares,profiles])if(item.error)throw item.error;
+  for(const item of [exams,submissions,shares,profiles,hidden])if(item.error)throw item.error;
   if(geUser()?.id!==userId)return;
-  ge.exams=exams.data||[];ge.submissions=submissions.data||[];ge.shares=shares.data||[];ge.profiles=profiles.data||[];ge.loaded=true;
+  ge.exams=exams.data||[];ge.submissions=submissions.data||[];ge.shares=shares.data||[];ge.profiles=profiles.data||[];ge.hidden=hidden.data||[];ge.loaded=true;
  }catch(e){ge.error='Não foi possível carregar os simulados: '+(e?.message||'erro de conexão');ge.loaded=true}
  finally{ge.loading=false;ge.lastFetch=Date.now();if(geUser()?.id===userId&&(current.page==='exams'||current.page==='subject')&&!document.activeElement?.matches('.ge-essay,.ge-option input'))render();if(ge.pending&&geUser()?.id===userId){ge.pending=false;queueMicrotask(geLoad)}}
 }
@@ -2597,16 +2622,17 @@ async function geSubmit(){
  finally{ge.busy=false;if(current.page==='exams')render();if(ge.pending){ge.pending=false;geLoad()}}
 }
 async function geShare(){
- if(ge.busy||!ge.selected||!ge.shareTarget||!geUser())return;
- const exam=ge.exams.find(x=>x.id===ge.selected);
- if(!exam||exam.creator_id!==geUser().id||!geSubmission(ge.selected))return;
- if(ge.shares.some(x=>x.exam_id===ge.selected&&x.recipient_id===ge.shareTarget)){ge.error='Já compartilhaste esta prova com essa pessoa.';render();return}
+ if(ge.busy||!(ge.shareExamId||ge.selected)||!ge.shareTarget||!geUser())return;
+ const examId=ge.shareExamId||ge.selected;
+ const exam=ge.exams.find(x=>x.id===examId);
+ if(!exam||exam.creator_id!==geUser().id)return;
+ if(ge.shares.some(x=>x.exam_id===examId&&x.recipient_id===ge.shareTarget)){ge.error='Já compartilhaste esta prova com essa pessoa.';render();return}
  ge.busy=true;ge.error='';
  try{
   const {data,error}=await geClient().from('uentzoul_generated_exam_shares')
-   .insert({exam_id:ge.selected,sender_id:geUser().id,recipient_id:ge.shareTarget}).select('*').single();
+   .insert({exam_id:examId,sender_id:geUser().id,recipient_id:ge.shareTarget}).select('*').single();
   if(error)throw error;
-  ge.shares.push(data);ge.shareTarget='';
+  ge.shares.push(data);ge.shareTarget='';ge.shareExamId=null;
   toast('Simulado compartilhado. O destinatário já pode responder.');
  }catch(e){ge.error=e?.message||'Não foi possível compartilhar.'}
  finally{ge.busy=false;if(current.page==='exams')render();if(ge.pending){ge.pending=false;geLoad()}}
@@ -2628,7 +2654,57 @@ renderSubject=function(k){
  html=html.replace(/(<strong data-subject-stat="Simulados">)[^<]*(<\/strong>)/,'$1'+count+' feitos$2');
  return html;
 };
-renderExams=function(){return ge.selected?geRenderExam():geRenderList()};
+function geReadyLibrary(){
+ const subjects=Object.keys(DB.subjects);
+ return head('Simulados prontos','Provas para praticar','Quatro simulados por disciplina: dois de dificuldade normal e dois difíceis, com correções comentadas.')+
+ '<div class="alert info">As provas prontas são exercícios de estudo e não avaliações oficiais. O sistema mantém as tentativas e correções já realizadas.</div>'+
+ subjects.map(id=>{
+  const all=DB.exams.filter(e=>e.subject===id).sort((a,b)=>Number(a.model)-Number(b.model));
+  const normal=all.filter(e=>Number(e.model)<=2).slice(0,2);
+  const hard=all.filter(e=>Number(e.model)>=4).slice(0,2);
+  const group=(label,items)=>'<div class="ge-ready-group"><h3>'+label+'</h3><div class="examgrid ge-ready-grid">'+items.map(examCard).join('')+'</div></div>';
+  return '<section class="section ge-ready-subject"><div class="sectiontop"><h2 style="border-left:4px solid '+color(id)+';padding-left:10px">'+esc(DB.subjects[id].name)+'</h2><span class="pill">4 simulados</span></div>'+
+  group('Normais',normal)+group('Difíceis',hard)+'</section>';
+ }).join('');
+}
+renderExams=function(){
+ if(ge.selected){ge.tab='ai';return geRenderExam();}
+ const tabs='<div class="ge-tabs" role="tablist" aria-label="Tipo de simulado">'+
+ '<button type="button" role="tab" aria-selected="'+(ge.tab==='ready')+'" class="'+(ge.tab==='ready'?'active':'')+'" data-ge-tab="ready">Simulados prontos</button>'+
+ '<button type="button" role="tab" aria-selected="'+(ge.tab==='ai')+'" class="'+(ge.tab==='ai'?'active':'')+'" data-ge-tab="ai">Criar com IA</button></div>';
+ return tabs+(ge.tab==='ready'?geReadyLibrary():geRenderList());
+};
+async function geHideExam(id){
+ if(!geUser()||ge.busy||ge.hidden.some(h=>h.exam_id===id))return;
+ const exam=ge.exams.find(e=>e.id===id);
+ if(!exam)return;
+ const warning=exam.creator_id===geUser().id
+  ?'Retirar este simulado da tua lista? Ele continuará disponível para colegas com quem já foi compartilhado. Poderás restaurá-lo depois.'
+  :'Retirar este simulado compartilhado da tua lista? Isso não afeta o dono nem outras pessoas.';
+ if(!confirm(warning))return;
+ ge.busy=true;
+ try{
+  const {error}=await geClient().from('uentzoul_generated_exam_hidden').insert({user_id:geUser().id,exam_id:id});
+  if(error)throw error;
+  ge.hidden.push({user_id:geUser().id,exam_id:id});
+  ge.shareExamId=null;
+  if(ge.selected===id)ge.selected=null;
+  toast('Simulado retirado apenas da tua lista.');
+ }catch(e){ge.error=e?.message||'Não foi possível retirar o simulado.';}
+ finally{ge.busy=false;if(current.page==='exams')render();}
+}
+async function geRestoreHidden(){
+ if(!geUser()||ge.busy)return;
+ ge.busy=true;
+ try{
+  const {error}=await geClient().from('uentzoul_generated_exam_hidden').delete().eq('user_id',geUser().id);
+  if(error)throw error;
+  ge.hidden=[];
+  toast('Simulados restaurados à tua lista.');
+ }catch(e){ge.error=e?.message||'Falha ao restaurar simulados.';}
+ finally{ge.busy=false;if(current.page==='exams')render();}
+}
+
 const geLegacyRenderHome=renderHome;
 renderHome=function(){
  let html=geLegacyRenderHome();
@@ -2645,7 +2721,11 @@ subjectCard=function(id){
  return html;
 };
 document.addEventListener('click',e=>{
- let b=e.target.closest('[data-ge-open]');if(b){ge.selected=b.dataset.geOpen;ge.error='';render();return}
+ let b=e.target.closest('[data-ge-tab]');if(b){ge.tab=b.dataset.geTab;ge.selected=null;ge.shareExamId=null;ge.error='';render();return}
+ b=e.target.closest('[data-ge-share-open]');if(b){ge.tab='ai';ge.shareExamId=ge.shareExamId===b.dataset.geShareOpen?null:b.dataset.geShareOpen;ge.shareTarget='';render();return}
+ b=e.target.closest('[data-ge-hide]');if(b){geHideExam(b.dataset.geHide);return}
+ if(e.target.closest('[data-ge-restore]')){geRestoreHidden();return}
+ b=e.target.closest('[data-ge-open]');if(b){ge.tab='ai';ge.selected=b.dataset.geOpen;ge.shareExamId=null;ge.error='';render();return}
  if(e.target.closest('[data-ge-back]')){ge.selected=null;ge.error='';render();return}
  if(e.target.closest('[data-ge-create]')){geCreate();return}
  if(e.target.closest('[data-ge-submit]')){geSubmit();return}
