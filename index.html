@@ -728,6 +728,10 @@ html[data-theme="dark"] .tz-shell .tz-composer textarea{color:#f4f0ff}
  .tz-hints span:first-child{display:block}
 }
 
+
+/* O contador permanece visível mesmo quando a aba Mensagens está recolhida no celular. */
+.dm-mobile-unread:not([hidden]){display:grid;place-items:center;min-width:17px;height:17px;padding:0 5px;border-radius:99px;background:#bd4a88;color:#fff;font-size:9px;line-height:1;font-weight:850;margin-left:2px}
+
 /* Perfis públicos e chat entre contas */
 .rank-user-trigger{min-width:0;flex:1;display:flex;align-items:center;gap:7px;text-align:left;border:0;background:transparent;color:inherit;padding:2px 1px;border-radius:8px;cursor:pointer}
 .rank-user-trigger:hover{background:#f0edff}
@@ -1158,7 +1162,7 @@ Qual conceito ou formulação explica MELHOR essa situação?</p><ol type="a"><l
 <button class="sidebtn" data-page="messages"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.5 8.5 0 0 1-8.5 8.5c-1.5 0-3.1-.4-4.4-1.1L3 20l1.2-4.9A8.5 8.5 0 1 1 21 11.5Z"/><path d="M8 11.5h8M8 14.5h5"/></svg> Mensagens <span class="dm-nav-badge" id="dmNavBadge" hidden></span></button>
 </nav>
   <button type="button" id="mobileNavMoreToggle" class="mobile-nav-more" aria-controls="nav" aria-expanded="false" aria-label="Mostrar mais atalhos" title="Mostrar mais atalhos">
-    <span>Mais opções</span><svg viewBox="0 0 24 24" width="17" height="17" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+    <span>Mais opções</span><svg viewBox="0 0 24 24" width="17" height="17" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg><span id="dmMobileUnread" class="dm-mobile-unread" hidden></span>
   </button>
   <div class="navlbl">Disciplinas</div><nav class="menu" id="subjectNav"></nav>
   <div class="sidebarfoot">Atualizado · 10/11/2026 · Progresso por conteúdo<br>Dados salvos neste navegador.</div>
@@ -2129,6 +2133,7 @@ function dmBadge(){
  const el=document.getElementById('dmNavBadge');if(!el)return;
  el.hidden=!count;el.textContent=count>99?'99+':String(count);
  el.setAttribute('aria-label',count+' mensagens não lidas');
+ const mobile=document.getElementById('dmMobileUnread');if(mobile){mobile.hidden=!count;mobile.textContent=count>99?'99+':String(count);mobile.setAttribute('aria-label',count+' mensagens não lidas');}
 }
 function dmContactRows(){
  const all=dmConversations(),seen=new Set(),others=[];
@@ -2183,9 +2188,12 @@ function dmShow(){
  const main=document.getElementById('main');
  if(!main||!main.querySelector('.dm-shell')&&!main.querySelector('.dm-login-panel'))return;
  const scroll=main.querySelector('#dmMessages'),oldHeight=scroll?.scrollHeight||0,oldTop=scroll?.scrollTop||0;
+ const active=document.activeElement,focusId=active&&['dmPrompt','dmUserSearch'].includes(active.id)?active.id:null;
+ const caret=focusId&&typeof active.selectionStart==='number'?active.selectionStart:null;
  const shouldBottom=!scroll||oldHeight-oldTop-scroll.clientHeight<130;
  main.innerHTML=dmRender();
  const newList=main.querySelector('#dmMessages');if(newList)newList.scrollTop=shouldBottom?newList.scrollHeight:oldTop;
+ if(focusId){const el=document.getElementById(focusId);if(el&&!el.disabled){el.focus({preventScroll:true});if(caret!==null&&el.setSelectionRange)el.setSelectionRange(caret,caret)}}
 }
 async function dmMarkRead(){
  if(!client||!onlineUser||!dmValid(dm.peerId)||dm.readBusy)return;
