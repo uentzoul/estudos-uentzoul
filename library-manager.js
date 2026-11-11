@@ -31,7 +31,7 @@ function show(message){
  const el=document.getElementById('libraryUploadFeedback');
  if(el)el.textContent=message||'';
 }
-const subjects=()=>window.UentzoulLibraryAnalyzer?.subjects||{meta:'Metapsicologia',tcc:'TCC',familia:'Psicologia da Família',social:'Psicologia Social',avaliacao:'Avaliação Psicológica',grupos:'Psicologia dos Grupos'};
+const subjects=()=>window.UentzoulLibraryAnalyzer?.subjects||{geral:'Cadernos integrados',meta:'Metapsicologia',tcc:'TCC',familia:'Psicologia da Família',social:'Psicologia Social',avaliacao:'Avaliação Psicológica',grupos:'Psicologia dos Grupos'};
 function titleFromFile(file,analysis){
  const original=String(file.name||'').replace(/\.(pdf|docx|pptx)$/i,'').replace(/[_]+/g,' ').trim();
  if(/^doc\s*\d+$/i.test(original)&&analysis?.topics?.length)return analysis.topics.slice(0,2).join(' e ');
@@ -53,8 +53,9 @@ function destinationOptions(r){
 function reviewCard(r,i){
  const a=r.analysis,quality=a?.quality||'',hit=a?.hits?.length?a.hits.slice(0,7).join(' · '):'Nenhum marcador forte identificado';
  const status=!a?'Analisando o conteúdo…':quality==='texto'?
-  'Texto analisado · '+Math.max(1,Math.round(a.textLength/1000))+' mil caracteres amostrados · '+(a.confidence==='alta'?'confiança alta':a.confidence==='moderada'?'confiança moderada':'confirmar classificação'):
+  'Texto analisado · '+(a.textLength/1000).toFixed(1)+' mil caracteres amostrados · '+(a.confidence==='alta'?'confiança alta':a.confidence==='moderada'?'confiança moderada':'confirmar classificação'):
   'Não foi possível ler o texto interno. Confere o documento e escolhe a disciplina manualmente.';
+ const examStatus=a?.examMatch==='principal'?'Corresponde ao conteúdo previsto para a prova final':a?.examMatch==='complementar'?'Material complementar relacionado aos temas da prova':a?.examMatch==='fora'?'Pertence à disciplina, mas está fora do foco da prova final':'Relevância para a prova precisa de confirmação';
  const warn=r.conflict?'O nome aponta para outro material. A identificação pelo conteúdo prevaleceu; confirma o destino.':
   a?.quality==='indisponivel'?(a.error||'Leitor indisponível'):'';
  const choices='<option value="">Selecione a disciplina</option>'+
@@ -62,7 +63,7 @@ function reviewCard(r,i){
  return '<div class="library-review-card" data-review-card="'+i+'">'+
   '<div class="library-review-file"><div><strong>'+clean(r.file.name)+'</strong><small>'+Math.round(r.file.size/1024)+' KB · '+clean(status)+'</small></div>'+
   '<span class="library-review-indicator '+(a?.confidence==='alta'?'strong':'')+'">'+(!a?'Lendo…':quality==='texto'?'Conteúdo lido':'Revisão manual')+'</span></div>'+
-  (a?.quality==='texto'?'<div class="library-review-evidence"><strong>Assuntos reconhecidos no conteúdo</strong><span>'+clean(hit)+'</span>'+
+  (a?.quality==='texto'?'<div class="library-review-evidence"><strong>Assuntos reconhecidos no conteúdo</strong><span>'+clean(hit)+'</span><small class="library-review-exam-match">'+clean(examStatus)+'</small>'+
   (a.preview?'<details><summary>Ver trecho extraído para conferência</summary><p>'+clean(a.preview)+'</p></details>':'')+'</div>':'')+
   (warn?'<p class="library-review-warning">'+clean(warn)+'</p>':'')+
   '<div class="library-review-fields"><label>Disciplina <select data-review-subject="'+i+'">'+choices+'</select></label>'+
@@ -131,11 +132,12 @@ async function select(files){
    r.analysis=analyzer?await analyzer.analyze(r.file):
     {quality:'indisponivel',error:'O leitor de documentos não carregou',topics:[],hits:[]};
    const suggested=r.analysis?.subject||'',known=r.suggestion;
-   r.subject=suggested||known?.subject||'';
+   // Cadernos multidisciplinares não devem ser tratados como material de uma disciplina única.
+   r.subject=known?.subject==='geral'?'geral':(suggested||known?.subject||'');
    r.title=known?.title||titleFromFile(r.file,r.analysis);
-   r.conflict=!!(suggested&&known?.subject&&suggested!==known.subject);
+   r.conflict=!!(suggested&&known?.subject&&known.subject!=='geral'&&suggested!==known.subject);
    r.targetKey=known&&!r.conflict?known.key:'__new__';
-   r.scope=(known?.inExam||r.analysis?.confidence!=='revisao')?'in':'archive';
+   r.scope=known?.inExam||['principal','complementar'].includes(r.analysis?.examMatch)?'in':'archive';
   }catch(err){r.analysis={quality:'indisponivel',error:err?.message||'Leitura indisponível'};r.subject=r.suggestion?.subject||'';r.targetKey=r.suggestion?.key||'__new__';r.scope=r.suggestion?.inExam?'in':'archive'}
   paint();
  }
