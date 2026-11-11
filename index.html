@@ -1323,7 +1323,7 @@ function tzMessage(m,i){
  '<button type="button" data-action="'+(DB.subjects[v.subject]?'subject:'+v.subject:'page:library')+'">'+esc(v.title)+'</button>').join('')+'</div>':'';
  return '<div class="tz-msg '+(answer?'assistant':'user')+'">'+(answer?tzAvatar():'<span class="tz-me">EU</span>')+
  '<div class="tz-msg-body"><span class="tz-who">'+(answer?'IA Tzoul':'Tu')+'</span><div class="tz-bubble">'+tzMarkdown(m.content)+'</div>'+
- sources+(answer?'<div class="tz-actions"><button data-tz-copy="'+i+'">Copiar</button><button data-tz-export="'+i+':txt">TXT</button><button data-tz-export="'+i+':md">Markdown</button><button data-tz-export="'+i+':doc">Word</button><button data-tz-export="'+i+':pdf">PDF</button></div>':'')+'</div></div>';
+ sources+(answer?'<div class="tz-actions"><button data-tz-copy="'+i+'">Copiar</button><button data-tz-export="'+i+':txt">TXT</button><button data-tz-export="'+i+':md">Markdown</button><button data-tz-export="'+i+':doc">Word (.doc)</button><button data-tz-export="'+i+':pdf">PDF / Imprimir</button></div>':'')+'</div></div>';
 }
 function renderAI(){
  const logged=!!window.uentzoulAIAuth?.user(),hasContent=Object.keys(DB.subjects).length>0;
@@ -1637,7 +1637,7 @@ document.addEventListener('input',e=>{if(e.target.id==='matSearch'){current.sear
  });
  return}if(e.target.matches('.essay')&&current.page==='test'){let q=e.target.dataset.qid;if(!store.answers[current.exam])store.answers[current.exam]={};store.answers[current.exam][q]=e.target.value;persist();}});
 window.addEventListener('beforeunload',persist);
-if(location.hash.startsWith('#')){const h=decodeURIComponent(location.hash.slice(1));if(DB.subjects[h]){current.page='subject';current.subject=h}else if(DB.exams.some(e=>e.id===h)){current.page='test';current.exam=h}else if(['home','exams','library','audio','calendar'].includes(h))current.page=h}
+if(location.hash.startsWith('#')){const h=decodeURIComponent(location.hash.slice(1));if(DB.subjects[h]){current.page='subject';current.subject=h}else if(DB.exams.some(e=>e.id===h)){current.page='test';current.exam=h}else if(['home','exams','library','audio','calendar','ai'].includes(h))current.page=h}
 try{render();document.documentElement.classList.add('app-ready');}catch(e){console.error('Inicialização da Central falhou',e);}
 })();
 </script><script>
