@@ -4221,6 +4221,7 @@ function dmWTicks(m,channel){
 }
 dmMessageHtml=function(m,channel='private'){
  const mine=m.sender_id===dm.owner;
+ const photoOnly=!m.deleted_at&&(m.kind==='image'&&!!m.media_path||m.kind==='sticker'&&!!m.media_path||m.kind==='gif')&&(!m.reply_to&&!m.forwarded)&&(!m.body||m.kind==='gif'||/^\[(Imagem|Figurinha)\]$/.test(m.body));
  const quoted=m.reply_to?dmWMessage(m.reply_to,channel==='private'?'private':'room'):null;
  const quote=m.reply_to?'<button type="button" class="dm-reply-quote" data-dmw-jump="'+esc(m.reply_to)+'"><strong>'+
   esc(quoted?(quoted.sender_id===dm.owner?'Você':dmPrettyPerson(quoted.sender_id).display_name):'Mensagem anterior')+
@@ -4228,7 +4229,7 @@ dmMessageHtml=function(m,channel='private'){
  const options=!m.deleted_at?'<button class="dm-message-menu-button" type="button" data-dmw-msgmenu="'+esc(m.id)+'" aria-label="Opções da mensagem" aria-expanded="'+(dmW.menu===m.id)+'">⌄</button>'+
   (dmW.menu===m.id?'<div class="dm-message-popup"><button data-dmw-reply="'+esc(m.id)+'">↩ Responder</button><button data-dmw-forward="'+esc(m.id)+'">↪ Encaminhar</button>'+
   (mine?'<button data-dmw-info="'+esc(m.id)+'">ⓘ Informações</button><button data-dmw-delete="'+esc(m.id)+'" data-dmw-delete-type="'+(channel==='private'?'private':'room')+'">Apagar para todos</button>':'')+'</div>':''):'';
- return '<div class="dm-message '+(mine?'mine':'theirs')+'" data-dmw-message="'+esc(m.id)+'"><div class="dm-message-bubble">'+
+ return '<div class="dm-message '+(mine?'mine':'theirs')+(photoOnly?' dm-photo-message':'')+'" data-dmw-message="'+esc(m.id)+'"><div class="dm-message-bubble'+(photoOnly?' dm-photo-only':'')+'">'+
  (channel==='private'?'':'<span class="dm-author">'+esc(dmPrettyPerson(m.sender_id).display_name)+'</span>')+
  (m.forwarded?'<div class="dm-forwarded">↪ Encaminhada</div>':'')+quote+dmWMedia(m)+
  '<div class="dm-message-info"><time>'+esc(dmTime(m.created_at))+'</time>'+dmWTicks(m,channel)+'</div>'+options+'</div></div>';
