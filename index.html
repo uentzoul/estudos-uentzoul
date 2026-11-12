@@ -3790,7 +3790,7 @@ async function handleOnlineProfile(form){
   throw Error('Seleciona um turno válido.');
  const birthday=String(fields.get('birthday')||'')||null;
  if(birthday){
-  const match=birthday.match(/^(\\d{4})-(\\d{2})-(\\d{2})$/);
+  const match=birthday.match(/^(\d{4})-(\d{2})-(\d{2})$/);
   if(!match||new Date(birthday+'T12:00:00Z').toISOString().slice(0,10)!==birthday)
    throw Error('Seleciona uma data de aniversário válida.');
   if(birthday>new Date().toISOString().slice(0,10))
