@@ -1,0 +1,51 @@
+/* PsicoMoodle: Admin Config exclusiva, coerente com as matérias. */
+#navAdminConfig[hidden]{display:none!important}
+#navAdminConfig{margin-top:8px;border:1px solid color-mix(in srgb,#7662bd 18%,var(--line));color:var(--ink)}
+#navAdminConfig.active{background:color-mix(in srgb,#7960be 13%,var(--paper));color:#6f54b0}
+.admin-config-page{max-width:1240px;margin:0 auto;display:grid;gap:19px}
+.admin-config-page .admin-header{padding:26px 29px;background:linear-gradient(130deg,#30285f,#574899);color:#fff;border-radius:19px;box-shadow:0 12px 32px #362d7e1e}
+.admin-config-page .admin-kicker{font-size:10px;text-transform:uppercase;font-weight:850;letter-spacing:.14em;color:#dcd2fa}
+.admin-config-page .admin-header h1{font-size:clamp(26px,3vw,34px);margin:9px 0 6px;letter-spacing:-.04em}
+.admin-config-page .admin-header p{font-size:12px;color:#ede7ff;margin:0;line-height:1.55}
+.admin-config-page .admin-card{background:var(--paper);border:1px solid var(--line);padding:21px 23px;border-radius:17px;min-width:0}
+.admin-config-page .admin-card h2{margin:0 0 14px;font-size:18px;letter-spacing:-.025em;color:var(--ink)}
+.admin-config-page .admin-section-heading{display:flex;justify-content:space-between;gap:12px;align-items:center}
+.admin-config-page .admin-section-heading h2{margin:0 0 5px}
+.admin-config-page .admin-section-heading p{margin:0;font-size:11px;color:var(--muted)}
+.admin-config-page button{font:inherit;cursor:pointer}
+.admin-config-page .admin-section-heading button,.admin-config-page .admin-actions button,.admin-config-page .admin-topic-buttons button{border:1px solid var(--line);background:var(--soft);color:var(--ink);border-radius:9px;padding:9px 13px;font-size:12px;font-weight:750}
+.admin-config-page .admin-section-heading button:hover,.admin-config-page .admin-actions button:hover,.admin-config-page .admin-topic-buttons button:hover{border-color:#9580cd}
+.admin-config-page .admin-online-list{display:flex;gap:8px;flex-wrap:wrap;margin-top:15px}
+.admin-config-page .admin-member{display:flex;align-items:center;gap:9px;border-radius:11px;border:1px solid var(--line);background:var(--soft);padding:10px 13px;font-size:12px;color:var(--ink)}
+.admin-config-page .admin-member strong{font-weight:730}
+.admin-config-page .admin-live-dot{background:#2eac7a;width:8px;height:8px;border-radius:50%;box-shadow:0 0 0 3px #2eac7a16}
+.admin-config-page .admin-muted{font-size:12px;color:var(--muted);line-height:1.6;margin:4px 0}
+.admin-config-page .admin-grid{display:grid;grid-template-columns:1.1fr 1fr;gap:17px;align-items:start}
+.admin-config-page .admin-topic-form{display:grid;gap:12px}
+.admin-config-page .admin-topic-form label{display:grid;gap:5px;font-size:11px;font-weight:780;color:var(--ink)}
+.admin-config-page .admin-topic-form :is(input,select,textarea){font:inherit;font-size:12px;line-height:1.5;border:1px solid var(--line);border-radius:10px;color:var(--ink);background:var(--paper);padding:10px 11px;width:100%;min-width:0;resize:vertical}
+.admin-config-page .admin-topic-form :is(input,select,textarea):focus-visible{outline:2px solid #8974cc;outline-offset:2px}
+.admin-config-page .admin-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:4px}
+.admin-config-page .admin-actions .admin-primary{background:linear-gradient(120deg,#5949a4,#7d65c8);color:white;border-color:transparent}
+.admin-config-page .admin-topic-list{display:grid;gap:8px;max-height:460px;overflow:auto}
+.admin-config-page .admin-topic-line{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:12px;border:1px solid var(--line);border-radius:11px}
+.admin-config-page .admin-topic-line>div:first-child{min-width:0;display:flex;flex-direction:column;gap:5px}
+.admin-config-page .admin-topic-line strong{font-size:12px;line-height:1.45;color:var(--ink)}
+.admin-config-page .admin-topic-line small{font-size:10px;color:var(--muted)}
+.admin-config-page .admin-topic-buttons{display:flex;gap:6px;flex-wrap:wrap}
+.admin-config-page .admin-topic-buttons button{padding:7px 8px;font-size:10px}
+.admin-config-page .admin-uploads .library-manager{margin:0}
+.admin-config-page .admin-notice{padding:12px 15px;border:1px solid var(--line);border-radius:10px;background:var(--soft);color:var(--ink);font-size:12px}
+.profile-sidebar .rank-entry{padding:9px 3px;gap:8px;display:flex;align-items:center}
+.profile-sidebar .rank-list{display:grid;gap:2px}
+.profile-sidebar .rank-user-trigger{min-width:0;flex:1}
+.profile-sidebar .rank-user-trigger .rank-person{min-width:0}
+.profile-sidebar .rank-title{font-size:14px;margin:0 0 6px}
+.profile-sidebar .rank-subtitle{margin:0 0 11px;font-size:11px;color:var(--muted)}
+.profile-sidebar .member-list-heading{display:flex;align-items:center;justify-content:space-between;margin-bottom:11px}
+.profile-sidebar .member-list-heading h2{margin:0;font-size:14px}
+.profile-sidebar .member-list-heading span{font-size:11px;color:var(--muted)}
+.profile-sidebar .rank-entry .rank-user-trigger{width:100%;text-align:left}
+.profile-sidebar .rank-entry .rank-person span{color:var(--muted)}
+@media(max-width:840px){.admin-config-page .admin-grid{grid-template-columns:1fr}}
+@media(max-width:600px){.admin-config-page{gap:13px}.admin-config-page .admin-header{padding:21px}.admin-config-page .admin-card{padding:16px}.admin-config-page .admin-section-heading{align-items:flex-start}.admin-config-page .admin-topic-line{flex-wrap:wrap}.admin-config-page .admin-topic-buttons{width:100%}}
