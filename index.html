@@ -4350,7 +4350,7 @@ dmLoad=async function(){
  dm.loadPromise=(async()=>{
   try{
    const [messages,people,rooms,members,reads]=await Promise.all([
-    client.from('uentzoul_messages').select('id,sender_id,recipient_id,body,created_at,delivered_at,read_at,kind,media_path,deleted_at,reply_to,forwarded').or('sender_id.eq.'+id+',recipient_id.eq.'+id).order('created_at',{ascending:false}).limit(800),
+    client.from('uentzoul_messages').select('id,sender_id,recipient_id,body,created_at,delivered_at,read_at,kind,media_path,deleted_at,reply_to,forwarded,share_payload').or('sender_id.eq.'+id+',recipient_id.eq.'+id).order('created_at',{ascending:false}).limit(800),
     client.from('uentzoul_profiles').select('user_id,display_name,avatar_url,bio').order('display_name').limit(300),
     client.from('uentzoul_chat_rooms').select('id,kind,name,owner_id,avatar_path,message_ttl_seconds,created_at').order('created_at',{ascending:false}).limit(200),
     client.from('uentzoul_chat_members').select('room_id,user_id,is_admin,joined_at').limit(2000),
@@ -4358,7 +4358,7 @@ dmLoad=async function(){
    ]);
    for(const row of [messages,people,rooms,members,reads])if(row.error)throw row.error;
    const ids=(rooms.data||[]).map(x=>x.id);
-   const roomMessages=ids.length?await client.from('uentzoul_room_messages').select('id,room_id,sender_id,body,kind,media_path,created_at,deleted_at,reply_to,forwarded,expires_at').in('room_id',ids).order('created_at',{ascending:false}).limit(1200):{data:[]};
+   const roomMessages=ids.length?await client.from('uentzoul_room_messages').select('id,room_id,sender_id,body,kind,media_path,created_at,deleted_at,reply_to,forwarded,expires_at,share_payload').in('room_id',ids).order('created_at',{ascending:false}).limit(1200):{data:[]};
    if(roomMessages.error)throw roomMessages.error;
    if(onlineUser?.id!==id)return;
    dm.messages=messages.data||[];dm.people=people.data||[];dm.rooms=rooms.data||[];dm.roomMessages=roomMessages.data||[];
@@ -5034,6 +5034,31 @@ function dmVEndDrag(event){
 }
 document.addEventListener('pointerup',dmVEndDrag);document.addEventListener('pointercancel',dmVEndDrag);
 
+
+
+/* Carrega imagens também na galeria, não somente no histórico do chat. */
+const dmVOriginalResolve=dmResolveMedia;
+dmResolveMedia=function(){
+ dmVOriginalResolve();
+ document.querySelectorAll('.dm-float-dialog img[data-dm-media]').forEach(img=>{
+  const path=img.dataset.dmMedia,cache=dm.mediaCache.get(path);
+  if(cache&&cache.until>Date.now())img.src=cache.url;
+  else dmSignMedia(path);
+ });
+};
+const dmVOriginalMediaResolver=dmWResolveMedia;
+dmWResolveMedia=async function(){
+ await dmVOriginalMediaResolver();
+ const elements=document.querySelectorAll('.dm-float-dialog [data-dmw-media]');
+ for(const element of elements){
+  const path=element.dataset.dmwMedia;if(!path)continue;
+  try{
+   const cached=dm.mediaCache.get(path);
+   const signed=cached?.until>Date.now()?cached.url:(await client.storage.from('uentzoul-chat-media').createSignedUrl(path,1800)).data?.signedUrl;
+   if(signed){element.src=signed;dm.mediaCache.set(path,{url:signed,until:Date.now()+25*60*1000})}
+  }catch(e){console.warn('Galeria: mídia indisponível',e)}
+ }
+};
 
 /* Interações separadas para evitar perda de foco no campo de escrita. */
 document.addEventListener('click',async event=>{
