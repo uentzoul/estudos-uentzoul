@@ -4074,7 +4074,7 @@ function dmWAdmin(room){const r=dmRoom(room);return !!r&&(r.owner_id===dm.owner|
 function dmWWallpaper(){try{return localStorage.getItem('psicomoodle_bg_'+dm.owner+'_'+dmWSelected())||'default'}catch(_){return 'default'}}
 function dmWGroupAvatar(r,small){
  const cl='dm-group-avatar '+(small?'small':'');
- return r?.avatar_path?'<span class="'+cl+'"><img data-dmw-media="'+esc(r.avatar_path)+'" alt="Foto do grupo"></span>':'<span class="'+cl+'">👥</span>';
+ return r?.avatar_path?'<span class="'+cl+'"><img '+(r.avatar_path.startsWith('data:image/jpeg;base64,')?'src="'+esc(r.avatar_path)+'"':'data-dmw-media="'+esc(r.avatar_path)+'"')+' alt="Foto do grupo"></span>':'<span class="'+cl+'">👥</span>';
 }
 function dmWRows(){
  const direct=dmConversations(),seen=new Set(direct.map(x=>x.id));
@@ -4435,7 +4435,7 @@ async function dmWStartRecord(){
  }catch(e){toast(e?.name==='NotAllowedError'?'Sem permissão para usar o microfone.':'Gravação não disponível.');dmW.recordStream?.getTracks().forEach(t=>t.stop())}
 }
 async function dmWEditGroup(form){
- const r=dmWRoom();if(!r||!dmWAdmin(r.id))return;
+ const r=dmWRoom();if(!r||!(r.owner_id===dm.owner||dmWMembers(r.id).some(x=>x.user_id===dm.owner)))return;
  const data=new FormData(form),name=String(data.get('name')||'').trim(),file=data.get('photo');
  if(name.length<2||name.length>70)throw Error('O nome deve ter de 2 a 70 caracteres.');
  const payload={name};
@@ -4504,7 +4504,7 @@ function dmWPopupHtml(){
    (admins&&!creator&&m.user_id!==dm.owner?'<button type="button" data-dmw-toggle-admin="'+esc(m.user_id)+'">'+(m.is_admin?'Remover admin':'Tornar admin')+'</button>'+
    '<button type="button" data-dmw-kick="'+esc(m.user_id)+'">Remover</button>':'')+'</div>';
   }).join('');
-  const edit=admins?'<form id="dmWGroupEdit"><label class="dm-dialog-field">Nome do grupo<input name="name" required minlength="2" maxlength="70" value="'+esc(room.name)+'"></label>'+
+  const edit=(admins||members.some(x=>x.user_id===dm.owner))?'<form id="dmWGroupEdit"><label class="dm-dialog-field">Nome do grupo<input name="name" required minlength="2" maxlength="70" value="'+esc(room.name)+'"></label>'+
    '<label class="dm-dialog-field">Foto do grupo (opcional)<input type="file" name="photo" accept="image/png,image/jpeg,image/webp"></label>'+
    '<button type="submit" class="dm-dialog-btn">Salvar nome e foto</button></form>':'';
   const add=admins&&others.length?'<form id="dmWGroupAdd"><label class="dm-dialog-field">Adicionar pessoa<select name="member" required style="width:100%;margin-top:6px;padding:10px;background:var(--soft);color:var(--ink);border:1px solid var(--line);border-radius:9px">'+
