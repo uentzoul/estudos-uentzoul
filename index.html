@@ -2965,7 +2965,7 @@ function tzQueueFiles(files){
  for(const file of incoming){
   const ext=(file.name.split('.').pop()||'').toLowerCase();
   const mime=TZ_AI_MIME[ext];
-  const max= mime?.startsWith('image/')?5*1024*1024:10*1024*1024;
+  const max=10*1024*1024;
   if(!mime||(file.type&&file.type!==mime)||file.size<1||file.size>max){rejected++;continue}
   if(tz.pending.length>=3){limit++;continue}
   const duplicate=tz.pending.some(p=>p.file.name===file.name&&p.file.size===file.size&&p.file.lastModified===file.lastModified);
@@ -2973,7 +2973,7 @@ function tzQueueFiles(files){
   tz.pending.push({file,mime,ext,preview:mime.startsWith('image/')?URL.createObjectURL(file):null});
  }
  tz.draft=document.getElementById('tzPrompt')?.value||tz.draft;
- if(rejected)tz.note='Algum arquivo não foi aceito. Envia imagens JPG, PNG ou WebP (até 5 MB) ou PDF, Word, PowerPoint, TXT e Markdown (até 10 MB).';
+ if(rejected)tz.note='Algum arquivo não foi aceito. Envia imagens JPG, PNG ou WebP (até 10 MB) ou PDF, Word, PowerPoint, TXT e Markdown (até 10 MB).';
  else if(limit)tz.note='Podes anexar até 3 arquivos por mensagem.';
  else tz.note='';
  if(current.page==='ai')render();
@@ -3098,8 +3098,8 @@ function renderAI(){
  '<div class="tz-composer"><label for="tzPrompt" class="tz-sr-only">Escreve uma mensagem à IA Tzoul</label>'+
  '<input id="tzAddDocs" type="file" accept=".pdf,.docx,.pptx,.txt,.md" multiple hidden>'+
  '<input id="tzAddImages" type="file" accept="image/jpeg,image/png,image/webp" multiple hidden>'+
- '<button type="button" class="tz-upload-btn" data-tz-pick="docs" title="Anexar PDF, Word, PowerPoint ou texto" aria-label="Anexar arquivo" '+(!logged||tz.busy?'disabled':'')+'><svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" aria-hidden="true"><path d="m21 11.5-8.2 8.2a5 5 0 0 1-7.1-7.1L14.4 4a3.5 3.5 0 0 1 5 5l-8.9 8.9a2 2 0 0 1-2.8-2.8l8.2-8.2"/></svg></button>'+
- '<button type="button" class="tz-upload-btn" data-tz-pick="images" title="Enviar foto" aria-label="Enviar foto" '+(!logged||tz.busy?'disabled':'')+'><svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 16-5.5-5.5L5 21"/></svg></button>'+
+ '<button type="button" class="tz-upload-btn" data-tz-pick="docs" title="Anexar PDF, Word, PowerPoint ou texto" aria-label="Anexar arquivo" '+(!logged||!hasContent||tz.busy||tz.ready===false?'disabled':'')+'><svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" aria-hidden="true"><path d="m21 11.5-8.2 8.2a5 5 0 0 1-7.1-7.1L14.4 4a3.5 3.5 0 0 1 5 5l-8.9 8.9a2 2 0 0 1-2.8-2.8l8.2-8.2"/></svg></button>'+
+ '<button type="button" class="tz-upload-btn" data-tz-pick="images" title="Enviar foto" aria-label="Enviar foto" '+(!logged||!hasContent||tz.busy||tz.ready===false?'disabled':'')+'><svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 16-5.5-5.5L5 21"/></svg></button>'+
  '<textarea id="tzPrompt" rows="1" maxlength="4000" aria-label="Mensagem para a IA Tzoul" placeholder=" " '+(!logged||!hasContent||tz.busy||tz.ready===false?'disabled':'')+'>'+esc(tz.draft)+'</textarea>'+
  '<div class="tz-hints" aria-hidden="true"><span>Corrigir trabalhos com base nos materiais da aula</span><span>Encontrar textos e trechos específicos dos conteúdos</span><span>Resumir um capítulo ou uma parte do material</span><span>Criar documentos, questões e roteiros de estudo</span></div>'+
  '<button type="submit" class="tz-send" aria-label="Enviar mensagem" title="Enviar mensagem" '+(!logged||!hasContent||tz.busy||tz.ready===false?'disabled':'')+'>'+
