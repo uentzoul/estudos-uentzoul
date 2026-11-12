@@ -198,3 +198,10 @@ html[data-theme="dark"] .podcasts-minimal .episodeunit .ep-download{background:#
  .podcasts-minimal .episodeunit .ep-download{flex:0 0 36px;width:36px;min-width:36px;min-height:36px}
 }
 @media(prefers-reduced-motion:reduce){.podcasts-minimal .episodeunit{transition:none;transform:none!important}}
+
+/* Texto maior "PsicoMoodle": sem cortes ou desalinhamento no celular. */
+@media(max-width:580px){
+ .dashboard-hero.slogan-hero .slogan-title{font-size:clamp(28px,7.5vw,40px);white-space:nowrap}
+ .dashboard-hero.slogan-hero .slogan-identity{min-width:0}
+}
+@media(max-width:350px){.dashboard-hero.slogan-hero .slogan-title{font-size:27px}}
