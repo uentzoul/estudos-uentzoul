@@ -1906,7 +1906,7 @@ html[data-members-sidebar="collapsed"] .compact-profile-button{display:inline-fl
 .tz-shell .tz-context summary{padding:8px 11px;border-radius:11px}
 .tz-shell .tz-composer{min-height:47px;align-items:center;gap:8px;padding:5px 7px 5px 15px;border-radius:18px}
 .tz-shell .tz-composer textarea{field-sizing:content;height:auto;min-height:30px;max-height:126px;margin:0;padding:4px 0!important;line-height:1.4;resize:vertical;overflow-y:auto;font-size:14px}
-.tz-shell .tz-hints{left:16px;top:13px;right:53px;min-height:24px}
+.tz-shell .tz-hints{left:89px;top:13px;right:53px;min-height:24px}
 .tz-shell .tz-hints span{font-size:12px;line-height:1.45}
 .tz-shell .tz-composer .tz-send{width:35px;height:35px;min-width:35px;border-radius:11px}
 .tz-shell .tz-composer-foot{display:none}
@@ -1934,7 +1934,7 @@ html[data-theme="dark"] .tz-shell .tz-new-chat{background:#292640;border-color:#
  .tz-shell .tz-context summary{padding:7px 9px}
  .tz-shell .tz-composer{padding:4px 5px 4px 12px;min-height:43px;border-radius:15px}
  .tz-shell .tz-composer textarea{min-height:28px;max-height:108px;font-size:16px;padding:3px 0!important}
- .tz-shell .tz-hints{left:13px;top:12px;right:48px}
+ .tz-shell .tz-hints{left:76px;top:12px;right:48px}
  .tz-shell .tz-hints span{font-size:11.5px}
  .tz-shell .tz-composer .tz-send{width:33px;height:33px;min-width:33px;border-radius:10px}
 }
@@ -1953,6 +1953,7 @@ html[data-theme="dark"] .tz-shell .tz-new-chat{background:#292640;border-color:#
 .tz-pending-item button:hover{background:var(--paper);color:var(--ink)}
 .tz-sent-attachments{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
 .tz-sent-file{max-width:min(100%,260px);display:inline-flex;align-items:center;gap:7px;min-width:0;border:1px solid var(--line);background:var(--paper);color:var(--ink);border-radius:9px;padding:7px 9px;text-align:left;font-size:11px;cursor:pointer}
+ .tz-sent-file img[data-tz-thumb]{display:block;width:85px;height:63px;flex:0 0 85px;object-fit:cover;border-radius:7px;background:var(--soft)}
 .tz-sent-file>span:last-child{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .tz-sent-file:hover{border-color:#af9ade;background:var(--soft)}
 html[data-theme="dark"] .tz-pending-icon{background:#40375e;color:#d6c4ff}
@@ -3006,6 +3007,26 @@ async function tzOpenAttached(messageIndex,fileIndex){
  }catch(e){if(tab)tab.close();tz.note=e.message||'Não foi possível abrir este anexo.';if(current.page==='ai')render();}
 }
 
+
+const tzSignedThumbnailCache=new Map();
+async function tzHydrateThumbnails(){
+ const images=Array.from(document.querySelectorAll('#tzThread img[data-tz-thumb]')).slice(-24);
+ const uid=window.uentzoulAIAuth?.user()?.id;
+ if(!images.length||!uid||!geClient())return;
+ await Promise.all(images.map(async img=>{
+  const [i,j]=(img.dataset.tzThumb||'').split(':').map(Number);
+  const item=tz.messages[i]?.attachments?.[j];
+  if(!item||!String(item.type||'').startsWith('image/')||!String(item.path||'').startsWith(uid+'/'))return;
+  const cached=tzSignedThumbnailCache.get(item.path);
+  if(cached&&cached.exp>Date.now()){img.src=cached.url;return;}
+  try{
+   const {data,error}=await geClient().storage.from(TZ_AI_BUCKET).createSignedUrl(item.path,180);
+   if(error||!data?.signedUrl)return;
+   tzSignedThumbnailCache.set(item.path,{url:data.signedUrl,exp:Date.now()+150000});
+   if(img.isConnected&&img.dataset.tzThumb===i+':'+j)img.src=data.signedUrl;
+  }catch(_){}
+ }));
+}
 function tzInline(raw){
  let s=esc(raw);
  s=s.replace(/\[([^\]]+)\]\((https:\/\/[^\s)]+)\)/g,'<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>');
@@ -3040,7 +3061,7 @@ function tzMessage(m,i){
  const sources=answer&&m.sources?.length?'<div class="tz-sources">'+m.sources.slice(0,4).map(v=>
  '<button type="button" data-action="'+(DB.subjects[v.subject]?'subject:'+v.subject:'page:home')+'">'+esc(v.title)+'</button>').join('')+'</div>':'';
  return '<div class="tz-msg '+(answer?'assistant':'user')+'">'+(answer?tzAvatar():'<span class="tz-me">EU</span>')+
- '<div class="tz-msg-body"><span class="tz-who">'+(answer?'IA Tzoul':'Tu')+'</span><div class="tz-bubble">'+tzMarkdown(m.content)+(!answer&&Array.isArray(m.attachments)&&m.attachments.length?'<div class="tz-sent-attachments">'+m.attachments.slice(0,3).map((a,j)=>'<button type="button" class="tz-sent-file" data-tz-file="'+i+':'+j+'" title="Abrir anexo privado"><span aria-hidden="true">'+(String(a.type||'').startsWith('image/')?'▧':'▤')+'</span><span>'+esc(a.name||'Anexo')+'</span></button>').join('')+'</div>':'')+'</div>'+
+ '<div class="tz-msg-body"><span class="tz-who">'+(answer?'IA Tzoul':'Tu')+'</span><div class="tz-bubble">'+tzMarkdown(m.content)+(!answer&&Array.isArray(m.attachments)&&m.attachments.length?'<div class="tz-sent-attachments">'+m.attachments.slice(0,3).map((a,j)=>'<button type="button" class="tz-sent-file" data-tz-file="'+i+':'+j+'" title="Abrir anexo privado"><span aria-hidden="true">'+(String(a.type||'').startsWith('image/')?'▧':'▤')+'</span>'+(String(a.type||'').startsWith('image/')?'<img data-tz-thumb="'+i+':'+j+'" alt="Foto anexada" loading="lazy">':'')+'<span>'+esc(a.name||'Anexo')+'</span></button>').join('')+'</div>':'')+'</div>'+
  sources+(answer?'<div class="tz-actions"><button data-tz-copy="'+i+'">Copiar</button><button data-tz-export="'+i+':txt">TXT</button><button data-tz-export="'+i+':md">Markdown</button><button data-tz-export="'+i+':doc">Word (.doc)</button><button data-tz-export="'+i+':pdf">PDF / Imprimir</button></div>':'')+'</div></div>';
 }
 function renderAI(){
@@ -3740,7 +3761,7 @@ function render(){
   $('main').innerHTML=head(semester,v[0],v[1])+'<section class="section"><div class="panel semester-empty"><h2>Este semestre ainda está vazio</h2><p class="muted">As matérias, os textos, os simulados, os podcasts e a agenda de 2027/1 serão adicionados quando estiverem definidos. O conteúdo de 2026/2 continua disponível na outra aba.</p><p class="small">O progresso deste semestre começa vazio e não se mistura com o do semestre anterior.</p></div></section>';
   return;
  }
- let body='';switch(current.page){case 'home':body=renderHome();break;case 'subject':body=renderSubject(current.subject);break;case 'exams':body=renderExams();break;case 'test':body=renderTest(current.exam);break;case 'library':body=renderHome();break;case 'audio':body=renderAudio();break;case 'calendar':body=renderCalendar();break;case 'ai':body=renderAI();break;case 'messages':body=window.uentzoulMessenger?.render()||'<section class="panel">Carregando mensagens…</section>';break;case 'admin':body=window.uentzoulAdminConfig?.render()||'<section class="panel">Acesso restrito.</section>';break;default:body=renderHome()};$('main').innerHTML=body;if(isPodcastView())setupAudio();if(current.page==='messages')window.uentzoulMessenger?.afterRender(current.peerId||null);if(current.page==='admin')window.uentzoulAdminConfig?.afterRender();}
+ let body='';switch(current.page){case 'home':body=renderHome();break;case 'subject':body=renderSubject(current.subject);break;case 'exams':body=renderExams();break;case 'test':body=renderTest(current.exam);break;case 'library':body=renderHome();break;case 'audio':body=renderAudio();break;case 'calendar':body=renderCalendar();break;case 'ai':body=renderAI();break;case 'messages':body=window.uentzoulMessenger?.render()||'<section class="panel">Carregando mensagens…</section>';break;case 'admin':body=window.uentzoulAdminConfig?.render()||'<section class="panel">Acesso restrito.</section>';break;default:body=renderHome()};$('main').innerHTML=body;if(current.page==='ai')queueMicrotask(tzHydrateThumbnails);if(isPodcastView())setupAudio();if(current.page==='messages')window.uentzoulMessenger?.afterRender(current.peerId||null);if(current.page==='admin')window.uentzoulAdminConfig?.afterRender();}
 /* Armazenamento local de podcasts. A URL de cada episódio é publicada como
    arquivo independente; o HTML não carrega o áudio antecipadamente. */
 const POD_DB_NAME='EstudosUentzoulPodcasts_v1';
