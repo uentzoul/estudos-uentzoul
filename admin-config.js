@@ -2,7 +2,7 @@
 (()=>{
 'use strict';
 const TABLE='uentzoul_admin_topics',PRESENCE='uentzoul_presence';
-let admin=false,owner=null,checking=false,topics=[],topicsSignature='',presence=[],busy=false,notice='',editing=null,lastPresence=0;
+let admin=false,owner=null,checking=false,topics=[],topicsSignature='',presence=[],reports=[],busy=false,notice='',editing=null,lastPresence=0,lastReports=0;
 const auth=()=>window.uentzoulAIAuth;
 const bridge=()=>window.uentzoulAdminBridge;
 const client=()=>auth()?.client?.();
@@ -29,6 +29,20 @@ async function loadTopics(){
   const sig=JSON.stringify(data||[]);
   if(sig!==topicsSignature){topicsSignature=sig;topics=data||[];bridge()?.applyTopics?.(topics);if(isAdmin())refreshAdminPage();}
  }catch(e){console.warn('Conteúdos adicionais indisponíveis:',e);}
+}
+function reportsMarkup(){
+ return reports.length?reports.map(r=>'<article class="admin-report-entry"><div><strong>Relato anônimo</strong><time>'+esc(new Date(r.created_at).toLocaleString('pt-BR'))+'</time></div><p>'+esc(r.body)+'</p></article>').join(''):
+ '<p class="admin-muted">Não há relatos de erros recebidos.</p>';
+}
+async function loadReports(){
+ if(!isAdmin()||!client())return;
+ try{
+  const {data,error}=await client().rpc('uentzoul_list_error_reports');
+  if(error)throw error;
+  reports=data||[];lastReports=Date.now();
+  const area=document.getElementById('adminErrorReports');
+  if(area)area.innerHTML=reportsMarkup();
+ }catch(e){console.warn('Não foi possível consultar relatos:',e);}
 }
 async function loadPresence(){
  if(!isAdmin()||!client())return;
@@ -74,7 +88,7 @@ async function refresh(){
    if(isAdmin())window.uentzoulLibraryManager?.refresh?.();
   }
   await loadTopics();
-  if(isAdmin()&&document.getElementById('adminConfigPage'))await loadPresence();
+  if(isAdmin()&&document.getElementById('adminConfigPage'))await Promise.all([loadPresence(),loadReports()]);
  }catch(e){console.warn('Verificação de administrador:',e);if(user()?.id===owner){admin=false;updateNav();}}
  finally{checking=false;}
 }
@@ -102,12 +116,12 @@ function render(){
  return '<div class="admin-config-page" id="adminConfigPage">'+
  '<header class="admin-header"><span class="admin-kicker">Painel privado</span><h1>Admin Config</h1><p>Gerencie os materiais, os conteúdos e as contas conectadas.</p></header>'+
  '<section class="admin-card"><div class="admin-section-heading"><div><h2>Online agora</h2><p>Somente o administrador pode consultar esta informação.</p></div><button type="button" data-admin-refresh>Atualizar</button></div><div id="adminOnlineList" class="admin-online-list">'+onlineMarkup()+'</div></section>'+
- '<div class="admin-grid">'+formMarkup()+listMarkup()+'</div>'+
+ '<div class="admin-grid">'+formMarkup()+listMarkup()+'</div>'+ '<details class="admin-card admin-reports"><summary>Relatos de erros <span>Privado</span></summary><div id="adminErrorReports">'+reportsMarkup()+'</div></details>'+
  '<div class="admin-uploads">'+(bridge()?.adminLibrary?.()||'<section class="admin-card">Biblioteca indisponível.</section>')+'</div>'+
  (notice?'<p class="admin-notice" role="status">'+esc(notice)+'</p>':'')+
  '</div>';
 }
-function afterRender(){if(!isAdmin())return; if(Date.now()-lastPresence>10000)loadPresence();window.uentzoulLibraryManager?.refresh?.();}
+function afterRender(){if(!isAdmin())return; if(Date.now()-lastPresence>10000)loadPresence();if(Date.now()-lastReports>25000)loadReports();window.uentzoulLibraryManager?.refresh?.();}
 async function saveTopic(form){
  if(!isAdmin()||busy)return;
  const c=client(),u=user();if(!c||!u)return;
@@ -136,14 +150,14 @@ document.addEventListener('click',e=>{
  const edit=e.target.closest('[data-admin-edit]');if(edit&&isAdmin()){editing=edit.dataset.adminEdit;refreshAdminPage();return;}
  const del=e.target.closest('[data-admin-delete]');if(del&&isAdmin()){deleteTopic(del.dataset.adminDelete);return;}
  if(e.target.closest('[data-admin-cancel]')&&isAdmin()){editing=null;refreshAdminPage();return;}
- if(e.target.closest('[data-admin-refresh]')&&isAdmin()){heartbeat().then(loadPresence);}
+ if(e.target.closest('[data-admin-refresh]')&&isAdmin()){heartbeat().then(loadPresence);loadReports();}
 });
 window.addEventListener('uentzoul:auth',()=>{refresh();heartbeat();});
 window.addEventListener('focus',()=>{refresh();heartbeat();});
 document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'){refresh();heartbeat();}});
 window.addEventListener('online',()=>{refresh();heartbeat();});
 setInterval(()=>{if(document.visibilityState==='visible'){refresh();heartbeat();}},45000);
-window.uentzoulAdminConfig={isAdmin,render,afterRender,refresh,loadPresence};
+window.uentzoulAdminConfig={isAdmin,render,afterRender,refresh,loadPresence,loadReports};
 let tries=0;
 const start=()=>{if(client()){refresh();heartbeat()}else if(tries++<40)setTimeout(start,800)};
 start();
