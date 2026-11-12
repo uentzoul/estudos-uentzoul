@@ -4082,7 +4082,7 @@ function dmWRows(){
  const groups=dm.rooms.filter(r=>r.kind==='group').map(r=>{
   const last=dm.roomMessages.find(m=>m.room_id===r.id);
   const read=dmW.reads.find(x=>x.room_id===r.id&&x.user_id===dm.owner);
-  const unread=dm.roomMessages.filter(m=>m.room_id===r.id&&m.sender_id!==dm.owner&&!m.deleted_at&&(!read?.read_at||m.created_at>read.read_at)).length;
+  const unread=dm.roomMessages.filter(m=>m.room_id===r.id&&m.sender_id!==dm.owner&&!m.deleted_at&&(!m.expires_at||m.expires_at>new Date().toISOString())&&(!read?.read_at||new Date(m.created_at).getTime()>new Date(read.read_at).getTime())).length;
   return {type:'group',id:r.id,room:r,last,unread};
  });
  return direct.map(x=>({...x,type:'private'})).concat(groups).sort((a,b)=>new Date(b.last?.created_at||0)-new Date(a.last?.created_at||0));
@@ -4155,7 +4155,7 @@ dmMessageHtml=function(m,channel='private'){
 dmThreadHtml=function(){
  const selected=dmWSelected();
  if(!selected)return '<div class="dm-chat-empty"><span>✉</span><h2>Selecione uma conversa</h2><p>Converse individualmente, em grupos ou no Chat Global.</p></div>';
- const rows=(dm.tab==='private'?dm.messages.filter(x=>(x.sender_id===dm.owner&&x.recipient_id===selected)||(x.sender_id===selected&&x.recipient_id===dm.owner)):dm.roomMessages.filter(x=>x.room_id===selected)).slice().reverse();
+ const rows=(dm.tab==='private'?dm.messages.filter(x=>(x.sender_id===dm.owner&&x.recipient_id===selected)||(x.sender_id===selected&&x.recipient_id===dm.owner)):dm.roomMessages.filter(x=>x.room_id===selected)).filter(x=>!x.expires_at||new Date(x.expires_at)>new Date()||x.deleted_at).slice().reverse();
  if(!rows.length)return '<div class="dm-chat-empty"><span>✉</span><h3>Comece a conversa</h3><p>Ainda não há mensagens por aqui.</p></div>';
  let prev='',out='';
  for(const m of rows){const day=dmDateKey(m.created_at);if(prev!==day){prev=day;out+='<div class="dm-day"><span>'+esc(dmDateLabel(m.created_at))+'</span></div>'}out+=dmMessageHtml(m,dm.tab)}
@@ -4271,13 +4271,13 @@ dmLoad=async function(){
    const [messages,people,rooms,members,reads]=await Promise.all([
     client.from('uentzoul_messages').select('id,sender_id,recipient_id,body,created_at,delivered_at,read_at,kind,media_path,deleted_at,reply_to,forwarded').or('sender_id.eq.'+id+',recipient_id.eq.'+id).order('created_at',{ascending:false}).limit(800),
     client.from('uentzoul_profiles').select('user_id,display_name,avatar_url,bio').order('display_name').limit(300),
-    client.from('uentzoul_chat_rooms').select('id,kind,name,owner_id,avatar_path,created_at').order('created_at',{ascending:false}).limit(200),
+    client.from('uentzoul_chat_rooms').select('id,kind,name,owner_id,avatar_path,message_ttl_seconds,created_at').order('created_at',{ascending:false}).limit(200),
     client.from('uentzoul_chat_members').select('room_id,user_id,is_admin,joined_at').limit(2000),
     client.from('uentzoul_room_reads').select('room_id,user_id,delivered_at,read_at').limit(2000)
    ]);
    for(const row of [messages,people,rooms,members,reads])if(row.error)throw row.error;
    const ids=(rooms.data||[]).map(x=>x.id);
-   const roomMessages=ids.length?await client.from('uentzoul_room_messages').select('id,room_id,sender_id,body,kind,media_path,created_at,deleted_at,reply_to,forwarded').in('room_id',ids).order('created_at',{ascending:false}).limit(1200):{data:[]};
+   const roomMessages=ids.length?await client.from('uentzoul_room_messages').select('id,room_id,sender_id,body,kind,media_path,created_at,deleted_at,reply_to,forwarded,expires_at').in('room_id',ids).order('created_at',{ascending:false}).limit(1200):{data:[]};
    if(roomMessages.error)throw roomMessages.error;
    if(onlineUser?.id!==id)return;
    dm.messages=messages.data||[];dm.people=people.data||[];dm.rooms=rooms.data||[];dm.roomMessages=roomMessages.data||[];
@@ -4317,13 +4317,20 @@ async function dmWMarkGroupRead(roomId){
  const existing=dmW.reads.find(r=>r.room_id===roomId&&r.user_id===dm.owner);
  if(existing?.read_at&&(!latest||existing.read_at>=latest.created_at))return;
  dmW.reading=roomId;
+ const previousDelivered=existing?.delivered_at,previousRead=existing?.read_at;
  try{
   const date=new Date().toISOString(),payload={room_id:roomId,user_id:dm.owner,delivered_at:date,read_at:date};
-  const response=await client.from('uentzoul_room_reads').upsert(payload,{onConflict:'room_id,user_id'});
-  if(response.error)throw response.error;
   if(existing)Object.assign(existing,payload);else dmW.reads.push(payload);
-  dmShow();
- }catch(e){console.warn('Leitura do grupo não atualizada',e)}
+  dmShow(); // O badge desaparece sem esperar a rede.
+  const response=existing
+   ?await client.from('uentzoul_room_reads').update({delivered_at:date,read_at:date}).eq('room_id',roomId).eq('user_id',dm.owner)
+   :await client.from('uentzoul_room_reads').insert(payload);
+  if(response.error)throw response.error;
+ }catch(e){
+  if(existing)Object.assign(existing,{delivered_at:previousDelivered,read_at:previousRead});
+  else dmW.reads=dmW.reads.filter(r=>!(r.room_id===roomId&&r.user_id===dm.owner));
+  dmShow();console.warn('Leitura do grupo não atualizada',e);
+ }
  finally{dmW.reading=null}
 }
 const dmWOriginalLogout=dmOnLogout;
@@ -4632,6 +4639,44 @@ document.addEventListener('keydown',e=>{
  if(e.key==='Escape'&&dmW.popup){dmW.popup=null;dmShow()}
 });
 
+
+
+/* Extensões dos grupos: galeria de mídias e duração de novas mensagens. */
+const dmWOriginalGroupPopup=dmWPopupHtml;
+dmWPopupHtml=function(){
+ if(dmW.popup==='gallery'){
+  const r=dmWRoom();if(!r)return '';
+  const media=dm.roomMessages.filter(m=>m.room_id===r.id&&!m.deleted_at&&(!m.expires_at||new Date(m.expires_at)>new Date())&&['image','video','gif','sticker'].includes(m.kind));
+  return '<div class="dm-float-overlay" data-dmw-overlay><section class="dm-float-dialog" role="dialog" aria-modal="true"><div class="dm-dialog-head"><h2>Mídias do grupo</h2><button type="button" data-dmw-close-popup>×</button></div>'+
+    '<p>'+media.length+' imagens, GIFs, vídeos ou figurinhas compartilhados</p>'+
+    (media.length?'<div class="dm-group-media-grid">'+media.map(m=>'<div class="dm-group-media-item">'+dmWMedia(m)+'<small>'+esc(dmDateLabel(m.created_at))+'</small></div>').join('')+'</div>':'<p>Ainda não há mídias neste grupo.</p>')+
+    '</section></div>';
+ }
+ const result=dmWOriginalGroupPopup();
+ if(dmW.popup!=='group')return result;
+ const r=dmWRoom();if(!r)return result;
+ const ttl=Number(r.message_ttl_seconds||0);
+ const temporary='<section class="dm-group-extra"><h3>Mensagens temporárias</h3><p>Apaga automaticamente novas mensagens após o prazo escolhido. Mensagens anteriores não são afetadas.</p>'+
+ '<label for="dmWGroupTtl">Apagar novas mensagens após</label><select id="dmWGroupTtl">'+
+ [[0,'Desativado'],[86400,'24 horas'],[604800,'7 dias'],[2592000,'30 dias'],[7776000,'90 dias']].map(([v,name])=>'<option value="'+v+'" '+(ttl===v?'selected':'')+'>'+name+'</option>').join('')+
+ '</select><h3>Mídias compartilhadas</h3><button type="button" class="dm-dialog-btn" data-dmw-gallery>Ver fotos, vídeos e GIFs</button></section>';
+ return result.replace('</section></div>',temporary+'</section></div>');
+};
+document.addEventListener('click',async event=>{
+ const gallery=event.target.closest('[data-dmw-gallery]');
+ if(gallery){event.preventDefault();event.stopImmediatePropagation();dmW.popup='gallery';dmShow();}
+},true);
+document.addEventListener('change',async event=>{
+ if(event.target.id!=='dmWGroupTtl')return;
+ const room=dmWRoom();if(!room||!dmWAdmin(room.id)&&!dmWMembers(room.id).some(m=>m.user_id===dm.owner))return;
+ const seconds=Number(event.target.value);
+ if(![0,86400,604800,2592000,7776000].includes(seconds))return;
+ const response=await client.from('uentzoul_chat_rooms').update({message_ttl_seconds:seconds||null}).eq('id',room.id);
+ if(response.error){toast('Não foi possível mudar o prazo: '+response.error.message);return}
+ room.message_ttl_seconds=seconds||null;
+ toast(seconds?'Mensagens futuras terão prazo de expiração.':'Mensagens temporárias desativadas.');
+ dmShow();
+});
 
 /* Matérias complementares privadas — compartilhadas somente dentro da conta do aluno. */
 
