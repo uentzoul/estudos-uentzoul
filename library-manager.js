@@ -296,4 +296,45 @@ function tryStart(){
 }
 tryStart();
 window.uentzoulLibraryManager={refresh,ready:()=>initialized,isAdmin:()=>isAdmin};
+
+/* Limpeza visual de seções temporárias do estudante (11/11/2026).
+   Não altera uploads, permissões nem dados salvos. */
+function hideRetiredLibrarySections(){
+ const titles=[/refer[eê]ncias? ainda sem arquivo/i,/adicionar e analisar materiais/i];
+ document.querySelectorAll('h1,h2,h3,h4,h5,h6,summary,legend').forEach(heading=>{
+  const label=(heading.textContent||'').replace(/\\s+/g,' ').trim();
+  if(!titles.some(rx=>rx.test(label)))return;
+  const section=heading.closest('section,article,details,[class*="card"],[class*="panel"]');
+  if(section && section.querySelectorAll('h1,h2,h3,h4,h5,h6').length<=2){
+   section.hidden=true;section.style.setProperty('display','none','important');
+  } else {
+   heading.hidden=true;
+   let sibling=heading.nextElementSibling;
+   while(sibling && !/^H[1-6]$/.test(sibling.tagName)){
+    const next=sibling.nextElementSibling;sibling.hidden=true;sibling=next;
+   }
+  }
+ });
+ // O formulário é exclusivamente administrativo e não deve aparecer no estudo.
+ const form=document.getElementById('libraryUploadForm');
+ if(form){
+  const section=form.closest('section,article,[class*="card"],[class*="panel"]');
+  if(section && section.querySelectorAll('form').length===1){
+   section.hidden=true;section.style.setProperty('display','none','important');
+  } else form.hidden=true;
+ }
+}
+let retiredHideScheduled=false;
+const retiredObserver=new MutationObserver(()=>{
+ if(retiredHideScheduled)return;
+ retiredHideScheduled=true;
+ requestAnimationFrame(()=>{retiredHideScheduled=false;hideRetiredLibrarySections();});
+});
+function startRetiredHiding(){
+ hideRetiredLibrarySections();
+ retiredObserver.observe(document.body,{childList:true,subtree:true});
+}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',startRetiredHiding,{once:true});
+else startRetiredHiding();
+
 })();
