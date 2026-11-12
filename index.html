@@ -1669,6 +1669,7 @@ html[data-exam-focus="2026/2"] .sidebtn[data-page="audio"]{display:none!importan
 <script src="estudos-dirigidos.js?v=20261112-2"></script>
 <script src="estudos-casos-data.js?v=20261112-1"></script>
 <script src="estudo-ativo.js?v=20261112-2"></script>
+<link rel="stylesheet" href="chat-whatsapp.css?v=20261112-1">
 </head>
 <body>
 <section id="staticFallback" class="static-fallback" aria-label="Central de Estudos — modo de leitura compatível com celular">
@@ -4060,6 +4061,573 @@ document.addEventListener('submit',async e=>{
 });
 window.addEventListener('focus',()=>{if(onlineUser&&Date.now()-dm.lastFetch>10000)dmLoad()});
 document.addEventListener('visibilitychange',()=>{if(!document.hidden&&onlineUser&&Date.now()-dm.lastFetch>10000)dmLoad()});
+
+
+
+/* Chat unificado — camada de apresentação */
+const dmW={members:[],reads:[],popup:null,menu:null,panel:null,reply:null,selectedMessage:null,mediaKind:'image',wallpaper:false,
+ recording:false,recorder:null,recordStream:null,recordParts:[],recordTicker:null,recordStarted:0,emojiLoading:false,reading:null,delivering:false};
+function dmWSelected(){return dm.tab==='private'?dm.peerId:dm.tab==='global'?DM_GLOBAL_ROOM:dm.roomId}
+function dmWRoom(){return dmRoom(dmWSelected())}
+function dmWMembers(room){return dmW.members.filter(m=>m.room_id===room)}
+function dmWAdmin(room){const r=dmRoom(room);return !!r&&(r.owner_id===dm.owner||dmWMembers(room).some(m=>m.user_id===dm.owner&&m.is_admin))}
+function dmWWallpaper(){try{return localStorage.getItem('psicomoodle_bg_'+dm.owner+'_'+dmWSelected())||'default'}catch(_){return 'default'}}
+function dmWGroupAvatar(r,small){
+ const cl='dm-group-avatar '+(small?'small':'');
+ return r?.avatar_path?'<span class="'+cl+'"><img data-dmw-media="'+esc(r.avatar_path)+'" alt="Foto do grupo"></span>':'<span class="'+cl+'">👥</span>';
+}
+function dmWRows(){
+ const direct=dmConversations(),seen=new Set(direct.map(x=>x.id));
+ for(const p of dm.people){if(p.user_id!==dm.owner&&!seen.has(p.user_id)){seen.add(p.user_id);direct.push({id:p.user_id,last:null,unread:0})}}
+ const groups=dm.rooms.filter(r=>r.kind==='group').map(r=>{
+  const last=dm.roomMessages.find(m=>m.room_id===r.id);
+  const read=dmW.reads.find(x=>x.room_id===r.id&&x.user_id===dm.owner);
+  const unread=dm.roomMessages.filter(m=>m.room_id===r.id&&m.sender_id!==dm.owner&&!m.deleted_at&&(!read?.read_at||m.created_at>read.read_at)).length;
+  return {type:'group',id:r.id,room:r,last,unread};
+ });
+ return direct.map(x=>({...x,type:'private'})).concat(groups).sort((a,b)=>new Date(b.last?.created_at||0)-new Date(a.last?.created_at||0));
+}
+function dmWPreview(m){
+ if(!m)return 'Iniciar conversa';
+ if(m.deleted_at)return 'Mensagem apagada';
+ return ({image:'📷 Imagem',video:'🎬 Vídeo',audio:'🎤 Áudio',sticker:'Figurinha',gif:'GIF'})[m.kind]||String(m.body||'').replace(/\s+/g,' ').slice(0,65);
+}
+dmContactRows=function(){
+ const term=dm.search.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().trim();
+ const groups=dmWRows().filter(x=>{
+  const name=x.type==='group'?x.room.name:dmPrettyPerson(x.id).display_name;
+  return !term||name.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().includes(term);
+ });
+ const global=(!term||'chat global'.includes(term))?
+  '<div class="dm-contact dm-global '+(dm.tab==='global'?'selected':'')+'"><button type="button" class="dm-contact-open" data-dmw-global><span class="dm-global-avatar">✦</span><span class="dm-contact-text"><strong>Chat Global</strong><small>Espaço de todos os usuários</small></span></button></div>':'';
+ return global+(groups.length?groups.map(x=>{
+  const isGroup=x.type==='group',p=isGroup?null:dmPrettyPerson(x.id),name=isGroup?x.room.name:p.display_name;
+  const icon=isGroup?dmWGroupAvatar(x.room,false):avatar(p.display_name,p.avatar_url,true);
+  const selected=isGroup?(dm.tab==='groups'&&dm.roomId===x.id):(dm.tab==='private'&&dm.peerId===x.id);
+  return '<div class="dm-contact '+(selected?'selected':'')+'"><button class="dm-contact-open" type="button" '+(isGroup?'data-dm-room':'data-dm-peer')+'="'+esc(x.id)+'">'+icon+
+  '<span class="dm-contact-text"><strong>'+esc(name)+'</strong><small>'+esc(dmWPreview(x.last))+'</small></span>'+
+  '<span class="dm-contact-meta">'+(x.last?'<time>'+esc(dmTime(x.last.created_at))+'</time>':'')+(x.unread?'<b class="dm-unread">'+(x.unread>99?'99+':x.unread)+'</b>':'')+'</span></button></div>';
+ }).join(''):'<p class="dm-contact-empty">'+(term?'Nenhum resultado.':'Nenhuma conversa ainda.')+'</p>');
+};
+function dmWMessage(id,type){return (type==='private'?dm.messages:dm.roomMessages).find(x=>x.id===id)}
+function dmWMedia(m){
+ if(m.deleted_at)return '<p class="dm-deleted">Mensagem apagada</p>';
+ const caption=m.body&&!/^\[(Imagem|Vídeo|Áudio|Figurinha)\]$/.test(m.body)?'<p>'+esc(m.body).replace(/\n/g,'<br>')+'</p>':'';
+ if(m.kind==='gif'){
+  let u;try{u=new URL(m.body)}catch(_){return '<p>GIF indisponível</p>'}
+  if(u.protocol!=='https:'||!/(^|\.)giphy\.com$|(^|\.)tenor\.com$/.test(u.hostname))return '<p>GIF indisponível</p>';
+  if(/\.gif$/i.test(u.pathname)&&(/^(media|i)(\d+)?\.giphy\.com$/.test(u.hostname)||/^media\d*\.tenor\.com$/.test(u.hostname)))
+   return '<img class="dm-image-preview" src="'+esc(u.href)+'" alt="GIF" loading="lazy">';
+  const id=u.hostname==='giphy.com'?(u.pathname.match(/\/embed\/([A-Za-z0-9]+)/)||u.pathname.match(/-([A-Za-z0-9]{6,})$/)):null;
+  return id?'<iframe title="GIF" loading="lazy" sandbox="allow-scripts allow-same-origin" referrerpolicy="no-referrer" style="width:270px;max-width:100%;height:220px;border:0" src="https://giphy.com/embed/'+esc(id[1])+'"></iframe>':
+   '<p><a href="'+esc(u.href)+'" target="_blank" rel="noopener noreferrer">Abrir GIF</a></p>';
+ }
+ if(m.kind==='image'&&m.media_path)return '<div class="dm-attachment"><img class="dm-image-preview" data-dm-media="'+esc(m.media_path)+'" alt="Imagem enviada" loading="lazy"></div>'+caption;
+ if(m.kind==='video'&&m.media_path)return '<video class="dm-video-player" data-dmw-media="'+esc(m.media_path)+'" controls playsinline preload="metadata"></video>'+caption;
+ if(m.kind==='audio'&&m.media_path)return '<audio class="dm-audio-player" data-dmw-media="'+esc(m.media_path)+'" controls preload="none"></audio>'+caption;
+ if(m.kind==='sticker'&&m.media_path)return '<img class="dm-sticker-picture" data-dmw-media="'+esc(m.media_path)+'" alt="Figurinha">'+caption;
+ return dmMessageMedia(m);
+}
+function dmWTicks(m,channel){
+ if(m.sender_id!==dm.owner||m.deleted_at)return '';
+ if(channel==='private')return m.read_at?'<span class="dm-ticks read" title="Visualizada">✓✓</span>':m.delivered_at?'<span class="dm-ticks" title="Entregue">✓✓</span>':'<span class="dm-ticks" title="Enviada">✓</span>';
+ if(channel!=='groups')return '';
+ const members=dmWMembers(m.room_id).filter(x=>x.user_id!==dm.owner);
+ if(!members.length)return '<span class="dm-ticks">✓</span>';
+ const reads=members.filter(x=>dmW.reads.some(r=>r.room_id===m.room_id&&r.user_id===x.user_id&&r.read_at&&r.read_at>=m.created_at)).length;
+ const deliveries=members.filter(x=>dmW.reads.some(r=>r.room_id===m.room_id&&r.user_id===x.user_id&&r.delivered_at>=m.created_at)).length;
+ return reads===members.length?'<span class="dm-ticks read" title="Visualizada por todos">✓✓</span>':deliveries===members.length?'<span class="dm-ticks" title="Entregue a todos">✓✓</span>':'<span class="dm-ticks">✓</span>';
+}
+dmMessageHtml=function(m,channel='private'){
+ const mine=m.sender_id===dm.owner;
+ const quoted=m.reply_to?dmWMessage(m.reply_to,channel==='private'?'private':'room'):null;
+ const quote=m.reply_to?'<button type="button" class="dm-reply-quote" data-dmw-jump="'+esc(m.reply_to)+'"><strong>'+
+  esc(quoted?(quoted.sender_id===dm.owner?'Você':dmPrettyPerson(quoted.sender_id).display_name):'Mensagem anterior')+
+  '</strong><small>'+esc(quoted?dmWPreview(quoted):'Mensagem não disponível')+'</small></button>':'';
+ const options=!m.deleted_at?'<button class="dm-message-menu-button" type="button" data-dmw-msgmenu="'+esc(m.id)+'" aria-label="Opções da mensagem" aria-expanded="'+(dmW.menu===m.id)+'">⌄</button>'+
+  (dmW.menu===m.id?'<div class="dm-message-popup"><button data-dmw-reply="'+esc(m.id)+'">↩ Responder</button><button data-dmw-forward="'+esc(m.id)+'">↪ Encaminhar</button>'+
+  (mine?'<button data-dmw-info="'+esc(m.id)+'">ⓘ Informações</button><button data-dmw-delete="'+esc(m.id)+'" data-dmw-delete-type="'+(channel==='private'?'private':'room')+'">Apagar para todos</button>':'')+'</div>':''):'';
+ return '<div class="dm-message '+(mine?'mine':'theirs')+'" data-dmw-message="'+esc(m.id)+'"><div class="dm-message-bubble">'+
+ (channel==='private'?'':'<span class="dm-author">'+esc(dmPrettyPerson(m.sender_id).display_name)+'</span>')+
+ (m.forwarded?'<div class="dm-forwarded">↪ Encaminhada</div>':'')+quote+dmWMedia(m)+
+ '<div class="dm-message-info"><time>'+esc(dmTime(m.created_at))+'</time>'+dmWTicks(m,channel)+'</div>'+options+'</div></div>';
+};
+dmThreadHtml=function(){
+ const selected=dmWSelected();
+ if(!selected)return '<div class="dm-chat-empty"><span>✉</span><h2>Selecione uma conversa</h2><p>Converse individualmente, em grupos ou no Chat Global.</p></div>';
+ const rows=(dm.tab==='private'?dm.messages.filter(x=>(x.sender_id===dm.owner&&x.recipient_id===selected)||(x.sender_id===selected&&x.recipient_id===dm.owner)):dm.roomMessages.filter(x=>x.room_id===selected)).slice().reverse();
+ if(!rows.length)return '<div class="dm-chat-empty"><span>✉</span><h3>Comece a conversa</h3><p>Ainda não há mensagens por aqui.</p></div>';
+ let prev='',out='';
+ for(const m of rows){const day=dmDateKey(m.created_at);if(prev!==day){prev=day;out+='<div class="dm-day"><span>'+esc(dmDateLabel(m.created_at))+'</span></div>'}out+=dmMessageHtml(m,dm.tab)}
+ return out;
+};
+dmComposer=function(){
+ if(!dmWSelected())return '';
+ const reply=dmW.reply?'<div class="dm-reply-preview"><div><strong>Respondendo a '+esc(dmW.reply.sender_id===dm.owner?'você':dmPrettyPerson(dmW.reply.sender_id).display_name)+'</strong><small>'+esc(dmWPreview(dmW.reply))+'</small></div><button type="button" data-dmw-clear-reply aria-label="Cancelar">×</button></div>':'';
+ const recording=dmW.recording?'<div class="dm-record-status"><span>🔴 Gravando áudio… <b id="dmWTimer">00:00</b></span><span><button data-dmw-record-cancel type="button">Cancelar</button><button data-dmw-record-stop type="button">Parar</button></span></div>':'';
+ const tools=dmW.panel==='tools'?'<div class="dm-tools-menu">'+[['image','Foto / GIF do computador'],['video','Vídeo'],['audio','Arquivo de áudio'],['sticker','Criar figurinha (PNG ou WebP)']].map(x=>'<button type="button" data-dmw-attach="'+x[0]+'">'+x[1]+'</button>').join('')+'<button type="button" data-dmw-gif>GIF do GIPHY</button></div>':
+  dmW.panel==='emoji'?'<div class="dm-emoji-panel"><emoji-picker id="dmWPicker" locale="pt"></emoji-picker></div>':'';
+ return '<form id="dmSendForm" class="dm-composer-wrap">'+reply+recording+
+ '<div class="dm-composer"><button type="button" class="dm-composer-action" data-dmw-emoji title="Emojis" aria-label="Emojis">☺</button>'+
+ '<button type="button" class="dm-composer-action" data-dmw-tools title="Anexar" aria-label="Anexar">＋</button><input id="dmWFileInput" type="file" hidden>'+
+ '<textarea id="dmPrompt" maxlength="3000" rows="1" placeholder="Escreva uma mensagem…">'+esc(dm.draft)+'</textarea>'+
+ '<button type="button" class="dm-composer-action" data-dmw-record title="Gravar áudio">♩</button>'+
+ '<button type="submit" class="dm-send-button" aria-label="Enviar" '+(dm.sending||dmW.recording?'disabled':'')+'>➤</button></div>'+
+ (dm.mediaFile?'<div class="dm-media-selected">'+esc(dm.mediaFile.name)+' <button type="button" data-dm-clear-image>Remover</button></div>':'')+
+ tools+'</form>';
+};
+dmRender=function(){
+ if(!onlineUser)return '<section class="dm-login-panel"><h1>Mensagens</h1><p>Entre na tua conta para conversar com os usuários.</p><button data-account-action="open" class="profile-action">Entrar / Cadastrar</button></section>';
+ if(dm.tab==='reports'&&dm.isAdmin)return '<section class="dm-shell has-conversation"><div class="dm-list"><header class="dm-list-head"><h1>Mensagens</h1><button type="button" class="dm-soft-button" data-dmw-reports-back>← Voltar</button></header></div><div class="dm-main"><header class="dm-chat-head"><strong>Report de Erros</strong></header><div class="dm-messages" id="dmMessages">'+dmReportList()+'</div></div></section>';
+ const selected=dmWSelected(),group=dm.tab==='groups',room=group?dmWRoom():null,peer=dm.tab==='private'&&selected?dmPrettyPerson(selected):null;
+ const heading=peer?avatar(peer.display_name,peer.avatar_url,true)+'<span><strong>'+esc(peer.display_name)+'</strong><small>Ver perfil</small></span>':
+  dm.tab==='global'?'<span class="dm-global-avatar small">✦</span><span><strong>Chat Global</strong><small>Todos os usuários</small></span>':
+  room?dmWGroupAvatar(room,true)+'<span><strong>'+esc(room.name)+'</strong><small>'+dmWMembers(room.id).length+' participantes</small></span>':
+  '<span><strong>Suas mensagens</strong><small>Escolha uma conversa</small></span>';
+ const wallpapers=dmW.wallpaper?'<div class="dm-wallpaper-picker">'+[['default','Padrão'],['plain','Sem textura'],['lilac','Lilás'],['mint','Verde suave'],['rose','Rosado'],['slate','Azulado']].map(x=>'<button type="button" data-dmw-bg="'+x[0]+'" aria-pressed="'+(dmWWallpaper()===x[0])+'">'+x[1]+'</button>').join('')+'</div>':'';
+ return '<section class="dm-shell '+(selected?'has-conversation':'')+'"><div class="dm-list">'+
+ '<header class="dm-list-head"><div><h1>Mensagens</h1><p>Conversas e grupos</p></div><div class="dm-list-actions"><button type="button" class="dm-soft-button" title="Criar grupo" data-dm-new-group>＋</button>'+
+ (dm.isAdmin?'<button type="button" class="dm-soft-button" data-dmw-reports title="Relatos">⚑</button>':'')+'</div></header>'+
+ '<label class="dm-search-label"><input type="search" id="dmUserSearch" value="'+esc(dm.search)+'" placeholder="Pesquisar conversas"></label>'+
+ '<div class="dm-contacts" id="dmContacts">'+dmContactRows()+'</div></div>'+
+ '<div class="dm-main"><header class="dm-chat-head"><button type="button" class="dm-back" data-dmw-back>‹ Voltar</button>'+
+ (selected?'<button class="dm-chat-head-main" type="button" '+(peer?'data-dm-profile="'+esc(peer.user_id)+'"':group?'data-dmw-group':'')+'>'+heading+'</button>':'<span class="dm-chat-head-main">'+heading+'</span>')+
+ (selected?'<div class="dm-chat-actions">'+(group?'<button type="button" class="dm-head-action" data-dmw-group title="Informações do grupo">ⓘ</button>':'')+
+ '<button type="button" class="dm-head-action" data-dmw-wallpaper title="Fundo da conversa">⋯</button></div>':'')+wallpapers+'</header>'+
+ (dm.error?'<div class="dm-error" role="alert">'+esc(dm.error)+'</div>':'')+
+ '<div class="dm-messages" id="dmMessages" data-wallpaper="'+esc(dmWWallpaper())+'">'+dmThreadHtml()+'</div>'+dmComposer()+
+ '</div></section>'+dmGroupModalMarkup()+dmWPopupHtml();
+};
+dmShow=function(){
+ const main=document.getElementById('main');if(!main||(!main.querySelector('.dm-shell')&&!main.querySelector('.dm-login-panel')))return;
+ const old=main.querySelector('#dmMessages'),top=old?.scrollTop||0,atBottom=!old||old.scrollHeight-old.scrollTop-old.clientHeight<130;
+ const active=document.activeElement,focus=active&&['dmPrompt','dmUserSearch'].includes(active.id)?active.id:null,caret=focus?active.selectionStart:null;
+ main.innerHTML=dmRender();
+ const next=main.querySelector('#dmMessages');if(next)next.scrollTop=atBottom?next.scrollHeight:top;
+ if(focus){const n=document.getElementById(focus);if(n){n.focus({preventScroll:true});if(caret!==null)n.setSelectionRange(caret,caret)}}
+ dmResolveMedia();dmWResolveMedia();if(dmW.panel==='emoji')dmWEmojiInit();
+};
+
+
+/* Chat unificado — sincronização, recibos, mídia e ferramentas */
+async function dmWResolveMedia(){
+ if(!client)return;
+ const paths=new Set([...document.querySelectorAll('.dm-shell [data-dmw-media]')].map(el=>el.dataset.dmwMedia));
+ for(const path of paths){
+  if(!path)continue;
+  let cached=dm.mediaCache.get(path);
+  if(!cached||cached.until<Date.now()){
+   if(dm.mediaRequests.has(path))continue;
+   dm.mediaRequests.add(path);
+   try{
+    const response=await client.storage.from('uentzoul-chat-media').createSignedUrl(path,1800);
+    if(response.error)throw response.error;
+    cached={url:response.data.signedUrl,until:Date.now()+25*60*1000};
+    dm.mediaCache.set(path,cached);
+   }catch(e){console.warn('Não foi possível obter a mídia do chat',e);continue}
+   finally{dm.mediaRequests.delete(path)}
+  }
+  document.querySelectorAll('.dm-shell [data-dmw-media]').forEach(el=>{
+   if(el.dataset.dmwMedia===path&&el.getAttribute('src')!==cached.url)el.setAttribute('src',cached.url);
+  });
+ }
+}
+function dmWEmojiInit(){
+ const picker=document.getElementById('dmWPicker');if(!picker)return;
+ if(customElements.get('emoji-picker')){
+  if(picker.dataset.ready)return;
+  picker.dataset.ready='1';
+  picker.addEventListener('emoji-click',e=>{
+   const emoji=e.detail?.unicode,field=document.getElementById('dmPrompt');
+   if(!emoji||!field)return;
+   const start=field.selectionStart??field.value.length,end=field.selectionEnd??field.value.length;
+   field.value=field.value.slice(0,start)+emoji+field.value.slice(end);
+   dm.draft=field.value;field.focus();
+   field.setSelectionRange(start+emoji.length,start+emoji.length);
+  });
+  return;
+ }
+ if(dmW.emojiLoading)return;
+ dmW.emojiLoading=true;
+ import('https://cdn.jsdelivr.net/npm/emoji-picker-element@1.29.1/index.js').then(()=>{
+  dmW.emojiLoading=false;dmWEmojiInit();
+ }).catch(()=>{
+  dmW.emojiLoading=false;
+  const node=document.getElementById('dmWPicker');
+  const fallback=['😀','😁','😂','🥲','😍','🥰','😘','🤔','😎','🙃','😢','😭','😡','🥳','👍','👏','🙏','❤️','💜','💚','🔥','✨','🎓','📚','🐱','🐶','🌻','🎉'];
+  if(node)node.outerHTML='<div class="dm-emoji-fallback">'+fallback.map(x=>'<button type="button" data-dmw-emojifallback="'+x+'">'+x+'</button>').join('')+'</div>';
+ });
+}
+const dmWOriginalLoad=dmLoad;
+dmLoad=async function(){
+ if(!client||!onlineUser)return;
+ if(dm.loading){dm.pending=true;return dm.loadPromise}
+ const id=onlineUser.id;dm.loading=true;dm.error='';
+ dm.loadPromise=(async()=>{
+  try{
+   const [messages,people,rooms,members,reads]=await Promise.all([
+    client.from('uentzoul_messages').select('id,sender_id,recipient_id,body,created_at,delivered_at,read_at,kind,media_path,deleted_at,reply_to,forwarded').or('sender_id.eq.'+id+',recipient_id.eq.'+id).order('created_at',{ascending:false}).limit(800),
+    client.from('uentzoul_profiles').select('user_id,display_name,avatar_url,bio').order('display_name').limit(300),
+    client.from('uentzoul_chat_rooms').select('id,kind,name,owner_id,avatar_path,created_at').order('created_at',{ascending:false}).limit(200),
+    client.from('uentzoul_chat_members').select('room_id,user_id,is_admin,joined_at').limit(2000),
+    client.from('uentzoul_room_reads').select('room_id,user_id,delivered_at,read_at').limit(2000)
+   ]);
+   for(const row of [messages,people,rooms,members,reads])if(row.error)throw row.error;
+   const ids=(rooms.data||[]).map(x=>x.id);
+   const roomMessages=ids.length?await client.from('uentzoul_room_messages').select('id,room_id,sender_id,body,kind,media_path,created_at,deleted_at,reply_to,forwarded').in('room_id',ids).order('created_at',{ascending:false}).limit(1200):{data:[]};
+   if(roomMessages.error)throw roomMessages.error;
+   if(onlineUser?.id!==id)return;
+   dm.messages=messages.data||[];dm.people=people.data||[];dm.rooms=rooms.data||[];dm.roomMessages=roomMessages.data||[];
+   dmW.members=members.data||[];dmW.reads=reads.data||[];dm.owner=id;dm.ready=true;dm.lastFetch=Date.now();
+   if(dm.isAdmin){const r=await client.rpc('uentzoul_list_error_reports');if(!r.error)dm.reports=r.data||[]}
+   const invitationRows=await client.from('uentzoul_exam_invites').select('id,exam_id,sender_id,recipient_id,status,created_at').limit(1000);
+   if(!invitationRows.error)dm.invites=invitationRows.data||[];
+   dmBadge();dmShow();
+   if(dm.tab==='private'&&dm.peerId)await dmMarkRead();
+   if(dm.tab==='groups'&&dm.roomId)dmWMarkGroupRead(dm.roomId);
+   dmWConfirmDelivery();
+  }catch(e){dm.error=e?.message||'Não foi possível carregar as mensagens.';dmShow()}
+  finally{dm.loading=false;if(dm.pending&&onlineUser?.id===id){dm.pending=false;queueMicrotask(dmLoad)}}
+ })();
+ return dm.loadPromise;
+};
+async function dmWConfirmDelivery(){
+ if(dmW.delivering||!client||!onlineUser)return;
+ dmW.delivering=true;
+ try{
+  if(dm.messages.some(m=>m.recipient_id===dm.owner&&!m.delivered_at)){
+   await client.from('uentzoul_messages').update({delivered_at:new Date().toISOString()}).eq('recipient_id',dm.owner).is('delivered_at',null);
+  }
+  for(const room of dm.rooms.filter(r=>r.kind==='group')){
+   const newest=dm.roomMessages.find(m=>m.room_id===room.id&&m.sender_id!==dm.owner);
+   const receipt=dmW.reads.find(r=>r.room_id===room.id&&r.user_id===dm.owner);
+   if(!newest||receipt?.delivered_at>=newest.created_at)continue;
+   if(receipt)await client.from('uentzoul_room_reads').update({delivered_at:new Date().toISOString()}).eq('room_id',room.id).eq('user_id',dm.owner);
+   else await client.from('uentzoul_room_reads').insert({room_id:room.id,user_id:dm.owner});
+  }
+ }catch(e){console.warn('Não foi possível registrar entrega',e)}
+ finally{dmW.delivering=false}
+}
+async function dmWMarkGroupRead(roomId){
+ if(!client||!onlineUser||!dmValid(roomId)||dmW.reading===roomId)return;
+ const latest=dm.roomMessages.find(m=>m.room_id===roomId&&m.sender_id!==dm.owner);
+ const existing=dmW.reads.find(r=>r.room_id===roomId&&r.user_id===dm.owner);
+ if(existing?.read_at&&(!latest||existing.read_at>=latest.created_at))return;
+ dmW.reading=roomId;
+ try{
+  const date=new Date().toISOString(),payload={room_id:roomId,user_id:dm.owner,delivered_at:date,read_at:date};
+  const response=await client.from('uentzoul_room_reads').upsert(payload,{onConflict:'room_id,user_id'});
+  if(response.error)throw response.error;
+  if(existing)Object.assign(existing,payload);else dmW.reads.push(payload);
+  dmShow();
+ }catch(e){console.warn('Leitura do grupo não atualizada',e)}
+ finally{dmW.reading=null}
+}
+const dmWOriginalLogout=dmOnLogout;
+dmOnLogout=function(){
+ dmWStopRecord(true);
+ Object.assign(dmW,{members:[],reads:[],popup:null,menu:null,panel:null,reply:null,selectedMessage:null,wallpaper:false,recording:false});
+ dmWOriginalLogout();
+};
+const dmWOriginalAfterRender=dmAfterRender;
+dmAfterRender=async function(id){
+ await dmWOriginalAfterRender(id);
+ if(dm.tab==='groups'&&dm.roomId)dmWMarkGroupRead(dm.roomId);
+};
+const dmWOriginalOpenPeer=dmOpenPeer;
+dmOpenPeer=function(id){
+ dmW.reply=null;dmW.panel=null;dmW.popup=null;dmW.menu=null;dmWOriginalOpenPeer(id);
+};
+function dmWFileExt(file){
+ return ({'image/png':'png','image/jpeg':'jpg','image/webp':'webp','image/gif':'gif','video/mp4':'mp4',
+ 'video/webm':'webm','video/quicktime':'mov','audio/webm':'webm','audio/ogg':'ogg','audio/mp4':'m4a',
+ 'audio/mpeg':'mp3','audio/aac':'aac','audio/wav':'wav'})[file.type]||'webm';
+}
+function dmWCheckFile(file,kind){
+ const types={image:['image/png','image/jpeg','image/webp','image/gif'],video:['video/mp4','video/webm','video/quicktime'],
+ audio:['audio/webm','audio/ogg','audio/mp4','audio/mpeg','audio/aac','audio/wav'],sticker:['image/png','image/webp']};
+ const limit=kind==='image'?5242880:kind==='sticker'?1048576:20971520;
+ if(!types[kind]?.includes(file.type)||file.size>limit||!file.size){toast('Arquivo inválido ou acima do limite de '+Math.round(limit/1048576)+' MB.');return false}
+ return true;
+}
+function dmWPrepareFile(file,kind){
+ if(!file||!dmWCheckFile(file,kind))return;
+ dm.mediaFile=file;dmW.mediaKind=kind;dmW.panel=null;dmShow();
+}
+function dmWGifValid(value){
+ try{const u=new URL(value);return u.protocol==='https:'&&/(^|\.)giphy\.com$|(^|\.)tenor\.com$/.test(u.hostname)&&u.href.length<1600}catch(_){return false}
+}
+dmSend=async function(kindOverride=null,specialValue=''){
+ if(!onlineUser||!client||dm.sending||dmW.recording)return;
+ const selected=dmWSelected();
+ if(!dmValid(selected))return;
+ const file=kindOverride==='gif'?null:dm.mediaFile,kind=kindOverride==='gif'?'gif':file?dmW.mediaKind:'text';
+ const body=String(kind==='gif'?specialValue:document.getElementById('dmPrompt')?.value??dm.draft).trim();
+ if(!body&&!file)return;
+ if(body.length>3000){toast('Limite de 3.000 caracteres por mensagem.');return}
+ if(kind==='gif'&&!dmWGifValid(body)){toast('Use um link HTTPS do GIPHY ou Tenor.');return}
+ if(file&&!dmWCheckFile(file,kind))return;
+ dm.sending=true;dm.draft=body;dm.error='';dmShow();
+ let path=null;
+ try{
+  if(file){
+   path=(dm.tab==='private'?'dm/'+dm.owner+'/'+selected+'/':'room/'+selected+'/'+dm.owner+'/')+crypto.randomUUID()+'.'+dmWFileExt(file);
+   const upload=await client.storage.from('uentzoul-chat-media').upload(path,file,{contentType:file.type,upsert:false});
+   if(upload.error)throw upload.error;
+  }
+  const label=({image:'Imagem',video:'Vídeo',audio:'Áudio',sticker:'Figurinha'})[kind]||'Arquivo';
+  const data=dm.tab==='private'?{sender_id:dm.owner,recipient_id:selected,body:body||'['+label+']',
+   kind,media_path:path,reply_to:dmW.reply?.id||null}:
+   {sender_id:dm.owner,room_id:selected,body:body||'['+label+']',kind,media_path:path,reply_to:dmW.reply?.id||null};
+  const result=await client.from(dm.tab==='private'?'uentzoul_messages':'uentzoul_room_messages').insert(data);
+  if(result.error)throw result.error;
+  dm.draft='';dm.mediaFile=null;dmW.reply=null;dmW.panel=null;dmW.popup=null;
+  await dmLoad();
+ }catch(e){
+  if(path)await client.storage.from('uentzoul-chat-media').remove([path]);
+  dm.error=e?.message||'Mensagem não enviada.';
+ }finally{dm.sending=false;dmShow();if(!dm.error)document.getElementById('dmPrompt')?.focus()}
+};
+async function dmWStopRecord(cancel){
+ const recorder=dmW.recorder;
+ if(!recorder)return;
+ dmW.recording=false;
+ if(dmW.recordTicker)clearInterval(dmW.recordTicker);
+ dmW.recordTicker=null;
+ if(cancel)recorder.onstop=null;
+ if(recorder.state!=='inactive')recorder.stop();
+ dmW.recordStream?.getTracks().forEach(t=>t.stop());
+ dmW.recorder=null;dmW.recordStream=null;
+ if(cancel){dmW.recordParts=[];dmShow()}
+}
+async function dmWStartRecord(){
+ if(dmW.recording)return;
+ if(!navigator.mediaDevices?.getUserMedia||typeof MediaRecorder==='undefined'){toast('Este navegador não permite gravar áudios.');return}
+ try{
+  const stream=await navigator.mediaDevices.getUserMedia({audio:true});
+  const mime=['audio/webm;codecs=opus','audio/mp4','audio/webm','audio/ogg'].find(t=>MediaRecorder.isTypeSupported(t));
+  const recorder=new MediaRecorder(stream,mime?{mimeType:mime}:undefined);
+  dmW.recordStream=stream;dmW.recorder=recorder;dmW.recordParts=[];dmW.recording=true;dmW.recordStarted=Date.now();
+  recorder.ondataavailable=e=>{if(e.data?.size)dmW.recordParts.push(e.data)};
+  recorder.onstop=()=>{
+   const type=recorder.mimeType.split(';')[0]||'audio/webm';
+   const blob=new Blob(dmW.recordParts,{type});dmW.recordParts=[];
+   if(blob.size)dmWPrepareFile(new File([blob],'audio-'+Date.now()+'.'+dmWFileExt({type}),{type}),'audio');
+   else dmShow();
+  };
+  recorder.start(1000);
+  dmW.recordTicker=setInterval(()=>{
+   const seconds=Math.floor((Date.now()-dmW.recordStarted)/1000),node=document.getElementById('dmWTimer');
+   if(node)node.textContent=String(Math.floor(seconds/60)).padStart(2,'0')+':'+String(seconds%60).padStart(2,'0');
+   if(seconds>=120)dmWStopRecord(false);
+  },1000);
+  dmShow();
+ }catch(e){toast(e?.name==='NotAllowedError'?'Sem permissão para usar o microfone.':'Gravação não disponível.');dmW.recordStream?.getTracks().forEach(t=>t.stop())}
+}
+async function dmWEditGroup(form){
+ const r=dmWRoom();if(!r||!dmWAdmin(r.id))return;
+ const data=new FormData(form),name=String(data.get('name')||'').trim(),file=data.get('photo');
+ if(name.length<2||name.length>70)throw Error('O nome deve ter de 2 a 70 caracteres.');
+ const payload={name};
+ if(file&&file.size){
+  if(!['image/png','image/jpeg','image/webp'].includes(file.type)||file.size>5242880)throw Error('Foto inválida; use PNG, JPG ou WebP até 5 MB.');
+  const path='room/'+r.id+'/'+dm.owner+'/'+crypto.randomUUID()+'.'+dmWFileExt(file);
+  const uploaded=await client.storage.from('uentzoul-chat-media').upload(path,file,{contentType:file.type,upsert:false});
+  if(uploaded.error)throw uploaded.error;payload.avatar_path=path;
+ }
+ const updated=await client.from('uentzoul_chat_rooms').update(payload).eq('id',r.id);
+ if(updated.error)throw updated.error;toast('Grupo atualizado.');await dmLoad();dmW.popup='group';dmShow();
+}
+async function dmWForwardTo(target){
+ const m=dmW.selectedMessage;if(!m||!client)return;
+ const type=target==='global'?'global':target.startsWith('group:')?'groups':'private';
+ const selected=target==='global'?DM_GLOBAL_ROOM:target.split(':')[1];
+ if(!dmValid(selected)||type==='private'&&selected===dm.owner)return;
+ let path=null;
+ try{
+  if(m.media_path){
+   const signed=await client.storage.from('uentzoul-chat-media').createSignedUrl(m.media_path,120);
+   if(signed.error)throw signed.error;
+   const response=await fetch(signed.data.signedUrl);if(!response.ok)throw Error('Arquivo original indisponível.');
+   const file=await response.blob();
+   path=(type==='private'?'dm/'+dm.owner+'/'+selected+'/':'room/'+selected+'/'+dm.owner+'/')+crypto.randomUUID()+'.'+m.media_path.split('.').pop();
+   const up=await client.storage.from('uentzoul-chat-media').upload(path,file,{contentType:file.type||'application/octet-stream',upsert:false});
+   if(up.error)throw up.error;
+  }
+  const data=type==='private'?{sender_id:dm.owner,recipient_id:selected,body:m.body,kind:m.kind,media_path:path,forwarded:true}:
+   {sender_id:dm.owner,room_id:selected,body:m.body,kind:m.kind,media_path:path,forwarded:true};
+  const response=await client.from(type==='private'?'uentzoul_messages':'uentzoul_room_messages').insert(data);
+  if(response.error)throw response.error;
+  dmW.popup=null;dmW.selectedMessage=null;dmW.menu=null;toast('Mensagem encaminhada.');await dmLoad();
+ }catch(e){if(path)await client.storage.from('uentzoul-chat-media').remove([path]);toast(e?.message||'Não foi possível encaminhar.')}
+}
+function dmWOpen(type,id){
+ dmW.reply=null;dmW.panel=null;dmW.popup=null;dmW.menu=null;dmW.wallpaper=false;
+ dm.mediaFile=null;dm.draft='';
+ if(type==='global'){dm.tab='global';dm.roomId=DM_GLOBAL_ROOM;dm.peerId=null}
+ else if(type==='group'){dm.tab='groups';dm.roomId=id;dm.peerId=null}
+ else {dm.tab='private';dm.peerId=id||null;dm.roomId=null}
+ dmShow();
+ if(type==='group')dmWMarkGroupRead(id);
+ if(type==='private'&&id)dmMarkRead();
+}
+window.uentzoulMessenger.render=dmRender;
+window.uentzoulMessenger.afterRender=dmAfterRender;
+window.uentzoulMessenger.refresh=dmLoad;
+window.uentzoulMessenger.onLogout=dmOnLogout;
+
+
+/* Chat unificado — janelas e interações */
+function dmWPopupHtml(){
+ if(!dmW.popup)return '';
+ const close='<button type="button" data-dmw-close-popup aria-label="Fechar">×</button>';
+ const start='<div class="dm-float-overlay" data-dmw-overlay><section class="dm-float-dialog" role="dialog" aria-modal="true">';
+ const end='</section></div>';
+ if(dmW.popup==='group'){
+  const room=dmWRoom();if(!room||room.kind!=='group')return '';
+  const admins=dmWAdmin(room.id),owner=room.owner_id===dm.owner,members=dmWMembers(room.id);
+  const known=new Set(members.map(x=>x.user_id)),others=dm.people.filter(x=>!known.has(x.user_id));
+  const list=members.map(m=>{
+   const p=dmPrettyPerson(m.user_id),creator=m.user_id===room.owner_id;
+   return '<div class="dm-dialog-user">'+avatar(p.display_name,p.avatar_url,true)+'<strong>'+esc(p.display_name)+'</strong>'+
+   (creator?'<small>Criador</small>':m.is_admin?'<small>Admin</small>':'')+
+   (admins&&!creator&&m.user_id!==dm.owner?'<button type="button" data-dmw-toggle-admin="'+esc(m.user_id)+'">'+(m.is_admin?'Remover admin':'Tornar admin')+'</button>'+
+   '<button type="button" data-dmw-kick="'+esc(m.user_id)+'">Remover</button>':'')+'</div>';
+  }).join('');
+  const edit=admins?'<form id="dmWGroupEdit"><label class="dm-dialog-field">Nome do grupo<input name="name" required minlength="2" maxlength="70" value="'+esc(room.name)+'"></label>'+
+   '<label class="dm-dialog-field">Foto do grupo (opcional)<input type="file" name="photo" accept="image/png,image/jpeg,image/webp"></label>'+
+   '<button type="submit" class="dm-dialog-btn">Salvar nome e foto</button></form>':'';
+  const add=admins&&others.length?'<form id="dmWGroupAdd"><label class="dm-dialog-field">Adicionar pessoa<select name="member" required style="width:100%;margin-top:6px;padding:10px;background:var(--soft);color:var(--ink);border:1px solid var(--line);border-radius:9px">'+
+   '<option value="">Selecionar usuário</option>'+others.map(p=>'<option value="'+esc(p.user_id)+'">'+esc(p.display_name)+'</option>').join('')+'</select></label>'+
+   '<button type="submit" class="dm-dialog-btn">Adicionar participante</button></form>':'';
+  return start+'<div class="dm-dialog-head"><h2>Informações do grupo</h2>'+close+'</div>'+
+   '<div style="display:flex;gap:12px;align-items:center;margin:0 0 18px">'+dmWGroupAvatar(room,false)+'<div><strong>'+esc(room.name)+'</strong><p style="margin:2px 0">'+members.length+' participantes</p></div></div>'+
+   edit+'<h3 style="font-size:13px;margin-top:20px">Participantes</h3><div class="dm-dialog-list">'+list+'</div>'+add+
+   (!owner?'<button type="button" data-dmw-leave style="border:0;background:transparent;color:#b24b65;padding:12px 0;cursor:pointer">Sair do grupo</button>':'')+end;
+ }
+ if(dmW.popup==='forward'){
+  const rows=dmWRows().filter(x=>x.type==='private'||x.type==='group');
+  return start+'<div class="dm-dialog-head"><h2>Encaminhar mensagem</h2>'+close+'</div><p>Escolha a conversa de destino.</p>'+
+   '<div class="dm-dialog-list"><button type="button" class="dm-dialog-user" data-dmw-forward-target="global" style="background:var(--soft);cursor:pointer;text-align:left"><span class="dm-global-avatar small">✦</span><strong>Chat Global</strong></button>'+
+   rows.map(x=>{
+    const group=x.type==='group',p=group?null:dmPrettyPerson(x.id),name=group?x.room.name:p.display_name;
+    return '<button type="button" class="dm-dialog-user" style="background:var(--paper);cursor:pointer;text-align:left" data-dmw-forward-target="'+(group?'group:':'private:')+esc(x.id)+'">'+
+    (group?dmWGroupAvatar(x.room,true):avatar(p.display_name,p.avatar_url,true))+'<strong>'+esc(name)+'</strong></button>';
+   }).join('')+'</div>'+end;
+ }
+ if(dmW.popup==='info'){
+  const m=dmW.selectedMessage;if(!m)return '';
+  let list='';
+  if(dm.tab==='private'){
+   const person=dmPrettyPerson(dm.peerId);
+   const value=m.read_at?'Visualizada em '+new Date(m.read_at).toLocaleString('pt-BR'):
+    m.delivered_at?'Entregue em '+new Date(m.delivered_at).toLocaleString('pt-BR'):'Enviada';
+   list='<div class="dm-dialog-user">'+avatar(person.display_name,person.avatar_url,true)+'<strong>'+esc(person.display_name)+'</strong><small>'+esc(value)+'</small></div>';
+  }else if(dm.tab==='groups'){
+   list=dmWMembers(m.room_id).filter(x=>x.user_id!==dm.owner).map(x=>{
+    const p=dmPrettyPerson(x.user_id),r=dmW.reads.find(a=>a.room_id===m.room_id&&a.user_id===x.user_id);
+    const status=r?.read_at&&r.read_at>=m.created_at?'Visualizada':r?.delivered_at&&r.delivered_at>=m.created_at?'Entregue':'Enviada';
+    return '<div class="dm-dialog-user">'+avatar(p.display_name,p.avatar_url,true)+'<strong>'+esc(p.display_name)+'</strong><small>'+status+'</small></div>';
+   }).join('');
+  }else list='<p>O Chat Global não registra visualizações individuais.</p>';
+  return start+'<div class="dm-dialog-head"><h2>Informações da mensagem</h2>'+close+'</div>'+
+   '<p>Enviada em '+esc(new Date(m.created_at).toLocaleString('pt-BR'))+'</p><div class="dm-dialog-list">'+list+'</div>'+end;
+ }
+ if(dmW.popup==='gif'){
+  return start+'<div class="dm-dialog-head"><h2>Compartilhar GIF</h2>'+close+'</div>'+
+   '<p>Busque um GIF no GIPHY, copie o endereço e cole aqui. GIFs salvos no computador também podem ser enviados como imagem.</p>'+
+   '<form id="dmWGifForm" class="dm-gif-lookup"><input name="query" type="search" placeholder="O que procurar?">'+
+   '<button type="button" class="dm-dialog-btn" data-dmw-gif-search>Abrir busca no GIPHY</button>'+
+   '<input type="url" name="url" required placeholder="https://giphy.com/gifs/..." aria-label="Link do GIF">'+
+   '<button type="submit" class="dm-dialog-btn">Enviar GIF</button></form>'+end;
+ }
+ return '';
+}
+document.addEventListener('click',async e=>{
+ const hit=s=>e.target.closest(s);
+ const stop=()=>{e.preventDefault();e.stopImmediatePropagation()};
+ if(hit('[data-dmw-global]')){stop();dmWOpen('global',DM_GLOBAL_ROOM);return}
+ const groupRow=hit('[data-dm-room]');
+ if(groupRow){stop();dmWOpen('group',groupRow.dataset.dmRoom);return}
+ const peerRow=hit('[data-dm-peer]');
+ if(peerRow){stop();dmWOpen('private',peerRow.dataset.dmPeer);return}
+ if(hit('[data-dmw-back]')){stop();dmWOpen('private',null);return}
+ if(hit('[data-dmw-reports]')){stop();dm.tab='reports';dmShow();return}
+ if(hit('[data-dmw-reports-back]')){stop();dmWOpen('private',null);return}
+ const menu=hit('[data-dmw-msgmenu]');
+ if(menu){stop();dmW.menu=dmW.menu===menu.dataset.dmwMsgmenu?null:menu.dataset.dmwMsgmenu;dmShow();return}
+ const reply=hit('[data-dmw-reply]');
+ if(reply){stop();dmW.reply=dmWMessage(reply.dataset.dmwReply,dm.tab==='private'?'private':'room')||null;dmW.menu=null;dmShow();document.getElementById('dmPrompt')?.focus();return}
+ const forward=hit('[data-dmw-forward]');
+ if(forward){stop();dmW.selectedMessage=dmWMessage(forward.dataset.dmwForward,dm.tab==='private'?'private':'room');dmW.popup='forward';dmW.menu=null;dmShow();return}
+ const info=hit('[data-dmw-info]');
+ if(info){stop();dmW.selectedMessage=dmWMessage(info.dataset.dmwInfo,dm.tab==='private'?'private':'room');dmW.popup='info';dmW.menu=null;dmShow();return}
+ const deleted=hit('[data-dmw-delete]');
+ if(deleted){stop();dmW.menu=null;dmDelete(deleted.dataset.dmwDeleteType,deleted.dataset.dmwDelete);return}
+ const jump=hit('[data-dmw-jump]');
+ if(jump){stop();const message=[...document.querySelectorAll('[data-dmw-message]')].find(x=>x.dataset.dmwMessage===jump.dataset.dmwJump);
+  if(message){message.scrollIntoView({behavior:'smooth',block:'center'});message.classList.add('flash');setTimeout(()=>message.classList.remove('flash'),1400)}return}
+ if(hit('[data-dmw-clear-reply]')){stop();dmW.reply=null;dmShow();return}
+ if(hit('[data-dmw-emoji]')){stop();dmW.panel=dmW.panel==='emoji'?null:'emoji';dmShow();return}
+ if(hit('[data-dmw-tools]')){stop();dmW.panel=dmW.panel==='tools'?null:'tools';dmShow();return}
+ const fallback=hit('[data-dmw-emojifallback]');
+ if(fallback){stop();const field=document.getElementById('dmPrompt');if(field){field.value+=fallback.dataset.dmwEmojifallback;dm.draft=field.value;field.focus()}return}
+ const attach=hit('[data-dmw-attach]');
+ if(attach){stop();dmW.mediaKind=attach.dataset.dmwAttach;const field=document.getElementById('dmWFileInput');
+  if(field){field.accept=({image:'image/jpeg,image/png,image/webp,image/gif',video:'video/mp4,video/webm,video/quicktime',
+   audio:'audio/webm,audio/ogg,audio/mp4,audio/mpeg,audio/aac,audio/wav',sticker:'image/png,image/webp'})[dmW.mediaKind];field.click()}return}
+ if(hit('[data-dmw-record]')){stop();dmWStartRecord();return}
+ if(hit('[data-dmw-record-stop]')){stop();dmWStopRecord(false);return}
+ if(hit('[data-dmw-record-cancel]')){stop();dmWStopRecord(true);return}
+ if(hit('[data-dmw-wallpaper]')){stop();dmW.wallpaper=!dmW.wallpaper;dmShow();return}
+ const bg=hit('[data-dmw-bg]');
+ if(bg){stop();try{localStorage.setItem('psicomoodle_bg_'+dm.owner+'_'+dmWSelected(),bg.dataset.dmwBg)}catch(_){}
+  dmW.wallpaper=false;dmShow();return}
+ if(hit('[data-dmw-group]')){stop();dmW.popup='group';dmShow();return}
+ const admin=hit('[data-dmw-toggle-admin]');
+ if(admin){stop();const row=dmWMembers(dm.roomId).find(x=>x.user_id===admin.dataset.dmwToggleAdmin);
+  if(row&&dmWAdmin(dm.roomId)){const result=await client.from('uentzoul_chat_members').update({is_admin:!row.is_admin}).eq('room_id',dm.roomId).eq('user_id',row.user_id);
+   if(result.error)toast(result.error.message);else{await dmLoad();dmW.popup='group';dmShow()}}return}
+ const kick=hit('[data-dmw-kick]');
+ if(kick){stop();if(!dmWAdmin(dm.roomId)||!confirm('Remover este participante do grupo?'))return;
+  const result=await client.from('uentzoul_chat_members').delete().eq('room_id',dm.roomId).eq('user_id',kick.dataset.dmwKick);
+  if(result.error)toast(result.error.message);else{await dmLoad();dmW.popup='group';dmShow()}return}
+ if(hit('[data-dmw-leave]')){stop();if(!confirm('Sair deste grupo?'))return;
+  const result=await client.from('uentzoul_chat_members').delete().eq('room_id',dm.roomId).eq('user_id',dm.owner);
+  if(result.error)toast(result.error.message);else{dmWOpen('private',null);await dmLoad()}return}
+ if(hit('[data-dmw-close-popup]')||e.target.matches?.('[data-dmw-overlay]')){stop();dmW.popup=null;dmW.selectedMessage=null;dmShow();return}
+ if(hit('[data-dmw-gif]')){stop();dmW.panel=null;dmW.popup='gif';dmShow();return}
+ if(hit('[data-dmw-gif-search]')){stop();const q=String(document.querySelector('#dmWGifForm [name=query]')?.value||'').trim();
+  window.open('https://giphy.com/search/'+encodeURIComponent(q||'reaction'),'_blank','noopener,noreferrer');return}
+ const dest=hit('[data-dmw-forward-target]');
+ if(dest){stop();await dmWForwardTo(dest.dataset.dmwForwardTarget);return}
+ if(dmW.menu&&!hit('.dm-message-popup')){dmW.menu=null;document.querySelectorAll('.dm-message-popup').forEach(x=>x.remove())}
+},true);
+document.addEventListener('change',e=>{
+ if(e.target.id==='dmWFileInput'&&e.target.files?.[0])dmWPrepareFile(e.target.files[0],dmW.mediaKind);
+});
+document.addEventListener('submit',async e=>{
+ if(e.target.id==='dmWGifForm'){
+  e.preventDefault();e.stopImmediatePropagation();
+  const url=String(new FormData(e.target).get('url')||'').trim();
+  if(!dmWGifValid(url)){toast('Link inválido. Use GIPHY ou Tenor.');return}
+  dmW.popup=null;await dmSend('gif',url);return;
+ }
+ if(e.target.id==='dmWGroupEdit'){
+  e.preventDefault();e.stopImmediatePropagation();const button=e.target.querySelector('[type=submit]');button.disabled=true;
+  try{await dmWEditGroup(e.target)}catch(err){toast(err?.message||'Não foi possível atualizar o grupo.')}
+  finally{button.disabled=false}return;
+ }
+ if(e.target.id==='dmWGroupAdd'){
+  e.preventDefault();e.stopImmediatePropagation();const user=String(new FormData(e.target).get('member')||'');
+  if(!dmValid(user)||!dmWAdmin(dm.roomId))return;
+  const response=await client.from('uentzoul_chat_members').insert({room_id:dm.roomId,user_id:user});
+  if(response.error)toast(response.error.message);else{await dmLoad();dmW.popup='group';dmShow()}return;
+ }
+},true);
+document.addEventListener('keydown',e=>{
+ if(e.key==='Escape'&&dmW.popup){dmW.popup=null;dmShow()}
+});
 
 
 /* Matérias complementares privadas — compartilhadas somente dentro da conta do aluno. */
