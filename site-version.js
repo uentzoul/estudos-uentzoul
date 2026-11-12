@@ -41,33 +41,52 @@ setInterval(check,90000);
 setTimeout(check,15000);
 })();
 
-/* Reconciliacao da aba Pessoal: eventos podem ocorrer durante uma
-   atualizacao do painel e deixar a janela pendente ate outra navegacao.
-   Reaplica o portal apos o evento sem alterar materias ou dados. */
+
+/* Aba Pessoal suspensa por solicitacao do administrador.
+   Esconde a entrada e impede que a interface antiga seja acessada,
+   sem tocar nos registros privados ou nos demais modulos. */
 (()=>{
  'use strict';
- if(window.__personalPortalReconciler)return;
- window.__personalPortalReconciler=true;
- let ticket=0;
- const isPersonal=()=>!!document.querySelector('[data-page="personal"].active, [data-page="personal"][aria-current="page"]')||
-   !!document.querySelector('#main .pc2-page');
- function sync(){
-   if(!isPersonal())return;
-   try{window.uentzoulPersonal?.afterRender?.()}catch(err){console.warn('Pessoal: falha ao sincronizar janela',err)}
+ if(window.__personalTabSuspended)return;
+ window.__personalTabSuspended=true;
+ const css=document.createElement('style');
+ css.id='personal-tab-suspended';
+ css.textContent='button[data-page="personal"],a[data-page="personal"],[data-nav="personal"],#pc2ModalPortal{display:none!important}';
+ (document.head||document.documentElement).appendChild(css);
+
+ function removeEntry(){
+  document.querySelectorAll('button[data-page="personal"],a[data-page="personal"],[data-nav="personal"]').forEach(node=>node.remove());
+  const dialog=document.getElementById('pc2ModalPortal');
+  if(dialog)dialog.remove();
+  document.body?.classList.remove('pc2-modal-visible');
+ }
+ let redirecting=false;
+ function enforce(){
+  removeEntry();
+  const personalVisible=!!document.querySelector('#main .pc2-page, #main .pc-page, #main .pc-login')||
+    !!document.querySelector('[data-page="personal"].active');
+  if(!personalVisible||redirecting)return;
+  const home=document.querySelector('button[data-page="home"],a[data-page="home"]');
+  if(!home)return;
+  redirecting=true;
+  try{home.click()}finally{queueMicrotask(()=>{redirecting=false})}
  }
  document.addEventListener('click',event=>{
-   const target=event.target;
-   if(!(target instanceof Element))return;
-   if(!target.closest('[data-pc-new], [data-pc-modal-open], [data-pc-open-subject], [data-page="personal"]'))return;
-   const current=++ticket;
-   queueMicrotask(()=>{if(current===ticket)sync()});
-   requestAnimationFrame(()=>{if(current===ticket)sync()});
+  const target=event.target;
+  if(!(target instanceof Element))return;
+  if(target.closest('[data-page="personal"],[data-nav="personal"],[data-pc-new]')){
+   event.preventDefault();event.stopImmediatePropagation();
+  }
  },true);
- const observer=new MutationObserver(records=>{
-   if(!isPersonal()||!document.querySelector('#pc2ModalPortal'))return;
-   const portal=document.getElementById('pc2ModalPortal');
-   if(portal&&!portal.firstElementChild)requestAnimationFrame(sync);
- });
- const start=()=>observer.observe(document.body,{childList:true,subtree:false});
+ let queued=false;
+ function schedule(){
+  if(queued)return;
+  queued=true;
+  requestAnimationFrame(()=>{queued=false;enforce()});
+ }
+ function start(){
+  enforce();
+  new MutationObserver(schedule).observe(document.body,{childList:true,subtree:true});
+ }
  if(document.body)start();else document.addEventListener('DOMContentLoaded',start,{once:true});
 })();
