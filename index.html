@@ -1939,6 +1939,24 @@ html[data-theme="dark"] .tz-shell .tz-new-chat{background:#292640;border-color:#
  .tz-shell .tz-composer .tz-send{width:33px;height:33px;min-width:33px;border-radius:10px}
 }
 @media(prefers-reduced-motion:reduce){.tz-shell .tz-new-chat{transition:none}}
+
+/* IA Tzoul: anexos de imagens, documentos e PDFs, sem aumentar excessivamente o compositor. */
+.tz-shell .tz-upload-btn{display:grid;place-items:center;flex:0 0 32px;width:32px;height:34px;padding:0;border:0;border-radius:10px;background:transparent;color:var(--muted)}
+.tz-shell .tz-upload-btn:hover:not(:disabled){background:var(--soft);color:var(--ink)}
+.tz-shell .tz-upload-btn:focus-visible,.tz-pending-item button:focus-visible,.tz-sent-file:focus-visible{outline:2px solid #967cda;outline-offset:2px}
+.tz-pending{display:flex;align-items:stretch;gap:7px;overflow-x:auto;max-width:100%;padding:2px 0 7px;scrollbar-width:thin}
+.tz-pending-item{display:flex;align-items:center;gap:7px;flex:0 0 auto;min-width:0;max-width:220px;padding:5px 6px;background:var(--soft);border:1px solid var(--line);border-radius:11px;color:var(--ink)}
+.tz-pending-item img{width:33px;height:33px;object-fit:cover;border-radius:7px;flex:none}
+.tz-pending-icon{display:grid;place-items:center;flex:none;width:33px;height:33px;border-radius:7px;background:#e8e2f7;color:#6553a2;font-size:20px}
+.tz-pending-label{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:11px;max-width:125px}
+.tz-pending-item button{border:0;background:transparent;color:var(--muted);border-radius:7px;font-size:18px;min-width:23px;height:28px;padding:0}
+.tz-pending-item button:hover{background:var(--paper);color:var(--ink)}
+.tz-sent-attachments{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+.tz-sent-file{max-width:min(100%,260px);display:inline-flex;align-items:center;gap:7px;min-width:0;border:1px solid var(--line);background:var(--paper);color:var(--ink);border-radius:9px;padding:7px 9px;text-align:left;font-size:11px;cursor:pointer}
+.tz-sent-file>span:last-child{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tz-sent-file:hover{border-color:#af9ade;background:var(--soft)}
+html[data-theme="dark"] .tz-pending-icon{background:#40375e;color:#d6c4ff}
+@media(max-width:760px){.tz-shell .tz-upload-btn{flex-basis:28px;width:28px;height:31px}.tz-shell .tz-upload-btn svg{width:17px;height:17px}.tz-pending-item{max-width:170px}.tz-pending-label{max-width:85px}}
 </style>
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2064%2064%22%3E%3Crect%20width%3D%2264%22%20height%3D%2264%22%20rx%3D%2214%22%20fill%3D%22%23192d44%22%2F%3E%3Ctext%20x%3D%2232%22%20y%3D%2246%22%20fill%3D%22white%22%20font-size%3D%2246%22%20font-family%3D%22Georgia%2Cserif%22%20text-anchor%3D%22middle%22%3E%CE%A8%3C%2Ftext%3E%3C%2Fsvg%3E">
 <link rel="stylesheet" href="library-manager.css?v=20261111-5">
@@ -2931,8 +2949,63 @@ function renderCalendar(){
 const geUser=()=>window.uentzoulAIAuth?.user()||null;
 const geClient=()=>window.uentzoulAIAuth?.client?.()||null;
 const TZ_AVATAR_URL='ia-tzoul-mascote.svg?v=20261112-original-2';
-const tz={messages:[],subject:'todos',material:'',mode:'chat',quality:'standard',draft:'',busy:false,note:'',ready:null,checking:false,remaining:null,contextOpen:false,conversations:[],active:null,loaded:false,loading:false,owner:null};
+const tz={messages:[],subject:'todos',material:'',mode:'chat',quality:'standard',draft:'',busy:false,note:'',ready:null,checking:false,remaining:null,contextOpen:false,pending:[],conversations:[],active:null,loaded:false,loading:false,owner:null};
 const tzAvatar=()=>'<span class="tz-avatar"><img src="'+esc(TZ_AVATAR_URL)+'" alt="Foto da IA Tzoul" loading="lazy"></span>';
+const TZ_AI_BUCKET='uentzoul-ai-attachments';
+const TZ_AI_MIME={jpg:'image/jpeg',jpeg:'image/jpeg',png:'image/png',webp:'image/webp',pdf:'application/pdf',docx:'application/vnd.openxmlformats-officedocument.wordprocessingml.document',pptx:'application/vnd.openxmlformats-officedocument.presentationml.presentation',txt:'text/plain',md:'text/markdown'};
+function tzCleanPending(){
+ for(const p of tz.pending)if(p.preview)URL.revokeObjectURL(p.preview);
+ tz.pending=[];
+}
+function tzQueueFiles(files){
+ if(tz.busy)return;
+ const incoming=Array.from(files||[]);
+ let rejected=0,limit=0;
+ for(const file of incoming){
+  const ext=(file.name.split('.').pop()||'').toLowerCase();
+  const mime=TZ_AI_MIME[ext];
+  const max= mime?.startsWith('image/')?5*1024*1024:10*1024*1024;
+  if(!mime||(file.type&&file.type!==mime)||file.size<1||file.size>max){rejected++;continue}
+  if(tz.pending.length>=3){limit++;continue}
+  const duplicate=tz.pending.some(p=>p.file.name===file.name&&p.file.size===file.size&&p.file.lastModified===file.lastModified);
+  if(duplicate)continue;
+  tz.pending.push({file,mime,ext,preview:mime.startsWith('image/')?URL.createObjectURL(file):null});
+ }
+ tz.draft=document.getElementById('tzPrompt')?.value||tz.draft;
+ if(rejected)tz.note='Algum arquivo não foi aceito. Envia imagens JPG, PNG ou WebP (até 5 MB) ou PDF, Word, PowerPoint, TXT e Markdown (até 10 MB).';
+ else if(limit)tz.note='Podes anexar até 3 arquivos por mensagem.';
+ else tz.note='';
+ if(current.page==='ai')render();
+}
+async function tzUploadFiles(){
+ const uid=window.uentzoulAIAuth?.user()?.id;
+ if(!uid||!geClient())throw Error('Entra na conta para enviar arquivos.');
+ const uploaded=[];
+ try{
+  for(const p of tz.pending){
+   const path=uid+'/'+crypto.randomUUID()+'.'+p.ext;
+   const {error}=await geClient().storage.from(TZ_AI_BUCKET).upload(path,p.file,{contentType:p.mime,upsert:false,cacheControl:'3600'});
+   if(error)throw Error('Não consegui enviar '+p.file.name+': '+error.message);
+   uploaded.push({path,name:p.file.name.slice(0,110),type:p.mime,size:p.file.size});
+  }
+  return uploaded;
+ }catch(e){
+  if(uploaded.length)await geClient().storage.from(TZ_AI_BUCKET).remove(uploaded.map(x=>x.path)).catch(()=>{});
+  throw e;
+ }
+}
+async function tzOpenAttached(messageIndex,fileIndex){
+ const a=tz.messages[messageIndex]?.attachments?.[fileIndex],uid=window.uentzoulAIAuth?.user()?.id;
+ if(!a||!uid||!String(a.path).startsWith(uid+'/'))return;
+ const tab=window.open('','_blank');
+ try{
+  const {data,error}=await geClient().storage.from(TZ_AI_BUCKET).createSignedUrl(a.path,90);
+  if(error||!data?.signedUrl)throw Error('Arquivo indisponível.');
+  if(tab)tab.location.replace(data.signedUrl);
+  else toast('Autoriza a abertura de abas para visualizar o arquivo.');
+ }catch(e){if(tab)tab.close();tz.note=e.message||'Não foi possível abrir este anexo.';if(current.page==='ai')render();}
+}
+
 function tzInline(raw){
  let s=esc(raw);
  s=s.replace(/\[([^\]]+)\]\((https:\/\/[^\s)]+)\)/g,'<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>');
@@ -2967,7 +3040,7 @@ function tzMessage(m,i){
  const sources=answer&&m.sources?.length?'<div class="tz-sources">'+m.sources.slice(0,4).map(v=>
  '<button type="button" data-action="'+(DB.subjects[v.subject]?'subject:'+v.subject:'page:home')+'">'+esc(v.title)+'</button>').join('')+'</div>':'';
  return '<div class="tz-msg '+(answer?'assistant':'user')+'">'+(answer?tzAvatar():'<span class="tz-me">EU</span>')+
- '<div class="tz-msg-body"><span class="tz-who">'+(answer?'IA Tzoul':'Tu')+'</span><div class="tz-bubble">'+tzMarkdown(m.content)+'</div>'+
+ '<div class="tz-msg-body"><span class="tz-who">'+(answer?'IA Tzoul':'Tu')+'</span><div class="tz-bubble">'+tzMarkdown(m.content)+(!answer&&Array.isArray(m.attachments)&&m.attachments.length?'<div class="tz-sent-attachments">'+m.attachments.slice(0,3).map((a,j)=>'<button type="button" class="tz-sent-file" data-tz-file="'+i+':'+j+'" title="Abrir anexo privado"><span aria-hidden="true">'+(String(a.type||'').startsWith('image/')?'▧':'▤')+'</span><span>'+esc(a.name||'Anexo')+'</span></button>').join('')+'</div>':'')+'</div>'+
  sources+(answer?'<div class="tz-actions"><button data-tz-copy="'+i+'">Copiar</button><button data-tz-export="'+i+':txt">TXT</button><button data-tz-export="'+i+':md">Markdown</button><button data-tz-export="'+i+':doc">Word (.doc)</button><button data-tz-export="'+i+':pdf">PDF / Imprimir</button></div>':'')+'</div></div>';
 }
 function renderAI(){
@@ -3000,7 +3073,12 @@ function renderAI(){
  '</select></label></div>'+
  '<div class="tz-context-mode"><span>Tipo de resposta</span><div class="tz-modes"><button type="button" data-tz-mode="chat" class="tz-mode '+(tz.mode==='chat'?'selected':'')+'">Conversa</button><button type="button" data-tz-mode="document" class="tz-mode '+(tz.mode==='document'?'selected':'')+'">Documento</button></div></div><div class="tz-context-mode"><span>Profundidade</span><div class="tz-modes"><button type="button" data-tz-quality="standard" class="tz-mode '+(tz.quality==='standard'?'selected':'')+'">Padrão</button><button type="button" data-tz-quality="deep" class="tz-mode '+(tz.quality==='deep'?'selected':'')+'">Aprofundada</button></div></div>'+
  '<p class="tz-context-note">Um material só pode ser lido integralmente se o arquivo estiver acessível. Os demais conteúdos são consultados pela base indexada.</p></div></details>'+
+ (tz.pending.length?'<div class="tz-pending" aria-label="Anexos prontos para enviar">'+tz.pending.map((p,i)=>'<div class="tz-pending-item">'+(p.preview?'<img src="'+p.preview+'" alt="Prévia de '+esc(p.file.name)+'">':'<span class="tz-pending-icon" aria-hidden="true">▤</span>')+'<span class="tz-pending-label" title="'+esc(p.file.name)+'">'+esc(p.file.name)+'</span><button type="button" data-tz-remove-file="'+i+'" aria-label="Remover '+esc(p.file.name)+'" title="Remover anexo">×</button></div>').join('')+'</div>':'')+
  '<div class="tz-composer"><label for="tzPrompt" class="tz-sr-only">Escreve uma mensagem à IA Tzoul</label>'+
+ '<input id="tzAddDocs" type="file" accept=".pdf,.docx,.pptx,.txt,.md" multiple hidden>'+
+ '<input id="tzAddImages" type="file" accept="image/jpeg,image/png,image/webp" multiple hidden>'+
+ '<button type="button" class="tz-upload-btn" data-tz-pick="docs" title="Anexar PDF, Word, PowerPoint ou texto" aria-label="Anexar arquivo" '+(!logged||tz.busy?'disabled':'')+'><svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" aria-hidden="true"><path d="m21 11.5-8.2 8.2a5 5 0 0 1-7.1-7.1L14.4 4a3.5 3.5 0 0 1 5 5l-8.9 8.9a2 2 0 0 1-2.8-2.8l8.2-8.2"/></svg></button>'+
+ '<button type="button" class="tz-upload-btn" data-tz-pick="images" title="Enviar foto" aria-label="Enviar foto" '+(!logged||tz.busy?'disabled':'')+'><svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 16-5.5-5.5L5 21"/></svg></button>'+
  '<textarea id="tzPrompt" rows="1" maxlength="4000" aria-label="Mensagem para a IA Tzoul" placeholder=" " '+(!logged||!hasContent||tz.busy||tz.ready===false?'disabled':'')+'>'+esc(tz.draft)+'</textarea>'+
  '<div class="tz-hints" aria-hidden="true"><span>Corrigir trabalhos com base nos materiais da aula</span><span>Encontrar textos e trechos específicos dos conteúdos</span><span>Resumir um capítulo ou uma parte do material</span><span>Criar documentos, questões e roteiros de estudo</span></div>'+
  '<button type="submit" class="tz-send" aria-label="Enviar mensagem" title="Enviar mensagem" '+(!logged||!hasContent||tz.busy||tz.ready===false?'disabled':'')+'>'+
@@ -3044,10 +3122,10 @@ async function tzLoad(){
 }
 function tzApplyConversation(c){
  tz.active=c?.id||null;tz.messages=Array.isArray(c?.messages)?c.messages:[];tz.subject=DB.subjects[c?.subject]?c.subject:'todos';
- tz.material=String(c?.material_path||'');tz.mode=c?.mode==='document'?'document':'chat';tz.draft='';tz.note='';
+ tz.material=String(c?.material_path||'');tz.mode=c?.mode==='document'?'document':'chat';tzCleanPending();tz.draft='';tz.note='';
 }
 async function tzNewConversation(){
- if(tz.busy)return;tz.active=null;tz.messages=[];tz.draft='';tz.note='';tz.subject='todos';tz.material='';tz.mode='chat';render();
+ if(tz.busy)return;tzCleanPending();tz.active=null;tz.messages=[];tz.draft='';tz.note='';tz.subject='todos';tz.material='';tz.mode='chat';render();
 }
 async function tzCreateConversation(firstMessage){
  if(!geClient()||!window.uentzoulAIAuth?.user())throw Error('Entre na tua conta para guardar a conversa.');
@@ -3060,7 +3138,7 @@ async function tzCreateConversation(firstMessage){
 async function tzStoreMessages(id,messages){
  const uid=window.uentzoulAIAuth?.user()?.id;if(!geClient()||!uid)return;
  const {data,error}=await geClient().from('uentzoul_ai_conversations').update({
-  messages:messages.slice(-90).map(m=>({role:m.role,content:String(m.content||'').slice(0,18000),sources:m.sources||[]})),
+  messages:messages.slice(-90).map(m=>({role:m.role,content:String(m.content||'').slice(0,18000),sources:m.sources||[],attachments:Array.isArray(m.attachments)?m.attachments.slice(0,3).map(a=>({path:String(a.path||'').slice(0,160),name:String(a.name||'').slice(0,110),type:String(a.type||'').slice(0,100),size:Number(a.size)||0})):[]})),
   subject:tz.subject,material_path:tz.material,mode:tz.mode,updated_at:new Date().toISOString()
  }).eq('id',id).eq('user_id',uid).select('*').single();
  if(error)throw error;
@@ -3085,27 +3163,31 @@ async function tzRenameConversation(id){
  c.title=name.trim().slice(0,100);render();
 }
 
+
 async function tzAsk(){
  if(tz.busy)return;
- const message=$('tzPrompt')?.value.trim()||'';
- if(!message)return;
- const history=tz.messages.slice(-12).map(m=>({role:m.role,content:m.content}));
- tz.draft=message;tz.note='';tz.busy=true;
- let id=tz.active;let userAdded=false;
+ const raw=document.getElementById('tzPrompt')?.value.trim()||'';
+ if(!raw&&!tz.pending.length)return;
+ const message=raw||'Analisa os anexos enviados e destaca os pontos mais importantes para os meus estudos.';
+ const history=tz.messages.slice(-12).map(m=>({role:m.role,content:m.content,attachments:m.role==='user'?(m.attachments||[]):[]}));
+ tz.draft=raw;tz.note='';tz.busy=true;render();
+ let id=tz.active,added=false,sent=false,uploaded=[];
  try{
+  uploaded=await tzUploadFiles();
   if(!id)id=await tzCreateConversation(message);
-  tz.messages.push({role:'user',content:message});userAdded=true;render();
-  const answer=await tzFetch('POST',{message,history,subject:tz.subject,materialPath:tz.material,mode:tz.mode,quality:tz.quality});
+  tz.messages.push({role:'user',content:message,attachments:uploaded});added=true;render();
+  const answer=await tzFetch('POST',{message,history,attachments:uploaded,subject:tz.subject,materialPath:tz.material,mode:tz.mode,quality:tz.quality});
   if(!answer.answer)throw Error('A IA não retornou texto.');
   tz.messages.push({role:'assistant',content:answer.answer,sources:answer.sources||[]});
-  tz.remaining=typeof answer.remaining==='number'?answer.remaining:null;tz.draft='';
-  if(tz.material&&!answer.usedMaterial)tz.note='O texto integral do arquivo não pôde ser lido. A resposta usou o material indexado.';
+  sent=true;tz.remaining=typeof answer.remaining==='number'?answer.remaining:null;tz.draft='';tzCleanPending();
+  if(tz.material&&!answer.usedMaterial)tz.note='O texto integral do arquivo selecionado não pôde ser lido. A resposta usou o material indexado.';
  }catch(e){
-  if(userAdded&&tz.messages[tz.messages.length-1]?.role==='user')tz.messages.pop();
+  if(added&&tz.messages[tz.messages.length-1]?.role==='user')tz.messages.pop();
+  if(!sent&&uploaded.length)await geClient().storage.from(TZ_AI_BUCKET).remove(uploaded.map(a=>a.path)).catch(()=>{});
   tz.note=e?.message||'Falha ao responder.';
  }finally{
-  if(id&&userAdded){try{await tzStoreMessages(id,tz.messages)}catch(e){tz.note='Não foi possível salvar o histórico: '+e.message;}}
-  tz.busy=false;if(current.page==='ai'){render();const el=$('tzThread');if(el)el.scrollTop=el.scrollHeight;}
+  if(id&&added){try{await tzStoreMessages(id,tz.messages)}catch(e){tz.note='Não foi possível salvar o histórico: '+e.message;}}
+  tz.busy=false;if(current.page==='ai'){render();const el=document.getElementById('tzThread');if(el)el.scrollTop=el.scrollHeight;}
  }
 }
 function tzDownload(content,name,type){
@@ -3124,13 +3206,20 @@ function tzExport(index,format){
 document.addEventListener('submit',e=>{if(e.target.id==='tzForm'){e.preventDefault();tzAsk();}});
 document.addEventListener('input',e=>{if(e.target.id==='tzPrompt')tz.draft=e.target.value;});
 document.addEventListener('change',e=>{
+ if(e.target.id==='tzAddDocs'||e.target.id==='tzAddImages'){tzQueueFiles(e.target.files);e.target.value='';return;}
  if(e.target.id==='tzSubject'){tz.draft=$('tzPrompt')?.value||'';tz.subject=e.target.value;tz.material='';render();}
  if(e.target.id==='tzMaterial')tz.material=e.target.value;
 });
 document.addEventListener('keydown',e=>{if(e.target.id==='tzPrompt'&&e.key==='Enter'&&!e.shiftKey&&!e.isComposing){e.preventDefault();tzAsk();}});
 document.addEventListener('toggle',e=>{if(e.target.id==='tzContext')tz.contextOpen=e.target.open;},true);
 document.addEventListener('click',e=>{
- let b=e.target.closest('[data-tz-mode]');
+ let b=e.target.closest('[data-tz-pick]');
+ if(b){document.getElementById(b.dataset.tzPick==='images'?'tzAddImages':'tzAddDocs')?.click();return;}
+ b=e.target.closest('[data-tz-remove-file]');
+ if(b){const n=Number(b.dataset.tzRemoveFile);const removed=tz.pending.splice(n,1)[0];if(removed?.preview)URL.revokeObjectURL(removed.preview);tz.draft=document.getElementById('tzPrompt')?.value||tz.draft;render();return;}
+ b=e.target.closest('[data-tz-file]');
+ if(b){const [i,j]=b.dataset.tzFile.split(':').map(Number);tzOpenAttached(i,j);return;}
+ b=e.target.closest('[data-tz-mode]');
  if(b){tz.draft=$('tzPrompt')?.value||tz.draft;tz.mode=b.dataset.tzMode;render();return;}
  b=e.target.closest('[data-tz-retry]');
  if(b){if(tz.checking||tz.busy)return;tz.ready=null;tz.note='';render();return;}
@@ -3146,8 +3235,11 @@ document.addEventListener('click',e=>{
  b=e.target.closest('[data-tz-export]');
  if(b){const [index,format]=b.dataset.tzExport.split(':');tzExport(Number(index),format);return;}
 });
+document.addEventListener('paste',e=>{if(e.target.id==='tzPrompt'&&e.clipboardData?.files?.length){const images=Array.from(e.clipboardData.files).filter(f=>/^image\//.test(f.type));if(images.length){e.preventDefault();tzQueueFiles(images);}}});
+document.addEventListener('dragover',e=>{if(e.target.closest('.tz-chat')&&e.dataTransfer?.types?.includes('Files'))e.preventDefault();});
+document.addEventListener('drop',e=>{if(e.target.closest('.tz-chat')&&e.dataTransfer?.files?.length){e.preventDefault();tzQueueFiles(e.dataTransfer.files);}});
 window.addEventListener('uentzoul:auth',()=>{
- tz.ready=null;tz.note='';
+ tzCleanPending();tz.ready=null;tz.note='';
  if(!window.uentzoulAIAuth?.user()){tz.messages=[];tz.draft='';tz.remaining=null;tz.active=null;tz.conversations=[];tz.owner=null;tz.loaded=false;tz.loading=false;}
  else if(tz.owner!==window.uentzoulAIAuth.user().id){tz.messages=[];tz.active=null;tz.conversations=[];tz.loaded=false;tz.loading=false;tz.owner=null;}
  if(current.page==='ai')render();
