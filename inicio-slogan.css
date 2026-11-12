@@ -1,0 +1,14 @@
+/* Cabeçalho do Início: uma única chamada, mantendo o progresso à direita. */
+.dashboard-hero.slogan-hero{min-height:168px;padding:29px 32px;gap:26px}
+.dashboard-hero.slogan-hero .hero-copy{max-width:none;flex:1;min-width:0}
+.dashboard-hero.slogan-hero .slogan-title{font-size:clamp(34px,4vw,58px);line-height:1.06;letter-spacing:-.045em;font-weight:850;margin:0;color:#fff;text-wrap:balance}
+.dashboard-hero.slogan-hero .hero-status{position:relative;z-index:1}
+@media(max-width:760px){
+ .dashboard-hero.slogan-hero{min-height:135px;padding:23px 21px}
+ .dashboard-hero.slogan-hero .slogan-title{font-size:clamp(32px,5vw,44px)}
+}
+@media(max-width:480px){
+ .dashboard-hero.slogan-hero{display:block;padding:24px 20px}
+ .dashboard-hero.slogan-hero .slogan-title{font-size:clamp(32px,8vw,43px);max-width:16ch}
+ .dashboard-hero.slogan-hero .hero-status{margin-top:23px}
+}
