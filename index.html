@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="color-scheme" content="light dark">
-<meta name="site-build" content="auto-update-20261112-planos-integrados-v18">
+<meta name="site-build" content="auto-update-20261112-confirmacao-email-v19">
 <script>try{document.documentElement.dataset.theme=localStorage.getItem("uentzoul_theme_v1")==="dark"?"dark":"light"}catch(e){document.documentElement.dataset.theme="light"}</script>
 <title>PsicoMoodle · Psicologia PUCRS</title>
 <style>
@@ -1652,6 +1652,21 @@ html[data-exam-focus="2026/2"] .sidebtn[data-page="audio"]{display:none!importan
 @media(max-width:600px){
  .report-dialog-close,.profile-close,.dm-group-heading [data-dm-close-group]{min-width:38px;min-height:38px;width:38px;height:38px}
 }
+
+/* Confirmação de cadastro: o próximo passo precisa ficar evidente. */
+.signup-confirmation{margin:12px 0 4px;padding:25px 23px 22px;border:1px solid #c9bbef;border-radius:16px;background:color-mix(in srgb,#7960c9 9%,var(--paper));color:var(--ink);text-align:left}
+.signup-confirmation-icon{display:grid;place-items:center;width:50px;height:50px;border-radius:14px;background:#7157b9;color:white;font-size:26px;margin-bottom:15px}
+.signup-confirmation h2{font-size:22px;line-height:1.26;margin:0 0 13px;letter-spacing:-.35px}
+.signup-confirmation p{font-size:13.5px;line-height:1.75;margin:0 0 13px;color:var(--ink);overflow-wrap:anywhere}
+.signup-confirmation p strong{color:var(--ink);font-weight:790}
+.signup-confirmation .signup-confirmation-tip{font-size:12px;color:var(--muted);margin:0 0 18px}
+.signup-confirmation-resend{width:100%;min-height:43px;text-align:center;border-color:#a896dc}
+.signup-confirmation-login{width:100%;border:0;background:transparent;color:#6552a4;padding:13px 10px;font-weight:740;font-size:12px;cursor:pointer}
+.signup-confirmation .profile-message{font-size:12px;line-height:1.5;margin:5px 0 0}
+html[data-theme="dark"] .signup-confirmation{background:#332b48;border-color:#635485}
+html[data-theme="dark"] .signup-confirmation-login{color:#c5b2ef}
+@media(max-width:550px){.signup-confirmation{padding:20px 16px}.signup-confirmation h2{font-size:20px}}
+
 </style>
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2064%2064%22%3E%3Crect%20width%3D%2264%22%20height%3D%2264%22%20rx%3D%2214%22%20fill%3D%22%23192d44%22%2F%3E%3Ctext%20x%3D%2232%22%20y%3D%2246%22%20fill%3D%22white%22%20font-size%3D%2246%22%20font-family%3D%22Georgia%2Cserif%22%20text-anchor%3D%22middle%22%3E%CE%A8%3C%2Ftext%3E%3C%2Fsvg%3E">
 <link rel="stylesheet" href="library-manager.css?v=20261111-5">
@@ -3479,7 +3494,7 @@ const bridge=window.uentzoulProfileBridge;if(!bridge)return;
 window.uentzoulVerifiedScore=0;
 window.uentzoulSubmitVerifiedExam=async()=>null;
 const $=id=>document.getElementById(id), esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;','\'':'&#39;'}[c]));
-let onlineUser=null,remoteProfile=null,client=null,modalView='login',busy=false,syncTimer=null,rankData=[],rankBusy=false,cloudSnapshot=null,rankingSemester=null,cloudLoading=false,cloudError='',cloudInitPromise=null,enteringUserId=null,enteringPromise=null;
+let onlineUser=null,remoteProfile=null,client=null,modalView='login',pendingConfirmationEmail='',busy=false,syncTimer=null,rankData=[],rankBusy=false,cloudSnapshot=null,rankingSemester=null,cloudLoading=false,cloudError='',cloudInitPromise=null,enteringUserId=null,enteringPromise=null;
 const cfg=(()=>{try{return JSON.parse($('uentzoul-auth-config').textContent)}catch{return {}}})();
 const backendReady=!!(cfg.url&&cfg.publishableKey&&/^https:\/\//.test(cfg.url));
 const CONFIRMATION_RETURN_URL='https://uentzoul.github.io/estudos-uentzoul/';
@@ -3516,6 +3531,16 @@ function renderModal(){
    ?'<p class="profile-form-note" role="status">Conectando à conta online…</p>'
    :'<p class="profile-form-note" role="alert">'+esc(cloudError||'O serviço de login não carregou. Podes tentar novamente sem fechar a página.')+'</p><button type="button" class="profile-secondary" data-account-action="retry-connection">Tentar conectar novamente</button>';
   return;
+ }
+ if(modalView==='verify-email'&&!onlineUser){
+  body.innerHTML='<section class="signup-confirmation" role="status" aria-live="polite">'+
+    '<span class="signup-confirmation-icon" aria-hidden="true">✉</span>'+
+    '<h2>Confirme seu endereço de e-mail</h2>'+
+    '<p>Seu cadastro foi recebido. Para concluir a criação da conta, acesse a caixa de entrada do endereço <strong>'+esc(pendingConfirmationEmail)+'</strong> e clique no link de confirmação enviado pelo PsicoMoodle.</p>'+
+    '<p class="signup-confirmation-tip">Caso não encontre a mensagem, verifique também a pasta de spam ou lixo eletrônico.</p>'+
+    '<button type="button" class="profile-secondary signup-confirmation-resend" data-account-action="resend-signup">Reenviar e-mail de confirmação</button>'+
+    '<button type="button" class="signup-confirmation-login" data-account-action="login-view">Voltar à tela de acesso</button>'+
+    '<p class="profile-message" id="profileMessage"></p></section>';return
  }
  if(onlineUser){body.innerHTML=`<div class="profile-person-row">${avatar(remoteProfile?.display_name,remoteProfile?.avatar_url)}<strong>${esc(remoteProfile?.display_name||onlineUser.email)}</strong><span class="profile-badge">Online</span></div><form class="profile-form" id="onlineProfileForm"><label>Nome exibido na turma<input name="display_name" minlength="2" maxlength="40" required value="${esc(remoteProfile?.display_name||'')}"></label><label>Foto de perfil (JPEG, PNG ou WebP)<input type="file" name="avatar" accept="image/jpeg,image/png,image/webp"></label><label class="profile-bio-editor">Bio pública <span>Apresenta-te aos colegas</span><textarea name="bio" maxlength="300" rows="4" placeholder="Ex.: Estudo Psicologia e gosto de Psicologia Social, música e cinema.">${esc(remoteProfile?.bio||"")}</textarea><small id="dmBioCounter">${(remoteProfile?.bio||"").length}/300 caracteres</small></label><div class="profile-optional-heading"><strong>Informações acadêmicas</strong><small>Opcionais · visíveis no perfil somente se preenchidas</small></div><div class="profile-optional-grid"><label>Semestre<select name="study_semester"><option value="">Não informar</option>${Array.from({length:10},(_,i)=>`<option value="${i+1}" ${Number(remoteProfile?.study_semester)===i+1?"selected":""}>${i+1}º semestre</option>`).join("")}</select></label><label>Turno<select name="study_shift"><option value="">Não informar</option><option value="manha" ${remoteProfile?.study_shift==="manha"?"selected":""}>Manhã</option><option value="tarde" ${remoteProfile?.study_shift==="tarde"?"selected":""}>Tarde</option><option value="noite" ${remoteProfile?.study_shift==="noite"?"selected":""}>Noite</option></select></label></div><p class="profile-optional-privacy">Os campos são opcionais e só aparecem no perfil quando preenchidos.</p><button type="submit">Salvar perfil</button></form><p class="profile-form-note">As atividades são sincronizadas automaticamente nesta conta.</p><button class="profile-secondary" data-account-action="logout">Sair da conta</button><p class="profile-message" id="profileMessage"></p>`;return}
 body.innerHTML=`<div class="profile-tabs"><button class="${modalView==='login'?'selected':''}" data-account-action="login-view">Entrar</button><button class="${modalView==='register'?'selected':''}" data-account-action="register-view">Cadastrar</button></div><form class="profile-form" id="onlineAuthForm">${modalView==='register'?'<label>Nome público<input name="name" autocomplete="nickname" minlength="2" maxlength="40" required></label>':''}<label>E-mail<input name="email" type="email" autocomplete="email" required></label><label>Senha<input name="password" type="password" autocomplete="${modalView==='register'?'new-password':'current-password'}" minlength="6" required></label><button type="submit">${modalView==='register'?'Criar conta':'Entrar'}</button></form><p class="profile-form-note">A conta online salva o progresso na nuvem e permite conversar com a turma.</p><button type="button" class="profile-secondary" data-account-action="resend-signup">Reenviar confirmação por e-mail</button><p class="profile-message" id="profileMessage"></p>`;return
@@ -3641,7 +3666,7 @@ async function loadRanking(){
  }catch(e){console.warn('Lista da turma indisponível',e);}
  finally{rankBusy=false;}
 }
-async function handleOnlineAuth(form){if(!client){msg('O serviço de contas ainda não foi conectado.');return}const f=new FormData(form),email=String(f.get('email')||'').trim(),password=String(f.get('password')||''),name=String(f.get('name')||'').trim();if(modalView==='register'){const {data,error}=await client.auth.signUp({email,password,options:{data:{display_name:name},emailRedirectTo:CONFIRMATION_RETURN_URL}});if(error)throw error;if(data.session){await enterCloud(data.user);closeModal()}else msg('Cadastro realizado. Confira o e-mail para confirmar tua conta.',false)}else{const {data,error}=await client.auth.signInWithPassword({email,password});if(error)throw error;await enterCloud(data.user);closeModal()}}
+async function handleOnlineAuth(form){if(!client){msg('O serviço de contas ainda não foi conectado.');return}const f=new FormData(form),email=String(f.get('email')||'').trim(),password=String(f.get('password')||''),name=String(f.get('name')||'').trim();if(modalView==='register'){const {data,error}=await client.auth.signUp({email,password,options:{data:{display_name:name},emailRedirectTo:CONFIRMATION_RETURN_URL}});if(error)throw error;if(data.session){await enterCloud(data.user);closeModal()}else{pendingConfirmationEmail=email;modalView='verify-email';renderModal()}}else{const {data,error}=await client.auth.signInWithPassword({email,password});if(error)throw error;await enterCloud(data.user);closeModal()}}
 async function handleOnlineProfile(form){
  if(!client||!onlineUser)return;
  const fields=new FormData(form);
@@ -3680,12 +3705,12 @@ document.addEventListener('click',async e=>{
  if(action==='login-view'||action==='register-view'){modalView=action==='login-view'?'login':'register';renderModal();return}
  if(action==='resend-signup'){
   if(!client){msg('Serviço de contas indisponível.');return}
-  const email=String(document.querySelector('#onlineAuthForm [name=email]')?.value||'').trim();
-  if(!email){msg('Preenche o e-mail antes de solicitar outro link.');return}
+  const email=String(document.querySelector('#onlineAuthForm [name=email]')?.value||pendingConfirmationEmail).trim();
+  if(!email){msg('Informe o e-mail para solicitar outro link de confirmação.');return}
   b.disabled=true;
   try{
    const {error}=await client.auth.resend({type:'signup',email,options:{emailRedirectTo:CONFIRMATION_RETURN_URL}});
-   if(error)throw error;msg('Se houver cadastro pendente, enviaremos uma nova confirmação.',false);
+   if(error)throw error;msg('Solicitação recebida. Verifique sua caixa de entrada e a pasta de spam.',false);
   }catch(err){msg(err.message||'Não foi possível solicitar outro e-mail.')}
   finally{b.disabled=false}
   return;
