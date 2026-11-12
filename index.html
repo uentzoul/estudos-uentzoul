@@ -2613,6 +2613,33 @@ function calendarExamRow(e){
  (e.note?'<small>'+esc(e.note)+'</small>':'')+'</div>'+
  '<button type="button" class="agenda-reading-action" data-action="subject:'+e.s+'">Revisar matéria ↗</button></div>';
 }
+function agendaMonthCalendar(year,month,events){
+ const first=new Date(year,month-1,1),count=new Date(year,month,0).getDate();
+ const offset=(first.getDay()+6)%7,slots=Math.ceil((offset+count)/7)*7;
+ const monthName=month===11?'Novembro':'Dezembro';
+ const byDay=new Map();
+ for(const event of events){if(!byDay.has(event.d))byDay.set(event.d,[]);byDay.get(event.d).push(event);}
+ const short={tcc:'TCC',familia:'Família',meta:'Metapsicologia',grupos:'Grupos',social:'Social',avaliacao:'Avaliação'};
+ const today=new Intl.DateTimeFormat('en-CA',{timeZone:'America/Sao_Paulo',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date());
+ let cells='';
+ for(let index=0;index<slots;index++){
+  const day=index-offset+1,inMonth=day>=1&&day<=count;
+  const date=inMonth?year+'-'+String(month).padStart(2,'0')+'-'+String(day).padStart(2,'0'):'';
+  const dayEvents=inMonth?(byDay.get(date)||[]):[];
+  const items=dayEvents.map(ev=>{
+   const subtitle=ev.t==='G2'?'G2':ev.t.includes('substitui')||ev.t==='PS'?'PS':ev.t;
+   return '<button type="button" class="agenda-cal-event" style="--calendar-accent:'+color(ev.s)+'" data-action="subject:'+ev.s+'" title="'+esc(agendaSubjectLabel(ev.s)+' — '+ev.t)+'">'+
+     '<strong>'+esc(short[ev.s]||agendaSubjectLabel(ev.s))+'</strong><small>'+esc(subtitle)+'</small></button>';
+  }).join('');
+  cells+='<div class="agenda-cal-day '+(!inMonth?'is-other-month':'')+(date===today?' is-today':'')+'"'+(date?' data-calendar-date="'+date+'"':'')+'>'+
+   (inMonth?'<span class="agenda-cal-number" aria-label="Dia '+day+'">'+day+'</span>':'<span aria-hidden="true"> </span>')+
+   '<div class="agenda-cal-events">'+items+'</div></div>';
+ }
+ return '<section class="agenda-calendar" aria-label="Calendário de '+monthName+' de '+year+'">'+
+  '<header class="agenda-calendar-top"><h2>'+monthName+' '+year+'</h2><span>Provas e avaliações</span></header>'+
+  '<div class="agenda-calendar-weekdays" aria-hidden="true">'+['Seg','Ter','Qua','Qui','Sex','Sáb','Dom'].map(d=>'<span>'+d+'</span>').join('')+'</div>'+
+  '<div class="agenda-calendar-grid">'+cells+'</div></section>';
+}
 function renderCalendar(){
  const exams=Object.keys(DB.subjects).map(k=>({d:getSubject(k).date,s:k,t:getSubject(k).exam,note:k==='familia'||k==='tcc'?'Data atualizada por informação posterior; o cronograma original indica outro dia.':'Data de avaliação registrada no painel de estudos.'})).sort((a,b)=>a.d.localeCompare(b.d));
  const today=new Date().toLocaleDateString('en-CA',{timeZone:'America/Sao_Paulo'});
@@ -2621,11 +2648,18 @@ function renderCalendar(){
  [['provas','▤','Provas e avaliações','Datas de provas, PS e G2'],['conteudos','▦','Conteúdos das aulas','Matéria do dia e leituras']].map(([id,icon,name,sub])=>
  '<button type="button" class="agenda-switch-button" role="tab" aria-selected="'+(calendarView===id)+'" data-action="agenda-tab:'+id+'"><span class="agenda-switch-icon" aria-hidden="true">'+icon+'</span><span class="agenda-switch-copy"><strong>'+name+'</strong><small>'+sub+'</small></span></button>').join('')+'</div>';
  const caveat='<div class="agenda-caveat">Atenção às datas: Família e TCC tiveram alterações informadas depois da publicação dos cronogramas. O plano enviado de Psicologia Social também traz datas e numeração de avaliação diferentes. Confere o Moodle para confirmar alterações.</div>';
- const examsView='<div class="agenda-toolbar"><h2>Provas do semestre</h2><small>'+exams.length+' avaliações principais</small></div>'+
- calendarDateGroups(exams,calendarExamRow)+caveat+
- '<section class="agenda-secondary"><details><summary>Substitutivas, G2 e datas dos cronogramas originais</summary>'+
- calendarDateGroups(AGENDA_EXTRA_EXAMS_2026_2.filter(e=>e.kind!=='original'),calendarExamRow)+
- '<div class="agenda-caveat">Datas distintas no cronograma original: '+AGENDA_EXTRA_EXAMS_2026_2.filter(e=>e.kind==='original').map(e=>esc(agendaSubjectLabel(e.s))+' — '+esc(calendarShortDate(e.d))+' ('+esc(e.t)+')').join('; ')+'.</div></details></section>';
+ const novemberExams=exams.filter(e=>e.d.startsWith('2026-11'));
+ const decemberExams=AGENDA_EXTRA_EXAMS_2026_2.filter(e=>e.d.startsWith('2026-12'));
+ const olderCalendarDates=AGENDA_EXTRA_EXAMS_2026_2.filter(e=>e.d.startsWith('2026-11'));
+ const examsView='<div class="agenda-calendar-layout">'+
+  agendaMonthCalendar(2026,11,novemberExams)+
+  '<details class="agenda-calendar-details"><summary>Dezembro 2026 · substitutivas e G2</summary>'+
+  agendaMonthCalendar(2026,12,decemberExams)+'</details>'+
+  '<details class="agenda-calendar-details"><summary>Substitutivas, G2 e datas dos cronogramas originais</summary>'+
+  '<div class="agenda-extra-notes">'+
+  '<p class="agenda-calendar-note">As datas de novembro abaixo incluem substituições e datas anteriores dos cronogramas. As avaliações de dezembro também aparecem no calendário recolhido acima.</p>'+
+  '<div class="agenda-calendar-notes-grid">'+olderCalendarDates.map(calendarExamRow).join('')+'</div>'+
+  '</div></details>'+caveat+'</div>';
  const classesView='<div class="agenda-toolbar"><div><h2>Matéria de cada dia</h2><small>Conteúdo previsto e referência indicada no cronograma</small></div>'+
  '<button type="button" class="agenda-toggle" data-action="agenda-past">'+(calendarShowPast?'Mostrar só próximas':'Incluir aulas anteriores')+'</button></div>'+
  (upcoming.length?calendarDateGroups(upcoming,calendarClassRow):'<div class="panel">Não há outras aulas cadastradas após hoje. Usa “Incluir aulas anteriores” para consultar o registro.</div>')+
