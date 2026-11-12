@@ -11,8 +11,8 @@
 .subject-hub .subject-hub-heading h1{font-size:clamp(22px,2.4vw,31px);line-height:1.2;font-weight:850;letter-spacing:-.65px;margin:0;color:var(--ink);overflow-wrap:anywhere}
 .subject-hub .subject-hub-date{margin:10px 0 0;font-size:12px;color:var(--muted);font-weight:550}
 .subject-hub .subject-hub-area-intro{margin:0 0 13px;color:var(--muted);font-size:12px;line-height:1.5}
-.subject-hub .subject-hub-menu{display:grid;gap:12px}
-.subject-hub .subject-hub-card{display:flex;gap:20px;align-items:center;width:100%;min-height:99px;padding:17px 21px;border:1px solid var(--line);border-radius:16px;background:var(--paper);font:inherit;color:var(--ink);text-align:left;cursor:pointer;transition:border-color .17s,transform .17s,box-shadow .17s}
+.subject-hub .subject-hub-menu{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));align-items:stretch;gap:18px}
+.subject-hub .subject-hub-card{display:flex;gap:16px;align-items:center;width:100%;min-width:0;min-height:116px;height:100%;padding:17px 21px;border:1px solid var(--line);border-radius:16px;background:var(--paper);font:inherit;color:var(--ink);text-align:left;cursor:pointer;transition:border-color .17s,transform .17s,box-shadow .17s}
 .subject-hub .subject-hub-card:hover{transform:translateY(-2px);border-color:color-mix(in srgb,var(--subject-accent) 45%,var(--line));box-shadow:0 10px 26px #1810220d}
 .subject-hub .subject-hub-card:focus-visible,.subject-hub .subject-hub-back:focus-visible{outline:3px solid var(--subject-accent);outline-offset:3px}
 .subject-hub .subject-hub-card-icon{flex:0 0 57px;height:57px;display:grid;place-items:center;border-radius:17px;background:color-mix(in srgb,var(--subject-accent) 10%,var(--paper));color:var(--subject-accent);font-size:29px;line-height:1}
@@ -83,6 +83,12 @@
 .subject-hub .subject-sim-view .ge-question,.subject-hub .subject-sim-view .ge-test-header{max-width:100%}
 @media(max-width:680px){.subject-hub .subject-sim-ready,.subject-hub .subject-sim-created{grid-template-columns:1fr}.subject-hub .subject-sim-heading{align-items:flex-start}.subject-hub .subject-sim-create{width:100%}}
 
+/* Dois blocos por linha no desktop; o sétimo ocupa a largura completa. */
+.subject-hub .subject-hub-menu > .subject-hub-card:last-child:nth-child(odd){grid-column:1 / -1}
+@media(max-width:900px){
+ .subject-hub .subject-hub-menu{grid-template-columns:minmax(0,1fr)}
+ .subject-hub .subject-hub-menu > .subject-hub-card:last-child:nth-child(odd){grid-column:auto}
+}
 /* Ajuste de espaçamento e hover entre áreas (nov/2026) */
 /* A elevação anterior invadia a área de clique da seção vizinha. */
 .subject-hub .subject-hub-menu{
