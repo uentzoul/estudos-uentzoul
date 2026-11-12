@@ -2169,7 +2169,7 @@ function switchSemester(next){
  activeStoreKey=profileStoreKey(activeProfileId);
  store=readSavedProfile(activeProfileId);
  try{localStorage.setItem(SEMESTER_PREF,next)}catch{}
- current={...current,page:'home',subject:null,exam:null,libraryCourse:null,filter:'todos',search:'',audioSubject:'tcc'};
+ current={...current,subject:null,subjectArea:null,exam:null,libraryCourse:null,filter:'todos',search:'',audioSubject:'tcc'};
  go('home');
  window.dispatchEvent(new Event('uentzoul:semester'));
  window.dispatchEvent(new Event('uentzoul:progress'));
@@ -2258,16 +2258,89 @@ function addAudioFiles(files,single=false){
 
 let current={page:'home',subject:null,exam:null,filter:'todos',search:'',audioSubject:'tcc'},audioStart=false,currentChapter=0,currentEpisode=0;
 let toastTimer;function toast(s){const t=$('toast');t.textContent=s;t.style.display='block';clearTimeout(toastTimer);toastTimer=setTimeout(()=>t.style.display='none',2800);}
+/* Navegação real do navegador: botões laterais do mouse, Voltar e Avançar. */
+const PM_HISTORY_KEY='psicomoodle-navigation-v1';
+let navRestoring=false;
+function pmNavSnapshot(){
+ const chat=window.uentzoulChatNavigation?.snapshot?.()||null;
+ return {
+  [PM_HISTORY_KEY]:true,semester,
+  screen:{page:current.page,subject:current.subject||null,subjectArea:current.subjectArea||null,
+   exam:current.exam||null,libraryCourse:current.libraryCourse||null,peerId:current.peerId||null,
+   audioSubject:current.audioSubject||'tcc',libraryQuery:current.libraryQuery||''},
+  agenda:{view:calendarView,showPast:calendarShowPast},
+  chat,scrollY:Math.max(0,window.scrollY||0)
+ };
+}
+function pmNavEqual(a,b){
+ if(!a?.[PM_HISTORY_KEY]||!b?.[PM_HISTORY_KEY])return false;
+ const comparable=s=>JSON.stringify({semester:s.semester,screen:s.screen,agenda:s.agenda,chat:s.chat});
+ return comparable(a)===comparable(b);
+}
+function pmNavSave(previousScroll){
+ if(navRestoring)return;
+ try{
+  const next=pmNavSnapshot(),previous=history.state;
+  if(pmNavEqual(previous,next))return;
+  if(previous?.[PM_HISTORY_KEY]){
+   history.replaceState({...previous,scrollY:Math.max(0,previousScroll||0)},'',location.href);
+  }
+  const p=current.page;
+  const anchor=p==='subject'?(current.subject||'home'):p==='test'?(current.exam||'exams'):p||'home';
+  next.scrollY=0;
+  history.pushState(next,'','#'+encodeURIComponent(anchor));
+ }catch(e){console.warn('Histórico interno indisponível',e);}
+}
+function pmNavRestore(state){
+ if(!state?.[PM_HISTORY_KEY])return;
+ navRestoring=true;
+ try{
+  if(state.semester!==semester&&SEMESTER_DB[state.semester]){
+   persist();
+   semester=state.semester;DB=SEMESTER_DB[semester];
+   activeStoreKey=profileStoreKey(activeProfileId);
+   store=readSavedProfile(activeProfileId);
+   try{localStorage.setItem(SEMESTER_PREF,semester)}catch(_){}
+   window.dispatchEvent(new Event('uentzoul:semester'));
+   window.dispatchEvent(new Event('uentzoul:progress'));
+  }
+  const screen=state.screen||{};
+  current={...current,...screen};
+  if(!['home','subject','test','exams','calendar','audio','messages','ai','admin'].includes(current.page))current.page='home';
+  if(current.page==='subject'&&!DB.subjects[current.subject])current.page='home';
+  if(current.page==='test'&&!DB.exams.some(x=>x.id===current.exam))current.page='exams';
+  if(current.page==='admin'&&!window.uentzoulAdminConfig?.isAdmin?.())current.page='home';
+  if(state.agenda){
+   calendarView=['provas','horarios','conteudos'].includes(state.agenda.view)?state.agenda.view:'provas';
+   calendarShowPast=!!state.agenda.showPast;
+  }
+  window.uentzoulChatNavigation?.restore?.(state.chat);
+  if(current.page==='messages'&&state.chat)current.peerId=state.chat.tab==='private'?(state.chat.peerId||null):null;
+  render();
+  const pos=Math.max(0,Number(state.scrollY)||0);
+  requestAnimationFrame(()=>{try{window.scrollTo({top:pos,behavior:'instant'})}catch(_){window.scrollTo(0,pos)}});
+ }catch(e){console.error('Erro ao voltar à tela anterior',e)}
+ finally{navRestoring=false}
+}
+window.uentzoulNavigationSync=()=>{
+ if(current.page==='messages'){
+  const chat=window.uentzoulChatNavigation?.snapshot?.();
+  if(chat)current.peerId=chat.tab==='private'?(chat.peerId||null):null;
+ }
+ pmNavSave(window.scrollY||0);
+};
+window.addEventListener('popstate',event=>pmNavRestore(event.state));
 const go=(page,extra={})=>{
  if(page==='personal')page='home'; // Funcionalidade suspensa, sem apagar dados
  if(page==='library')page='home';
  if(page==='schedule'){calendarView='horarios';page='calendar';}
  if(page==='admin'&&!window.uentzoulAdminConfig?.isAdmin?.())page='home';
+ const previousScroll=window.scrollY||0;
  if(page==='home')current.libraryCourse=null;
  current={...current,...extra,page};
  try{render()}catch(e){console.error('Erro ao abrir seção',e);toast('Não foi possível abrir esta seção. Tenta novamente no Safari/Chrome.');return}
- try{window.scrollTo({top:0,behavior:'auto'})}catch(e){try{window.scrollTo(0,0)}catch(_){}}
- try{history.replaceState(null,'','#'+(page==='subject'?(current.subject||''):page==='test'?current.exam:page))}catch(e){}
+ pmNavSave(previousScroll);
+ try{window.scrollTo({top:0,behavior:'instant'})}catch(e){try{window.scrollTo(0,0)}catch(_){}}
 };
 window.uentzoulOpenMessages=(peerId)=>go('messages',{peerId:peerId||null});
 const button=(label,act,cl='btn light')=>`<button class="${cl}" data-action="${act}">${label}</button>`;
@@ -3615,10 +3688,10 @@ function onAction(act){
  if(act==='tz-login'){window.uentzoulAIAuth?.openLogin();return}
  if(act.startsWith('agenda-tab:')){
   const tab=act.slice('agenda-tab:'.length);
-  if(tab==='provas'||tab==='horarios'||tab==='conteudos'){calendarView=tab;render()}
+  if(tab==='provas'||tab==='horarios'||tab==='conteudos'){calendarView=tab;go('calendar')}
   return;
  }
- if(act==='agenda-past'){calendarShowPast=!calendarShowPast;render();return}
+ if(act==='agenda-past'){calendarShowPast=!calendarShowPast;go('calendar');return}
  if(act.startsWith('agenda-topic:')){
   const [,subject,indexString]=act.split(':');
   const index=Number(indexString);
@@ -3627,7 +3700,7 @@ function onAction(act){
   const el=document.querySelectorAll('#topics details.topic')[index];
   if(el){el.open=true;requestAnimationFrame(()=>el.scrollIntoView({behavior:'smooth',block:'start'}))}
   return;
- }if(act.startsWith('download:')){const [k,i]=act.slice(9).split(':');downloadEpisodeAction(k,Number(i));return;}if(act==='libraryBack'){current.libraryCourse=null;render();requestAnimationFrame(()=>document.getElementById('homeCourses')?.scrollIntoView({block:'start',behavior:'auto'}));return}if(act.startsWith('libraryCourse:')){const id=act.slice(14);if(DB.subjects[id])return go('subject',{subject:id,subjectArea:null});return}if(act.startsWith('page:'))return go(act.slice(5));if(act.startsWith('subjectArea:')){const area=act.slice('subjectArea:'.length);if(area==='home'||['topics','docs','tests','podcasts','guided','flash','cases'].includes(area)){current.subjectArea=area==='home'?null:area;if(area==='podcasts')current.audioSubject=current.subject;render();try{window.scrollTo({top:0,behavior:'auto'})}catch(_){}}return}if(act.startsWith('subject:'))return go('subject',{subject:act.slice(8),subjectArea:null});if(act==='subjectCreateExam'){ge.subject=current.subject||ge.subject;ge.tab='ai';ge.selected=null;return go('exams')}if(act.startsWith('subjectTests:'))return go('subject',{subject:act.slice('subjectTests:'.length),subjectArea:'tests'});if(act.startsWith('test:'))return go('test',{exam:act.slice(5)});if(act.startsWith('audioFor:')){const k=act.slice(9);if(!DB.audio[k])return;current.audioSubject=k;currentEpisode=0;currentChapter=0; if(manualAudioUrl){URL.revokeObjectURL(manualAudioUrl);manualAudioUrl=null;manualAudioName='';}return go('audio');}if(act.startsWith('filter:')){current.filter=act.slice(7);let v=$('matSearch')?.value||current.search;current.search=v;render();return}if(act.startsWith('scroll:'))return document.getElementById(act.slice(7))?.scrollIntoView({behavior:'smooth'});if(act==='save'){persist();return toast('Respostas salvas neste navegador.')}if(act==='export'){const b=new Blob([JSON.stringify(store,null,2)],{type:'application/json'});let u=URL.createObjectURL(b);let a=document.createElement('a');a.href=u;a.download='meu_progresso_psicologia.json';a.click();setTimeout(()=>URL.revokeObjectURL(u),2000);return toast('Progresso exportado. Guarde o arquivo para a próxima versão.')}if(act==='import'){document.getElementById('importProgress')?.click();return}if(act==='print')return window.print();if(act.startsWith('submit:'))return submit(act.slice(7));if(act.startsWith('redo:')){toast('Este simulado já foi entregue e não pode ser refeito.');return}
+ }if(act.startsWith('download:')){const [k,i]=act.slice(9).split(':');downloadEpisodeAction(k,Number(i));return;}if(act==='libraryBack'){current.libraryCourse=null;render();requestAnimationFrame(()=>document.getElementById('homeCourses')?.scrollIntoView({block:'start',behavior:'auto'}));return}if(act.startsWith('libraryCourse:')){const id=act.slice(14);if(DB.subjects[id])return go('subject',{subject:id,subjectArea:null});return}if(act.startsWith('page:'))return go(act.slice(5));if(act.startsWith('subjectArea:')){const area=act.slice('subjectArea:'.length);if(area==='home'||['topics','docs','tests','podcasts','guided','flash','cases'].includes(area)){if(area==='podcasts')current.audioSubject=current.subject;go('subject',{subject:current.subject,subjectArea:area==='home'?null:area});}return}if(act.startsWith('subject:'))return go('subject',{subject:act.slice(8),subjectArea:null});if(act==='subjectCreateExam'){ge.subject=current.subject||ge.subject;ge.tab='ai';ge.selected=null;return go('exams')}if(act.startsWith('subjectTests:'))return go('subject',{subject:act.slice('subjectTests:'.length),subjectArea:'tests'});if(act.startsWith('test:'))return go('test',{exam:act.slice(5)});if(act.startsWith('audioFor:')){const k=act.slice(9);if(!DB.audio[k])return;current.audioSubject=k;currentEpisode=0;currentChapter=0; if(manualAudioUrl){URL.revokeObjectURL(manualAudioUrl);manualAudioUrl=null;manualAudioName='';}return go('audio');}if(act.startsWith('filter:')){current.filter=act.slice(7);let v=$('matSearch')?.value||current.search;current.search=v;render();return}if(act.startsWith('scroll:'))return document.getElementById(act.slice(7))?.scrollIntoView({behavior:'smooth'});if(act==='save'){persist();return toast('Respostas salvas neste navegador.')}if(act==='export'){const b=new Blob([JSON.stringify(store,null,2)],{type:'application/json'});let u=URL.createObjectURL(b);let a=document.createElement('a');a.href=u;a.download='meu_progresso_psicologia.json';a.click();setTimeout(()=>URL.revokeObjectURL(u),2000);return toast('Progresso exportado. Guarde o arquivo para a próxima versão.')}if(act==='import'){document.getElementById('importProgress')?.click();return}if(act==='print')return window.print();if(act.startsWith('submit:'))return submit(act.slice(7));if(act.startsWith('redo:')){toast('Este simulado já foi entregue e não pode ser refeito.');return}
  if(act==='resetAudio'){const a=$('audioPlayer');if(a){a.pause();a.currentTime=0;}toast('Reprodutor reiniciado.');return;}
  if(act.startsWith('chapter:'))return openChapter(+act.slice(8));
  if(act.startsWith('episode:'))return openEpisode(+act.slice(8));
@@ -3850,8 +3923,20 @@ window.uentzoulShareCatalog={
 };
 
 window.addEventListener('beforeunload',persist);
-if(location.hash.startsWith('#')){const h=decodeURIComponent(location.hash.slice(1));if(DB.subjects[h]){current.page='subject';current.subject=h}else if(DB.exams.some(e=>e.id===h)){current.page='test';current.exam=h}else if(['home','exams','library','audio','calendar','schedule','ai','admin'].includes(h)){if(h==='schedule'){current.page='calendar';calendarView='horarios'}else current.page=h==='library'?'home':h}}
-try{render();document.documentElement.classList.add('app-ready');}catch(e){console.error('Inicialização da Central falhou',e);}
+if(history.state?.[PM_HISTORY_KEY]){
+ const previous=history.state;
+ if(previous.semester&&SEMESTER_DB[previous.semester]&&previous.semester!==semester){
+  semester=previous.semester;DB=SEMESTER_DB[semester];activeStoreKey=profileStoreKey(activeProfileId);
+  store=readSavedProfile(activeProfileId);
+ }
+ current={...current,...(previous.screen||{})};
+ if(previous.agenda){calendarView=previous.agenda.view||'provas';calendarShowPast=!!previous.agenda.showPast}
+}else if(location.hash.startsWith('#')){const h=decodeURIComponent(location.hash.slice(1));if(DB.subjects[h]){current.page='subject';current.subject=h}else if(DB.exams.some(e=>e.id===h)){current.page='test';current.exam=h}else if(['home','exams','library','audio','calendar','schedule','ai','admin'].includes(h)){if(h==='schedule'){current.page='calendar';calendarView='horarios'}else current.page=h==='library'?'home':h}}
+try{
+ render();
+ if(!history.state?.[PM_HISTORY_KEY])history.replaceState(pmNavSnapshot(),'',location.href);
+ document.documentElement.classList.add('app-ready');
+}catch(e){console.error('Inicialização da Central falhou',e);}
 })();
 </script><script>
 /* Perfis e ranking online — contas Supabase */
@@ -5058,6 +5143,7 @@ function dmWOpen(type,id){
  else if(type==='group'){dm.tab='groups';dm.roomId=id;dm.peerId=null}
  else {dm.tab='private';dm.peerId=id||null;dm.roomId=null}
  dmShow();
+ window.uentzoulNavigationSync?.();
  if(type==='group')dmWMarkGroupRead(id);
  if(type==='private'&&id)dmMarkRead();
 }
@@ -5065,6 +5151,14 @@ window.uentzoulMessenger.render=dmRender;
 window.uentzoulMessenger.afterRender=dmAfterRender;
 window.uentzoulMessenger.refresh=dmLoad;
 window.uentzoulMessenger.onLogout=dmOnLogout;
+window.uentzoulChatNavigation={
+ snapshot:()=>({tab:dm.tab,peerId:dm.peerId||null,roomId:dm.roomId||null}),
+ restore:state=>{
+  if(!state||!['private','groups','global','reports'].includes(state.tab))return;
+  dm.tab=state.tab;dm.peerId=state.peerId||null;dm.roomId=state.roomId||null;
+  dmW.reply=null;dmW.panel=null;dmW.popup=null;dmW.menu=null;
+ }
+};
 
 
 /* Chat unificado — janelas e interações */
@@ -5142,7 +5236,7 @@ document.addEventListener('click',async e=>{
  const peerRow=hit('[data-dm-peer]');
  if(peerRow){stop();dmWOpen('private',peerRow.dataset.dmPeer);return}
  if(hit('[data-dmw-back]')){stop();dmWOpen('private',null);return}
- if(hit('[data-dmw-reports]')){stop();dm.tab='reports';dmShow();return}
+ if(hit('[data-dmw-reports]')){stop();dm.tab='reports';dmShow();window.uentzoulNavigationSync?.();return}
  if(hit('[data-dmw-reports-back]')){stop();dmWOpen('private',null);return}
  const menu=hit('[data-dmw-msgmenu]');
  if(menu){stop();dmW.menu=dmW.menu===menu.dataset.dmwMsgmenu?null:menu.dataset.dmwMsgmenu;dmShow();return}
