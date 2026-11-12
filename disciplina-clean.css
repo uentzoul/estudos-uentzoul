@@ -82,3 +82,44 @@
 .subject-hub .subject-sim-view .ge-test-header{margin-top:16px}
 .subject-hub .subject-sim-view .ge-question,.subject-hub .subject-sim-view .ge-test-header{max-width:100%}
 @media(max-width:680px){.subject-hub .subject-sim-ready,.subject-hub .subject-sim-created{grid-template-columns:1fr}.subject-hub .subject-sim-heading{align-items:flex-start}.subject-hub .subject-sim-create{width:100%}}
+
+/* Ajuste de espaçamento e hover entre áreas (nov/2026) */
+/* A elevação anterior invadia a área de clique da seção vizinha. */
+.subject-hub .subject-hub-menu{
+ gap:18px;
+ padding:3px 2px 7px;
+}
+.subject-hub .subject-hub-card{
+ transform:none;
+ position:relative;
+ isolation:isolate;
+ transition:border-color .18s ease,background-color .18s ease,box-shadow .18s ease;
+}
+.subject-hub .subject-hub-card:hover{
+ transform:none;
+ z-index:1;
+ border-color:color-mix(in srgb,var(--subject-accent) 50%,var(--line));
+ box-shadow:0 6px 20px #18102210;
+ background:color-mix(in srgb,var(--subject-accent) 2%,var(--paper));
+}
+.subject-hub .subject-hub-card:active{transform:none}
+.subject-hub .subject-hub-card-arrow{transition:color .18s ease,background-color .18s ease}
+.subject-hub .subject-hub-card:hover .subject-hub-card-arrow{
+ transform:none;
+ background:color-mix(in srgb,var(--subject-accent) 13%,var(--soft));
+}
+.subject-hub .subject-sim-ready,.subject-hub .subject-sim-created{
+ gap:18px;
+}
+.subject-hub .subject-sim-ready .examcard:hover,
+.subject-hub .subject-sim-created .ge-card:hover{
+ transform:none;
+}
+@media(max-width:760px){
+ .subject-hub .subject-hub-menu{gap:14px;padding:1px 0 5px}
+ .subject-hub .subject-sim-ready,.subject-hub .subject-sim-created{gap:14px}
+}
+@media(prefers-reduced-motion:reduce){
+ .subject-hub .subject-hub-card,
+ .subject-hub .subject-hub-card-arrow{transition:none}
+}
