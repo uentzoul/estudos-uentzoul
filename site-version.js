@@ -62,7 +62,7 @@ setTimeout(check,15000);
    const current=++ticket;
    queueMicrotask(()=>{if(current===ticket)sync()});
    requestAnimationFrame(()=>{if(current===ticket)sync()});
- },false);
+ },true);
  const observer=new MutationObserver(records=>{
    if(!isPersonal()||!document.querySelector('#pc2ModalPortal'))return;
    const portal=document.getElementById('pc2ModalPortal');
