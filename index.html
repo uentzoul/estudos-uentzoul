@@ -3394,6 +3394,7 @@ function isPodcastView(){return current.page==='audio'||(current.page==='subject
 function renderThirdSemester(){
  const ids=Object.keys(DB.subjects),subjectId=current.subject,subj=DB.subjects[subjectId];
  const count=ids.length,totalHours=ids.reduce((sum,k)=>sum+(DB.subjects[k].hours||0),0);
+ const activities=overallKeys(),completed=doneCount(activities),pct=fmtPct(completed,activities.length);
  const courseCards=()=>'<div class="library-page"><div class="course-intro"><div>'+
   head('Psicologia PUCRS · 2027/1','Disciplinas do 3º semestre','Oito disciplinas cadastradas. Os conteúdos, provas e horários serão acrescentados quando estiverem disponíveis.')+
   '</div></div><div class="course-toolbar"><span class="course-semester">2027/1 · '+count+' disciplinas · '+totalHours+'h</span>'+
@@ -3411,7 +3412,7 @@ function renderThirdSemester(){
    '<div class="course-empty" id="libraryCourseNoResults" hidden>Nenhuma disciplina corresponde à busca.</div></div>';
  if(current.page==='home'||current.page==='library'){
   return '<header class="dashboard-hero slogan-hero" aria-label="Terceiro semestre"><div class="hero-copy"><div class="slogan-lockup"><span class="slogan-logo" aria-hidden="true">Ψ</span><div class="slogan-identity"><span class="hero-kicker">Psicologia PUCRS · 2027/1</span><h1 class="slogan-title"><span>Psico</span><span class="slogan-title-accent">Moodle</span></h1></div></div></div>'+
-   '<div class="hero-status"><span>3º semestre</span><strong>'+count+' disciplinas</strong><span class="hero-label">'+totalHours+'h de carga horária total</span></div></header>'+
+   '<div class="hero-status"><span>Progresso do semestre</span><strong>'+pct+'%</strong><div class="hero-bar"><b style="width:'+pct+'%"></b></div><span class="hero-label">'+completed+' de '+activities.length+' atividades</span></div></header>'+
    '<section class="section home-course-section" id="homeCourses">'+courseCards()+'</section>';
  }
  if(current.page==='subject'&&subj){
