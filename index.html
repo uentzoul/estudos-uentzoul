@@ -2646,8 +2646,8 @@ function agendaMonthCalendar(year,month,events){
   '<div class="agenda-calendar-grid">'+cells+'</div></section>';
 }
 
-/* Horários semanais de 2026/2: dias extraídos dos cronogramas,
-   intervalos só quando comunicados. Sem inferir os outros horários. */
+/* Horários semanais de 2026/2: os horários correspondem à ordem
+   das disciplinas na grade, usando três períodos fixos. */
 const CLASS_WEEK_DAYS=[
  {day:1,name:'Segunda-feira',short:'Segunda'},
  {day:2,name:'Terça-feira',short:'Terça'},
@@ -2655,11 +2655,16 @@ const CLASS_WEEK_DAYS=[
  {day:4,name:'Quinta-feira',short:'Quinta'},
  {day:5,name:'Sexta-feira',short:'Sexta'}
 ];
+const CLASS_PERIODS_2026_2=[
+ {start:'14:00',end:'15:30'},
+ {start:'15:45',end:'17:15'},
+ {start:'17:30',end:'19:00'}
+];
 const CLASS_WEEK_2026_2={
  1:[{subject:'meta'},{subject:'tcc'},{subject:'familia'}],
  2:[{subject:'avaliacao'},{subject:'grupos'}],
  3:[{subject:'social'},{subject:'familia'}],
- 4:[{subject:'avaliacao',start:'14:00',end:'15:30'},{subject:'social'},{subject:'tcc'}],
+ 4:[{subject:'avaliacao'},{subject:'social'},{subject:'tcc'}],
  5:[]
 };
 function renderClassSchedule(embedded=false){
@@ -2672,12 +2677,15 @@ function renderClassSchedule(embedded=false){
   return '<article class="schedule-day'+(today?' is-today':'')+'" aria-label="'+esc(day.name)+'">'+
    '<header class="schedule-day-heading"><div><h2>'+esc(day.name)+'</h2><small>'+lessons.length+' '+(lessons.length===1?'disciplina cadastrada':'disciplinas cadastradas')+'</small></div>'+
    (today?'<span class="schedule-today">Hoje</span>':'')+'</header>'+
-   '<div class="schedule-day-content">'+(lessons.length?lessons.map(item=>{
+   '<div class="schedule-day-content">'+(lessons.length?lessons.map((item,index)=>{
     const name=DB.subjects[item.subject]?.name||item.subject;
-    const hasTime=!!(item.start&&item.end);
+    const period=CLASS_PERIODS_2026_2[index];
+    const start=item.start||period?.start;
+    const end=item.end||period?.end;
+    const hasTime=!!(start&&end);
     return '<div class="schedule-lesson" style="--class-color:'+esc(color(item.subject))+'">'+
      '<div class="schedule-lesson-text"><strong>'+esc(name)+'</strong>'+
-     (hasTime?'<time>'+esc(item.start)+' às '+esc(item.end)+'</time>':
+     (hasTime?'<time>'+esc(start)+' às '+esc(end)+'</time>':
        '<span class="schedule-unconfirmed">Horário a confirmar</span>')+'</div>'+
      '<span class="schedule-time-icon" aria-hidden="true">◷</span></div>';
    }).join(''):'<p class="schedule-empty">Nenhuma aula cadastrada neste dia.</p>')+'</div></article>';
@@ -2685,7 +2693,7 @@ function renderClassSchedule(embedded=false){
  return '<section class="schedule-page">'+(embedded?'':head('ROTINA SEMANAL','Horários de aula','Disciplinas distribuídas por dia da semana · '+semester)) +
  '<div class="schedule-toolbar"><span class="schedule-legend">Horários no formato 24 horas · Brasília</span></div>'+
  '<div class="schedule-week">'+days+'</div>'+
- (available?'<p class="schedule-note">Os dias foram organizados a partir dos cronogramas de aulas disponíveis. Até o momento, o horário informado é o de Avaliação Psicológica na quinta-feira, das 14:00 às 15:30. Os demais intervalos ficam a confirmar para não apresentar horários inventados.</p>':
+ (available?'<p class="schedule-note">Horários organizados conforme a sequência de disciplinas cadastradas para 2026/2.</p>':
  '<p class="schedule-note">A grade de 2027/1 será preenchida quando forem definidos os horários do novo semestre.</p>')+
  '</section>';
 }
