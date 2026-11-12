@@ -1605,7 +1605,7 @@ html[data-exam-focus="2026/2"] .sidebtn[data-page="audio"]{display:none!importan
 <link rel="stylesheet" href="library-manager.css?v=20261111-5">
 <link rel="stylesheet" href="biblioteca-moodle.css?v=20261112-2">
 <link rel="stylesheet" href="revisao-compacta.css?v=20261112-1">
-<link rel="stylesheet" href="disciplina-clean.css?v=20261112-1">
+<link rel="stylesheet" href="disciplina-clean.css?v=20261112-2">
 </head>
 <body>
 <section id="staticFallback" class="static-fallback" aria-label="Central de Estudos — modo de leitura compatível com celular">
@@ -3086,31 +3086,51 @@ async function geShare(){
 }
 const geLegacyRenderSubject=renderSubject;
 renderSubject=function(k){
- let html=geLegacyRenderSubject(k);
+ const html=geLegacyRenderSubject(k);
+ if(current.subjectArea!=='tests')return html;
  const start=html.indexOf('<section class="section" id="tests">');
- const end=start>=0?html.indexOf('</section>',start):-1;
- if(start>=0&&end>start){
-  const tests=ge.exams.filter(e=>e.subject===k&&e.semester===semester&&geUser()&&(e.creator_id===geUser().id||true));
-  const section='<section class="section" id="tests"><div class="sectiontop"><h2>Simulados da disciplina</h2><button class="plainlink" data-action="page:exams">Gerar novo simulado →</button></div>'+
-    (tests.length?'<div class="ge-grid">'+tests.map(geExamCard).join('')+'</div>':
-    '<div class="panel ge-panel"><p>Agora os simulados são inéditos e gerados pela IA quando tu solicitares. Escolhe a dificuldade e cria uma prova com 13 objetivas e 2 dissertativas.</p>'+
-    '<button class="btn light" data-action="page:exams">Criar um simulado</button></div>')+'</section>';
-  html=html.slice(0,start)+section+html.slice(end+'</section>'.length);
+ const end=start<0?-1:html.indexOf('</section>',start);
+ if(start<0||end<0)return html;
+ const ready=DB.exams.filter(e=>e.subject===k).sort((a,b)=>Number(a.model)-Number(b.model));
+ const user=geUser();
+ if(user&&!ge.loaded&&!ge.loading)queueMicrotask(geLoad);
+ const visible=ge.exams.filter(e=>e.subject===k&&e.semester===semester&&user&&
+  !ge.hidden.some(h=>h.exam_id===e.id)&&
+  (e.creator_id===user.id||ge.shares.some(sh=>sh.exam_id===e.id&&sh.recipient_id===user.id)));
+ if(ge.selected&&visible.some(e=>e.id===ge.selected)){
+  return html.slice(0,start)+'<section class="section subject-sim-view" id="tests">'+geRenderExam()+'</section>'+
+   html.slice(end+'</section>'.length);
  }
- const count=ge.submissions.filter(x=>ge.exams.some(e=>e.id===x.exam_id&&e.subject===k)).length;
- html=html.replace(/(<strong data-subject-stat="Simulados">)[^<]*(<\/strong>)/,'$1'+count+' feitos$2');
- return html;
+ const readyGroup='<div class="subject-sim-group"><div class="subject-sim-heading"><div><h3>Simulados prontos</h3>'+
+  '<p>Provas já preparadas para praticar e revisar o conteúdo.</p></div>'+
+  '<span class="subject-sim-count">'+ready.length+' '+(ready.length===1?'simulado':'simulados')+'</span></div>'+
+  (ready.length?'<div class="subject-sim-ready">'+ready.map(examCard).join('')+'</div>':
+   '<div class="subject-sim-status">Ainda não há simulados prontos para esta matéria.</div>')+'</div>';
+ let created='';
+ if(!user)created='<div class="subject-sim-status">Entra na tua conta para consultar os simulados criados ou recebidos.'+
+  '<div><button type="button" class="subject-sim-create" data-action="tz-login">Entrar na conta</button></div></div>';
+ else if(ge.loading&&!ge.loaded)created='<div class="subject-sim-status">Carregando os simulados da tua conta…</div>';
+ else if(ge.error&&!ge.loaded)created='<div class="subject-sim-status">'+esc(ge.error)+'</div>';
+ else if(visible.length)created='<div class="subject-sim-created">'+visible.map(geExamCard).join('')+'</div>';
+ else created='<div class="subject-sim-status">Nenhum simulado criado ou compartilhado nesta disciplina até agora.</div>';
+ const createdGroup='<div class="subject-sim-group"><div class="subject-sim-heading"><div><h3>Simulados criados</h3>'+
+  '<p>Provas geradas por ti ou compartilhadas contigo.</p></div>'+
+  (user?'<button type="button" class="subject-sim-create" data-action="subjectCreateExam">+ Criar simulado</button>':'')+
+  '</div>'+created+'</div>';
+ const section='<section class="section" id="tests"><div class="sectiontop"><h2>Simulados</h2></div>'+
+  '<div class="subject-sim-groups">'+readyGroup+createdGroup+'</div></section>';
+ return html.slice(0,start)+section+html.slice(end+'</section>'.length);
 };
 function geReadyLibrary(){
  const subjects=Object.keys(DB.subjects);
- return head('Simulados prontos','Provas para praticar','Quatro simulados por disciplina: dois de dificuldade normal e dois difíceis, com correções comentadas.')+
+ return head('Simulados prontos','Provas para praticar','Cinco simulados por disciplina: três de dificuldade normal e dois difíceis, com correções comentadas.')+
  '<p class="small muted">Simulados de estudo, não avaliações oficiais.</p>'+
  subjects.map(id=>{
   const all=DB.exams.filter(e=>e.subject===id).sort((a,b)=>Number(a.model)-Number(b.model));
-  const normal=all.filter(e=>Number(e.model)<=2).slice(0,2);
-  const hard=all.filter(e=>Number(e.model)>=4).slice(0,2);
+  const normal=all.filter(e=>Number(e.model)<=3);
+  const hard=all.filter(e=>Number(e.model)>=4);
   const group=(label,items)=>'<div class="ge-ready-group"><h3>'+label+'</h3><div class="examgrid ge-ready-grid">'+items.map(examCard).join('')+'</div></div>';
-  return '<section class="section ge-ready-subject"><div class="sectiontop"><h2 style="border-left:4px solid '+color(id)+';padding-left:10px">'+esc(DB.subjects[id].name)+'</h2><span class="pill">4 simulados</span></div>'+
+  return '<section class="section ge-ready-subject"><div class="sectiontop"><h2 style="border-left:4px solid '+color(id)+';padding-left:10px">'+esc(DB.subjects[id].name)+'</h2><span class="pill">'+all.length+' simulados</span></div>'+
   group('Normais',normal)+group('Difíceis',hard)+'</section>';
  }).join('');
 }
@@ -3138,7 +3158,7 @@ async function geHideExam(id){
   if(ge.selected===id)ge.selected=null;
   toast('Simulado retirado apenas da tua lista.');
  }catch(e){ge.error=e?.message||'Não foi possível retirar o simulado.';}
- finally{ge.busy=false;if(current.page==='exams')render();}
+ finally{ge.busy=false;if(current.page==='exams'||current.page==='subject')render();}
 }
 async function geRestoreHidden(){
  if(!geUser()||ge.busy)return;
@@ -3149,7 +3169,7 @@ async function geRestoreHidden(){
   ge.hidden=[];
   toast('Simulados restaurados à tua lista.');
  }catch(e){ge.error=e?.message||'Falha ao restaurar simulados.';}
- finally{ge.busy=false;if(current.page==='exams')render();}
+ finally{ge.busy=false;if(current.page==='exams'||current.page==='subject')render();}
 }
 
 const geLegacyRenderHome=renderHome;
@@ -3352,7 +3372,7 @@ function onAction(act){
   const el=document.querySelectorAll('#topics details.topic')[index];
   if(el){el.open=true;requestAnimationFrame(()=>el.scrollIntoView({behavior:'smooth',block:'start'}))}
   return;
- }if(act.startsWith('download:')){const [k,i]=act.slice(9).split(':');downloadEpisodeAction(k,Number(i));return;}if(act==='libraryBack'){current.libraryCourse=null;render();return}if(act.startsWith('libraryCourse:')){const id=act.slice(14);if(DB.subjects[id]){current.libraryCourse=id;render();}return}if(act.startsWith('page:')){const page=act.slice(5);if(page==='library')current.libraryCourse=null;return go(page);}if(act.startsWith('subjectArea:')){const area=act.slice('subjectArea:'.length);if(area==='home'||['topics','docs','tests'].includes(area)){current.subjectArea=area==='home'?null:area;render();try{window.scrollTo({top:0,behavior:'auto'})}catch(_){}}return}if(act.startsWith('subject:'))return go('subject',{subject:act.slice(8),subjectArea:null});if(act.startsWith('test:'))return go('test',{exam:act.slice(5)});if(act.startsWith('audioFor:')){const k=act.slice(9);if(!DB.audio[k])return;current.audioSubject=k;currentEpisode=0;currentChapter=0; if(manualAudioUrl){URL.revokeObjectURL(manualAudioUrl);manualAudioUrl=null;manualAudioName='';}return go('audio');}if(act.startsWith('filter:')){current.filter=act.slice(7);let v=$('matSearch')?.value||current.search;current.search=v;render();return}if(act.startsWith('scroll:'))return document.getElementById(act.slice(7))?.scrollIntoView({behavior:'smooth'});if(act==='save'){persist();return toast('Respostas salvas neste navegador.')}if(act==='export'){const b=new Blob([JSON.stringify(store,null,2)],{type:'application/json'});let u=URL.createObjectURL(b);let a=document.createElement('a');a.href=u;a.download='meu_progresso_psicologia.json';a.click();setTimeout(()=>URL.revokeObjectURL(u),2000);return toast('Progresso exportado. Guarde o arquivo para a próxima versão.')}if(act==='import'){document.getElementById('importProgress')?.click();return}if(act==='print')return window.print();if(act.startsWith('submit:'))return submit(act.slice(7));if(act.startsWith('redo:')){toast('Este simulado já foi entregue e não pode ser refeito.');return}
+ }if(act.startsWith('download:')){const [k,i]=act.slice(9).split(':');downloadEpisodeAction(k,Number(i));return;}if(act==='libraryBack'){current.libraryCourse=null;render();return}if(act.startsWith('libraryCourse:')){const id=act.slice(14);if(DB.subjects[id]){current.libraryCourse=id;render();}return}if(act.startsWith('page:')){const page=act.slice(5);if(page==='library')current.libraryCourse=null;return go(page);}if(act.startsWith('subjectArea:')){const area=act.slice('subjectArea:'.length);if(area==='home'||['topics','docs','tests'].includes(area)){current.subjectArea=area==='home'?null:area;render();try{window.scrollTo({top:0,behavior:'auto'})}catch(_){}}return}if(act.startsWith('subject:'))return go('subject',{subject:act.slice(8),subjectArea:null});if(act==='subjectCreateExam'){ge.subject=current.subject||ge.subject;ge.tab='ai';ge.selected=null;return go('exams')}if(act.startsWith('test:'))return go('test',{exam:act.slice(5)});if(act.startsWith('audioFor:')){const k=act.slice(9);if(!DB.audio[k])return;current.audioSubject=k;currentEpisode=0;currentChapter=0; if(manualAudioUrl){URL.revokeObjectURL(manualAudioUrl);manualAudioUrl=null;manualAudioName='';}return go('audio');}if(act.startsWith('filter:')){current.filter=act.slice(7);let v=$('matSearch')?.value||current.search;current.search=v;render();return}if(act.startsWith('scroll:'))return document.getElementById(act.slice(7))?.scrollIntoView({behavior:'smooth'});if(act==='save'){persist();return toast('Respostas salvas neste navegador.')}if(act==='export'){const b=new Blob([JSON.stringify(store,null,2)],{type:'application/json'});let u=URL.createObjectURL(b);let a=document.createElement('a');a.href=u;a.download='meu_progresso_psicologia.json';a.click();setTimeout(()=>URL.revokeObjectURL(u),2000);return toast('Progresso exportado. Guarde o arquivo para a próxima versão.')}if(act==='import'){document.getElementById('importProgress')?.click();return}if(act==='print')return window.print();if(act.startsWith('submit:'))return submit(act.slice(7));if(act.startsWith('redo:')){toast('Este simulado já foi entregue e não pode ser refeito.');return}
  if(act==='resetAudio'){const a=$('audioPlayer');if(a){a.pause();a.currentTime=0;}toast('Reprodutor reiniciado.');return;}
  if(act.startsWith('chapter:'))return openChapter(+act.slice(8));
  if(act.startsWith('episode:'))return openEpisode(+act.slice(8));
