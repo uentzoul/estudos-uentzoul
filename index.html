@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="color-scheme" content="light dark">
-<meta name="site-build" content="auto-update-20261112-revisao-integrada-v15">
+<meta name="site-build" content="auto-update-20261112-chat-menu-ordem-v16">
 <script>try{document.documentElement.dataset.theme=localStorage.getItem("uentzoul_theme_v1")==="dark"?"dark":"light"}catch(e){document.documentElement.dataset.theme="light"}</script>
 <title>PsicoMoodle · Psicologia PUCRS</title>
 <style>
@@ -1669,7 +1669,7 @@ html[data-exam-focus="2026/2"] .sidebtn[data-page="audio"]{display:none!importan
 <script src="estudos-dirigidos.js?v=20261112-2"></script>
 <script src="estudos-casos-data.js?v=20261112-1"></script>
 <script src="estudo-ativo.js?v=20261112-2"></script>
-<link rel="stylesheet" href="chat-whatsapp.css?v=20261112-photo-bubbles-5">
+<link rel="stylesheet" href="chat-whatsapp.css?v=20261112-compact-bubbles-6">
 </head>
 <body>
 <section id="staticFallback" class="static-fallback" aria-label="Central de Estudos — modo de leitura compatível com celular">
@@ -2192,15 +2192,17 @@ function renderSubject(k){
  '<strong>Trilha de videoaulas</strong><span>Assista às aulas do professor, por capítulos e minutagens.</span></span>'+
  '<span class="subject-hub-meta-arrow" aria-hidden="true">→</span></a>':'';
  if(!area){
+  // Ordem editorial fixa, idêntica em todas as disciplinas e sem alterações
+  // conforme a disponibilidade de conteúdos. As telas vazias explicam o estado.
   const choices=[
-   ['topics','☷','Conteúdos para revisar','Conceitos, exemplos e explicações dos assuntos da prova'],
-   ['docs','▤','Materiais e textos','Arquivos e leituras da disciplina'],
+   ['guided','▣','Estudos dirigidos','Perguntas respondidas, exemplos e explicações passo a passo'],
    ['tests','✦','Simulados','Questões para praticar o que foi estudado'],
-   ['podcasts','♫','Podcasts','Episódios da disciplina para ouvir ou baixar']
+   ['flash','▧','Flashcards','Recordação ativa com revisão espaçada'],
+   ['cases','◇','Estudos de casos','Decisões, consequências e explicações por etapas'],
+   ['podcasts','♫','Podcasts','Episódios da disciplina para ouvir ou baixar'],
+   ['topics','☷','Conteúdos para revisar','Conceitos, exemplos e explicações dos assuntos da prova'],
+   ['docs','▤','Materiais e textos','Arquivos e leituras da disciplina']
   ];
-  if(window.PSICO_GUIDES?.[k]?.length)choices.splice(1,0,['guided','▣','Estudos dirigidos','Perguntas respondidas, exemplos e explicações passo a passo']);
-  if(topics.length)choices.splice(1,0,['flash','▧','Flashcards','Recordação ativa com revisão espaçada']);
-  if(window.PSICO_PRACTICE?.hasCases(k))choices.splice(2,0,['cases','◇','Estudos de casos','Decisões, consequências e explicações por etapas']);
   return top+metaTrail+'<p class="subject-hub-area-intro">Escolha uma área para continuar estudando.</p>'+
    '<nav class="subject-hub-menu" aria-label="Áreas de estudo de '+esc(subj.name)+'">'+
    choices.map(item=>'<button type="button" class="subject-hub-card" data-action="subjectArea:'+item[0]+'">'+
@@ -4226,7 +4228,7 @@ dmMessageHtml=function(m,channel='private'){
  const quote=m.reply_to?'<button type="button" class="dm-reply-quote" data-dmw-jump="'+esc(m.reply_to)+'"><strong>'+
   esc(quoted?(quoted.sender_id===dm.owner?'Você':dmPrettyPerson(quoted.sender_id).display_name):'Mensagem anterior')+
   '</strong><small>'+esc(quoted?dmWPreview(quoted):'Mensagem não disponível')+'</small></button>':'';
- const options=!m.deleted_at?'<button class="dm-message-menu-button" type="button" data-dmw-msgmenu="'+esc(m.id)+'" aria-label="Opções da mensagem" aria-expanded="'+(dmW.menu===m.id)+'">⌄</button>'+
+ const options=!m.deleted_at?'<button class="dm-message-menu-button" type="button" data-dmw-msgmenu="'+esc(m.id)+'" aria-label="Opções da mensagem" aria-expanded="'+(dmW.menu===m.id)+'"><svg width="16" height="16" viewBox="0 0 20 20" fill="none" aria-hidden="true" focusable="false"><path d="m4.5 7.5 5.5 5 5.5-5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></button>'+
   (dmW.menu===m.id?'<div class="dm-message-popup"><button data-dmw-reply="'+esc(m.id)+'">↩ Responder</button><button data-dmw-forward="'+esc(m.id)+'">↪ Encaminhar</button>'+
   (mine?'<button data-dmw-info="'+esc(m.id)+'">ⓘ Informações</button><button data-dmw-delete="'+esc(m.id)+'" data-dmw-delete-type="'+(channel==='private'?'private':'room')+'">Apagar para todos</button>':'')+'</div>':''):'';
  return '<div class="dm-message '+(mine?'mine':'theirs')+(photoOnly?' dm-photo-message':'')+'" data-dmw-message="'+esc(m.id)+'"><div class="dm-message-bubble'+(photoOnly?' dm-photo-only':'')+'">'+
