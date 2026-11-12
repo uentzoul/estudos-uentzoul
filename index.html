@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="color-scheme" content="light dark">
-<meta name="site-build" content="auto-update-20261112-originais-pdf-v23">
+<meta name="site-build" content="auto-update-20261112-originais-pdf-v24">
 <script>try{document.documentElement.dataset.theme=localStorage.getItem("uentzoul_theme_v1")==="dark"?"dark":"light"}catch(e){document.documentElement.dataset.theme="light"}</script>
 <title>PsicoMoodle · Psicologia PUCRS</title>
 <style>
@@ -2277,7 +2277,11 @@ function organizedMaterialBlock(materials,pending=false,libraryView=false){
  const groups=new Map();
  for(const m of materials){const title=pending?'Referências ainda sem arquivo':materialGroup(m);if(!groups.has(title))groups.set(title,[]);groups.get(title).push(m);}
  return order.filter(name=>groups.has(name)).map(name=>{
-  const list=groups.get(name);
+  let list=groups.get(name);
+  if(name==='Planos de ensino e cronogramas')list=list.slice().sort((a,b)=>{
+   const priority=x=>/plano de ensino/i.test(x.title||'')?0:/cronograma/i.test(x.title||'')?1:2;
+   return priority(a)-priority(b);
+  });
   return '<div class="material-block"><h3>'+esc(name)+'<span>'+list.length+' '+(list.length===1?'item':'itens')+'</span></h3><div class="doclist">'+(libraryView?list.map((m,i)=>libraryResourceCard(m,i)):list.map(docCard)).join('')+'</div></div>';
  }).join('');
 }
