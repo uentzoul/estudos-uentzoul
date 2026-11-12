@@ -1886,6 +1886,59 @@ html[data-members-sidebar="collapsed"] .compact-profile-button{display:inline-fl
 }
 @media print{.members-sidebar-toggle,.compact-profile-button{display:none!important}}
 
+
+/* IA Tzoul - layout amplo e compacto, preservando a navegacao lateral. */
+@media(min-width:761px){
+ .app>.main:has(>.tz-shell){flex:1 1 0;min-width:0;max-width:none;width:auto;height:100dvh;min-height:0;padding:12px clamp(10px,1.25vw,20px);overflow:hidden;display:flex;flex-direction:column}
+ .app>.main>.tz-shell{height:100%;min-height:0;max-height:none;flex:1 1 auto}
+}
+.main>.tz-shell{width:100%;max-width:none;min-width:0;margin:0;box-sizing:border-box;border-radius:17px}
+.tz-shell .tz-body{min-height:0;grid-template-columns:clamp(184px,20%,226px) minmax(0,1fr)}
+.tz-shell .tz-chat,.tz-shell .tz-sidebar{min-width:0;min-height:0}
+.tz-shell .tz-floating-actions{display:flex;align-items:center;justify-content:flex-end;min-height:51px;flex:none;padding:9px clamp(13px,2vw,28px) 0;pointer-events:none;background:transparent}
+.tz-shell .tz-new-chat{display:inline-flex;align-items:center;justify-content:center;gap:7px;min-height:35px;padding:7px 12px;border:1px solid var(--line);border-radius:12px;background:var(--paper);color:var(--ink);font-size:11px;font-weight:760;white-space:nowrap;box-shadow:0 3px 13px #32244d15;pointer-events:auto;transition:transform .18s,border-color .18s,box-shadow .18s}
+.tz-shell .tz-new-chat:hover{transform:translateY(-1px);border-color:#a997e3;box-shadow:0 6px 17px #32244d22}
+.tz-shell .tz-new-chat:focus-visible{outline:3px solid #9c86e5;outline-offset:2px}
+.tz-shell .tz-thread{width:100%;min-width:0;flex:1 1 0;min-height:0;max-height:none;overflow-y:auto;gap:19px;padding:14px clamp(16px,3.3%,52px) 21px}
+.tz-shell .tz-msg-body{max-width:min(96%,920px)}
+.tz-shell .tz-form{width:100%;max-width:none;box-sizing:border-box;padding:7px clamp(14px,3.3%,52px) 12px}
+.tz-shell .tz-context{margin:0 0 7px}
+.tz-shell .tz-context summary{padding:8px 11px;border-radius:11px}
+.tz-shell .tz-composer{min-height:47px;align-items:center;gap:8px;padding:5px 7px 5px 15px;border-radius:18px}
+.tz-shell .tz-composer textarea{field-sizing:content;height:auto;min-height:30px;max-height:126px;margin:0;padding:4px 0!important;line-height:1.4;resize:vertical;overflow-y:auto;font-size:14px}
+.tz-shell .tz-hints{left:16px;top:13px;right:53px;min-height:24px}
+.tz-shell .tz-hints span{font-size:12px;line-height:1.45}
+.tz-shell .tz-composer .tz-send{width:35px;height:35px;min-width:35px;border-radius:11px}
+.tz-shell .tz-composer-foot{display:none}
+html[data-theme="dark"] .tz-shell .tz-new-chat{background:#292640;border-color:#51466f;color:#f0eaff;box-shadow:0 3px 13px #08061330}
+@media(min-width:761px) and (max-width:1020px){
+ .tz-shell .tz-body{display:flex;flex-direction:column}
+ .tz-shell .tz-sidebar{flex:none;max-height:81px;border-right:0;border-bottom:1px solid var(--line)}
+ .tz-shell .tz-sidebar-header{padding:5px 10px 1px;font-size:10.5px}
+ .tz-shell .tz-history{display:flex;overflow-x:auto;overflow-y:hidden;min-height:46px;padding:2px 8px 6px;gap:5px}
+ .tz-shell .tz-history-item{flex:none;width:180px;margin:0}
+ .tz-shell .tz-history-empty{margin:4px 10px}
+}
+@media(max-width:760px){
+ .app>.main:has(>.tz-shell){max-width:none;min-width:0;padding:10px 9px 18px}
+ .main>.tz-shell{height:calc(100dvh - 164px);min-height:430px;max-height:none;border-radius:13px}
+ .tz-shell .tz-sidebar{max-height:89px}
+ .tz-shell .tz-sidebar-header{padding:3px 9px 0}
+ .tz-shell .tz-history{min-height:45px;padding-bottom:5px}
+ .tz-shell .tz-floating-actions{min-height:43px;padding:5px 11px 0}
+ .tz-shell .tz-new-chat{min-height:31px;padding:6px 9px;font-size:10.5px}
+ .tz-shell .tz-thread{padding:10px 12px 15px;gap:15px}
+ .tz-shell .tz-msg-body{max-width:calc(100% - 38px)}
+ .tz-shell .tz-form{padding:6px 10px 9px}
+ .tz-shell .tz-context{margin-bottom:6px}
+ .tz-shell .tz-context summary{padding:7px 9px}
+ .tz-shell .tz-composer{padding:4px 5px 4px 12px;min-height:43px;border-radius:15px}
+ .tz-shell .tz-composer textarea{min-height:28px;max-height:108px;font-size:16px;padding:3px 0!important}
+ .tz-shell .tz-hints{left:13px;top:12px;right:48px}
+ .tz-shell .tz-hints span{font-size:11.5px}
+ .tz-shell .tz-composer .tz-send{width:33px;height:33px;min-width:33px;border-radius:10px}
+}
+@media(prefers-reduced-motion:reduce){.tz-shell .tz-new-chat{transition:none}}
 </style>
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2064%2064%22%3E%3Crect%20width%3D%2264%22%20height%3D%2264%22%20rx%3D%2214%22%20fill%3D%22%23192d44%22%2F%3E%3Ctext%20x%3D%2232%22%20y%3D%2246%22%20fill%3D%22white%22%20font-size%3D%2246%22%20font-family%3D%22Georgia%2Cserif%22%20text-anchor%3D%22middle%22%3E%CE%A8%3C%2Ftext%3E%3C%2Fsvg%3E">
 <link rel="stylesheet" href="library-manager.css?v=20261111-5">
@@ -2929,9 +2982,8 @@ function renderAI(){
  const status=!logged?'Entre na conta para conversar':tz.ready===true?'Conectada':tz.ready===false?'Indisponível':'Verificando conexão';
  const subjectName=tz.subject==='todos'?'Todas as matérias':(DB.subjects[tz.subject]?.name||'Matéria selecionada');
  const html='<section class="tz-shell" aria-label="Conversa com a IA Tzoul">'+
- '<header class="tz-topline">'+tzAvatar()+'<div class="tz-title"><h1>IA Tzoul</h1><span>'+esc(status)+'</span></div>'+
- '<button type="button" class="tz-mini" data-tz-reset="1" title="Iniciar outra conversa">+ Nova conversa</button></header>'+
- '<div class="tz-body"><aside class="tz-sidebar" aria-label="Conversas anteriores"><div class="tz-sidebar-header"><strong>Conversas</strong><button type="button" data-tz-reset="1" title="Criar conversa">+</button></div><div class="tz-history">'+(tz.loading?'<p class="tz-history-empty">Carregando…</p>':tz.conversations.length?tz.conversations.map(c=>'<div class="tz-history-item '+(tz.active===c.id?'selected':'')+'"><button type="button" class="tz-history-open" data-tz-open="'+esc(c.id)+'" title="'+esc(c.title)+'"><span>'+esc(c.title)+'</span><small>'+new Date(c.updated_at).toLocaleDateString('pt-BR')+'</small></button><button type="button" class="tz-history-menu" data-tz-rename="'+esc(c.id)+'" title="Renomear conversa">✎</button><button type="button" class="tz-history-menu" data-tz-delete="'+esc(c.id)+'" title="Excluir conversa">×</button></div>').join(''):'<p class="tz-history-empty">As tuas conversas vão aparecer aqui.</p>')+'</div></aside><div class="tz-chat" role="region" aria-label="Chat de estudos">'+
+'<div class="tz-body"><aside class="tz-sidebar" aria-label="Conversas anteriores"><div class="tz-sidebar-header"><strong>Conversas</strong><button type="button" data-tz-reset="1" title="Criar conversa">+</button></div><div class="tz-history">'+(tz.loading?'<p class="tz-history-empty">Carregando…</p>':tz.conversations.length?tz.conversations.map(c=>'<div class="tz-history-item '+(tz.active===c.id?'selected':'')+'"><button type="button" class="tz-history-open" data-tz-open="'+esc(c.id)+'" title="'+esc(c.title)+'"><span>'+esc(c.title)+'</span><small>'+new Date(c.updated_at).toLocaleDateString('pt-BR')+'</small></button><button type="button" class="tz-history-menu" data-tz-rename="'+esc(c.id)+'" title="Renomear conversa">✎</button><button type="button" class="tz-history-menu" data-tz-delete="'+esc(c.id)+'" title="Excluir conversa">×</button></div>').join(''):'<p class="tz-history-empty">As tuas conversas vão aparecer aqui.</p>')+'</div></aside><div class="tz-chat" role="region" aria-label="Chat de estudos — '+esc(status)+'">'+
+ '<div class="tz-floating-actions"><button type="button" class="tz-new-chat" data-tz-reset="1" aria-label="Iniciar nova conversa" title="Iniciar nova conversa"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg><span>Nova conversa</span></button></div>'+
  '<div class="tz-thread" id="tzThread" aria-live="polite">'+messages+(tz.busy?'<div class="tz-thinking">IA Tzoul está respondendo</div>':'')+'</div>'+
  (notice?'<div class="tz-notice" role="status">'+esc(notice)+(logged&&tz.ready===false?'<div class="tz-retry-area"><button type="button" class="tz-retry-button" data-tz-retry="1">↻ Testar conexão novamente</button><small>Se a chave acabou de ser configurada no servidor, verifica aqui sem precisar sair do site.</small></div>':'')+'</div>':'')+
  (!logged&&hasContent?'<div class="tz-login"><button type="button" class="tz-send" data-action="tz-login">Entrar / Cadastrar</button></div>':'')+
@@ -2949,7 +3001,7 @@ function renderAI(){
  '<div class="tz-context-mode"><span>Tipo de resposta</span><div class="tz-modes"><button type="button" data-tz-mode="chat" class="tz-mode '+(tz.mode==='chat'?'selected':'')+'">Conversa</button><button type="button" data-tz-mode="document" class="tz-mode '+(tz.mode==='document'?'selected':'')+'">Documento</button></div></div><div class="tz-context-mode"><span>Profundidade</span><div class="tz-modes"><button type="button" data-tz-quality="standard" class="tz-mode '+(tz.quality==='standard'?'selected':'')+'">Padrão</button><button type="button" data-tz-quality="deep" class="tz-mode '+(tz.quality==='deep'?'selected':'')+'">Aprofundada</button></div></div>'+
  '<p class="tz-context-note">Um material só pode ser lido integralmente se o arquivo estiver acessível. Os demais conteúdos são consultados pela base indexada.</p></div></details>'+
  '<div class="tz-composer"><label for="tzPrompt" class="tz-sr-only">Escreve uma mensagem à IA Tzoul</label>'+
- '<textarea id="tzPrompt" rows="2" maxlength="4000" aria-label="Mensagem para a IA Tzoul" placeholder=" " '+(!logged||!hasContent||tz.busy||tz.ready===false?'disabled':'')+'>'+esc(tz.draft)+'</textarea>'+
+ '<textarea id="tzPrompt" rows="1" maxlength="4000" aria-label="Mensagem para a IA Tzoul" placeholder=" " '+(!logged||!hasContent||tz.busy||tz.ready===false?'disabled':'')+'>'+esc(tz.draft)+'</textarea>'+
  '<div class="tz-hints" aria-hidden="true"><span>Corrigir trabalhos com base nos materiais da aula</span><span>Encontrar textos e trechos específicos dos conteúdos</span><span>Resumir um capítulo ou uma parte do material</span><span>Criar documentos, questões e roteiros de estudo</span></div>'+
  '<button type="submit" class="tz-send" aria-label="Enviar mensagem" title="Enviar mensagem" '+(!logged||!hasContent||tz.busy||tz.ready===false?'disabled':'')+'>'+
  '<svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 19V5M5 12l7-7 7 7"/></svg></button></div>'+
