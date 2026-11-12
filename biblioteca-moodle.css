@@ -66,3 +66,20 @@
 .library-page .course-video-trail-cta{font-size:12px;font-weight:850;white-space:nowrap;padding:11px 15px;background:#fff;color:#564188;border-radius:10px;flex:none}
 @media(max-width:680px){.library-page .course-video-trail{padding:12px 13px 0}.library-page .course-video-trail-link{flex-wrap:wrap;gap:12px;padding:17px;min-height:0}.library-page .course-video-trail-icon{width:48px;height:48px;font-size:23px;border-radius:13px}.library-page .course-video-trail-content{flex-basis:calc(100% - 68px)}.library-page .course-video-trail-cta{width:100%;text-align:center}.library-page .course-video-trail-title{font-size:17px}}
 @media(prefers-reduced-motion:reduce){.library-page .course-video-trail-link{transition:none}}
+
+
+/* Dropdowns da vitrine de cursos: seta equilibrada e dentro do campo */
+.library-page .course-toolbar select{
+ -webkit-appearance:none;appearance:none;box-sizing:border-box;
+ padding:10px 39px 10px 13px!important;
+ background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23736b87' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+ background-repeat:no-repeat;background-position:right 13px center;background-size:16px 16px;
+ min-width:0;max-width:100%;
+}
+.library-page .course-toolbar #libraryCourseOrder{min-width:175px}
+.library-page .course-toolbar #libraryCourseMode{min-width:114px}
+@media(max-width:600px){
+ .library-page .course-toolbar select{flex:1 1 135px;min-width:0}
+ .library-page .course-toolbar #libraryCourseOrder{min-width:0}
+ .library-page .course-toolbar #libraryCourseMode{min-width:0}
+}
