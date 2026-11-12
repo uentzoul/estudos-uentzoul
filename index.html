@@ -3385,6 +3385,87 @@ document.addEventListener('input',e=>{if(e.target.id==='matSearch'){current.sear
   group.style.display=visibleTotal?'':'none';
  });
  return}if(e.target.matches('.essay')&&current.page==='test'){let q=e.target.dataset.qid;if(!store.answers[current.exam])store.answers[current.exam]={};store.answers[current.exam][q]=e.target.value;persist();}});
+
+/* Ponte de compartilhamento: apenas referências internas e verificáveis. */
+window.uentzoulShareCatalog={
+ list(){
+  const target=SEMESTER_DB['2026/2'];
+  const items=[];
+  for(const m of target.materials){
+   if(!m.available||!m._libraryKey||!target.subjects[m.subject])continue;
+   items.push({type:'material',id:m._libraryKey,subject:m.subject,semester:'2026/2',title:m.title,detail:target.subjects[m.subject].name});
+  }
+  for(const e of target.exams){
+   if(!target.subjects[e.subject])continue;
+   items.push({type:'exam',id:String(e.id),subject:e.subject,semester:'2026/2',title:e.title||'Simulado '+e.model,detail:target.subjects[e.subject].name});
+  }
+  for(const [subject,audio] of Object.entries(target.audio||{})){
+   if(!target.subjects[subject])continue;
+   (audio?.episodes||[]).forEach((ep,i)=>{
+    items.push({type:'podcast',id:subject+':'+i,subject,semester:'2026/2',title:ep.title,detail:target.subjects[subject].name});
+   });
+  }
+  for(const [subject,topics] of Object.entries(target.topics||{})){
+   if(!target.subjects[subject])continue;
+   topics.forEach((topic,i)=>items.push({type:'topic',id:subject+':'+i,subject,semester:'2026/2',title:topic.title,detail:target.subjects[subject].name}));
+  }
+  const user=geUser?.();
+  if(user){
+   ge.exams.filter(e=>e.creator_id===user.id&&e.semester==='2026/2'&&!e.personal_subject_id).forEach(e=>
+    items.push({type:'generated',id:e.id,subject:e.subject,semester:'2026/2',
+     title:e.title||'Simulado criado com IA',detail:(target.subjects[e.subject]?.name||'Simulado personalizado')+' · Convite privado'}));
+  }
+  return items;
+ },
+ resolve(payload){
+  if(!payload||typeof payload!=='object'||typeof payload.id!=='string'||payload.semester!=='2026/2')return null;
+  return this.list().find(x=>x.type===payload.type&&x.id===payload.id)||null;
+ },
+ async load(){if(geUser?.()&&!ge.loaded&&!ge.loading)await geLoad()},
+ async open(payload){
+  if(!payload||payload.semester!=='2026/2')return toast('Material não disponível neste semestre.');
+  if(semester!=='2026/2')switchSemester('2026/2');
+  const item=this.resolve(payload);
+  if(payload.type==='generated'){
+   if(!ge.loaded){await geLoad()}
+   const exam=ge.exams.find(x=>x.id===payload.id&&x.semester==='2026/2');
+   const user=geUser?.();
+   const accessible=exam&&user&&(exam.creator_id===user.id||ge.shares.some(x=>x.exam_id===exam.id&&x.recipient_id===user.id));
+   if(!accessible){toast('Este simulado precisa ser aceito no convite antes de abrir.');return}
+   ge.tab='ai';ge.selected=exam.id;ge.shareExamId=null;go('exams');return;
+  }
+  if(!item){toast('Esse conteúdo foi removido da biblioteca disponível.');return}
+  if(item.type==='exam'){go('test',{exam:item.id});return}
+  if(item.type==='material'){
+   go('subject',{subject:item.subject,subjectArea:'docs'});
+   requestAnimationFrame(()=>{
+    const nodes=[...document.querySelectorAll('#main .doc, #main .library-resource')];
+    const target=nodes.find(el=>el.querySelector('.docname')?.textContent.trim()===item.title);
+    if(target){target.classList.add('dm-share-highlight');target.scrollIntoView({block:'center',behavior:'smooth'});setTimeout(()=>target.classList.remove('dm-share-highlight'),2500)}
+   });return;
+  }
+  if(item.type==='topic'){
+   const i=Number(item.id.split(':').pop());
+   go('subject',{subject:item.subject,subjectArea:'topics'});
+   requestAnimationFrame(()=>{
+    const nodes=document.querySelectorAll('#topics details.topic');
+    const target=nodes[i];
+    if(target){target.open=true;target.classList.add('dm-share-highlight');target.scrollIntoView({block:'center',behavior:'smooth'});setTimeout(()=>target.classList.remove('dm-share-highlight'),2500)}
+   });return;
+  }
+  if(item.type==='podcast'){
+   const idx=Number(item.id.split(':').pop());
+   current.audioSubject=item.subject;
+   if(item.subject==='tcc')currentChapter=idx;else currentEpisode=idx;
+   go('subject',{subject:item.subject,subjectArea:'podcasts'});
+   requestAnimationFrame(()=>{
+    const row=document.querySelector('#main .episodeunit[data-audio-index="'+idx+'"]');
+    if(row){row.classList.add('dm-share-highlight');row.scrollIntoView({block:'center',behavior:'smooth'});setTimeout(()=>row.classList.remove('dm-share-highlight'),2500)}
+   });
+  }
+ }
+};
+
 window.addEventListener('beforeunload',persist);
 if(location.hash.startsWith('#')){const h=decodeURIComponent(location.hash.slice(1));if(DB.subjects[h]){current.page='subject';current.subject=h}else if(DB.exams.some(e=>e.id===h)){current.page='test';current.exam=h}else if(['home','exams','library','audio','calendar','ai','admin'].includes(h))current.page=h==='library'?'home':h}
 try{render();document.documentElement.classList.add('app-ready');}catch(e){console.error('Inicialização da Central falhou',e);}
