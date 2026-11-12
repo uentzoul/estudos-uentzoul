@@ -452,3 +452,97 @@ html[data-theme="dark"] .dm-share-item.selected .dm-share-check{background:#745f
  .dm-photo-viewer{animation:none}
  .dm-contact,.dm-soft-button,.dm-head-action,.dm-message-bubble{transition:none}
 }
+
+
+/* Compartilhamento — correção estrutural (abas e busca não podem sobrepor-se). */
+.dm-share-backdrop{
+  display:flex!important;align-items:center!important;justify-content:center!important;
+  padding:clamp(12px,3vh,26px)!important;
+  overflow:hidden!important;
+  height:100dvh;max-height:100dvh;box-sizing:border-box;
+}
+.dm-share-dialog{
+  display:grid!important;
+  grid-template-columns:minmax(0,1fr);
+  grid-template-rows:auto auto auto minmax(0,1fr) auto;
+  align-content:stretch!important;
+  width:min(610px,100%)!important;
+  height:min(680px,calc(100dvh - 36px))!important;
+  min-height:0!important;max-height:calc(100dvh - 24px)!important;
+  min-width:0;
+  margin:auto!important;
+  overflow:hidden!important;
+  border-radius:18px!important;
+}
+.dm-share-dialog > *{min-width:0;box-sizing:border-box}
+.dm-share-heading{
+  grid-row:1;min-height:0!important;align-items:center;
+  padding:19px 20px 12px!important;overflow:visible;flex:none;
+}
+.dm-share-heading h2{line-height:1.3;font-size:18px;margin:0 0 5px}
+.dm-share-heading p{font-size:11px;line-height:1.45}
+.dm-share-tabs{
+  grid-row:2;display:flex!important;flex-wrap:nowrap!important;
+  flex:none!important;align-items:center;gap:7px;
+  height:auto!important;min-height:48px!important;
+  padding:0 20px 11px!important;margin:0!important;
+  overflow-x:auto!important;overflow-y:hidden!important;
+  scrollbar-width:none!important;white-space:nowrap;
+}
+.dm-share-tabs::-webkit-scrollbar{display:none}
+.dm-share-tabs button{
+  flex:0 0 auto!important;display:inline-flex;align-items:center;justify-content:center;
+  min-height:32px!important;margin:0!important;
+  padding:7px 12px!important;line-height:1.1!important;
+  font-size:11px;white-space:nowrap;
+  transform:none!important;
+}
+.dm-share-search{
+  grid-row:3;display:block!important;
+  position:static!important;z-index:auto!important;
+  flex:none!important;align-self:auto!important;
+  margin:0 20px 12px!important;
+  width:calc(100% - 40px)!important;
+  min-height:41px!important;height:41px!important;
+  padding:10px 12px!important;
+  line-height:normal!important;font-size:12px!important;
+  outline:0!important;box-shadow:none!important;
+  border:1px solid var(--line)!important;
+  border-radius:10px!important;
+  background:var(--soft)!important;color:var(--ink)!important;
+}
+.dm-share-search:focus{border-color:#a48ad9!important;box-shadow:0 0 0 2px #9477d52c!important}
+.dm-share-list{
+  grid-row:4;min-height:0!important;min-width:0!important;
+  overflow-x:hidden!important;overflow-y:auto!important;
+  padding:5px 12px 12px!important;
+  margin:0!important;
+  scrollbar-width:thin;
+  overscroll-behavior:contain;
+}
+.dm-share-item{
+  min-height:60px!important;margin:2px 0!important;
+  padding:9px 11px!important;align-items:center;
+  gap:11px;border-radius:11px;
+}
+.dm-share-symbol{width:37px;height:37px;font-size:18px;border-radius:10px}
+.dm-share-copy strong{line-height:1.35;font-size:12px}
+.dm-share-copy small{margin-top:3px;line-height:1.3;font-size:10px}
+.dm-share-footer{
+  grid-row:5;flex:none!important;min-height:67px;
+  margin:0!important;padding:12px 20px!important;
+  align-items:center;border-top:1px solid var(--line);
+}
+.dm-share-send{min-height:38px;padding:9px 13px}
+@media(max-width:540px){
+ .dm-share-backdrop{padding:9px!important}
+ .dm-share-dialog{height:calc(100dvh - 18px)!important;max-height:calc(100dvh - 18px)!important;border-radius:13px!important}
+ .dm-share-heading{padding:14px 14px 11px!important}
+ .dm-share-heading h2{font-size:16px}
+ .dm-share-tabs{padding:0 13px 9px!important;min-height:44px!important}
+ .dm-share-tabs button{font-size:10px;padding:7px 10px!important}
+ .dm-share-search{margin:0 13px 9px!important;width:calc(100% - 26px)!important}
+ .dm-share-list{padding:4px 7px 10px!important}
+ .dm-share-item{padding:9px!important}
+ .dm-share-footer{padding:10px 13px!important}
+}
