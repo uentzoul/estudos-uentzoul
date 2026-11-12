@@ -1603,6 +1603,7 @@ html[data-exam-focus="2026/2"] .sidebtn[data-page="audio"]{display:none!importan
 </style>
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2064%2064%22%3E%3Crect%20width%3D%2264%22%20height%3D%2264%22%20rx%3D%2214%22%20fill%3D%22%23192d44%22%2F%3E%3Ctext%20x%3D%2232%22%20y%3D%2246%22%20fill%3D%22white%22%20font-size%3D%2246%22%20font-family%3D%22Georgia%2Cserif%22%20text-anchor%3D%22middle%22%3E%CE%A8%3C%2Ftext%3E%3C%2Fsvg%3E">
 <link rel="stylesheet" href="library-manager.css?v=20261111-5">
+<link rel="stylesheet" href="biblioteca-moodle.css?v=20261112-1">
 </head>
 <body>
 <section id="staticFallback" class="static-fallback" aria-label="Central de Estudos — modo de leitura compatível com celular">
@@ -1962,8 +1963,9 @@ const LIBRARY_CATALOG=SEMESTER_DB['2026/2'].materials.slice(); // Catálogo comp
 // Foco temporário nas avaliações finais de novembro de 2026.
 // Os itens anteriores não são excluídos do repositório, do Supabase nem do histórico:
 // apenas deixam de ser exibidos no acervo/revisão do semestre corrente.
-const FINAL_EXAM_LIBRARY_KEYS=new Set(["tcc::Cronograma de TCC","tcc::Terapia do Esquema — 41 slides","tcc::TCCs de Terceira Onda — 39 slides","tcc::Young, Klosko e Weishaar — cap. 1–2","tcc::Hayes e colaboradores — ACT","familia::Cronograma de Psicologia da Família","familia::Famílias monoparentais, divórcio e recasamento","familia::Segredos e adoção","familia::Violência intrafamiliar","familia::Luto — Manual de Terapia Familiar, cap. 27","familia::Dependência Química na visão sistêmica — Payá, cap. 56","familia::Atendimentos clínico, hospitalar, escolar, jurídico e assistência social","meta::Plano e cronograma de Metapsicologia","meta::Segunda Tópica — slides","meta::Édipo — slides","meta::Pulsão — slides","meta::Angústia — slides","meta::Estudo Dirigido P2","meta::Leitura das aulas 19 e 26 de outubro","meta::Vocabulário da Psicanálise — Laplanche e Pontalis","meta::Dicionário de Psicanálise — Roudinesco e Plon","social::Cronograma de Psicologia Social","social::Psicologia Social Crítica — Martín-Baró","social::Seminário sobre algoritmos e polarização","social::Texto-base sobre relações étnico-raciais","social::Texto-base sobre gênero e sexualidade","avaliacao::Cronograma de Avaliação Psicológica","avaliacao::Entrevista de devolução — slides","avaliacao::Avaliação no contexto organizacional","avaliacao::Avaliação nos contextos hospitalar e forense","avaliacao::Avaliação de pessoas trans e ética profissional","avaliacao::Entrevista simulada de devolução — vídeo","grupos::Moreno — Psicodrama","grupos::Carl Rogers — Grupos de Encontro","grupos::Escritores da Liberdade — sinopse oficial","grupos::Escritores da Liberdade — análise do filme","grupos::Escritores da Liberdade — guia de estudo (PDF)","geral::Caderno Integrado — versão completa","geral::Caderno Integrado — exercícios e citações","avaliacao::Entrevista de Anamnese","avaliacao::Elaboração de documentos — slides","avaliacao::Rovinski e Lago — documentos","avaliacao::Validade e Precisão — slides","avaliacao::Padronização e normas — Rabelo e colaboradores","avaliacao::Pasquali — elaboração de escalas","avaliacao::Adaptação de Instrumentos","avaliacao::Bateria de Testes — slides"]);
+const FINAL_EXAM_LIBRARY_KEYS=new Set(["tcc::Cronograma de TCC","tcc::Terapia do Esquema — 41 slides","tcc::TCCs de Terceira Onda — 39 slides","familia::Luto — Manual de Terapia Familiar, cap. 27","familia::Dependência Química na visão sistêmica — Payá, cap. 56","familia::Atendimentos clínico, hospitalar, escolar, jurídico e assistência social","meta::Plano e cronograma de Metapsicologia","meta::Segunda Tópica — slides","meta::Édipo — slides","meta::Pulsão — slides","meta::Angústia — slides","meta::Estudo Dirigido P2","meta::Leitura das aulas 19 e 26 de outubro","meta::Vocabulário da Psicanálise — Laplanche e Pontalis","meta::Dicionário de Psicanálise — Roudinesco e Plon","social::Cronograma de Psicologia Social","social::Psicologia Social Crítica — Martín-Baró","social::Seminário sobre algoritmos e polarização","social::Texto-base sobre relações étnico-raciais","social::Texto-base sobre gênero e sexualidade","avaliacao::Cronograma de Avaliação Psicológica","avaliacao::Entrevista de devolução — slides","avaliacao::Avaliação no contexto organizacional","avaliacao::Avaliação nos contextos hospitalar e forense","avaliacao::Avaliação de pessoas trans e ética profissional","avaliacao::Entrevista simulada de devolução — vídeo","grupos::Moreno — Psicodrama","grupos::Carl Rogers — Grupos de Encontro","grupos::Escritores da Liberdade — sinopse oficial","grupos::Escritores da Liberdade — análise do filme","grupos::Escritores da Liberdade — guia de estudo (PDF)","geral::Caderno Integrado — versão completa","geral::Caderno Integrado — exercícios e citações","avaliacao::Entrevista de Anamnese","avaliacao::Elaboração de documentos — slides","avaliacao::Rovinski e Lago — documentos","avaliacao::Validade e Precisão — slides","avaliacao::Padronização e normas — Rabelo e colaboradores","avaliacao::Pasquali — elaboração de escalas","avaliacao::Adaptação de Instrumentos","avaliacao::Bateria de Testes — slides"]);
 SEMESTER_DB['2026/2'].materials=SEMESTER_DB['2026/2'].materials.filter(m=>FINAL_EXAM_LIBRARY_KEYS.has(String(m.subject||'')+'::'+String(m.title||'')));
+SEMESTER_DB['2026/2'].topics.familia=SEMESTER_DB['2026/2'].topics.familia.filter(t=>['Luto e reorganização familiar','Dependência química na família','Atendimento familiar em clínica'].includes(t.title));
 SEMESTER_DB['2026/2'].topics.avaliacao=SEMESTER_DB['2026/2'].topics.avaliacao.filter(t=>[
 'Entrevista de devolução','Linguagem e comunicação na devolução','Sigilo e compartilhamento ético',
 'Avaliação no contexto organizacional','Avaliação hospitalar','Avaliação forense',
@@ -2363,8 +2365,8 @@ function organizedMaterialBlock(materials,pending=false,libraryView=false){
  }).join('');
 }
 function organizedSubjectMaterials(materials,libraryView=false){
- const available=materials.filter(m=>m.available),pending=materials.filter(m=>!m.available);
- return (available.length?organizedMaterialBlock(available,false,libraryView):'<div class="empty">Nenhum arquivo disponível.</div>')+(pending.length?organizedMaterialBlock(pending,true,libraryView):'');
+ const available=materials.filter(m=>m.available);
+ return available.length?organizedMaterialBlock(available,false,libraryView):'<div class="empty">Nenhum arquivo publicado para esta avaliação.</div>';
 }
 function renderSubject(k){
  const subj=getSubject(k),docs=DB.materials.filter(x=>x.subject===k),topics=DB.topics[k],tests=DB.exams.filter(x=>x.subject===k);
@@ -2384,7 +2386,7 @@ function renderSubject(k){
  (k==='meta'&&semester==='2026/2'?'<section class="meta-route"><div class="meta-route-orbit" aria-hidden="true">Ψ</div><div class="meta-route-copy"><div class="meta-route-tag">TRILHA ESPECIAL · PROVA P2</div><h2>Os seis vídeos do professor, organizados por assunto.</h2><p>95 capítulos com minutagens, explicações, exemplos e revisão. Clique no trecho e assista diretamente no player do YouTube, sem baixar o vídeo.</p><a href="metapsicologia-p2.html" class="meta-route-button">Abrir minha trilha de Metapsicologia <span aria-hidden="true">↗</span></a></div></section>':'')+
  '<section class="section" id="topics"><div class="sectiontop"><h2>Conteúdos para revisar</h2><span class="small">'+topics.length+' tópicos de estudo</span></div>'+
  '<div class="topicgrid">'+topics.map((t,i)=>'<div class="topicunit '+(isDone(topicProgressKey(k,i))?'is-done':'')+'"><details class="topic"><summary>'+(i+1)+'. '+esc(t.title)+'</summary><p>'+esc(t.definition)+'</p><p><strong>Exemplo:</strong> '+esc(t.scenario)+'</p><p><strong>Erro comum:</strong> '+esc(t.myth)+'</p></details><div class="topicfoot">'+doneBox(topicProgressKey(k,i))+'</div></div>').join('')+'</div></section>'+
- '<section class="section" id="docs"><div class="sectiontop"><h2>Materiais e textos da disciplina</h2><span class="small">'+docs.filter(m=>m.available).length+' disponíveis · '+docs.filter(m=>!m.available).length+' referências sem arquivo</span></div>'+
+ '<section class="section" id="docs"><div class="sectiontop"><h2>Materiais e textos da disciplina</h2><span class="small">'+docs.filter(m=>m.available).length+' disponíveis · '+docs.filter(m=>!m.available).length+' materiais disponíveis</span></div>'+
  '<div class="library-group" style="margin-top:0;--group-accent:'+color(k)+'">'+organizedSubjectMaterials(docs)+'</div></section>'+
  '<section class="section" id="tests"><div class="sectiontop"><h2>Simulados da disciplina</h2><span class="small">'+tests.length+' provas para praticar</span></div>'+
  '<div class="examgrid exam-grid-5">'+tests.map(examCard).join('')+'</div><p class="small" style="margin-top:9px">'+esc(subj.style)+'</p></section>'+
@@ -2426,29 +2428,78 @@ function libraryAdminPanel(){
  '<div class="library-upload-controls"><div class="library-review-steps"><span>1 · Selecionar</span><span>2 · Conferir o conteúdo</span><span>3 · Publicar</span></div><button type="submit" class="library-upload-submit" id="libraryUploadSend" disabled>Publicar materiais revisados</button></div>'+
  '</form><div class="library-upload-feedback" id="libraryUploadFeedback" role="status" aria-live="polite">Selecione arquivos para analisar os assuntos e conferir a associação à disciplina.</div></section>';
 }
-function renderLibrary(){
- const list=DB.materials.filter(m=>(current.filter==='todos'||m.subject===current.filter)&&(m.title+' '+m.note).toLocaleLowerCase().includes(current.search.toLocaleLowerCase()));
- const ids=['geral',...Object.keys(DB.subjects)];
- const groups=ids.filter(k=>list.some(m=>m.subject===k));
- const total=DB.materials.length;
- const available=DB.materials.filter(m=>m.available).length;
- const blocks=groups.map(k=>{
-  const materials=list.filter(m=>m.subject===k),label=k==='geral'?'Cadernos integrados':DB.subjects[k].name;
-  const ready=materials.filter(m=>m.available).length;
-  return '<section class="library-group" style="--group-accent:'+(k==='geral'?'#7164d9':color(k))+'">'+
-  '<div class="library-head"><span class="library-subject-mark" aria-hidden="true"></span><h2>'+esc(label)+'</h2><span>'+ready+' disponíveis · '+(materials.length-ready)+' ainda sem arquivo</span></div>'+
-  organizedSubjectMaterials(materials,true)+'</section>';
- }).join('');
- return '<div class="library-page">'+head('Revisão de novembro','Biblioteca das provas finais','Apenas materiais das avaliações de 18 a 26 de novembro de 2026, agrupados por disciplina.')+
- '<div class="library-overview"><div class="library-overview-message"><span class="library-overview-kicker">ACERVO DIGITAL</span><div class="library-overview-title">Só o conteúdo das provas finais.</div><p>Abra um material tocando em qualquer parte do cartão. Seu progresso continua separado.</p></div>'+
- '<div class="library-overview-metrics"><div><strong>'+available+'</strong><span>disponíveis</span></div><div><strong>'+total+'</strong><span>no acervo</span></div></div></div>'+
- libraryAdminPanel()+
- '<div class="panel library-filter-panel"><div class="topline"><div class="filters" id="filterlist">'+
- [['todos','Todos'],['geral','Cadernos'],...Object.entries(DB.subjects).map(([k,v])=>[k,v.name])].map(([k,l])=>'<button class="filter '+(current.filter===k?'active':'')+'" data-action="filter:'+k+'">'+esc(l)+'</button>').join('')+
- '</div><input class="searchbox" id="matSearch" placeholder="Buscar material..." value="'+esc(current.search)+'" aria-label="Buscar material"></div></div>'+
- (blocks||'<section class="section"><div class="empty">Nenhum material corresponde a essa busca.</div></section>')+
- '<div class="footer">Arquivos PDF e links externos podem exigir conexão com a internet.</div></div>';
+function libraryExamMaterials(k){
+ return DB.materials.filter(m=>m.subject===k&&m.available&&m._libraryUpload?.exam_scope!==false);
 }
+function libraryExamProgress(k){
+ const docs=libraryExamMaterials(k);
+ const n=doneCount(docs.map(m=>'material:'+(m._libraryLegacyUrl||m.source||m._libraryKey||m.url)));
+ return {n,total:docs.length,pct:fmtPct(n,docs.length)};
+}
+function libraryProgressMarkup(p){
+ return '<div class="course-progress-label"><span>'+p.n+' de '+p.total+' materiais concluídos</span><strong>'+p.pct+'%</strong></div>'+
+ '<div class="course-progress-track" role="progressbar" aria-label="Progresso dos materiais" aria-valuenow="'+p.pct+'" aria-valuemin="0" aria-valuemax="100"><span style="width:'+p.pct+'%"></span></div>';
+}
+function renderLibrary(){
+ const selected=current.libraryCourse;
+ const subjects=Object.keys(DB.subjects);
+ if(selected&&DB.subjects[selected]){
+  const subj=DB.subjects[selected],docs=libraryExamMaterials(selected),p=libraryExamProgress(selected);
+  const familyTopics=selected==='familia'?['Luto e reorganização familiar','Dependência química na família','Atendimento clínico familiar']:[];
+  return '<div class="library-page"><button type="button" class="course-back" data-action="libraryBack">← Voltar às disciplinas</button>'+
+   '<section class="course-detail-hero" style="--course-accent:'+color(selected)+'">'+
+    '<div class="course-detail-banner" aria-hidden="true">Ψ</div><div class="course-detail-body">'+
+    '<span class="eyebrow">Psicologia PUCRS · 2026/2 · Prova final</span><h1 class="h1">'+esc(subj.name)+'</h1>'+
+    '<p>Materiais de estudo correspondentes à avaliação final.</p>'+libraryProgressMarkup(p)+'</div></section>'+
+    (familyTopics.length?'<h2 style="font-size:16px;margin:0 0 7px">Conteúdos da prova</h2><div class="course-syllabus">'+familyTopics.map(t=>'<span>'+esc(t)+'</span>').join('')+'</div>':'')+
+    '<div class="course-materials-title"><h2>Materiais para estudar</h2><span>'+docs.length+' '+(docs.length===1?'arquivo disponível':'arquivos disponíveis')+'</span></div>'+
+    '<section class="course-detail-resources">'+(docs.length?organizedSubjectMaterials(docs,true):
+     '<div class="course-empty">Ainda não há arquivos publicados para os conteúdos desta prova. Os novos materiais aparecerão aqui quando forem adicionados.</div>')+'</section>'+
+    (selected==='meta'?'<p style="margin-top:16px"><a class="btn light" href="metapsicologia-p2.html">▶ Trilha de videoaulas</a></p>':'')+
+    '<p class="course-library-note">O percentual considera apenas arquivos disponíveis marcados como vistos. As marcações não concedem pontos.</p></div>';
+ }
+ const status=current.libraryStatus||'all',order=current.libraryOrder||'name',mode=current.libraryMode||'cards';
+ let ids=subjects.filter(k=>{
+  const p=libraryExamProgress(k);
+  return status==='all'||(status==='new'&&p.n===0)||(status==='started'&&p.n>0&&p.n<p.total)||(status==='done'&&p.total>0&&p.n===p.total);
+ });
+ ids.sort((a,b)=>order==='progress'?libraryExamProgress(b).pct-libraryExamProgress(a).pct||DB.subjects[a].name.localeCompare(DB.subjects[b].name,'pt-BR'):DB.subjects[a].name.localeCompare(DB.subjects[b].name,'pt-BR'));
+ const courses=ids.map(k=>{
+  const subj=DB.subjects[k],p=libraryExamProgress(k);
+  const hint=k==='familia'?'Luto · Dependência química · Atendimento clínico':k==='meta'?'Metapsicologia e psicanálise':k==='tcc'?'Teorias cognitivas e comportamentais':subj.full||'Materiais da avaliação final';
+  return '<article class="course-card" style="--course-accent:'+color(k)+'" data-course-search="'+esc((subj.name+' '+hint).toLocaleLowerCase('pt-BR'))+'">'+
+  '<button class="course-card-button" type="button" data-action="libraryCourse:'+k+'" aria-label="Abrir materiais de '+esc(subj.name)+'">'+
+  '<div class="course-cover"><span class="course-index">2026/2 · PROVA FINAL</span><span class="course-symbol" aria-hidden="true">Ψ</span></div>'+
+  '<div class="course-card-content"><div class="course-card-title">'+esc(subj.name)+'</div>'+
+  '<div class="course-card-desc">'+esc(hint)+'</div>'+libraryProgressMarkup(p)+
+  '<div class="course-card-footer"><span>'+p.total+' '+(p.total===1?'material':'materiais')+'</span><span>Ver materiais →</span></div></div></button></article>';
+ }).join('');
+ return '<div class="library-page"><div class="course-intro"><div>'+head('Biblioteca · 2026/2','Resumo das disciplinas','Apenas as matérias das provas finais, organizadas como cursos.')+'</div></div>'+
+ '<div class="course-toolbar"><span class="course-semester">2026/2</span><input id="libraryCourseSearch" type="search" placeholder="Buscar disciplina..." aria-label="Buscar disciplina" value="'+esc(current.libraryQuery||'')+'">'+
+ '<select id="libraryCourseStatus" aria-label="Filtrar por progresso"><option value="all"'+(status==='all'?' selected':'')+'>Todos os cursos</option><option value="new"'+(status==='new'?' selected':'')+'>Não iniciados</option><option value="started"'+(status==='started'?' selected':'')+'>Em andamento</option><option value="done"'+(status==='done'?' selected':'')+'>Concluídos</option></select>'+
+ '<select id="libraryCourseOrder" aria-label="Ordenar cursos"><option value="name"'+(order==='name'?' selected':'')+'>Ordenar por nome</option><option value="progress"'+(order==='progress'?' selected':'')+'>Ordenar por progresso</option></select>'+
+ '<select id="libraryCourseMode" aria-label="Visualização"><option value="cards"'+(mode==='cards'?' selected':'')+'>Cartões</option><option value="list"'+(mode==='list'?' selected':'')+'>Lista</option></select></div>'+
+ (ids.length?'<div class="course-grid '+(mode==='list'?'is-list':'')+'">'+courses+'</div>':'<div class="course-empty">Nenhuma disciplina corresponde ao filtro selecionado.</div>')+
+ '<div class="course-empty" id="libraryCourseNoResults" hidden>Nenhuma disciplina corresponde à busca.</div>'+
+ '<p class="course-library-note">O progresso é calculado pelos materiais publicados e marcados como vistos no teu perfil. Materiais que ainda não foram enviados não aparecem como referências vazias.</p></div>';
+}
+document.addEventListener('change',event=>{
+ const el=event.target;
+ if(el.id==='libraryCourseStatus'){current.libraryStatus=el.value;render();return}
+ if(el.id==='libraryCourseOrder'){current.libraryOrder=el.value;render();return}
+ if(el.id==='libraryCourseMode'){current.libraryMode=el.value;render();return}
+ if(el.matches('.library-page [data-complete]'))requestAnimationFrame(()=>{if(current.page==='library')render()});
+});
+document.addEventListener('input',event=>{
+ if(event.target.id!=='libraryCourseSearch')return;
+ current.libraryQuery=event.target.value;
+ const q=current.libraryQuery.trim().toLocaleLowerCase('pt-BR');
+ let found=0;
+ document.querySelectorAll('.library-page [data-course-search]').forEach(card=>{
+  const matches=card.dataset.courseSearch.includes(q);card.hidden=!matches;if(matches)found++;
+ });
+ const empty=document.getElementById('libraryCourseNoResults');if(empty)empty.hidden=!!found;
+});
 function audioSelectionIndex(){return current.audioSubject==='tcc'?currentChapter:currentEpisode;}
 function audioKey(k,i){return k+':'+i;}
 function podcastEpisode(k,i){return audioEpisodes(k)[i];}
@@ -3257,7 +3308,7 @@ function onAction(act){
   const el=document.querySelectorAll('#topics details.topic')[index];
   if(el){el.open=true;requestAnimationFrame(()=>el.scrollIntoView({behavior:'smooth',block:'start'}))}
   return;
- }if(act.startsWith('download:')){const [k,i]=act.slice(9).split(':');downloadEpisodeAction(k,Number(i));return;}if(act.startsWith('page:'))return go(act.slice(5));if(act.startsWith('subject:'))return go('subject',{subject:act.slice(8)});if(act.startsWith('test:'))return go('test',{exam:act.slice(5)});if(act.startsWith('audioFor:')){const k=act.slice(9);if(!DB.audio[k])return;current.audioSubject=k;currentEpisode=0;currentChapter=0; if(manualAudioUrl){URL.revokeObjectURL(manualAudioUrl);manualAudioUrl=null;manualAudioName='';}return go('audio');}if(act.startsWith('filter:')){current.filter=act.slice(7);let v=$('matSearch')?.value||current.search;current.search=v;render();return}if(act.startsWith('scroll:'))return document.getElementById(act.slice(7))?.scrollIntoView({behavior:'smooth'});if(act==='save'){persist();return toast('Respostas salvas neste navegador.')}if(act==='export'){const b=new Blob([JSON.stringify(store,null,2)],{type:'application/json'});let u=URL.createObjectURL(b);let a=document.createElement('a');a.href=u;a.download='meu_progresso_psicologia.json';a.click();setTimeout(()=>URL.revokeObjectURL(u),2000);return toast('Progresso exportado. Guarde o arquivo para a próxima versão.')}if(act==='import'){document.getElementById('importProgress')?.click();return}if(act==='print')return window.print();if(act.startsWith('submit:'))return submit(act.slice(7));if(act.startsWith('redo:')){toast('Este simulado já foi entregue e não pode ser refeito.');return}
+ }if(act.startsWith('download:')){const [k,i]=act.slice(9).split(':');downloadEpisodeAction(k,Number(i));return;}if(act==='libraryBack'){current.libraryCourse=null;render();return}if(act.startsWith('libraryCourse:')){const id=act.slice(14);if(DB.subjects[id]){current.libraryCourse=id;render();}return}if(act.startsWith('page:')){const page=act.slice(5);if(page==='library')current.libraryCourse=null;return go(page);}if(act.startsWith('subject:'))return go('subject',{subject:act.slice(8)});if(act.startsWith('test:'))return go('test',{exam:act.slice(5)});if(act.startsWith('audioFor:')){const k=act.slice(9);if(!DB.audio[k])return;current.audioSubject=k;currentEpisode=0;currentChapter=0; if(manualAudioUrl){URL.revokeObjectURL(manualAudioUrl);manualAudioUrl=null;manualAudioName='';}return go('audio');}if(act.startsWith('filter:')){current.filter=act.slice(7);let v=$('matSearch')?.value||current.search;current.search=v;render();return}if(act.startsWith('scroll:'))return document.getElementById(act.slice(7))?.scrollIntoView({behavior:'smooth'});if(act==='save'){persist();return toast('Respostas salvas neste navegador.')}if(act==='export'){const b=new Blob([JSON.stringify(store,null,2)],{type:'application/json'});let u=URL.createObjectURL(b);let a=document.createElement('a');a.href=u;a.download='meu_progresso_psicologia.json';a.click();setTimeout(()=>URL.revokeObjectURL(u),2000);return toast('Progresso exportado. Guarde o arquivo para a próxima versão.')}if(act==='import'){document.getElementById('importProgress')?.click();return}if(act==='print')return window.print();if(act.startsWith('submit:'))return submit(act.slice(7));if(act.startsWith('redo:')){toast('Este simulado já foi entregue e não pode ser refeito.');return}
  if(act==='resetAudio'){const a=$('audioPlayer');if(a){a.pause();a.currentTime=0;}toast('Reprodutor reiniciado.');return;}
  if(act.startsWith('chapter:'))return openChapter(+act.slice(8));
  if(act.startsWith('episode:'))return openEpisode(+act.slice(8));
