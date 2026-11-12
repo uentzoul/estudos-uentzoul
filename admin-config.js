@@ -161,15 +161,20 @@ function listMarkup(){
 }
 function render(){
  if(!isAdmin())return '<section class="panel"><h1>Acesso restrito</h1><p>Esta área é exclusiva do administrador.</p></section>';
+ // Apenas os relatórios de erros e o log. O log fica sempre por último.
+ // Os conteúdos salvos continuam intactos no banco e nas disciplinas.
  return '<div class="admin-config-page" id="adminConfigPage">'+
- '<header class="admin-header"><span class="admin-kicker">Painel privado</span><h1>Admin Config</h1><p>Gerencie os materiais, os conteúdos e as contas conectadas.</p></header>'+
+ '<header class="admin-header"><span class="admin-kicker">Painel privado</span><h1>Admin Config</h1><p>Consulte os relatos de erros e os registros de acesso à plataforma.</p></header>'+
+ '<details class="admin-card admin-reports"><summary>Relatos de erros <span>Privado</span></summary><div id="adminErrorReports">'+reportsMarkup()+'</div></details>'+
  adminLogMarkup()+
- '<div class="admin-grid">'+formMarkup()+listMarkup()+'</div>'+ '<details class="admin-card admin-reports"><summary>Relatos de erros <span>Privado</span></summary><div id="adminErrorReports">'+reportsMarkup()+'</div></details>'+
- '<div class="admin-uploads">'+(bridge()?.adminLibrary?.()||'<section class="admin-card">Biblioteca indisponível.</section>')+'</div>'+
- (notice?'<p class="admin-notice" role="status">'+esc(notice)+'</p>':'')+
  '</div>';
 }
-function afterRender(){if(!isAdmin())return;if(logOpen&&(Date.now()-lastPresence>12000||Date.now()-lastLog>12000)){loadPresence();loadAccess()}if(Date.now()-lastReports>25000)loadReports();window.uentzoulLibraryManager?.refresh?.();}
+function afterRender(){
+ if(!isAdmin())return;
+ if(logOpen&&(Date.now()-lastPresence>12000||Date.now()-lastLog>12000)){loadPresence();loadAccess()}
+ if(Date.now()-lastReports>25000)loadReports();
+}
+
 async function saveTopic(form){
  if(!isAdmin()||busy)return;
  const c=client(),u=user();if(!c||!u)return;
