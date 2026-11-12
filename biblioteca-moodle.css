@@ -51,3 +51,18 @@
 @media(max-width:1020px){.library-page .course-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:680px){.library-page .course-grid{grid-template-columns:1fr}.library-page .course-toolbar>*{flex:1 1 100%!important;width:100%}.library-page .course-toolbar{padding:10px}.library-page .course-grid.is-list .course-card-button{display:block}.library-page .course-grid.is-list .course-cover{min-height:0;height:100px}.library-page .course-detail-resources .doclist{grid-template-columns:1fr}.library-page .course-cover{height:125px}}
 @media(prefers-reduced-motion:reduce){.library-page .course-card,.library-page .course-progress-track span{transition:none!important}}
+
+
+/* Destaque principal da trilha de Metapsicologia, imediatamente sob o banner da disciplina. */
+.library-page .course-video-trail{padding:16px 22px 0}
+.library-page .course-video-trail-link{display:flex;align-items:center;gap:17px;width:100%;min-height:132px;padding:21px 24px;text-decoration:none;color:#fff;border-radius:15px;background:linear-gradient(112deg,#62519b 0%,#7964af 54%,#9581c5 100%);border:1px solid #ffffff22;box-shadow:0 8px 22px #5a478633;transition:transform .18s,box-shadow .18s,filter .18s}
+.library-page .course-video-trail-link:hover{transform:translateY(-2px);box-shadow:0 12px 28px #5a47864d;filter:brightness(1.05)}
+.library-page .course-video-trail-link:focus-visible{outline:3px solid #b4a4e7;outline-offset:4px}
+.library-page .course-video-trail-icon{width:60px;height:60px;border-radius:18px;background:#ffffff25;border:1px solid #ffffff55;display:grid;place-items:center;font-size:29px;flex:none}
+.library-page .course-video-trail-content{flex:1;min-width:0;display:flex;flex-direction:column;gap:6px}
+.library-page .course-video-trail-kicker{font-size:10px;font-weight:850;letter-spacing:1.3px;text-transform:uppercase;color:#eee5ff}
+.library-page .course-video-trail-title{font-size:clamp(17px,2vw,22px);font-weight:850;line-height:1.25;letter-spacing:-.25px}
+.library-page .course-video-trail-description{font-size:12px;line-height:1.5;color:#f6f1ff}
+.library-page .course-video-trail-cta{font-size:12px;font-weight:850;white-space:nowrap;padding:11px 15px;background:#fff;color:#564188;border-radius:10px;flex:none}
+@media(max-width:680px){.library-page .course-video-trail{padding:12px 13px 0}.library-page .course-video-trail-link{flex-wrap:wrap;gap:12px;padding:17px;min-height:0}.library-page .course-video-trail-icon{width:48px;height:48px;font-size:23px;border-radius:13px}.library-page .course-video-trail-content{flex-basis:calc(100% - 68px)}.library-page .course-video-trail-cta{width:100%;text-align:center}.library-page .course-video-trail-title{font-size:17px}}
+@media(prefers-reduced-motion:reduce){.library-page .course-video-trail-link{transition:none}}
