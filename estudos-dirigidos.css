@@ -68,3 +68,7 @@ html[data-theme="dark"] .sd-correct{border-color:#488a78}
 html[data-theme="dark"] .sd-option-letter{background:#34334c}
 html[data-theme="dark"] .sd-correct .sd-option-letter{background:#267c62}
 @media(prefers-reduced-motion:reduce){.sd-arrow{transition:none}}
+
+.sd-topic-divider{display:flex;align-items:center;gap:14px;margin:15px 0 2px;color:var(--subject-accent,#6857bc)}
+.sd-topic-divider:after{content:"";height:1px;flex:1;background:var(--line)}
+.sd-topic-divider span{font-size:12px;font-weight:900;text-transform:uppercase;letter-spacing:.08em}
