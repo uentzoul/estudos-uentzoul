@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="color-scheme" content="light dark">
-<meta name="site-build" content="auto-update-20261112-profile-academico-v7">
+<meta name="site-build" content="auto-update-20261112-perfil-sem-aniversario-v8">
 <script>try{document.documentElement.dataset.theme=localStorage.getItem("uentzoul_theme_v1")==="dark"?"dark":"light"}catch(e){document.documentElement.dataset.theme="light"}</script>
 <title>PsicoMoodle · Psicologia PUCRS</title>
 <style>
@@ -3649,7 +3649,7 @@ function renderModal(){
    :'<p class="profile-form-note" role="alert">'+esc(cloudError||'O serviço de login não carregou. Podes tentar novamente sem fechar a página.')+'</p><button type="button" class="profile-secondary" data-account-action="retry-connection">Tentar conectar novamente</button>';
   return;
  }
- if(onlineUser){body.innerHTML=`<div class="profile-person-row">${avatar(remoteProfile?.display_name,remoteProfile?.avatar_url)}<strong>${esc(remoteProfile?.display_name||onlineUser.email)}</strong><span class="profile-badge">Online</span></div><form class="profile-form" id="onlineProfileForm"><label>Nome exibido na turma<input name="display_name" minlength="2" maxlength="40" required value="${esc(remoteProfile?.display_name||'')}"></label><label>Foto de perfil (JPEG, PNG ou WebP)<input type="file" name="avatar" accept="image/jpeg,image/png,image/webp"></label><label class="profile-bio-editor">Bio pública <span>Apresenta-te aos colegas</span><textarea name="bio" maxlength="300" rows="4" placeholder="Ex.: Estudo Psicologia e gosto de Psicologia Social, música e cinema.">${esc(remoteProfile?.bio||"")}</textarea><small id="dmBioCounter">${(remoteProfile?.bio||"").length}/300 caracteres</small></label><div class="profile-optional-heading"><strong>Informações acadêmicas</strong><small>Opcionais · visíveis no perfil somente se preenchidas</small></div><div class="profile-optional-grid"><label>Semestre<select name="study_semester"><option value="">Não informar</option>${Array.from({length:10},(_,i)=>`<option value="${i+1}" ${Number(remoteProfile?.study_semester)===i+1?"selected":""}>${i+1}º semestre</option>`).join("")}</select></label><label>Turno<select name="study_shift"><option value="">Não informar</option><option value="manha" ${remoteProfile?.study_shift==="manha"?"selected":""}>Manhã</option><option value="tarde" ${remoteProfile?.study_shift==="tarde"?"selected":""}>Tarde</option><option value="noite" ${remoteProfile?.study_shift==="noite"?"selected":""}>Noite</option></select></label></div><label>Data de aniversário <input name="birthday" type="date" autocomplete="bday" value="${esc(remoteProfile?.birthday||"")}"></label><p class="profile-optional-privacy">Deixa qualquer campo em branco para não o exibir. A data informada será visível aos demais participantes cadastrados.</p><button type="submit">Salvar perfil</button></form><p class="profile-form-note">As atividades são sincronizadas automaticamente nesta conta.</p><button class="profile-secondary" data-account-action="logout">Sair da conta</button><p class="profile-message" id="profileMessage"></p>`;return}
+ if(onlineUser){body.innerHTML=`<div class="profile-person-row">${avatar(remoteProfile?.display_name,remoteProfile?.avatar_url)}<strong>${esc(remoteProfile?.display_name||onlineUser.email)}</strong><span class="profile-badge">Online</span></div><form class="profile-form" id="onlineProfileForm"><label>Nome exibido na turma<input name="display_name" minlength="2" maxlength="40" required value="${esc(remoteProfile?.display_name||'')}"></label><label>Foto de perfil (JPEG, PNG ou WebP)<input type="file" name="avatar" accept="image/jpeg,image/png,image/webp"></label><label class="profile-bio-editor">Bio pública <span>Apresenta-te aos colegas</span><textarea name="bio" maxlength="300" rows="4" placeholder="Ex.: Estudo Psicologia e gosto de Psicologia Social, música e cinema.">${esc(remoteProfile?.bio||"")}</textarea><small id="dmBioCounter">${(remoteProfile?.bio||"").length}/300 caracteres</small></label><div class="profile-optional-heading"><strong>Informações acadêmicas</strong><small>Opcionais · visíveis no perfil somente se preenchidas</small></div><div class="profile-optional-grid"><label>Semestre<select name="study_semester"><option value="">Não informar</option>${Array.from({length:10},(_,i)=>`<option value="${i+1}" ${Number(remoteProfile?.study_semester)===i+1?"selected":""}>${i+1}º semestre</option>`).join("")}</select></label><label>Turno<select name="study_shift"><option value="">Não informar</option><option value="manha" ${remoteProfile?.study_shift==="manha"?"selected":""}>Manhã</option><option value="tarde" ${remoteProfile?.study_shift==="tarde"?"selected":""}>Tarde</option><option value="noite" ${remoteProfile?.study_shift==="noite"?"selected":""}>Noite</option></select></label></div><p class="profile-optional-privacy">Os campos são opcionais e só aparecem no perfil quando preenchidos.</p><button type="submit">Salvar perfil</button></form><p class="profile-form-note">As atividades são sincronizadas automaticamente nesta conta.</p><button class="profile-secondary" data-account-action="logout">Sair da conta</button><p class="profile-message" id="profileMessage"></p>`;return}
 body.innerHTML=`<div class="profile-tabs"><button class="${modalView==='login'?'selected':''}" data-account-action="login-view">Entrar</button><button class="${modalView==='register'?'selected':''}" data-account-action="register-view">Cadastrar</button></div><form class="profile-form" id="onlineAuthForm">${modalView==='register'?'<label>Nome público<input name="name" autocomplete="nickname" minlength="2" maxlength="40" required></label>':''}<label>E-mail<input name="email" type="email" autocomplete="email" required></label><label>Senha<input name="password" type="password" autocomplete="${modalView==='register'?'new-password':'current-password'}" minlength="6" required></label><button type="submit">${modalView==='register'?'Criar conta':'Entrar'}</button></form><p class="profile-form-note">A conta online salva o progresso na nuvem e permite conversar com a turma.</p><button type="button" class="profile-secondary" data-account-action="resend-signup">Reenviar confirmação por e-mail</button><p class="profile-message" id="profileMessage"></p>`;return
 }
 async function photo(file){if(!file||!file.size)return null;if(file.size>6*1024*1024)throw Error('Seleciona uma foto de até 6 MB.');if(!/^image\/(png|jpeg|webp)$/.test(file.type))throw Error('A foto precisa ser PNG, JPEG ou WebP.');return new Promise((resolve,reject)=>{const img=new Image();const object=URL.createObjectURL(file);img.onload=()=>{try{const canvas=document.createElement('canvas');canvas.width=canvas.height=180;const ctx=canvas.getContext('2d');const scale=Math.max(180/img.width,180/img.height),w=img.width*scale,h=img.height*scale;ctx.drawImage(img,(180-w)/2,(180-h)/2,w,h);URL.revokeObjectURL(object);canvas.toBlob(blob=>{if(blob)resolve({blob,url:canvas.toDataURL('image/jpeg',.75)});else reject(Error('Não foi possível processar a foto.'))},'image/jpeg',.75)}catch(e){URL.revokeObjectURL(object);reject(e)}};img.onerror=()=>{URL.revokeObjectURL(object);reject(Error('Não foi possível abrir a imagem.'))};img.src=object})}
@@ -3733,7 +3733,7 @@ async function enterCloud(user){
  if(enteringPromise&&enteringUserId===user.id)return enteringPromise;
  enteringUserId=user.id;
  enteringPromise=(async()=>{
- const {data:prog,error:progErr}=await client.from('uentzoul_progress').select('data').eq('user_id',user.id).maybeSingle();if(progErr)throw progErr;const {data:prof,error:profErr}=await client.from('uentzoul_profiles').select('user_id,display_name,avatar_url,bio,study_semester,study_shift,birthday').eq('user_id',user.id).maybeSingle();if(profErr)throw profErr;const display_name=(prof?.display_name||user.user_metadata?.display_name||user.email?.split('@')[0]||'Estudante').slice(0,40);if(!prof){const {error}=await client.from('uentzoul_profiles').upsert({user_id:user.id,display_name});if(error)throw error}remoteProfile=prof||{user_id:user.id,display_name,avatar_url:''};const id='cloud:'+user.id,sem=bridge.semester(),remote=prog?.data;
+ const {data:prog,error:progErr}=await client.from('uentzoul_progress').select('data').eq('user_id',user.id).maybeSingle();if(progErr)throw progErr;const {data:prof,error:profErr}=await client.from('uentzoul_profiles').select('user_id,display_name,avatar_url,bio,study_semester,study_shift').eq('user_id',user.id).maybeSingle();if(profErr)throw profErr;const display_name=(prof?.display_name||user.user_metadata?.display_name||user.email?.split('@')[0]||'Estudante').slice(0,40);if(!prof){const {error}=await client.from('uentzoul_profiles').upsert({user_id:user.id,display_name});if(error)throw error}remoteProfile=prof||{user_id:user.id,display_name,avatar_url:''};const id='cloud:'+user.id,sem=bridge.semester(),remote=prog?.data;
 const saved=remote&&remote.semesters&&typeof remote.semesters==='object'?remote.semesters:null;
 cloudSnapshot={semesters:{
  '2026/2':saved?.['2026/2']||(remote&&remote.completed?remote:bridge.readSaved(id,'2026/2')),
@@ -3788,14 +3788,6 @@ async function handleOnlineProfile(form){
  const study_shift=String(fields.get('study_shift')||'')||null;
  if(study_shift!==null&&!['manha','tarde','noite'].includes(study_shift))
   throw Error('Seleciona um turno válido.');
- const birthday=String(fields.get('birthday')||'')||null;
- if(birthday){
-  const match=birthday.match(/^(\d{4})-(\d{2})-(\d{2})$/);
-  if(!match||new Date(birthday+'T12:00:00Z').toISOString().slice(0,10)!==birthday)
-   throw Error('Seleciona uma data de aniversário válida.');
-  if(birthday>new Date().toISOString().slice(0,10))
-   throw Error('A data de aniversário não pode estar no futuro.');
- }
  let avatar_url=remoteProfile?.avatar_url||'';
  if(file){
   const p=await photo(file);
@@ -3804,7 +3796,7 @@ async function handleOnlineProfile(form){
   if(up.error)throw up.error;
   avatar_url=client.storage.from('uentzoul-avatars').getPublicUrl(path).data.publicUrl+'?v='+Date.now();
  }
- const profile={user_id:onlineUser.id,display_name:name,avatar_url,bio,study_semester,study_shift,birthday};
+ const profile={user_id:onlineUser.id,display_name:name,avatar_url,bio,study_semester,study_shift};
  const {error}=await client.from('uentzoul_profiles').upsert(profile);
  if(error)throw error;
  remoteProfile=profile;
@@ -4191,17 +4183,17 @@ async function dmOpenProfile(id){
  dm.profileOpen=id;panel.hidden=false;document.body.style.overflow='hidden';
  body.innerHTML='<p class="dm-profile-loading">Carregando perfil…</p>';
  try{
-  const {data,error}=await client.from('uentzoul_profiles').select('user_id,display_name,avatar_url,bio,study_semester,study_shift,birthday').eq('user_id',id).maybeSingle();
+  const {data,error}=await client.from('uentzoul_profiles').select('user_id,display_name,avatar_url,bio,study_semester,study_shift').eq('user_id',id).maybeSingle();
   if(error)throw error;if(!data)throw Error('Este perfil não está disponível.');
   if(dm.profileOpen!==id)return;
   const mine=id===onlineUser.id;
   body.innerHTML='<div class="dm-profile-cover"><span>PSICOLOGIA · PUCRS</span></div><div class="dm-profile-large">'+avatar(data.display_name,data.avatar_url)+'</div>'+
    '<h2 id="dmProfileHeading">'+esc(data.display_name)+'</h2>'+ ''+
    '<div class="dm-profile-about"><div class="dm-about-title"><span>Bio</span><small>Apresentação</small></div><div class="dm-profile-bio">'+(data.bio?esc(data.bio).replace(/\n/g,'<br>'):'<span class="dm-bio-empty">Esta pessoa ainda não escreveu uma bio.</span>')+'</div></div>'+
-   ((data.study_semester||data.study_shift||data.birthday)?'<div class="dm-profile-facts">'+
+   ((data.study_semester||data.study_shift)?'<div class="dm-profile-facts">'+
     (data.study_semester?'<div class="dm-profile-fact"><span>Semestre</span><strong>'+esc(data.study_semester)+'º semestre</strong></div>':'')+
     (data.study_shift?'<div class="dm-profile-fact"><span>Turno</span><strong>'+esc(({manha:'Manhã',tarde:'Tarde',noite:'Noite'})[data.study_shift]||data.study_shift)+'</strong></div>':'')+
-    (data.birthday?'<div class="dm-profile-fact"><span>Aniversário</span><strong>'+esc(data.birthday.slice(8,10)+'/'+data.birthday.slice(5,7)+'/'+data.birthday.slice(0,4))+'</strong></div>':'')+'</div>':'')+
+    '</div>':'')+
    (mine?'<button type="button" class="dm-profile-primary" data-dm-edit-profile>Editar meu perfil</button>':
    '<button type="button" class="dm-profile-primary" data-dm-message="'+esc(data.user_id)+'">Enviar mensagem</button>');
  }catch(e){body.innerHTML='<p class="dm-error">'+esc(e?.message||'Erro ao abrir o perfil.')+'</p>'}
