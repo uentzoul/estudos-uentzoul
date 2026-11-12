@@ -44,7 +44,7 @@
       '<div class="sd-guide-body"><div class="sd-source"><strong>'+(g.status==='original'?'Enunciados originais':'Revisão temática adaptada')+'</strong>'+
       '<p>'+fmt(g.source)+'</p><p>'+(g.status==='original'?'As respostas e as análises são explicações de estudo; o gabarito das objetivas foi conferido com o roteiro.':'Não reproduz as perguntas literais do estudo dirigido original: organiza os conteúdos das videoaulas disponíveis.')+'</p></div>'+
       '<div class="sd-q-count">'+g.questions.length+' '+(g.status==='adaptado'?'temas explicados':'questões respondidas e comentadas')+'</div>'+
-      '<div class="sd-items">'+g.questions.map(renderItem).join('')+'</div></div></details>').join('')+
+      '<div class="sd-items">'+g.questions.map((q,idx,all)=> (q.section&&(idx===0||all[idx-1].section!==q.section)?'<div class="sd-topic-divider"><span>'+fmt(q.section)+'</span></div>':'')+renderItem(q,idx)).join('')+'</div></div></details>').join('')+
     '</section>';
  };
 })();
