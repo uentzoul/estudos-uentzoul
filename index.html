@@ -1604,6 +1604,7 @@ html[data-exam-focus="2026/2"] .sidebtn[data-page="audio"]{display:none!importan
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2064%2064%22%3E%3Crect%20width%3D%2264%22%20height%3D%2264%22%20rx%3D%2214%22%20fill%3D%22%23192d44%22%2F%3E%3Ctext%20x%3D%2232%22%20y%3D%2246%22%20fill%3D%22white%22%20font-size%3D%2246%22%20font-family%3D%22Georgia%2Cserif%22%20text-anchor%3D%22middle%22%3E%CE%A8%3C%2Ftext%3E%3C%2Fsvg%3E">
 <link rel="stylesheet" href="library-manager.css?v=20261111-5">
 <link rel="stylesheet" href="biblioteca-moodle.css?v=20261112-2">
+<link rel="stylesheet" href="revisao-compacta.css?v=20261112-1">
 </head>
 <body>
 <section id="staticFallback" class="static-fallback" aria-label="Central de Estudos — modo de leitura compatível com celular">
@@ -2384,8 +2385,16 @@ function renderSubject(k){
  '<div class="subjectline"></div><div class="notebar">'+esc(subj.source)+'</div></div>'+
  '<nav class="section-nav" aria-label="Seções da disciplina"><button data-action="scroll:topics">Conteúdos para revisar</button><button data-action="scroll:docs">Materiais e textos</button><button data-action="scroll:tests">Simulados</button>'+(audioN?'<button data-action="audioFor:'+k+'">Podcasts →</button>':'')+'</nav>'+
  (k==='meta'&&semester==='2026/2'?'<section class="meta-route"><div class="meta-route-orbit" aria-hidden="true">Ψ</div><div class="meta-route-copy"><div class="meta-route-tag">TRILHA ESPECIAL · PROVA P2</div><h2>Os seis vídeos do professor, organizados por assunto.</h2><p>95 capítulos com minutagens, explicações, exemplos e revisão. Clique no trecho e assista diretamente no player do YouTube, sem baixar o vídeo.</p><a href="metapsicologia-p2.html" class="meta-route-button">Abrir minha trilha de Metapsicologia <span aria-hidden="true">↗</span></a></div></section>':'')+
- '<section class="section" id="topics"><div class="sectiontop"><h2>Conteúdos para revisar</h2><span class="small">'+topics.length+' tópicos de estudo</span></div>'+
- '<div class="topicgrid">'+topics.map((t,i)=>'<div class="topicunit '+(isDone(topicProgressKey(k,i))?'is-done':'')+'"><details class="topic"><summary>'+(i+1)+'. '+esc(t.title)+'</summary><p>'+esc(t.definition)+'</p><p><strong>Exemplo:</strong> '+esc(t.scenario)+'</p><p><strong>Erro comum:</strong> '+esc(t.myth)+'</p></details><div class="topicfoot">'+doneBox(topicProgressKey(k,i))+'</div></div>').join('')+'</div></section>'+
+ '<section class="section review-section" id="topics" style="--review-accent:'+color(k)+'"><div class="sectiontop review-section-top"><h2>Conteúdos para revisar</h2>'+
+ '<div class="review-summary"><span class="review-count" id="reviewProgressCount"><strong>'+doneCount(topics.map((_,i)=>topicProgressKey(k,i)))+'</strong> / '+topics.length+' vistos</span>'+
+ '<span class="review-mini-track" aria-hidden="true"><span id="reviewProgressFill" style="width:'+fmtPct(doneCount(topics.map((_,i)=>topicProgressKey(k,i))),topics.length)+'%"></span></span></div></div>'+
+ '<div class="topicgrid review-grid">'+topics.map((t,i)=>
+ '<article class="topicunit review-item '+(isDone(topicProgressKey(k,i))?'is-done':'')+'">'+
+ '<details class="topic review-details"><summary><span class="review-index">'+String(i+1).padStart(2,'0')+'</span><span class="review-title">'+esc(t.title)+'</span><span class="review-chevron" aria-hidden="true"></span></summary>'+
+ '<div class="review-body"><div class="review-info"><span class="review-info-label">Conceito</span><p>'+esc(t.definition)+'</p></div>'+
+ '<div class="review-info"><span class="review-info-label">Exemplo</span><p>'+esc(t.scenario)+'</p></div>'+
+ '<div class="review-info"><span class="review-info-label">Erro comum</span><p>'+esc(t.myth)+'</p></div></div></details>'+
+ '<div class="topicfoot review-actions">'+doneBox(topicProgressKey(k,i),'Visto')+'</div></article>').join('')+'</div></section>'+
  '<section class="section" id="docs"><div class="sectiontop"><h2>Materiais e textos da disciplina</h2><span class="small">'+docs.filter(m=>m.available).length+' disponíveis · '+docs.filter(m=>!m.available).length+' materiais disponíveis</span></div>'+
  '<div class="library-group" style="margin-top:0;--group-accent:'+color(k)+'">'+organizedSubjectMaterials(docs)+'</div></section>'+
  '<section class="section" id="tests"><div class="sectiontop"><h2>Simulados da disciplina</h2><span class="small">'+tests.length+' provas para praticar</span></div>'+
@@ -3433,7 +3442,7 @@ document.addEventListener('change',e=>{if(!e.target.matches('[data-complete]'))r
   const c=$('audioCompletedCount'),bar=$('audioCompletedBar');if(c)c.textContent=`${n}/${eps.length} concluídos`;if(bar)bar.style.width=`${fmtPct(n,eps.length)}%`;
   document.querySelectorAll('.audio-tab').forEach((b,i)=>{const sk=['tcc','grupos','familia','meta','avaliacao','social'][i],n=doneCount(audioEpisodes(sk).map(ep=>`audio:${sk}:${ep.n}`)),label=b.querySelector('small');if(label)label.textContent=`${n}/${audioEpisodes(sk).length} concluídos`;});
  }else{
-  const parent=e.target.closest('.donecontrol');if(parent){parent.classList.toggle('is-checked',e.target.checked);const label=parent.querySelector('span');if(label)label.textContent=e.target.checked?'✓ Visto':'Marcar como visto';}
+  const parent=e.target.closest('.donecontrol');if(parent){parent.classList.toggle('is-checked',e.target.checked);const label=parent.querySelector('span');if(label)label.textContent=e.target.checked?'✓ Visto':(e.target.closest('.review-item')?'Visto':'Marcar como visto');}
   const topic=e.target.closest('.topicunit');if(topic)topic.classList.toggle('is-done',e.target.checked);
   if(current.page==='subject'){
    const k=current.subject,keys=subjectKeys(k),n=doneCount(keys);
@@ -3443,6 +3452,10 @@ document.addEventListener('change',e=>{if(!e.target.matches('[data-complete]'))r
    if(bar)bar.style.width=`${fmtPct(n,keys.length)}%`;
    const stats=[['Tópicos',DB.topics[k].map((_,i)=>topicProgressKey(k,i))],['Materiais',DB.materials.filter(m=>m.subject===k&&m.available).map(m=>`material:${m.url||m.source}`)],['Simulados',DB.exams.filter(x=>x.subject===k).map(e=>`sim:${e.id}`)],['Áudios',audioEpisodes(k).map(e=>`audio:${k}:${e.n}`)]];
    stats.forEach(([name,values])=>{let el=document.querySelector(`[data-subject-stat="${name}"]`);if(el)el.textContent=`${doneCount(values)}/${values.length}`;});
+   const reviewKeys=DB.topics[k].map((_,i)=>topicProgressKey(k,i)),reviewDone=doneCount(reviewKeys);
+   const reviewCount=$('reviewProgressCount'),reviewFill=$('reviewProgressFill');
+   if(reviewCount){const strong=reviewCount.querySelector('strong');if(strong)strong.textContent=String(reviewDone);}
+   if(reviewFill)reviewFill.style.width=`${fmtPct(reviewDone,reviewKeys.length)}%`;
   }
  }
 });
