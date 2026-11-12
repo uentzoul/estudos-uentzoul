@@ -3977,7 +3977,7 @@ function dmRender(){
  return '<section class="dm-shell"><div class="dm-list">'+
  '<header class="dm-list-head"><div><h1>Mensagens</h1><p>Conversas entre estudantes</p></div><span class="dm-online-dot"></span></header>'+
  '<nav class="dm-channel-tabs '+(dm.isAdmin?'has-admin':'')+'" aria-label="Tipos de conversa">'+
- [['private','Privadas'],['groups','Grupos'],['global','Global'],...(dm.isAdmin?[['reports','Report de Erros']]:[])].map(t=>'<button type="button" data-dm-tab="'+t[0]+'" class="'+(dm.tab===t[0]?'selected':'')+'" aria-pressed="'+(dm.tab===t[0])+'">'+t[1]+'</button>').join('')+'</nav>'+
+ [['private','Privadas'],['groups','Grupos'],['global','Global'],].map(t=>'<button type="button" data-dm-tab="'+t[0]+'" class="'+(dm.tab===t[0]?'selected':'')+'" aria-pressed="'+(dm.tab===t[0])+'">'+t[1]+'</button>').join('')+'</nav>'+
  list+'</div><div class="dm-main"><header class="dm-chat-head">'+heading+'<button type="button" class="dm-back" data-dm-back>Conversas</button></header>'+
  (dm.error?'<div class="dm-error" role="alert">'+esc(dm.error)+'</div>':'')+
  '<div class="dm-messages" id="dmMessages" aria-live="polite">'+dmThreadHtml()+'</div>'+
