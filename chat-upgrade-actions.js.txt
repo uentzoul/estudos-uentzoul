@@ -1,0 +1,152 @@
+
+/* Chat unificado — janelas e interações */
+function dmWPopupHtml(){
+ if(!dmW.popup)return '';
+ const close='<button type="button" data-dmw-close-popup aria-label="Fechar">×</button>';
+ const start='<div class="dm-float-overlay" data-dmw-overlay><section class="dm-float-dialog" role="dialog" aria-modal="true">';
+ const end='</section></div>';
+ if(dmW.popup==='group'){
+  const room=dmWRoom();if(!room||room.kind!=='group')return '';
+  const admins=dmWAdmin(room.id),owner=room.owner_id===dm.owner,members=dmWMembers(room.id);
+  const known=new Set(members.map(x=>x.user_id)),others=dm.people.filter(x=>!known.has(x.user_id));
+  const list=members.map(m=>{
+   const p=dmPrettyPerson(m.user_id),creator=m.user_id===room.owner_id;
+   return '<div class="dm-dialog-user">'+avatar(p.display_name,p.avatar_url,true)+'<strong>'+esc(p.display_name)+'</strong>'+
+   (creator?'<small>Criador</small>':m.is_admin?'<small>Admin</small>':'')+
+   (admins&&!creator&&m.user_id!==dm.owner?'<button type="button" data-dmw-toggle-admin="'+esc(m.user_id)+'">'+(m.is_admin?'Remover admin':'Tornar admin')+'</button>'+
+   '<button type="button" data-dmw-kick="'+esc(m.user_id)+'">Remover</button>':'')+'</div>';
+  }).join('');
+  const edit=admins?'<form id="dmWGroupEdit"><label class="dm-dialog-field">Nome do grupo<input name="name" required minlength="2" maxlength="70" value="'+esc(room.name)+'"></label>'+
+   '<label class="dm-dialog-field">Foto do grupo (opcional)<input type="file" name="photo" accept="image/png,image/jpeg,image/webp"></label>'+
+   '<button type="submit" class="dm-dialog-btn">Salvar nome e foto</button></form>':'';
+  const add=admins&&others.length?'<form id="dmWGroupAdd"><label class="dm-dialog-field">Adicionar pessoa<select name="member" required style="width:100%;margin-top:6px;padding:10px;background:var(--soft);color:var(--ink);border:1px solid var(--line);border-radius:9px">'+
+   '<option value="">Selecionar usuário</option>'+others.map(p=>'<option value="'+esc(p.user_id)+'">'+esc(p.display_name)+'</option>').join('')+'</select></label>'+
+   '<button type="submit" class="dm-dialog-btn">Adicionar participante</button></form>':'';
+  return start+'<div class="dm-dialog-head"><h2>Informações do grupo</h2>'+close+'</div>'+
+   '<div style="display:flex;gap:12px;align-items:center;margin:0 0 18px">'+dmWGroupAvatar(room,false)+'<div><strong>'+esc(room.name)+'</strong><p style="margin:2px 0">'+members.length+' participantes</p></div></div>'+
+   edit+'<h3 style="font-size:13px;margin-top:20px">Participantes</h3><div class="dm-dialog-list">'+list+'</div>'+add+
+   (!owner?'<button type="button" data-dmw-leave style="border:0;background:transparent;color:#b24b65;padding:12px 0;cursor:pointer">Sair do grupo</button>':'')+end;
+ }
+ if(dmW.popup==='forward'){
+  const rows=dmWRows().filter(x=>x.type==='private'||x.type==='group');
+  return start+'<div class="dm-dialog-head"><h2>Encaminhar mensagem</h2>'+close+'</div><p>Escolha a conversa de destino.</p>'+
+   '<div class="dm-dialog-list"><button type="button" class="dm-dialog-user" data-dmw-forward-target="global" style="background:var(--soft);cursor:pointer;text-align:left"><span class="dm-global-avatar small">✦</span><strong>Chat Global</strong></button>'+
+   rows.map(x=>{
+    const group=x.type==='group',p=group?null:dmPrettyPerson(x.id),name=group?x.room.name:p.display_name;
+    return '<button type="button" class="dm-dialog-user" style="background:var(--paper);cursor:pointer;text-align:left" data-dmw-forward-target="'+(group?'group:':'private:')+esc(x.id)+'">'+
+    (group?dmWGroupAvatar(x.room,true):avatar(p.display_name,p.avatar_url,true))+'<strong>'+esc(name)+'</strong></button>';
+   }).join('')+'</div>'+end;
+ }
+ if(dmW.popup==='info'){
+  const m=dmW.selectedMessage;if(!m)return '';
+  let list='';
+  if(dm.tab==='private'){
+   const person=dmPrettyPerson(dm.peerId);
+   const value=m.read_at?'Visualizada em '+new Date(m.read_at).toLocaleString('pt-BR'):
+    m.delivered_at?'Entregue em '+new Date(m.delivered_at).toLocaleString('pt-BR'):'Enviada';
+   list='<div class="dm-dialog-user">'+avatar(person.display_name,person.avatar_url,true)+'<strong>'+esc(person.display_name)+'</strong><small>'+esc(value)+'</small></div>';
+  }else if(dm.tab==='groups'){
+   list=dmWMembers(m.room_id).filter(x=>x.user_id!==dm.owner).map(x=>{
+    const p=dmPrettyPerson(x.user_id),r=dmW.reads.find(a=>a.room_id===m.room_id&&a.user_id===x.user_id);
+    const status=r?.read_at&&r.read_at>=m.created_at?'Visualizada':r?.delivered_at&&r.delivered_at>=m.created_at?'Entregue':'Enviada';
+    return '<div class="dm-dialog-user">'+avatar(p.display_name,p.avatar_url,true)+'<strong>'+esc(p.display_name)+'</strong><small>'+status+'</small></div>';
+   }).join('');
+  }else list='<p>O Chat Global não registra visualizações individuais.</p>';
+  return start+'<div class="dm-dialog-head"><h2>Informações da mensagem</h2>'+close+'</div>'+
+   '<p>Enviada em '+esc(new Date(m.created_at).toLocaleString('pt-BR'))+'</p><div class="dm-dialog-list">'+list+'</div>'+end;
+ }
+ if(dmW.popup==='gif'){
+  return start+'<div class="dm-dialog-head"><h2>Compartilhar GIF</h2>'+close+'</div>'+
+   '<p>Busque um GIF no GIPHY, copie o endereço e cole aqui. GIFs salvos no computador também podem ser enviados como imagem.</p>'+
+   '<form id="dmWGifForm" class="dm-gif-lookup"><input name="query" type="search" placeholder="O que procurar?">'+
+   '<button type="button" class="dm-dialog-btn" data-dmw-gif-search>Abrir busca no GIPHY</button>'+
+   '<input type="url" name="url" required placeholder="https://giphy.com/gifs/..." aria-label="Link do GIF">'+
+   '<button type="submit" class="dm-dialog-btn">Enviar GIF</button></form>'+end;
+ }
+ return '';
+}
+document.addEventListener('click',async e=>{
+ const hit=s=>e.target.closest(s);
+ const stop=()=>{e.preventDefault();e.stopImmediatePropagation()};
+ if(hit('[data-dmw-global]')){stop();dmWOpen('global',DM_GLOBAL_ROOM);return}
+ const groupRow=hit('[data-dm-room]');
+ if(groupRow){stop();dmWOpen('group',groupRow.dataset.dmRoom);return}
+ const peerRow=hit('[data-dm-peer]');
+ if(peerRow){stop();dmWOpen('private',peerRow.dataset.dmPeer);return}
+ if(hit('[data-dmw-back]')){stop();dmWOpen('private',null);return}
+ if(hit('[data-dmw-reports]')){stop();dm.tab='reports';dmShow();return}
+ if(hit('[data-dmw-reports-back]')){stop();dmWOpen('private',null);return}
+ const menu=hit('[data-dmw-msgmenu]');
+ if(menu){stop();dmW.menu=dmW.menu===menu.dataset.dmwMsgmenu?null:menu.dataset.dmwMsgmenu;dmShow();return}
+ const reply=hit('[data-dmw-reply]');
+ if(reply){stop();dmW.reply=dmWMessage(reply.dataset.dmwReply,dm.tab==='private'?'private':'room')||null;dmW.menu=null;dmShow();document.getElementById('dmPrompt')?.focus();return}
+ const forward=hit('[data-dmw-forward]');
+ if(forward){stop();dmW.selectedMessage=dmWMessage(forward.dataset.dmwForward,dm.tab==='private'?'private':'room');dmW.popup='forward';dmW.menu=null;dmShow();return}
+ const info=hit('[data-dmw-info]');
+ if(info){stop();dmW.selectedMessage=dmWMessage(info.dataset.dmwInfo,dm.tab==='private'?'private':'room');dmW.popup='info';dmW.menu=null;dmShow();return}
+ const deleted=hit('[data-dmw-delete]');
+ if(deleted){stop();dmW.menu=null;dmDelete(deleted.dataset.dmwDeleteType,deleted.dataset.dmwDelete);return}
+ const jump=hit('[data-dmw-jump]');
+ if(jump){stop();const message=[...document.querySelectorAll('[data-dmw-message]')].find(x=>x.dataset.dmwMessage===jump.dataset.dmwJump);
+  if(message){message.scrollIntoView({behavior:'smooth',block:'center'});message.classList.add('flash');setTimeout(()=>message.classList.remove('flash'),1400)}return}
+ if(hit('[data-dmw-clear-reply]')){stop();dmW.reply=null;dmShow();return}
+ if(hit('[data-dmw-emoji]')){stop();dmW.panel=dmW.panel==='emoji'?null:'emoji';dmShow();return}
+ if(hit('[data-dmw-tools]')){stop();dmW.panel=dmW.panel==='tools'?null:'tools';dmShow();return}
+ const fallback=hit('[data-dmw-emojifallback]');
+ if(fallback){stop();const field=document.getElementById('dmPrompt');if(field){field.value+=fallback.dataset.dmwEmojifallback;dm.draft=field.value;field.focus()}return}
+ const attach=hit('[data-dmw-attach]');
+ if(attach){stop();dmW.mediaKind=attach.dataset.dmwAttach;const field=document.getElementById('dmWFileInput');
+  if(field){field.accept=({image:'image/jpeg,image/png,image/webp,image/gif',video:'video/mp4,video/webm,video/quicktime',
+   audio:'audio/webm,audio/ogg,audio/mp4,audio/mpeg,audio/aac,audio/wav',sticker:'image/png,image/webp'})[dmW.mediaKind];field.click()}return}
+ if(hit('[data-dmw-record]')){stop();dmWStartRecord();return}
+ if(hit('[data-dmw-record-stop]')){stop();dmWStopRecord(false);return}
+ if(hit('[data-dmw-record-cancel]')){stop();dmWStopRecord(true);return}
+ if(hit('[data-dmw-wallpaper]')){stop();dmW.wallpaper=!dmW.wallpaper;dmShow();return}
+ const bg=hit('[data-dmw-bg]');
+ if(bg){stop();try{localStorage.setItem('psicomoodle_bg_'+dm.owner+'_'+dmWSelected(),bg.dataset.dmwBg)}catch(_){}
+  dmW.wallpaper=false;dmShow();return}
+ if(hit('[data-dmw-group]')){stop();dmW.popup='group';dmShow();return}
+ const admin=hit('[data-dmw-toggle-admin]');
+ if(admin){stop();const row=dmWMembers(dm.roomId).find(x=>x.user_id===admin.dataset.dmwToggleAdmin);
+  if(row&&dmWAdmin(dm.roomId)){const result=await client.from('uentzoul_chat_members').update({is_admin:!row.is_admin}).eq('room_id',dm.roomId).eq('user_id',row.user_id);
+   if(result.error)toast(result.error.message);else{await dmLoad();dmW.popup='group';dmShow()}}return}
+ const kick=hit('[data-dmw-kick]');
+ if(kick){stop();if(!dmWAdmin(dm.roomId)||!confirm('Remover este participante do grupo?'))return;
+  const result=await client.from('uentzoul_chat_members').delete().eq('room_id',dm.roomId).eq('user_id',kick.dataset.dmwKick);
+  if(result.error)toast(result.error.message);else{await dmLoad();dmW.popup='group';dmShow()}return}
+ if(hit('[data-dmw-leave]')){stop();if(!confirm('Sair deste grupo?'))return;
+  const result=await client.from('uentzoul_chat_members').delete().eq('room_id',dm.roomId).eq('user_id',dm.owner);
+  if(result.error)toast(result.error.message);else{dmWOpen('private',null);await dmLoad()}return}
+ if(hit('[data-dmw-close-popup]')||e.target.matches?.('[data-dmw-overlay]')){stop();dmW.popup=null;dmW.selectedMessage=null;dmShow();return}
+ if(hit('[data-dmw-gif]')){stop();dmW.panel=null;dmW.popup='gif';dmShow();return}
+ if(hit('[data-dmw-gif-search]')){stop();const q=String(document.querySelector('#dmWGifForm [name=query]')?.value||'').trim();
+  window.open('https://giphy.com/search/'+encodeURIComponent(q||'reaction'),'_blank','noopener,noreferrer');return}
+ const dest=hit('[data-dmw-forward-target]');
+ if(dest){stop();await dmWForwardTo(dest.dataset.dmwForwardTarget);return}
+ if(dmW.menu&&!hit('.dm-message-popup')){dmW.menu=null;document.querySelectorAll('.dm-message-popup').forEach(x=>x.remove())}
+},true);
+document.addEventListener('change',e=>{
+ if(e.target.id==='dmWFileInput'&&e.target.files?.[0])dmWPrepareFile(e.target.files[0],dmW.mediaKind);
+});
+document.addEventListener('submit',async e=>{
+ if(e.target.id==='dmWGifForm'){
+  e.preventDefault();e.stopImmediatePropagation();
+  const url=String(new FormData(e.target).get('url')||'').trim();
+  if(!dmWGifValid(url)){toast('Link inválido. Use GIPHY ou Tenor.');return}
+  dmW.popup=null;await dmSend('gif',url);return;
+ }
+ if(e.target.id==='dmWGroupEdit'){
+  e.preventDefault();e.stopImmediatePropagation();const button=e.target.querySelector('[type=submit]');button.disabled=true;
+  try{await dmWEditGroup(e.target)}catch(err){toast(err?.message||'Não foi possível atualizar o grupo.')}
+  finally{button.disabled=false}return;
+ }
+ if(e.target.id==='dmWGroupAdd'){
+  e.preventDefault();e.stopImmediatePropagation();const user=String(new FormData(e.target).get('member')||'');
+  if(!dmValid(user)||!dmWAdmin(dm.roomId))return;
+  const response=await client.from('uentzoul_chat_members').insert({room_id:dm.roomId,user_id:user});
+  if(response.error)toast(response.error.message);else{await dmLoad();dmW.popup='group';dmShow()}return;
+ }
+},true);
+document.addEventListener('keydown',e=>{
+ if(e.key==='Escape'&&dmW.popup){dmW.popup=null;dmShow()}
+});
