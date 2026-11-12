@@ -49,3 +49,16 @@
 .profile-sidebar .rank-entry .rank-person span{color:var(--muted)}
 @media(max-width:840px){.admin-config-page .admin-grid{grid-template-columns:1fr}}
 @media(max-width:600px){.admin-config-page{gap:13px}.admin-config-page .admin-header{padding:21px}.admin-config-page .admin-card{padding:16px}.admin-config-page .admin-section-heading{align-items:flex-start}.admin-config-page .admin-topic-line{flex-wrap:wrap}.admin-config-page .admin-topic-buttons{width:100%}}
+
+.admin-config-page .admin-reports{padding:0;overflow:hidden}
+.admin-config-page .admin-reports>summary{display:flex;align-items:center;justify-content:space-between;padding:17px 22px;list-style:none;cursor:pointer;font-size:15px;font-weight:780;color:var(--ink)}
+.admin-config-page .admin-reports>summary::-webkit-details-marker{display:none}
+.admin-config-page .admin-reports>summary:after{content:"⌄";font-size:19px;color:var(--muted);margin-left:auto}
+.admin-config-page .admin-reports>summary span{font-size:10px;color:var(--muted);margin-left:10px;font-weight:600}
+.admin-config-page .admin-reports[open]>summary:after{transform:rotate(180deg)}
+.admin-config-page #adminErrorReports{padding:0 20px 19px;display:grid;gap:10px}
+.admin-config-page .admin-report-entry{padding:13px 14px;border-radius:11px;border:1px solid var(--line);background:var(--soft)}
+.admin-config-page .admin-report-entry>div{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.admin-config-page .admin-report-entry strong{font-size:11px;color:var(--ink)}
+.admin-config-page .admin-report-entry time{font-size:10px;color:var(--muted)}
+.admin-config-page .admin-report-entry p{font-size:12px;color:var(--ink);line-height:1.6;white-space:pre-wrap;overflow-wrap:anywhere;margin:9px 0 0}
