@@ -1915,7 +1915,6 @@ Qual conceito ou formulação explica MELHOR essa situação?</p><ol type="a"><l
   <nav class="menu" id="nav">
 <button class="sidebtn active" data-page="home"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="m3 10 9-7 9 7v10a1 1 0 0 1-1 1h-5v-7H9v7H4a1 1 0 0 1-1-1z"/></svg> Início</button>
 <button class="sidebtn" data-page="exams"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="3" width="14" height="18" rx="2"/><path d="M9 8h6M9 12h6M9 16h3"/></svg> Simulados</button>
-<button class="sidebtn" data-page="library"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h5v16H4zM9 4h5v16H9zM17 7l4 12-4 1-4-12z"/></svg> Biblioteca</button>
 <button class="sidebtn" data-page="audio"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg> Podcasts</button>
 <button class="sidebtn" data-page="calendar"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M7 3v4M17 3v4M3 10h18M8 14h3M8 17h5"/></svg> Agenda</button>
 <button class="sidebtn" data-page="ai"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="m12 2 2.6 6.9L21 11l-6.4 2.1L12 20l-2.6-6.9L3 11l6.4-2.1L12 2Z"/><path d="m19 18 1 2 2 1-2 1-1 2-1-2-2-1 2-1z"/></svg> IA Tzoul</button>
@@ -2005,7 +2004,7 @@ window.uentzoulLibraryApp={
   const next=flag===true;
   if(libraryAdminEnabled===next)return;
   libraryAdminEnabled=next;
-  if(semester==='2026/2'&&current.page==='library')render();
+  if(semester==='2026/2'&&(current.page==='home'||current.page==='library'))render();
  },
  applyRows:rows=>{
   const next=new Map((rows||[]).map(r=>[r.resource_key,r]));
@@ -2034,9 +2033,9 @@ window.uentzoulLibraryApp={
    known.add(r.resource_key);
   }
   SEMESTER_DB['2026/2'].materials=shown;
-  if(changed&&semester==='2026/2'&&(current.page==='library'||current.page==='subject'))render();
+  if(changed&&semester==='2026/2'&&(current.page==='home'||current.page==='library'||current.page==='subject'))render();
  },
- refresh:()=>{if(semester==='2026/2'&&current.page==='library')render()}
+ refresh:()=>{if(semester==='2026/2'&&(current.page==='home'||current.page==='library'))render()}
 };
 
 const $=(id)=>document.getElementById(id);
@@ -2116,7 +2115,7 @@ function switchSemester(next){
  activeStoreKey=profileStoreKey(activeProfileId);
  store=readSavedProfile(activeProfileId);
  try{localStorage.setItem(SEMESTER_PREF,next)}catch{}
- current={...current,page:'home',subject:null,exam:null,filter:'todos',search:'',audioSubject:'tcc'};
+ current={...current,page:'home',subject:null,exam:null,libraryCourse:null,filter:'todos',search:'',audioSubject:'tcc'};
  go('home');
  window.dispatchEvent(new Event('uentzoul:semester'));
  window.dispatchEvent(new Event('uentzoul:progress'));
@@ -2206,6 +2205,8 @@ function addAudioFiles(files,single=false){
 let current={page:'home',subject:null,exam:null,filter:'todos',search:'',audioSubject:'tcc'},audioStart=false,currentChapter=0,currentEpisode=0;
 let toastTimer;function toast(s){const t=$('toast');t.textContent=s;t.style.display='block';clearTimeout(toastTimer);toastTimer=setTimeout(()=>t.style.display='none',2800);}
 const go=(page,extra={})=>{
+ if(page==='library')page='home';
+ if(page==='home')current.libraryCourse=null;
  current={...current,...extra,page};
  try{render()}catch(e){console.error('Erro ao abrir seção',e);toast('Não foi possível abrir esta seção. Tenta novamente no Safari/Chrome.');return}
  try{window.scrollTo({top:0,behavior:'auto'})}catch(e){try{window.scrollTo(0,0)}catch(_){}}
@@ -2241,12 +2242,12 @@ function renderHome(){
  const pct=fmtPct(total,all.length);
  return '<header class="dashboard-hero"><div class="hero-copy"><span class="hero-kicker"><span class="hero-dot"></span> Psicologia PUCRS · '+esc(semester)+'</span>'+
  '<h1>Teu espaço de estudos.</h1><p>Conteúdos, arquivos, simulados e podcasts organizados por disciplina. Acompanha teu progresso e encontra o material certo com facilidade.</p>'+
- '<div class="hero-shortcuts"><button data-action="page:library">Explorar biblioteca ↗</button><button class="secondary" data-action="page:exams">Praticar simulados →</button></div></div>'+
+ '<div class="hero-shortcuts"><button data-action="scroll:homeCourses">Ver disciplinas ↓</button><button class="secondary" data-action="page:exams">Praticar simulados →</button></div></div>'+
  '<div class="hero-status"><span>Progresso do semestre</span><strong>'+pct+'%</strong><div class="hero-bar"><b style="width:'+pct+'%"></b></div><span class="hero-label">'+total+' de '+all.length+' atividades</span></div></header>'+
  '<div class="overview-strip"><div class="overview-stat"><span>Disciplinas</span><strong>'+order.length+'</strong></div>'+
  '<div class="overview-stat"><span>Simulados feitos</span><strong>'+graded+'/'+DB.exams.length+'</strong></div>'+
  '<div class="overview-stat"><span>Podcasts ouvidos</span><strong>'+audioDone+'/'+audioTotal+'</strong></div></div>'+
- '<section class="section"><div class="sectiontop"><h2>Disciplinas</h2><span class="small">'+order.length+' matérias · simulados sob demanda · '+audioTotal+' episódios</span></div><div class="cards">'+order.map(subjectCard).join('')+'</div></section>'+
+ '<section class="section home-course-section" id="homeCourses">'+renderLibrary(true)+'</section>'+
  '<section class="section"><div class="two"><div class="panel"><div class="sectiontop"><h2>Agenda de avaliações</h2><button class="plainlink" data-action="page:calendar">Ver agenda →</button></div>'+
  '<div class="daylist">'+order.map(k=>{const item=getSubject(k);return '<div class="dayrow"><span class="daydate date">'+dformat(item.date)+'</span><span class="daytitle">'+esc(item.name)+'</span><span class="datecount">'+esc(item.exam)+'</span></div>'}).join('')+'</div>'+
  '<p class="small muted" style="margin-top:11px">Confere o Moodle para eventuais atualizações de datas.</p></div>'+
@@ -2478,7 +2479,7 @@ function libraryProgressMarkup(p){
  return '<div class="course-progress-label"><span>'+p.n+' de '+p.total+' materiais concluídos</span><strong>'+p.pct+'%</strong></div>'+
  '<div class="course-progress-track" role="progressbar" aria-label="Progresso dos materiais" aria-valuenow="'+p.pct+'" aria-valuemin="0" aria-valuemax="100"><span style="width:'+p.pct+'%"></span></div>';
 }
-function renderLibrary(){
+function renderLibrary(embedded=false){
  const selected=current.libraryCourse;
  const subjects=Object.keys(DB.subjects);
  if(selected&&DB.subjects[selected]){
@@ -2518,7 +2519,7 @@ function renderLibrary(){
   '<div class="course-card-desc">'+esc(hint)+'</div>'+libraryProgressMarkup(p)+
   '<div class="course-card-footer"><span>'+p.total+' '+(p.total===1?'material':'materiais')+'</span><span>Ver materiais →</span></div></div></button></article>';
  }).join('');
- return '<div class="library-page"><div class="course-intro"><div>'+head('Biblioteca · 2026/2','Resumo das disciplinas','Apenas as matérias das provas finais, organizadas como cursos.')+'</div></div>'+
+ return '<div class="library-page"><div class="course-intro"><div>'+(embedded?head('Psicologia PUCRS · '+semester,'Disciplinas','Seleciona uma matéria para acessar os materiais das provas.'):head('Biblioteca · '+semester,'Resumo das disciplinas','Apenas as matérias das provas finais, organizadas como cursos.'))+'</div></div>'+
  '<div class="course-toolbar"><span class="course-semester">2026/2</span><input id="libraryCourseSearch" type="search" placeholder="Buscar disciplina..." aria-label="Buscar disciplina" value="'+esc(current.libraryQuery||'')+'">'+
  '<select id="libraryCourseStatus" aria-label="Filtrar por progresso"><option value="all"'+(status==='all'?' selected':'')+'>Todos os cursos</option><option value="new"'+(status==='new'?' selected':'')+'>Não iniciados</option><option value="started"'+(status==='started'?' selected':'')+'>Em andamento</option><option value="done"'+(status==='done'?' selected':'')+'>Concluídos</option></select>'+
  '<select id="libraryCourseOrder" aria-label="Ordenar cursos"><option value="name"'+(order==='name'?' selected':'')+'>Ordenar por nome</option><option value="progress"'+(order==='progress'?' selected':'')+'>Ordenar por progresso</option></select>'+
@@ -2532,7 +2533,7 @@ document.addEventListener('change',event=>{
  if(el.id==='libraryCourseStatus'){current.libraryStatus=el.value;render();return}
  if(el.id==='libraryCourseOrder'){current.libraryOrder=el.value;render();return}
  if(el.id==='libraryCourseMode'){current.libraryMode=el.value;render();return}
- if(el.matches('.library-page [data-complete]'))requestAnimationFrame(()=>{if(current.page==='library')render()});
+ if(el.matches('.library-page [data-complete]'))requestAnimationFrame(()=>{if(current.page==='home'||current.page==='library')render()});
 });
 document.addEventListener('input',event=>{
  if(event.target.id!=='libraryCourseSearch')return;
@@ -2662,7 +2663,7 @@ function tzFiles(){const seen=new Set();return DB.materials.filter(m=>{
 function tzMessage(m,i){
  const answer=m.role==='assistant';
  const sources=answer&&m.sources?.length?'<div class="tz-sources">'+m.sources.slice(0,4).map(v=>
- '<button type="button" data-action="'+(DB.subjects[v.subject]?'subject:'+v.subject:'page:library')+'">'+esc(v.title)+'</button>').join('')+'</div>':'';
+ '<button type="button" data-action="'+(DB.subjects[v.subject]?'subject:'+v.subject:'page:home')+'">'+esc(v.title)+'</button>').join('')+'</div>':'';
  return '<div class="tz-msg '+(answer?'assistant':'user')+'">'+(answer?tzAvatar():'<span class="tz-me">EU</span>')+
  '<div class="tz-msg-body"><span class="tz-who">'+(answer?'IA Tzoul':'Tu')+'</span><div class="tz-bubble">'+tzMarkdown(m.content)+'</div>'+
  sources+(answer?'<div class="tz-actions"><button data-tz-copy="'+i+'">Copiar</button><button data-tz-export="'+i+':txt">TXT</button><button data-tz-export="'+i+':md">Markdown</button><button data-tz-export="'+i+':doc">Word (.doc)</button><button data-tz-export="'+i+':pdf">PDF / Imprimir</button></div>':'')+'</div></div>';
@@ -3257,7 +3258,7 @@ function render(){
   $('main').innerHTML=head(semester,v[0],v[1])+'<section class="section"><div class="panel semester-empty"><h2>Este semestre ainda está vazio</h2><p class="muted">As matérias, os textos, os simulados, os podcasts e a agenda de 2027/1 serão adicionados quando estiverem definidos. O conteúdo de 2026/2 continua disponível na outra aba.</p><p class="small">O progresso e a pontuação deste semestre começam em zero e não se misturam com os do semestre anterior.</p></div></section>';
   return;
  }
- let body='';switch(current.page){case 'home':body=renderHome();break;case 'subject':body=renderSubject(current.subject);break;case 'exams':body=renderExams();break;case 'test':body=renderTest(current.exam);break;case 'library':body=renderLibrary();break;case 'audio':body=renderAudio();break;case 'calendar':body=renderCalendar();break;case 'ai':body=renderAI();break;case 'messages':body=window.uentzoulMessenger?.render()||'<section class="panel">Carregando mensagens…</section>';break;case 'personal':body=window.uentzoulPersonal?.render()||'<section class="panel">Carregando matérias pessoais…</section>';break;default:body=renderHome()};$('main').innerHTML=body;if(current.page==='audio')setupAudio();if(current.page==='messages')window.uentzoulMessenger?.afterRender(current.peerId||null);if(current.page==='personal')window.uentzoulPersonal?.afterRender();}
+ let body='';switch(current.page){case 'home':body=renderHome();break;case 'subject':body=renderSubject(current.subject);break;case 'exams':body=renderExams();break;case 'test':body=renderTest(current.exam);break;case 'library':body=renderHome();break;case 'audio':body=renderAudio();break;case 'calendar':body=renderCalendar();break;case 'ai':body=renderAI();break;case 'messages':body=window.uentzoulMessenger?.render()||'<section class="panel">Carregando mensagens…</section>';break;case 'personal':body=window.uentzoulPersonal?.render()||'<section class="panel">Carregando matérias pessoais…</section>';break;default:body=renderHome()};$('main').innerHTML=body;if(current.page==='audio')setupAudio();if(current.page==='messages')window.uentzoulMessenger?.afterRender(current.peerId||null);if(current.page==='personal')window.uentzoulPersonal?.afterRender();}
 /* Armazenamento local de podcasts. A URL de cada episódio é publicada como
    arquivo independente; o HTML não carrega o áudio antecipadamente. */
 const POD_DB_NAME='EstudosUentzoulPodcasts_v1';
@@ -3372,7 +3373,7 @@ function onAction(act){
   const el=document.querySelectorAll('#topics details.topic')[index];
   if(el){el.open=true;requestAnimationFrame(()=>el.scrollIntoView({behavior:'smooth',block:'start'}))}
   return;
- }if(act.startsWith('download:')){const [k,i]=act.slice(9).split(':');downloadEpisodeAction(k,Number(i));return;}if(act==='libraryBack'){current.libraryCourse=null;render();return}if(act.startsWith('libraryCourse:')){const id=act.slice(14);if(DB.subjects[id]){current.libraryCourse=id;render();}return}if(act.startsWith('page:')){const page=act.slice(5);if(page==='library')current.libraryCourse=null;return go(page);}if(act.startsWith('subjectArea:')){const area=act.slice('subjectArea:'.length);if(area==='home'||['topics','docs','tests'].includes(area)){current.subjectArea=area==='home'?null:area;render();try{window.scrollTo({top:0,behavior:'auto'})}catch(_){}}return}if(act.startsWith('subject:'))return go('subject',{subject:act.slice(8),subjectArea:null});if(act==='subjectCreateExam'){ge.subject=current.subject||ge.subject;ge.tab='ai';ge.selected=null;return go('exams')}if(act.startsWith('subjectTests:'))return go('subject',{subject:act.slice('subjectTests:'.length),subjectArea:'tests'});if(act.startsWith('test:'))return go('test',{exam:act.slice(5)});if(act.startsWith('audioFor:')){const k=act.slice(9);if(!DB.audio[k])return;current.audioSubject=k;currentEpisode=0;currentChapter=0; if(manualAudioUrl){URL.revokeObjectURL(manualAudioUrl);manualAudioUrl=null;manualAudioName='';}return go('audio');}if(act.startsWith('filter:')){current.filter=act.slice(7);let v=$('matSearch')?.value||current.search;current.search=v;render();return}if(act.startsWith('scroll:'))return document.getElementById(act.slice(7))?.scrollIntoView({behavior:'smooth'});if(act==='save'){persist();return toast('Respostas salvas neste navegador.')}if(act==='export'){const b=new Blob([JSON.stringify(store,null,2)],{type:'application/json'});let u=URL.createObjectURL(b);let a=document.createElement('a');a.href=u;a.download='meu_progresso_psicologia.json';a.click();setTimeout(()=>URL.revokeObjectURL(u),2000);return toast('Progresso exportado. Guarde o arquivo para a próxima versão.')}if(act==='import'){document.getElementById('importProgress')?.click();return}if(act==='print')return window.print();if(act.startsWith('submit:'))return submit(act.slice(7));if(act.startsWith('redo:')){toast('Este simulado já foi entregue e não pode ser refeito.');return}
+ }if(act.startsWith('download:')){const [k,i]=act.slice(9).split(':');downloadEpisodeAction(k,Number(i));return;}if(act==='libraryBack'){current.libraryCourse=null;render();requestAnimationFrame(()=>document.getElementById('homeCourses')?.scrollIntoView({block:'start',behavior:'auto'}));return}if(act.startsWith('libraryCourse:')){const id=act.slice(14);if(DB.subjects[id]){current.libraryCourse=id;current.page='home';render();requestAnimationFrame(()=>document.getElementById('homeCourses')?.scrollIntoView({block:'start',behavior:'auto'}));}return}if(act.startsWith('page:'))return go(act.slice(5));if(act.startsWith('subjectArea:')){const area=act.slice('subjectArea:'.length);if(area==='home'||['topics','docs','tests'].includes(area)){current.subjectArea=area==='home'?null:area;render();try{window.scrollTo({top:0,behavior:'auto'})}catch(_){}}return}if(act.startsWith('subject:'))return go('subject',{subject:act.slice(8),subjectArea:null});if(act==='subjectCreateExam'){ge.subject=current.subject||ge.subject;ge.tab='ai';ge.selected=null;return go('exams')}if(act.startsWith('subjectTests:'))return go('subject',{subject:act.slice('subjectTests:'.length),subjectArea:'tests'});if(act.startsWith('test:'))return go('test',{exam:act.slice(5)});if(act.startsWith('audioFor:')){const k=act.slice(9);if(!DB.audio[k])return;current.audioSubject=k;currentEpisode=0;currentChapter=0; if(manualAudioUrl){URL.revokeObjectURL(manualAudioUrl);manualAudioUrl=null;manualAudioName='';}return go('audio');}if(act.startsWith('filter:')){current.filter=act.slice(7);let v=$('matSearch')?.value||current.search;current.search=v;render();return}if(act.startsWith('scroll:'))return document.getElementById(act.slice(7))?.scrollIntoView({behavior:'smooth'});if(act==='save'){persist();return toast('Respostas salvas neste navegador.')}if(act==='export'){const b=new Blob([JSON.stringify(store,null,2)],{type:'application/json'});let u=URL.createObjectURL(b);let a=document.createElement('a');a.href=u;a.download='meu_progresso_psicologia.json';a.click();setTimeout(()=>URL.revokeObjectURL(u),2000);return toast('Progresso exportado. Guarde o arquivo para a próxima versão.')}if(act==='import'){document.getElementById('importProgress')?.click();return}if(act==='print')return window.print();if(act.startsWith('submit:'))return submit(act.slice(7));if(act.startsWith('redo:')){toast('Este simulado já foi entregue e não pode ser refeito.');return}
  if(act==='resetAudio'){const a=$('audioPlayer');if(a){a.pause();a.currentTime=0;}toast('Reprodutor reiniciado.');return;}
  if(act.startsWith('chapter:'))return openChapter(+act.slice(8));
  if(act.startsWith('episode:'))return openEpisode(+act.slice(8));
@@ -3523,7 +3524,7 @@ document.addEventListener('input',e=>{if(e.target.id==='matSearch'){current.sear
  });
  return}if(e.target.matches('.essay')&&current.page==='test'){let q=e.target.dataset.qid;if(!store.answers[current.exam])store.answers[current.exam]={};store.answers[current.exam][q]=e.target.value;persist();}});
 window.addEventListener('beforeunload',persist);
-if(location.hash.startsWith('#')){const h=decodeURIComponent(location.hash.slice(1));if(DB.subjects[h]){current.page='subject';current.subject=h}else if(DB.exams.some(e=>e.id===h)){current.page='test';current.exam=h}else if(['home','exams','library','audio','calendar','ai'].includes(h))current.page=h}
+if(location.hash.startsWith('#')){const h=decodeURIComponent(location.hash.slice(1));if(DB.subjects[h]){current.page='subject';current.subject=h}else if(DB.exams.some(e=>e.id===h)){current.page='test';current.exam=h}else if(['home','exams','library','audio','calendar','ai'].includes(h))current.page=h==='library'?'home':h}
 try{render();document.documentElement.classList.add('app-ready');}catch(e){console.error('Inicialização da Central falhou',e);}
 })();
 </script><script>
