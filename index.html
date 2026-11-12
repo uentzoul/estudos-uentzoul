@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="color-scheme" content="light dark">
-<meta name="site-build" content="auto-update-20261112-privacy-tzoul-personal-v3">
+<meta name="site-build" content="auto-update-20261112-privacy-tzoul-personal-v4">
 <script>try{document.documentElement.dataset.theme=localStorage.getItem("uentzoul_theme_v1")==="dark"?"dark":"light"}catch(e){document.documentElement.dataset.theme="light"}</script>
 <title>PsicoMoodle · Psicologia PUCRS</title>
 <style>
@@ -4128,7 +4128,7 @@ async function dmOpenProfile(id){
   if(dm.profileOpen!==id)return;
   const mine=id===onlineUser.id;
   body.innerHTML='<div class="dm-profile-cover"><span>PSICOLOGIA · PUCRS</span></div><div class="dm-profile-large">'+avatar(data.display_name,data.avatar_url)+'</div>'+
-   '<h2 id="dmProfileHeading">'+esc(data.display_name)+'</h2>'+ (id==='11eadb0a-c79b-4347-be3b-20f2d31c18c7'?'<div class="admin-profile-role">✦ Administrador</div>':'')+
+   '<h2 id="dmProfileHeading">'+esc(data.display_name)+'</h2>'+ ''+
    '<div class="dm-profile-about"><div class="dm-about-title"><span>Bio</span><small>Apresentação</small></div><div class="dm-profile-bio">'+(data.bio?esc(data.bio).replace(/\n/g,'<br>'):'<span class="dm-bio-empty">Esta pessoa ainda não escreveu uma bio.</span>')+'</div></div>'+
    (mine?'<button type="button" class="dm-profile-primary" data-dm-edit-profile>Editar meu perfil</button>':
    '<button type="button" class="dm-profile-primary" data-dm-message="'+esc(data.user_id)+'">Enviar mensagem</button>');
