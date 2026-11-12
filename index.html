@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="color-scheme" content="light dark">
-<meta name="site-build" content="auto-update-20261112-originais-pdf-v24">
+<meta name="site-build" content="psicomoodle-history-sidebar-20261112-v1">
 <script>try{document.documentElement.dataset.theme=localStorage.getItem("uentzoul_theme_v1")==="dark"?"dark":"light"}catch(e){document.documentElement.dataset.theme="light"}</script>
 <title>PsicoMoodle · Psicologia PUCRS</title>
 <style>
@@ -1870,7 +1870,7 @@ html[data-members-sidebar="collapsed"] .compact-profile-button{display:inline-fl
  .mobile-members-toggle{display:inline-flex;width:36px;height:36px;min-height:36px;margin-left:1px}
  .app>.profile-sidebar{
   transition:opacity .3s ease,transform .34s cubic-bezier(.2,.72,.25,1),max-height .34s ease,padding .34s ease,visibility 0s;
-  max-height:1800px;
+  max-height:40000px;
  }
  html[data-members-sidebar="collapsed"] .app>.profile-sidebar{
   max-height:0!important;min-height:0!important;height:0!important;padding:0!important;margin:0!important;
@@ -5159,6 +5159,10 @@ window.uentzoulChatNavigation={
   dmW.reply=null;dmW.panel=null;dmW.popup=null;dmW.menu=null;
  }
 };
+try{
+ const savedNav=history.state;
+ if(savedNav?.['psicomoodle-navigation-v1']&&savedNav.chat)window.uentzoulChatNavigation.restore(savedNav.chat);
+}catch(_){}
 
 
 /* Chat unificado — janelas e interações */
