@@ -1,0 +1,34 @@
+/* Agenda de provas — calendário mensal, novembro à vista e dezembro recolhido. */
+.agenda-calendar-layout{display:grid;gap:16px;margin-top:16px}
+.agenda-calendar{border:1px solid var(--line);border-radius:19px;background:var(--paper);overflow:hidden;box-shadow:0 4px 18px #2724430a}
+.agenda-calendar-top{padding:20px 22px 16px;display:flex;justify-content:space-between;align-items:center;gap:12px;background:linear-gradient(120deg,color-mix(in srgb,#7161be 7%,var(--paper)),var(--paper))}
+.agenda-calendar-top h2{margin:0;font-size:22px;letter-spacing:-.04em;color:var(--ink)}
+.agenda-calendar-top span{font-size:11px;color:var(--muted)}
+.agenda-calendar-weekdays{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));background:var(--soft);border-block:1px solid var(--line)}
+.agenda-calendar-weekdays span{text-align:center;font-size:10px;font-weight:800;padding:12px 2px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em}
+.agenda-calendar-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));grid-auto-rows:minmax(110px,auto);gap:1px;background:var(--line)}
+.agenda-cal-day{padding:10px 8px 12px;min-width:0;min-height:110px;background:var(--paper);display:flex;flex-direction:column;gap:6px;align-items:stretch}
+.agenda-cal-day.is-other-month{background:color-mix(in srgb,var(--soft) 50%,var(--paper))}
+.agenda-cal-day.is-today{background:color-mix(in srgb,#8972c7 7%,var(--paper))}
+.agenda-cal-day .agenda-cal-number{align-self:flex-start;display:grid;place-items:center;width:26px;height:26px;border-radius:8px;font-weight:760;font-size:11px;color:var(--ink)}
+.agenda-cal-day.is-today .agenda-cal-number{background:#6a55b4;color:#fff}
+.agenda-cal-events{display:flex;flex-direction:column;gap:5px}
+.agenda-cal-event{display:flex;flex-direction:column;gap:3px;min-width:0;border:1px solid color-mix(in srgb,var(--calendar-accent) 22%,var(--line));background:color-mix(in srgb,var(--calendar-accent) 10%,var(--paper));padding:6px 7px;border-radius:8px;text-decoration:none;line-height:1.3;color:var(--ink);transition:filter .14s}
+.agenda-cal-event:hover{filter:brightness(.96);text-decoration:none}
+.agenda-cal-event strong{font-size:10.5px;font-weight:800;color:var(--ink);overflow-wrap:anywhere}
+.agenda-cal-event small{font-size:9.5px;color:var(--muted);overflow-wrap:anywhere}
+.agenda-cal-event:before{content:"";height:3px;border-radius:99px;width:20px;background:var(--calendar-accent)}
+.agenda-calendar-details{border:1px solid var(--line);border-radius:15px;background:var(--paper);overflow:hidden}
+.agenda-calendar-details>summary{list-style:none;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:17px 20px;cursor:pointer;font-size:13px;font-weight:770;color:var(--ink)}
+.agenda-calendar-details>summary::-webkit-details-marker{display:none}
+.agenda-calendar-details>summary:after{content:"⌄";font-size:21px;color:var(--muted);transform:rotate(0);transition:transform .2s}
+.agenda-calendar-details[open]>summary:after{transform:rotate(180deg)}
+.agenda-calendar-details>summary:hover{background:color-mix(in srgb,var(--soft) 60%,var(--paper))}
+.agenda-calendar-details>.agenda-calendar{border:0;border-radius:0;box-shadow:none;border-top:1px solid var(--line)}
+.agenda-calendar-details>.agenda-extra-notes{padding:0 18px 18px}
+.agenda-calendar-note{font-size:11px;line-height:1.55;color:var(--muted);padding:2px 0 12px}
+.agenda-calendar-notes-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.agenda-calendar-notes-grid .agenda-examrow{margin:0;min-width:0}
+@media(max-width:900px){.agenda-calendar-grid{grid-auto-rows:minmax(100px,auto)}.agenda-cal-day{min-height:100px;padding:7px 5px}.agenda-cal-event{padding:5px}.agenda-cal-event strong{font-size:9.5px}.agenda-cal-event small{font-size:9px}}
+@media(max-width:650px){.agenda-calendar-top{padding:15px}.agenda-calendar-top h2{font-size:20px}.agenda-calendar-weekdays span{padding:10px 1px;font-size:9px;letter-spacing:0}.agenda-calendar-grid{grid-auto-rows:minmax(85px,auto)}.agenda-cal-day{min-height:85px;padding:5px 3px;gap:4px}.agenda-cal-day .agenda-cal-number{width:23px;height:23px;font-size:11px}.agenda-cal-event{padding:4px 3px;border-radius:6px;gap:2px}.agenda-cal-event:before{height:2px;width:13px}.agenda-cal-event strong{font-size:9px;line-height:1.3}.agenda-cal-event small{font-size:8px}.agenda-calendar-details>summary{padding:15px}.agenda-calendar-notes-grid{grid-template-columns:1fr}}
+@media(max-width:390px){.agenda-cal-event strong{font-size:8px}.agenda-cal-event small{font-size:7.5px}.agenda-cal-day{padding:4px 2px}.agenda-calendar-grid{grid-auto-rows:minmax(78px,auto)}}
