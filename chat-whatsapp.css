@@ -685,3 +685,79 @@ html[data-theme="dark"] .dm-messages .dm-message .dm-message-bubble.dm-photo-onl
  .dm-messages .dm-photo-only .dm-attachment img{max-height:310px}
  .dm-messages .dm-photo-only .dm-message-menu-button{opacity:.88}
 }
+
+
+/* PsicoMoodle • mensagens compactas e menus alinhados (12/11/2026) */
+/* A bolha acompanha o conteúdo, sem reservar uma faixa larga e vazia à direita. */
+.dm-messages .dm-message .dm-message-bubble:not(.dm-photo-only){
+  width:fit-content;
+  max-width:min(82%,490px);
+  min-width:0;
+  padding:8px 29px 7px 11px;
+  box-sizing:border-box;
+  border-radius:12px 12px 12px 4px;
+}
+.dm-messages .dm-message.mine .dm-message-bubble:not(.dm-photo-only){
+  border-radius:12px 12px 4px 12px;
+}
+.dm-messages .dm-message-bubble:not(.dm-photo-only) p{
+  margin:0 0 3px;
+  overflow-wrap:anywhere;
+  line-height:1.48;
+}
+.dm-messages .dm-message-bubble:not(.dm-photo-only) .dm-message-info{
+  margin-top:3px;
+  line-height:1.2;
+  font-size:9.5px;
+  gap:5px;
+}
+.dm-messages .dm-message-bubble:not(.dm-photo-only) .dm-message-menu-button{
+  top:4px;
+  right:4px;
+  display:grid;
+  place-items:center;
+  width:24px;
+  height:24px;
+  padding:0;
+  line-height:1;
+  border-radius:6px;
+  font-size:18px;
+  opacity:0;
+  background:transparent;
+}
+.dm-messages .dm-message-bubble:not(.dm-photo-only) .dm-message-menu-button svg{
+  display:block;width:16px;height:16px;flex:none;
+}
+.dm-messages .dm-message:hover .dm-message-bubble:not(.dm-photo-only) .dm-message-menu-button,
+.dm-messages .dm-message-bubble:not(.dm-photo-only) .dm-message-menu-button:focus-visible,
+.dm-messages .dm-message-bubble:not(.dm-photo-only) .dm-message-menu-button[aria-expanded="true"]{opacity:1}
+.dm-messages .dm-message-bubble:not(.dm-photo-only) .dm-message-menu-button:hover{
+  background:color-mix(in srgb,var(--ink) 8%,transparent);
+}
+.dm-messages .dm-message-bubble:not(.dm-photo-only) .dm-message-popup{
+  top:31px;
+  right:4px;
+  min-width:166px;
+  padding:4px;
+  border-radius:10px;
+}
+.dm-messages .dm-message-popup button{
+  min-height:35px;
+  padding:8px 9px;
+  border-radius:7px;
+}
+/* O mesmo ícone vetorial fica centralizado também sobre as fotos. */
+.dm-messages .dm-photo-only .dm-message-menu-button svg{
+  display:block;width:16px;height:16px;flex:none;
+}
+@media(hover:none){
+  .dm-messages .dm-message-bubble:not(.dm-photo-only) .dm-message-menu-button{opacity:.9}
+}
+@media(max-width:760px){
+  .dm-messages .dm-message .dm-message-bubble:not(.dm-photo-only){
+    max-width:88%;
+    padding:8px 29px 6px 10px;
+  }
+  .dm-messages .dm-message-bubble:not(.dm-photo-only) .dm-message-menu-button{opacity:.85}
+  .dm-messages .dm-message-bubble:not(.dm-photo-only) p{line-height:1.5}
+}
