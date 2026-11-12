@@ -4178,7 +4178,7 @@ dmComposer=function(){
 };
 dmRender=function(){
  if(!onlineUser)return '<section class="dm-login-panel"><h1>Mensagens</h1><p>Entre na tua conta para conversar com os usuários.</p><button data-account-action="open" class="profile-action">Entrar / Cadastrar</button></section>';
- if(dm.tab==='reports'&&dm.isAdmin)return '<section class="dm-shell has-conversation"><div class="dm-list"><header class="dm-list-head"><h1>Mensagens</h1><button type="button" class="dm-soft-button" data-dmw-reports-back>← Voltar</button></header></div><div class="dm-main"><header class="dm-chat-head"><strong>Report de Erros</strong></header><div class="dm-messages" id="dmMessages">'+dmReportList()+'</div></div></section>';
+ if(dm.tab==='reports'&&dm.isAdmin)return '<section class="dm-shell has-conversation"><div class="dm-list"><header class="dm-list-head"><h1>Mensagens</h1><button type="button" class="dm-soft-button" data-dmw-reports-back>← Voltar</button></header></div><div class="dm-main"><header class="dm-chat-head"><button type="button" class="dm-back" data-dmw-reports-back>‹ Voltar</button><strong>Report de Erros</strong></header><div class="dm-messages" id="dmMessages">'+dmReportList()+'</div></div></section>';
  const selected=dmWSelected(),group=dm.tab==='groups',room=group?dmWRoom():null,peer=dm.tab==='private'&&selected?dmPrettyPerson(selected):null;
  const heading=peer?avatar(peer.display_name,peer.avatar_url,true)+'<span><strong>'+esc(peer.display_name)+'</strong><small>Ver perfil</small></span>':
   dm.tab==='global'?'<span class="dm-global-avatar small">✦</span><span><strong>Chat Global</strong><small>Todos os usuários</small></span>':
