@@ -113,6 +113,7 @@ function start(){
  mount();
  new MutationObserver(()=>{if(!host?.isConnected)mount()}).observe(document.body,{childList:true,subtree:true});
  window.addEventListener('uentzoul:auth',render);
+ window.addEventListener('uentzoul:library-updated',render);
 }
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start,{once:true});else start();
 })();
