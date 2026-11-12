@@ -91,3 +91,8 @@ Para a futura implementação, a proposta é centralizar os trabalhos acadêmico
 - Deixar claro que a conferência automatizada é auxiliar e não equivale à avaliação ou aprovação do professor.
 
 **Estado atual:** apenas item visual não clicável, sem inserir tarefas fictícias, sem acionar banco de dados nem criar nova aba funcional.
+
+
+## Fundo do chat — licença
+
+O fundo padrão das mensagens usa a estampa **Topography**, de **Steve Schoger / Hero Patterns**, distribuída sob [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Fonte: https://heropatterns.com/ (repositório: https://github.com/sschoger/hero-patterns). A estampa foi recolorida e teve sua opacidade ajustada para os temas claro e escuro do PsicoMoodle. Os arquivos estão em `assets/chat-topography-light.svg` e `assets/chat-topography-dark.svg`. Créditos mantidos também no CSS e nos SVGs.
