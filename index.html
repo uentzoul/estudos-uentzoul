@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="color-scheme" content="light dark">
-<meta name="site-build" content="auto-update-20261111-library-review-3">
+<meta name="site-build" content="auto-update-20261112-psicomoodle-admin-calendar-v1">
 <script>try{document.documentElement.dataset.theme=localStorage.getItem("uentzoul_theme_v1")==="dark"?"dark":"light"}catch(e){document.documentElement.dataset.theme="light"}</script>
 <title>PsicoMoodle · Psicologia PUCRS</title>
 <style>
@@ -1606,9 +1606,9 @@ html[data-exam-focus="2026/2"] .sidebtn[data-page="audio"]{display:none!importan
 <link rel="stylesheet" href="biblioteca-moodle.css?v=20261112-2">
 <link rel="stylesheet" href="revisao-compacta.css?v=20261112-1">
 <link rel="stylesheet" href="disciplina-clean.css?v=20261112-2">
-<link rel="stylesheet" href="inicio-slogan.css?v=20261112-4">
+<link rel="stylesheet" href="inicio-slogan.css?v=20261112-5">
 <link rel="stylesheet" href="admin-config.css?v=20261111-2">
-<link rel="stylesheet" href="agenda-calendario.css?v=20261111-2">
+<link rel="stylesheet" href="agenda-calendario.css?v=20261112-3">
 </head>
 <body>
 <section id="staticFallback" class="static-fallback" aria-label="Central de Estudos — modo de leitura compatível com celular">
@@ -3400,7 +3400,7 @@ async function preparePodcast(k,i,autoplay=false){const key=audioKey(k,i),ep=pod
 function updatePickedAudioLabels(){for(const key of episodeReady){const [k,i]=key.split(':');updateDownloadVisual(k,Number(i));}}
 function currentAudioSource(){return ''}
 function loadSelectedAudio({autoplay=false}={}){if(autoplay)preparePodcast(current.audioSubject,audioSelectionIndex(),true);}
-function refreshAudioSelection(){const k=current.audioSubject,eps=audioEpisodes(k),selected=audioSelectionIndex();document.querySelectorAll('[data-audio-index]').forEach((el,i)=>el.classList.toggle('active',i===selected));const title=$('audioPlayingTitle');if(title)title.textContent=eps[selected]?.title||'Selecione um episódio';const status=$('audioStatus');if(status)status.textContent=`Selecionado: ${eps[selected]?.title||''}.`;const points=$('podcastPointsStatus');if(points)points.textContent=eps[selected]?.duration?'Ouve pelo menos 70% do episódio para receber 5 pontos.':'Seleciona um episódio para ouvir.';}
+function refreshAudioSelection(){const k=current.audioSubject,eps=audioEpisodes(k),selected=audioSelectionIndex();document.querySelectorAll('[data-audio-index]').forEach((el,i)=>el.classList.toggle('active',i===selected));const title=$('audioPlayingTitle');if(title)title.textContent=eps[selected]?.title||'Selecione um episódio';const status=$('audioStatus');if(status)status.textContent=`Selecionado: ${eps[selected]?.title||''}.`;const points=$('podcastPointsStatus');if(points)points.textContent='Seleciona um episódio para ouvir.';}
 function startPlayback(p){try{p.play()}catch(e){}}
 function openChapter(i){currentChapter=Math.min(Math.max(i,0),DB.audio.tcc.episodes.length-1);refreshAudioSelection();preparePodcast('tcc',currentChapter,true);}
 function openEpisode(i){const eps=audioEpisodes(current.audioSubject);currentEpisode=Math.min(Math.max(i,0),eps.length-1);refreshAudioSelection();preparePodcast(current.audioSubject,currentEpisode,true);}
@@ -3595,7 +3595,7 @@ function renderAside(){
   '<div class="rank-empty">'+(logged?'Ainda não há perfis cadastrados.':'Entre na conta para ver as pessoas da turma.')+'</div>';
  el.innerHTML='<section class="profile-panel"><div class="profile-panel-top">'+avatar(p?.name||'Visitante',p?.avatar)+
  '<div class="profile-panel-info"><strong>'+esc(p?.name||'Visitante')+'</strong>'+
- (p?.id==='11eadb0a-c79b-4347-be3b-20f2d31c18c7'?'<span class="admin-mini-label">Administrador</span>':'')+
+ (window.uentzoulAdminConfig?.isAdmin?.()?'<span class="admin-mini-label">Administrador</span>':'')+
  '<span>'+(p?'Conta conectada':'Não conectado')+'</span></div></div>'+
  '<button class="profile-action" data-account-action="open">'+(p?'Meu perfil / Configurações':'Entrar / Cadastrar')+'</button></section>'+
  '<section class="members-panel"><div class="member-list-heading"><h2>Pessoas da turma</h2>'+
@@ -3724,6 +3724,9 @@ async function saveCloud(){
  if(error)console.warn('Erro ao sincronizar progresso',error);else loadRanking().catch(()=>{});
 }
 window.addEventListener('uentzoul:ranking-refresh',()=>loadRanking());
+/* Atualiza a lista de perfis da turma sem recarregar a página. */
+window.addEventListener('focus',()=>{if(onlineUser)loadRanking().catch(console.warn)});
+setInterval(()=>{if(onlineUser&&document.visibilityState==='visible')loadRanking().catch(console.warn)},45000);
 async function loadRanking(){
  if(!onlineUser||!client||rankBusy)return;
  rankBusy=true;
