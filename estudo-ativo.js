@@ -4,15 +4,23 @@ if(window.PSICO_PRACTICE)return;
 const state={};
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const n=s=>String(s??'').replace(/\s+/g,' ').trim();
+/* No flashcard, a resposta deve caber inteira: os textos longos seguem na revisão. */
+const shortGroups={
+ 'Psicodrama (Jacob Levy Moreno)':'Método grupal que usa dramatização de papéis para explorar relações, espontaneidade e novas respostas, com aquecimento e compartilhamento.',
+ 'Carl Rogers — abordagem centrada na pessoa e grupos de encontro':'A facilitação promove empatia, autenticidade e consideração positiva incondicional, criando condições de escuta e expressão.',
+ 'Escritores da Liberdade (2007) — análise das relações grupais':'No filme, escrita, diálogo e reconhecimento das experiências ajudam uma turma marcada por conflitos a construir vínculos e pertencimento.'
+};
+
 function own(){try{return window.uentzoulAIAuth?.user?.()?.id||'visitante'}catch{return 'visitante'}}
 function S(id){return state[id]||(state[id]={id,semester:'2026/2',topics:[],position:0,flipped:false,again:false,seen:new Set(),caseIndex:-1,step:0,chosen:-1,previous:'',finished:false})}
 function cards(id){
  const all=[];S(id).topics.forEach(t=>{
   if(!t?.title||!t?.definition)return;
   const key=id+':'+n(t.title).toLowerCase();
-  all.push({key:key+':def',tag:t.title,front:'O que significa '+n(t.title)+'?',back:t.definition});
-  if(t.scenario)all.push({key:key+':caso',tag:'Aplicação',front:n(t.scenario)+'\nQual conceito ajuda a entender?',back:n(t.title)+': '+n(t.definition)});
-  if(t.myth)all.push({key:key+':mito',tag:'Erro comum',front:'Verdadeiro ou falso?\n'+n(t.myth),back:'Falso. '+n(t.definition)});
+  const answer=id==='grupos'?(shortGroups[t.title]||t.definition):t.definition;
+  all.push({key:key+':def',tag:t.title,front:'O que significa '+n(t.title)+'?',back:answer});
+  if(t.scenario)all.push({key:key+':caso',tag:'Aplicação',front:n(t.scenario)+'\nQual conceito ajuda a entender?',back:n(t.title)+': '+n(answer)});
+  if(t.myth)all.push({key:key+':mito',tag:'Erro comum',front:'Verdadeiro ou falso?\n'+n(t.myth),back:'Falso. '+n(answer)});
  });
  return all;
 }
