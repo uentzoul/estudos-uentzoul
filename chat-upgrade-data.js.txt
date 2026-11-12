@@ -1,0 +1,267 @@
+
+/* Chat unificado — sincronização, recibos, mídia e ferramentas */
+async function dmWResolveMedia(){
+ if(!client)return;
+ const paths=new Set([...document.querySelectorAll('.dm-shell [data-dmw-media]')].map(el=>el.dataset.dmwMedia));
+ for(const path of paths){
+  if(!path)continue;
+  let cached=dm.mediaCache.get(path);
+  if(!cached||cached.until<Date.now()){
+   if(dm.mediaRequests.has(path))continue;
+   dm.mediaRequests.add(path);
+   try{
+    const response=await client.storage.from('uentzoul-chat-media').createSignedUrl(path,1800);
+    if(response.error)throw response.error;
+    cached={url:response.data.signedUrl,until:Date.now()+25*60*1000};
+    dm.mediaCache.set(path,cached);
+   }catch(e){console.warn('Não foi possível obter a mídia do chat',e);continue}
+   finally{dm.mediaRequests.delete(path)}
+  }
+  document.querySelectorAll('.dm-shell [data-dmw-media]').forEach(el=>{
+   if(el.dataset.dmwMedia===path&&el.getAttribute('src')!==cached.url)el.setAttribute('src',cached.url);
+  });
+ }
+}
+function dmWEmojiInit(){
+ const picker=document.getElementById('dmWPicker');if(!picker)return;
+ if(customElements.get('emoji-picker')){
+  if(picker.dataset.ready)return;
+  picker.dataset.ready='1';
+  picker.addEventListener('emoji-click',e=>{
+   const emoji=e.detail?.unicode,field=document.getElementById('dmPrompt');
+   if(!emoji||!field)return;
+   const start=field.selectionStart??field.value.length,end=field.selectionEnd??field.value.length;
+   field.value=field.value.slice(0,start)+emoji+field.value.slice(end);
+   dm.draft=field.value;field.focus();
+   field.setSelectionRange(start+emoji.length,start+emoji.length);
+  });
+  return;
+ }
+ if(dmW.emojiLoading)return;
+ dmW.emojiLoading=true;
+ import('https://cdn.jsdelivr.net/npm/emoji-picker-element@1.29.1/index.js').then(()=>{
+  dmW.emojiLoading=false;dmWEmojiInit();
+ }).catch(()=>{
+  dmW.emojiLoading=false;
+  const node=document.getElementById('dmWPicker');
+  const fallback=['😀','😁','😂','🥲','😍','🥰','😘','🤔','😎','🙃','😢','😭','😡','🥳','👍','👏','🙏','❤️','💜','💚','🔥','✨','🎓','📚','🐱','🐶','🌻','🎉'];
+  if(node)node.outerHTML='<div class="dm-emoji-fallback">'+fallback.map(x=>'<button type="button" data-dmw-emojifallback="'+x+'">'+x+'</button>').join('')+'</div>';
+ });
+}
+const dmWOriginalLoad=dmLoad;
+dmLoad=async function(){
+ if(!client||!onlineUser)return;
+ if(dm.loading){dm.pending=true;return dm.loadPromise}
+ const id=onlineUser.id;dm.loading=true;dm.error='';
+ dm.loadPromise=(async()=>{
+  try{
+   const [messages,people,rooms,members,reads]=await Promise.all([
+    client.from('uentzoul_messages').select('id,sender_id,recipient_id,body,created_at,delivered_at,read_at,kind,media_path,deleted_at,reply_to,forwarded').or('sender_id.eq.'+id+',recipient_id.eq.'+id).order('created_at',{ascending:false}).limit(800),
+    client.from('uentzoul_profiles').select('user_id,display_name,avatar_url,bio').order('display_name').limit(300),
+    client.from('uentzoul_chat_rooms').select('id,kind,name,owner_id,avatar_path,created_at').order('created_at',{ascending:false}).limit(200),
+    client.from('uentzoul_chat_members').select('room_id,user_id,is_admin,joined_at').limit(2000),
+    client.from('uentzoul_room_reads').select('room_id,user_id,delivered_at,read_at').limit(2000)
+   ]);
+   for(const row of [messages,people,rooms,members,reads])if(row.error)throw row.error;
+   const ids=(rooms.data||[]).map(x=>x.id);
+   const roomMessages=ids.length?await client.from('uentzoul_room_messages').select('id,room_id,sender_id,body,kind,media_path,created_at,deleted_at,reply_to,forwarded').in('room_id',ids).order('created_at',{ascending:false}).limit(1200):{data:[]};
+   if(roomMessages.error)throw roomMessages.error;
+   if(onlineUser?.id!==id)return;
+   dm.messages=messages.data||[];dm.people=people.data||[];dm.rooms=rooms.data||[];dm.roomMessages=roomMessages.data||[];
+   dmW.members=members.data||[];dmW.reads=reads.data||[];dm.owner=id;dm.ready=true;dm.lastFetch=Date.now();
+   if(dm.isAdmin){const r=await client.rpc('uentzoul_list_error_reports');if(!r.error)dm.reports=r.data||[]}
+   const invitationRows=await client.from('uentzoul_exam_invites').select('id,exam_id,sender_id,recipient_id,status,created_at').limit(1000);
+   if(!invitationRows.error)dm.invites=invitationRows.data||[];
+   dmBadge();dmShow();
+   if(dm.tab==='private'&&dm.peerId)await dmMarkRead();
+   if(dm.tab==='groups'&&dm.roomId)dmWMarkGroupRead(dm.roomId);
+   dmWConfirmDelivery();
+  }catch(e){dm.error=e?.message||'Não foi possível carregar as mensagens.';dmShow()}
+  finally{dm.loading=false;if(dm.pending&&onlineUser?.id===id){dm.pending=false;queueMicrotask(dmLoad)}}
+ })();
+ return dm.loadPromise;
+};
+async function dmWConfirmDelivery(){
+ if(dmW.delivering||!client||!onlineUser)return;
+ dmW.delivering=true;
+ try{
+  if(dm.messages.some(m=>m.recipient_id===dm.owner&&!m.delivered_at)){
+   await client.from('uentzoul_messages').update({delivered_at:new Date().toISOString()}).eq('recipient_id',dm.owner).is('delivered_at',null);
+  }
+  for(const room of dm.rooms.filter(r=>r.kind==='group')){
+   const newest=dm.roomMessages.find(m=>m.room_id===room.id&&m.sender_id!==dm.owner);
+   const receipt=dmW.reads.find(r=>r.room_id===room.id&&r.user_id===dm.owner);
+   if(!newest||receipt?.delivered_at>=newest.created_at)continue;
+   if(receipt)await client.from('uentzoul_room_reads').update({delivered_at:new Date().toISOString()}).eq('room_id',room.id).eq('user_id',dm.owner);
+   else await client.from('uentzoul_room_reads').insert({room_id:room.id,user_id:dm.owner});
+  }
+ }catch(e){console.warn('Não foi possível registrar entrega',e)}
+ finally{dmW.delivering=false}
+}
+async function dmWMarkGroupRead(roomId){
+ if(!client||!onlineUser||!dmValid(roomId)||dmW.reading===roomId)return;
+ const latest=dm.roomMessages.find(m=>m.room_id===roomId&&m.sender_id!==dm.owner);
+ const existing=dmW.reads.find(r=>r.room_id===roomId&&r.user_id===dm.owner);
+ if(existing?.read_at&&(!latest||existing.read_at>=latest.created_at))return;
+ dmW.reading=roomId;
+ try{
+  const date=new Date().toISOString(),payload={room_id:roomId,user_id:dm.owner,delivered_at:date,read_at:date};
+  const response=await client.from('uentzoul_room_reads').upsert(payload,{onConflict:'room_id,user_id'});
+  if(response.error)throw response.error;
+  if(existing)Object.assign(existing,payload);else dmW.reads.push(payload);
+  dmShow();
+ }catch(e){console.warn('Leitura do grupo não atualizada',e)}
+ finally{dmW.reading=null}
+}
+const dmWOriginalLogout=dmOnLogout;
+dmOnLogout=function(){
+ dmWStopRecord(true);
+ Object.assign(dmW,{members:[],reads:[],popup:null,menu:null,panel:null,reply:null,selectedMessage:null,wallpaper:false,recording:false});
+ dmWOriginalLogout();
+};
+const dmWOriginalAfterRender=dmAfterRender;
+dmAfterRender=async function(id){
+ await dmWOriginalAfterRender(id);
+ if(dm.tab==='groups'&&dm.roomId)dmWMarkGroupRead(dm.roomId);
+};
+const dmWOriginalOpenPeer=dmOpenPeer;
+dmOpenPeer=function(id){
+ dmW.reply=null;dmW.panel=null;dmW.popup=null;dmW.menu=null;dmWOriginalOpenPeer(id);
+};
+function dmWFileExt(file){
+ return ({'image/png':'png','image/jpeg':'jpg','image/webp':'webp','image/gif':'gif','video/mp4':'mp4',
+ 'video/webm':'webm','video/quicktime':'mov','audio/webm':'webm','audio/ogg':'ogg','audio/mp4':'m4a',
+ 'audio/mpeg':'mp3','audio/aac':'aac','audio/wav':'wav'})[file.type]||'webm';
+}
+function dmWCheckFile(file,kind){
+ const types={image:['image/png','image/jpeg','image/webp','image/gif'],video:['video/mp4','video/webm','video/quicktime'],
+ audio:['audio/webm','audio/ogg','audio/mp4','audio/mpeg','audio/aac','audio/wav'],sticker:['image/png','image/webp']};
+ const limit=kind==='image'?5242880:kind==='sticker'?1048576:20971520;
+ if(!types[kind]?.includes(file.type)||file.size>limit||!file.size){toast('Arquivo inválido ou acima do limite de '+Math.round(limit/1048576)+' MB.');return false}
+ return true;
+}
+function dmWPrepareFile(file,kind){
+ if(!file||!dmWCheckFile(file,kind))return;
+ dm.mediaFile=file;dmW.mediaKind=kind;dmW.panel=null;dmShow();
+}
+function dmWGifValid(value){
+ try{const u=new URL(value);return u.protocol==='https:'&&/(^|\.)giphy\.com$|(^|\.)tenor\.com$/.test(u.hostname)&&u.href.length<1600}catch(_){return false}
+}
+dmSend=async function(kindOverride=null,specialValue=''){
+ if(!onlineUser||!client||dm.sending||dmW.recording)return;
+ const selected=dmWSelected();
+ if(!dmValid(selected))return;
+ const file=kindOverride==='gif'?null:dm.mediaFile,kind=kindOverride==='gif'?'gif':file?dmW.mediaKind:'text';
+ const body=String(kind==='gif'?specialValue:document.getElementById('dmPrompt')?.value??dm.draft).trim();
+ if(!body&&!file)return;
+ if(body.length>3000){toast('Limite de 3.000 caracteres por mensagem.');return}
+ if(kind==='gif'&&!dmWGifValid(body)){toast('Use um link HTTPS do GIPHY ou Tenor.');return}
+ if(file&&!dmWCheckFile(file,kind))return;
+ dm.sending=true;dm.draft=body;dm.error='';dmShow();
+ let path=null;
+ try{
+  if(file){
+   path=(dm.tab==='private'?'dm/'+dm.owner+'/'+selected+'/':'room/'+selected+'/'+dm.owner+'/')+crypto.randomUUID()+'.'+dmWFileExt(file);
+   const upload=await client.storage.from('uentzoul-chat-media').upload(path,file,{contentType:file.type,upsert:false});
+   if(upload.error)throw upload.error;
+  }
+  const label=({image:'Imagem',video:'Vídeo',audio:'Áudio',sticker:'Figurinha'})[kind]||'Arquivo';
+  const data=dm.tab==='private'?{sender_id:dm.owner,recipient_id:selected,body:body||'['+label+']',
+   kind,media_path:path,reply_to:dmW.reply?.id||null}:
+   {sender_id:dm.owner,room_id:selected,body:body||'['+label+']',kind,media_path:path,reply_to:dmW.reply?.id||null};
+  const result=await client.from(dm.tab==='private'?'uentzoul_messages':'uentzoul_room_messages').insert(data);
+  if(result.error)throw result.error;
+  dm.draft='';dm.mediaFile=null;dmW.reply=null;dmW.panel=null;dmW.popup=null;
+  await dmLoad();
+ }catch(e){
+  if(path)await client.storage.from('uentzoul-chat-media').remove([path]);
+  dm.error=e?.message||'Mensagem não enviada.';
+ }finally{dm.sending=false;dmShow();if(!dm.error)document.getElementById('dmPrompt')?.focus()}
+};
+async function dmWStopRecord(cancel){
+ const recorder=dmW.recorder;
+ if(!recorder)return;
+ dmW.recording=false;
+ if(dmW.recordTicker)clearInterval(dmW.recordTicker);
+ dmW.recordTicker=null;
+ if(cancel)recorder.onstop=null;
+ if(recorder.state!=='inactive')recorder.stop();
+ dmW.recordStream?.getTracks().forEach(t=>t.stop());
+ dmW.recorder=null;dmW.recordStream=null;
+ if(cancel){dmW.recordParts=[];dmShow()}
+}
+async function dmWStartRecord(){
+ if(dmW.recording)return;
+ if(!navigator.mediaDevices?.getUserMedia||typeof MediaRecorder==='undefined'){toast('Este navegador não permite gravar áudios.');return}
+ try{
+  const stream=await navigator.mediaDevices.getUserMedia({audio:true});
+  const mime=['audio/webm;codecs=opus','audio/mp4','audio/webm','audio/ogg'].find(t=>MediaRecorder.isTypeSupported(t));
+  const recorder=new MediaRecorder(stream,mime?{mimeType:mime}:undefined);
+  dmW.recordStream=stream;dmW.recorder=recorder;dmW.recordParts=[];dmW.recording=true;dmW.recordStarted=Date.now();
+  recorder.ondataavailable=e=>{if(e.data?.size)dmW.recordParts.push(e.data)};
+  recorder.onstop=()=>{
+   const type=recorder.mimeType.split(';')[0]||'audio/webm';
+   const blob=new Blob(dmW.recordParts,{type});dmW.recordParts=[];
+   if(blob.size)dmWPrepareFile(new File([blob],'audio-'+Date.now()+'.'+dmWFileExt({type}),{type}),'audio');
+   else dmShow();
+  };
+  recorder.start(1000);
+  dmW.recordTicker=setInterval(()=>{
+   const seconds=Math.floor((Date.now()-dmW.recordStarted)/1000),node=document.getElementById('dmWTimer');
+   if(node)node.textContent=String(Math.floor(seconds/60)).padStart(2,'0')+':'+String(seconds%60).padStart(2,'0');
+   if(seconds>=120)dmWStopRecord(false);
+  },1000);
+  dmShow();
+ }catch(e){toast(e?.name==='NotAllowedError'?'Sem permissão para usar o microfone.':'Gravação não disponível.');dmW.recordStream?.getTracks().forEach(t=>t.stop())}
+}
+async function dmWEditGroup(form){
+ const r=dmWRoom();if(!r||!dmWAdmin(r.id))return;
+ const data=new FormData(form),name=String(data.get('name')||'').trim(),file=data.get('photo');
+ if(name.length<2||name.length>70)throw Error('O nome deve ter de 2 a 70 caracteres.');
+ const payload={name};
+ if(file&&file.size){
+  if(!['image/png','image/jpeg','image/webp'].includes(file.type)||file.size>5242880)throw Error('Foto inválida; use PNG, JPG ou WebP até 5 MB.');
+  const path='room/'+r.id+'/'+dm.owner+'/'+crypto.randomUUID()+'.'+dmWFileExt(file);
+  const uploaded=await client.storage.from('uentzoul-chat-media').upload(path,file,{contentType:file.type,upsert:false});
+  if(uploaded.error)throw uploaded.error;payload.avatar_path=path;
+ }
+ const updated=await client.from('uentzoul_chat_rooms').update(payload).eq('id',r.id);
+ if(updated.error)throw updated.error;toast('Grupo atualizado.');await dmLoad();dmW.popup='group';dmShow();
+}
+async function dmWForwardTo(target){
+ const m=dmW.selectedMessage;if(!m||!client)return;
+ const type=target==='global'?'global':target.startsWith('group:')?'groups':'private';
+ const selected=target==='global'?DM_GLOBAL_ROOM:target.split(':')[1];
+ if(!dmValid(selected)||type==='private'&&selected===dm.owner)return;
+ let path=null;
+ try{
+  if(m.media_path){
+   const signed=await client.storage.from('uentzoul-chat-media').createSignedUrl(m.media_path,120);
+   if(signed.error)throw signed.error;
+   const response=await fetch(signed.data.signedUrl);if(!response.ok)throw Error('Arquivo original indisponível.');
+   const file=await response.blob();
+   path=(type==='private'?'dm/'+dm.owner+'/'+selected+'/':'room/'+selected+'/'+dm.owner+'/')+crypto.randomUUID()+'.'+m.media_path.split('.').pop();
+   const up=await client.storage.from('uentzoul-chat-media').upload(path,file,{contentType:file.type||'application/octet-stream',upsert:false});
+   if(up.error)throw up.error;
+  }
+  const data=type==='private'?{sender_id:dm.owner,recipient_id:selected,body:m.body,kind:m.kind,media_path:path,forwarded:true}:
+   {sender_id:dm.owner,room_id:selected,body:m.body,kind:m.kind,media_path:path,forwarded:true};
+  const response=await client.from(type==='private'?'uentzoul_messages':'uentzoul_room_messages').insert(data);
+  if(response.error)throw response.error;
+  dmW.popup=null;dmW.selectedMessage=null;dmW.menu=null;toast('Mensagem encaminhada.');await dmLoad();
+ }catch(e){if(path)await client.storage.from('uentzoul-chat-media').remove([path]);toast(e?.message||'Não foi possível encaminhar.')}
+}
+function dmWOpen(type,id){
+ dmW.reply=null;dmW.panel=null;dmW.popup=null;dmW.menu=null;dmW.wallpaper=false;
+ dm.mediaFile=null;dm.draft='';
+ if(type==='global'){dm.tab='global';dm.roomId=DM_GLOBAL_ROOM;dm.peerId=null}
+ else if(type==='group'){dm.tab='groups';dm.roomId=id;dm.peerId=null}
+ else {dm.tab='private';dm.peerId=id||null;dm.roomId=null}
+ dmShow();
+ if(type==='group')dmWMarkGroupRead(id);
+ if(type==='private'&&id)dmMarkRead();
+}
+window.uentzoulMessenger.render=dmRender;
+window.uentzoulMessenger.afterRender=dmAfterRender;
+window.uentzoulMessenger.refresh=dmLoad;
+window.uentzoulMessenger.onLogout=dmOnLogout;
