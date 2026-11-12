@@ -487,7 +487,6 @@ html[data-theme="dark"] .topicgrid .donecontrol.is-checked{
 }
 
 /* Agenda editorial: provas, horários de aula e conteúdo, com três abas */
-@media(max-width:860px){.agenda-switch{grid-template-columns:1fr}}
 
 .agenda-switch{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-top:18px}
 .agenda-switch-button{min-width:0;display:flex;align-items:center;gap:13px;text-align:left;border:1px solid #e0dcf0;background:var(--paper);color:var(--ink);padding:16px 18px;border-radius:15px;cursor:pointer;box-shadow:var(--shadow);transition:transform .2s,box-shadow .2s,border-color .2s,background .2s}
@@ -498,6 +497,7 @@ html[data-theme="dark"] .topicgrid .donecontrol.is-checked{
 .agenda-switch-copy strong{font-size:15px;letter-spacing:-.25px}
 .agenda-switch-copy small{font-size:11px;color:var(--muted);line-height:1.3}
 .agenda-switch-button[aria-selected="true"] .agenda-switch-icon{background:#695bd8;color:white}
+@media(max-width:860px){.agenda-switch{grid-template-columns:1fr}}
 .agenda-toolbar{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:9px;margin:21px 0 12px}
 .agenda-toolbar h2{margin:0;font-size:17px}
 .agenda-toolbar small{color:var(--muted)}
