@@ -4759,6 +4759,281 @@ document.addEventListener('change',async event=>{
  dmShow();
 });
 
+
+/* Mensagens 3.0: visualizador de imagens, menus dispensáveis e cartões internos. */
+const dmV={
+ viewer:null,shareOpen:false,shareCategory:'material',shareQuery:'',shareSelected:new Set(),
+ shareBusy:false,shareLoaded:false
+};
+function dmVCategoryLabel(type){
+ return ({material:'Material',exam:'Simulado',podcast:'Podcast',topic:'Tópico',generated:'Simulado personalizado'})[type]||'Conteúdo';
+}
+function dmVCategorySymbol(type){
+ return ({material:'▤',exam:'✎',podcast:'♫',topic:'☷',generated:'✦'})[type]||'▤';
+}
+function dmVSafePayload(meta){
+ if(!meta||typeof meta!=='object'||meta.semester!=='2026/2'||typeof meta.id!=='string'||meta.id.length>220)return null;
+ if(!['material','exam','podcast','topic','generated'].includes(meta.type))return null;
+ const result=Object.assign({},meta);
+ result.title=String(meta.title||'').slice(0,160);
+ result.subject=String(meta.subject||'').slice(0,30);
+ return result;
+}
+function dmVShareCard(m){
+ const meta=dmVSafePayload(m.share_payload);
+ if(!meta)return '<p>Compartilhamento indisponível.</p>';
+ const label=dmVCategoryLabel(meta.type),title=meta.title||'Conteúdo compartilhado';
+ const icon=dmVCategorySymbol(meta.type);
+ const subtitle=meta.subject?(window.uentzoulShareCatalog?.list()?.find(x=>x.type===meta.type&&x.id===meta.id)?.detail||meta.subject):'PsicoMoodle · 2026/2';
+ let bottom='<button type="button" class="dm-resource-open" data-dmv-open-resource="'+esc(m.id)+'">Abrir no PsicoMoodle</button>';
+ if(meta.type==='generated'){
+  const invite=dm.invites.find(x=>x.id===meta.invite_id&&x.exam_id===meta.id);
+  const forMe=m.recipient_id===dm.owner;
+  if(forMe&&invite?.status==='pending'){
+   bottom='<div class="dm-resource-invite"><button type="button" data-dm-exam-accept="'+esc(invite.id)+'">Adicionar aos meus simulados</button><button type="button" data-dm-exam-decline="'+esc(invite.id)+'">Recusar</button></div>';
+  }else if(forMe&&invite?.status==='declined'){bottom='<small class="dm-resource-detail">Convite recusado</small>'}
+  else if(!forMe&&m.sender_id===dm.owner){bottom='<small class="dm-resource-detail">Convite enviado</small>'}
+  else if(!invite){bottom='<small class="dm-resource-detail">Convite indisponível</small>'}
+ }
+ return '<div class="dm-resource-card"><div class="dm-resource-top"><span class="dm-resource-symbol">'+icon+'</span>'+
+ '<div class="dm-resource-copy"><small>'+esc(label)+' · PsicoMoodle</small><strong>'+esc(title)+'</strong></div></div>'+
+ '<small class="dm-resource-detail">'+esc(subtitle)+'</small>'+bottom+'</div>';
+}
+const dmVPreviousMedia=dmWMedia;
+dmWMedia=function(m){return m.kind==='share'&&!m.deleted_at?dmVShareCard(m):dmVPreviousMedia(m)};
+const dmVPreviousPreview=dmWPreview;
+dmWPreview=function(m){
+ if(m?.kind==='share'&&!m.deleted_at){
+  const x=dmVSafePayload(m.share_payload);
+  return x?'↗ '+dmVCategoryLabel(x.type)+': '+String(x.title||'Conteúdo').slice(0,60):'↗ Conteúdo compartilhado';
+ }
+ return dmVPreviousPreview(m);
+};
+const dmVPreviousComposer=dmComposer;
+dmComposer=function(){
+ const html=dmVPreviousComposer();
+ return html.replace(
+  '<button type="button" class="dm-composer-action" data-dmw-tools',
+  '<button type="button" class="dm-composer-action dm-share-launch" data-dmv-share-open aria-label="Compartilhar material do site" title="Compartilhar material do PsicoMoodle">▤</button>'+
+  '<button type="button" class="dm-composer-action" data-dmw-tools'
+ );
+};
+function dmVShareTabs(){
+ const tabs=[['material','Materiais'],['exam','Simulados'],['podcast','Podcasts'],['topic','Tópicos']];
+ return tabs.map(([type,title])=>'<button type="button" data-dmv-share-tab="'+type+'" class="'+(dmV.shareCategory===type?'active':'')+'" aria-pressed="'+(dmV.shareCategory===type)+'">'+title+'</button>').join('');
+}
+function dmVResources(){
+ const all=window.uentzoulShareCatalog?.list?.()||[];
+ const source=all.filter(x=>dmV.shareCategory==='exam'?['exam','generated'].includes(x.type):x.type===dmV.shareCategory);
+ const term=dmV.shareQuery.trim().normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
+ const visible=source.filter(x=>{
+  if(x.type==='generated'&&dm.tab!=='private')return false;
+  const haystack=(x.title+' '+x.detail).normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
+  return !term||haystack.includes(term);
+ });
+ if(!visible.length)return '<p class="dm-share-empty">'+(source.length?'Nenhum conteúdo encontrado.':'Não há conteúdos disponíveis para compartilhar nesta categoria.')+'</p>';
+ return visible.slice(0,240).map(item=>{
+  const key=item.type+'|'+item.id,selected=dmV.shareSelected.has(key);
+  return '<button type="button" class="dm-share-item '+(selected?'selected':'')+'" data-dmv-share-select="'+esc(key)+'" aria-pressed="'+selected+'">'+
+  '<span class="dm-share-symbol">'+dmVCategorySymbol(item.type)+'</span><span class="dm-share-copy"><strong>'+esc(item.title)+'</strong><small>'+esc(item.detail)+'</small></span>'+
+  '<span class="dm-share-check" aria-hidden="true">✓</span></button>';
+ }).join('');
+}
+function dmVShareDialog(){
+ if(!dmV.shareOpen)return '';
+ const count=dmV.shareSelected.size;
+ return '<div class="dm-share-backdrop" data-dmv-share-backdrop><section class="dm-share-dialog" role="dialog" aria-modal="true" aria-labelledby="dmVShareTitle">'+
+  '<div class="dm-share-heading"><div><h2 id="dmVShareTitle">Compartilhar do PsicoMoodle</h2><p>Escolha conteúdos do site para enviar diretamente nesta conversa.</p></div>'+
+  '<button type="button" class="dm-share-close" data-dmv-share-close aria-label="Fechar">×</button></div>'+
+  '<nav class="dm-share-tabs" aria-label="Tipo de conteúdo">'+dmVShareTabs()+'</nav>'+
+  '<input type="search" class="dm-share-search" id="dmVShareSearch" value="'+esc(dmV.shareQuery)+'" placeholder="Buscar por nome ou disciplina" autocomplete="off" aria-label="Buscar materiais">'+
+  '<div class="dm-share-list" id="dmVShareList">'+dmVResources()+'</div>'+
+  '<footer class="dm-share-footer"><small>'+count+' '+(count===1?'item selecionado':'itens selecionados')+' · Máximo de 8</small>'+
+  '<button type="button" class="dm-share-send" data-dmv-share-send '+(!count||dmV.shareBusy?'disabled':'')+'>'+(dmV.shareBusy?'Enviando…':count===1?'Enviar conteúdo':'Enviar '+count+' conteúdos')+'</button></footer>'+
+  '</section></div>';
+}
+const dmVPreviousRender=dmRender;
+dmRender=function(){return dmVPreviousRender()+dmVShareDialog()};
+const dmVPreviousLogout=dmOnLogout;
+dmOnLogout=function(){
+ dmVCloseViewer();
+ dmV.shareOpen=false;dmV.shareSelected.clear();dmV.shareBusy=false;
+ dmVPreviousLogout();
+};
+const dmVPreviousOpen=dmWOpen;
+dmWOpen=function(type,id){
+ dmV.shareOpen=false;dmV.shareQuery='';dmV.shareSelected.clear();
+ dmVPreviousOpen(type,id);
+};
+function dmVSourceSelection(key){
+ const all=window.uentzoulShareCatalog?.list?.()||[];
+ return all.find(item=>item.type+'|'+item.id===key)||null;
+}
+function dmVShareClose(){
+ dmV.shareOpen=false;dmV.shareBusy=false;dmV.shareSelected.clear();dmV.shareQuery='';
+ dmShow();
+}
+async function dmVShareSend(){
+ if(dmV.shareBusy||!dmV.shareSelected.size||!client||!onlineUser)return;
+ const selected=dmWSelected(),tab=dm.tab;
+ if(!dmValid(selected))return;
+ const resources=[...dmV.shareSelected].map(dmVSourceSelection);
+ if(resources.some(r=>!r)||resources.length>8){toast('Seleção desatualizada. Escolha novamente os conteúdos.');return}
+ if(tab!=='private'&&resources.some(r=>r.type==='generated')){toast('Simulados personalizados só podem ser enviados por conversa privada.');return}
+ dmV.shareBusy=true;
+ const send=document.querySelector('[data-dmv-share-send]');if(send){send.disabled=true;send.textContent='Enviando…'}
+ try{
+  const rows=[];
+  for(const resource of resources){
+   const payload={
+    v:1,type:resource.type,id:resource.id,subject:resource.subject,
+    semester:'2026/2',title:String(resource.title||'Conteúdo').slice(0,150)
+   };
+   if(resource.type==='generated'){
+    let invite=dm.invites.find(x=>x.exam_id===resource.id&&x.sender_id===dm.owner&&x.recipient_id===selected);
+    if(!invite){
+     const created=await client.from('uentzoul_exam_invites').insert({
+      exam_id:resource.id,sender_id:dm.owner,recipient_id:selected
+     }).select('id,exam_id,sender_id,recipient_id,status,created_at').single();
+     if(created.error)throw created.error;
+     invite=created.data;dm.invites.push(invite);
+    }
+    payload.invite_id=invite.id;
+   }
+   const data={kind:'share',body:'Compartilhou: '+payload.title,share_payload:payload,sender_id:dm.owner};
+   if(tab==='private')data.recipient_id=selected;else data.room_id=selected;
+   rows.push(data);
+  }
+  const result=await client.from(tab==='private'?'uentzoul_messages':'uentzoul_room_messages').insert(rows);
+  if(result.error)throw result.error;
+  dmV.shareOpen=false;dmV.shareSelected.clear();dmV.shareQuery='';
+  await dmLoad();dmShow();toast(rows.length===1?'Conteúdo compartilhado.':rows.length+' conteúdos compartilhados.');
+ }catch(err){toast('Falha ao compartilhar: '+(err?.message||'tenta novamente'))}
+ finally{dmV.shareBusy=false;const btn=document.querySelector('[data-dmv-share-send]');if(btn)btn.disabled=false}
+}
+const dmVPreviousForward=dmWForwardTo;
+dmWForwardTo=async function(target){
+ const m=dmW.selectedMessage;
+ if(m?.kind!=='share')return dmVPreviousForward(target);
+ const payload=dmVSafePayload(m.share_payload);
+ if(!payload){toast('Este compartilhamento não está disponível.');return}
+ if(payload.type==='generated'){toast('Para compartilhar este simulado, envie um convite diretamente ao colega.');return}
+ const tab=target==='global'?'global':target.startsWith('group:')?'groups':'private';
+ const id=target==='global'?DM_GLOBAL_ROOM:target.split(':')[1];
+ if(!dmValid(id)||tab==='private'&&id===dm.owner)return;
+ const data={sender_id:dm.owner,body:m.body,kind:'share',share_payload:payload,forwarded:true};
+ if(tab==='private')data.recipient_id=id;else data.room_id=id;
+ const response=await client.from(tab==='private'?'uentzoul_messages':'uentzoul_room_messages').insert(data);
+ if(response.error){toast('Não foi possível encaminhar: '+response.error.message);return}
+ dmW.popup=null;dmW.selectedMessage=null;dmW.menu=null;toast('Conteúdo encaminhado.');await dmLoad();
+};
+/* Imagens do chat: galeria de tela cheia, zoom e arraste. */
+function dmVViewerImages(clicked){
+ const selector='.dm-message .dm-image-preview, .dm-message .dm-sticker-picture, .dm-group-media-grid img';
+ let elements=[...document.querySelectorAll(selector)].filter(el=>el.currentSrc||el.src);
+ if(clicked&&!elements.includes(clicked))elements=[clicked];
+ return elements.map(el=>({
+  url:el.currentSrc||el.src,
+  label:el.alt||'Imagem compartilhada',
+  message:el.closest('[data-dmw-message]')?.querySelector('.dm-author')?.textContent||'Imagem da conversa'
+ }));
+}
+function dmVOpenViewer(clicked){
+ const elements=dmVViewerImages(clicked),index=elements.findIndex(x=>x.url===(clicked.currentSrc||clicked.src));
+ if(index<0)return;
+ dmVCloseViewer();
+ const overlay=document.createElement('div');
+ overlay.className='dm-photo-viewer';overlay.id='dmPhotoViewer';
+ overlay.setAttribute('role','dialog');overlay.setAttribute('aria-modal','true');overlay.setAttribute('aria-label','Visualizar imagem ampliada');
+ overlay.tabIndex=-1;
+ overlay.innerHTML='<header class="dm-photo-toolbar"><div><strong>Imagens da conversa</strong><small id="dmPhotoCount"></small></div>'+
+  '<div class="dm-photo-buttons">'+
+  '<button type="button" data-dmv-zoom-out aria-label="Diminuir zoom" title="Diminuir zoom">−</button>'+
+  '<button type="button" data-dmv-zoom-reset aria-label="Restaurar zoom" title="Restaurar zoom">100%</button>'+
+  '<button type="button" data-dmv-zoom-in aria-label="Aumentar zoom" title="Aumentar zoom">＋</button>'+
+  '<button type="button" data-dmv-viewer-close aria-label="Fechar imagem" title="Fechar">×</button></div></header>'+
+  '<div class="dm-photo-stage" id="dmPhotoStage"><button class="dm-photo-navigate dm-photo-prev" type="button" data-dmv-photo-prev aria-label="Imagem anterior">‹</button>'+
+  '<img alt="Imagem compartilhada" id="dmPhotoExpanded" draggable="false">'+
+  '<button class="dm-photo-navigate dm-photo-next" type="button" data-dmv-photo-next aria-label="Próxima imagem">›</button></div>'+
+  '<footer class="dm-photo-footer">Role para ampliar · Arraste para movimentar · Esc para fechar</footer>';
+ document.body.appendChild(overlay);
+ dmV.viewer={node:overlay,images:elements,index,zoom:1,x:0,y:0,drag:null,focus:document.activeElement};
+ dmVViewerUpdate(true);overlay.focus({preventScroll:true});
+}
+function dmVViewerUpdate(changeImage=false){
+ const v=dmV.viewer;if(!v)return;
+ const picture=v.node.querySelector('#dmPhotoExpanded');
+ if(changeImage){
+  v.zoom=1;v.x=0;v.y=0;
+  picture.src=v.images[v.index].url;picture.alt=v.images[v.index].label;
+ }
+ picture.style.transform='translate('+v.x+'px,'+v.y+'px) scale('+v.zoom+')';
+ v.node.querySelector('#dmPhotoCount').textContent=(v.index+1)+' de '+v.images.length+' · '+Math.round(v.zoom*100)+'%';
+ v.node.querySelector('[data-dmv-zoom-reset]').textContent=Math.round(v.zoom*100)+'%';
+ v.node.querySelector('[data-dmv-photo-prev]').disabled=v.images.length<=1;
+ v.node.querySelector('[data-dmv-photo-next]').disabled=v.images.length<=1;
+ v.node.querySelector('#dmPhotoStage').classList.toggle('is-zoomed',v.zoom>1);
+}
+function dmVViewerZoom(target){
+ const v=dmV.viewer;if(!v)return;
+ const next=Math.min(5,Math.max(1,Math.round(target*10)/10));
+ v.zoom=next;if(next===1){v.x=0;v.y=0}
+ dmVViewerUpdate();
+}
+function dmVViewerNext(delta){
+ const v=dmV.viewer;if(!v||v.images.length<2)return;
+ v.index=(v.index+delta+v.images.length)%v.images.length;
+ dmVViewerUpdate(true);
+}
+function dmVCloseViewer(){
+ const v=dmV.viewer;
+ if(!v)return;
+ dmV.viewer=null;v.node.remove();
+ if(v.focus?.isConnected)v.focus.focus({preventScroll:true});
+}
+document.addEventListener('click',event=>{
+ const hit=s=>event.target.closest(s);
+ const img=hit('.dm-message .dm-image-preview, .dm-message .dm-sticker-picture, .dm-group-media-grid img');
+ if(img){event.preventDefault();event.stopImmediatePropagation();dmVOpenViewer(img);return}
+ if(dmV.viewer){
+  if(hit('[data-dmv-viewer-close]')){event.preventDefault();dmVCloseViewer();return}
+  if(hit('[data-dmv-zoom-in]')){event.preventDefault();dmVViewerZoom(dmV.viewer.zoom+.5);return}
+  if(hit('[data-dmv-zoom-out]')){event.preventDefault();dmVViewerZoom(dmV.viewer.zoom-.5);return}
+  if(hit('[data-dmv-zoom-reset]')){event.preventDefault();dmVViewerZoom(1);return}
+  if(hit('[data-dmv-photo-prev]')){event.preventDefault();dmVViewerNext(-1);return}
+  if(hit('[data-dmv-photo-next]')){event.preventDefault();dmVViewerNext(1);return}
+  if(hit('#dmPhotoStage')&&event.target.id==='dmPhotoStage'){event.preventDefault();dmVCloseViewer();return}
+ }
+},true);
+document.addEventListener('dblclick',event=>{
+ if(dmV.viewer&&event.target.id==='dmPhotoExpanded'){event.preventDefault();dmVViewerZoom(dmV.viewer.zoom>1?1:2.5)}
+});
+document.addEventListener('wheel',event=>{
+ if(!dmV.viewer||!event.target.closest('#dmPhotoStage'))return;
+ event.preventDefault();dmVViewerZoom(dmV.viewer.zoom+(event.deltaY<0?.2:-.2));
+},{passive:false});
+document.addEventListener('pointerdown',event=>{
+ const v=dmV.viewer;
+ if(!v||v.zoom<=1||event.target.id!=='dmPhotoExpanded')return;
+ event.preventDefault();
+ v.drag={pointer:event.pointerId,startX:event.clientX,startY:event.clientY,originalX:v.x,originalY:v.y};
+ const stage=v.node.querySelector('#dmPhotoStage');
+ stage.classList.add('is-dragging');
+ try{event.target.setPointerCapture(event.pointerId)}catch(_){}
+});
+document.addEventListener('pointermove',event=>{
+ const v=dmV.viewer;if(!v?.drag||v.drag.pointer!==event.pointerId)return;
+ const maxX=Math.max(0,(window.innerWidth*(v.zoom-1))/2),maxY=Math.max(0,(window.innerHeight*(v.zoom-1))/2);
+ v.x=Math.max(-maxX,Math.min(maxX,v.drag.originalX+event.clientX-v.drag.startX));
+ v.y=Math.max(-maxY,Math.min(maxY,v.drag.originalY+event.clientY-v.drag.startY));
+ dmVViewerUpdate();
+});
+function dmVEndDrag(event){
+ const v=dmV.viewer;if(!v?.drag||v.drag.pointer!==event.pointerId)return;
+ v.drag=null;v.node.querySelector('#dmPhotoStage').classList.remove('is-dragging');
+}
+document.addEventListener('pointerup',dmVEndDrag);document.addEventListener('pointercancel',dmVEndDrag);
+
 /* Matérias complementares privadas — compartilhadas somente dentro da conta do aluno. */
 
 /* Espaço Pessoal 2.0: matérias, fontes, agenda, simulados exclusivos e IA */
