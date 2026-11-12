@@ -1606,6 +1606,7 @@ html[data-exam-focus="2026/2"] .sidebtn[data-page="audio"]{display:none!importan
 <link rel="stylesheet" href="biblioteca-moodle.css?v=20261112-2">
 <link rel="stylesheet" href="revisao-compacta.css?v=20261112-1">
 <link rel="stylesheet" href="disciplina-clean.css?v=20261112-2">
+<link rel="stylesheet" href="inicio-slogan.css?v=20261112-1">
 </head>
 <body>
 <section id="staticFallback" class="static-fallback" aria-label="Central de Estudos — modo de leitura compatível com celular">
@@ -2240,20 +2241,17 @@ function renderHome(){
  const topics=Object.keys(DB.topics).reduce((n,k)=>n+DB.topics[k].length,0);
  const topicsDone=Object.keys(DB.topics).reduce((n,k)=>n+doneCount(DB.topics[k].map((_,i)=>topicProgressKey(k,i))),0);
  const pct=fmtPct(total,all.length);
- return '<header class="dashboard-hero"><div class="hero-copy"><span class="hero-kicker"><span class="hero-dot"></span> Psicologia PUCRS · '+esc(semester)+'</span>'+
- '<h1>Teu espaço de estudos.</h1><p>Conteúdos, arquivos, simulados e podcasts organizados por disciplina. Acompanha teu progresso e encontra o material certo com facilidade.</p>'+
- '<div class="hero-shortcuts"><button data-action="scroll:homeCourses">Ver disciplinas ↓</button><button class="secondary" data-action="page:exams">Praticar simulados →</button></div></div>'+
+ return '<header class="dashboard-hero slogan-hero"><div class="hero-copy"><h1 class="slogan-title">O Moodle, só que bom.</h1></div>'+
  '<div class="hero-status"><span>Progresso do semestre</span><strong>'+pct+'%</strong><div class="hero-bar"><b style="width:'+pct+'%"></b></div><span class="hero-label">'+total+' de '+all.length+' atividades</span></div></header>'+
- '<div class="overview-strip"><div class="overview-stat"><span>Disciplinas</span><strong>'+order.length+'</strong></div>'+
- '<div class="overview-stat"><span>Simulados feitos</span><strong>'+graded+'/'+DB.exams.length+'</strong></div>'+
- '<div class="overview-stat"><span>Podcasts ouvidos</span><strong>'+audioDone+'/'+audioTotal+'</strong></div></div>'+
+
  '<section class="section home-course-section" id="homeCourses">'+renderLibrary(true)+'</section>'+
  '<section class="section"><div class="two"><div class="panel"><div class="sectiontop"><h2>Agenda de avaliações</h2><button class="plainlink" data-action="page:calendar">Ver agenda →</button></div>'+
  '<div class="daylist">'+order.map(k=>{const item=getSubject(k);return '<div class="dayrow"><span class="daydate date">'+dformat(item.date)+'</span><span class="daytitle">'+esc(item.name)+'</span><span class="datecount">'+esc(item.exam)+'</span></div>'}).join('')+'</div>'+
  '<p class="small muted" style="margin-top:11px">Confere o Moodle para eventuais atualizações de datas.</p></div>'+
  '<div class="panel"><div class="sectiontop"><h2>Meu progresso</h2><span class="pill">Salvo automaticamente</span></div>'+
  '<div class="statline"><span>Atividades concluídas</span><strong>'+total+'/'+all.length+'</strong></div><div class="progressline"><div style="width:'+pct+'%"></div></div>'+
- '<div class="statline" style="margin-top:13px"><span>Conteúdos revisados</span><strong>'+topicsDone+'/'+topics+'</strong></div>'+
+ '<div class="statline" style="margin-top:13px"><span>Disciplinas</span><strong>'+order.length+'</strong></div>'+
+ '<div class="statline"><span>Conteúdos revisados</span><strong>'+topicsDone+'/'+topics+'</strong></div>'+
  '<div class="statline"><span>Podcasts ouvidos</span><strong>'+audioDone+'/'+audioTotal+'</strong></div>'+
  '<div class="statline"><span>Simulados respondidos</span><strong>'+graded+'/'+DB.exams.length+'</strong></div>'+
  '<div class="actions" style="margin-top:13px">'+button('Exportar progresso','export','btn light')+button('Importar progresso','import','btn ghost')+'</div>'+
