@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="color-scheme" content="light dark">
-<meta name="site-build" content="auto-update-20261112-foto-original-ia-v9">
+<meta name="site-build" content="auto-update-20261112-estudos-dirigidos-v10">
 <script>try{document.documentElement.dataset.theme=localStorage.getItem("uentzoul_theme_v1")==="dark"?"dark":"light"}catch(e){document.documentElement.dataset.theme="light"}</script>
 <title>PsicoMoodle · Psicologia PUCRS</title>
 <style>
@@ -1644,6 +1644,11 @@ html[data-exam-focus="2026/2"] .sidebtn[data-page="audio"]{display:none!importan
 <link rel="stylesheet" href="inicio-slogan.css?v=20261112-5">
 <link rel="stylesheet" href="admin-config.css?v=20261112-3">
 <link rel="stylesheet" href="agenda-calendario.css?v=20261112-3">
+<link rel="stylesheet" href="estudos-dirigidos.css?v=20261112-1">
+<script src="estudos-dirigidos-avaliacao.js?v=20261112-2"></script>
+<script src="estudos-dirigidos-tcc.js?v=20261112-2"></script>
+<script src="estudos-dirigidos-meta.js?v=20261112-1"></script>
+<script src="estudos-dirigidos.js?v=20261112-1"></script>
 </head>
 <body>
 <section id="staticFallback" class="static-fallback" aria-label="Central de Estudos — modo de leitura compatível com celular">
@@ -2396,7 +2401,7 @@ function organizedSubjectMaterials(materials,libraryView=false){
 }
 function renderSubject(k){
  const subj=getSubject(k),docs=DB.materials.filter(x=>x.subject===k),topics=DB.topics[k]||[],tests=DB.exams.filter(x=>x.subject===k);
- const area=['topics','docs','tests','podcasts'].includes(current.subjectArea)?current.subjectArea:null;
+ const area=['topics','docs','tests','podcasts','guided'].includes(current.subjectArea)?current.subjectArea:null;
  const top='<div class="subject-hub" style="--subject-accent:'+color(k)+'">'+
  '<div class="subject-hub-crumb"><button type="button" data-action="page:home">Início</button><span aria-hidden="true">/</span><span>'+esc(subj.name)+'</span></div>'+
  '<header class="subject-hub-hero"><span class="subject-hub-emblem" aria-hidden="true">Ψ</span>'+
@@ -2415,6 +2420,7 @@ function renderSubject(k){
    ['tests','✦','Simulados','Questões para praticar o que foi estudado'],
    ['podcasts','♫','Podcasts','Episódios da disciplina para ouvir ou baixar']
   ];
+  if(window.PSICO_GUIDES?.[k]?.length)choices.splice(1,0,['guided','▣','Estudos dirigidos','Perguntas respondidas, exemplos e explicações passo a passo']);
   return top+metaTrail+'<p class="subject-hub-area-intro">Escolha uma área para continuar estudando.</p>'+
    '<nav class="subject-hub-menu" aria-label="Áreas de estudo de '+esc(subj.name)+'">'+
    choices.map(item=>'<button type="button" class="subject-hub-card" data-action="subjectArea:'+item[0]+'">'+
@@ -2425,6 +2431,7 @@ function renderSubject(k){
    '</nav></div>';
  }
  const back='<button type="button" class="subject-hub-back" data-action="subjectArea:home">← Voltar às opções</button>';
+ if(area==='guided')return top+'<div class="subject-hub-area">'+back+(window.renderStudyGuide?.(k)||'<p>Não foi possível abrir os estudos dirigidos.</p>')+'</div></div>';
  if(area==='topics'){
   const marked=doneCount(topics.map((_,i)=>topicProgressKey(k,i)));
   return top+'<div class="subject-hub-area">'+back+
@@ -3459,7 +3466,7 @@ function onAction(act){
   const el=document.querySelectorAll('#topics details.topic')[index];
   if(el){el.open=true;requestAnimationFrame(()=>el.scrollIntoView({behavior:'smooth',block:'start'}))}
   return;
- }if(act.startsWith('download:')){const [k,i]=act.slice(9).split(':');downloadEpisodeAction(k,Number(i));return;}if(act==='libraryBack'){current.libraryCourse=null;render();requestAnimationFrame(()=>document.getElementById('homeCourses')?.scrollIntoView({block:'start',behavior:'auto'}));return}if(act.startsWith('libraryCourse:')){const id=act.slice(14);if(DB.subjects[id])return go('subject',{subject:id,subjectArea:null});return}if(act.startsWith('page:'))return go(act.slice(5));if(act.startsWith('subjectArea:')){const area=act.slice('subjectArea:'.length);if(area==='home'||['topics','docs','tests','podcasts'].includes(area)){current.subjectArea=area==='home'?null:area;if(area==='podcasts')current.audioSubject=current.subject;render();try{window.scrollTo({top:0,behavior:'auto'})}catch(_){}}return}if(act.startsWith('subject:'))return go('subject',{subject:act.slice(8),subjectArea:null});if(act==='subjectCreateExam'){ge.subject=current.subject||ge.subject;ge.tab='ai';ge.selected=null;return go('exams')}if(act.startsWith('subjectTests:'))return go('subject',{subject:act.slice('subjectTests:'.length),subjectArea:'tests'});if(act.startsWith('test:'))return go('test',{exam:act.slice(5)});if(act.startsWith('audioFor:')){const k=act.slice(9);if(!DB.audio[k])return;current.audioSubject=k;currentEpisode=0;currentChapter=0; if(manualAudioUrl){URL.revokeObjectURL(manualAudioUrl);manualAudioUrl=null;manualAudioName='';}return go('audio');}if(act.startsWith('filter:')){current.filter=act.slice(7);let v=$('matSearch')?.value||current.search;current.search=v;render();return}if(act.startsWith('scroll:'))return document.getElementById(act.slice(7))?.scrollIntoView({behavior:'smooth'});if(act==='save'){persist();return toast('Respostas salvas neste navegador.')}if(act==='export'){const b=new Blob([JSON.stringify(store,null,2)],{type:'application/json'});let u=URL.createObjectURL(b);let a=document.createElement('a');a.href=u;a.download='meu_progresso_psicologia.json';a.click();setTimeout(()=>URL.revokeObjectURL(u),2000);return toast('Progresso exportado. Guarde o arquivo para a próxima versão.')}if(act==='import'){document.getElementById('importProgress')?.click();return}if(act==='print')return window.print();if(act.startsWith('submit:'))return submit(act.slice(7));if(act.startsWith('redo:')){toast('Este simulado já foi entregue e não pode ser refeito.');return}
+ }if(act.startsWith('download:')){const [k,i]=act.slice(9).split(':');downloadEpisodeAction(k,Number(i));return;}if(act==='libraryBack'){current.libraryCourse=null;render();requestAnimationFrame(()=>document.getElementById('homeCourses')?.scrollIntoView({block:'start',behavior:'auto'}));return}if(act.startsWith('libraryCourse:')){const id=act.slice(14);if(DB.subjects[id])return go('subject',{subject:id,subjectArea:null});return}if(act.startsWith('page:'))return go(act.slice(5));if(act.startsWith('subjectArea:')){const area=act.slice('subjectArea:'.length);if(area==='home'||['topics','docs','tests','podcasts','guided'].includes(area)){current.subjectArea=area==='home'?null:area;if(area==='podcasts')current.audioSubject=current.subject;render();try{window.scrollTo({top:0,behavior:'auto'})}catch(_){}}return}if(act.startsWith('subject:'))return go('subject',{subject:act.slice(8),subjectArea:null});if(act==='subjectCreateExam'){ge.subject=current.subject||ge.subject;ge.tab='ai';ge.selected=null;return go('exams')}if(act.startsWith('subjectTests:'))return go('subject',{subject:act.slice('subjectTests:'.length),subjectArea:'tests'});if(act.startsWith('test:'))return go('test',{exam:act.slice(5)});if(act.startsWith('audioFor:')){const k=act.slice(9);if(!DB.audio[k])return;current.audioSubject=k;currentEpisode=0;currentChapter=0; if(manualAudioUrl){URL.revokeObjectURL(manualAudioUrl);manualAudioUrl=null;manualAudioName='';}return go('audio');}if(act.startsWith('filter:')){current.filter=act.slice(7);let v=$('matSearch')?.value||current.search;current.search=v;render();return}if(act.startsWith('scroll:'))return document.getElementById(act.slice(7))?.scrollIntoView({behavior:'smooth'});if(act==='save'){persist();return toast('Respostas salvas neste navegador.')}if(act==='export'){const b=new Blob([JSON.stringify(store,null,2)],{type:'application/json'});let u=URL.createObjectURL(b);let a=document.createElement('a');a.href=u;a.download='meu_progresso_psicologia.json';a.click();setTimeout(()=>URL.revokeObjectURL(u),2000);return toast('Progresso exportado. Guarde o arquivo para a próxima versão.')}if(act==='import'){document.getElementById('importProgress')?.click();return}if(act==='print')return window.print();if(act.startsWith('submit:'))return submit(act.slice(7));if(act.startsWith('redo:')){toast('Este simulado já foi entregue e não pode ser refeito.');return}
  if(act==='resetAudio'){const a=$('audioPlayer');if(a){a.pause();a.currentTime=0;}toast('Reprodutor reiniciado.');return;}
  if(act.startsWith('chapter:'))return openChapter(+act.slice(8));
  if(act.startsWith('episode:'))return openEpisode(+act.slice(8));
