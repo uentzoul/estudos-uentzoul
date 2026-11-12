@@ -4202,7 +4202,10 @@ dmShow=function(){
  const main=document.getElementById('main');if(!main||(!main.querySelector('.dm-shell')&&!main.querySelector('.dm-login-panel')))return;
  const old=main.querySelector('#dmMessages'),top=old?.scrollTop||0,atBottom=!old||old.scrollHeight-old.scrollTop-old.clientHeight<130;
  const active=document.activeElement,focus=active&&['dmPrompt','dmUserSearch'].includes(active.id)?active.id:null,caret=focus?active.selectionStart:null;
- main.innerHTML=dmRender();
+ const newMarkup=dmRender();
+ if(dmW.lastMarkup===newMarkup){dmResolveMedia();dmWResolveMedia();if(dmW.panel==='emoji')dmWEmojiInit();return}
+ dmW.lastMarkup=newMarkup;
+ main.innerHTML=newMarkup;
  const next=main.querySelector('#dmMessages');if(next)next.scrollTop=atBottom?next.scrollHeight:top;
  if(focus){const n=document.getElementById(focus);if(n){n.focus({preventScroll:true});if(caret!==null)n.setSelectionRange(caret,caret)}}
  dmResolveMedia();dmWResolveMedia();if(dmW.panel==='emoji')dmWEmojiInit();
