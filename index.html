@@ -486,8 +486,10 @@ html[data-theme="dark"] .topicgrid .donecontrol.is-checked{
   color:#ddffed!important;
 }
 
-/* Agenda editorial: duas grandes abas, provas e conteúdo de aula */
-.agenda-switch{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-top:18px}
+/* Agenda editorial: provas, horários de aula e conteúdo, com três abas */
+@media(max-width:860px){.agenda-switch{grid-template-columns:1fr}}
+
+.agenda-switch{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-top:18px}
 .agenda-switch-button{min-width:0;display:flex;align-items:center;gap:13px;text-align:left;border:1px solid #e0dcf0;background:var(--paper);color:var(--ink);padding:16px 18px;border-radius:15px;cursor:pointer;box-shadow:var(--shadow);transition:transform .2s,box-shadow .2s,border-color .2s,background .2s}
 .agenda-switch-button:hover{transform:translateY(-2px);border-color:#a8a0e2;box-shadow:0 8px 20px #4e46871c}
 .agenda-switch-button[aria-selected="true"]{border-color:#9285db;background:linear-gradient(115deg,#f2edff,#fff);box-shadow:0 0 0 1px #b4a5ee,0 7px 19px #594a9c16}
@@ -1801,7 +1803,7 @@ html[data-theme="dark"] #nav .nav-upcoming:focus-visible{background:#322b47;colo
 }
 
 
-/* Grade semanal de aulas: separada da agenda de avaliações. */
+/* Grade semanal de aulas integrada à aba Agenda. */
 .schedule-page{min-width:0;max-width:1180px;margin:0 auto}
 .schedule-page .schedule-toolbar{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;flex-wrap:wrap;margin:18px 0 0}
 .schedule-page .schedule-legend{font-size:12px;color:var(--muted);border:1px solid var(--line);border-radius:999px;background:var(--paper);padding:9px 14px}
@@ -1908,7 +1910,6 @@ html[data-theme="dark"] .schedule-today{background:#382f59;color:#dcd0ff}
 <button class="sidebtn active" data-page="home"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="m3 10 9-7 9 7v10a1 1 0 0 1-1 1h-5v-7H9v7H4a1 1 0 0 1-1-1z"/></svg> Início</button>
 <button class="sidebtn" data-page="exams"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="3" width="14" height="18" rx="2"/><path d="M9 8h6M9 12h6M9 16h3"/></svg> Simulados</button>
 <button class="sidebtn" data-page="calendar"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M7 3v4M17 3v4M3 10h18M8 14h3M8 17h5"/></svg> Agenda</button>
-<button class="sidebtn" data-page="schedule"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M7 3v4M17 3v4M3 10h18"/><circle cx="12" cy="15" r="3.2"/><path d="M12 13.3v1.9l1.3.9"/></svg> Horários de aula</button>
 <button class="sidebtn" data-page="ai"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="m12 2 2.6 6.9L21 11l-6.4 2.1L12 20l-2.6-6.9L3 11l6.4-2.1L12 2Z"/><path d="m19 18 1 2 2 1-2 1-1 2-1-2-2-1 2-1z"/></svg> IA Tzoul</button>
 <button class="sidebtn" data-page="messages"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.5 8.5 0 0 1-8.5 8.5c-1.5 0-3.1-.4-4.4-1.1L3 20l1.2-4.9A8.5 8.5 0 1 1 21 11.5Z"/><path d="M8 11.5h8M8 14.5h5"/></svg> Mensagens <span class="dm-nav-badge" id="dmNavBadge" hidden></span></button>
 <span class="sidebtn nav-upcoming" role="note" tabindex="0" aria-disabled="true" aria-label="Trabalhos — em breve" title="Em breve"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3h8l4 4v14H4V3h4Z"/><path d="M16 3v5h4M8 12h8M8 16h8M8 8h4"/></svg><span class="nav-upcoming-name">Trabalhos</span><span class="nav-upcoming-tip" aria-hidden="true">Em breve</span></span>
@@ -2191,6 +2192,7 @@ let toastTimer;function toast(s){const t=$('toast');t.textContent=s;t.style.disp
 const go=(page,extra={})=>{
  if(page==='personal')page='home'; // Funcionalidade suspensa, sem apagar dados
  if(page==='library')page='home';
+ if(page==='schedule'){calendarView='horarios';page='calendar';}
  if(page==='admin'&&!window.uentzoulAdminConfig?.isAdmin?.())page='home';
  if(page==='home')current.libraryCourse=null;
  current={...current,...extra,page};
@@ -2660,7 +2662,7 @@ const CLASS_WEEK_2026_2={
  4:[{subject:'avaliacao',start:'14:00',end:'15:30'},{subject:'social'},{subject:'tcc'}],
  5:[]
 };
-function renderClassSchedule(){
+function renderClassSchedule(embedded=false){
  const weekdayName=new Date().toLocaleDateString('en-US',{weekday:'long',timeZone:'America/Sao_Paulo'});
  const weekdayNumber={Sunday:0,Monday:1,Tuesday:2,Wednesday:3,Thursday:4,Friday:5,Saturday:6}[weekdayName];
  const available=semester==='2026/2';
@@ -2680,7 +2682,7 @@ function renderClassSchedule(){
      '<span class="schedule-time-icon" aria-hidden="true">◷</span></div>';
    }).join(''):'<p class="schedule-empty">Nenhuma aula cadastrada neste dia.</p>')+'</div></article>';
  }).join('');
- return '<section class="schedule-page">'+head('ROTINA SEMANAL','Horários de aula','Disciplinas distribuídas por dia da semana · '+semester)+
+ return '<section class="schedule-page">'+(embedded?'':head('ROTINA SEMANAL','Horários de aula','Disciplinas distribuídas por dia da semana · '+semester)) +
  '<div class="schedule-toolbar"><span class="schedule-legend">Horários no formato 24 horas · Brasília</span></div>'+
  '<div class="schedule-week">'+days+'</div>'+
  (available?'<p class="schedule-note">Os dias foram organizados a partir dos cronogramas de aulas disponíveis. Até o momento, o horário informado é o de Avaliação Psicológica na quinta-feira, das 14:00 às 15:30. Os demais intervalos ficam a confirmar para não apresentar horários inventados.</p>':
@@ -2693,7 +2695,7 @@ function renderCalendar(){
  const today=new Date().toLocaleDateString('en-CA',{timeZone:'America/Sao_Paulo'});
  const upcoming=AGENDA_LESSONS_2026_2.filter(e=>calendarShowPast||e.d>=today);
  const tabs='<div class="agenda-switch" role="tablist" aria-label="Tipo de agenda">'+
- [['provas','▤','Provas e avaliações','Datas de provas, PS e G2'],['conteudos','▦','Conteúdos das aulas','Matéria do dia e leituras']].map(([id,icon,name,sub])=>
+ [['provas','▤','Provas e avaliações','Datas de provas, PS e G2'],['horarios','◷','Horários de aula','Grade semanal das disciplinas'],['conteudos','▦','Conteúdos das aulas','Matéria do dia e leituras']].map(([id,icon,name,sub])=>
  '<button type="button" class="agenda-switch-button" role="tab" aria-selected="'+(calendarView===id)+'" data-action="agenda-tab:'+id+'"><span class="agenda-switch-icon" aria-hidden="true">'+icon+'</span><span class="agenda-switch-copy"><strong>'+name+'</strong><small>'+sub+'</small></span></button>').join('')+'</div>';
  const caveat='<div class="agenda-caveat">Atenção às datas: Família e TCC tiveram alterações informadas depois da publicação dos cronogramas. O plano enviado de Psicologia Social também traz datas e numeração de avaliação diferentes. Confere o Moodle para confirmar alterações.</div>';
  const novemberExams=exams.filter(e=>e.d.startsWith('2026-11'));
@@ -2713,7 +2715,7 @@ function renderCalendar(){
  (upcoming.length?calendarDateGroups(upcoming,calendarClassRow):'<div class="panel">Não há outras aulas cadastradas após hoje. Usa “Incluir aulas anteriores” para consultar o registro.</div>')+
  '<div class="agenda-caveat">“Ler revisão deste tópico” abre a seção correspondente do próprio site. Não é o texto original do livro. Quando o PDF ou capítulo não está publicado, a referência bibliográfica fica visível sem um link de download inválido.</div>'+caveat;
  return head('Organização do semestre','Agenda','Acompanha as avaliações e confere a matéria e as leituras previstas para cada aula.')+
- tabs+'<div role="tabpanel">'+(calendarView==='provas'?examsView:classesView)+'</div>';
+ tabs+'<div role="tabpanel">'+(calendarView==='provas'?examsView:calendarView==='horarios'?renderClassSchedule(true):classesView)+'</div>';
 }
 
 
@@ -3362,12 +3364,12 @@ function isPodcastView(){return current.page==='audio'||(current.page==='subject
 function render(){
  renderNav();
  if(!Object.keys(DB.subjects).length&&current.page!=='ai'&&current.page!=='messages'&&current.page!=='admin'){
-  const labels={home:['Semestre 2027/1','Um espaço novo para o próximo semestre'],exams:['Simulados','Nenhum simulado cadastrado'],library:['Biblioteca','Nenhum arquivo cadastrado'],audio:['Podcasts','Nenhum podcast cadastrado'],calendar:['Agenda','Nenhuma avaliação cadastrada'],schedule:['Horários de aula','Nenhum horário cadastrado']};
+  const labels={home:['Semestre 2027/1','Um espaço novo para o próximo semestre'],exams:['Simulados','Nenhum simulado cadastrado'],library:['Biblioteca','Nenhum arquivo cadastrado'],audio:['Podcasts','Nenhum podcast cadastrado'],calendar:['Agenda','Nenhuma avaliação cadastrada']};
   const v=labels[current.page]||labels.home;
   $('main').innerHTML=head(semester,v[0],v[1])+'<section class="section"><div class="panel semester-empty"><h2>Este semestre ainda está vazio</h2><p class="muted">As matérias, os textos, os simulados, os podcasts e a agenda de 2027/1 serão adicionados quando estiverem definidos. O conteúdo de 2026/2 continua disponível na outra aba.</p><p class="small">O progresso deste semestre começa vazio e não se mistura com o do semestre anterior.</p></div></section>';
   return;
  }
- let body='';switch(current.page){case 'home':body=renderHome();break;case 'subject':body=renderSubject(current.subject);break;case 'exams':body=renderExams();break;case 'test':body=renderTest(current.exam);break;case 'library':body=renderHome();break;case 'audio':body=renderAudio();break;case 'calendar':body=renderCalendar();break;case 'schedule':body=renderClassSchedule();break;case 'ai':body=renderAI();break;case 'messages':body=window.uentzoulMessenger?.render()||'<section class="panel">Carregando mensagens…</section>';break;case 'admin':body=window.uentzoulAdminConfig?.render()||'<section class="panel">Acesso restrito.</section>';break;default:body=renderHome()};$('main').innerHTML=body;if(isPodcastView())setupAudio();if(current.page==='messages')window.uentzoulMessenger?.afterRender(current.peerId||null);if(current.page==='admin')window.uentzoulAdminConfig?.afterRender();}
+ let body='';switch(current.page){case 'home':body=renderHome();break;case 'subject':body=renderSubject(current.subject);break;case 'exams':body=renderExams();break;case 'test':body=renderTest(current.exam);break;case 'library':body=renderHome();break;case 'audio':body=renderAudio();break;case 'calendar':body=renderCalendar();break;case 'ai':body=renderAI();break;case 'messages':body=window.uentzoulMessenger?.render()||'<section class="panel">Carregando mensagens…</section>';break;case 'admin':body=window.uentzoulAdminConfig?.render()||'<section class="panel">Acesso restrito.</section>';break;default:body=renderHome()};$('main').innerHTML=body;if(isPodcastView())setupAudio();if(current.page==='messages')window.uentzoulMessenger?.afterRender(current.peerId||null);if(current.page==='admin')window.uentzoulAdminConfig?.afterRender();}
 /* Armazenamento local de podcasts. A URL de cada episódio é publicada como
    arquivo independente; o HTML não carrega o áudio antecipadamente. */
 const POD_DB_NAME='EstudosUentzoulPodcasts_v1';
@@ -3460,7 +3462,7 @@ function onAction(act){
  if(act==='tz-login'){window.uentzoulAIAuth?.openLogin();return}
  if(act.startsWith('agenda-tab:')){
   const tab=act.slice('agenda-tab:'.length);
-  if(tab==='provas'||tab==='conteudos'){calendarView=tab;render()}
+  if(tab==='provas'||tab==='horarios'||tab==='conteudos'){calendarView=tab;render()}
   return;
  }
  if(act==='agenda-past'){calendarShowPast=!calendarShowPast;render();return}
@@ -3695,7 +3697,7 @@ window.uentzoulShareCatalog={
 };
 
 window.addEventListener('beforeunload',persist);
-if(location.hash.startsWith('#')){const h=decodeURIComponent(location.hash.slice(1));if(DB.subjects[h]){current.page='subject';current.subject=h}else if(DB.exams.some(e=>e.id===h)){current.page='test';current.exam=h}else if(['home','exams','library','audio','calendar','schedule','ai','admin'].includes(h))current.page=h==='library'?'home':h}
+if(location.hash.startsWith('#')){const h=decodeURIComponent(location.hash.slice(1));if(DB.subjects[h]){current.page='subject';current.subject=h}else if(DB.exams.some(e=>e.id===h)){current.page='test';current.exam=h}else if(['home','exams','library','audio','calendar','schedule','ai','admin'].includes(h)){if(h==='schedule'){current.page='calendar';calendarView='horarios'}else current.page=h==='library'?'home':h}}
 try{render();document.documentElement.classList.add('app-ready');}catch(e){console.error('Inicialização da Central falhou',e);}
 })();
 </script><script>
