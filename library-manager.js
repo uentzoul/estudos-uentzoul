@@ -296,6 +296,8 @@ function tryStart(){
 }
 tryStart();
 window.uentzoulLibraryManager={refresh,ready:()=>initialized,isAdmin:()=>isAdmin};
+// Carrega o painel de disciplinas sem embutir código pesado no HTML.
+(function(){const script=document.createElement('script');script.src='biblioteca-cursos.js?v=20261111';script.defer=true;document.head.appendChild(script);})();
 
 /* Limpeza visual de seções temporárias do estudante (11/11/2026).
    Não altera uploads, permissões nem dados salvos. */
