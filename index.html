@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="color-scheme" content="light dark">
-<meta name="site-build" content="auto-update-20261112-trabalhos-previstos-v20">
+<meta name="site-build" content="auto-update-20261112-chat-rework-v21">
 <script>try{document.documentElement.dataset.theme=localStorage.getItem("uentzoul_theme_v1")==="dark"?"dark":"light"}catch(e){document.documentElement.dataset.theme="light"}</script>
 <title>PsicoMoodle · Psicologia PUCRS</title>
 <style>
@@ -1743,8 +1743,8 @@ html[data-theme="dark"] #nav .nav-upcoming:focus-visible{background:#322b47;colo
 <script src="estudos-dirigidos-meta.js?v=20261112-4"></script>
 <script src="estudos-dirigidos.js?v=20261112-2"></script>
 <script src="estudos-casos-data.js?v=20261112-1"></script>
-<script src="estudo-ativo.js?v=20261112-2"></script>
-<link rel="stylesheet" href="chat-whatsapp.css?v=20261112-compact-bubbles-6">
+<script src="estudo-ativo.js?v=20261112-reviewed-3"></script>
+<link rel="stylesheet" href="chat-whatsapp.css?v=20261112-whatsapp-chat-7">
 </head>
 <body>
 <section id="staticFallback" class="static-fallback" aria-label="Central de Estudos — modo de leitura compatível com celular">
@@ -4307,8 +4307,107 @@ function dmWTicks(m,channel){
  const deliveries=members.filter(x=>dmW.reads.some(r=>r.room_id===m.room_id&&r.user_id===x.user_id&&r.delivered_at>=m.created_at)).length;
  return reads===members.length?'<span class="dm-ticks read" title="Visualizada por todos">✓✓</span>':deliveries===members.length?'<span class="dm-ticks" title="Entregue a todos">✓✓</span>':'<span class="dm-ticks">✓</span>';
 }
+/* Chat redesenhado: nome/identidade por pessoa e menções de verdade. */
+const DM_NAME_PALETTE=['#1c916f','#7d5bc7','#ba6740','#247fac','#b45c83','#5d8e45','#a36e18','#6b70b8','#bf5661','#517e91'];
+function dmVNameColor(id){
+ let h=2166136261;
+ for(const ch of String(id||'')){h=Math.imul(h^ch.charCodeAt(0),16777619)}
+ return DM_NAME_PALETTE[(h>>>0)%DM_NAME_PALETTE.length];
+}
+function dmVMentionPeople(){
+ if(dm.tab==='private')return [];
+ const allowed=dm.tab==='groups'?new Set(dmWMembers(dm.roomId).map(x=>x.user_id)):null;
+ return dm.people.filter(p=>p.user_id&&p.display_name&&p.user_id!==dm.owner&&(!allowed||allowed.has(p.user_id)));
+}
+function dmVMentionMarkup(value){
+ const input=String(value??''),lower=input.toLocaleLowerCase('pt-BR');
+ const people=dm.people.filter(p=>p.user_id&&p.display_name).slice().sort((a,b)=>b.display_name.length-a.display_name.length);
+ let html='',cursor=0;
+ while(cursor<input.length){
+  const mark=input.indexOf('@',cursor);
+  if(mark<0){html+=esc(input.slice(cursor));break}
+  if(mark>0&&!/[\s([\{]/.test(input.charAt(mark-1))){html+=esc(input.slice(cursor,mark+1));cursor=mark+1;continue}
+  let found=null;
+  for(const p of people){
+   const name=String(p.display_name).trim();
+   if(!name||!lower.startsWith('@'+name.toLocaleLowerCase('pt-BR'),mark))continue;
+   const end=mark+name.length+1;
+   if(end<input.length&&/[\p{L}\p{N}_]/u.test(input[end]))continue;
+   found={id:p.user_id,end};break;
+  }
+  html+=esc(input.slice(cursor,mark));
+  if(found){
+   html+='<button type="button" class="dm-mention" data-dm-profile="'+esc(found.id)+'" title="Abrir perfil">'+esc(input.slice(mark,found.end))+'</button>';
+   cursor=found.end;
+  }else{html+='@';cursor=mark+1}
+ }
+ return html.replace(/\n/g,'<br>');
+}
+function dmVMentionToken(field){
+ if(!field||!['groups','global'].includes(dm.tab))return null;
+ const end=field.selectionStart??field.value.length;
+ const before=field.value.slice(0,end);
+ const at=before.lastIndexOf('@');
+ if(at<0||(at>0&&!/[\s([\{]/.test(before[at-1])))return null;
+ const term=before.slice(at+1);
+ if(term.length>38||/[\n\r@]/.test(term))return null;
+ return {start:at,end,term:term.toLocaleLowerCase('pt-BR')};
+}
+let dmVMentionOptions=[];
+let dmVMentionIndex=0;
+function dmVUpdateMentionMenu(){
+ const panel=document.getElementById('dmMentionSuggestions');
+ const field=document.getElementById('dmPrompt');
+ if(!panel||!field)return;
+ const token=dmVMentionToken(field);
+ if(!token){panel.hidden=true;panel.innerHTML='';dmVMentionOptions=[];return}
+ const normalize=x=>String(x).normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLocaleLowerCase('pt-BR');
+ const needle=normalize(token.term.trim());
+ dmVMentionOptions=dmVMentionPeople().filter(p=>normalize(p.display_name).includes(needle)).slice(0,7);
+ if(!dmVMentionOptions.length){panel.hidden=true;panel.innerHTML='';return}
+ dmVMentionIndex=Math.min(dmVMentionIndex,dmVMentionOptions.length-1);
+ panel.innerHTML='<strong class="dm-mention-heading">Mencionar participante</strong>'+
+ dmVMentionOptions.map((p,i)=>'<button type="button" role="option" aria-selected="'+(i===dmVMentionIndex)+'" data-dmv-mention-index="'+i+'">'+
+ avatar(p.display_name,p.avatar_url,true)+'<span>'+esc(p.display_name)+'</span></button>').join('');
+ panel.hidden=false;
+}
+function dmVInsertMention(index){
+ const person=dmVMentionOptions[index],field=document.getElementById('dmPrompt');
+ const token=dmVMentionToken(field);
+ if(!person||!field||!token)return;
+ const addition='@'+person.display_name+' ';
+ field.value=field.value.slice(0,token.start)+addition+field.value.slice(token.end);
+ dm.draft=field.value;dmVMentionOptions=[];
+ const p=document.getElementById('dmMentionSuggestions');if(p){p.hidden=true;p.innerHTML=''}
+ field.focus({preventScroll:true});
+ const caret=token.start+addition.length;field.setSelectionRange(caret,caret);
+}
+document.addEventListener('input',event=>{if(event.target?.id==='dmPrompt'){dmVMentionIndex=0;dmVUpdateMentionMenu()}});
+document.addEventListener('click',event=>{
+ const btn=event.target?.closest?.('[data-dmv-mention-index]');if(!btn)return;
+ event.preventDefault();event.stopImmediatePropagation();
+ dmVInsertMention(Number(btn.dataset.dmvMentionIndex));
+},true);
+document.addEventListener('keydown',event=>{
+ if(event.target?.id!=='dmPrompt')return;
+ const panel=document.getElementById('dmMentionSuggestions');
+ if(!panel||panel.hidden||!dmVMentionOptions.length)return;
+ if(event.key==='ArrowDown'||event.key==='ArrowUp'){
+  event.preventDefault();event.stopImmediatePropagation();
+  dmVMentionIndex=(dmVMentionIndex+(event.key==='ArrowDown'?1:-1)+dmVMentionOptions.length)%dmVMentionOptions.length;
+  dmVUpdateMentionMenu();
+ }else if(event.key==='Enter'&&!event.shiftKey){
+  event.preventDefault();event.stopImmediatePropagation();dmVInsertMention(dmVMentionIndex);
+ }else if(event.key==='Escape'){
+  event.preventDefault();event.stopImmediatePropagation();panel.hidden=true;dmVMentionOptions=[];
+ }
+},true);
+
 dmMessageHtml=function(m,channel='private'){
  const mine=m.sender_id===dm.owner;
+ const person=dmPrettyPerson(m.sender_id);
+ const display=person.display_name||'Estudante';
+ const authorColor=dmVNameColor(m.sender_id);
  const photoOnly=!m.deleted_at&&(m.kind==='image'&&!!m.media_path||m.kind==='sticker'&&!!m.media_path||m.kind==='gif')&&(!m.reply_to&&!m.forwarded)&&(!m.body||m.kind==='gif'||/^\[(Imagem|Figurinha)\]$/.test(m.body));
  const quoted=m.reply_to?dmWMessage(m.reply_to,channel==='private'?'private':'room'):null;
  const quote=m.reply_to?'<button type="button" class="dm-reply-quote" data-dmw-jump="'+esc(m.reply_to)+'"><strong>'+
@@ -4317,10 +4416,14 @@ dmMessageHtml=function(m,channel='private'){
  const options=!m.deleted_at?'<button class="dm-message-menu-button" type="button" data-dmw-msgmenu="'+esc(m.id)+'" aria-label="Opções da mensagem" aria-expanded="'+(dmW.menu===m.id)+'"><svg width="16" height="16" viewBox="0 0 20 20" fill="none" aria-hidden="true" focusable="false"><path d="m4.5 7.5 5.5 5 5.5-5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></button>'+
   (dmW.menu===m.id?'<div class="dm-message-popup"><button data-dmw-reply="'+esc(m.id)+'">↩ Responder</button><button data-dmw-forward="'+esc(m.id)+'">↪ Encaminhar</button>'+
   (mine?'<button data-dmw-info="'+esc(m.id)+'">ⓘ Informações</button><button data-dmw-delete="'+esc(m.id)+'" data-dmw-delete-type="'+(channel==='private'?'private':'room')+'">Apagar para todos</button>':'')+'</div>':''):'';
- return '<div class="dm-message '+(mine?'mine':'theirs')+(photoOnly?' dm-photo-message':'')+'" data-dmw-message="'+esc(m.id)+'"><div class="dm-message-bubble'+(photoOnly?' dm-photo-only':'')+'">'+
- (channel==='private'?'':'<span class="dm-author">'+esc(dmPrettyPerson(m.sender_id).display_name)+'</span>')+
- (m.forwarded?'<div class="dm-forwarded">↪ Encaminhada</div>':'')+quote+dmWMedia(m)+
- '<div class="dm-message-info"><time>'+esc(dmTime(m.created_at))+'</time>'+dmWTicks(m,channel)+'</div>'+options+'</div></div>';
+ const author=!mine?'<button type="button" class="dm-author" data-dm-profile="'+esc(m.sender_id)+'" style="--dm-author-color:'+authorColor+'" title="Ver perfil de '+esc(display)+'">'+esc(display)+'</button>':'';
+ const face=!mine?'<button type="button" class="dm-chat-avatar" data-dm-profile="'+esc(m.sender_id)+'" title="Ver perfil de '+esc(display)+'">'+avatar(display,person.avatar_url,true)+'</button>':'';
+ const kind=m.kind||'text';
+ const media=kind==='text'&&!m.deleted_at?'<p class="dm-text-message">'+dmVMentionMarkup(m.body)+'</p>':dmWMedia(m);
+ return '<div class="dm-message '+(mine?'mine':'theirs')+(photoOnly?' dm-photo-message':'')+'" data-dmw-message="'+esc(m.id)+'">'+face+
+ '<div class="dm-message-bubble'+(photoOnly?' dm-photo-only':'')+'">'+author+
+ (m.forwarded?'<div class="dm-forwarded">↪ Encaminhada</div>':'')+quote+media+
+ '<div class="dm-message-info"><time datetime="'+esc(m.created_at)+'">'+esc(dmTime(m.created_at))+'</time>'+dmWTicks(m,channel)+'</div>'+options+'</div></div>';
 };
 dmThreadHtml=function(){
  const selected=dmWSelected();
@@ -4338,7 +4441,7 @@ dmComposer=function(){
  const tools=dmW.panel==='tools'?'<div class="dm-tools-menu">'+[['image','Foto / GIF do computador'],['video','Vídeo'],['audio','Arquivo de áudio'],['sticker','Criar figurinha (PNG ou WebP)']].map(x=>'<button type="button" data-dmw-attach="'+x[0]+'">'+x[1]+'</button>').join('')+'<button type="button" data-dmw-gif>GIF do GIPHY</button></div>':
   dmW.panel==='emoji'?'<div class="dm-emoji-panel"><emoji-picker id="dmWPicker" locale="pt"></emoji-picker></div>':'';
  return '<form id="dmSendForm" class="dm-composer-wrap">'+reply+recording+
- '<div class="dm-composer"><button type="button" class="dm-composer-action" data-dmw-emoji title="Emojis" aria-label="Emojis">☺</button>'+
+ '<div class="dm-mention-suggestions" id="dmMentionSuggestions" role="listbox" aria-label="Selecionar participante" hidden></div><div class="dm-composer"><button type="button" class="dm-composer-action" data-dmw-emoji title="Emojis" aria-label="Emojis">☺</button>'+
  '<button type="button" class="dm-composer-action" data-dmw-tools title="Anexar" aria-label="Anexar">＋</button><input id="dmWFileInput" type="file" hidden>'+
  '<textarea id="dmPrompt" maxlength="3000" rows="1" placeholder="Escreva uma mensagem…">'+esc(dm.draft)+'</textarea>'+
  '<button type="button" class="dm-composer-action" data-dmw-record title="Gravar áudio">♩</button>'+
