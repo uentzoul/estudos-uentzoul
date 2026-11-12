@@ -5034,6 +5034,111 @@ function dmVEndDrag(event){
 }
 document.addEventListener('pointerup',dmVEndDrag);document.addEventListener('pointercancel',dmVEndDrag);
 
+
+/* Interações separadas para evitar perda de foco no campo de escrita. */
+document.addEventListener('click',async event=>{
+ const hit=s=>event.target.closest(s);
+ const stop=()=>{event.preventDefault();event.stopImmediatePropagation()};
+ const open=hit('[data-dmv-share-open]');
+ if(open){
+  stop();dmW.panel=null;dmW.wallpaper=false;dmW.menu=null;
+  dmV.shareOpen=true;dmV.shareBusy=false;dmV.shareSelected.clear();dmV.shareQuery='';
+  dmV.shareCategory='material';dmShow();
+  window.uentzoulShareCatalog?.load?.().then(()=>{if(dmV.shareOpen)dmShow()}).catch(()=>{});
+  requestAnimationFrame(()=>document.getElementById('dmVShareSearch')?.focus());
+  return;
+ }
+ if(hit('[data-dmv-share-close]')||event.target.matches?.('[data-dmv-share-backdrop]')){
+  stop();dmVShareClose();return;
+ }
+ const tab=hit('[data-dmv-share-tab]');
+ if(tab){
+  stop();dmV.shareCategory=tab.dataset.dmvShareTab;dmV.shareQuery='';
+  dmShow();requestAnimationFrame(()=>document.getElementById('dmVShareSearch')?.focus());return;
+ }
+ const item=hit('[data-dmv-share-select]');
+ if(item){
+  stop();const key=item.dataset.dmvShareSelect;
+  if(dmV.shareSelected.has(key))dmV.shareSelected.delete(key);
+  else if(dmV.shareSelected.size>=8){toast('É possível compartilhar até 8 conteúdos por vez.');return}
+  else if(dmVSourceSelection(key))dmV.shareSelected.add(key);
+  const list=document.getElementById('dmVShareList');
+  if(list)list.innerHTML=dmVResources();
+  const footer=document.querySelector('.dm-share-footer');
+  if(footer){
+   const count=dmV.shareSelected.size;
+   const hint=footer.querySelector('small'),button=footer.querySelector('.dm-share-send');
+   if(hint)hint.textContent=count+' '+(count===1?'item selecionado':'itens selecionados')+' · Máximo de 8';
+   if(button){button.disabled=!count||dmV.shareBusy;button.textContent=count===1?'Enviar conteúdo':'Enviar '+count+' conteúdos'}
+  }
+  return;
+ }
+ if(hit('[data-dmv-share-send]')){stop();await dmVShareSend();return}
+ const share=hit('[data-dmv-open-resource]');
+ if(share){
+  stop();
+  const message=[...dm.messages,...dm.roomMessages].find(x=>x.id===share.dataset.dmvOpenResource);
+  const payload=dmVSafePayload(message?.share_payload);
+  if(!payload){toast('Material não disponível.');return}
+  const invite=payload.type==='generated'?dm.invites.find(x=>x.id===payload.invite_id):null;
+  if(payload.type==='generated'&&message.recipient_id===dm.owner&&invite?.status!=='accepted'){
+    toast('Primeiro aceite o convite para este simulado.');return;
+  }
+  await window.uentzoulShareCatalog?.open?.(payload);
+  return;
+ }
+},true);
+document.addEventListener('input',event=>{
+ if(event.target.id!=='dmVShareSearch'||!dmV.shareOpen)return;
+ dmV.shareQuery=event.target.value;
+ const list=document.getElementById('dmVShareList');
+ if(list)list.innerHTML=dmVResources();
+});
+/* Fecha menus flutuantes ao tocar fora, sem reconstruir toda a conversa. */
+document.addEventListener('pointerdown',event=>{
+ if(!document.querySelector('.dm-shell'))return;
+ const inside=selector=>!!event.target.closest(selector);
+ if(dmW.panel&&!inside('.dm-tools-menu,.dm-emoji-panel,[data-dmw-tools],[data-dmw-emoji]')){
+  dmW.panel=null;
+  document.querySelectorAll('.dm-shell .dm-tools-menu,.dm-shell .dm-emoji-panel').forEach(el=>el.remove());
+ }
+ if(dmW.wallpaper&&!inside('.dm-wallpaper-picker,[data-dmw-wallpaper]')){
+  dmW.wallpaper=false;
+  document.querySelectorAll('.dm-shell .dm-wallpaper-picker').forEach(el=>el.remove());
+ }
+ if(dmW.menu&&!inside('.dm-message-popup,[data-dmw-msgmenu]')){
+  dmW.menu=null;
+  document.querySelectorAll('.dm-message-popup').forEach(el=>el.remove());
+  document.querySelectorAll('.dm-message-menu-button').forEach(el=>el.setAttribute('aria-expanded','false'));
+ }
+},true);
+document.addEventListener('keydown',event=>{
+ if(dmV.viewer){
+  const key=event.key;
+  if(['Escape','ArrowRight','ArrowLeft','+','=','-','0'].includes(key)){
+   event.preventDefault();event.stopImmediatePropagation();
+   if(key==='Escape')dmVCloseViewer();
+   else if(key==='ArrowRight')dmVViewerNext(1);
+   else if(key==='ArrowLeft')dmVViewerNext(-1);
+   else if(key==='+'||key==='=')dmVViewerZoom(dmV.viewer.zoom+.5);
+   else if(key==='-')dmVViewerZoom(dmV.viewer.zoom-.5);
+   else dmVViewerZoom(1);
+  }
+  return;
+ }
+ if(event.key==='Escape'&&dmV.shareOpen){
+  event.preventDefault();event.stopImmediatePropagation();dmVShareClose();return;
+ }
+ if(event.key==='Escape'&&(dmW.panel||dmW.wallpaper||dmW.menu)){
+  event.preventDefault();event.stopImmediatePropagation();
+  dmW.panel=null;dmW.wallpaper=false;dmW.menu=null;dmShow();return;
+ }
+},true);
+/* Atualiza o botão de compartilhar mesmo quando um modal de grupo é aberto. */
+document.addEventListener('visibilitychange',()=>{
+ if(document.hidden&&dmV.viewer)dmVCloseViewer();
+});
+
 /* Matérias complementares privadas — compartilhadas somente dentro da conta do aluno. */
 
 /* Espaço Pessoal 2.0: matérias, fontes, agenda, simulados exclusivos e IA */
