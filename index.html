@@ -2197,6 +2197,7 @@ let toastTimer;function toast(s){const t=$('toast');t.textContent=s;t.style.disp
 const go=(page,extra={})=>{
  if(page==='library')page='home';
  if(page==='admin'&&!window.uentzoulAdminConfig?.isAdmin?.())page='home';
+ if(page!=='personal')window.uentzoulPersonal?.onNavigateAway?.();
  if(page==='home')current.libraryCourse=null;
  current={...current,...extra,page};
  try{render()}catch(e){console.error('Erro ao abrir seção',e);toast('Não foi possível abrir esta seção. Tenta novamente no Safari/Chrome.');return}
@@ -4457,15 +4458,36 @@ function pcRender(){
  if(!pc.loaded&&!pc.loading)queueMicrotask(pcLoad);
  return '<div class="pc2-page">'+(pc.error?'<div class="pc-error" role="alert">'+esc(pc.error)+' <button data-pc-clear-error aria-label="Fechar aviso">×</button></div>':'')+
   (pc.notice?'<div class="pc2-notice" role="status">'+esc(pc.notice)+'</div>':'')+
-  (pc.view==='home'?pcHome():pcDetail())+pcModalMarkup()+'</div>';
+  (pc.view==='home'?pcHome():pcDetail())+'</div>';
+}
+/* Dialogs live in a body-level portal: navigation and background updates
+   never delay the opening or bury them behind the Personal page. */
+function pcSyncModal(force=false){
+ let portal=document.getElementById('pc2ModalPortal');
+ if(!pc.modal||current.page!=='personal'){
+  portal?.remove();
+  document.body.classList.remove('pc2-modal-visible');
+  return;
+ }
+ if(!portal){
+  portal=document.createElement('div');portal.id='pc2ModalPortal';
+  document.body.appendChild(portal);
+  force=true;
+ }
+ if(force||portal.dataset.mode!==pc.modal||!portal.firstElementChild){
+  portal.dataset.mode=pc.modal;
+  portal.innerHTML=pcModalMarkup();
+ }
+ document.body.classList.add('pc2-modal-visible');
 }
 function pcShow(){
- if(current.page!=='personal')return;
+ if(current.page!=='personal'){pcSyncModal();return;}
  const main=document.getElementById('main');if(!main)return;
  const focus=document.activeElement;
  const focusId=focus&&['pcMainNotes','pcAiPrompt'].includes(focus.id)?focus.id:null;
  const selection=focusId?{start:focus.selectionStart,end:focus.selectionEnd}:null;
  main.innerHTML=pcRender();
+ pcSyncModal();
  if(focusId){
   const next=document.getElementById(focusId);
   if(next){next.focus({preventScroll:true});if(selection&&selection.start!==null)next.setSelectionRange(selection.start,selection.end)}
@@ -4504,7 +4526,7 @@ function pcOnLogout(){
  pc.realtime=null;
  pc.owner=null;pc.loaded=false;pc.loading=false;pc.subjects=[];pc.sources=[];pc.agenda=[];pc.documents=[];
  pc.exams=[];pc.submissions=[];pc.legacyExams=[];pc.selected=null;pc.view='home';pc.tab='overview';pc.modal=null;
- pc.examId=null;pc.docId=null;pc.answers={};pc.drafts={};pc.error='';pc.notice='';pc.busy=false;pc.pending=false;pc.lastFetch=0;pcShow();
+ pc.examId=null;pc.docId=null;pc.answers={};pc.drafts={};pc.error='';pc.notice='';pc.busy=false;pc.pending=false;pc.lastFetch=0;pcSyncModal();pcShow();
 }
 function pcSetupLive(){
  if(pc.realtime&&client)try{client.removeChannel(pc.realtime)}catch(_){}
@@ -4537,10 +4559,11 @@ function pcOnLogin(){
  pcSetupLive();
  pcLoad();
 }
-function pcAfterRender(){if(onlineUser&&!pc.loaded&&!pc.loading)pcLoad();}
+function pcAfterRender(){pcSyncModal();if(onlineUser&&!pc.loaded&&!pc.loading)pcLoad();}
 function pcOpenSubject(id){if(!pc.subjects.some(x=>x.id===id))return;pc.selected=id;pc.view='detail';pc.tab='overview';pc.modal=null;pc.error='';pcShow();}
-function pcModalOpen(type){pc.error='';pc.editEvent=null;if(type==='agenda')pc.calendarDraftDate='';pc.modal=type;pcShow();}
-function pcCloseModal(){if(pc.busy)return;pc.modal=null;pc.editEvent=null;pcShow();if(pc.pending){pc.pending=false;pcLoad()}}
+function pcModalOpen(type){pc.error='';pc.editEvent=null;if(type==='agenda')pc.calendarDraftDate='';pc.modal=type;pcSyncModal(true);pcShow();document.querySelector('#pc2ModalPortal input[name=title]')?.focus({preventScroll:true});}
+function pcCloseModal(){if(pc.busy)return;pc.modal=null;pc.editEvent=null;pcSyncModal();pcShow();if(pc.pending){pc.pending=false;pcLoad()}}
+function pcNavigateAway(){pc.modal=null;pc.editEvent=null;pcSyncModal();}
 async function pcUploadFile(file,subjectId){
  if(!file||file.size>12582912||!file.size)throw Error('Cada arquivo precisa ter até 12 MB.');
  const extension=String(file.name.split('.').pop()||'').toLowerCase();
@@ -4768,7 +4791,7 @@ setInterval(()=>{
  if(onlineUser&&current.page==='personal'&&document.visibilityState==='visible'&&!pc.busy&&!pc.modal&&pc.view!=='exam'&&Date.now()-pc.lastFetch>19000)pcLoad();
 },7000);
 
-window.uentzoulPersonal={render:pcRender,afterRender:pcAfterRender,onLogin:pcOnLogin,onLogout:pcOnLogout,refresh:pcLoad};
+window.uentzoulPersonal={render:pcRender,afterRender:pcAfterRender,onLogin:pcOnLogin,onLogout:pcOnLogout,refresh:pcLoad,onNavigateAway:pcNavigateAway};
 document.addEventListener('click',e=>{
  let b=e.target.closest('[data-pc-new]');if(b){pcModalOpen('create');return}
  b=e.target.closest('[data-pc-open-subject]');if(b){pcOpenSubject(b.dataset.pcOpenSubject);return}
