@@ -112,7 +112,7 @@ async function refresh(){
   if(error)throw error;
   const rows=(data||[]).filter(r=>typeof r.storage_path==='string'&&r.storage_path.startsWith('materials/'));
   const signature=JSON.stringify(rows);
-  if(signature!==lastRowsSignature){lastRowsSignature=signature;api().applyRows(rows);}
+  if(signature!==lastRowsSignature){lastRowsSignature=signature;api().applyRows(rows);window.dispatchEvent(new Event('uentzoul:library-updated'));}
   initialized=true;paint();
  }catch(err){console.warn('Não foi possível atualizar os arquivos da Biblioteca:',err);if(isAdmin)show('Falha ao consultar a Biblioteca: '+(err?.message||'tente novamente'))}
  finally{refreshing=false;if(refreshPending){refreshPending=false;queueMicrotask(refresh);}}
