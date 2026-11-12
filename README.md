@@ -75,3 +75,19 @@ A Biblioteca foi alinhada com títulos, contadores e materiais distribuídos em 
 As mensagens privadas, dos grupos e do chat global utilizam Supabase Realtime e verificação de segurança periódica na aba aberta, inclusive ao retornar ao site. Compartilhamentos e novos simulados gerais também são atualizados por eventos e checagem periódica. A área Pessoal atualiza seus conteúdos sem recarregamento da página e preserva anotações em edição. O andamento de simulados gerais e pessoais fica salvo localmente durante a tentativa, além de as entregas concluídas permanecerem no Supabase.
 
 Os enunciados dos simulados usam separação de parágrafos, assertivas I/II/III em blocos próprios e destaque do comando final. Emojis decorativos são suprimidos apenas na exibição, sem alterar as questões já salvas; a IA foi orientada a não gerá-los em provas novas.
+
+
+## Funcionalidade prevista — Trabalhos
+
+A seção **Trabalhos** aparece no menu principal apenas como prévia. Não tem rota, botão de acesso nem funcionalidade liberada. Ao passar o mouse ou focar a entrada, aparece "Em breve"; no celular essa indicação fica visível.
+
+Para a futura implementação, a proposta é centralizar os trabalhos acadêmicos de cada disciplina:
+
+- Vincular cada trabalho ao cronograma e ao plano de ensino correspondentes, com tema, prazo, professor, formato e critérios de avaliação, se informados.
+- Exibir as orientações oficiais, materiais necessários, referências, arquivos e links de apoio sem substituir ou inventar determinações do professor.
+- Permitir redigir e organizar o trabalho na própria plataforma, com salvamento por usuário e recuperação de versões, quando esse editor for desenvolvido.
+- Criar um checklist de requisitos efetivamente extraídos das orientações recebidas e verificar quais foram atendidos, quais ainda faltam e quais exigem revisão manual.
+- Integrar a atividade à agenda de avaliações, aos conteúdos da disciplina e aos materiais de texto sem duplicar dados.
+- Deixar claro que a conferência automatizada é auxiliar e não equivale à avaliação ou aprovação do professor.
+
+**Estado atual:** apenas item visual não clicável, sem inserir tarefas fictícias, sem acionar banco de dados nem criar nova aba funcional.
