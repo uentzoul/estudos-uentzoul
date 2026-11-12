@@ -1807,16 +1807,17 @@ html[data-theme="dark"] #nav .nav-upcoming:focus-visible{background:#322b47;colo
 .schedule-page{min-width:0;max-width:1180px;margin:0 auto}
 .schedule-page .schedule-toolbar{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;flex-wrap:wrap;margin:18px 0 0}
 .schedule-page .schedule-legend{font-size:12px;color:var(--muted);border:1px solid var(--line);border-radius:999px;background:var(--paper);padding:9px 14px}
-.schedule-week{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;margin-top:18px}
-.schedule-day{min-width:0;background:var(--paper);border:1px solid var(--line);border-radius:19px;overflow:hidden;box-shadow:var(--shadow)}
+.schedule-week{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));align-items:stretch;gap:16px;margin-top:18px}
+.schedule-day{min-width:0;display:flex;flex-direction:column;background:var(--paper);border:1px solid var(--line);border-radius:19px;overflow:hidden;box-shadow:var(--shadow)}
 .schedule-day.is-today{border-color:#9588d6;box-shadow:0 0 0 1px #9988d62b,0 8px 24px #7163c014}
-.schedule-day-heading{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:17px 18px;border-bottom:1px solid var(--line)}
+.schedule-day-heading{display:flex;flex:none;min-height:78px;align-items:center;justify-content:space-between;gap:12px;padding:17px 18px;border-bottom:1px solid var(--line)}
 .schedule-day-heading h2{font-size:16px;line-height:1.3;margin:0;color:var(--ink);font-weight:800}
 .schedule-day-heading small{display:block;font-size:11px;color:var(--muted);margin-top:3px}
 .schedule-today{display:inline-block;background:#ede8ff;color:#6245a9;font-size:10px;font-weight:800;border-radius:999px;padding:6px 10px;white-space:nowrap}
-.schedule-day-content{display:grid;gap:10px;padding:14px}
-.schedule-day-content.is-period-grid{grid-template-rows:repeat(3,minmax(78px,1fr))}
-.schedule-lesson.is-extended{align-items:center}
+.schedule-day-content{display:grid;flex:1;gap:10px;padding:14px}
+/* Os mesmos tres trilhos em todos os dias. Blocos duplos ocupam dois periodos completos. */
+.schedule-day-content.is-period-grid{grid-template-rows:repeat(3,minmax(96px,1fr));min-height:336px}
+.schedule-lesson.is-extended{align-items:center;min-height:0}
 .schedule-lesson{position:relative;min-width:0;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 13px 14px 15px;border:1px solid var(--line);border-left:4px solid var(--class-color,#7388b8);border-radius:12px;background:var(--bg)}
 .schedule-lesson-text{min-width:0}
 .schedule-lesson strong{display:block;color:var(--ink);font-size:13px;line-height:1.35;overflow-wrap:anywhere}
@@ -1828,8 +1829,8 @@ html[data-theme="dark"] #nav .nav-upcoming:focus-visible{background:#322b47;colo
 .schedule-note{margin-top:17px;color:var(--muted);font-size:12px;line-height:1.6}
 html[data-theme="dark"] .schedule-day.is-today{border-color:#8e7ad2}
 html[data-theme="dark"] .schedule-today{background:#382f59;color:#dcd0ff}
-@media(min-width:1350px){.schedule-week{grid-template-columns:repeat(3,minmax(0,1fr))}}
-@media(max-width:760px){.schedule-week{grid-template-columns:1fr;gap:12px}.schedule-day-heading{padding:14px 16px}.schedule-day-content{padding:12px}.schedule-lesson{padding:13px 12px}.schedule-page .schedule-legend{border-radius:12px}}
+@media(min-width:1350px){.schedule-week{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:760px){.schedule-week{grid-template-columns:1fr;gap:12px}.schedule-day-heading{min-height:74px;padding:14px 16px}.schedule-day-content{padding:12px}.schedule-day-content.is-period-grid{min-height:332px;grid-template-rows:repeat(3,minmax(96px,1fr))}.schedule-lesson{padding:13px 12px}.schedule-page .schedule-legend{border-radius:12px}}
 
 </style>
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2064%2064%22%3E%3Crect%20width%3D%2264%22%20height%3D%2264%22%20rx%3D%2214%22%20fill%3D%22%23192d44%22%2F%3E%3Ctext%20x%3D%2232%22%20y%3D%2246%22%20fill%3D%22white%22%20font-size%3D%2246%22%20font-family%3D%22Georgia%2Cserif%22%20text-anchor%3D%22middle%22%3E%CE%A8%3C%2Ftext%3E%3C%2Fsvg%3E">
@@ -2696,7 +2697,7 @@ function renderClassSchedule(embedded=false){
   },[]);
   const today=weekdayNumber===day.day;
   return '<article class="schedule-day'+(today?' is-today':'')+'" aria-label="'+esc(day.name)+'">'+
-   '<header class="schedule-day-heading"><div><h2>'+esc(day.name)+'</h2><small>'+lessons.length+' '+(lessons.length===1?'disciplina cadastrada':'disciplinas cadastradas')+'</small></div>'+
+   '<header class="schedule-day-heading"><div><h2>'+esc(day.name)+'</h2><small>'+blocks.length+' '+(blocks.length===1?'disciplina cadastrada':'disciplinas cadastradas')+'</small></div>'+
    (today?'<span class="schedule-today">Hoje</span>':'')+'</header>'+
    '<div class="schedule-day-content'+(lessons.length?' is-period-grid':'')+'">'+(blocks.length?blocks.map(item=>{
     const name=DB.subjects[item.subject]?.name||item.subject;
