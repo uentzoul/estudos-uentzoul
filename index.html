@@ -1832,6 +1832,59 @@ html[data-theme="dark"] .schedule-today{background:#382f59;color:#dcd0ff}
 @media(min-width:1350px){.schedule-week{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:760px){.schedule-week{grid-template-columns:1fr;gap:12px}.schedule-day-heading{min-height:74px;padding:14px 16px}.schedule-day-content{padding:12px}.schedule-day-content.is-period-grid{min-height:332px;grid-template-rows:repeat(3,minmax(96px,1fr))}.schedule-lesson{padding:13px 12px}.schedule-page .schedule-legend{border-radius:12px}}
 
+
+/* Barra lateral da turma recolhível: a página ocupa o espaço liberado. */
+@media(min-width:761px){
+ .app>.main{transition:width .34s ease,max-width .34s ease}
+ .app>.profile-sidebar{
+  min-width:0;
+  transition:flex-basis .34s cubic-bezier(.2,.72,.25,1),width .34s cubic-bezier(.2,.72,.25,1),
+   padding .34s ease,transform .34s cubic-bezier(.2,.72,.25,1),opacity .25s ease,visibility 0s;
+ }
+ html[data-members-sidebar="collapsed"] .app>.profile-sidebar{
+  flex:0 0 0px!important;width:0!important;min-width:0!important;max-width:0!important;
+  padding-left:0!important;padding-right:0!important;border-left-width:0!important;
+  overflow:hidden!important;transform:translateX(110%);opacity:0;visibility:hidden;pointer-events:none;
+  transition: flex-basis .34s cubic-bezier(.2,.72,.25,1),width .34s cubic-bezier(.2,.72,.25,1),
+    padding .34s ease,transform .34s cubic-bezier(.2,.72,.25,1),opacity .25s ease,visibility 0s .34s;
+ }
+ .theme-topbar{transition:right .34s cubic-bezier(.2,.72,.25,1)}
+ html[data-members-sidebar="collapsed"] .theme-topbar{right:18px!important}
+}
+.members-sidebar-toggle{display:inline-flex;justify-content:center;align-items:center;flex:none;
+ width:36px;height:35px;border:1px solid var(--line);border-radius:9px;background:var(--paper);
+ color:var(--ink);cursor:pointer;transition:background .2s,border-color .2s}
+.members-sidebar-toggle:hover{background:var(--soft);border-color:var(--blue)}
+.members-sidebar-toggle:focus-visible,.compact-profile-button:focus-visible{outline:3px solid var(--blue);outline-offset:2px}
+.members-sidebar-toggle svg{width:17px;height:17px;stroke:currentColor;stroke-width:2.1;fill:none;stroke-linecap:round;stroke-linejoin:round;
+ transition:transform .3s ease}
+html[data-members-sidebar="collapsed"] .members-sidebar-toggle svg{transform:rotate(180deg)}
+.compact-profile-button{display:none;align-items:center;gap:8px;max-width:180px;min-width:0;
+ border:1px solid var(--line);border-radius:9px;padding:4px 8px;background:var(--paper);color:var(--ink);
+ font-size:11px;font-weight:750;cursor:pointer;white-space:nowrap}
+.compact-profile-button .profile-avatar{width:28px;height:28px;font-size:10px;flex:0 0 28px}
+.compact-profile-name{overflow:hidden;text-overflow:ellipsis}
+html[data-members-sidebar="collapsed"] .compact-profile-button{display:inline-flex}
+.mobile-members-toggle{display:none}
+@media(max-width:760px){
+ .mobile-members-toggle{display:inline-flex;width:36px;height:36px;min-height:36px;margin-left:1px}
+ .app>.profile-sidebar{
+  transition:opacity .3s ease,transform .34s cubic-bezier(.2,.72,.25,1),max-height .34s ease,padding .34s ease,visibility 0s;
+  max-height:1800px;
+ }
+ html[data-members-sidebar="collapsed"] .app>.profile-sidebar{
+  max-height:0!important;min-height:0!important;height:0!important;padding:0!important;margin:0!important;
+  border:0!important;opacity:0;visibility:hidden;transform:translateX(110%);
+  overflow:hidden!important;pointer-events:none;transition:opacity .25s ease,transform .34s ease,max-height .34s ease,padding .34s ease,visibility 0s .34s;
+ }
+ .compact-profile-button{display:none!important}
+}
+@media(max-width:370px){.mobile-members-toggle{width:32px;height:34px}}
+@media(prefers-reduced-motion:reduce){
+ .app>.profile-sidebar,.app>.main,.theme-topbar,.members-sidebar-toggle svg{transition:none!important}
+}
+@media print{.members-sidebar-toggle,.compact-profile-button{display:none!important}}
+
 </style>
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2064%2064%22%3E%3Crect%20width%3D%2264%22%20height%3D%2264%22%20rx%3D%2214%22%20fill%3D%22%23192d44%22%2F%3E%3Ctext%20x%3D%2232%22%20y%3D%2246%22%20fill%3D%22white%22%20font-size%3D%2246%22%20font-family%3D%22Georgia%2Cserif%22%20text-anchor%3D%22middle%22%3E%CE%A8%3C%2Ftext%3E%3C%2Fsvg%3E">
 <link rel="stylesheet" href="library-manager.css?v=20261111-5">
@@ -1889,12 +1942,12 @@ html[data-theme="dark"] .schedule-today{background:#382f59;color:#dcd0ff}
 <li>25/11/2026 — Psicologia Social · Avaliação 3</li>
 <li>26/11/2026 — Avaliação Psicológica · Prova 3</li>
 </ul></section></section>
-<div class="app"><div class="theme-topbar" role="group" aria-label="Aparência"><button type="button" class="report-launch" data-report-open>Relatar erro</button><span class="theme-caption">Aparência</span><button type="button" class="theme-toggle" data-theme-toggle aria-label="Ativar modo escuro">☾ <span class="theme-toggle-text">Modo escuro</span></button></div><aside class="sidebar" id="siteSidebar">
+<div class="app"><div class="theme-topbar" role="group" aria-label="Aparência e perfil"><button type="button" class="report-launch" data-report-open>Relatar erro</button><span class="theme-caption">Aparência</span><button type="button" class="theme-toggle" data-theme-toggle aria-label="Ativar modo escuro">☾ <span class="theme-toggle-text">Modo escuro</span></button><button type="button" id="compactProfileButton" class="compact-profile-button" data-account-action="open" aria-label="Abrir meu perfil"><span>Meu perfil</span></button><button type="button" class="members-sidebar-toggle" data-members-toggle aria-controls="profileSidebar" aria-expanded="true" aria-label="Ocultar usuários" title="Ocultar usuários"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 5 7 7-7 7"/></svg></button></div><aside class="sidebar" id="siteSidebar">
   <div class="mobile-brand">
     <span class="mobile-brand-mark psychology-mark" aria-label="Símbolo da Psicologia">Ψ</span>
     <div class="mobile-heading"><strong>PsicoMoodle</strong><span>by: Enzo F.B.</span></div>
     <button type="button" class="theme-toggle mobile-theme-toggle" data-theme-toggle aria-label="Ativar modo escuro">☾ <span class="theme-toggle-text">Modo escuro</span></button>
-    <button type="button" id="mobileProfileButton" class="mobile-profile-button" data-account-action="open" aria-label="Abrir perfil">👤</button>
+    <button type="button" id="mobileProfileButton" class="mobile-profile-button" data-account-action="open" aria-label="Abrir perfil">👤</button><button type="button" class="members-sidebar-toggle mobile-members-toggle" data-members-toggle aria-controls="profileSidebar" aria-expanded="true" aria-label="Ocultar usuários" title="Ocultar usuários"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 5 7 7-7 7"/></svg></button>
     <button type="button" id="mobileSubjectToggle" class="mobile-subject-toggle" aria-expanded="false" aria-controls="subjectNav" aria-label="Abrir menu de disciplinas">Matérias <span aria-hidden="true">⌄</span></button>
   </div>
   <div class="logo"><span class="mark psychology-mark" aria-label="Símbolo da Psicologia">Ψ</span><div class="brand"><strong>PsicoMoodle</strong><span>by: Enzo F.B.</span></div></div>
@@ -3818,6 +3871,8 @@ function renderAside(){
  const el=$('profileSidebar');if(!el)return;
  const p=current(),logged=!!onlineUser,mobile=$('mobileProfileButton');
  if(mobile)mobile.innerHTML=p?avatar(p.name,p.avatar,true):'👤';
+ const mini=$('compactProfileButton');
+ if(mini){mini.innerHTML=avatar(p?.name||'Visitante',p?.avatar,true)+'<span class="compact-profile-name">'+esc(p?.name||'Visitante')+'</span>';mini.title=p?'Abrir meu perfil':'Entrar / Cadastrar';mini.setAttribute('aria-label',mini.title);}
  const rows=logged?rankData:[];
  const members=rows.length?rows.map(x=>'<div class="rank-entry '+(p?.id===x.user_id?'me':'')+'">'+
   '<button type="button" class="rank-user-trigger" data-dm-profile="'+esc(x.user_id)+'" title="Ver perfil de '+esc(x.display_name)+'">'+
@@ -6261,6 +6316,30 @@ bridge.switchTo('guest-session',{answers:{},results:{},bookmarks:{},completed:{}
 renderAside();initCloud();
 })();
 
+</script><script>
+
+(function(){
+ const KEY='psicomoodle_members_sidebar_v1',root=document.documentElement;
+ try{root.dataset.membersSidebar=localStorage.getItem(KEY)==='collapsed'?'collapsed':'expanded'}
+ catch(_){root.dataset.membersSidebar='expanded'}
+ function update(){
+  const visible=root.dataset.membersSidebar!=='collapsed',sidebar=document.getElementById('profileSidebar');
+  if(sidebar){sidebar.inert=!visible;sidebar.setAttribute('aria-hidden',String(!visible))}
+  document.querySelectorAll('[data-members-toggle]').forEach(button=>{
+   button.setAttribute('aria-expanded',String(visible));
+   button.setAttribute('aria-label',visible?'Ocultar usuários':'Mostrar usuários');
+   button.title=visible?'Ocultar usuários':'Mostrar usuários';
+  });
+ }
+ document.addEventListener('click',event=>{
+  const btn=event.target.closest('[data-members-toggle]');if(!btn)return;
+  event.preventDefault();
+  root.dataset.membersSidebar=root.dataset.membersSidebar==='collapsed'?'expanded':'collapsed';
+  try{localStorage.setItem(KEY,root.dataset.membersSidebar)}catch(_){}
+  update();
+ });
+ update();
+})();
 </script><script>
 (function(){const key="uentzoul_theme_v1";let theme=document.documentElement.dataset.theme==="dark"?"dark":"light";
 function apply(){document.documentElement.dataset.theme=theme;document.querySelectorAll("[data-theme-toggle]").forEach(b=>{b.innerHTML=theme==="dark"?'☀ <span class="theme-toggle-text">Modo claro</span>':'☾ <span class="theme-toggle-text">Modo escuro</span>';b.setAttribute("aria-label",theme==="dark"?"Ativar modo claro":"Ativar modo escuro");b.setAttribute("aria-pressed",theme==="dark"?"true":"false");b.title=theme==="dark"?"Ativar modo claro":"Ativar modo escuro"})}
