@@ -3411,13 +3411,13 @@ function renderAside(){
   '<button type="button" class="rank-user-trigger" data-dm-profile="'+esc(x.user_id)+'" title="Ver perfil de '+esc(x.display_name)+'">'+
   avatar(x.display_name,x.avatar_url,true)+'<span class="rank-person"><strong>'+esc(x.display_name)+'</strong><span>'+
   (p?.id===x.user_id?'Meu perfil':'Ver perfil e conversar')+'</span></span></button></div>').join(''):
-  '<div class="rank-empty">'+(logged?'Ainda não há perfis cadastrados.':'Entre na conta para ver as pessoas da turma.')+'</div>';
+  '<div class="rank-empty">'+(logged?'Ainda não há perfis cadastrados.':'Entre na conta para ver os usuários.')+'</div>';
  el.innerHTML='<section class="profile-panel"><div class="profile-panel-top">'+avatar(p?.name||'Visitante',p?.avatar)+
  '<div class="profile-panel-info"><strong>'+esc(p?.name||'Visitante')+'</strong>'+
  (window.uentzoulAdminConfig?.isAdmin?.()?'<span class="admin-mini-label">Administrador</span>':'')+
  '<span>'+(p?'Conta conectada':'Não conectado')+'</span></div></div>'+
  '<button class="profile-action" data-account-action="open">'+(p?'Meu perfil / Configurações':'Entrar / Cadastrar')+'</button></section>'+
- '<section class="members-panel"><div class="member-list-heading"><h2>Pessoas da turma</h2>'+
+ '<section class="members-panel"><div class="member-list-heading"><h2>Usuários</h2>'+
  (logged?'<span>'+rows.length+' '+(rows.length===1?'perfil':'perfis')+'</span>':'')+'</div>'+
  '<div class="rank-list">'+members+'</div></section>';
 }
