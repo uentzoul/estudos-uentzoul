@@ -4444,7 +4444,7 @@ dmComposer=function(){
  '<div class="dm-mention-suggestions" id="dmMentionSuggestions" role="listbox" aria-label="Selecionar participante" hidden></div><div class="dm-composer"><button type="button" class="dm-composer-action" data-dmw-emoji title="Emojis" aria-label="Emojis">☺</button>'+
  '<button type="button" class="dm-composer-action" data-dmw-tools title="Anexar" aria-label="Anexar">＋</button><input id="dmWFileInput" type="file" hidden>'+
  '<textarea id="dmPrompt" maxlength="3000" rows="1" placeholder="Escreva uma mensagem…">'+esc(dm.draft)+'</textarea>'+
- '<button type="button" class="dm-composer-action" data-dmw-record title="Gravar áudio">♩</button>'+
+ '<button type="button" class="dm-composer-action" data-dmw-record title="Gravar áudio" aria-label="Gravar áudio"><svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="2.5" width="6" height="12" rx="3"/><path d="M5 10.5a7 7 0 0 0 14 0M12 17.5V22m-4 0h8"/></svg></button>'+
  '<button type="submit" class="dm-send-button" aria-label="Enviar" '+(dm.sending||dmW.recording?'disabled':'')+'>➤</button></div>'+
  (dm.mediaFile?'<div class="dm-media-selected">'+esc(dm.mediaFile.name)+' <button type="button" data-dm-clear-image>Remover</button></div>':'')+
  tools+'</form>';
