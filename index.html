@@ -1909,7 +1909,7 @@ html[data-theme="dark"] .schedule-today{background:#382f59;color:#dcd0ff}
   <nav class="menu" id="nav">
 <button class="sidebtn active" data-page="home"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="m3 10 9-7 9 7v10a1 1 0 0 1-1 1h-5v-7H9v7H4a1 1 0 0 1-1-1z"/></svg> Início</button>
 <button class="sidebtn" data-page="exams"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="3" width="14" height="18" rx="2"/><path d="M9 8h6M9 12h6M9 16h3"/></svg> Simulados</button>
-<button class="sidebtn" data-page="calendar"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M7 3v4M17 3v4M3 10h18M8 14h3M8 17h5"/></svg> Agenda</button>
+<button class="sidebtn" data-page="calendar"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M7 3v4M17 3v4M3 10h18M8 14h3M8 17h5"/></svg> Agenda e Horários</button>
 <button class="sidebtn" data-page="ai"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="m12 2 2.6 6.9L21 11l-6.4 2.1L12 20l-2.6-6.9L3 11l6.4-2.1L12 2Z"/><path d="m19 18 1 2 2 1-2 1-1 2-1-2-2-1 2-1z"/></svg> IA Tzoul</button>
 <button class="sidebtn" data-page="messages"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.5 8.5 0 0 1-8.5 8.5c-1.5 0-3.1-.4-4.4-1.1L3 20l1.2-4.9A8.5 8.5 0 1 1 21 11.5Z"/><path d="M8 11.5h8M8 14.5h5"/></svg> Mensagens <span class="dm-nav-badge" id="dmNavBadge" hidden></span></button>
 <span class="sidebtn nav-upcoming" role="note" tabindex="0" aria-disabled="true" aria-label="Trabalhos — em breve" title="Em breve"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3h8l4 4v14H4V3h4Z"/><path d="M16 3v5h4M8 12h8M8 16h8M8 8h4"/></svg><span class="nav-upcoming-name">Trabalhos</span><span class="nav-upcoming-tip" aria-hidden="true">Em breve</span></span>
@@ -2722,7 +2722,7 @@ function renderCalendar(){
  '<button type="button" class="agenda-toggle" data-action="agenda-past">'+(calendarShowPast?'Mostrar só próximas':'Incluir aulas anteriores')+'</button></div>'+
  (upcoming.length?calendarDateGroups(upcoming,calendarClassRow):'<div class="panel">Não há outras aulas cadastradas após hoje. Usa “Incluir aulas anteriores” para consultar o registro.</div>')+
  '<div class="agenda-caveat">“Ler revisão deste tópico” abre a seção correspondente do próprio site. Não é o texto original do livro. Quando o PDF ou capítulo não está publicado, a referência bibliográfica fica visível sem um link de download inválido.</div>'+caveat;
- return head('Organização do semestre','Agenda','Acompanha as avaliações e confere a matéria e as leituras previstas para cada aula.')+
+ return head('Organização do semestre','Agenda e Horários','Acompanha as avaliações, os horários e os conteúdos previstos para cada aula.')+
  tabs+'<div role="tabpanel">'+(calendarView==='provas'?examsView:calendarView==='horarios'?renderClassSchedule(true):classesView)+'</div>';
 }
 
@@ -3372,7 +3372,7 @@ function isPodcastView(){return current.page==='audio'||(current.page==='subject
 function render(){
  renderNav();
  if(!Object.keys(DB.subjects).length&&current.page!=='ai'&&current.page!=='messages'&&current.page!=='admin'){
-  const labels={home:['Semestre 2027/1','Um espaço novo para o próximo semestre'],exams:['Simulados','Nenhum simulado cadastrado'],library:['Biblioteca','Nenhum arquivo cadastrado'],audio:['Podcasts','Nenhum podcast cadastrado'],calendar:['Agenda','Nenhuma avaliação cadastrada']};
+  const labels={home:['Semestre 2027/1','Um espaço novo para o próximo semestre'],exams:['Simulados','Nenhum simulado cadastrado'],library:['Biblioteca','Nenhum arquivo cadastrado'],audio:['Podcasts','Nenhum podcast cadastrado'],calendar:['Agenda e Horários','Nenhuma avaliação cadastrada']};
   const v=labels[current.page]||labels.home;
   $('main').innerHTML=head(semester,v[0],v[1])+'<section class="section"><div class="panel semester-empty"><h2>Este semestre ainda está vazio</h2><p class="muted">As matérias, os textos, os simulados, os podcasts e a agenda de 2027/1 serão adicionados quando estiverem definidos. O conteúdo de 2026/2 continua disponível na outra aba.</p><p class="small">O progresso deste semestre começa vazio e não se mistura com o do semestre anterior.</p></div></section>';
   return;
