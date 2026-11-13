@@ -1977,6 +1977,8 @@ html[data-theme="dark"] .tz-pending-icon{background:#40375e;color:#d6c4ff}
 <script src="estudos-casos-data.js?v=20261112-1"></script>
 <script src="estudo-ativo.js?v=20261113-trilha-1"></script>
 <script src="psicomoodle-new-content.js?v=20261113-social-family-2"></script>
+<script src="simulados-finais-2026.js?v=20261113-1"></script>
+<link rel="stylesheet" href="simulados-finais-2026.css?v=20261113-1">
 <script src="casos-act-social.js?v=20261113-1"></script>
 <link rel="stylesheet" href="chat-whatsapp.css?v=20261112-whatsapp-chat-7">
 <style id="tz-overlap-fix">
@@ -2172,6 +2174,7 @@ const SEMESTER_DB={
 }
 };
 window.PSICOMOODLE_NEW_CONTENT?.apply(SEMESTER_DB['2026/2']);
+window.PSICO_FINAL_EXAMS?.apply(SEMESTER_DB['2026/2']);
 let semester='2026/2';
 try{const savedSemester=localStorage.getItem(SEMESTER_PREF);if(SEMESTER_DB[savedSemester])semester=savedSemester}catch{}
 let DB=SEMESTER_DB[semester];
@@ -2188,7 +2191,7 @@ const SOCIAL_EXAM_SOURCES=new Set(SOCIAL_EXAM_DOCUMENTS.map(m=>m.source));
 SEMESTER_DB['2026/2'].materials=SEMESTER_DB['2026/2'].materials.filter(m=>m.subject!=='social'||(m._psicoNew&&SOCIAL_EXAM_SOURCES.has(m.source))||/plano de ensino|cronograma/i.test(String(m.title||'')));
 if(window.PSICOMOODLE_NEW_CONTENT?.social?.length)SEMESTER_DB['2026/2'].topics.social=[...window.PSICOMOODLE_NEW_CONTENT.social];
 const SOCIAL_EXAM_MODELS=new Set(['social-6','social-7','social-8','social-9','social-10']);
-SEMESTER_DB['2026/2'].exams=SEMESTER_DB['2026/2'].exams.filter(e=>e.subject!=='social'||SOCIAL_EXAM_MODELS.has(e.id));
+// Preserva provas antigas em histórico; os cinco simulados atualizados são escolhidos por readyExamsFor.
 const SOCIAL_AUDIO_SCOPE=new Set([1,2,4,5,6]);
 if(SEMESTER_DB['2026/2'].audio.social?.episodes)SEMESTER_DB['2026/2'].audio.social.episodes=SEMESTER_DB['2026/2'].audio.social.episodes.filter(e=>SOCIAL_AUDIO_SCOPE.has(Number(e.n)));
 if(window.PSICO_CASES?.social){
@@ -2597,7 +2600,7 @@ function examCard(e){
  '<div class="exammeta">'+esc(meta.summary)+'</div>'+
  '<div class="exammeta" style="margin-top:6px">'+e.questions.length+' questões · '+e.questions.filter(q=>q.type==='essay').length+' dissertativas</div>'+
  (r?'<div class="exammeta" style="margin-top:5px">Objetivas e V/F: '+r.correct+'/'+r.total+' acertos</div>':'')+
- '<button class="btn light wide" data-action="test:'+e.id+'">'+(r?'Rever / refazer':'Iniciar simulado')+'</button></article>';
+ '<button class="btn light wide" data-action="test:'+e.id+'">'+(r?'Rever correção':'Iniciar simulado')+'</button></article>';
 }
 function docCard(m){
  if(!m.available)return '';
@@ -2706,6 +2709,8 @@ function organizedSubjectMaterials(materials,libraryView=false,subjectId=''){
 // Uma prova publicada por nível; os registros extras continuam guardados sem aparecer nesta aba.
 function readyExamsFor(subject){
  const base=DB.exams.filter(e=>e.subject===subject);
+ const latest=base.filter(e=>e.final2026===true&&e.revision===window.PSICO_FINAL_EXAMS?.version);
+ if(latest.length===5)return [1,2,3,4,5].map(level=>latest.find(e=>Number(e.model)===level)).filter(Boolean);
  const first=subject==='social'?6:1;
  return Array.from({length:5},(_,i)=>base.find(e=>Number(e.model)===first+i)).filter(Boolean);
 }
@@ -3545,7 +3550,7 @@ window.addEventListener('uentzoul:auth',()=>{
 
 /* Simulados inéditos por solicitação: 13 objetivas + 2 dissertativas.
    A correção e o bloqueio de repetição são feitos pelo servidor. */
-const ge={exams:[],submissions:[],shares:[],profiles:[],hidden:[],invites:[],tab:'ready',shareExamId:null,selected:null,subject:'tcc',difficulty:'normal',
+const ge={exams:[],submissions:[],shares:[],profiles:[],hidden:[],invites:[],tab:'ready',shareExamId:null,selected:null,subject:'tcc',difficulty:'normal',questionCount:10,includeEssays:true,
  answers:{},shareTarget:[],loading:false,loaded:false,owner:null,busy:false,notice:'',error:'',pending:false,lastFetch:0,realtime:null};
 function geSubmission(id){return ge.submissions.find(x=>x.exam_id===id)}
 
@@ -3553,7 +3558,8 @@ function geDraft(id){
  if(ge.answers[id])return ge.answers[id];
  let draft=null;
  try{draft=JSON.parse(localStorage.getItem('uentzoul_exam_draft_'+(geUser()?.id||'')+'_'+id)||'null')}catch(_){}
- ge.answers[id]=Array.isArray(draft)&&draft.length===15?draft:Array(15).fill('');
+ const total=ge.exams.find(e=>e.id===id)?.questions?.length||15;
+ ge.answers[id]=Array.isArray(draft)&&draft.length===total?draft:Array(total).fill('');
  return ge.answers[id];
 }
 function geSaveDraft(id){
@@ -3573,7 +3579,7 @@ function geExamCard(exam){
  const sent=ge.invites.filter(x=>x.exam_id===exam.id&&x.sender_id===geUser()?.id);
  return '<article class="ge-card" style="--accent:'+color(exam.subject)+'">'+
   '<div class="ge-card-head"><span class="pill">'+(mine?'Meu simulado':'Compartilhado comigo')+'</span><span class="ge-difficulty">'+(exam.difficulty==='dificil'?'Difícil':'Normal')+'</span></div>'+
-  '<h3>'+esc(geSubjectName(exam.subject))+'</h3><p>13 objetivas e 2 dissertativas</p><small>'+
+  '<h3>'+esc(geSubjectName(exam.subject))+'</h3><p>'+exam.questions.filter(q=>q.type==='choice').length+' objetivas'+(exam.questions.some(q=>q.type==='essay')?' e '+exam.questions.filter(q=>q.type==='essay').length+' dissertativas':'')+'</p><small>'+
   new Date(exam.created_at).toLocaleDateString('pt-BR',{day:'2-digit',month:'short',year:'numeric'})+
   '</small><div class="ge-card-foot"><span class="pill '+(submitted?'ok':'')+'">'+(submitted?'Entregue':'Não entregue')+'</span>'+
   '<button type="button" data-ge-open="'+esc(exam.id)+'">'+(submitted?'Rever':'Responder')+'</button></div>'+
@@ -3592,10 +3598,12 @@ function geRenderList(){
  if(!logged)return head('Simulados','Criar simulados personalizados','A IA gera uma prova nova para cada solicitação, baseada no conteúdo da disciplina e no estilo do professor.')+
   '<section class="panel ge-panel"><h2>Entre na sua conta</h2><p>Para gerar, guardar e compartilhar provas, é necessário entrar na conta do site.</p><button class="btn" data-action="tz-login">Entrar / Cadastrar</button></section>';
  const subjects=Object.entries(DB.subjects);
- const form=subjects.length?'<div class="ge-generator"><div><span class="eyebrow">NOVO SIMULADO</span><h2>Uma prova inédita para estudar</h2><p>Escolha a disciplina e a dificuldade. Cada geração cria 13 perguntas objetivas no estilo do professor e 2 dissertativas, com gabarito e critérios após a entrega.</p></div>'+
+ const form=subjects.length?'<div class="ge-generator"><div><span class="eyebrow">NOVO SIMULADO</span><h2>Uma prova inédita para estudar</h2><p>Escolha a disciplina, a dificuldade e a quantidade de questões objetivas. Se desejar, adicione duas questões dissertativas finais. A correção e os critérios ficam disponíveis após a entrega.</p></div>'+
   '<div class="ge-fields"><label>Disciplina<select id="geSubject">'+subjects.map(([id,v])=>'<option value="'+esc(id)+'" '+(ge.subject===id?'selected':'')+'>'+esc(v.name)+'</option>').join('')+'</select></label>'+
   '<label>Dificuldade<select id="geDifficulty"><option value="normal" '+(ge.difficulty==='normal'?'selected':'')+'>Normal</option><option value="dificil" '+(ge.difficulty==='dificil'?'selected':'')+'>Difícil</option></select></label>'+
-  '<button type="button" class="btn ge-primary" data-ge-create '+(ge.busy?'disabled':'')+'>'+(ge.busy?'Preparando as 15 questões…':'Gerar novo simulado')+'</button></div></div>':
+  '<label>Quantidade de questões objetivas<select id="geQuestionCount">'+[5,10,15,20].map(n=>'<option value="'+n+'" '+(ge.questionCount===n?'selected':'')+'>'+n+' questões</option>').join('')+'</select></label>'+
+  '<label class="ge-essay-choice"><input type="checkbox" id="geIncludeEssays" '+(ge.includeEssays?'checked':'')+'> Incluir 2 questões dissertativas ao final</label>'+
+  '<button type="button" class="btn ge-primary" data-ge-create '+(ge.busy?'disabled':'')+'>'+(ge.busy?'Preparando o simulado…':'Gerar novo simulado')+'</button></div></div>':
   '<div class="ge-generator"><h2>Sem disciplinas cadastradas em '+esc(semester)+'</h2><p>Volte ao semestre 2026/2 para gerar provas com os materiais disponíveis.</p></div>';
  const visible=ge.exams.filter(e=>!ge.hidden.some(h=>h.exam_id===e.id));
  const owned=visible.filter(e=>e.creator_id===geUser().id);
@@ -3607,15 +3615,16 @@ function geRenderList(){
   (ge.notice?'<p class="small muted" role="status">'+esc(ge.notice)+'</p>':'')+
   '<div class="ge-toolbar"><span>Histórico salvo na sua conta</span><div class="ge-toolbar-actions">'+(ge.hidden.length?'<button type="button" class="btn sm light" data-ge-restore>Restaurar ocultados ('+ge.hidden.length+')</button>':'')+'<button type="button" class="btn sm light" data-ge-refresh '+(ge.loading?'disabled':'')+'>Atualizar histórico</button></div></div>'+
   (ge.loading?'<div class="panel ge-panel">Carregando simulados salvos…</div>':
-  section('Meus simulados',owned,'Ainda não criaste um simulado.')+
+  section('Meus simulados',owned,'Nenhum simulado criado até agora.')+
   section('Compartilhados comigo',received,'Quando um colega compartilhar uma prova contigo, ela aparecerá aqui.'))+
   '<p class="small">As questões são geradas com base nos materiais cadastrados. O formato se aproxima das provas dos professores quando há exemplos disponíveis; não é uma prova oficial. Os simulados gerados servem para praticar.</p>';
 }
 function geRenderExam(){
  const exam=ge.exams.find(e=>e.id===ge.selected);if(!exam){ge.selected=null;return geRenderList()}
  const submission=geSubmission(exam.id),review=!!submission,answers=review?submission.answers:geDraft(exam.id);
+ const objectiveCount=exam.questions.filter(q=>q.type==='choice').length,essayCount=exam.questions.length-objectiveCount;
  const details=review?(submission.feedback?.details||[]):[];
- const complete=answers.filter((v,i)=>i<13?["0","1","2","3","4"].includes(String(v)):String(v).trim().length>=20).length;
+ const complete=answers.filter((v,i)=>i<objectiveCount?["0","1","2","3","4"].includes(String(v)):String(v).trim().length>=20).length;
  const mine=exam.creator_id===geUser()?.id;
  const questions=exam.questions.map((q,i)=>{
   const feedback=details[i],opt=Array.isArray(q.options)?q.options:[];
@@ -3642,9 +3651,9 @@ function geRenderExam(){
   (alreadyShared.length?'<p class="small">Enviado para '+alreadyShared.length+' pessoa(s).</p>':'')+'</section>':'';
  return '<button class="back" type="button" data-ge-back>← Voltar aos simulados</button>'+
   '<div class="ge-test-header"><span class="eyebrow">'+esc(geSubjectName(exam.subject))+' · '+(exam.difficulty==='dificil'?'Difícil':'Normal')+'</span>'+
-  '<h1>Simulado personalizado</h1><p>13 questões objetivas e 2 dissertativas. '+(review?'Prova entregue: pode rever perguntas, respostas e correção, mas não refazer.':'A entrega é definitiva: confira suas respostas antes de enviar.')+'</p>'+
-  (review?'<div class="ge-score"><strong>'+Number(submission.feedback?.correct||0)+'/13</strong><span>objetivas corretas · dissertativas com critérios de revisão</span></div>':
-   '<div class="ge-progress">'+complete+'/15 respostas preenchidas</div>')+
+  '<h1>Simulado personalizado</h1><p>'+objectiveCount+' questões objetivas'+(essayCount?' e '+essayCount+' dissertativas':'')+'. '+(review?'Prova entregue: pode rever perguntas, respostas e correção, mas não refazer.':'A entrega é definitiva: confira suas respostas antes de enviar.')+'</p>'+
+  (review?'<div class="ge-score"><strong>'+Number(submission.feedback?.correct||0)+'/'+objectiveCount+'</strong><span>objetivas corretas'+(essayCount?' · dissertativas com critérios de revisão':'')+'</span></div>':
+   '<div class="ge-progress">'+complete+'/'+exam.questions.length+' respostas preenchidas</div>')+
   '</div><div class="ge-questions">'+questions+'</div>'+
   (ge.error?'<div class="tz-notice">'+esc(ge.error)+'</div>':'')+
   (!review?'<div class="ge-submit"><span>Não será possível refazer após a entrega.</span><button class="btn ge-primary" type="button" data-ge-submit '+(ge.busy?'disabled':'')+'>'+(ge.busy?'Enviando…':'Entregar e corrigir')+'</button></div>':
@@ -3673,7 +3682,7 @@ async function geLoad(){
 }
 async function geCreate(){
  if(ge.busy||!geUser()||!DB.subjects[ge.subject])return;
- const userId=geUser().id,requestedSubject=ge.subject,requestedSemester=semester,requestedDifficulty=ge.difficulty;
+ const userId=geUser().id,requestedSubject=ge.subject,requestedSemester=semester,requestedDifficulty=ge.difficulty,requestedCount=ge.questionCount,requestedEssays=ge.includeEssays;
  const startedAt=new Date().toISOString();
  ge.busy=true;ge.error='';ge.notice='A IA está montando a prova a partir dos materiais da disciplina.';
  render();
@@ -3687,7 +3696,7 @@ async function geCreate(){
   if(exam){
    if(!ge.exams.some(e=>e.id===exam.id))ge.exams.unshift(exam);
    ge.selected=exam.id;
-   if(!ge.answers[exam.id])ge.answers[exam.id]=Array(15).fill('');
+   if(!ge.answers[exam.id])ge.answers[exam.id]=Array(exam.questions?.length||15).fill('');
    ge.error='';ge.notice='';
   }else{
    ge.error=error||'Não foi possível confirmar a criação do simulado. Verifique o histórico antes de tentar novamente.';
@@ -3722,7 +3731,7 @@ async function geCreate(){
  },150000);
  // Fazemos o acompanhamento independentemente da resposta da Edge Function.
  tzFetch('POST',{mode:'generated_exam_create',message:'Gerar prova inédita',
-  subject:requestedSubject,semester:requestedSemester,difficulty:requestedDifficulty})
+  subject:requestedSubject,semester:requestedSemester,difficulty:requestedDifficulty,questionCount:requestedCount,includeEssays:requestedEssays})
   .then(data=>{
    if(finished)return;
    if(data?.generatedExam)finish(data.generatedExam);
@@ -3736,10 +3745,11 @@ async function geCreate(){
 }
 async function geSubmit(){
  if(ge.busy||!ge.selected||geSubmission(ge.selected))return;
- const values=geDraft(ge.selected);
- if(values.slice(0,13).some(v=>!["0","1","2","3","4"].includes(String(v)))||
-  values.slice(13).some(v=>String(v).trim().length<20)){
-  ge.error='Responda todas as 13 objetivas e escreva pelo menos 20 caracteres em cada dissertativa.';render();return;
+ const exam=ge.exams.find(e=>e.id===ge.selected),values=geDraft(ge.selected);
+ const total=exam?.questions?.length||0,objectiveCount=exam?.questions?.filter(q=>q.type==='choice').length||0;
+ if(!total||values.length!==total||values.slice(0,objectiveCount).some(v=>!["0","1","2","3","4"].includes(String(v)))||
+  values.slice(objectiveCount).some(v=>String(v).trim().length<20)){
+  ge.error='Responda às '+objectiveCount+' objetivas'+(total>objectiveCount?' e escreva pelo menos 20 caracteres em cada dissertativa':'')+'.';render();return;
  }
  if(!confirm('Entregar definitivamente? Depois da entrega não é possível refazer este simulado.'))return;
  ge.busy=true;ge.error='';render();
@@ -3820,7 +3830,12 @@ function geReadyLibrary(){
   const all=readyExamsFor(id);
   const group=items=>'<div class="examgrid ge-ready-grid">'+items.map(examCard).join('')+'</div>';
   return '<section class="section ge-ready-subject"><div class="sectiontop"><h2 style="border-left:4px solid '+color(id)+';padding-left:10px">'+esc(DB.subjects[id].name)+'</h2><span class="pill">'+all.length+' simulados</span></div>'+
-  group(all)+'</section>';
+  group(all)+
+  (DB.exams.some(e=>e.subject===id&&!e.final2026&&store.results[e.id])?
+   '<details class="ge-old-archive"><summary>Simulados anteriores concluídos · consultar correções</summary><div class="examgrid">'+
+    DB.exams.filter(e=>e.subject===id&&!e.final2026&&store.results[e.id]).map(examCard).join('')+
+   '</div></details>':'')+
+  '</section>';
  }).join('');
 }
 renderExams=function(){
@@ -3891,6 +3906,8 @@ document.addEventListener('click',e=>{
 document.addEventListener('change',e=>{
  if(e.target.id==='geSubject'){ge.subject=e.target.value;return}
  if(e.target.id==='geDifficulty'){ge.difficulty=e.target.value;return}
+ if(e.target.id==='geQuestionCount'){const n=Number(e.target.value);if([5,10,15,20].includes(n))ge.questionCount=n;return}
+ if(e.target.id==='geIncludeEssays'){ge.includeEssays=e.target.checked;return}
  if(e.target.id==='geShareTarget'){ge.shareTarget=Array.from(e.target.selectedOptions).map(o=>o.value);return}
  if(e.target.matches('[data-ge-answer][type=radio]')){
   if(!ge.selected||geSubmission(ge.selected))return;
