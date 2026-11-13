@@ -49,7 +49,7 @@ familia:[
 ],
 meta:[
  {title:'Visualizar o funcionamento do aparelho psíquico',goal:'Use as aulas do professor para estabelecer a sequência dos conceitos.',steps:[
- ['video',0,'Abre a linha do tempo e consulte cada aula por assunto e minutagem.'],
+ ['video',0,'Abra a linha do tempo e consulte cada aula por assunto e minutagem.'],
  ['material','segunda tópica','Leia os slides da segunda tópica após a explicação do professor.'],
  ['audio',4,'Relacione Id, Ego e Superego ao conflito psíquico.']]},
  {title:'Distinguir Édipo e narcisismo',goal:'Evite reduzir os conceitos a definições isoladas.',steps:[
@@ -81,7 +81,7 @@ grupos:[
  ['audio',4,'Entenda o funcionamento dos grupos rogerianos.'],
  ['flash',0,'Compare os conceitos de Rogers e Moreno.']]},
  {title:'Analisar Escritores da Liberdade',goal:'Relacione a dinâmica grupal a vínculos, diferenças e transformação.',steps:[
- ['material','escritores da liberdade','Consulta o material de estudo do filme.'],
+ ['material','escritores da liberdade','Consulte o material de estudo do filme.'],
  ['audio',6,'Ouça uma síntese comparativa de Moreno e Rogers.'],
  ['guided',0,'Responda às perguntas dirigidas para articular teoria e filme.'],
  ['topics',0,'Revise os conceitos que aparecem na análise do grupo.']]},
@@ -129,7 +129,7 @@ avaliacao:[
  ['material','contexto organizacional','Estude demandas e limites no contexto organizacional.'],
  ['material','hospitalar e forense','Leia os exemplos de avaliação hospitalar e forense.'],
  ['audio',5,'Revise validade, precisão e fundamentos psicométricos.'],
- ['topics',0,'Organiza conceitos e exemplos para evitar confusões na prova.']]},
+ ['topics',0,'Organize conceitos e exemplos para evitar confusões na prova.']]},
  {title:'Integrar e verificar aprendizagem',goal:'Feche a revisão com recordação ativa e correções comentadas.',steps:[
  ['flash',0,'Revise os conceitos essenciais sem consultar materiais.'],
  ['exam',1,'Faça o simulado de conceitos básicos.'],
