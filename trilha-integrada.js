@@ -183,6 +183,17 @@ document.addEventListener('click',event=>{
   if(window.PSICO_PRACTICE?.markCard?.(mark.dataset.tiSubject,mark.dataset.tiMark)){mark.disabled=true;mark.textContent='✓ Lembrado';}
   return;
  }
+ const choice=event.target.closest('[data-ti-choice]');
+ if(choice){
+  event.preventDefault();
+  const root=choice.closest('.ti-case'),feedback=root?.querySelector('.ti-case-feedback');
+  if(!root||!feedback)return;
+  feedback.hidden=false;
+  feedback.innerHTML='<strong>Consequência da escolha</strong><p>'+esc(choice.dataset.tiOutcome||'')+'</p>'+
+   '<strong>Como interpretar</strong><p>'+esc(choice.dataset.tiReason||'')+'</p>';
+  root.querySelectorAll('[data-ti-choice]').forEach(btn=>{btn.disabled=true;btn.classList.toggle('ti-picked',btn===choice);});
+  return;
+ }
  const dl=event.target.closest('[data-ti-download]');
  if(dl){event.preventDefault();downloadAudio(dl);}
 });
