@@ -42,6 +42,8 @@
   for(const t of DATA.act)if(!db.topics.tcc.some(x=>x.title===t.title))db.topics.tcc.push(t);
   for(const t of DATA.social)if(!db.topics.social.some(x=>x.title===t.title))db.topics.social.push(t);
   for(const doc of DATA.docs)if(!db.materials.some(x=>x.subject==='social'&&x.source===doc.source))db.materials.push({...doc});
+  const actDoc={subject:'tcc',title:'ACT na clínica — Hexaflex e flexibilidade psicológica',source:'ACT na clínica.pdf.pdf',kind:'PDF',note:'Material encontrado na biblioteca anterior; publicação do PDF original pendente.',extra:false,available:false,url:'',group:'ACT',_psicoNew:true};
+  if(!db.materials.some(x=>x.subject==='tcc'&&x.title===actDoc.title))db.materials.push(actDoc);
   for(const [subject,items] of [['tcc',DATA.act],['social',DATA.social]]){
    for(const model of [6,7])if(!db.exams.some(x=>x.id===subject+'-'+model))db.exams.push(makeExam(subject,model,items));
   }
