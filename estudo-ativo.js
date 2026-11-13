@@ -84,6 +84,22 @@ function caseView(id){
 }
 function refresh(root){const id=root.dataset.activeId;root.outerHTML=root.dataset.activeMode==='flash'?cardView(id):caseView(id)}
 window.PSICO_PRACTICE={
+ focusCards(id,topics,titles,max=4){
+  const state=S(id);
+  state.topics=Array.isArray(topics)?topics:[];
+  const selected=new Set((titles||[]).map(v=>n(v).toLocaleLowerCase('pt-BR')));
+  const all=cards(id),data=records(id);
+  const focused=all.filter(c=>c.key.endsWith(':def')&&[...selected].some(t=>c.key.startsWith(id+':'+t+':'))).slice(0,Math.max(1,Math.min(8,max)));
+  return focused.map(c=>({...c,remembered:!!data[c.key]?.hits}));
+ },
+ markCard(id,cardKey){
+  if(!cards(id).some(c=>c.key===cardKey))return false;
+  const data=records(id),previous=data[cardKey]||{hits:0,misses:0};
+  const hits=Math.min(10,(previous.hits||0)+1);
+  const days=[1,3,7,14,30,60,90];
+  data[cardKey]={hits,misses:previous.misses||0,due:Date.now()+days[Math.min(hits-1,days.length-1)]*86400000};
+  save(id,data);return true;
+ },
  flashcards(id,topics,semester){const s=S(id);s.topics=Array.isArray(topics)?topics:[];s.semester=semester||'2026/2';return cardView(id)},
  cases(id){return (window.PSICO_CASES?.[id]?.length?caseView(id):'<div class="as-empty">Nenhum caso disponível nesta matéria.</div>')},
  hasCases(id){return !!window.PSICO_CASES?.[id]?.length}
