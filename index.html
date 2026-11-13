@@ -3125,8 +3125,63 @@ function tzMarkdown(raw){
  stop();if(code)html+='<pre><code>'+esc(pre)+'</code></pre>';
  return html;
 }
+/* Busca de documentos da biblioteca: links só são oferecidos após confirmar arquivo real.
+   Arquivos apenas cadastrados continuam visíveis como pendentes, sem links quebrados. */
+const tzPublishedPdfManifest=new Set(["planos-e-cronogramas/avaliacao-cronograma.pdf","planos-e-cronogramas/avaliacao-plano-de-ensino.pdf","planos-e-cronogramas/familia-cronograma.pdf","planos-e-cronogramas/familia-plano-de-ensino.pdf","planos-e-cronogramas/grupos-plano-e-cronograma.pdf","planos-e-cronogramas/metapsicologia-plano-e-cronograma.pdf","planos-e-cronogramas/social-plano-e-cronograma.pdf","planos-e-cronogramas/tcc-cronograma.pdf","planos-e-cronogramas/tcc-plano-de-ensino.pdf"]);
+const tzPdfStatus=new Map();
+const tzFold=s=>String(s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z0-9]+/g,' ').trim();
+const tzIgnore=new Set(['me','eu','tu','pra','para','por','favor','aqui','site','quero','preciso','manda','mandar','envia','enviar','passa','passar','os','as','um','uma','uns','umas','de','do','da','dos','das','em','no','na','nos','nas','meus','minhas','seus','suas','arquivo','arquivos','pdf','slides','texto','textos','material','materiais','baixar','download','tem','com','sobre','essa','esse','aquele','aquela','pode','ser','encontre','encontrar','localizar','pegar','abrir','aula','aulas','disciplina','disciplinas','todas','todos','todos']);
+function tzFileRequest(query){
+ const s=tzFold(query);
+ return /(^| )(pdfs?|slides?|arquivo(s)?|baixar|download|envia(r)?|manda(r)?|passa(r)?|anexo(s)?)( |$)/.test(s)||
+ /(^| )(me mostra|onde encontro|pode disponibilizar|quero o material|quero os materiais)( |$)/.test(s);
+}
+function tzMaterialTerms(query){return tzFold(query).split(' ').filter(s=>s.length>2&&!tzIgnore.has(s))}
+function tzSafePdfPath(path){
+ const s=String(path||'');
+ return /^(biblioteca|planos-e-cronogramas)\/[a-z0-9_./-]+\.pdf$/i.test(s)&&!s.includes('..')?s:'';
+}
+function tzRankMaterials(query){
+ const terms=tzMaterialTerms(query);
+ if(!terms.length)return [];
+ return DB.materials.map(m=>{
+  const label=tzFold((m.title||'')+' '+(m.source||'')+' '+(m.note||''));
+  const score=terms.reduce((n,t)=>n+(label.includes(t)?(tzFold(m.title||'').includes(t)?3:1):0),0)+
+   (tz.subject!=='todos'&&m.subject===tz.subject?1:0);
+  return {m,score};
+ }).filter(v=>v.score>0).sort((a,b)=>b.score-a.score).slice(0,10).map(v=>v.m);
+}
+async function tzExistsPdf(path){
+ if(!tzSafePdfPath(path))return false;
+ if(tzPublishedPdfManifest.has(path))return true;
+ if(tzPdfStatus.has(path))return tzPdfStatus.get(path);
+ const test=fetch(new URL(path,document.baseURI),{method:'HEAD',cache:'no-store'})
+  .then(r=>r.ok&&(/pdf|octet-stream/i.test(r.headers.get('content-type')||'')||r.headers.get('content-type')===''))
+  .catch(()=>false);
+ tzPdfStatus.set(path,test);
+ return await test;
+}
+async function tzLibraryAnswer(query){
+ if(!tzFileRequest(query))return null;
+ const ranked=tzRankMaterials(query);
+ if(!ranked.length)return null;
+ const ready=[],missing=[];
+ for(const m of ranked){
+  if(ready.length>=5)break;
+  const path=tzSafePdfPath(m.url);
+  if(path&&await tzExistsPdf(path))ready.push({...m,path});
+  else missing.push(m);
+ }
+ if(!ready.length){
+  return 'Encontrei '+ranked.length+' referência(s) relacionada(s) ao pedido, mas não encontrei o PDF original publicado em um endereço acessível do site. Não vou enviar um link que não funcione. Os materiais permanecem cadastrados para publicação.';
+ }
+ let answer='Encontrei '+ready.length+' PDF(s) disponível(is) para baixar diretamente do PsicoMoodle:\n\n';
+ answer+=ready.map(m=>'- ['+String(m.title||m.source||'Abrir PDF').replace(/[\[\]]/g,'')+']('+new URL(m.path,document.baseURI).href+')').join('\n');
+ if(missing.length)answer+='\n\nHá também '+missing.length+' referência(s) relacionada(s) sem PDF original publicado. Elas continuam registradas, mas não geram links inválidos.';
+ return answer;
+}
 function tzFiles(){const seen=new Set();return DB.materials.filter(m=>{
- if(!m.available||!/^biblioteca\/[a-z0-9_.-]+\.(pdf|docx|txt)$/i.test(m.url||''))return false;
+ if(!m.available||!tzSafePdfPath(m.url)||!tzPublishedPdfManifest.has(m.url))return false;
  if(tz.subject!=='todos'&&tz.subject!==m.subject)return false;
  if(seen.has(m.url))return false;
  seen.add(m.url);return true;
@@ -3272,7 +3327,9 @@ async function tzAsk(){
   uploaded=await tzUploadFiles();
   if(!id)id=await tzCreateConversation(message);
   tz.messages.push({role:'user',content:message,attachments:uploaded});added=true;render();
-  const answer=await tzFetch('POST',{message,history,attachments:uploaded,subject:tz.subject,materialPath:tz.material,mode:tz.mode,quality:tz.quality});
+  const localAnswer=!uploaded.length?await tzLibraryAnswer(message):null;
+  const answer=localAnswer?{answer:localAnswer,sources:[],remaining:tz.remaining,usedMaterial:false}:
+   await tzFetch('POST',{message,history,attachments:uploaded,subject:tz.subject,materialPath:tz.material,mode:tz.mode,quality:tz.quality});
   if(!answer.answer)throw Error('A IA não retornou texto.');
   tz.messages.push({role:'assistant',content:answer.answer,sources:answer.sources||[]});
   sent=true;tz.remaining=typeof answer.remaining==='number'?answer.remaining:null;tz.draft='';tzCleanPending();
@@ -3836,7 +3893,8 @@ function render(){
   $('main').innerHTML=head(semester,v[0],v[1])+'<section class="section"><div class="panel semester-empty"><h2>Este semestre ainda está vazio</h2><p class="muted">As matérias, os textos, os simulados, os podcasts e a agenda de 2027/1 serão adicionados quando estiverem definidos. O conteúdo de 2026/2 continua disponível na outra aba.</p><p class="small">O progresso deste semestre começa vazio e não se mistura com o do semestre anterior.</p></div></section>';
   return;
  }
- let body='';switch(current.page){case 'home':body=renderHome();break;case 'subject':body=renderSubject(current.subject);break;case 'exams':body=renderExams();break;case 'test':body=renderTest(current.exam);break;case 'library':body=renderHome();break;case 'audio':body=renderAudio();break;case 'calendar':body=renderCalendar();break;case 'ai':body=renderAI();break;case 'messages':body=window.uentzoulMessenger?.render()||'<section class="panel">Carregando mensagens…</section>';break;case 'admin':body=window.uentzoulAdminConfig?.render()||'<section class="panel">Acesso restrito.</section>';break;default:body=renderHome()};$('main').innerHTML=body;if(current.page==='ai')queueMicrotask(tzHydrateThumbnails);if(isPodcastView())setupAudio();if(current.page==='messages')window.uentzoulMessenger?.afterRender(current.peerId||null);if(current.page==='admin')window.uentzoulAdminConfig?.afterRender();}
+ let body='';switch(current.page){case 'home':body=renderHome();break;case 'subject':body=renderSubject(current.subject);break;case 'exams':body=renderExams();break;case 'test':body=renderTest(current.exam);break;case 'library':body=renderHome();break;case 'audio':body=renderAudio();break;case 'calendar':body=renderCalendar();break;case 'ai':body=renderAI();break;case 'messages':body=window.uentzoulMessenger?.render()||'<section class="panel">Carregando mensagens…</section>';break;case 'admin':body=window.uentzoulAdminConfig?.render()||'<section class="panel">Acesso restrito.</section>';break;default:body=renderHome()};if(psAudioElement&&psAudioElement.isConnected&&$('main').contains(psAudioElement))document.body.appendChild(psAudioElement);
+ $('main').innerHTML=body;if(current.page==='ai')queueMicrotask(tzHydrateThumbnails);if(isPodcastView())setupAudio();if(current.page==='messages')window.uentzoulMessenger?.afterRender(current.peerId||null);if(current.page==='admin')window.uentzoulAdminConfig?.afterRender();}
 /* Armazenamento local de podcasts. A URL de cada episódio é publicada como
    arquivo independente; o HTML não carrega o áudio antecipadamente. */
 const POD_DB_NAME='EstudosUentzoulPodcasts_v1';
