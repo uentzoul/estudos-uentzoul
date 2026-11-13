@@ -2,7 +2,8 @@
    Novos IDs preservam tentativas, correções e questões de edições anteriores. */
 (()=>{
 'use strict';
-const VERSION='rev-final-20261113';
+const VERSION='rev-final-20261113-r2';
+const PREVIOUS_VERSION='rev-final-20261113';
 const LETTERS=['I','II','III','IV','V'];
 const familyExtra=[
 {title:'Mitos, rituais e lealdades familiares',definition:'Mitos familiares são narrativas e expectativas compartilhadas que participam da organização das relações; os rituais podem expressar pertencimento, valores e regras, com sentidos diferentes entre os integrantes.',scenario:'Uma família debate se deve manter uma celebração tradicional: algumas pessoas a vivenciam como apoio, outras como obrigação.',myth:'Um ritual familiar sempre possui o mesmo significado para todos e não pode mudar.'},
@@ -71,16 +72,19 @@ function discursive(a,b,level,id){
  model:'O conceito de '+a.title+' pode ser entendido assim: '+definition(a)+'. No caso, '+context(a)+' A análise também dialoga com '+b.title+': '+definition(b)+'. Uma resposta adequada diferencia as duas formulações e considera as características específicas da situação, evitando conclusões universais ou estigmatizantes.',
  source:'Resposta orientativa de estudo; confira os documentos originais.'};
 }
-function generate(id,level,topics){
+function generate(id,level,topics,version=VERSION){
  const qs=[],base=(level-1)*7;
+ // Evite saltos múltiplos do número de assuntos: isso repetia um único tema
+ // de Grupos e somente quatro temas por prova de Avaliação Psicológica.
+ const stride=version===PREVIOUS_VERSION?3:(topics.length%3===0?5:3);
  for(let i=0;i<10;i++){
-  const a=get(topics,base+i*3),b=get(topics,base+i*3+1),c=get(topics,base+i*3+2);
-  const qid=id+'-'+VERSION+'-'+level+'-'+(i+1);
+  const a=get(topics,base+i*stride),b=get(topics,base+i*stride+1),c=get(topics,base+i*stride+2);
+  const qid=id+'-'+version+'-'+level+'-'+(i+1);
   qs.push(i===2||i===7?assertions(a,b,c,level,i,qid):
    i===3||i===6||i===9?trueFalse(a,level,i,qid):choices(topics,a,level,i,qid));
  }
- for(let i=0;i<2;i++)qs.push(discursive(get(topics,base+11+i*5),get(topics,base+15+i*5),level,id+'-'+VERSION+'-'+level+'-'+(11+i)));
- return {id:id+'-'+VERSION+'-'+level,subject:id,model:level,title:'Simulado '+level,final2026:true,revision:VERSION,questions:qs};
+ for(let i=0;i<2;i++)qs.push(discursive(get(topics,base+11+i*5),get(topics,base+15+i*5),level,id+'-'+version+'-'+level+'-'+(11+i)));
+ return {id:id+'-'+version+'-'+level,subject:id,model:level,title:'Simulado '+level,final2026:true,revision:version,questions:qs};
 }
 function apply(db){
  if(!db?.subjects||!db?.topics||!Array.isArray(db.exams))return;
@@ -90,7 +94,11 @@ function apply(db){
   if(id==='familia')for(const x of familyExtra)if(!db.topics.familia.some(t=>t.title===x.title))db.topics.familia.push({...x});
   if(topics.length<3)continue;
   for(let level=1;level<=5;level++){
-   const exam=generate(id,level,topics);
+   // Mantenha os simulados da revisão anterior acessíveis para consultar
+   // tentativas concluídas, sem alterar seus enunciados ou gabaritos.
+   const archived=generate(id,level,topics,PREVIOUS_VERSION);
+   if(!db.exams.some(e=>e.id===archived.id))db.exams.push(archived);
+   const exam=generate(id,level,topics,VERSION);
    if(!db.exams.some(e=>e.id===exam.id))db.exams.push(exam);
   }
  }
