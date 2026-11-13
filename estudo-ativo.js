@@ -48,7 +48,7 @@ function cardView(id){
  if(!Number.isInteger(s.cardIndex))s.cardIndex=-1;
  if(s.cardIndex>=all.length)s.cardIndex=-1;
  const completed=all.filter(c=>data[c.key]?.hits>0).length;
- const shell='<section class="as-shell as-flash-shell" data-active-mode="flash" data-active-id="'+esc(id)+'"><header class="as-head"><div><small>RECORDAÇÃO ATIVA</small><h2>Flashcards</h2><p>Escolha qualquer cartão. Os que já foram lembrados continuam acessíveis; pular não marca como concluído.</p></div><span>'+completed+' / '+all.length+' lembrados</span></header>';
+ const shell='<section class="as-shell as-flash-shell" data-active-mode="flash" data-active-id="'+esc(id)+'"><header class="as-head"><div><small>RECORDAÇÃO ATIVA</small><h2>Flashcards</h2><p>Escolha qualquer cartão. Os cartões já lembrados continuam acessíveis; a opção Pular não registra conclusão.</p></div><span>'+completed+' / '+all.length+' lembrados</span></header>';
  if(!all.length)return shell+'<div class="as-empty">Não há cartões cadastrados nesta disciplina.</div></section>';
  if(s.cardIndex<0){
   return shell+'<div class="as-flash-overview"><div class="as-flash-meter" aria-label="'+completed+' de '+all.length+' lembrados"><span style="width:'+(100*completed/all.length).toFixed(1)+'%"></span></div>'+
