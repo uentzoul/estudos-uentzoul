@@ -2153,7 +2153,7 @@ const SOCIAL_EXAM_DOCUMENTS=window.PSICOMOODLE_NEW_CONTENT?.documents||[];
 const SOCIAL_EXAM_SOURCES=new Set(SOCIAL_EXAM_DOCUMENTS.map(m=>m.source));
 SEMESTER_DB['2026/2'].materials=SEMESTER_DB['2026/2'].materials.filter(m=>m.subject!=='social'||(m._psicoNew&&SOCIAL_EXAM_SOURCES.has(m.source))||/plano de ensino|cronograma/i.test(String(m.title||'')));
 if(window.PSICOMOODLE_NEW_CONTENT?.social?.length)SEMESTER_DB['2026/2'].topics.social=[...window.PSICOMOODLE_NEW_CONTENT.social];
-const SOCIAL_EXAM_MODELS=new Set(['social-6','social-7','social-8','social-9']);
+const SOCIAL_EXAM_MODELS=new Set(['social-6','social-7','social-8','social-9','social-10']);
 SEMESTER_DB['2026/2'].exams=SEMESTER_DB['2026/2'].exams.filter(e=>e.subject!=='social'||SOCIAL_EXAM_MODELS.has(e.id));
 const SOCIAL_AUDIO_SCOPE=new Set([1,2,4,5,6]);
 if(SEMESTER_DB['2026/2'].audio.social?.episodes)SEMESTER_DB['2026/2'].audio.social.episodes=SEMESTER_DB['2026/2'].audio.social.episodes.filter(e=>SOCIAL_AUDIO_SCOPE.has(Number(e.n)));
@@ -2539,13 +2539,16 @@ function renderHome(){
  '<div class="footer">O progresso é marcado manualmente. Respostas dissertativas são avaliadas por critérios de estudo.</div>';
 }
 const DIFFICULTY_STEPS=[
- {label:'Normal',summary:'Questões de dificuldade normal.'},
- {label:'Normal',summary:'Questões de dificuldade normal com maior interpretação.'},
- {label:'Normal',summary:'Questões normais que exigem integração de conceitos.'},
+ {label:'Muito fácil',summary:'Primeiro contato com os conceitos e exemplos essenciais.'},
+ {label:'Fácil',summary:'Aplicação direta dos conceitos fundamentais.'},
+ {label:'Intermediário',summary:'Interpretação de casos e integração de conteúdos.'},
  {label:'Difícil',summary:'Casos complexos e alternativas próximas.'},
- {label:'Difícil',summary:'Todas as questões exigem análise aprofundada.'}
+ {label:'Muito difícil',summary:'Análise aprofundada e integração crítica dos temas.'}
 ];
-function difficultyStep(exam){return Math.max(1,Math.min(5,Number(exam.model)||1))}
+function difficultyStep(exam){
+ const model=Number(exam.model)||1;
+ return Math.max(1,Math.min(5,exam.subject==='social'&&model>=6&&model<=10?model-5:model));
+}
 function difficultyStars(level){return '<span class="stars" aria-hidden="true">'+Array.from({length:5},(_,i)=>'<span class="star'+(i<level?' filled':'')+'">'+(i<level?'★':'☆')+'</span>').join('')+'</span>'}
 function examDifficulty(exam){const level=difficultyStep(exam),data=DIFFICULTY_STEPS[level-1];
  return '<div class="exam-difficulty" aria-label="Dificuldade '+level+' de 5 estrelas: '+data.label+'">'+difficultyStars(level)+'<span class="difficulty-caption">'+esc(data.label)+'</span></div>';
@@ -2653,8 +2656,14 @@ function organizedMaterialBlock(materials,pending=false,libraryView=false){
 function organizedSubjectMaterials(materials,libraryView=false){
  return materials.length?organizedMaterialBlock(materials,false,libraryView):'<div class="empty">Nenhum material cadastrado para esta avaliação.</div>';
 }
+// Uma prova publicada por nível; os registros extras continuam guardados sem aparecer nesta aba.
+function readyExamsFor(subject){
+ const base=DB.exams.filter(e=>e.subject===subject);
+ const first=subject==='social'?6:1;
+ return Array.from({length:5},(_,i)=>base.find(e=>Number(e.model)===first+i)).filter(Boolean);
+}
 function renderSubject(k){
- const subj=getSubject(k),docs=DB.materials.filter(x=>x.subject===k),topics=DB.topics[k]||[],tests=DB.exams.filter(x=>x.subject===k);
+ const subj=getSubject(k),docs=DB.materials.filter(x=>x.subject===k),topics=DB.topics[k]||[],tests=readyExamsFor(k);
  const area=['topics','docs','tests','podcasts','guided','flash','cases'].includes(current.subjectArea)?current.subjectArea:null;
  const top='<div class="subject-hub" style="--subject-accent:'+color(k)+'">'+
  '<div class="subject-hub-crumb"><button type="button" data-action="page:home">Início</button><span aria-hidden="true">/</span><span>'+esc(subj.name)+'</span></div>'+
@@ -3720,7 +3729,7 @@ renderSubject=function(k){
  const start=html.indexOf('<section class="section" id="tests">');
  const end=start<0?-1:html.indexOf('</section>',start);
  if(start<0||end<0)return html;
- const ready=DB.exams.filter(e=>e.subject===k).sort((a,b)=>Number(a.model)-Number(b.model));
+ const ready=readyExamsFor(k);
  const user=geUser();
  if(user&&!ge.loaded&&!ge.loading)queueMicrotask(geLoad);
  const visible=ge.exams.filter(e=>e.subject===k&&e.semester===semester&&user&&
@@ -3747,20 +3756,18 @@ renderSubject=function(k){
   (user?'<button type="button" class="subject-sim-create" data-action="subjectCreateExam">+ Criar simulado</button>':'')+
   '</div>'+created+'</div>';
  const section='<section class="section" id="tests"><div class="sectiontop"><h2>Simulados</h2></div>'+
-  '<div class="subject-sim-groups">'+readyGroup+createdGroup+'</div></section>';
+  '<div class="subject-sim-groups">'+readyGroup+'</div></section>';
  return html.slice(0,start)+section+html.slice(end+'</section>'.length);
 };
 function geReadyLibrary(){
  const subjects=Object.keys(DB.subjects);
- return head('Simulados prontos','Provas para praticar','Cinco simulados por disciplina: três de dificuldade normal e dois difíceis, com correções comentadas.')+
+ return head('Simulados prontos','Provas para praticar','Cinco simulados iguais para toda a turma por disciplina, um por nível de dificuldade.')+
  '<p class="small muted">Simulados de estudo, não avaliações oficiais.</p>'+
  subjects.map(id=>{
-  const all=DB.exams.filter(e=>e.subject===id).sort((a,b)=>Number(a.model)-Number(b.model));
-  const normal=all.filter(e=>Number(e.model)<=3);
-  const hard=all.filter(e=>Number(e.model)>=4);
-  const group=(label,items)=>'<div class="ge-ready-group"><h3>'+label+'</h3><div class="examgrid ge-ready-grid">'+items.map(examCard).join('')+'</div></div>';
+  const all=readyExamsFor(id);
+  const group=items=>'<div class="examgrid ge-ready-grid">'+items.map(examCard).join('')+'</div>';
   return '<section class="section ge-ready-subject"><div class="sectiontop"><h2 style="border-left:4px solid '+color(id)+';padding-left:10px">'+esc(DB.subjects[id].name)+'</h2><span class="pill">'+all.length+' simulados</span></div>'+
-  group('Normais',normal)+group('Difíceis',hard)+'</section>';
+  group(all)+'</section>';
  }).join('');
 }
 renderExams=function(){
@@ -4299,7 +4306,7 @@ document.addEventListener('change',e=>{if(!e.target.matches('[data-complete]'))r
    if(count)count.textContent=`${n}/${keys.length} concluídos`;
    if(percentage)percentage.textContent=`${fmtPct(n,keys.length)}% de progresso`;
    if(bar)bar.style.width=`${fmtPct(n,keys.length)}%`;
-   const stats=[['Tópicos',DB.topics[k].map((_,i)=>topicProgressKey(k,i))],['Materiais',DB.materials.filter(m=>m.subject===k&&m.available).map(m=>`material:${m.url||m.source}`)],['Simulados',DB.exams.filter(x=>x.subject===k).map(e=>`sim:${e.id}`)],['Áudios',audioEpisodes(k).map(e=>`audio:${k}:${e.n}`)]];
+   const stats=[['Tópicos',DB.topics[k].map((_,i)=>topicProgressKey(k,i))],['Materiais',DB.materials.filter(m=>m.subject===k&&m.available).map(m=>`material:${m.url||m.source}`)],['Simulados',readyExamsFor(k).map(e=>`sim:${e.id}`)],['Áudios',audioEpisodes(k).map(e=>`audio:${k}:${e.n}`)]];
    stats.forEach(([name,values])=>{let el=document.querySelector(`[data-subject-stat="${name}"]`);if(el)el.textContent=`${doneCount(values)}/${values.length}`;});
    const reviewKeys=DB.topics[k].map((_,i)=>topicProgressKey(k,i)),reviewDone=doneCount(reviewKeys);
    const reviewCount=$('reviewProgressCount'),reviewFill=$('reviewProgressFill');
