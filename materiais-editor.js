@@ -109,7 +109,7 @@ function move(k,to,before){
 function clearHighlight(){document.querySelectorAll('.pm-material-group.pm-drop-target').forEach(x=>x.classList.remove('pm-drop-target'));}
 async function save(){
  const state=editing;
- if(!state||state.busy||!allowed())return;
+ if(!state||state.busy||!allowed()||state.owner!==user()?.id)return;
  const c=client(),u=user();
  if(!c||!u){state.error='Entre na sua conta para salvar.';repaint();return;}
  state.busy=true;state.error='';repaint();
@@ -192,7 +192,8 @@ document.addEventListener('drop',event=>{
  if(!editing||editing.busy||!draggedKey||!group||!BY_ID.has(group.dataset.pmGroup))return;
  event.preventDefault();const from=draggedKey;draggedKey='';clearHighlight();
  const row=event.target.closest('[data-pm-file]');
- move(from,group.dataset.pmGroup,row?.dataset.pmFile===from?null:row?.dataset.pmFile||null);
+ if(row?.dataset.pmFile===from)return;
+ move(from,group.dataset.pmGroup,row?.dataset.pmFile||null);
 });
 document.addEventListener('dragend',()=>{draggedKey='';clearHighlight();document.querySelectorAll('.pm-dragging').forEach(x=>x.classList.remove('pm-dragging'));});
 window.addEventListener('focus',()=>refresh());
