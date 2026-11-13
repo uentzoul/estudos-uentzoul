@@ -1991,9 +1991,31 @@ html[data-theme="dark"] .tz-pending-icon{background:#40375e;color:#d6c4ff}
 </style>
 <style id="podcast-reproduce-style">
 .episodeunit .episodeplay{position:relative}
-.episodeunit.is-loading .episodeplay{opacity:.77;cursor:progress}
+.episodeunit.is-loading .episodeplay{opacity:.72;cursor:progress}
 .episodeunit.is-loading .episodeplay::after{content:"";width:15px;height:15px;flex:0 0 15px;display:inline-block;border:2px solid currentColor;border-right-color:transparent;border-radius:50%;animation:podcast-loading-spin .7s linear infinite;margin-left:8px}
 @keyframes podcast-loading-spin{to{transform:rotate(360deg)}}
+.ps-audio-shell[hidden]{display:none!important}
+.ps-audio-shell{margin:16px 0 0;padding:clamp(15px,2.1vw,24px);border-radius:19px;background:linear-gradient(145deg,var(--soft,#eef4fb),var(--paper,#fff) 78%);border:1px solid var(--line,#e4e9f0);color:var(--ink,#1a2634);box-shadow:0 5px 20px rgba(27,45,80,.045)}
+.ps-audio-shell audio{position:absolute;width:1px;height:1px;overflow:hidden;opacity:0;pointer-events:none}
+.ps-audio-heading{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:10px}
+.ps-audio-heading strong{font-size:13px;letter-spacing:.01em}
+.ps-audio-heading span{font-size:11px;color:var(--muted,#637286)}
+.ps-wave{width:100%;height:66px;display:block;cursor:pointer;border-radius:9px;touch-action:pan-y}
+.ps-wave:focus-visible,.ps-seek:focus-visible,.ps-audio-actions button:focus-visible,.ps-audio-actions select:focus-visible{outline:3px solid #6e89d8;outline-offset:3px}
+.ps-seek{display:block;width:100%;height:15px;margin:0 0 3px;accent-color:var(--blue,#3568ba);cursor:pointer}
+.ps-time{display:flex;justify-content:space-between;font-size:11px;font-variant-numeric:tabular-nums;color:var(--muted,#637286)}
+.ps-audio-actions{display:flex;align-items:center;gap:9px;flex-wrap:wrap;margin-top:16px}
+.ps-audio-actions button,.ps-speed-wrap{background:var(--paper,#fff);color:var(--ink,#1a2634);border:1px solid var(--line,#dde6ef);border-radius:12px;padding:9px 13px;font-size:12px;font-weight:700;min-height:39px}
+.ps-audio-actions button:hover{border-color:var(--blue,#3568ba)}
+.ps-audio-actions .ps-main-play{background:var(--blue,#3568ba);border-color:var(--blue,#3568ba);color:#fff;min-width:104px}
+.ps-speed-wrap{display:inline-flex;align-items:center;gap:6px;padding:5px 9px}
+.ps-speed-wrap select{border:0;outline:0;background:transparent;color:inherit;font:inherit;cursor:pointer}
+.ps-audio-actions .ps-download{margin-left:auto}
+.ps-audio-status{margin:10px 0 0;min-height:18px;color:var(--muted,#637286);font-size:12px}
+html[data-theme="dark"] .ps-audio-shell{background:linear-gradient(145deg,#202e41,#1c2636)}
+html[data-theme="dark"] .ps-audio-actions button,html[data-theme="dark"] .ps-speed-wrap{background:#26374c;border-color:#3c526b;color:#f3f6ff}
+html[data-theme="dark"] .ps-audio-actions .ps-main-play{background:#5283d4;border-color:#5283d4;color:#fff}
+@media(max-width:660px){.ps-audio-shell{padding:13px}.ps-wave{height:53px}.ps-audio-actions{gap:7px}.ps-audio-actions button,.ps-speed-wrap{padding:8px 9px}.ps-audio-actions .ps-download{margin-left:0}.ps-audio-heading{align-items:start}}
 @media(prefers-reduced-motion:reduce){.episodeunit.is-loading .episodeplay::after{animation-duration:1.8s}}
 </style><style id="new-library-pending-css">
 .new-library-pending{margin-top:20px;padding:15px;border:1px solid var(--line);border-radius:15px;background:var(--paper);color:var(--ink)}
@@ -2797,6 +2819,26 @@ function audioKey(k,i){return k+':'+i;}
 function podcastEpisode(k,i){return audioEpisodes(k)[i];}
 function episodeUri(k,i){const ep=podcastEpisode(k,i);return ep?.src||'';}
 function readyStatus(k,i){const key=audioKey(k,i);return episodeDownloading.has(key) ? 'Preparando áudio…' : 'Disponível para reproduzir';}
+function podcastPlayerMarkup(){
+ return '<div class="ps-audio-shell" id="psAudioShell" hidden>'+
+ '<audio id="audioPlayer" preload="none" playsinline aria-label="Reprodutor de podcasts"></audio>'+
+ '<div class="ps-audio-heading"><strong>Reprodutor de podcast</strong><span>Reprodução contínua · controle de velocidade</span></div>'+
+ '<canvas id="psWaveform" class="ps-wave" height="66" role="img" aria-label="Visualização em ondas do progresso do áudio" title="Clique para avançar ou retroceder na linha do tempo"></canvas>'+
+ '<input id="psSeek" class="ps-seek" type="range" min="0" max="1000" value="0" aria-label="Linha do tempo do podcast">'+
+ '<div class="ps-time"><span id="psElapsed">0:00</span><span id="psDuration">--:--</span></div>'+
+ '<div class="ps-audio-actions">'+
+ '<button type="button" class="ps-main-play" id="psPlayToggle" aria-label="Reproduzir ou pausar">▶ Reproduzir</button>'+
+ '<button type="button" id="psBack10" title="Voltar dez segundos">−10 s</button>'+
+ '<button type="button" id="psForward10" title="Avançar dez segundos">+10 s</button>'+
+ '<label class="ps-speed-wrap" for="psSpeed">Velocidade <select id="psSpeed" aria-label="Velocidade do áudio">'+
+ '<option value="0.5">0,5×</option><option value="0.75">0,75×</option><option value="1" selected>1×</option>'+
+ '<option value="1.25">1,25×</option><option value="1.5">1,5×</option><option value="1.75">1,75×</option><option value="2">2×</option>'+
+ '</select></label>'+
+ '<button type="button" id="psRetry" title="Reconectar o episódio">↻ Reconectar</button>'+
+ '<button type="button" class="ps-download" id="psDownload" title="Salvar o episódio no dispositivo">↓ Baixar</button>'+
+ '</div><p id="audioStatus" class="ps-audio-status" role="status" aria-live="polite">Escolhe um episódio para ouvir.</p>'+
+ '</div>';
+}
 function renderAudio(embedded=false){
  const k=embedded?current.subject:current.audioSubject,eps=audioEpisodes(k),name=getSubject(k)?.name||'TCC';
  if(embedded){
@@ -2805,7 +2847,7 @@ function renderAudio(embedded=false){
   return '<section class="podcasts-minimal" aria-label="Podcasts de '+esc(name)+'">'+
    '<header class="podcasts-heading"><span class="podcasts-heading-symbol" aria-hidden="true">♫</span><h2>Podcasts</h2></header>'+
    (selected?'<div class="podcasts-now"><div class="podcasts-now-top"><span class="podcasts-now-symbol" aria-hidden="true">♫</span><div class="podcasts-now-info"><span class="podcasts-now-label">Selecionado</span><strong id="audioPlayingTitle">'+esc(selected.title)+'</strong></div></div>'+
-    '<audio id="audioPlayer" controls preload="none" controlsList="nodownload" aria-label="Reprodutor de podcasts"></audio><div id="audioStatus" role="status" aria-live="polite"></div></div>':
+    podcastPlayerMarkup()+'</div>':
     '<div class="subject-hub-empty">Nenhum podcast cadastrado nesta disciplina.</div>')+
    '<div class="podcasts-list">'+eps.map((e,i)=>{
     const ready=episodeReady.has(audioKey(k,i));
@@ -2827,7 +2869,7 @@ function renderAudio(embedded=false){
  <div class="audio-helper">Selecione um episódio e pressione Reproduzir. O áudio é preparado automaticamente e um indicador aparece durante o carregamento.</div>
  <section class="audio-progress"><div class="statline"><span>Progresso em ${esc(name)}</span><strong id="audioCompletedCount">${done}/${eps.length} concluídos</strong></div><div class="progressline"><div id="audioCompletedBar" style="width:${fmtPct(done,eps.length)}%"></div></div><p class="small" style="margin:8px 0 0">As caixinhas de concluído são independentes dos downloads.</p></section>
  <section class="section"><div class="audiohead"><div class="eyebrow" style="color:#a9bfd5">${k==='tcc'?'TCC: episódios em sequência':'Áudios separados por episódio'}</div><h2 style="margin:0;font-size:20px" id="audioPlayingTitle">${esc(eps[chosen].title)}</h2><p class="small">Escolhe um episódio e pressiona Reproduzir.</p>
- <audio id="audioPlayer" controls preload="none" controlsList="nodownload" style="width:100%;margin-top:10px"></audio><div class="small" id="audioStatus" role="status" aria-live="polite">Escolhe um episódio para ouvir.</div><p class="small muted" id="podcastPointsStatus" aria-live="polite">Seleciona um episódio e usa o player para ouvir.</p>
+ ${podcastPlayerMarkup()}<p class="small muted" id="podcastPointsStatus" aria-live="polite">Seleciona um episódio e usa o player para ouvir.</p>
  <div class="actions" style="margin-top:11px"><button class="btn sm light" data-action="prevAudio">◂ Anterior</button><button class="btn sm light" data-action="nextAudio">Próximo ▸</button><button class="btn sm light" data-action="resetAudio">Reiniciar áudio</button></div>
  </div></section>
  <section class="section"><div class="sectiontop"><h2>${k==='tcc'?'Episódios de TCC':'Episódios de '+esc(name)}</h2><span class="small">${eps.length} episódios disponíveis para reprodução</span></div><div class="audiocards">${cards}</div></section>`;
@@ -3827,52 +3869,146 @@ function updateDownloadVisual(k,i,info){
 }
 const podcastMetrics={lastCall:0,inFlight:false,awarded:new Set(),latestId:null};
 async function podcastReport(p){return;}
-function setupAudio(){
- const p=$('audioPlayer');if(!p)return;
- p.addEventListener('error',()=>{const el=$('audioStatus');if(el)el.textContent='Erro ao reproduzir este episódio. Tenta novamente.'});
- p.addEventListener('loadedmetadata',()=>{const el=$('audioStatus');if(el)el.textContent='Áudio pronto para ouvir.'});
- p.addEventListener('waiting',()=>{const el=$('audioStatus');if(el)el.textContent='Carregando áudio…'});
- p.addEventListener('playing',()=>{const el=$('audioStatus');if(el)el.textContent='Reproduzindo podcast.'});
- p.addEventListener('ended',()=>{const el=$('audioStatus');if(el)el.textContent='Fim do episódio. A escuta válida é registrada automaticamente.'});
- p.addEventListener('timeupdate',()=>{podcastReport(p)});
- p.addEventListener('play',()=>{podcastMetrics.lastCall=0;podcastReport(p)});
+/* Player persistente: re-renderizações do chat/agenda não reiniciam o som.
+   Streaming nativo com range requests evita aguardar o download integral antes de tocar. */
+let psAudioElement=null,psWaveFrame=0,psPlaybackRate=1,psSeeking=false,psRetrying=false,psCurrentSource='';
+const psClock=t=>{const v=Math.max(0,Math.floor(Number(t)||0));return Math.floor(v/3600)?Math.floor(v/3600)+':'+String(Math.floor(v%3600/60)).padStart(2,'0')+':'+String(v%60).padStart(2,'0'):Math.floor(v/60)+':'+String(v%60).padStart(2,'0')};
+function psStatus(s){const el=document.getElementById('audioStatus');if(el)el.textContent=s;}
+function psDrawWave(){
+ const cv=document.getElementById('psWaveform'),p=psAudioElement;
+ if(!cv||!cv.clientWidth||!p)return;
+ const ratio=Math.min(2,window.devicePixelRatio||1),w=Math.max(1,cv.clientWidth),h=cv.clientHeight||66;
+ if(cv.width!==Math.round(w*ratio)||cv.height!==Math.round(h*ratio)){cv.width=Math.round(w*ratio);cv.height=Math.round(h*ratio);}
+ const ctx=cv.getContext('2d');if(!ctx)return;ctx.setTransform(ratio,0,0,ratio,0,0);ctx.clearRect(0,0,w,h);
+ const dur=Number.isFinite(p.duration)&&p.duration>0?p.duration:0;
+ const progress=dur?Math.max(0,Math.min(1,p.currentTime/dur)):0;
+ const count=Math.max(36,Math.floor(w/5.2)),gap=w/count,bar=Math.max(1.7,gap*.6);
+ const playing=!p.paused&&!p.ended,phase=playing?performance.now()/850:0;
+ const active=getComputedStyle(document.documentElement).getPropertyValue('--blue').trim()||'#487abf';
+ const inactive=getComputedStyle(document.documentElement).getPropertyValue('--line').trim()||'#b8c6d7';
+ for(let i=0;i<count;i++){
+  const x=i*gap+(gap-bar)/2,z=i/count;
+  // Forma de onda ilustrativa; o progresso e a duração vêm do áudio real.
+  const shape=.26+.74*Math.abs(Math.sin(i*.83)*Math.sin(i*.173+1.4));
+  const movement=playing?.83+.17*Math.sin(phase*2+i*.58):1;
+  const height=Math.max(4,(h-7)*shape*movement);
+  ctx.fillStyle=z<=progress?active:inactive;
+  const radius=Math.min(bar/2,2.2);
+  ctx.beginPath();ctx.roundRect(x,(h-height)/2,bar,height,radius);ctx.fill();
+ }
 }
-async function preparePodcast(k,i,autoplay=false){const key=audioKey(k,i),ep=podcastEpisode(k,i);if(!ep)return;
-  let errorMessage='';
-  try{
-    await podcastDBOpening;
-    let blob=sessionPodcastBlobs[key]||await getPodcast(key);
-    if(!blob){
-      if(episodeDownloading.has(key))return;
-      episodeDownloading.add(key);updateDownloadVisual(k,i);
-      const status=$('audioStatus');if(status&&isPodcastView())status.textContent='Carregando '+ep.title+'…';
-      const url=episodeUri(k,i);
-      if(!url)throw new Error('Este episódio ainda não tem um link de áudio.');
-      if(!/^https?:$/.test(location.protocol))throw new Error('Para baixar os áudios, abra o site pelo endereço publicado (HTTPS) ou use um servidor local. Abrir apenas o HTML não permite carregar os arquivos.');
-      const r=await fetch(url,{credentials:'same-origin'});
-      if(!r.ok)throw new Error('Arquivo de áudio indisponível no servidor (HTTP '+r.status+').');
-      const type=r.headers.get('content-type')||'';
-      if(type.includes('text/html'))throw new Error('O endereço retornou uma página, não um arquivo de áudio. Confira a hospedagem.');
-      const size=Number(r.headers.get('content-length')||0),reader=r.body?.getReader();
-      let bytes=0,chunks=[];
-      if(reader){while(true){const {done,value}=await reader.read();if(done)break;chunks.push(value);bytes+=value.byteLength;if(size){const status=$('audioStatus');if(status&&isPodcastView())status.textContent='Preparando áudio… '+Math.min(100,Math.round(100*bytes/size))+'%';}}}
-      blob=reader?new Blob(chunks,{type:'audio/mp4'}):await r.blob();
-      if(!blob.size || blob.size<512)throw new Error('O arquivo recebido está vazio ou inválido.');
-      sessionPodcastBlobs[key]=blob;
-      try{await putPodcast(key,blob)}catch(storageError){console.warn('Não foi possível guardar permanentemente este episódio:',storageError)}
-      episodeReady.add(key);
-      updateDownloadVisual(k,i);
-    }else{episodeReady.add(key);updateDownloadVisual(k,i);}
-    if(autoplay){
-      if(current.audioSubject!==k||audioSelectionIndex()!==i)return;
-      const player=$('audioPlayer');if(!player)return;
-      if(activePodcastURL)URL.revokeObjectURL(activePodcastURL);
-      activePodcastURL=URL.createObjectURL(blob);podcastPlayerKey=key;
-      player.src=activePodcastURL;player.load();
-      try{player.currentTime=0;await player.play()}catch(e){const status=$('audioStatus');if(status)status.textContent='Áudio pronto. Toque em ▶ no reprodutor para começar.'}
-    }
-  }catch(e){console.error('Podcast:',e);errorMessage=e.message||'Não foi possível preparar o áudio.';const status=$('audioStatus');if(status&&isPodcastView())status.textContent=errorMessage;}
-  finally{episodeDownloading.delete(key);updateDownloadVisual(k,i,errorMessage?'Não disponível':null);}
+function psWaveLoop(){
+ psDrawWave();
+ if(psAudioElement&&!psAudioElement.paused&&!psAudioElement.ended&&document.getElementById('psWaveform'))psWaveFrame=requestAnimationFrame(psWaveLoop);
+ else psWaveFrame=0;
+}
+function psSync(){
+ const p=psAudioElement;if(!p)return;
+ const duration=Number.isFinite(p.duration)&&p.duration>0?p.duration:0,elapsed=p.currentTime||0;
+ const start=document.getElementById('psElapsed'),end=document.getElementById('psDuration'),seek=document.getElementById('psSeek'),play=document.getElementById('psPlayToggle');
+ if(start)start.textContent=psClock(elapsed);if(end)end.textContent=duration?psClock(duration):'--:--';
+ if(seek&&!psSeeking){seek.value=duration?String(Math.round(elapsed/duration*1000)):'0';seek.disabled=!duration;}
+ if(play){play.textContent=p.paused?'▶ Reproduzir':'❚❚ Pausar';play.setAttribute('aria-label',p.paused?'Reproduzir podcast':'Pausar podcast');}
+ psDrawWave();
+}
+function psStartWave(){if(!psWaveFrame)psWaveFrame=requestAnimationFrame(psWaveLoop);}
+async function psCachedFallback(){
+ if(!podcastPlayerKey||!psAudioElement||psAudioElement.src.startsWith('blob:'))return false;
+ try{
+  await podcastDBOpening;
+  const blob=sessionPodcastBlobs[podcastPlayerKey]||await getPodcast(podcastPlayerKey);
+  if(!(blob instanceof Blob)||blob.size<512)return false;
+  const p=psAudioElement,at=p.currentTime||0;
+  if(activePodcastURL)URL.revokeObjectURL(activePodcastURL);
+  activePodcastURL=URL.createObjectURL(blob);p.src=activePodcastURL;p.load();
+  p.addEventListener('loadedmetadata',()=>{if(at<p.duration)p.currentTime=at;},{once:true});
+  p.play().catch(()=>psStatus('Áudio offline pronto. Toque em Reproduzir.'));
+  psStatus('Conexão instável. Usando a cópia salva no dispositivo.');
+  return true;
+ }catch(_){return false;}
+}
+function setupAudio(){
+ const placeholder=document.getElementById('audioPlayer');if(!placeholder)return;
+ if(!psAudioElement){
+  psAudioElement=placeholder;
+  psAudioElement.addEventListener('error',async()=>{
+   if(!await psCachedFallback())psStatus('Não foi possível carregar este áudio. Confere a conexão e usa Reconectar.');
+  });
+  psAudioElement.addEventListener('loadedmetadata',()=>{psStatus('Episódio carregado.');psSync();});
+  psAudioElement.addEventListener('waiting',()=>psStatus('Aguardando dados do áudio…'));
+  psAudioElement.addEventListener('stalled',()=>psStatus('O áudio está aguardando a rede. Se não continuar, use Reconectar.'));
+  psAudioElement.addEventListener('playing',()=>{psStatus('Reproduzindo podcast.');psSync();psStartWave();});
+  psAudioElement.addEventListener('pause',psSync);
+  psAudioElement.addEventListener('ended',()=>{psStatus('Fim do episódio.');psSync();});
+  psAudioElement.addEventListener('timeupdate',()=>{podcastReport(psAudioElement);psSync();});
+  psAudioElement.addEventListener('ratechange',psSync);
+ }else if(placeholder!==psAudioElement){
+  placeholder.replaceWith(psAudioElement);
+ }
+ const shell=document.getElementById('psAudioShell');
+ if(shell)shell.hidden=!(podcastPlayerKey&&psAudioElement.src&&podcastPlayerKey.startsWith((current.subjectArea==='podcasts'?current.subject:current.audioSubject)+':'));
+ const play=document.getElementById('psPlayToggle');
+ if(play)play.onclick=()=>{if(!psAudioElement.src)return;psAudioElement.paused?psAudioElement.play().catch(()=>psStatus('Clica novamente para iniciar o áudio.')):psAudioElement.pause()};
+ const back=document.getElementById('psBack10');
+ if(back)back.onclick=()=>{psAudioElement.currentTime=Math.max(0,psAudioElement.currentTime-10);psSync()};
+ const forward=document.getElementById('psForward10');
+ if(forward)forward.onclick=()=>{const max=Number.isFinite(psAudioElement.duration)?psAudioElement.duration:Infinity;psAudioElement.currentTime=Math.min(max,psAudioElement.currentTime+10);psSync()};
+ const seek=document.getElementById('psSeek');
+ if(seek){
+  seek.oninput=()=>{psSeeking=true;const d=Number.isFinite(psAudioElement.duration)?psAudioElement.duration:0;const el=document.getElementById('psElapsed');if(el)el.textContent=psClock(d*Number(seek.value)/1000)};
+  seek.onchange=()=>{if(Number.isFinite(psAudioElement.duration))psAudioElement.currentTime=psAudioElement.duration*Number(seek.value)/1000;psSeeking=false;psSync()};
+ }
+ const wave=document.getElementById('psWaveform');
+ if(wave)wave.onclick=e=>{const d=psAudioElement.duration;if(!Number.isFinite(d)||!d)return;const box=wave.getBoundingClientRect();psAudioElement.currentTime=d*Math.max(0,Math.min(1,(e.clientX-box.left)/box.width));psSync()};
+ const speed=document.getElementById('psSpeed');
+ if(speed){speed.value=String(psPlaybackRate);speed.onchange=()=>{psPlaybackRate=Number(speed.value)||1;psAudioElement.playbackRate=psPlaybackRate}};
+ const retry=document.getElementById('psRetry');
+ if(retry)retry.onclick=()=>{if(!psAudioElement.src||psRetrying)return;psRetrying=true;const at=psAudioElement.currentTime||0;psAudioElement.load();psAudioElement.addEventListener('loadedmetadata',()=>{if(at<psAudioElement.duration)psAudioElement.currentTime=at;psRetrying=false;psAudioElement.play().catch(()=>psStatus('Toque em Reproduzir para retomar.'));},{once:true});setTimeout(()=>{psRetrying=false},6000);psStatus('Tentando reconectar sem perder a posição…')};
+ const dl=document.getElementById('psDownload');
+ if(dl)dl.onclick=()=>{if(!podcastPlayerKey)return;const parts=podcastPlayerKey.split(':');downloadEpisodeAction(parts[0],Number(parts[1]))};
+ psSync();
+ if(!psAudioElement.paused)psStartWave();
+}
+async function preparePodcast(k,i,autoplay=false){
+ const key=audioKey(k,i),ep=podcastEpisode(k,i);
+ if(!ep||!autoplay)return;
+ const p=psAudioElement||document.getElementById('audioPlayer'),url=episodeUri(k,i);
+ if(!p||!url){psStatus('Este episódio não tem um arquivo de áudio publicado.');return;}
+ const shell=document.getElementById('psAudioShell');if(shell)shell.hidden=false;
+ const same=podcastPlayerKey===key&&!!p.src;
+ if(same){if(p.paused)p.play().catch(()=>psStatus('Usa Reproduzir para iniciar.'));else p.pause();psSync();return;}
+ if(activePodcastURL){URL.revokeObjectURL(activePodcastURL);activePodcastURL=null;}
+ podcastPlayerKey=key;psCurrentSource=url;
+ const online=typeof navigator.onLine==='boolean'?navigator.onLine:true;
+ if(!online){try{await podcastDBOpening;const blob=sessionPodcastBlobs[key]||await getPodcast(key);if(blob instanceof Blob&&blob.size>=512){activePodcastURL=URL.createObjectURL(blob);p.src=activePodcastURL}else p.src=url;}catch(_){p.src=url;}}
+ else p.src=url;
+ p.playbackRate=psPlaybackRate;p.load();psSync();psStatus('Abrindo '+ep.title+'…');
+ p.play().catch(()=>psStatus('Áudio pronto. Pressiona Reproduzir para começar.'));
+}
+async function downloadEpisodeAction(k,i){
+ if(!DB.audio[k]||!Number.isInteger(i)||i<0||i>=audioEpisodes(k).length)return;
+ const key=audioKey(k,i),ep=podcastEpisode(k,i);if(episodeDownloading.has(key))return;
+ episodeDownloading.add(key);updateDownloadVisual(k,i);psStatus('Preparando o download de '+ep.title+'…');
+ try{
+  await podcastDBOpening;
+  let blob=sessionPodcastBlobs[key]||await getPodcast(key);
+  if(!(blob instanceof Blob)||blob.size<512){
+   const url=episodeUri(k,i);if(!url)throw Error('O episódio ainda não possui arquivo publicado.');
+   const response=await fetch(url,{mode:'cors'});
+   if(!response.ok)throw Error('O servidor retornou HTTP '+response.status+'.');
+   if((response.headers.get('content-type')||'').includes('text/html'))throw Error('A URL não retornou um áudio.');
+   blob=await response.blob();
+   if(blob.size<512)throw Error('O arquivo recebido está vazio.');
+   sessionPodcastBlobs[key]=blob;
+   try{await putPodcast(key,blob)}catch(e){console.warn('Cache de podcast indisponível:',e)}
+  }
+  episodeReady.add(key);
+  const href=URL.createObjectURL(blob),a=document.createElement('a');
+  a.href=href;a.download=String(ep.title||'Podcast').normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^\w-]+/g,'_').slice(0,85)+'.m4a';
+  document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(href),45000);
+  psStatus('Download iniciado. O episódio também foi guardado no cache, quando disponível.');
+ }catch(e){console.error('Download de podcast:',e);psStatus(e.message||'Não foi possível baixar este episódio.');}
+ finally{episodeDownloading.delete(key);updateDownloadVisual(k,i);}
 }
 function updatePickedAudioLabels(){for(const key of episodeReady){const [k,i]=key.split(':');updateDownloadVisual(k,Number(i));}}
 function currentAudioSource(){return ''}
