@@ -38,12 +38,19 @@
   }
   return {id:subject+'-'+model,subject,model,questions};
  }
+ const familyDocs=[
+  {subject:'familia',title:'Rituais, mitos, ritos de passagem e transgeracionalidade — slides',source:'Aula Rituais, mitos, e ritos de passagem RESUMO(1).pdf',kind:'Slides',note:'Aula sobre mitos familiares, lealdade, ritos e transgeracionalidade.',extra:false,available:false,url:'',group:'Mitos e rituais',_psicoNew:true},
+  {subject:'familia',title:'Morte e luto na família — aula',source:'Aula Morte e Luto na Família 2025 Resumido.pdf',kind:'Slides',note:'Aula sobre perdas, luto e reorganização de vínculos familiares.',extra:false,available:false,url:'',group:'Luto',_psicoNew:true},
+  {subject:'familia',title:'Violência contra crianças e adolescentes — aula',source:'Aula - Famílias em Situação de Violência Contra a Criança REV(1).pdf',kind:'Slides',note:'Aula sobre proteção, violência infantil e seus contextos.',extra:false,available:false,url:'',group:'Violência familiar',_psicoNew:true},
+  {subject:'familia',title:'Minha família: rituais, mitos e transgeracionalidade — atividade',source:'Psicologia da Família Mitos Ritos Transgeracionalidade Alunos(1).pdf',kind:'Atividade',note:'Atividade de reflexão familiar. Versão PDF do documento Word original.',extra:false,available:false,url:'',group:'Mitos e rituais',_psicoNew:true}
+ ];
  function apply(db){
   if(!db||!db.topics||!db.materials||!db.exams)return;
   for(const t of DATA.act)if(!db.topics.tcc.some(x=>x.title===t.title))db.topics.tcc.push(t);
   for(const t of DATA.social)if(!db.topics.social.some(x=>x.title===t.title))db.topics.social.push(t);
   for(const doc of DATA.docs)if(!db.materials.some(x=>x.subject==='social'&&x.source===doc.source))db.materials.push({...doc});
-  const actDoc={subject:'tcc',title:'ACT na clínica — Hexaflex e flexibilidade psicológica',source:'ACT na clínica.pdf.pdf',kind:'PDF',note:'Material encontrado na biblioteca anterior; publicação do PDF original pendente.',extra:false,available:false,url:'',group:'ACT',_psicoNew:true};
+  for(const doc of familyDocs)if(!db.materials.some(x=>x.subject==='familia'&&x.title===doc.title))db.materials.push({...doc});
+  const actDoc={subject:'tcc',title:'ACT na clínica — Hexaflex e flexibilidade psicológica',source:'ACT na clínica.pdf.pdf',kind:'Texto-base',note:'Texto de ACT e flexibilidade psicológica. PDF original para leitura.',extra:false,available:false,url:'',group:'ACT',_psicoNew:true};
   if(!db.materials.some(x=>x.subject==='tcc'&&x.title===actDoc.title))db.materials.push(actDoc);
   for(const [subject,items] of [['tcc',DATA.act],['social',DATA.social]]){
    for(const model of [6,7,8,9])if(!db.exams.some(x=>x.id===subject+'-'+model))db.exams.push(makeExam(subject,model,items));
