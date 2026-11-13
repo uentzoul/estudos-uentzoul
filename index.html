@@ -2781,7 +2781,7 @@ function renderLibrary(embedded=false){
  const subjects=Object.keys(DB.subjects);
  if(selected&&DB.subjects[selected]){
   const subj=DB.subjects[selected],docs=libraryExamMaterials(selected),p=libraryExamProgress(selected);
-  const familyTopics=selected==='familia'?['Luto e reorganização familiar','Dependência química na família','Atendimento clínico familiar']:[];
+  const familyTopics=selected==='familia'?['Luto e reorganização familiar','Dependência química na família','Violência e proteção infantil','Mitos, rituais e transgeracionalidade','Atendimento clínico familiar']:[];
   return '<div class="library-page"><button type="button" class="course-back" data-action="libraryBack">← Voltar às disciplinas</button>'+
    '<section class="course-detail-hero" style="--course-accent:'+color(selected)+'">'+
     '<div class="course-detail-banner" aria-hidden="true">Ψ</div>'+
