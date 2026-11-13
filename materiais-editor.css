@@ -44,3 +44,21 @@
 .pm-edit-name-label>input:hover{border-color:var(--subject-accent,var(--accent,#7561b5))}
 .pm-edit-name-label>input:focus-visible{outline:3px solid var(--subject-accent,var(--accent,#7763bd));outline-offset:1px}
 @media(max-width:700px){.pm-edit-name-label{flex:1 1 calc(100% - 58px);min-width:0}}
+
+/* Seleção e ocultação reversível no editor de Materiais e textos. */
+.pm-edit-selection{display:flex;align-items:center;flex-wrap:wrap;gap:8px;padding:11px 12px;margin:0 0 13px;border:1px solid var(--line);border-radius:12px;background:var(--paper)}
+.pm-edit-selection strong{font-size:12px;font-weight:800;margin-right:auto;color:var(--ink)}
+.pm-edit-selection button,.pm-edit-hide,.pm-edit-restore{border:1px solid var(--line);border-radius:8px;background:var(--paper);color:var(--ink);padding:8px 11px;font:inherit;font-size:11px;font-weight:750;cursor:pointer;white-space:nowrap}
+.pm-edit-selection button:hover:not(:disabled),.pm-edit-restore:hover{background:var(--soft);border-color:var(--subject-accent,var(--accent))}
+.pm-edit-hide{color:#bc4d4d;border-color:color-mix(in srgb,#bc4d4d 35%,var(--line))}
+.pm-edit-hide:hover{background:color-mix(in srgb,#bc4d4d 9%,var(--paper))}
+.pm-edit-selection button:disabled{opacity:.4;cursor:default}
+.pm-edit-pick{flex:0 0 24px;display:grid;place-items:center;cursor:pointer}
+.pm-edit-pick input{width:18px;height:18px;accent-color:var(--subject-accent,var(--accent,#7561b5));cursor:pointer}
+.pm-edit-pick input:focus-visible,.pm-edit-selection button:focus-visible,.pm-edit-hide:focus-visible,.pm-edit-restore:focus-visible{outline:3px solid var(--subject-accent,var(--accent,#7763bd));outline-offset:2px}
+.pm-hidden-group{margin-top:12px!important;border:1px dashed var(--line)!important;background:color-mix(in srgb,var(--soft) 30%,var(--paper))}
+.pm-hidden-hint{font-size:12px;color:var(--muted);line-height:1.6;margin:0 0 12px}
+.pm-hidden-row{opacity:.85}
+.pm-hidden-name{flex:1;min-width:0;font-size:12px;font-weight:700;overflow-wrap:anywhere}
+.pm-edit-restore{color:var(--subject-accent,var(--accent));margin-left:auto}
+@media(max-width:700px){.pm-edit-selection{align-items:stretch}.pm-edit-selection strong{flex:1 1 100%}.pm-edit-selection button{flex:1 1 auto}.pm-edit-hide{margin-left:auto}.pm-edit-pick{flex:0 0 30px}}
