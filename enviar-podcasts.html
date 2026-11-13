@@ -24,20 +24,20 @@ a{color:#175b9c}
 </style></head>
 <body><main>
 <header><p class="sub"><a href="./">← Voltar ao Psicologia PUCRS 2026/2</a></p><h1>Publicar os podcasts</h1><p class="sub">Psicologia PUCRS 2026/2 · by: Enzo F.B.</p><p class="sub">Envio direto para o armazenamento do site, sem GitHub, ZIPs novos ou programas no computador.</p></header>
-<section id="authPanel"><h2>1. Entrar na conta de administrador</h2><p class="sub">Usa a conta online do Psicologia PUCRS 2026/2 autorizada a publicar os áudios.</p>
+<section id="authPanel"><h2>1. Entrar na conta de administrador</h2><p class="sub">Use a conta online do Psicologia PUCRS 2026/2 autorizada a publicar os áudios.</p>
 <form id="authForm"><label>E-mail<input name="email" type="email" autocomplete="email" required></label><label>Senha<input name="password" type="password" autocomplete="current-password" required></label><button type="submit" id="loginButton">Entrar</button></form>
 <p class="small" id="loginStatus" aria-live="polite"></p></section>
 <section id="uploadPanel" class="hidden">
 <div class="row"><h2>2. Selecionar os áudios</h2><button class="secondary" id="logoutButton" type="button">Sair</button></div>
 <p id="whoami" class="small sub"></p>
-<div class="note"><strong>Mais fácil:</strong> escolhe os ZIPs dos podcasts que já baixou (podes selecionar vários juntos). O site abre cada ZIP e envia os episódios automaticamente. Também podes selecionar a pasta <strong>audios</strong> já extraída.</div>
+<div class="note"><strong>Mais fácil:</strong> escolha os ZIPs dos podcasts que já baixou (pode selecionar vários juntos). O site abre cada ZIP e envia os episódios automaticamente. Também pode selecionar a pasta <strong>audios</strong> já extraída.</div>
 <div class="picker"><label>Selecionar os ZIPs de áudio<input id="zipInput" type="file" accept=".zip,application/zip" multiple></label></div>
 <div class="picker"><label>Ou selecionar a pasta audios extraída<input id="folderInput" type="file" webkitdirectory directory multiple></label></div>
 <div class="picker"><label>Ou selecionar arquivos M4A individualmente<input id="filesInput" type="file" accept=".m4a,audio/mp4" multiple></label></div>
 
 <div class="note" style="border-left-color:#6b5bdd;background:#f4f1ff">
   <h3 style="margin:0 0 6px;font-size:16px">Adicionar os dois podcasts pendentes de Psicologia Social</h3>
-  <p class="small" style="margin:3px 0 11px">Escolhe o arquivo M4A correspondente a cada título. Não precisas renomear os arquivos: o painel coloca cada um no episódio certo.</p>
+  <p class="small" style="margin:3px 0 11px">Escolha o arquivo M4A correspondente a cada título. Não é necessário renomear os arquivos: o painel coloca cada um no episódio certo.</p>
   <label>Episódio 7 — Identidade e representações sociais — revisão
     <input id="social7Input" type="file" accept=".m4a,audio/mp4">
   </label>
@@ -45,13 +45,13 @@ a{color:#175b9c}
     <input id="social8Input" type="file" accept=".m4a,audio/mp4">
   </label>
   <button id="uploadSocialExtras" type="button">Enviar episódio(s) 7 e 8</button>
-  <p id="socialExtraStatus" class="small sub" role="status" aria-live="polite">Seleciona um ou ambos os arquivos e clica em enviar.</p>
+  <p id="socialExtraStatus" class="small sub" role="status" aria-live="polite">Selecione um ou ambos os arquivos e clique em Enviar.</p>
 </div>
-<p id="selectedStatus" class="sub small">Escolhe os ZIPs ou a pasta para começar.</p>
+<p id="selectedStatus" class="sub small">Escolha os ZIPs ou a pasta para começar.</p>
 <div class="row"><button id="uploadButton" type="button" disabled>Enviar podcasts para o site</button><button type="button" id="checkButton" class="secondary">Verificar arquivos publicados</button></div>
 <div style="margin-top:17px"><progress id="progress" value="0" max="43"></progress><p id="uploadStatus" role="status" aria-live="polite" class="small">Nenhum envio iniciado.</p></div>
 <pre id="log">O histórico do envio aparecerá aqui.</pre>
-<p class="small sub">O envio pode demorar dependendo da velocidade da tua internet. Mantém esta aba aberta até a confirmação.</p>
+<p class="small sub">O envio pode demorar dependendo da velocidade da sua internet. Mantenha esta aba aberta até a confirmação.</p>
 </section></main>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.57.0/dist/umd/supabase.min.js"></script>
 <script>
@@ -119,7 +119,7 @@ if(!key){log("Não reconhecido: "+file.name);continue}
 try{count=await uploadOne(key,file,count)}catch(e){failures.push(key+": "+e.message);log("ERRO "+key+": "+e.message)}
 }
 }
-say("Envio encerrado: "+uploaded.size+" arquivos enviados. "+failures.length+" falha(s). "+(uploaded.size===TOTAL?"Todos os podcasts foram enviados!":"Podes selecionar novamente os arquivos restantes e tentar de novo."),failures.length>0);
+say("Envio encerrado: "+uploaded.size+" arquivos enviados. "+failures.length+" falha(s). "+(uploaded.size===TOTAL?"Todos os podcasts foram enviados!":"Pode selecionar novamente os arquivos restantes e tentar de novo."),failures.length>0);
 await check();
 }catch(e){say("O envio foi interrompido: "+e.message,true);log("Falha geral: "+e.message)}
 finally{busy=false;el("uploadButton").disabled=false;el("checkButton").disabled=false;}
@@ -131,7 +131,7 @@ async function uploadSocialExtras(){
   {key:"social/08_revisao_integradora_questoes_objetivas_e_dissertativas.m4a",file:el("social8Input").files[0]}
  ].filter(function(item){return !!item.file});
  var status=el("socialExtraStatus");
- if(!selectedFiles.length){status.textContent="Escolhe pelo menos um arquivo M4A.";status.className="small err";return;}
+ if(!selectedFiles.length){status.textContent="Escolha pelo menos um arquivo M4A.";status.className="small err";return;}
  var invalid=selectedFiles.find(function(item){return !/\.m4a$/i.test(item.file.name)});
  if(invalid){status.textContent="É necessário selecionar arquivos .m4a.";status.className="small err";return;}
  if(!client){status.textContent="Conecta-te à conta de administrador primeiro.";status.className="small err";return;}
