@@ -1975,6 +1975,7 @@ html[data-theme="dark"] .tz-pending-icon{background:#40375e;color:#d6c4ff}
 <script src="estudos-dirigidos.js?v=20261112-2"></script>
 <script src="estudos-casos-data.js?v=20261112-1"></script>
 <script src="estudo-ativo.js?v=20261112-reviewed-3"></script>
+<script src="psicomoodle-new-content.js?v=20261113-1"></script>
 <link rel="stylesheet" href="chat-whatsapp.css?v=20261112-whatsapp-chat-7">
 <style id="tz-overlap-fix">
 /* Mantém o botão de nova conversa fora da faixa da barra superior e do histórico. */
@@ -2096,6 +2097,7 @@ const SEMESTER_DB={
  materials:[],exams:[],audio:{}
 }
 };
+window.PSICOMOODLE_NEW_CONTENT?.apply(SEMESTER_DB['2026/2']);
 let semester='2026/2';
 try{if(localStorage.getItem(SEMESTER_PREF)==='2027/1')semester='2027/1'}catch{}
 let DB=SEMESTER_DB[semester];
@@ -2105,6 +2107,7 @@ const LIBRARY_CATALOG=SEMESTER_DB['2026/2'].materials.slice(); // Catálogo comp
 // Os itens anteriores não são excluídos do repositório, do Supabase nem do histórico:
 // apenas deixam de ser exibidos no acervo/revisão do semestre corrente.
 const FINAL_EXAM_LIBRARY_KEYS=new Set(["tcc::Cronograma de TCC","tcc::Terapia do Esquema — 41 slides","tcc::TCCs de Terceira Onda — 39 slides","familia::Violência intrafamiliar","familia::Luto — Manual de Terapia Familiar, cap. 27","familia::Dependência Química na visão sistêmica — Payá, cap. 56","familia::Atendimentos clínico, hospitalar, escolar, jurídico e assistência social","meta::Plano e cronograma de Metapsicologia","meta::Segunda Tópica — slides","meta::Édipo — slides","meta::Pulsão — slides","meta::Angústia — slides","meta::Estudo Dirigido P2","meta::Leitura das aulas 19 e 26 de outubro","meta::Vocabulário da Psicanálise — Laplanche e Pontalis","meta::Dicionário de Psicanálise — Roudinesco e Plon","social::Cronograma de Psicologia Social","social::Psicologia Social Crítica — Martín-Baró","social::Seminário sobre algoritmos e polarização","social::Texto-base sobre relações étnico-raciais","social::Texto-base sobre gênero e sexualidade","avaliacao::Cronograma de Avaliação Psicológica","avaliacao::Entrevista de devolução — slides","avaliacao::Avaliação no contexto organizacional","avaliacao::Avaliação nos contextos hospitalar e forense","avaliacao::Avaliação de pessoas trans e ética profissional","avaliacao::Entrevista simulada de devolução — vídeo","grupos::Moreno — Psicodrama","grupos::Carl Rogers — Grupos de Encontro","grupos::Escritores da Liberdade — sinopse oficial","grupos::Escritores da Liberdade — análise do filme","grupos::Escritores da Liberdade — guia de estudo (PDF)","geral::Caderno Integrado — versão completa","geral::Caderno Integrado — exercícios e citações","avaliacao::Entrevista de Anamnese","avaliacao::Elaboração de documentos — slides","avaliacao::Rovinski e Lago — documentos","avaliacao::Validade e Precisão — slides","avaliacao::Padronização e normas — Rabelo e colaboradores","avaliacao::Pasquali — elaboração de escalas","avaliacao::Adaptação de Instrumentos","avaliacao::Bateria de Testes — slides"]);
+for(const m of SEMESTER_DB['2026/2'].materials){if(m._psicoNew)FINAL_EXAM_LIBRARY_KEYS.add(String(m.subject||'')+'::'+String(m.title||''));}
 SEMESTER_DB['2026/2'].materials=SEMESTER_DB['2026/2'].materials.filter(m=>FINAL_EXAM_LIBRARY_KEYS.has(String(m.subject||'')+'::'+String(m.title||'')));
 SEMESTER_DB['2026/2'].topics.familia=SEMESTER_DB['2026/2'].topics.familia.filter(t=>t.title&&t.definition);
 SEMESTER_DB['2026/2'].topics.avaliacao=SEMESTER_DB['2026/2'].topics.avaliacao.filter(t=>[
