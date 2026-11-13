@@ -52,11 +52,11 @@ function destinationOptions(r){
 }
 function reviewCard(r,i){
  const a=r.analysis,quality=a?.quality||'',hit=a?.hits?.length?a.hits.slice(0,7).join(' · '):'Nenhum marcador forte identificado';
- const status=!a?'Analisando o conteúdo…':quality==='pacote'?'Arquivo identificado em pacote organizado · confirma o destino antes de publicar':quality==='texto'?
+ const status=!a?'Analisando o conteúdo…':quality==='pacote'?'Arquivo identificado em pacote organizado · confirme o destino antes de publicar':quality==='texto'?
   'Texto analisado · '+(a.textLength/1000).toFixed(1)+' mil caracteres amostrados · '+(a.confidence==='alta'?'confiança alta':a.confidence==='moderada'?'confiança moderada':'confirmar classificação'):
   'Não foi possível ler o texto interno. Confira o documento e escolha a disciplina manualmente.';
  const examStatus=a?.examMatch==='principal'?'Corresponde ao conteúdo previsto para a prova final':a?.examMatch==='complementar'?'Material complementar relacionado aos temas da prova':a?.examMatch==='fora'?'Pertence à disciplina, mas está fora do foco da prova final':'Relevância para a prova precisa de confirmação';
- const warn=r.conflict?'O nome aponta para outro material. A identificação pelo conteúdo prevaleceu; confirma o destino.':
+ const warn=r.conflict?'O nome aponta para outro material. A identificação pelo conteúdo prevaleceu; confirme o destino.':
   a?.quality==='indisponivel'?(a.error||'Leitor indisponível'):'';
  const choices='<option value="">Selecione a disciplina</option>'+
   Object.entries(subjects()).map(([id,label])=>'<option value="'+id+'" '+(id===r.subject?'selected':'')+'>'+clean(label)+'</option>').join('');
