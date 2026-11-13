@@ -2720,7 +2720,7 @@ function renderSubject(k){
    ['podcasts','♫','Podcasts','Episódios da disciplina para escutar'],
    ['topics','☷','Conteúdos para revisar','Conceitos, exemplos e explicações dos assuntos da prova']
   ];
-  return top+metaTrail+'<p class="subject-hub-area-intro">Escolhe a trilha guiada ou consulta cada tipo de material.</p>'+
+  return top+'<p class="subject-hub-area-intro">Escolhe a trilha guiada ou consulta cada tipo de material.</p>'+metaTrail+
    '<nav class="subject-hub-menu" aria-label="Áreas de estudo de '+esc(subj.name)+'">'+
    choices.map(item=>'<button type="button" class="subject-hub-card'+(item[0]==='trail'?' subject-trail-highlight':item[0]==='docs'?' subject-docs-full':'')+'" data-action="subjectArea:'+item[0]+'">'+
     '<span class="subject-hub-card-icon" aria-hidden="true">'+item[1]+'</span>'+
