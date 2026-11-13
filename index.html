@@ -2522,7 +2522,7 @@ const go=(page,extra={})=>{
 window.uentzoulOpenMessages=(peerId)=>go('messages',{peerId:peerId||null});
 const button=(label,act,cl='btn light')=>`<button class="${cl}" data-action="${act}">${label}</button>`;
 function subjectCard(id){
- const subj=getSubject(id), exams=DB.exams.filter(e=>e.subject===id), sims=doneCount(exams.map(e=>'sim:'+e.id)), keys=subjectKeys(id),n=doneCount(keys);
+ const subj=getSubject(id), exams=readyExamsFor(id), sims=doneCount(exams.map(e=>'sim:'+e.id)), keys=subjectKeys(id),n=doneCount(keys);
  const symbol={tcc:'T',familia:'F',meta:'M',grupos:'G',social:'S',avaliacao:'A'}[id]||'Ψ';
  return '<button type="button" class="subjectcard" data-action="subject:'+id+'" aria-label="Abrir '+esc(subj.name)+'" style="--accent:'+color(id)+'">'+
  '<span class="subject-top"><span class="subject-symbol" aria-hidden="true">'+symbol+'</span><span class="subject-date">'+esc(subj.exam)+' · '+dformat(subj.date)+'</span></span>'+
@@ -2541,7 +2541,8 @@ function renderNav(){
 function head(k,h,sub){return `<div class="eyebrow">${esc(k)}</div><h1 class="h1">${esc(h)}</h1>${sub?`<p class="lead">${esc(sub)}</p>`:''}`}
 function renderHome(){
  const order=Object.keys(DB.subjects).sort((a,b)=>getSubject(a).date.localeCompare(getSubject(b).date));
- const graded=Object.keys(store.results).filter(k=>DB.exams.some(e=>e.id===k)).length,all=overallKeys(),total=doneCount(all);
+ const publishedExams=Object.keys(DB.subjects).flatMap(id=>readyExamsFor(id));
+ const graded=publishedExams.filter(e=>!!store.results[e.id]).length,all=overallKeys(),total=doneCount(all);
  const audioTotal=Object.keys(DB.audio).reduce((n,k)=>n+audioEpisodes(k).length,0);
  const audioDone=Object.keys(DB.audio).reduce((n,k)=>n+doneCount(audioEpisodes(k).map(e=>'audio:'+k+':'+e.n)),0);
  const topics=Object.keys(DB.topics).reduce((n,k)=>n+DB.topics[k].length,0);
@@ -2559,7 +2560,7 @@ function renderHome(){
  '<div class="statline" style="margin-top:13px"><span>Disciplinas</span><strong>'+order.length+'</strong></div>'+
  '<div class="statline"><span>Conteúdos revisados</span><strong>'+topicsDone+'/'+topics+'</strong></div>'+
  '<div class="statline"><span>Podcasts ouvidos</span><strong>'+audioDone+'/'+audioTotal+'</strong></div>'+
- '<div class="statline"><span>Simulados respondidos</span><strong>'+graded+'/'+DB.exams.length+'</strong></div>'+
+ '<div class="statline"><span>Simulados respondidos</span><strong>'+graded+'/'+publishedExams.length+'</strong></div>'+
  '<div class="actions" style="margin-top:13px">'+button('Exportar progresso','export','btn light')+button('Importar progresso','import','btn ghost')+'</div>'+
  '<input type="file" accept="application/json,.json" id="importProgress" style="display:none"></div></div></section>'+
  '<div class="footer">O progresso é marcado manualmente. Respostas dissertativas são avaliadas por critérios de estudo.</div>';
