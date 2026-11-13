@@ -21,7 +21,7 @@ function curated(db,id){
  if(id==='avaliacao')items=items.filter(x=>evalScope.has(x.title));
  return items.filter(x=>x.title&&x.definition);
 }
-function choices(all,t,level,slot,id){
+function choices(all,t,level,slot,id,version=VERSION){
  const seed=all.indexOf(t),seen=new Set([t.title]),wrongs=[];
  for(let i=1;i<all.length+2&&wrongs.length<4;i++){
   const other=get(all,seed+i*(level%2+1)+level);
@@ -35,9 +35,9 @@ function choices(all,t,level,slot,id){
  {text:'Tratar fatores históricos, culturais e relacionais como irrelevantes para a análise.',correct:false,why:'Essa conclusão não é sustentada por um caso isolado.'},
  {text:'Presumir que um comportamento possui função idêntica em qualquer ambiente.',correct:false,why:'É necessário considerar contexto, função e limites de interpretação.'}
  ]){if(wrongs.length===4)break;if(!wrongs.some(x=>x.text===o.text))wrongs.push(o);}
- const right={text:t.title+': '+definition(t)+'.',correct:true,why:definition(t)+'. Na situação: '+context(t)};
+ const right={text:t.title+': '+definition(t)+'.',correct:true,why:(version===VERSION?'A situação exemplifica '+t.title+'. '+definition(t)+'. Interprete os elementos do caso considerando o contexto e os limites dos dados apresentados.':definition(t)+'. Na situação: '+context(t))};
  const answer=(level*2+slot)%5,options=wrongs.slice(0,4);options.splice(answer,0,right);
- const commands=['Qual interpretação é mais coerente com o material da disciplina?','Que conceito ajuda a compreender melhor o caso apresentado?','Qual alternativa relaciona corretamente teoria, situação e contexto?','Qual análise profissional evita inferências indevidas nesse caso?','Qual formulação integra melhor conceito, aplicação e limites da conclusão?'];
+ const commands=version===VERSION?['Qual interpretação é mais coerente com o material da disciplina?','Que conceito ajuda a compreender melhor o caso apresentado?','Qual alternativa relaciona corretamente teoria, situação e contexto?','Qual alternativa define o conceito mais compatível com a situação?','Qual formulação conceitual é mais consistente com os elementos apresentados?']:['Qual interpretação é mais coerente com o material da disciplina?','Que conceito ajuda a compreender melhor o caso apresentado?','Qual alternativa relaciona corretamente teoria, situação e contexto?','Qual análise profissional evita inferências indevidas nesse caso?','Qual formulação integra melhor conceito, aplicação e limites da conclusão?'];
  return {type:'choice',id,concept:t.title,prompt:'Situação: '+context(t)+'\n\n'+commands[level-1],options,answer,source:'Material de revisão da disciplina'};
 }
 function trueFalse(t,level,slot,id){
@@ -81,7 +81,7 @@ function generate(id,level,topics,version=VERSION){
   const a=get(topics,base+i*stride),b=get(topics,base+i*stride+1),c=get(topics,base+i*stride+2);
   const qid=id+'-'+version+'-'+level+'-'+(i+1);
   qs.push(i===2||i===7?assertions(a,b,c,level,i,qid):
-   i===3||i===6||i===9?trueFalse(a,level,i,qid):choices(topics,a,level,i,qid));
+   i===3||i===6||i===9?trueFalse(a,level,i,qid):choices(topics,a,level,i,qid,version));
  }
  for(let i=0;i<2;i++)qs.push(discursive(get(topics,base+11+i*5),get(topics,base+15+i*5),level,id+'-'+version+'-'+level+'-'+(11+i)));
  return {id:id+'-'+version+'-'+level,subject:id,model:level,title:'Simulado '+level,final2026:true,revision:version,questions:qs};
