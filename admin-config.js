@@ -145,7 +145,7 @@ function formMarkup(){
  const options=Object.entries(subjects()).map(([id,name])=>'<option value="'+esc(id)+'" '+((current?.subject||'')===id?'selected':'')+'>'+esc(name)+'</option>').join('');
  return '<section class="admin-card"><h2>'+ (current?'Editar conteúdo':'Adicionar conteúdo')+'</h2>'+
  '<form id="adminTopicForm" class="admin-topic-form">'+
- '<label>Disciplina<select name="subject" required><option value="">Seleciona a matéria</option>'+options+'</select></label>'+
+ '<label>Disciplina<select name="subject" required><option value="">Selecione a matéria</option>'+options+'</select></label>'+
  '<label>Título<input name="title" required maxlength="180" value="'+esc(current?.title||'')+'" placeholder="Título do tópico"></label>'+
  '<label>Explicação<textarea name="definition" rows="4" placeholder="Conteúdo para revisar">'+esc(current?.definition||'')+'</textarea></label>'+
  '<label>Exemplo<textarea name="scenario" rows="2" placeholder="Exemplo de aplicação">'+esc(current?.scenario||'')+'</textarea></label>'+
