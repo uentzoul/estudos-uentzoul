@@ -1,0 +1,20 @@
+/* PsicoMoodle: cinco simulados compactos por disciplina, sem sobreposição. */
+.ge-ready-subject,.subject-sim-group{container-type:inline-size;min-width:0}
+.ge-ready-subject .ge-ready-grid,.subject-sim-group .subject-sim-ready{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;align-items:stretch}
+.ge-ready-grid>.examcard,.subject-sim-ready>.examcard{min-width:0;padding:12px 10px;display:flex;flex-direction:column;gap:5px;overflow-wrap:anywhere;border-radius:12px}
+.ge-ready-grid>.examcard h3,.subject-sim-ready>.examcard h3{font-size:12.5px;line-height:1.35;margin:4px 0}
+.ge-ready-grid>.examcard .exammeta,.subject-sim-ready>.examcard .exammeta{font-size:10.5px;line-height:1.45}
+.ge-ready-grid>.examcard .exam-difficulty,.subject-sim-ready>.examcard .exam-difficulty{min-width:0;flex-wrap:wrap;gap:3px}
+.ge-ready-grid>.examcard .btn,.subject-sim-ready>.examcard .btn{margin-top:auto;padding:9px 5px;font-size:10.5px;min-height:36px;white-space:normal}
+.ge-ready-grid>.examcard .topline,.subject-sim-ready>.examcard .topline{flex-wrap:wrap;gap:5px}
+.ge-ready-grid>.examcard .pill,.subject-sim-ready>.examcard .pill{font-size:10px;white-space:normal}
+@container (min-width:950px){.ge-ready-subject .ge-ready-grid,.subject-sim-group .subject-sim-ready{grid-template-columns:repeat(5,minmax(0,1fr))}}
+@container (min-width:640px) and (max-width:949px){.ge-ready-subject .ge-ready-grid,.subject-sim-group .subject-sim-ready{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@container (max-width:449px){.ge-ready-subject .ge-ready-grid,.subject-sim-group .subject-sim-ready{grid-template-columns:minmax(0,1fr)}}
+.ge-essay-choice{display:flex!important;align-items:center;gap:9px;line-height:1.5;cursor:pointer}
+.ge-essay-choice input{width:17px;height:17px;accent-color:var(--accent,#6551c3);flex-shrink:0}
+.ge-fields select:focus-visible,.ge-essay-choice input:focus-visible{outline:3px solid var(--accent,#6551c3);outline-offset:2px}
+.ge-old-archive{margin-top:15px;padding:10px 13px;border:1px dashed var(--line);border-radius:10px;background:var(--paper)}
+.ge-old-archive>summary{font-size:11px;font-weight:750;color:var(--muted);cursor:pointer}
+.ge-old-archive .examgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:9px;margin-top:12px}
+@media(prefers-reduced-motion:reduce){.ge-ready-grid>.examcard,.subject-sim-ready>.examcard{transition:none!important}}
