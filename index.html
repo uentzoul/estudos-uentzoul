@@ -4054,6 +4054,9 @@ function setupAudio(){
  const placeholder=document.getElementById('audioPlayer');if(!placeholder)return;
  if(!psAudioElement){
   psAudioElement=placeholder;
+  // Mantém o elemento de áudio fora da área que é reconstruída durante a navegação.
+  // Isso evita desmontar a mídia e perder o buffer ao atualizar menus ou mensagens.
+  psAudioElement.style.display='none';document.body.appendChild(psAudioElement);
   psAudioElement.addEventListener('error',async()=>{
    if(!await psCachedFallback())psStatus('Não foi possível carregar este áudio. Confere a conexão e usa Reconectar.');
   });
@@ -4066,7 +4069,8 @@ function setupAudio(){
   psAudioElement.addEventListener('timeupdate',()=>{podcastReport(psAudioElement);psSync();});
   psAudioElement.addEventListener('ratechange',psSync);
  }else if(placeholder!==psAudioElement){
-  placeholder.replaceWith(psAudioElement);
+  // O HTML do player é recriado; a instância real da mídia não muda de pai.
+  placeholder.remove();
  }
  const shell=document.getElementById('psAudioShell');
  if(shell)shell.hidden=!(podcastPlayerKey&&psAudioElement.src&&podcastPlayerKey.startsWith((current.subjectArea==='podcasts'?current.subject:current.audioSubject)+':'));
