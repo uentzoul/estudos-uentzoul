@@ -126,4 +126,60 @@ function render(ctx){
 trail.render=render;
 trail.integrated=true;
 
+
+async function downloadAudio(btn){
+ if(btn.disabled)return;
+ const url=btn.dataset.tiDownload,name=btn.dataset.tiFilename||'Podcast';
+ if(!/^https:\/\/swseibmqoetnuctxyusj\.supabase\.co\/storage\/v1\/object\/public\/study-podcasts\//.test(url))return;
+ const previous=btn.textContent;btn.disabled=true;btn.textContent='Preparando download…';
+ try{
+  const response=await fetch(url);
+  if(!response.ok||String(response.headers.get('content-type')||'').includes('text/html'))throw Error('Arquivo indisponível');
+  const blob=await response.blob();if(blob.size<512)throw Error('Arquivo vazio');
+  const src=URL.createObjectURL(blob),link=document.createElement('a');
+  link.href=src;link.download=name.normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^\w-]+/g,'_').slice(0,80)+'.m4a';
+  document.body.appendChild(link);link.click();link.remove();
+  setTimeout(()=>URL.revokeObjectURL(src),45000);
+  btn.textContent='✓ Download iniciado';
+ }catch(e){btn.textContent='Não foi possível baixar';}
+ finally{btn.disabled=false;setTimeout(()=>{if(btn.isConnected)btn.textContent=previous;},3000);}
+}
+document.addEventListener('click',event=>{
+ if(!event.target.closest('.ti-trail'))return;
+ const jump=event.target.closest('[data-ti-jump]');
+ if(jump){
+  event.preventDefault();document.getElementById(jump.dataset.tiJump)?.scrollIntoView({behavior:'smooth',block:'start'});
+  return;
+ }
+ const flip=event.target.closest('[data-ti-flip]');
+ if(flip){
+  event.preventDefault();
+  const front=flip.querySelector('.ti-flash-front'),back=flip.querySelector('.ti-flash-back'),hint=flip.querySelector('em');
+  if(!front||!back)return;
+  const showing=flip.getAttribute('aria-expanded')!=='true';
+  flip.setAttribute('aria-expanded',String(showing));front.hidden=showing;back.hidden=!showing;
+  if(hint)hint.textContent=showing?'Clique para voltar à pergunta':'Clique para revelar a resposta';
+  return;
+ }
+ const mark=event.target.closest('[data-ti-mark]');
+ if(mark){
+  event.preventDefault();
+  if(window.PSICO_PRACTICE?.markCard?.(mark.dataset.tiSubject,mark.dataset.tiMark)){mark.disabled=true;mark.textContent='✓ Lembrado';}
+  return;
+ }
+ const dl=event.target.closest('[data-ti-download]');
+ if(dl){event.preventDefault();downloadAudio(dl);}
+});
+document.addEventListener('change',event=>{
+ const selection=event.target.closest('[data-ti-speed]');
+ if(!selection)return;
+ const audio=selection.closest('.ti-podcast')?.querySelector('audio');
+ if(audio)audio.playbackRate=Number(selection.value)||1;
+});
+document.addEventListener('play',event=>{
+ const audio=event.target;
+ if(!(audio instanceof HTMLAudioElement)||!audio.closest('.ti-trail'))return;
+ document.querySelectorAll('audio').forEach(other=>{if(other!==audio&&!other.paused)other.pause();});
+},true);
+
 window.PSICO_TRAIL_STATUS='carregado';})();
