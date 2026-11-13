@@ -32,4 +32,26 @@ function readings(ctx,docs){
  }).join('')+'</div></section>';
 }
 
+
+function podcasts(ctx,episodes){
+ if(!episodes.length)return '';
+ return '<section class="ti-block">'+heading('Podcasts específicos','Reproduza nesta página')+
+ '<div class="ti-podcast-list">'+episodes.map(e=>
+ '<article class="ti-podcast"><div class="ti-podcast-title"><span>♫</span><div><small>EPISÓDIO '+String(e.n).padStart(2,'0')+'</small><strong>'+esc(e.title)+'</strong></div></div>'+
+ '<audio controls preload="none" playsinline src="'+esc(e.src)+'" aria-label="Ouvir podcast '+esc(e.title)+'"></audio>'+
+ '<div class="ti-podcast-tools"><label>Velocidade <select data-ti-speed aria-label="Velocidade de reprodução">'+
+ ['0.5','0.75','1','1.25','1.5','2'].map(v=>'<option value="'+v+'"'+(v==='1'?' selected':'')+'>'+v.replace('.',',')+'×</option>').join('')+
+ '</select></label><button type="button" data-ti-download="'+esc(e.src)+'" data-ti-filename="'+esc(e.title)+'">↓ Baixar</button></div></article>').join('')+'</div></section>';
+}
+function flashcards(ctx,topics){
+ let cards=window.PSICO_PRACTICE?.focusCards?.(ctx.subject,ctx.topics||[],topics.map(t=>t.title),4)||[];
+ if(!cards.length)cards=topics.slice(0,4).map(t=>({key:'fallback:'+ctx.subject+':'+norm(t.title),tag:'Compreensão',front:'Explique '+t.title+'.',back:t.definition}));
+ return '<section class="ti-block">'+heading('Flashcards específicos','Vire os cartões para conferir')+
+ '<div class="ti-flash-grid">'+cards.map((c,i)=>
+ '<article class="ti-flash-card"><small>'+esc(c.tag||'Recordação ativa')+' · '+(i+1)+'</small>'+
+ '<button type="button" data-ti-flip aria-expanded="false"><span class="ti-flash-front">'+esc(c.front).replace(/\n/g,' ')+'</span>'+
+ '<span class="ti-flash-back" hidden>'+esc(c.back).replace(/\n/g,' ')+'</span><em>Clique para revelar a resposta</em></button>'+
+ '<button class="ti-flash-mark" type="button" data-ti-mark="'+esc(c.key)+'" data-ti-subject="'+esc(ctx.subject)+'"'+(c.remembered?' disabled':'')+'>'+(c.remembered?'✓ Lembrado':'✓ Lembrei')+'</button></article>').join('')+'</div></section>';
+}
+
 window.PSICO_TRAIL_STATUS='carregado';})();
