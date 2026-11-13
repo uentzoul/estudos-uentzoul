@@ -1976,7 +1976,24 @@ html[data-theme="dark"] .tz-pending-icon{background:#40375e;color:#d6c4ff}
 <script src="estudos-casos-data.js?v=20261112-1"></script>
 <script src="estudo-ativo.js?v=20261112-reviewed-3"></script>
 <link rel="stylesheet" href="chat-whatsapp.css?v=20261112-whatsapp-chat-7">
-</head>
+<style id="tz-overlap-fix">
+/* Mantém o botão de nova conversa fora da faixa da barra superior e do histórico. */
+@media (min-width:761px){
+ .app>.main:has(>.tz-shell){padding-top:clamp(52px,5.1vh,66px)!important;}
+}
+.tz-shell .tz-chat{position:relative;isolation:isolate;}
+.tz-shell .tz-floating-actions{box-sizing:border-box;position:relative;z-index:4;flex:0 0 auto;min-height:53px!important;padding:9px clamp(16px,2vw,28px)!important;border-bottom:1px solid var(--line);background:var(--paper);overflow:visible;}
+.tz-shell .tz-new-chat{position:relative;z-index:2;max-width:100%;flex:none;}
+.tz-shell .tz-thread{position:relative;z-index:1;}
+@media (max-width:760px){.tz-shell .tz-floating-actions{min-height:44px!important;padding:6px 12px!important;}}
+</style>
+<style id="podcast-reproduce-style">
+.episodeunit .episodeplay{position:relative}
+.episodeunit.is-loading .episodeplay{opacity:.77;cursor:progress}
+.episodeunit.is-loading .episodeplay::after{content:"";width:15px;height:15px;flex:0 0 15px;display:inline-block;border:2px solid currentColor;border-right-color:transparent;border-radius:50%;animation:podcast-loading-spin .7s linear infinite;margin-left:8px}
+@keyframes podcast-loading-spin{to{transform:rotate(360deg)}}
+@media(prefers-reduced-motion:reduce){.episodeunit.is-loading .episodeplay::after{animation-duration:1.8s}}
+</style></head>
 <body>
 <section id="staticFallback" class="static-fallback" aria-label="Central de Estudos — modo de leitura compatível com celular">
 <div class="offline-intro"><span class="offline-mark"><span class="psychology-mark" aria-label="Símbolo da Psicologia">Ψ</span></span><div><strong>Psicologia PUCRS 2026/2</strong><p>by: Enzo F.B.</p></div></div>
@@ -2597,7 +2614,7 @@ function renderSubject(k){
    ['tests','✦','Simulados','Questões para praticar o que foi estudado'],
    ['flash','▧','Flashcards','Recordação ativa com revisão espaçada'],
    ['cases','◇','Estudos de casos','Decisões, consequências e explicações por etapas'],
-   ['podcasts','♫','Podcasts','Episódios da disciplina para ouvir ou baixar'],
+   ['podcasts','♫','Podcasts','Episódios da disciplina para escutar'],
    ['topics','☷','Conteúdos para revisar','Conceitos, exemplos e explicações dos assuntos da prova'],
    ['docs','▤','Materiais e textos','Arquivos e leituras da disciplina']
   ];
@@ -2762,7 +2779,7 @@ function audioSelectionIndex(){return current.audioSubject==='tcc'?currentChapte
 function audioKey(k,i){return k+':'+i;}
 function podcastEpisode(k,i){return audioEpisodes(k)[i];}
 function episodeUri(k,i){const ep=podcastEpisode(k,i);return ep?.src||'';}
-function readyStatus(k,i){const key=audioKey(k,i);return episodeReady.has(key) ? '✓ Baixado' : (episodeDownloading.has(key) ? 'Baixando…' : 'Não baixado');}
+function readyStatus(k,i){const key=audioKey(k,i);return episodeDownloading.has(key) ? 'Preparando áudio…' : 'Disponível para reproduzir';}
 function renderAudio(embedded=false){
  const k=embedded?current.subject:current.audioSubject,eps=audioEpisodes(k),name=getSubject(k)?.name||'TCC';
  if(embedded){
@@ -2771,33 +2788,32 @@ function renderAudio(embedded=false){
   return '<section class="podcasts-minimal" aria-label="Podcasts de '+esc(name)+'">'+
    '<header class="podcasts-heading"><span class="podcasts-heading-symbol" aria-hidden="true">♫</span><h2>Podcasts</h2></header>'+
    (selected?'<div class="podcasts-now"><div class="podcasts-now-top"><span class="podcasts-now-symbol" aria-hidden="true">♫</span><div class="podcasts-now-info"><span class="podcasts-now-label">Selecionado</span><strong id="audioPlayingTitle">'+esc(selected.title)+'</strong></div></div>'+
-    '<audio id="audioPlayer" controls preload="none" aria-label="Reprodutor de podcasts"></audio><div id="audioStatus" role="status" aria-live="polite"></div></div>':
+    '<audio id="audioPlayer" controls preload="none" controlsList="nodownload" aria-label="Reprodutor de podcasts"></audio><div id="audioStatus" role="status" aria-live="polite"></div></div>':
     '<div class="subject-hub-empty">Nenhum podcast cadastrado nesta disciplina.</div>')+
    '<div class="podcasts-list">'+eps.map((e,i)=>{
     const ready=episodeReady.has(audioKey(k,i));
-    return '<div class="episodeunit '+(chosen===i?'active':'')+'" data-audio-index="'+i+'">'+
+    return '<div class="episodeunit '+(chosen===i?'active':'')+'" data-audio-subject="'+k+'" data-audio-index="'+i+'">'+
      '<button type="button" class="episodeplay" data-action="'+(k==='tcc'?'chapter:':'episode:')+i+'" aria-label="Ouvir '+esc(e.title)+'"><span class="num">'+String(e.n).padStart(2,'0')+'</span><span class="eptext">'+esc(e.title)+'</span><span class="ep-play-icon" aria-hidden="true">▶</span></button>'+
-     '<button type="button" class="ep-download ep-download-minimal '+(ready?'is-downloaded':'')+'" data-action="download:'+k+':'+i+'" data-download-key="'+k+':'+i+'" title="'+(ready?'Baixado':'Baixar episódio')+'" aria-label="'+(ready?'Episódio baixado':'Baixar episódio: '+esc(e.title))+'" '+(episodeDownloading.has(audioKey(k,i))?'disabled':'')+'>'+(ready?'✓':'↓')+'</button></div>';
+     '</div>';
    }).join('')+'</div></section>';
  }
 
  const chosen=Math.min(Math.max(audioSelectionIndex(),0),eps.length-1);
  const done=doneCount(eps.map(e=>`audio:${k}:${e.n}`));
  let tabs=['tcc','grupos','familia','meta','avaliacao','social'].map(x=>{let n=doneCount(audioEpisodes(x).map(e=>`audio:${x}:${e.n}`));return `<button class="audio-tab ${x===k?'selected':''}" data-action="audioFor:${x}" aria-pressed="${x===k}"><strong>${esc(getSubject(x).name)}</strong><small>${n}/${audioEpisodes(x).length} concluídos</small></button>`}).join('');
- let cards=eps.map((e,i)=>`<div class="episodeunit ${chosen===i?'active':''} ${isDone(`audio:${k}:${e.n}`)?'is-done':''}" data-audio-index="${i}">
+ let cards=eps.map((e,i)=>`<div class="episodeunit ${chosen===i?'active':''} ${isDone(`audio:${k}:${e.n}`)?'is-done':''}" data-audio-subject="${k}" data-audio-index="${i}">
  <button class="episodeplay" data-action="${k==='tcc'?`chapter:${i}`:`episode:${i}`}" aria-label="Ouvir ${esc(e.title)}"><span class="num">${String(e.n).padStart(2,'0')}</span><span class="eptext"><strong>${esc(e.title)}</strong><small>${esc(e.duration||'')}</small></span><span aria-hidden="true">▶</span></button>
- <button class="ep-download" data-action="download:${k}:${i}" data-download-key="${k}:${i}" ${episodeDownloading.has(audioKey(k,i))?'disabled':''}>${episodeReady.has(audioKey(k,i))?'✓ Baixado':episodeDownloading.has(audioKey(k,i))?'Baixando…':'↓ Baixar'}</button>
- <span class="ep-status ${episodeReady.has(audioKey(k,i))?'ready':''}" data-status-key="${k}:${i}">${readyStatus(k,i)}</span>
+
  ${doneBox(`audio:${k}:${e.n}`)}</div>`).join('');
- return `${embedded?'<div class="subject-podcasts-intro"><div class="sectiontop"><h2>Podcasts</h2><span class="small">'+eps.length+' episódios</span></div><p class="small muted">Ouça ou baixe os episódios desta disciplina individualmente.</p></div>':head('Material em áudio','Biblioteca de podcasts','Agora os episódios são baixados individualmente, somente quando tu escolher.')}
+ return `${embedded?'<div class="subject-podcasts-intro"><div class="sectiontop"><h2>Podcasts</h2><span class="small">'+eps.length+' episódios</span></div><p class="small muted">Toque em Reproduzir para escutar cada episódio. O carregamento acontece automaticamente.</p></div>':head('Material em áudio','Biblioteca de podcasts','Escolhe um episódio e reproduz diretamente pelo site.')}
  ${embedded?'':'<div class="audio-tabs">'+tabs+'</div>'}${k==='social'?'<p class="small">8 episódios previstos; episódios 7 e 8 precisam ser enviados pelo painel de podcasts para ficarem disponíveis.</p>':''}
- <div class="audio-helper"><b>↓ Baixar</b> guarda o episódio no navegador para ouvir depois. <b>▶ Ouvir</b> toca o episódio baixado; se ainda não estiver baixado, faz o download primeiro. Não é preciso baixar todos de uma vez.<p class="small" style="margin:8px 0 0">Os arquivos precisam estar disponíveis no endereço do site. Apenas o HTML, sem os áudios publicados, não consegue baixá-los. O navegador pode apagar arquivos guardados para liberar espaço.</p></div>
+ <div class="audio-helper">Selecione um episódio e pressione Reproduzir. O áudio é preparado automaticamente e um indicador aparece durante o carregamento.</div>
  <section class="audio-progress"><div class="statline"><span>Progresso em ${esc(name)}</span><strong id="audioCompletedCount">${done}/${eps.length} concluídos</strong></div><div class="progressline"><div id="audioCompletedBar" style="width:${fmtPct(done,eps.length)}%"></div></div><p class="small" style="margin:8px 0 0">As caixinhas de concluído são independentes dos downloads.</p></section>
- <section class="section"><div class="audiohead"><div class="eyebrow" style="color:#a9bfd5">${k==='tcc'?'TCC: capítulos individuais':'Áudios separados por episódio'}</div><h2 style="margin:0;font-size:20px" id="audioPlayingTitle">${esc(eps[chosen].title)}</h2><p class="small">Escolhe um episódio e toca em ▶; o download ocorrerá apenas para ele.</p>
- <audio id="audioPlayer" controls preload="none" style="width:100%;margin-top:10px"></audio><div class="small" id="audioStatus" role="status" aria-live="polite">Escolhe um episódio para ouvir.</div><p class="small muted" id="podcastPointsStatus" aria-live="polite">Seleciona um episódio e usa o player para ouvir.</p>
+ <section class="section"><div class="audiohead"><div class="eyebrow" style="color:#a9bfd5">${k==='tcc'?'TCC: episódios em sequência':'Áudios separados por episódio'}</div><h2 style="margin:0;font-size:20px" id="audioPlayingTitle">${esc(eps[chosen].title)}</h2><p class="small">Escolhe um episódio e pressiona Reproduzir.</p>
+ <audio id="audioPlayer" controls preload="none" controlsList="nodownload" style="width:100%;margin-top:10px"></audio><div class="small" id="audioStatus" role="status" aria-live="polite">Escolhe um episódio para ouvir.</div><p class="small muted" id="podcastPointsStatus" aria-live="polite">Seleciona um episódio e usa o player para ouvir.</p>
  <div class="actions" style="margin-top:11px"><button class="btn sm light" data-action="prevAudio">◂ Anterior</button><button class="btn sm light" data-action="nextAudio">Próximo ▸</button><button class="btn sm light" data-action="resetAudio">Reiniciar áudio</button></div>
  </div></section>
- <section class="section"><div class="sectiontop"><h2>${k==='tcc'?'Capítulos de TCC':'Episódios de '+esc(name)}</h2><span class="small">${eps.length} episódios · download individual</span></div><div class="audiocards">${cards}</div></section>`;
+ <section class="section"><div class="sectiontop"><h2>${k==='tcc'?'Episódios de TCC':'Episódios de '+esc(name)}</h2><span class="small">${eps.length} episódios disponíveis para reprodução</span></div><div class="audiocards">${cards}</div></section>`;
 }
 
 const AGENDA_LESSONS_2026_2=[{"d":"2026-11-03","s":"avaliacao","t":"Entrevista de devolução","r":[{"n":"Nobre e colaboradores — caso clínico de devolução","c":"Avaliação psicológica e desenvolvimento humano: casos clínicos (2019), p. 211–228","p":0},{"n":"Entrevista simulada de devolução","c":"Vídeo previsto no cronograma","u":"https://youtu.be/NR6Vidww50M"}]},{"d":"2026-11-04","s":"social","t":"Marcadores sociais: gênero e sexualidade","r":[{"n":"Tema da aula","c":"O plano não indica um texto específico para esta data.","p":11}]},{"d":"2026-11-04","s":"familia","t":"Atendimento familiar na clínica","r":[],"note":"Palestra de estagiárias, sem leitura indicada no cronograma."},{"d":"2026-11-05","s":"avaliacao","t":"Avaliação no contexto organizacional","r":[],"note":"Palestra de Gabryellen Fraga Des Essarts; sem texto indicado."},{"d":"2026-11-05","s":"social","t":"Apresentação — Grupo 2","r":[],"note":"Discussão coletiva; sem leitura específica indicada."},{"d":"2026-11-09","s":"meta","t":"Segunda teoria do aparelho psíquico","r":[{"n":"Laplanche e Pontalis — Vocabulário da Psicanálise","c":"Verbetes selecionados; termos não individualizados no cronograma.","p":1},{"n":"Roudinesco e Plon — Dicionário de Psicanálise","c":"Verbetes selecionados; termos não individualizados no cronograma.","p":1}]},{"d":"2026-11-09","s":"tcc","t":"Terapia de Aceitação e Compromisso — aula 1","r":[{"n":"ACT: introdução ao modelo","c":"O cronograma indica a aula, mas não especifica texto separado para 09/11.","p":8}]},{"d":"2026-11-09","s":"familia","t":"Atendimento familiar no hospital","r":[],"note":"Palestra; o cronograma não indica leitura."},{"d":"2026-11-10","s":"avaliacao","t":"Avaliação psicológica no contexto hospitalar","r":[],"note":"Palestra de Kamilla Antunes Gonçalves; sem texto indicado."},{"d":"2026-11-10","s":"grupos","t":"Apresentação T1 — Rogers e grupos comunitários","r":[],"note":"O plano registra “texto a definir”."},{"d":"2026-11-11","s":"familia","t":"Atendimento familiar na escola","r":[],"note":"Palestra; sem texto-base individualizado."},{"d":"2026-11-11","s":"social","t":"Tecnologias da informação e subjetividade","r":[{"n":"Tecnologias, algoritmos e visibilidade social","c":"O plano indica o tema, sem bibliografia específica nesta data. Revisão do material disponível.","p":5}]},{"d":"2026-11-12","s":"tcc","t":"Terapia de Aceitação e Compromisso — aula 2","r":[{"n":"Hayes e colaboradores (2008) — ACT","c":"Leitura indicada no cronograma. Capítulo ou página não discriminado.","p":8}]},{"d":"2026-11-12","s":"avaliacao","t":"Avaliação psicológica no contexto forense","r":[],"note":"Palestra de Simone Lemes; sem texto indicado."},{"d":"2026-11-12","s":"social","t":"Apresentação — Grupo 3","r":[],"note":"Discussão coletiva; sem texto-base específico."},{"d":"2026-11-16","s":"familia","t":"Atendimento familiar no contexto jurídico","r":[],"note":"Palestra prevista; sem texto-base específico."},{"d":"2026-11-16","s":"tcc","t":"Terapia de Aceitação e Compromisso — aula 3","r":[{"n":"ACT: valores e ação comprometida","c":"Continuação do conteúdo; sem nova leitura individualizada no cronograma.","p":11}]},{"d":"2026-11-16","s":"meta","t":"Dualismos pulsionais","r":[{"n":"Macedo (2015), Neurose: leituras psicanalíticas","c":"Cap. 4 — “Pulsão: entrelaçamentos entre sujeito, vida e morte”, p. 95–103.","p":12},{"n":"Laplanche e Pontalis / Roudinesco e Plon","c":"Verbetes selecionados sobre pulsão; o plano não lista verbetes individualmente.","p":10},{"n":"Freud (1933), Novas conferências introdutórias","c":"Conferência XXXII, indicada no cronograma.","p":12}]},{"d":"2026-11-17","s":"grupos","t":"Grupos virtuais e revisão de conteúdos","r":[{"n":"Pieruccini, Ângela (2005)","c":"“Dinâmica dos Grupos aplicada em grupos virtuais: possibilidade ou ficção?”, Revista da SBDG, n. 2, p. 42–49."}],"note":"Este tema está no cronograma, mas não foi incluído nos três tópicos de revisão selecionados para Grupos."},{"d":"2026-11-17","s":"avaliacao","t":"Avaliação psicológica de pessoas trans","r":[],"note":"Palestra de Nathália de Souza Ávila; sem texto especificado."},{"d":"2026-11-18","s":"familia","t":"Atendimento familiar na Assistência Social","r":[],"note":"Previsto no cronograma original; a data também foi informada posteriormente para a Prova 2. Confere no Moodle.","conflict":true},{"d":"2026-11-18","s":"social","t":"Aula expositivo-dialogada — tema não informado","r":[],"note":"O plano informa aula, mas não registra o tema ou texto de leitura."},{"d":"2026-11-19","s":"tcc","t":"Atualidades em TCCs","r":[],"note":"Previsto no cronograma original; a data também foi informada posteriormente para a Prova 2. Confere no Moodle.","conflict":true},{"d":"2026-11-19","s":"avaliacao","t":"Ética na avaliação psicológica","r":[{"n":"Ética profissional e normas aplicáveis","c":"A aula está prevista, mas o cronograma não atribui uma leitura nova específica.","p":7}]},{"d":"2026-11-19","s":"social","t":"Apresentação — Grupo 4","r":[],"note":"Discussão coletiva; sem texto específico."},{"d":"2026-11-23","s":"familia","t":"Discussão sobre as palestras","r":[],"note":"Retomada dos atendimentos familiar clínico, hospitalar, escolar, jurídico e assistência social."},{"d":"2026-11-23","s":"tcc","t":"Fechamento e revisão para a Prova 2","r":[{"n":"Terapia do Esquema e terapias de terceira onda","c":"Revisão dos temas do semestre; o cronograma não acrescenta capítulo para 23/11.","p":0}]},{"d":"2026-11-24","s":"avaliacao","t":"Palestra — Conselho de Orientação e Fiscalização (COF)","r":[],"note":"Atividade informada no cronograma; sem leitura específica."},{"d":"2026-11-25","s":"social","t":"Integração dos conteúdos","r":[{"n":"Psicologia Social I: conceitos integradores","c":"Sem texto separado para a aula; retomar Psicologia Social Crítica e marcadores sociais.","p":6}]},{"d":"2026-11-30","s":"tcc","t":"Encerramento da disciplina; orientações sobre PS e G2","r":[],"note":"Sem nova leitura indicada."},{"d":"2026-12-02","s":"familia","t":"Entrega de notas e avaliação da disciplina","r":[],"note":"Sem leitura indicada."},{"d":"2026-12-02","s":"social","t":"Devolutiva de notas","r":[],"note":"Aula destinada à devolutiva."},{"d":"2026-12-03","s":"avaliacao","t":"Fechamento da disciplina","r":[],"note":"Sem nova leitura."}];
@@ -3782,22 +3798,24 @@ function openPodcastDB(){return new Promise((resolve,reject)=>{
 function getPodcast(key){return new Promise((resolve,reject)=>{if(!podcastDB){resolve(null);return;}try{const tr=podcastDB.transaction(POD_DB_STORE,'readonly'),r=tr.objectStore(POD_DB_STORE).get(key);r.onsuccess=()=>resolve(r.result||null);r.onerror=()=>reject(r.error);}catch(e){reject(e)}})}
 function putPodcast(key,blob){return new Promise((resolve,reject)=>{if(!podcastDB){reject(new Error('Armazenamento indisponível'));return;}try{const tr=podcastDB.transaction(POD_DB_STORE,'readwrite');tr.objectStore(POD_DB_STORE).put(blob,key);tr.oncomplete=()=>resolve();tr.onerror=()=>reject(tr.error);}catch(e){reject(e)}})}
 function updateDownloadVisual(k,i,info){
- const key=audioKey(k,i),btn=document.querySelector('[data-download-key="'+key+'"]'),status=document.querySelector('[data-status-key="'+key+'"]');
- if(btn){
-  const downloading=episodeDownloading.has(key),ready=episodeReady.has(key);
-  btn.textContent=btn.classList.contains('ep-download-minimal')?(downloading?'…':ready?'✓':'↓'):downloading?'Baixando…':ready?'✓ Baixado':'↓ Baixar';
-  btn.disabled=downloading;btn.classList.toggle('is-downloaded',ready);
-  btn.setAttribute('aria-label',downloading?'Baixando episódio':ready?'Episódio baixado':'Baixar episódio');
-  btn.title=downloading?'Baixando…':ready?'Baixado':'Baixar episódio';
+ const key=audioKey(k,i),row=document.querySelector('.episodeunit[data-audio-subject="'+k+'"][data-audio-index="'+i+'"]');
+ if(row){
+  const busy=episodeDownloading.has(key);
+  row.classList.toggle('is-loading',busy);
+  const control=row.querySelector('.episodeplay');
+  if(control){control.setAttribute('aria-busy',String(busy));control.setAttribute('aria-label',(busy?'Carregando ':'Reproduzir ')+(podcastEpisode(k,i)?.title||'episódio'))}
  }
- if(status){status.textContent=info||readyStatus(k,i);status.classList.toggle('ready',episodeReady.has(key));}
+ const status=document.getElementById('audioStatus');
+ if(status && episodeDownloading.has(key) && (current.audioSubject===k || current.subject===k) && audioSelectionIndex()===i)status.textContent='Carregando áudio…';
 }
 const podcastMetrics={lastCall:0,inFlight:false,awarded:new Set(),latestId:null};
 async function podcastReport(p){return;}
 function setupAudio(){
  const p=$('audioPlayer');if(!p)return;
- p.addEventListener('error',()=>{const el=$('audioStatus');if(el)el.textContent='Erro ao reproduzir. Tenta baixar novamente.'});
+ p.addEventListener('error',()=>{const el=$('audioStatus');if(el)el.textContent='Erro ao reproduzir este episódio. Tenta novamente.'});
  p.addEventListener('loadedmetadata',()=>{const el=$('audioStatus');if(el)el.textContent='Áudio pronto para ouvir.'});
+ p.addEventListener('waiting',()=>{const el=$('audioStatus');if(el)el.textContent='Carregando áudio…'});
+ p.addEventListener('playing',()=>{const el=$('audioStatus');if(el)el.textContent='Reproduzindo podcast.'});
  p.addEventListener('ended',()=>{const el=$('audioStatus');if(el)el.textContent='Fim do episódio. A escuta válida é registrada automaticamente.'});
  p.addEventListener('timeupdate',()=>{podcastReport(p)});
  p.addEventListener('play',()=>{podcastMetrics.lastCall=0;podcastReport(p)});
@@ -3810,7 +3828,7 @@ async function preparePodcast(k,i,autoplay=false){const key=audioKey(k,i),ep=pod
     if(!blob){
       if(episodeDownloading.has(key))return;
       episodeDownloading.add(key);updateDownloadVisual(k,i);
-      const status=$('audioStatus');if(status&&isPodcastView())status.textContent='Baixando '+ep.title+'…';
+      const status=$('audioStatus');if(status&&isPodcastView())status.textContent='Carregando '+ep.title+'…';
       const url=episodeUri(k,i);
       if(!url)throw new Error('Este episódio ainda não tem um link de áudio.');
       if(!/^https?:$/.test(location.protocol))throw new Error('Para baixar os áudios, abra o site pelo endereço publicado (HTTPS) ou use um servidor local. Abrir apenas o HTML não permite carregar os arquivos.');
@@ -3820,7 +3838,7 @@ async function preparePodcast(k,i,autoplay=false){const key=audioKey(k,i),ep=pod
       if(type.includes('text/html'))throw new Error('O endereço retornou uma página, não um arquivo de áudio. Confira a hospedagem.');
       const size=Number(r.headers.get('content-length')||0),reader=r.body?.getReader();
       let bytes=0,chunks=[];
-      if(reader){while(true){const {done,value}=await reader.read();if(done)break;chunks.push(value);bytes+=value.byteLength;if(size)updateDownloadVisual(k,i,`${Math.min(100,Math.round(100*bytes/size))}%`);}}
+      if(reader){while(true){const {done,value}=await reader.read();if(done)break;chunks.push(value);bytes+=value.byteLength;if(size){const status=$('audioStatus');if(status&&isPodcastView())status.textContent='Preparando áudio… '+Math.min(100,Math.round(100*bytes/size))+'%';}}}
       blob=reader?new Blob(chunks,{type:'audio/mp4'}):await r.blob();
       if(!blob.size || blob.size<512)throw new Error('O arquivo recebido está vazio ou inválido.');
       sessionPodcastBlobs[key]=blob;
@@ -3834,9 +3852,9 @@ async function preparePodcast(k,i,autoplay=false){const key=audioKey(k,i),ep=pod
       if(activePodcastURL)URL.revokeObjectURL(activePodcastURL);
       activePodcastURL=URL.createObjectURL(blob);podcastPlayerKey=key;
       player.src=activePodcastURL;player.load();
-      try{await player.play()}catch(e){const status=$('audioStatus');if(status)status.textContent='Áudio baixado. Toque em ▶ no reprodutor para começar.'}
+      try{player.currentTime=0;await player.play()}catch(e){const status=$('audioStatus');if(status)status.textContent='Áudio pronto. Toque em ▶ no reprodutor para começar.'}
     }
-  }catch(e){console.error('Podcast:',e);errorMessage=e.message||'Não foi possível baixar o áudio.';const status=$('audioStatus');if(status&&isPodcastView())status.textContent=errorMessage;}
+  }catch(e){console.error('Podcast:',e);errorMessage=e.message||'Não foi possível preparar o áudio.';const status=$('audioStatus');if(status&&isPodcastView())status.textContent=errorMessage;}
   finally{episodeDownloading.delete(key);updateDownloadVisual(k,i,errorMessage?'Não disponível':null);}
 }
 function updatePickedAudioLabels(){for(const key of episodeReady){const [k,i]=key.split(':');updateDownloadVisual(k,Number(i));}}
@@ -3849,7 +3867,7 @@ function openEpisode(i){const eps=audioEpisodes(current.audioSubject);currentEpi
 function currentAudioPath(){return episodeUri(current.audioSubject,audioSelectionIndex());}
 function downloadEpisodeAction(k,i){if(!DB.audio[k]||!Number.isInteger(i)||i<0||i>=audioEpisodes(k).length)return;preparePodcast(k,i,false);}
 /* Recuperar os episódios baixados quando o site é aberto novamente. */
-const podcastDBOpening=openPodcastDB().then(()=>{const tx=podcastDB.transaction(POD_DB_STORE,'readonly'),req=tx.objectStore(POD_DB_STORE).getAllKeys();req.onsuccess=()=>{req.result.forEach(key=>episodeReady.add(key));if(isPodcastView())updatePickedAudioLabels()};return podcastDB}).catch(e=>{console.warn('Downloads permanentes indisponíveis',e);return null;});
+const podcastDBOpening=openPodcastDB().then(()=>{const tx=podcastDB.transaction(POD_DB_STORE,'readonly'),req=tx.objectStore(POD_DB_STORE).getAllKeys();req.onsuccess=()=>{req.result.forEach(key=>episodeReady.add(key));if(isPodcastView())updatePickedAudioLabels()};return podcastDB}).catch(e=>{console.warn('Cache local indisponível',e);return null;});
 function onAction(act){
  if(act==='tz-login'){window.uentzoulAIAuth?.openLogin();return}
  if(act.startsWith('agenda-tab:')){
