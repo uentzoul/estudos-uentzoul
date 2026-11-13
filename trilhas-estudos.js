@@ -7,19 +7,19 @@ tcc:[
  ['material','terapia do esquema','Leia a apresentação, concentrando-se nas necessidades emocionais, esquemas iniciais e modos.'],
  ['audio',1,'Ouça a explicação de fundamentos da Terapia do Esquema.'],
  ['audio',2,'Revise os nove primeiros esquemas com exemplos.'],
- ['audio',3,'Complete os esquemas e compara padrões semelhantes.'],
+ ['audio',3,'Revise os demais esquemas e compare padrões semelhantes.'],
  ['flash',0,'Recupere os conceitos sem consultar os slides.']]},
  {title:'Compreender os modelos de terceira onda',goal:'Relacione cada abordagem à situação em que ela pode ser aplicada.',steps:[
  ['material','tccs de terceira onda','Leia os slides da terceira onda, identificando o foco de cada abordagem.'],
  ['audio',6,'Conecte a evolução do behaviorismo às terapias de terceira onda.'],
- ['material','act na clínica','Leia o texto de ACT e identifica os seis processos do Hexaflex.'],
+ ['material','act na clínica','Leia o texto de ACT e identifique os seis processos do Hexaflex.'],
  ['audio',7,'Ouça ACT e o modelo Hexaflex depois da leitura.'],
  ['cases',0,'Aplique flexibilidade psicológica, esquemas e modos aos casos.']]},
  {title:'Diferenciar intervenções e avaliar casos',goal:'Aprenda a justificar escolhas, em vez de apenas decorar siglas.',steps:[
  ['audio',8,'Compare DBT e MBCT.'],
  ['audio',9,'Compare CFT e FAP.'],
  ['audio',10,'Integre as intervenções clínicas apresentadas nos áudios.'],
- ['guided',0,'Responda ao estudo dirigido, identificando onde ainda tem dúvidas.']]},
+ ['guided',0,'Responda ao estudo dirigido e identifique os temas em que ainda tem dúvidas.']]},
  {title:'Consolidar e testar a compreensão',goal:'Use a prática para localizar e corrigir dificuldades.',steps:[
  ['topics',0,'Reveja conceitos, exemplos e erros comuns.'],
  ['exam',1,'Faça o primeiro simulado para testar fundamentos.'],
@@ -60,10 +60,10 @@ meta:[
  {title:'Organizar pulsão, angústia e conflito',goal:'Conecte mecanismos, instâncias e transformações teóricas.',steps:[
  ['material','pulsão','Leia a apresentação sobre pulsão e suas características.'],
  ['audio',5,'Distinga instinto, pulsão e pulsão de morte.'],
- ['material','angústia','Leia a aula de angústia e identifica os dois modelos.'],
+ ['material','angústia','Leia o material sobre angústia e identifique as duas formulações freudianas.'],
  ['audio',6,'Ouça a comparação entre as teorias freudianas da angústia.'],
  ['guided',0,'Responda ao estudo dirigido P2 para localizar lacunas.']]},
- {title:'Revisão integradora e simulado',goal:'Teste articulações conceituais e identifica os últimos pontos de revisão.',steps:[
+ {title:'Revisão integradora e simulado',goal:'Teste articulações conceituais e identifique os pontos que ainda precisam de revisão.',steps:[
  ['audio',7,'Ouça a revisão geral da metapsicologia.'],
  ['flash',0,'Treine definições e diferenciações sem consultar anotações.'],
  ['exam',2,'Teste conceitos e relações fundamentais.'],
@@ -75,7 +75,7 @@ grupos:[
  ['audio',1,'Ouça a apresentação do Psicodrama e sua proposta.'],
  ['audio',2,'Aprofunde papéis e dramatização com exemplos.'],
  ['cases',0,'Analise uma situação grupal pela lógica do Psicodrama.']]},
- {title:'Compreender os Grupos de Encontro de Carl Rogers',goal:'Diferencia facilitação, empatia, congruência e aceitação.',steps:[
+ {title:'Compreender os Grupos de Encontro de Carl Rogers',goal:'Diferencie facilitação, empatia, congruência e consideração positiva incondicional.',steps:[
  ['material','carl rogers','Leia o material sobre Carl Rogers e Grupos de Encontro.'],
  ['audio',3,'Ouça os fundamentos dos grupos de encontro.'],
  ['audio',4,'Entenda o funcionamento dos grupos rogerianos.'],
@@ -96,7 +96,7 @@ social:[
  ['audio',1,'Ouça a discussão sobre a formação social da identidade.'],
  ['topics',0,'Explique os conceitos com situações da vida cotidiana.']]},
  {title:'Ler ideologia, fatalismo e libertação',goal:'Relacione os autores às condições históricas e às desigualdades.',steps:[
- ['material','o latino indolente','Leia Martín-Baró e destaca a crítica ao fatalismo.'],
+ ['material','o latino indolente','Leia o texto de Martín-Baró e destaque a crítica ao fatalismo.'],
  ['audio',2,'Ouça a discussão sobre ideologia e fatalismo.'],
  ['material','desideologização','Leia a contribuição da desideologização à Psicologia Social.'],
  ['audio',6,'Ouça a síntese sobre Psicologia da Libertação.'],
@@ -115,9 +115,9 @@ social:[
  ['exam',5,'Finalize com o simulado avançado e confira a correção.']]}
 ],
 avaliacao:[
- {title:'Compreender documentos e decisões técnicas',goal:'Primeiro distingue finalidade, estrutura, limites e ética dos documentos.',steps:[
+ {title:'Compreender documentos e decisões técnicas',goal:'Primeiro, distinga finalidade, estrutura, limites e princípios éticos dos documentos.',steps:[
  ['material','elaboração de documentos','Leia a apresentação sobre elaboração de documentos psicológicos.'],
- ['audio',1,'Diferencia documentos psicológicos e seus objetivos.'],
+ ['audio',1,'Diferencie os documentos psicológicos e suas finalidades.'],
  ['audio',2,'Relacione documentação e fundamentos da psicometria.'],
  ['audio',3,'Compare laudo, parecer e relatório em situações concretas.']]},
  {title:'Dominar entrevistas e devolutiva',goal:'Aprenda a vincular demanda, método, comunicação e cuidado ético.',steps:[
@@ -134,7 +134,7 @@ avaliacao:[
  ['flash',0,'Revise os conceitos essenciais sem consultar materiais.'],
  ['exam',1,'Faça o simulado de conceitos básicos.'],
  ['exam',3,'Treine questões com mais interpretação.'],
- ['exam',5,'Corrija o simulado final e revisita suas dúvidas.']]}
+ ['exam',5,'Confira a correção do simulado final e revise os pontos em que teve dúvidas.']]}
 ]
 };
 const normalize=s=>String(s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
