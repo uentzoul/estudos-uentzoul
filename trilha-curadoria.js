@@ -1,4 +1,4 @@
-/* Curadoria de estudos alinhada ao acervo de prova final de 2026/2. */
+/* Curadoria de estudos alinhada ao acervo da prova final de 2026/2. */
 window.PSICO_TRAIL_CURRICULUM={
   "tcc": [
     [
@@ -143,28 +143,24 @@ window.PSICO_TRAIL_CURRICULUM={
     ],
     [
       "Atendimento clínico e hospitalar",
-      "Estude como identificar a demanda familiar, negociar objetivos e respeitar condições clínicas, comunicação e sigilo. Evite explicações que localizem todos os problemas em um único indivíduo.",
+      "Estude como identificar a demanda familiar, negociar objetivos e respeitar condições clínicas, comunicação e sigilo. Evite explicações que localizem todos os problemas em um único indivíduo. Se não houver slides específicos publicados sobre atendimento clínico e hospitalar, utilize as explicações, estudos dirigidos e questões desta etapa.",
       [
         "Atendimento familiar em clínica",
         "Atendimento familiar hospitalar"
       ],
-      [
-        "atendimentos clínico"
-      ],
+      [],
       [
         7
       ]
     ],
     [
       "Escola, território e rede de apoio",
-      "A atuação familiar também envolve escola, assistência social e rede de proteção. Vulnerabilidade econômica não equivale automaticamente a negligência.",
+      "A atuação familiar também envolve escola, assistência social e rede de proteção. Vulnerabilidade econômica não equivale automaticamente a negligência. Não há arquivo de aula específico identificado para esta etapa; utilize o estudo dirigido e os exercícios integrados.",
       [
         "Atendimento familiar escolar",
         "Assistência social e território"
       ],
-      [
-        "atendimentos clínico"
-      ],
+      [],
       []
     ],
     [
@@ -447,7 +443,8 @@ window.PSICO_TRAIL_CURRICULUM={
         "Avaliação forense"
       ],
       [
-        "avaliação no contexto organizacional"
+        "Contextos de Avaliação Organizacional",
+        "AVALIAÇÃO PSICO NO CONTEXTO HOSPITALAR"
       ],
       []
     ],
