@@ -2085,12 +2085,13 @@ html[data-theme="dark"] .tz-library-download{background:#26374c;border-color:#45
   <div class="semester-selector" id="semesterSelector">
   <button type="button" class="semester-current" id="semesterCurrent" aria-label="Escolher semestre" aria-haspopup="true" aria-controls="semesterDropdown" aria-expanded="false">
     <span class="semester-current-icon" aria-hidden="true">◈</span>
-    <span class="semester-current-copy"><span class="semester-current-caption">SEMESTRE</span><strong id="semesterCurrentLabel">2026/2</strong></span>
+    <span class="semester-current-copy"><span class="semester-current-caption">SEMESTRE</span><strong id="semesterCurrentLabel">2º Semestre</strong></span>
     <svg class="semester-chevron" aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
   </button>
   <div class="semester-dropdown" id="semesterDropdown" role="group" aria-label="Semestres disponíveis" hidden>
-    <button type="button" class="semester-option active" data-semester="2026/2" aria-current="true"><span>2026/2</span><span class="semester-option-check" aria-hidden="true">✓</span></button>
-    <button type="button" class="semester-option" data-semester="2027/1"><span>2027/1</span><span class="semester-option-check" aria-hidden="true">✓</span></button>
+    <button type="button" class="semester-option" data-semester="2026/1"><span>1º Semestre</span><span class="semester-option-check" aria-hidden="true">✓</span></button>
+    <button type="button" class="semester-option active" data-semester="2026/2" aria-current="true"><span>2º Semestre</span><span class="semester-option-check" aria-hidden="true">✓</span></button>
+    <button type="button" class="semester-option" data-semester="2027/1"><span>3º Semestre</span><span class="semester-option-check" aria-hidden="true">✓</span></button>
   </div>
 </div>
   <nav class="menu" id="nav">
@@ -2121,7 +2122,10 @@ html[data-theme="dark"] .tz-library-download{background:#26374c;border-color:#45
 <script>
 (()=>{'use strict';
 const SEMESTER_PREF='uentzoul_semester_v1';
+const SEMESTER_LABELS={'2026/1':'1º Semestre','2026/2':'2º Semestre','2027/1':'3º Semestre'};
+const semesterLabel=key=>SEMESTER_LABELS[key]||key;
 const SEMESTER_DB={
+ '2026/1':{subjects:{},topics:{},materials:[],exams:[],audio:{}},
  '2026/2':JSON.parse(document.getElementById('dataset').textContent),
  '2027/1':{
  subjects:{
@@ -2140,7 +2144,7 @@ const SEMESTER_DB={
 };
 window.PSICOMOODLE_NEW_CONTENT?.apply(SEMESTER_DB['2026/2']);
 let semester='2026/2';
-try{if(localStorage.getItem(SEMESTER_PREF)==='2027/1')semester='2027/1'}catch{}
+try{const savedSemester=localStorage.getItem(SEMESTER_PREF);if(SEMESTER_DB[savedSemester])semester=savedSemester}catch{}
 let DB=SEMESTER_DB[semester];
 const LIBRARY_CATALOG=SEMESTER_DB['2026/2'].materials.slice(); // Catálogo completo para gestão: nada se perde ao filtrar a revisão.
 
@@ -2311,9 +2315,10 @@ const fmtPct=(n,total)=>total?Math.round(n/total*100):0;
 let activeProfileId=null;
 const profileStoreKey=(id,sem=semester)=>sem==='2026/2'
  ?(id?'central_psi_2026_'+id+'_v1':key)
+ :sem==='2026/1'?(id?'central_psi_2026_1_'+id+'_v1':'central_psi_2026_1_v1')
  :(id?'central_psi_2027_1_'+id+'_v1':'central_psi_2027_1_v1');
 const readSavedProfile=(id,sem=semester)=>{try{return sanitizedStore(JSON.parse(localStorage.getItem(profileStoreKey(id,sem))||'{}'));}catch{return baseStore()}};
-const saveForSemester=(id,sem,data)=>{if(!['2026/2','2027/1'].includes(sem))return;try{localStorage.setItem(profileStoreKey(id,sem),JSON.stringify(sanitizedStore(data)))}catch(e){console.warn('Não foi possível armazenar o progresso do semestre',e)}};
+const saveForSemester=(id,sem,data)=>{if(!['2026/1','2026/2','2027/1'].includes(sem))return;try{localStorage.setItem(profileStoreKey(id,sem),JSON.stringify(sanitizedStore(data)))}catch(e){console.warn('Não foi possível armazenar o progresso do semestre',e)}};
 function switchSemester(next){
  if(!SEMESTER_DB[next]||next===semester)return;
  persist(); // Mantém o semestre anterior antes da troca.
@@ -2509,9 +2514,9 @@ function subjectCard(id){
 function renderNav(){
  document.documentElement.dataset.examFocus=semester==='2026/2'?'2026/2':'none';
  document.querySelectorAll('[data-semester]').forEach(b=>{const active=b.dataset.semester===semester;b.classList.toggle('active',active);if(active)b.setAttribute('aria-current','true');else b.removeAttribute('aria-current')});
- const currentLabel=$('semesterCurrentLabel');if(currentLabel)currentLabel.textContent=semester;
+ const currentLabel=$('semesterCurrentLabel');if(currentLabel)currentLabel.textContent=semesterLabel(semester);
  document.querySelectorAll('.brand strong,.mobile-heading strong').forEach(el=>el.textContent='PsicoMoodle');
- document.title='PsicoMoodle · Psicologia PUCRS '+semester;
+ document.title='PsicoMoodle · Psicologia PUCRS '+semesterLabel(semester);
  const nav=$('subjectNav');nav.innerHTML=Object.keys(DB.subjects).map(k=>`<button class="sidebtn ${current.subject===k && current.page==='subject'?'active':''}" data-action="subject:${k}"><i style="color:${color(k)}">●</i> ${esc(getSubject(k).name)}</button>`).join('');if(!Object.keys(DB.subjects).length)nav.innerHTML='<p class="semester-subjects-empty">As matérias de 2027/1 ainda não foram adicionadas.</p>';document.querySelectorAll('[data-page]').forEach(b=>b.classList.toggle('active',b.dataset.page===current.page));const adminButton=document.getElementById('navAdminConfig');if(adminButton)adminButton.hidden=!window.uentzoulAdminConfig?.isAdmin?.();}
 function head(k,h,sub){return `<div class="eyebrow">${esc(k)}</div><h1 class="h1">${esc(h)}</h1>${sub?`<p class="lead">${esc(sub)}</p>`:''}`}
 function renderHome(){
@@ -2669,7 +2674,7 @@ function renderSubject(k){
  const top='<div class="subject-hub" style="--subject-accent:'+color(k)+'">'+
  '<div class="subject-hub-crumb"><button type="button" data-action="page:home">Início</button><span aria-hidden="true">/</span><span>'+esc(subj.name)+'</span></div>'+
  '<header class="subject-hub-hero"><span class="subject-hub-emblem" aria-hidden="true">Ψ</span>'+
- '<div class="subject-hub-heading"><span class="subject-hub-kicker">'+esc(semester)+' · '+esc(subj.exam)+'</span>'+
+ '<div class="subject-hub-heading"><span class="subject-hub-kicker">'+esc(semesterLabel(semester))+' · '+esc(subj.exam)+'</span>'+
  '<h1>'+esc(subj.name)+'</h1><p class="subject-hub-date">Avaliação · '+dformat(subj.date)+'</p></div></header>';
  const metaTrail=k==='meta'&&semester==='2026/2'?
  '<a class="subject-hub-meta" href="metapsicologia-p2.html">'+
@@ -3978,9 +3983,9 @@ function render(){
   $('main').innerHTML=renderThirdSemester();return;
  }
  if(!Object.keys(DB.subjects).length&&current.page!=='ai'&&current.page!=='messages'&&current.page!=='admin'){
-  const labels={home:['Semestre 2027/1','Um espaço novo para o próximo semestre'],exams:['Simulados','Nenhum simulado cadastrado'],library:['Biblioteca','Nenhum arquivo cadastrado'],audio:['Podcasts','Nenhum podcast cadastrado'],calendar:['Agenda e Horários','Nenhuma avaliação cadastrada']};
+  const labels={home:[semesterLabel(semester),'Um espaço novo para este semestre'],exams:['Simulados','Nenhum simulado cadastrado'],library:['Biblioteca','Nenhum arquivo cadastrado'],audio:['Podcasts','Nenhum podcast cadastrado'],calendar:['Agenda e Horários','Nenhuma avaliação cadastrada']};
   const v=labels[current.page]||labels.home;
-  $('main').innerHTML=head(semester,v[0],v[1])+'<section class="section"><div class="panel semester-empty"><h2>Este semestre ainda está vazio</h2><p class="muted">As matérias, os textos, os simulados, os podcasts e a agenda de 2027/1 serão adicionados quando estiverem definidos. O conteúdo de 2026/2 continua disponível na outra aba.</p><p class="small">O progresso deste semestre começa vazio e não se mistura com o do semestre anterior.</p></div></section>';
+  $('main').innerHTML=head(semester,v[0],v[1])+'<section class="section"><div class="panel semester-empty"><h2>Este semestre ainda está vazio</h2><p class="muted">As matérias, os textos, os simulados, os podcasts e a agenda deste semestre serão adicionados quando estiverem definidos. Os demais semestres continuam disponíveis no seletor.</p><p class="small">O progresso deste semestre começa vazio e não se mistura com o do semestre anterior.</p></div></section>';
   return;
  }
  let body='';switch(current.page){case 'home':body=renderHome();break;case 'subject':body=renderSubject(current.subject);break;case 'exams':body=renderExams();break;case 'test':body=renderTest(current.exam);break;case 'library':body=renderHome();break;case 'audio':body=renderAudio();break;case 'calendar':body=renderCalendar();break;case 'ai':body=renderAI();break;case 'messages':body=window.uentzoulMessenger?.render()||'<section class="panel">Carregando mensagens…</section>';break;case 'admin':body=window.uentzoulAdminConfig?.render()||'<section class="panel">Acesso restrito.</section>';break;default:body=renderHome()};if(psAudioElement&&psAudioElement.isConnected&&$('main').contains(psAudioElement))document.body.appendChild(psAudioElement);
@@ -4571,11 +4576,12 @@ async function enterCloud(user){
  const {data:prog,error:progErr}=await client.from('uentzoul_progress').select('data').eq('user_id',user.id).maybeSingle();if(progErr)throw progErr;const {data:prof,error:profErr}=await client.from('uentzoul_profiles').select('user_id,display_name,avatar_url,bio,study_semester,study_shift').eq('user_id',user.id).maybeSingle();if(profErr)throw profErr;const display_name=(prof?.display_name||user.user_metadata?.display_name||user.email?.split('@')[0]||'Estudante').slice(0,40);if(!prof){const {error}=await client.from('uentzoul_profiles').upsert({user_id:user.id,display_name});if(error)throw error}remoteProfile=prof||{user_id:user.id,display_name,avatar_url:''};const id='cloud:'+user.id,sem=bridge.semester(),remote=prog?.data;
 const saved=remote&&remote.semesters&&typeof remote.semesters==='object'?remote.semesters:null;
 cloudSnapshot={semesters:{
+ '2026/1':saved?.['2026/1']||bridge.readSaved(id,'2026/1'),
  '2026/2':saved?.['2026/2']||(remote&&remote.completed?remote:bridge.readSaved(id,'2026/2')),
  '2027/1':saved?.['2027/1']||bridge.readSaved(id,'2027/1')
 }};
 
-for(const item of ['2026/2','2027/1'])bridge.saveForSemester(id,item,cloudSnapshot.semesters[item]);
+for(const item of ['2026/1','2026/2','2027/1'])bridge.saveForSemester(id,item,cloudSnapshot.semesters[item]);
 onlineUser=user;bridge.switchTo(id,cloudSnapshot.semesters[sem]);
 if(!prog)await saveCloud();
 await claimDailyPoints();
