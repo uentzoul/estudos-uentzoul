@@ -52,7 +52,7 @@ function destinationOptions(r){
 }
 function reviewCard(r,i){
  const a=r.analysis,quality=a?.quality||'',hit=a?.hits?.length?a.hits.slice(0,7).join(' · '):'Nenhum marcador forte identificado';
- const status=!a?'Analisando o conteúdo…':quality==='texto'?
+ const status=!a?'Analisando o conteúdo…':quality==='pacote'?'Arquivo identificado em pacote organizado · confirma o destino antes de publicar':quality==='texto'?
   'Texto analisado · '+(a.textLength/1000).toFixed(1)+' mil caracteres amostrados · '+(a.confidence==='alta'?'confiança alta':a.confidence==='moderada'?'confiança moderada':'confirmar classificação'):
   'Não foi possível ler o texto interno. Confere o documento e escolhe a disciplina manualmente.';
  const examStatus=a?.examMatch==='principal'?'Corresponde ao conteúdo previsto para a prova final':a?.examMatch==='complementar'?'Material complementar relacionado aos temas da prova':a?.examMatch==='fora'?'Pertence à disciplina, mas está fora do foco da prova final':'Relevância para a prova precisa de confirmação';
@@ -62,7 +62,7 @@ function reviewCard(r,i){
   Object.entries(subjects()).map(([id,label])=>'<option value="'+id+'" '+(id===r.subject?'selected':'')+'>'+clean(label)+'</option>').join('');
  return '<div class="library-review-card" data-review-card="'+i+'">'+
   '<div class="library-review-file"><div><strong>'+clean(r.file.name)+'</strong><small>'+Math.round(r.file.size/1024)+' KB · '+clean(status)+'</small></div>'+
-  '<span class="library-review-indicator '+(a?.confidence==='alta'?'strong':'')+'">'+(!a?'Lendo…':quality==='texto'?'Conteúdo lido':'Revisão manual')+'</span></div>'+
+  '<span class="library-review-indicator '+(a?.confidence==='alta'?'strong':'')+'">'+(!a?'Lendo…':quality==='texto'?'Conteúdo lido':quality==='pacote'?'Pacote conferido':'Revisão manual')+'</span></div>'+
   (a?.quality==='texto'?'<div class="library-review-evidence"><strong>Assuntos reconhecidos no conteúdo</strong><span>'+clean(hit)+'</span><small class="library-review-exam-match">'+clean(examStatus)+'</small>'+
   (a.preview?'<details><summary>Ver trecho extraído para conferência</summary><p>'+clean(a.preview)+'</p></details>':'')+'</div>':'')+
   (warn?'<p class="library-review-warning">'+clean(warn)+'</p>':'')+
@@ -143,6 +143,74 @@ async function select(files){
  }
  if(scanToken!==mine)return;isAnalyzing=false;paint();
 }
+
+async function getZipParser(){
+ if(window.JSZip?.loadAsync)return window.JSZip;
+ return new Promise((resolve,reject)=>{
+  const script=document.createElement('script');
+  script.src='https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js';
+  script.async=true;
+  script.onload=()=>window.JSZip?.loadAsync?resolve(window.JSZip):reject(Error('O leitor ZIP não iniciou.'));
+  script.onerror=()=>reject(Error('Não foi possível carregar o leitor ZIP.'));
+  document.head.appendChild(script);
+ });
+}
+function packageBytesHex(buffer){
+ return [...new Uint8Array(buffer)].map(b=>b.toString(16).padStart(2,'0')).join('');
+}
+async function importLibraryPackage(archive){
+ if(isBusy||isAnalyzing||!archive)return;
+ if(!isAdmin){show('Somente o administrador pode importar materiais para o acervo.');return;}
+ const lower=String(archive.name||'').toLowerCase();
+ if(!lower.endsWith('.zip')){show('Escolhe um dos arquivos ZIP do pacote PsicoMoodle.');return;}
+ if(archive.size>85*1024*1024){show('Este pacote é grande demais. Usa os ZIPs separados (até 85 MB).');return;}
+ const mine=++scanToken;isAnalyzing=true;reviewed=[];chosenFiles=[];logEntries=[];
+ show('Lendo o ZIP e verificando os arquivos…');
+ try{
+  const JSZip=await getZipParser();
+  const zip=await JSZip.loadAsync(archive,{checkCRC32:true});
+  const manifest=zip.file('psicomoodle_import.json');
+  if(!manifest)throw Error('O pacote não contém psicomoodle_import.json.');
+  const spec=JSON.parse(await manifest.async('string'));
+  if(spec?.format!=='psicomoodle-library-package-v1'||!Array.isArray(spec.materials)||
+    spec.materials.length<1||spec.materials.length>40)throw Error('Manifesto do pacote inválido.');
+  const next=[];
+  for(let i=0;i<spec.materials.length;i++){
+   if(scanToken!==mine)return;
+   const item=spec.materials[i];
+   if(!item||typeof item!=='object'||!subjects()[item.subject]||
+     typeof item.title!=='string'||item.title.trim().length<3||item.title.length>160||
+     !/^arquivos\/[0-9]{2,3}\.pdf$/.test(String(item.entry||''))||
+     typeof item.filename!=='string'||!item.filename.toLowerCase().endsWith('.pdf')||
+     /[\/\\]/.test(item.filename))throw Error('Arquivo inválido no manifesto: registro '+(i+1));
+   const member=zip.file(item.entry);
+   if(!member)throw Error('Arquivo não encontrado no ZIP: '+item.filename);
+   const bytes=await member.async('uint8array');
+   if(bytes.length<100||bytes.length>MAX||bytes[0]!==37||bytes[1]!==80||bytes[2]!==68||bytes[3]!==70)
+    throw Error('PDF inválido ou acima de 50 MB: '+item.filename);
+   if(Number.isInteger(item.bytes)&&bytes.length!==item.bytes)
+    throw Error('Tamanho do PDF não corresponde ao manifesto: '+item.filename);
+   if(typeof item.sha256==='string'&&/^[a-f0-9]{64}$/i.test(item.sha256)){
+    const digest=packageBytesHex(await crypto.subtle.digest('SHA-256',bytes));
+    if(digest!==item.sha256.toLowerCase())throw Error('Verificação de integridade falhou: '+item.filename);
+   }
+   const file=new File([bytes],item.filename,{type:'application/pdf'});
+   const key=item.subject+'::'+item.title.trim();
+   const exact=entries().find(x=>x.key===key);
+   next.push({file,analysis:{quality:'pacote',confidence:'alta',topics:[],summary:String(item.summary||'Material original do semestre.').slice(0,600),examMatch:'principal'},
+    subject:item.subject,title:item.title.trim(),suggestion:exact||null,targetKey:exact?.key||'__new__',
+    scope:item.scope==='archive'?'archive':'in',conflict:false});
+  }
+  if(scanToken!==mine)return;
+  reviewed=next;chosenFiles=next.map(x=>x.file);
+  logEntries=[{ok:true,message:'Pacote conferido: '+next.length+' PDF(s). Os nomes e as disciplinas já estão preenchidos. Confirma os destinos e clica em Publicar.'}];
+ }catch(err){
+  reviewed=[];chosenFiles=[];logEntries=[{ok:false,message:'Não foi possível importar o pacote: '+(err.message||String(err))}];
+ }finally{
+  if(scanToken===mine){isAnalyzing=false;paint();}
+ }
+}
+
 async function loadTus(){
  if(window.tus?.Upload)return window.tus;
  return new Promise((resolve,reject)=>{
@@ -255,6 +323,7 @@ document.addEventListener('click',async e=>{
 });
 document.addEventListener('change',e=>{
  if(e.target.id==='libraryFileInput')select(e.target.files);
+ if(e.target.id==='libraryPackageInput'){importLibraryPackage(e.target.files?.[0]);e.target.value='';}
  const subj=e.target.closest('[data-review-subject]');
  if(subj){const i=Number(subj.dataset.reviewSubject),r=reviewed[i];if(!r)return;
   r.subject=subj.value;r.targetKey='__new__';if(!r.title)r.title=titleFromFile(r.file,r.analysis);paint();return;}
