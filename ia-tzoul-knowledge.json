@@ -146,24 +146,6 @@
       "url": "#familia"
     },
     {
-      "id": "c171",
-      "type": "podcast",
-      "semester": "2026/2",
-      "subject": "familia",
-      "title": "Psicologia da Família — Podcast 1: Divórcio não é o fim da família",
-      "text": "Episódio 1 de podcast sobre Divórcio não é o fim da família. Este índice contém o título, não a transcrição do áudio.",
-      "url": "#audio"
-    },
-    {
-      "id": "c172",
-      "type": "podcast",
-      "semester": "2026/2",
-      "subject": "familia",
-      "title": "Psicologia da Família — Podcast 2: Segredos familiares, lealdades invisíveis e adoção",
-      "text": "Episódio 2 de podcast sobre Segredos familiares, lealdades invisíveis e adoção. Este índice contém o título, não a transcrição do áudio.",
-      "url": "#audio"
-    },
-    {
       "id": "c173",
       "type": "podcast",
       "semester": "2026/2",
@@ -5758,6 +5740,32 @@
       "examId": "avaliacao-rev-final-20261113-5",
       "url": "#avaliacao",
       "text": "Tipo: tf\nEnunciado: Julgue a seguinte afirmação sobre Ética na avaliação psicológica:\n\nExige competência, consentimento ou autorização apropriada, métodos fundamentados, respeito à dignidade e comunicação responsável.\nAssunto: Ética na avaliação psicológica"
+    },
+    {
+      "id": "final-material-grupos-added-1",
+      "type": "material",
+      "subject": "grupos",
+      "semester": "2026/2",
+      "title": "20150917 - TXT 10 - O que e Psicodrama - Almeida copy",
+      "filename": "20150917 - TXT 10 - O que e Psicodrama - Almeida copy.pdf",
+      "source": "20150917 - TXT 10 - O que e Psicodrama - Almeida copy.pdf",
+      "available": true,
+      "resourceKey": "grupos::20150917 - TXT 10 - O que e Psicodrama - Almeida copy",
+      "url": "#grupos",
+      "text": "Arquivo sobre fundamentos do Psicodrama, agora cadastrado como parte da prova. Consulte o PDF integral em Materiais e textos. A extração automática de texto não foi validada para este arquivo."
+    },
+    {
+      "id": "final-material-grupos-added-2",
+      "type": "material",
+      "subject": "grupos",
+      "semester": "2026/2",
+      "title": "20151005 - TXT 13 - Origem e Obj Movimento Grupos - Rogers copy",
+      "filename": "20151005 - TXT 13 - Origem e Obj Movimento Grupos - Rogers copy.pdf",
+      "source": "20151005 - TXT 13 - Origem e Obj Movimento Grupos - Rogers copy.pdf",
+      "available": true,
+      "resourceKey": "grupos::20151005 - TXT 13 - Origem e Obj Movimento Grupos - Rogers copy",
+      "url": "#grupos",
+      "text": "Arquivo sobre origens e objetivos dos grupos de encontro em Carl Rogers, agora cadastrado como parte da prova. Consulte o PDF integral em Materiais e textos. A extração automática de texto não foi validada para este arquivo."
     }
   ]
 }
