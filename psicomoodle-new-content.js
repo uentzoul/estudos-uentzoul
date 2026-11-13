@@ -36,7 +36,7 @@
      ' É importante examinar contexto, limites da inferência e consequências práticas.',
     concept:t.title,id:subject+'-'+model+'-'+(i+14)});
   }
-  return {id:subject+'-'+model,subject,model,questions};
+  return {id:subject+'-'+model,subject,model,title:'Simulado '+(subject==='social'?model-5:model),questions};
  }
  const familyDocs=[
   {subject:'familia',title:'Rituais, mitos, ritos de passagem e transgeracionalidade — slides',source:'Aula Rituais, mitos, e ritos de passagem RESUMO(1).pdf',kind:'Slides',note:'Aula sobre mitos familiares, lealdade, ritos e transgeracionalidade.',extra:false,available:false,url:'',group:'Mitos e rituais',_psicoNew:true},
