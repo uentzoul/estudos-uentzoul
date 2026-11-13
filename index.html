@@ -2052,6 +2052,8 @@ html[data-theme="dark"] .tz-library-download{background:#26374c;border-color:#45
 .library-resource.is-available .library-resource-status{display:none!important}
 .library-resource .library-resource-bottom{justify-content:flex-end}
 </style>
+<link rel="stylesheet" href="./trilhas-estudos.css">
+<script src="./trilhas-estudos.js"></script>
 </head>
 <body>
 <section id="staticFallback" class="static-fallback" aria-label="Central de Estudos — modo de leitura compatível com celular">
@@ -2687,7 +2689,7 @@ function readyExamsFor(subject){
 }
 function renderSubject(k){
  const subj=getSubject(k),docs=DB.materials.filter(x=>x.subject===k),topics=DB.topics[k]||[],tests=readyExamsFor(k);
- const area=['topics','docs','tests','podcasts','guided','flash','cases'].includes(current.subjectArea)?current.subjectArea:null;
+ const area=['trail','topics','docs','tests','podcasts','guided','flash','cases'].includes(current.subjectArea)?current.subjectArea:null;
  const top='<div class="subject-hub" style="--subject-accent:'+color(k)+'">'+
  '<div class="subject-hub-crumb"><button type="button" data-action="page:home">Início</button><span aria-hidden="true">/</span><span>'+esc(subj.name)+'</span></div>'+
  '<header class="subject-hub-hero"><span class="subject-hub-emblem" aria-hidden="true">Ψ</span>'+
@@ -2696,13 +2698,14 @@ function renderSubject(k){
  const metaTrail=k==='meta'&&semester==='2026/2'?
  '<a class="subject-hub-meta" href="metapsicologia-p2.html">'+
  '<span class="subject-hub-meta-icon" aria-hidden="true">▶</span>'+
- '<span class="subject-hub-meta-copy"><small>TRILHA ESPECIAL · METAPSICOLOGIA</small>'+
- '<strong>Trilha de videoaulas</strong><span>Assista às aulas do professor, por capítulos e minutagens.</span></span>'+
+ '<span class="subject-hub-meta-copy"><small>AULAS GRAVADAS · METAPSICOLOGIA</small>'+
+ '<strong>Linha do Tempo das Aulas Gravadas</strong><span>Confira o que o professor falou em cada parte das aulas gravadas.</span></span>'+
  '<span class="subject-hub-meta-arrow" aria-hidden="true">→</span></a>':'';
  if(!area){
   // Ordem editorial fixa, idêntica em todas as disciplinas e sem alterações
   // conforme a disponibilidade de conteúdos. As telas vazias explicam o estado.
   const choices=[
+   ['trail','✧','Trilha de Estudos para a Prova','Segue um roteiro guiado com os principais materiais, podcasts, exercícios e simulados'],
    ['docs','▤','Materiais e textos','Arquivos e leituras da disciplina'],
    ['guided','▣','Estudos dirigidos','Perguntas respondidas, exemplos e explicações passo a passo'],
    ['tests','✦','Simulados','Questões para praticar o que foi estudado'],
@@ -2711,16 +2714,17 @@ function renderSubject(k){
    ['podcasts','♫','Podcasts','Episódios da disciplina para escutar'],
    ['topics','☷','Conteúdos para revisar','Conceitos, exemplos e explicações dos assuntos da prova']
   ];
-  return top+metaTrail+'<p class="subject-hub-area-intro">Escolha uma área para continuar estudando.</p>'+
+  return top+'<p class="subject-hub-area-intro">Escolhe a trilha guiada ou consulta cada tipo de material.</p>'+
    '<nav class="subject-hub-menu" aria-label="Áreas de estudo de '+esc(subj.name)+'">'+
-   choices.map(item=>'<button type="button" class="subject-hub-card" data-action="subjectArea:'+item[0]+'">'+
+   choices.map(item=>'<button type="button" class="subject-hub-card'+(item[0]==='trail'?' subject-trail-highlight':'')+'" data-action="subjectArea:'+item[0]+'">'+
     '<span class="subject-hub-card-icon" aria-hidden="true">'+item[1]+'</span>'+
     '<span class="subject-hub-card-copy"><strong class="subject-hub-card-title">'+item[2]+'</strong>'+
     '<span class="subject-hub-card-desc">'+item[3]+'</span></span>'+
     '<span class="subject-hub-card-arrow" aria-hidden="true">→</span></button>').join('')+
-   '</nav></div>';
+   '</nav>'+metaTrail+'</div>';
  }
  const back='<button type="button" class="subject-hub-back" data-action="subjectArea:home">← Voltar às opções</button>';
+ if(area==='trail')return top+'<div class="subject-hub-area">'+back+(window.PSICO_STUDY_TRAILS?.render({subject:k,subjectName:subj.name,color:color(k),materials:docs,topics,episodes:audioEpisodes(k),exams:readyExamsFor(k),isDone,doneBox,episodeAvailable:(i)=>episodeAvailable(k,i)})||'<p>A trilha não pôde ser carregada.</p>')+'</div></div>';
  if(area==='guided')return top+'<div class="subject-hub-area">'+back+(window.renderStudyGuide?.(k)||'<p>Não foi possível abrir os estudos dirigidos.</p>')+'</div></div>';
  if(area==='flash')return top+'<div class="subject-hub-area">'+back+(window.PSICO_PRACTICE?.flashcards(k,topics,semester)||'<p>Flashcards indisponíveis.</p>')+'</div></div>';
  if(area==='cases')return top+'<div class="subject-hub-area">'+back+(window.PSICO_PRACTICE?.cases(k)||'<p>Casos indisponíveis.</p>')+'</div></div>';
@@ -2817,11 +2821,11 @@ function renderLibrary(embedded=false){
   return '<div class="library-page"><button type="button" class="course-back" data-action="libraryBack">← Voltar às disciplinas</button>'+
    '<section class="course-detail-hero" style="--course-accent:'+color(selected)+'">'+
     '<div class="course-detail-banner" aria-hidden="true">Ψ</div>'+
-    (selected==='meta'?'<div class="course-video-trail"><a class="course-video-trail-link" href="metapsicologia-p2.html" aria-label="Abrir trilha de videoaulas de Metapsicologia">'+
+    (selected==='meta'?'<div class="course-video-trail"><a class="course-video-trail-link" href="metapsicologia-p2.html" aria-label="Abrir Linha do Tempo das Aulas Gravadas de Metapsicologia">'+
     '<span class="course-video-trail-icon" aria-hidden="true">▶</span>'+
     '<span class="course-video-trail-content"><span class="course-video-trail-kicker">Destaque para a prova · Metapsicologia</span>'+
-    '<strong class="course-video-trail-title">Trilha de videoaulas</strong>'+
-    '<span class="course-video-trail-description">Assista às aulas organizadas em capítulos, com minutagens e explicações para a revisão.</span></span>'+
+    '<strong class="course-video-trail-title">Linha do Tempo das Aulas Gravadas</strong>'+
+    '<span class="course-video-trail-description">Confira o que o professor falou em cada parte das aulas gravadas.</span></span>'+
     '<span class="course-video-trail-cta">Acessar trilha →</span></a></div>':'')+
     '<div class="course-detail-body">'+
     '<span class="eyebrow">Psicologia PUCRS · 2026/2 · Prova final</span><h1 class="h1">'+esc(subj.name)+'</h1>'+
@@ -3952,7 +3956,7 @@ function renderThirdSemester(){
    '<section class="section home-course-section" id="homeCourses">'+courseCards()+'</section>';
  }
  if(current.page==='subject'&&subj){
-  const titles={guided:'Estudos dirigidos',tests:'Simulados',flash:'Flashcards',cases:'Estudos de casos',podcasts:'Podcasts',topics:'Conteúdos para revisar',docs:'Materiais e textos'};
+  const titles={trail:'Trilha de Estudos para a Prova',guided:'Estudos dirigidos',tests:'Simulados',flash:'Flashcards',cases:'Estudos de casos',podcasts:'Podcasts',topics:'Conteúdos para revisar',docs:'Materiais e textos'};
   const area=current.subjectArea;
   const top='<div class="subject-hub" style="--subject-accent:'+color(subjectId)+'">'+
    '<div class="subject-hub-crumb"><button type="button" data-action="page:home">Início</button><span aria-hidden="true">/</span><span>'+esc(subj.name)+'</span></div>'+
@@ -3964,6 +3968,7 @@ function renderThirdSemester(){
     '<section class="section"><div class="sectiontop"><h2>'+esc(titles[area])+'</h2></div>'+
     '<div class="subject-hub-empty">Ainda não há registros nesta área para 2027/1.</div></section></div></div>';
   const sections=[
+   ['trail','✧','Trilha de Estudos para a Prova','Roteiro guiado quando os conteúdos forem publicados'],
    ['docs','▤','Materiais e textos','Arquivos e leituras'],
    ['guided','▣','Estudos dirigidos','Perguntas, respostas e explicações'],
    ['tests','✦','Simulados','Questões para praticar'],
@@ -3974,7 +3979,7 @@ function renderThirdSemester(){
   ];
   return top+'<p class="subject-hub-area-intro">Seleciona uma área para consultar os materiais quando estiverem cadastrados.</p>'+
     '<nav class="subject-hub-menu" aria-label="Áreas de estudo de '+esc(subj.name)+'">'+
-    sections.map(([id,icon,title,desc])=>'<button type="button" class="subject-hub-card" data-action="subjectArea:'+id+'">'+
+    sections.map(([id,icon,title,desc])=>'<button type="button" class="subject-hub-card'+(id==='trail'?' subject-trail-highlight':'')+'" data-action="subjectArea:'+id+'">'+
     '<span class="subject-hub-card-icon" aria-hidden="true">'+icon+'</span>'+
     '<span class="subject-hub-card-copy"><strong class="subject-hub-card-title">'+title+'</strong>'+
     '<span class="subject-hub-card-desc">'+desc+'</span></span><span class="subject-hub-card-arrow" aria-hidden="true">→</span></button>').join('')+'</nav></div>';
@@ -4196,6 +4201,16 @@ function downloadEpisodeAction(k,i){if(!DB.audio[k]||!Number.isInteger(i)||i<0||
 /* Recuperar os episódios baixados quando o site é aberto novamente. */
 const podcastDBOpening=openPodcastDB().then(()=>{const tx=podcastDB.transaction(POD_DB_STORE,'readonly'),req=tx.objectStore(POD_DB_STORE).getAllKeys();req.onsuccess=()=>{req.result.forEach(key=>episodeReady.add(key));if(isPodcastView())updatePickedAudioLabels()};return podcastDB}).catch(e=>{console.warn('Cache local indisponível',e);return null;});
 function onAction(act){
+ if(act.startsWith('trailAudio:')){
+  const parts=act.split(':'),subject=parts[1],num=Number(parts[2]);
+  const episodes=audioEpisodes(subject),i=episodes.findIndex(e=>Number(e.n)===num);
+  if(!DB.subjects[subject]||i<0||!episodeAvailable(subject,i))return toast('Este episódio ainda não está disponível.');
+  current.audioSubject=subject;
+  if(subject==='tcc')currentChapter=i;else currentEpisode=i;
+  go('subject',{subject,subjectArea:'podcasts'});
+  if(subject==='tcc')openChapter(i);else openEpisode(i);
+  return;
+ }
  if(act==='tz-login'){window.uentzoulAIAuth?.openLogin();return}
  if(act.startsWith('agenda-tab:')){
   const tab=act.slice('agenda-tab:'.length);
@@ -4211,7 +4226,7 @@ function onAction(act){
   const el=document.querySelectorAll('#topics details.topic')[index];
   if(el){el.open=true;requestAnimationFrame(()=>el.scrollIntoView({behavior:'smooth',block:'start'}))}
   return;
- }if(act.startsWith('download:')){const [k,i]=act.slice(9).split(':');downloadEpisodeAction(k,Number(i));return;}if(act==='libraryBack'){current.libraryCourse=null;render();requestAnimationFrame(()=>document.getElementById('homeCourses')?.scrollIntoView({block:'start',behavior:'auto'}));return}if(act.startsWith('libraryCourse:')){const id=act.slice(14);if(DB.subjects[id])return go('subject',{subject:id,subjectArea:null});return}if(act.startsWith('page:'))return go(act.slice(5));if(act.startsWith('subjectArea:')){const area=act.slice('subjectArea:'.length);if(area==='home'||['topics','docs','tests','podcasts','guided','flash','cases'].includes(area)){if(area==='podcasts')current.audioSubject=current.subject;go('subject',{subject:current.subject,subjectArea:area==='home'?null:area});}return}if(act.startsWith('subject:'))return go('subject',{subject:act.slice(8),subjectArea:null});if(act==='subjectCreateExam'){ge.subject=current.subject||ge.subject;ge.tab='ai';ge.selected=null;return go('exams')}if(act.startsWith('subjectTests:'))return go('subject',{subject:act.slice('subjectTests:'.length),subjectArea:'tests'});if(act.startsWith('test:'))return go('test',{exam:act.slice(5)});if(act.startsWith('audioFor:')){const k=act.slice(9);if(!DB.audio[k])return;current.audioSubject=k;currentEpisode=0;currentChapter=0; if(manualAudioUrl){URL.revokeObjectURL(manualAudioUrl);manualAudioUrl=null;manualAudioName='';}return go('audio');}if(act.startsWith('filter:')){current.filter=act.slice(7);let v=$('matSearch')?.value||current.search;current.search=v;render();return}if(act.startsWith('scroll:'))return document.getElementById(act.slice(7))?.scrollIntoView({behavior:'smooth'});if(act==='save'){persist();return toast('Respostas salvas neste navegador.')}if(act==='export'){const b=new Blob([JSON.stringify(store,null,2)],{type:'application/json'});let u=URL.createObjectURL(b);let a=document.createElement('a');a.href=u;a.download='meu_progresso_psicologia.json';a.click();setTimeout(()=>URL.revokeObjectURL(u),2000);return toast('Progresso exportado. Guarde o arquivo para a próxima versão.')}if(act==='import'){document.getElementById('importProgress')?.click();return}if(act==='print')return window.print();if(act.startsWith('submit:'))return submit(act.slice(7));if(act.startsWith('redo:')){toast('Este simulado já foi entregue e não pode ser refeito.');return}
+ }if(act.startsWith('download:')){const [k,i]=act.slice(9).split(':');downloadEpisodeAction(k,Number(i));return;}if(act==='libraryBack'){current.libraryCourse=null;render();requestAnimationFrame(()=>document.getElementById('homeCourses')?.scrollIntoView({block:'start',behavior:'auto'}));return}if(act.startsWith('libraryCourse:')){const id=act.slice(14);if(DB.subjects[id])return go('subject',{subject:id,subjectArea:null});return}if(act.startsWith('page:'))return go(act.slice(5));if(act.startsWith('subjectArea:')){const area=act.slice('subjectArea:'.length);if(area==='home'||['trail','topics','docs','tests','podcasts','guided','flash','cases'].includes(area)){if(area==='podcasts')current.audioSubject=current.subject;go('subject',{subject:current.subject,subjectArea:area==='home'?null:area});}return}if(act.startsWith('subject:'))return go('subject',{subject:act.slice(8),subjectArea:null});if(act==='subjectCreateExam'){ge.subject=current.subject||ge.subject;ge.tab='ai';ge.selected=null;return go('exams')}if(act.startsWith('subjectTests:'))return go('subject',{subject:act.slice('subjectTests:'.length),subjectArea:'tests'});if(act.startsWith('test:'))return go('test',{exam:act.slice(5)});if(act.startsWith('audioFor:')){const k=act.slice(9);if(!DB.audio[k])return;current.audioSubject=k;currentEpisode=0;currentChapter=0; if(manualAudioUrl){URL.revokeObjectURL(manualAudioUrl);manualAudioUrl=null;manualAudioName='';}return go('audio');}if(act.startsWith('filter:')){current.filter=act.slice(7);let v=$('matSearch')?.value||current.search;current.search=v;render();return}if(act.startsWith('scroll:'))return document.getElementById(act.slice(7))?.scrollIntoView({behavior:'smooth'});if(act==='save'){persist();return toast('Respostas salvas neste navegador.')}if(act==='export'){const b=new Blob([JSON.stringify(store,null,2)],{type:'application/json'});let u=URL.createObjectURL(b);let a=document.createElement('a');a.href=u;a.download='meu_progresso_psicologia.json';a.click();setTimeout(()=>URL.revokeObjectURL(u),2000);return toast('Progresso exportado. Guarde o arquivo para a próxima versão.')}if(act==='import'){document.getElementById('importProgress')?.click();return}if(act==='print')return window.print();if(act.startsWith('submit:'))return submit(act.slice(7));if(act.startsWith('redo:')){toast('Este simulado já foi entregue e não pode ser refeito.');return}
  if(act==='resetAudio'){const a=$('audioPlayer');if(a){a.pause();a.currentTime=0;}toast('Reprodutor reiniciado.');return;}
  if(act.startsWith('chapter:'))return openChapter(+act.slice(8));
  if(act.startsWith('episode:'))return openEpisode(+act.slice(8));
