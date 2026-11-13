@@ -2219,8 +2219,12 @@ window.uentzoulLibraryApp={
   const hiddenFamily=(r)=>String(r.file_subject||'')==='familia'&&
    /div[oó]rc|separa[cç][aã]o|recasa|segred|ado[cç][aã]o|monoparent|coparent|padrast|madrast/i
    .test([r.resource_key,r.display_title,r.filename].join(' '));
+  const approvedSocialKeys=new Set((window.PSICOMOODLE_NEW_CONTENT?.documents||[]).map(d=>'social::'+d.title));
+  const hiddenSocial=r=>String(r.file_subject||'')==='social'&&
+   !approvedSocialKeys.has(String(r.resource_key||''))&&
+   !/plano de ensino|cronograma/i.test(String(r.display_title||''));
   for(const r of next.values()){
-   if(r.exam_scope===false||known.has(r.resource_key)||hiddenFamily(r))continue;
+   if(r.exam_scope===false||known.has(r.resource_key)||hiddenFamily(r)||hiddenSocial(r))continue;
    const existing=LIBRARY_MATERIALS.find(m=>m._libraryKey===r.resource_key);
    if(existing){
     if(!existing._libraryUpload)continue;
