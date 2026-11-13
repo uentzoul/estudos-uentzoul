@@ -44,6 +44,15 @@
 .study-trail-finish strong{font-size:15px}
 .study-trail-finish p{font-size:12px;color:var(--muted);line-height:1.7;margin:7px 0 0}
 .study-trail-empty{padding:28px;border:1px dashed var(--line);border-radius:16px;color:var(--muted)}
+/* Cartões principais ocupam linhas independentes; as demais opções seguem em duas colunas. */
+.subject-hub .subject-hub-menu{grid-template-columns:repeat(2,minmax(0,1fr));align-items:stretch}
+.subject-hub .subject-hub-card.subject-trail-highlight,
+.subject-hub .subject-hub-card.subject-docs-full{grid-column:1/-1}
+.subject-hub .subject-hub-card.subject-docs-full{min-height:99px;height:auto;background:var(--paper);border-color:color-mix(in srgb,var(--subject-accent) 22%,var(--line))}
+.subject-hub .subject-hub-card.subject-docs-full .subject-hub-card-title{font-size:16px}
+.subject-hub .subject-hub-card.subject-docs-full .subject-hub-card-icon{width:55px;height:55px;flex-basis:55px}
+.subject-hub .subject-hub-meta{width:100%;margin:0 0 20px}
+@media(max-width:720px){.subject-hub .subject-hub-menu{grid-template-columns:1fr}.subject-hub .subject-hub-card.subject-trail-highlight,.subject-hub .subject-hub-card.subject-docs-full{grid-column:1/-1}}
 .subject-hub-card.subject-trail-highlight{grid-column:1/-1;background:linear-gradient(110deg,color-mix(in srgb,var(--subject-accent) 10%,var(--paper,#fff)),var(--paper,#fff));border-color:color-mix(in srgb,var(--subject-accent) 43%,var(--line));min-height:108px}
 .subject-hub-card.subject-trail-highlight .subject-hub-card-title{font-size:17px}
 .subject-hub-card.subject-trail-highlight .subject-hub-card-icon{font-size:26px}
