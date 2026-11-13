@@ -7024,6 +7024,8 @@ document.addEventListener("click",e=>{if(!e.target.closest("[data-theme-toggle]"
   finally{checking=false;}
  }
  function unsafeToReload(){
+  // Não recarregue a página durante a organização manual de materiais.
+  if(window.PSICO_MATERIAL_EDITOR?.isEditing?.())return true;
   const active=document.activeElement;
   if(active&&active.matches('input,textarea,select,[contenteditable="true"]'))return true;
   if(Date.now()-lastInput<12000)return true;
