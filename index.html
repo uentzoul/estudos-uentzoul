@@ -2703,13 +2703,13 @@ function renderSubject(k){
   // Ordem editorial fixa, idêntica em todas as disciplinas e sem alterações
   // conforme a disponibilidade de conteúdos. As telas vazias explicam o estado.
   const choices=[
+   ['docs','▤','Materiais e textos','Arquivos e leituras da disciplina'],
    ['guided','▣','Estudos dirigidos','Perguntas respondidas, exemplos e explicações passo a passo'],
    ['tests','✦','Simulados','Questões para praticar o que foi estudado'],
    ['flash','▧','Flashcards','Recordação ativa com revisão espaçada'],
    ['cases','◇','Estudos de casos','Decisões, consequências e explicações por etapas'],
    ['podcasts','♫','Podcasts','Episódios da disciplina para escutar'],
-   ['topics','☷','Conteúdos para revisar','Conceitos, exemplos e explicações dos assuntos da prova'],
-   ['docs','▤','Materiais e textos','Arquivos e leituras da disciplina']
+   ['topics','☷','Conteúdos para revisar','Conceitos, exemplos e explicações dos assuntos da prova']
   ];
   return top+metaTrail+'<p class="subject-hub-area-intro">Escolha uma área para continuar estudando.</p>'+
    '<nav class="subject-hub-menu" aria-label="Áreas de estudo de '+esc(subj.name)+'">'+
@@ -3964,13 +3964,13 @@ function renderThirdSemester(){
     '<section class="section"><div class="sectiontop"><h2>'+esc(titles[area])+'</h2></div>'+
     '<div class="subject-hub-empty">Ainda não há registros nesta área para 2027/1.</div></section></div></div>';
   const sections=[
+   ['docs','▤','Materiais e textos','Arquivos e leituras'],
    ['guided','▣','Estudos dirigidos','Perguntas, respostas e explicações'],
    ['tests','✦','Simulados','Questões para praticar'],
    ['flash','▧','Flashcards','Revisão com recordação ativa'],
    ['cases','◇','Estudos de casos','Exemplos e aplicações'],
    ['podcasts','♫','Podcasts','Áudios da disciplina'],
-   ['topics','☷','Conteúdos para revisar','Conceitos e temas das aulas'],
-   ['docs','▤','Materiais e textos','Arquivos e leituras']
+   ['topics','☷','Conteúdos para revisar','Conceitos e temas das aulas']
   ];
   return top+'<p class="subject-hub-area-intro">Seleciona uma área para consultar os materiais quando estiverem cadastrados.</p>'+
     '<nav class="subject-hub-menu" aria-label="Áreas de estudo de '+esc(subj.name)+'">'+
