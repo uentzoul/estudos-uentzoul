@@ -2886,7 +2886,7 @@ function renderAudio(embedded=false){
 
  ${doneBox(`audio:${k}:${e.n}`)}</div>`).join('');
  return `${embedded?'<div class="subject-podcasts-intro"><div class="sectiontop"><h2>Podcasts</h2><span class="small">'+eps.length+' episódios</span></div><p class="small muted">Toque em Reproduzir para escutar cada episódio. O carregamento acontece automaticamente.</p></div>':head('Material em áudio','Biblioteca de podcasts','Escolhe um episódio e reproduz diretamente pelo site.')}
- ${embedded?'':'<div class="audio-tabs">'+tabs+'</div>'}${k==='social'?'<p class="small">8 episódios cadastrados. O 8º já está publicado; o 7º ainda aguarda o arquivo de áudio.</p>':''}
+ ${embedded?'':'<div class="audio-tabs">'+tabs+'</div>'}${k==='social'?'<p class="small">Estão visíveis somente os podcasts que correspondem aos materiais atuais da prova.</p>':''}
  <div class="audio-helper">Selecione um episódio e pressione Reproduzir. O áudio é preparado automaticamente e um indicador aparece durante o carregamento.</div>
  <section class="audio-progress"><div class="statline"><span>Progresso em ${esc(name)}</span><strong id="audioCompletedCount">${done}/${eps.length} concluídos</strong></div><div class="progressline"><div id="audioCompletedBar" style="width:${fmtPct(done,eps.length)}%"></div></div><p class="small" style="margin:8px 0 0">As caixinhas de concluído são independentes dos downloads.</p></section>
  <section class="section"><div class="audiohead"><div class="eyebrow" style="color:#a9bfd5">${k==='tcc'?'TCC: episódios em sequência':'Áudios separados por episódio'}</div><h2 style="margin:0;font-size:20px" id="audioPlayingTitle">${esc(eps[chosen].title)}</h2><p class="small">Escolhe um episódio e pressiona Reproduzir.</p>
