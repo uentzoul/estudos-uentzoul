@@ -8,7 +8,7 @@
     options:[],answer:correct};
  }
  function makeExam(subject,model,source){
-  const start=(model===6?0:model===7?5:model===8?2:7);
+  const start=(model===6?0:model===7?5:model===8?2:model===9?7:10);
   const picked=source.slice(start,start+13);
   const questions=[];
   for(let i=0;i<8;i++){
@@ -53,7 +53,7 @@
   const actDoc={subject:'tcc',title:'ACT na clínica — Hexaflex e flexibilidade psicológica',source:'ACT na clínica.pdf.pdf',kind:'Texto-base',note:'Texto de ACT e flexibilidade psicológica. PDF original para leitura.',extra:false,available:false,url:'',group:'ACT',_psicoNew:true};
   if(!db.materials.some(x=>x.subject==='tcc'&&x.title===actDoc.title))db.materials.push(actDoc);
   for(const [subject,items] of [['tcc',DATA.act],['social',DATA.social]]){
-   for(const model of [6,7,8,9])if(!db.exams.some(x=>x.id===subject+'-'+model))db.exams.push(makeExam(subject,model,items));
+   for(const model of (subject==='social'?[6,7,8,9,10]:[6,7,8,9]))if(!db.exams.some(x=>x.id===subject+'-'+model))db.exams.push(makeExam(subject,model,items));
   }
  }
  function addGuides(){
