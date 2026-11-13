@@ -1977,9 +1977,11 @@ html[data-theme="dark"] .tz-pending-icon{background:#40375e;color:#d6c4ff}
 <script src="estudos-casos-data.js?v=20261112-1"></script>
 <script src="estudo-ativo.js?v=20261113-trilha-1"></script>
 <script src="psicomoodle-new-content.js?v=20261113-social-family-2"></script>
-<script src="simulados-finais-2026.js?v=20261113-1"></script>
+<script src="simulados-finais-2026.js?v=20261113-2"></script>
+<script src="estudos-dirigidos-finais-2026.js?v=20261113-1"></script>
 <link rel="stylesheet" href="simulados-finais-2026.css?v=20261113-1">
 <script src="casos-act-social.js?v=20261113-1"></script>
+<script src="casos-finais-2026.js?v=20261113-1"></script>
 <link rel="stylesheet" href="chat-whatsapp.css?v=20261112-whatsapp-chat-7">
 <style id="tz-overlap-fix">
 /* Mantém o botão de nova conversa fora da faixa da barra superior e do histórico. */
@@ -2175,6 +2177,7 @@ const SEMESTER_DB={
 };
 window.PSICOMOODLE_NEW_CONTENT?.apply(SEMESTER_DB['2026/2']);
 window.PSICO_FINAL_EXAMS?.apply(SEMESTER_DB['2026/2']);
+window.PSICO_FINAL_GUIDES?.apply(SEMESTER_DB['2026/2']);
 let semester='2026/2';
 try{const savedSemester=localStorage.getItem(SEMESTER_PREF);if(SEMESTER_DB[savedSemester])semester=savedSemester}catch{}
 let DB=SEMESTER_DB[semester];
