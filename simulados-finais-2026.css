@@ -8,9 +8,9 @@
 .ge-ready-grid>.examcard .btn,.subject-sim-ready>.examcard .btn{margin-top:auto;padding:9px 5px;font-size:10.5px;min-height:36px;white-space:normal}
 .ge-ready-grid>.examcard .topline,.subject-sim-ready>.examcard .topline{flex-wrap:wrap;gap:5px}
 .ge-ready-grid>.examcard .pill,.subject-sim-ready>.examcard .pill{font-size:10px;white-space:normal}
-@container (min-width:950px){.ge-ready-subject .ge-ready-grid,.subject-sim-group .subject-sim-ready{grid-template-columns:repeat(5,minmax(0,1fr))}}
-@container (min-width:640px) and (max-width:949px){.ge-ready-subject .ge-ready-grid,.subject-sim-group .subject-sim-ready{grid-template-columns:repeat(3,minmax(0,1fr))}}
-@container (max-width:449px){.ge-ready-subject .ge-ready-grid,.subject-sim-group .subject-sim-ready{grid-template-columns:minmax(0,1fr)}}
+@container (min-width:760px){.ge-ready-subject .ge-ready-grid,.subject-sim-group .subject-sim-ready{grid-template-columns:repeat(5,minmax(0,1fr))}}
+@container (min-width:540px) and (max-width:759px){.ge-ready-subject .ge-ready-grid,.subject-sim-group .subject-sim-ready{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@container (max-width:409px){.ge-ready-subject .ge-ready-grid,.subject-sim-group .subject-sim-ready{grid-template-columns:minmax(0,1fr)}}
 .ge-essay-choice{display:flex!important;align-items:center;gap:9px;line-height:1.5;cursor:pointer}
 .ge-essay-choice input{width:17px;height:17px;accent-color:var(--accent,#6551c3);flex-shrink:0}
 .ge-fields select:focus-visible,.ge-essay-choice input:focus-visible{outline:3px solid var(--accent,#6551c3);outline-offset:2px}
