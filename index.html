@@ -2720,14 +2720,14 @@ function renderSubject(k){
    ['podcasts','♫','Podcasts','Episódios da disciplina para escutar'],
    ['topics','☷','Conteúdos para revisar','Conceitos, exemplos e explicações dos assuntos da prova']
   ];
-  return top+'<p class="subject-hub-area-intro">Escolhe a trilha guiada ou consulta cada tipo de material.</p>'+
+  return top+metaTrail+'<p class="subject-hub-area-intro">Escolhe a trilha guiada ou consulta cada tipo de material.</p>'+
    '<nav class="subject-hub-menu" aria-label="Áreas de estudo de '+esc(subj.name)+'">'+
-   choices.map(item=>'<button type="button" class="subject-hub-card'+(item[0]==='trail'?' subject-trail-highlight':'')+'" data-action="subjectArea:'+item[0]+'">'+
+   choices.map(item=>'<button type="button" class="subject-hub-card'+(item[0]==='trail'?' subject-trail-highlight':item[0]==='docs'?' subject-docs-full':'')+'" data-action="subjectArea:'+item[0]+'">'+
     '<span class="subject-hub-card-icon" aria-hidden="true">'+item[1]+'</span>'+
     '<span class="subject-hub-card-copy"><strong class="subject-hub-card-title">'+item[2]+'</strong>'+
     '<span class="subject-hub-card-desc">'+item[3]+'</span></span>'+
     '<span class="subject-hub-card-arrow" aria-hidden="true">→</span></button>').join('')+
-   '</nav>'+metaTrail+'</div>';
+   '</nav></div>'; 
  }
  const back='<button type="button" class="subject-hub-back" data-action="subjectArea:home">← Voltar às opções</button>';
  if(area==='trail')return top+'<div class="subject-hub-area">'+back+(window.PSICO_STUDY_TRAILS?.render({subject:k,subjectName:subj.name,color:color(k),materials:docs,topics,episodes:audioEpisodes(k),exams:readyExamsFor(k),isDone,doneBox,episodeAvailable:(i)=>episodeAvailable(k,i)})||'<p>A trilha não pôde ser carregada.</p>')+'</div></div>';
@@ -3985,7 +3985,7 @@ function renderThirdSemester(){
   ];
   return top+'<p class="subject-hub-area-intro">Seleciona uma área para consultar os materiais quando estiverem cadastrados.</p>'+
     '<nav class="subject-hub-menu" aria-label="Áreas de estudo de '+esc(subj.name)+'">'+
-    sections.map(([id,icon,title,desc])=>'<button type="button" class="subject-hub-card'+(id==='trail'?' subject-trail-highlight':'')+'" data-action="subjectArea:'+id+'">'+
+    sections.map(([id,icon,title,desc])=>'<button type="button" class="subject-hub-card'+(id==='trail'?' subject-trail-highlight':id==='docs'?' subject-docs-full':'')+'" data-action="subjectArea:'+id+'">'+
     '<span class="subject-hub-card-icon" aria-hidden="true">'+icon+'</span>'+
     '<span class="subject-hub-card-copy"><strong class="subject-hub-card-title">'+title+'</strong>'+
     '<span class="subject-hub-card-desc">'+desc+'</span></span><span class="subject-hub-card-arrow" aria-hidden="true">→</span></button>').join('')+'</nav></div>';
