@@ -301,6 +301,8 @@ async function submit(event){
  if(feedback){const summary=document.createElement('strong');summary.textContent='Envio concluído: '+passed+' publicado(s)'+(failed?' · '+failed+' pendência(s)':'')+'.';feedback.prepend(summary)}
 }
 document.addEventListener('click',async e=>{
+ const packageTrigger=e.target.closest('[data-library-package-choose]');
+ if(packageTrigger){e.preventDefault();document.getElementById('libraryPackageInput')?.click();return;}
  const open=e.target.closest('a[data-library-file]');
  if(open){
   e.preventDefault();
