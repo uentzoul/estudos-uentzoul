@@ -83,7 +83,14 @@
 .subject-hub .subject-sim-view .ge-question,.subject-hub .subject-sim-view .ge-test-header{max-width:100%}
 @media(max-width:680px){.subject-hub .subject-sim-ready,.subject-hub .subject-sim-created{grid-template-columns:1fr}.subject-hub .subject-sim-heading{align-items:flex-start}.subject-hub .subject-sim-create{width:100%}}
 
-/* Dois blocos por linha no desktop; o sétimo ocupa a largura completa. */
+/* Em todas as disciplinas, a Trilha de Estudos e Materiais e textos
+   ocupam linhas próprias e completas, antes dos cartões em pares. */
+.subject-hub .subject-hub-menu > .subject-hub-card.subject-trail-highlight,
+.subject-hub .subject-hub-menu > .subject-hub-card.subject-docs-full{
+ grid-column:1 / -1;
+}
+
+/* Para as demais áreas, o último cartão ímpar pode ocupar a largura completa. */
 .subject-hub .subject-hub-menu > .subject-hub-card:last-child:nth-child(odd){grid-column:1 / -1}
 @media(max-width:900px){
  .subject-hub .subject-hub-menu{grid-template-columns:minmax(0,1fr)}
