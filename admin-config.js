@@ -166,6 +166,7 @@ function render(){
  return '<div class="admin-config-page" id="adminConfigPage">'+
  '<header class="admin-header"><span class="admin-kicker">Painel privado</span><h1>Admin Config</h1><p>Consulte os relatos de erros e os registros de acesso à plataforma.</p></header>'+
  '<details class="admin-card admin-reports"><summary>Relatos de erros <span>Privado</span></summary><div id="adminErrorReports">'+reportsMarkup()+'</div></details>'+
+ (bridge()?.adminLibrary?.()||'')+
  adminLogMarkup()+
  '</div>';
 }
