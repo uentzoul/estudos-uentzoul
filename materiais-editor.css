@@ -36,3 +36,11 @@
 .pm-edit-button:focus-visible,.pm-save:focus-visible,.pm-cancel:focus-visible,.pm-drag-handle:focus-visible,.pm-edit-order-controls button:focus-visible,.pm-edit-move-label select:focus-visible{outline:3px solid var(--subject-accent,var(--accent,#7763bd));outline-offset:2px}
 @media(max-width:700px){.subject-hub #docs .library-group{padding:11px 12px}.pm-material-group.pm-is-editing{margin:0 -5px;padding:10px 5px}.pm-edit-row{flex-wrap:wrap;gap:9px}.pm-edit-file-title{flex:1 1 calc(100% - 60px)}.pm-edit-move-label{flex:1 1 160px}.pm-edit-order-controls{margin-left:auto}.pm-edit-toolbar{width:100%}.pm-edit-toolbar button{flex:1}}
 @media(prefers-reduced-motion:reduce){.pm-material-group.pm-is-editing{transition:none}}
+
+/* Campo de renomeação disponível exclusivamente dentro do modo Editar. */
+.pm-edit-name-label{flex:1 1 210px;min-width:170px;display:grid;gap:4px}
+.pm-edit-name-label>span{font-size:10px;font-weight:750;color:var(--muted)}
+.pm-edit-name-label>input{width:100%;min-height:37px;min-width:0;padding:7px 10px;font:inherit;font-size:12px;font-weight:680;line-height:1.45;color:var(--ink);background:var(--paper);border:1px solid var(--line);border-radius:8px}
+.pm-edit-name-label>input:hover{border-color:var(--subject-accent,var(--accent,#7561b5))}
+.pm-edit-name-label>input:focus-visible{outline:3px solid var(--subject-accent,var(--accent,#7763bd));outline-offset:1px}
+@media(max-width:700px){.pm-edit-name-label{flex:1 1 calc(100% - 58px);min-width:0}}
