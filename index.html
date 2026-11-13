@@ -3474,7 +3474,7 @@ async function tzAsk(){
  if(tz.busy)return;
  const raw=document.getElementById('tzPrompt')?.value.trim()||'';
  if(!raw&&!tz.pending.length)return;
- const message=raw||'Analisa os anexos enviados e destaca os pontos mais importantes para os meus estudos.';
+ const message=raw||'Analise os anexos enviados e destaque os pontos mais importantes para os meus estudos.';
  const history=tz.messages.slice(-12).map(m=>({role:m.role,content:m.content,attachments:m.role==='user'?(m.attachments||[]):[]}));
  tz.draft=raw;tz.note='';tz.busy=true;render();
  let id=tz.active,added=false,sent=false,uploaded=[];
