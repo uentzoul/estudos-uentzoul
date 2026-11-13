@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="color-scheme" content="light dark">
-<meta name="site-build" content="psicomoodle-schedule-four-days-20261112-v1">
+<meta name="site-build" content="psicomoodle-final-review-20261113-r3">
 <script>try{document.documentElement.dataset.theme=localStorage.getItem("uentzoul_theme_v1")==="dark"?"dark":"light"}catch(e){document.documentElement.dataset.theme="light"}</script>
 <title>PsicoMoodle · Psicologia PUCRS</title>
 <style>
@@ -1973,13 +1973,13 @@ html[data-theme="dark"] .tz-pending-icon{background:#40375e;color:#d6c4ff}
 <script src="estudos-dirigidos-avaliacao.js?v=20261112-4"></script>
 <script src="estudos-dirigidos-tcc.js?v=20261112-3"></script>
 <script src="estudos-dirigidos-meta.js?v=20261113-formal-1"></script>
-<script src="estudos-dirigidos.js?v=20261113-formal-1"></script>
+<script src="estudos-dirigidos.js?v=20261113-final-2"></script>
 <script src="estudos-casos-data.js?v=20261112-1"></script>
-<script src="estudo-ativo.js?v=20261113-trilha-1"></script>
+<script src="estudo-ativo.js?v=20261113-final-2"></script>
 <script src="psicomoodle-new-content.js?v=20261113-social-family-2"></script>
 <script src="simulados-finais-2026.js?v=20261113-3"></script>
 <script src="estudos-dirigidos-finais-2026.js?v=20261113-1"></script>
-<link rel="stylesheet" href="simulados-finais-2026.css?v=20261113-1">
+<link rel="stylesheet" href="simulados-finais-2026.css?v=20261113-2">
 <script src="casos-act-social.js?v=20261113-1"></script>
 <script src="casos-finais-2026.js?v=20261113-1"></script>
 <link rel="stylesheet" href="chat-whatsapp.css?v=20261112-whatsapp-chat-7">
@@ -2060,7 +2060,7 @@ html[data-theme="dark"] .tz-library-download{background:#26374c;border-color:#45
 <link rel="stylesheet" href="./trilhas-estudos.css">
 <script src="./trilhas-estudos.js?v=20261113-formal-2"></script>
 <link rel="stylesheet" href="trilha-integrada.css?v=20261113-1">
-<script src="trilha-curadoria.js?v=20261113-1"></script>
+<script src="trilha-curadoria.js?v=20261113-final-2"></script>
 <script src="trilha-integrada.js?v=20261113-1"></script>
 <link rel="stylesheet" href="materiais-editor.css?v=20261113-2">
 <script src="materiais-editor.js?v=20261113-2"></script>
@@ -3605,11 +3605,11 @@ function geRenderList(){
  if(!logged)return head('Simulados','Criar simulados personalizados','A IA gera uma prova nova para cada solicitação, baseada no conteúdo da disciplina e no estilo do professor.')+
   '<section class="panel ge-panel"><h2>Entre na sua conta</h2><p>Para gerar, guardar e compartilhar provas, é necessário entrar na conta do site.</p><button class="btn" data-action="tz-login">Entrar / Cadastrar</button></section>';
  const subjects=Object.entries(DB.subjects);
- const form=subjects.length?'<div class="ge-generator"><div><span class="eyebrow">NOVO SIMULADO</span><h2>Uma prova inédita para estudar</h2><p>Escolha a disciplina, a dificuldade e a quantidade de questões objetivas. Se desejar, adicione duas questões dissertativas finais. A correção e os critérios ficam disponíveis após a entrega.</p></div>'+
+ const form=subjects.length?'<div class="ge-generator"><div><span class="eyebrow">NOVO SIMULADO</span><h2>Uma prova inédita para estudar</h2><p>Escolha a disciplina, a dificuldade e a quantidade total de questões. Se desejar, inclua duas questões dissertativas dentro da quantidade escolhida. O gabarito e os critérios ficam disponíveis após a entrega.</p></div>'+
   '<div class="ge-fields"><label>Disciplina<select id="geSubject">'+subjects.map(([id,v])=>'<option value="'+esc(id)+'" '+(ge.subject===id?'selected':'')+'>'+esc(v.name)+'</option>').join('')+'</select></label>'+
   '<label>Dificuldade<select id="geDifficulty"><option value="normal" '+(ge.difficulty==='normal'?'selected':'')+'>Normal</option><option value="dificil" '+(ge.difficulty==='dificil'?'selected':'')+'>Difícil</option></select></label>'+
-  '<label>Quantidade de questões objetivas<select id="geQuestionCount">'+[5,10,15,20].map(n=>'<option value="'+n+'" '+(ge.questionCount===n?'selected':'')+'>'+n+' questões</option>').join('')+'</select></label>'+
-  '<label class="ge-essay-choice"><input type="checkbox" id="geIncludeEssays" '+(ge.includeEssays?'checked':'')+'> Incluir 2 questões dissertativas ao final</label>'+
+  '<label>Quantidade total de questões<select id="geQuestionCount">'+[5,10,15,20].map(n=>'<option value="'+n+'" '+(ge.questionCount===n?'selected':'')+'>'+n+' questões</option>').join('')+'</select></label>'+
+  '<label class="ge-essay-choice"><input type="checkbox" id="geIncludeEssays" '+(ge.includeEssays?'checked':'')+'> Incluir 2 questões dissertativas finais (dentro do total)</label>'+
   '<button type="button" class="btn ge-primary" data-ge-create '+(ge.busy?'disabled':'')+'>'+(ge.busy?'Preparando o simulado…':'Gerar novo simulado')+'</button></div></div>':
   '<div class="ge-generator"><h2>Sem disciplinas cadastradas em '+esc(semester)+'</h2><p>Volte ao semestre 2026/2 para gerar provas com os materiais disponíveis.</p></div>';
  const visible=ge.exams.filter(e=>!ge.hidden.some(h=>h.exam_id===e.id));
@@ -4301,7 +4301,7 @@ async function submit(id){
  store.results[id]={correct,total:objective.length,date:new Date().toISOString()};
  store.completed['sim:'+id]=true;persist();render();
  try{window.scrollTo({top:0,behavior:'smooth'})}catch(_){}
- toast('Simulado corrigido. Consulta as respostas e os comentários.');
+ toast('Simulado corrigido. Consulte as respostas e os comentários.');
 }
 function copyForAI(qid){const exam=DB.exams.find(e=>e.id===current.exam);const q=exam?.questions.find(x=>x.id===qid);if(!q)return;const ans=getAnswers(exam.id)[qid]||'[sem resposta]';const prompt=`Corrige esta resposta dissertativa de Psicologia no estilo universitário, com rigor e linguagem natural. Avalia o conteúdo, identifica erros conceituais e omissões, corrige a gramática SEM alterar o sentido e apresenta nota orientativa de 0 a 10 e uma versão revisada. Use critérios explicitados.\n\nQuestão: ${q.prompt}\n\nMinha resposta: ${ans}\n\nCritérios: ${q.criteria.join('; ')}\n\nResposta orientativa: ${q.model}\n\nSe minha resposta trouxer ideia válida não presente na referência, considera-a com cuidado.`;
  const open=()=>{toast('Texto copiado. Cole-o no ChatGPT.');window.open('https://chatgpt.com/','_blank','noopener');};if(navigator.clipboard?.writeText){navigator.clipboard.writeText(prompt).then(open).catch(()=>{window.prompt('Copie o texto para o ChatGPT:',prompt)})}else window.prompt('Copie o texto para o ChatGPT:',prompt);}
