@@ -2149,6 +2149,20 @@ const LIBRARY_CATALOG=SEMESTER_DB['2026/2'].materials.slice(); // Catálogo comp
 const FINAL_EXAM_LIBRARY_KEYS=new Set(["tcc::Cronograma de TCC","tcc::Terapia do Esquema — 41 slides","tcc::TCCs de Terceira Onda — 39 slides","familia::Violência intrafamiliar","familia::Luto — Manual de Terapia Familiar, cap. 27","familia::Dependência Química na visão sistêmica — Payá, cap. 56","familia::Atendimentos clínico, hospitalar, escolar, jurídico e assistência social","meta::Plano e cronograma de Metapsicologia","meta::Segunda Tópica — slides","meta::Édipo — slides","meta::Pulsão — slides","meta::Angústia — slides","meta::Estudo Dirigido P2","meta::Leitura das aulas 19 e 26 de outubro","meta::Vocabulário da Psicanálise — Laplanche e Pontalis","meta::Dicionário de Psicanálise — Roudinesco e Plon","social::Cronograma de Psicologia Social","social::Psicologia Social Crítica — Martín-Baró","social::Seminário sobre algoritmos e polarização","social::Texto-base sobre relações étnico-raciais","social::Texto-base sobre gênero e sexualidade","avaliacao::Cronograma de Avaliação Psicológica","avaliacao::Entrevista de devolução — slides","avaliacao::Avaliação no contexto organizacional","avaliacao::Avaliação nos contextos hospitalar e forense","avaliacao::Avaliação de pessoas trans e ética profissional","avaliacao::Entrevista simulada de devolução — vídeo","grupos::Moreno — Psicodrama","grupos::Carl Rogers — Grupos de Encontro","grupos::Escritores da Liberdade — sinopse oficial","grupos::Escritores da Liberdade — análise do filme","grupos::Escritores da Liberdade — guia de estudo (PDF)","geral::Caderno Integrado — versão completa","geral::Caderno Integrado — exercícios e citações","avaliacao::Entrevista de Anamnese","avaliacao::Elaboração de documentos — slides","avaliacao::Rovinski e Lago — documentos","avaliacao::Validade e Precisão — slides","avaliacao::Padronização e normas — Rabelo e colaboradores","avaliacao::Pasquali — elaboração de escalas","avaliacao::Adaptação de Instrumentos","avaliacao::Bateria de Testes — slides"]);
 for(const m of SEMESTER_DB['2026/2'].materials){if(m._psicoNew)FINAL_EXAM_LIBRARY_KEYS.add(String(m.subject||'')+'::'+String(m.title||''));}
 SEMESTER_DB['2026/2'].materials=SEMESTER_DB['2026/2'].materials.filter(m=>FINAL_EXAM_LIBRARY_KEYS.has(String(m.subject||'')+'::'+String(m.title||'')));
+const SOCIAL_EXAM_DOCUMENTS=window.PSICOMOODLE_NEW_CONTENT?.documents||[];
+const SOCIAL_EXAM_SOURCES=new Set(SOCIAL_EXAM_DOCUMENTS.map(m=>m.source));
+SEMESTER_DB['2026/2'].materials=SEMESTER_DB['2026/2'].materials.filter(m=>m.subject!=='social'||(m._psicoNew&&SOCIAL_EXAM_SOURCES.has(m.source))||/plano de ensino|cronograma/i.test(String(m.title||'')));
+if(window.PSICOMOODLE_NEW_CONTENT?.social?.length)SEMESTER_DB['2026/2'].topics.social=[...window.PSICOMOODLE_NEW_CONTENT.social];
+const SOCIAL_EXAM_MODELS=new Set(['social-6','social-7','social-8','social-9']);
+SEMESTER_DB['2026/2'].exams=SEMESTER_DB['2026/2'].exams.filter(e=>e.subject!=='social'||SOCIAL_EXAM_MODELS.has(e.id));
+const SOCIAL_AUDIO_SCOPE=new Set([1,2,4,5,6]);
+if(SEMESTER_DB['2026/2'].audio.social?.episodes)SEMESTER_DB['2026/2'].audio.social.episodes=SEMESTER_DB['2026/2'].audio.social.episodes.filter(e=>SOCIAL_AUDIO_SCOPE.has(Number(e.n)));
+if(window.PSICO_CASES?.social){
+ const approvedCases=new Set(['fatalismo-contexto','marcadores-vida','social-epistemicidio','social-interseccionalidade','social-infancia','social-fatalismo']);
+ window.PSICO_CASES.social=window.PSICO_CASES.social.filter(item=>approvedCases.has(item.id));
+}
+if(window.PSICO_GUIDES?.social)window.PSICO_GUIDES.social=window.PSICO_GUIDES.social.filter(g=>g.id==='social-novos-textos-2026');
+
 SEMESTER_DB['2026/2'].topics.familia=SEMESTER_DB['2026/2'].topics.familia.filter(t=>t.title&&t.definition);
 SEMESTER_DB['2026/2'].topics.avaliacao=SEMESTER_DB['2026/2'].topics.avaliacao.filter(t=>[
 'Entrevista de devolução','Linguagem e comunicação na devolução','Sigilo e compartilhamento ético',
