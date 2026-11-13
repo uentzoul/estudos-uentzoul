@@ -44,17 +44,27 @@ function due(id){
  const s=S(id),r=records(id);return cards(id).filter(c=>s.again?!s.seen.has(c.key):!r[c.key]||Number(r[c.key].due||0)<=Date.now());
 }
 function cardView(id){
- const s=S(id),all=cards(id),queue=due(id),data=records(id);s.position=Math.min(s.position,Math.max(0,queue.length-1));
- const count=all.filter(c=>data[c.key]?.hits>0).length;
- const shell='<section class="as-shell" data-active-mode="flash" data-active-id="'+esc(id)+'"><header class="as-head"><div><small>RECORDAÇÃO ATIVA</small><h2>Flashcards</h2><p>Responde mentalmente, vira o cartão e marca se lembrou. Os assuntos esquecidos voltam antes nas próximas revisões.</p></div><span>'+all.length+' cartões</span></header>';
- if(!all.length)return shell+'<div class="as-empty">Não há conteúdos preparados para criar flashcards nesta disciplina.</div></section>';
- if(!queue.length)return shell+'<div class="as-complete"><div class="as-complete-symbol">✓</div><h3>Revisão concluída por enquanto</h3><p>As próximas revisões aparecerão conforme os intervalos de estudo.</p><p>'+count+' cartões lembrados ao menos uma vez</p><button class="as-primary" type="button" data-active-action="again">Revisar todos agora</button></div></section>';
- const c=queue[s.position];
- return shell+'<div class="as-info"><span>'+queue.length+' disponíveis para revisão</span><span>'+(s.position+1)+' de '+queue.length+'</span></div>'+
- '<button type="button" class="as-card '+(s.flipped?'is-flipped':'')+'" data-active-action="flip" aria-label="'+(s.flipped?'Voltar à pergunta':'Revelar a resposta')+'"><span class="as-card-inner"><span class="as-face as-front" aria-hidden="'+(s.flipped?'true':'false')+'"><small>'+esc(c.tag)+'</small><strong>'+esc(c.front).replace(/\n/g,'<br>')+'</strong><em>Toca para virar ↻</em></span><span class="as-face as-back" aria-hidden="'+(s.flipped?'false':'true')+'"><small>RESPOSTA</small><strong>'+esc(c.back)+'</strong><em>Toca para voltar ↻</em></span></span></button>'+
- (s.flipped?'<div class="as-actions"><button type="button" class="as-secondary" data-active-action="miss">Não lembrei</button><button class="as-primary" data-active-action="hit" type="button">Lembrei</button></div>':
- '<div class="as-actions"><button type="button" class="as-secondary" data-active-action="skip">Pular</button><button class="as-primary" data-active-action="flip" type="button">Mostrar resposta</button></div>')+
- '<p class="as-note">Sem pontuação ou ranking. O histórico de revisão fica salvo neste dispositivo e separado por conta.</p></section>';
+ const s=S(id),all=cards(id),data=records(id);
+ if(!Number.isInteger(s.cardIndex))s.cardIndex=-1;
+ if(s.cardIndex>=all.length)s.cardIndex=-1;
+ const completed=all.filter(c=>data[c.key]?.hits>0).length;
+ const shell='<section class="as-shell as-flash-shell" data-active-mode="flash" data-active-id="'+esc(id)+'"><header class="as-head"><div><small>RECORDAÇÃO ATIVA</small><h2>Flashcards</h2><p>Escolhe qualquer cartão. Os que já foram lembrados continuam acessíveis; pular não marca como concluído.</p></div><span>'+completed+' / '+all.length+' lembrados</span></header>';
+ if(!all.length)return shell+'<div class="as-empty">Não há cartões cadastrados nesta disciplina.</div></section>';
+ if(s.cardIndex<0){
+  return shell+'<div class="as-flash-overview"><div class="as-flash-meter" aria-label="'+completed+' de '+all.length+' lembrados"><span style="width:'+(100*completed/all.length).toFixed(1)+'%"></span></div>'+
+  '<div class="as-flash-grid">'+all.map((c,i)=>{
+   const status=data[c.key]?.hits>0?'Lembrado':data[c.key]?.misses>0?'Revisar':'Pendente';
+   const state=status==='Lembrado'?'is-remembered':status==='Revisar'?'is-review':'is-pending';
+   return '<button type="button" class="as-flash-tile '+state+'" data-active-action="open-card" data-index="'+i+'" aria-label="Abrir flashcard '+(i+1)+': '+esc(status)+'"><span class="as-flash-number">'+String(i+1).padStart(2,'0')+'</span><strong>'+esc(c.tag)+'</strong><small>'+status+'</small></button>';
+  }).join('')+'</div></div><p class="as-note">O histórico de revisão permanece salvo neste dispositivo e por conta.</p></section>';
+ }
+ const i=s.cardIndex,card=all[i],remembered=!!(data[card.key]?.hits>0);
+ return shell+'<div class="as-flash-nav"><button type="button" class="as-secondary" data-active-action="grid">← Todos os flashcards</button><span>Cartão '+(i+1)+' de '+all.length+(remembered?' · ✓ Lembrado':'')+'</span></div>'+
+ '<button type="button" class="as-card '+(s.flipped?'is-flipped':'')+'" data-active-action="flip" aria-label="'+(s.flipped?'Voltar à pergunta':'Revelar a resposta')+'"><span class="as-card-inner"><span class="as-face as-front" aria-hidden="'+(s.flipped?'true':'false')+'"><small>'+esc(card.tag)+'</small><strong>'+esc(card.front).replace(/\n/g,'<br>')+'</strong><em>Toca para virar ↻</em></span><span class="as-face as-back" aria-hidden="'+(s.flipped?'false':'true')+'"><small>RESPOSTA</small><strong>'+esc(card.back)+'</strong><em>Toca para voltar ↻</em></span></span></button>'+
+ '<div class="as-flash-nav as-flash-nav-bottom"><button type="button" class="as-secondary" data-active-action="previous-card" '+(i===0?'disabled':'')+'>← Anterior</button><button type="button" class="as-secondary" data-active-action="next-card" '+(i===all.length-1?'disabled':'')+'>Próximo →</button></div>'+
+ (s.flipped?'<div class="as-actions"><button type="button" class="as-secondary" data-active-action="miss">Não lembrei</button><button type="button" class="as-secondary" data-active-action="skip">Pular</button><button type="button" class="as-primary" data-active-action="hit">Lembrei</button></div>':
+ '<div class="as-actions"><button type="button" class="as-secondary" data-active-action="skip">Pular</button><button type="button" class="as-primary" data-active-action="flip">Mostrar resposta</button></div>')+
+ '<p class="as-note">Pular mantém o cartão pendente. “Lembrei” registra a conclusão e conserva a revisão espaçada.</p></section>';
 }
 function listView(id){
  const list=window.PSICO_CASES?.[id]||[];
@@ -84,16 +94,21 @@ document.addEventListener('click',e=>{
  const id=root.dataset.activeId,s=S(id),action=btn.dataset.activeAction;
  e.preventDefault();
  if(root.dataset.activeMode==='flash'){
-  if(action==='again'){s.again=true;s.seen.clear();s.position=0;s.flipped=false}
+  const all=cards(id);
+  if(action==='open-card'){s.cardIndex=Number(btn.dataset.index);s.flipped=false;}
+  if(action==='grid'){s.cardIndex=-1;s.flipped=false;}
+  if(action==='previous-card'){s.cardIndex=Math.max(0,(s.cardIndex||0)-1);s.flipped=false;}
+  if(action==='next-card'){s.cardIndex=Math.min(all.length-1,(s.cardIndex||0)+1);s.flipped=false;}
   if(action==='flip')s.flipped=!s.flipped;
-  if(action==='skip'){s.position=(s.position+1)%Math.max(due(id).length,1);s.flipped=false}
+  if(action==='skip'){s.cardIndex=Math.min(all.length-1,(s.cardIndex||0)+1);s.flipped=false;}
   if(action==='hit'||action==='miss'){
-   const c=due(id)[s.position];if(!c)return;const r=records(id),old=r[c.key]||{hits:0,misses:0};
+   const card=all[s.cardIndex];if(!card)return;
+   const r=records(id),old=r[card.key]||{hits:0,misses:0};
    const hits=action==='hit'?Math.min(10,old.hits+1):0;
    const days=[1,3,7,14,30,60,90];
-   r[c.key]={hits,misses:old.misses+(action==='miss'?1:0),due:Date.now()+(action==='hit'?days[Math.min(hits-1,days.length-1)]*86400000:600000)};
-   save(id,r);if(s.again)s.seen.add(c.key);
-   s.position=0;s.flipped=false;
+   r[card.key]={hits,misses:(old.misses||0)+(action==='miss'?1:0),due:Date.now()+(action==='hit'?days[Math.min(hits-1,days.length-1)]*86400000:600000)};
+   save(id,r);
+   s.cardIndex=Math.min(all.length-1,s.cardIndex+1);s.flipped=false;
   }
  }else{
   if(action==='open'){s.caseIndex=Number(btn.dataset.index);s.step=0;s.chosen=-1;s.previous='';s.finished=false}
