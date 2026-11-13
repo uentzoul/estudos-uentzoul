@@ -4533,7 +4533,7 @@ const $=id=>document.getElementById(id), esc=s=>String(s??'').replace(/[&<>"']/g
 let onlineUser=null,remoteProfile=null,client=null,modalView='login',pendingConfirmationEmail='',busy=false,syncTimer=null,rankData=[],rankBusy=false,cloudSnapshot=null,rankingSemester=null,cloudLoading=false,cloudError='',cloudInitPromise=null,enteringUserId=null,enteringPromise=null;
 const cfg=(()=>{try{return JSON.parse($('uentzoul-auth-config').textContent)}catch{return {}}})();
 const backendReady=!!(cfg.url&&cfg.publishableKey&&/^https:\/\//.test(cfg.url));
-const CONFIRMATION_RETURN_URL='https://uentzoul.github.io/estudos-uentzoul/';
+const CONFIRMATION_RETURN_URL=new URL('.',window.location.href).href;
 const initials=name=>(name||'?').trim().split(/\s+/).slice(0,2).map(x=>x[0]||'').join('').toUpperCase();
 function avatar(name,src,small=false){const safe=typeof src==='string'&&(/^(data:image\/(jpeg|png|webp);base64,)/.test(src)||/^https:\/\//.test(src))?src:'';return `<div class="profile-avatar${small?' sm':''}">${safe?`<img alt="" src="${esc(safe)}">`:esc(initials(name))}</div>`;}
 function current(){return onlineUser?{name:remoteProfile?.display_name||onlineUser.email||'Estudante',avatar:remoteProfile?.avatar_url||'',online:true,id:onlineUser.id}:null}
