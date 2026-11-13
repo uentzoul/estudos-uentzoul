@@ -2034,6 +2034,24 @@ html[data-theme="dark"] .tz-library-download{background:#26374c;border-color:#45
 .new-library-pending .library-resource{opacity:.88}
 .new-library-pending .library-resource-main{cursor:default}
 </style>
+<style>
+/* Materiais e textos: titulo somente; toda a superficie da ficha abre o arquivo. */
+.doclist .doc-compact{position:relative;display:flex;align-items:stretch;padding:0;overflow:hidden;min-height:74px;border-radius:15px;transition:box-shadow .18s,border-color .18s,transform .18s}
+.doclist .doc-compact.is-available:hover{border-color:#9d85d7;box-shadow:0 7px 18px #39235b16;transform:translateY(-2px)}
+.doclist .doc-compact .doc-full-link{flex:1;min-width:0;display:flex;align-items:center;gap:11px;padding:13px 16px;color:inherit;text-decoration:none}
+.doclist .doc-compact a.doc-full-link{cursor:pointer}
+.doclist .doc-compact a.doc-full-link::after{content:"";position:absolute;inset:0;z-index:1}
+.doclist .doc-compact a.doc-full-link:focus-visible{outline:3px solid #7962be;outline-offset:-3px}
+.doclist .doc-compact .docname{flex:1;min-width:0;overflow-wrap:anywhere;line-height:1.38;font-weight:730;font-size:13px}
+.doclist .doc-compact .doc-open-arrow{font-size:19px;color:var(--muted);margin-left:auto}
+.doclist .doc-compact .doc-check{position:relative;z-index:2;display:flex;align-items:center;padding:9px 12px 9px 2px}
+.doclist .doc-compact .doc-check .donecontrol{cursor:pointer}
+.doclist .doc-compact .doc-not-ready{cursor:default}
+.library-resource .library-resource-copy .docname{font-weight:760;line-height:1.4;overflow-wrap:anywhere}
+.library-resource .library-resource-copy .docnote,.library-resource .library-resource-type{display:none!important}
+.library-resource.is-available .library-resource-status{display:none!important}
+.library-resource .library-resource-bottom{justify-content:flex-end}
+</style>
 </head>
 <body>
 <section id="staticFallback" class="static-fallback" aria-label="Central de Estudos — modo de leitura compatível com celular">
@@ -2570,12 +2588,13 @@ function examCard(e){
  '<button class="btn light wide" data-action="test:'+e.id+'">'+(r?'Rever / refazer':'Iniciar simulado')+'</button></article>';
 }
 function docCard(m){
- let id='material:'+(m._libraryLegacyUrl||m.source||m._libraryKey||m.url);
- const url=m._libraryUpload?'#':m.url,attr=m._libraryUpload?' data-library-file="'+esc(m._libraryKey)+'"':'';
- return '<div class="doc"><span class="docicon">'+(m._libraryUpload?.filename?.toLowerCase().endsWith('.docx')?'DOC':m.kind==='Vídeo'?'▶':m.kind==='PDF'?'PDF':m.kind==='Página HTML'?'WEB':'TXT')+'</span>'+
- '<div class="inlinegrow" style="min-width:0"><div class="docname">'+esc(m.title)+'</div><div class="docnote">'+esc(m._libraryUpload?.content_summary||m.note||m.kind)+'</div></div><div class="actions">'+
- (m.available?'<a href="'+esc(url)+'"'+attr+' target="_blank" rel="noopener" class="barlink">Abrir ↗</a>':'<span class="pill">Aguardando arquivo</span>')+
- '</div>'+(m.available?doneBox(id):'')+'</div>';
+ const key='material:'+(m._libraryLegacyUrl||m.source||m._libraryKey||m.url);
+ const href=m._libraryUpload?'#':m.url,attr=m._libraryUpload?' data-library-file="'+esc(m._libraryKey)+'"':'';
+ const kind=m._libraryUpload?.filename?.toLowerCase().endsWith('.docx')?'DOC':m.kind==='Vídeo'?'▶':m.kind==='PDF'?'PDF':m.kind==='Página HTML'?'WEB':'TXT';
+ const body='<span class="docicon" aria-hidden="true">'+kind+'</span><span class="docname">'+esc(m.title)+'</span>'+(m.available?'<span class="doc-open-arrow" aria-hidden="true">↗</span>':'');
+ const main=m.available?'<a class="doc-full-link" href="'+esc(href)+'"'+attr+' target="_blank" rel="noopener noreferrer" aria-label="Abrir '+esc(m.title)+'">'+body+'</a>':
+  '<div class="doc-full-link doc-not-ready">'+body+'<span class="pill">Aguardando arquivo</span></div>';
+ return '<div class="doc doc-compact '+(m.available?'is-available':'is-pending')+'">'+main+(m.available?'<div class="doc-check">'+doneBox(key)+'</div>':'')+'</div>';
 }
 
 /* Cartões da Biblioteca: o próprio cartão é o link, com "Visto" independente. */
@@ -2619,10 +2638,8 @@ function libraryResourceCard(m,i=0){
  const glyph=type==='video'?'▶':type==='pdf'?'PDF':type==='doc'?'DOC':type==='link'?'↗':'▤';
  const isAvailable=!!m.available;
  const name=esc(m.title||'Material sem título');
- const note=esc(m._libraryUpload?.content_summary||m.note||m.kind||'Material de estudo');
  const content='<span class="library-resource-icon" aria-hidden="true">'+glyph+'</span>'+
-  '<span class="library-resource-copy"><span class="library-resource-type">'+esc(typeLabel)+'</span>'+
-  '<strong class="docname">'+name+'</strong><span class="docnote">'+note+'</span></span>'+
+  '<span class="library-resource-copy"><strong class="docname">'+name+'</strong></span>'+
   (isAvailable?'<span class="library-resource-arrow" aria-hidden="true">↗</span>':'');
  const url=m._libraryUpload?'#':m.url;
  const uploadAttr=m._libraryUpload?' data-library-file="'+esc(m._libraryKey)+'"':'';
@@ -2632,7 +2649,7 @@ function libraryResourceCard(m,i=0){
  const key='material:'+(m._libraryLegacyUrl||m.source||m._libraryKey||m.url);
  return '<article class="doc library-resource '+(isAvailable?'is-available':'is-pending')+' type-'+type+'" style="--library-seq:'+(i%8)+'">'+
   body+'<div class="library-resource-bottom"><span class="library-resource-status">'+
-  (isAvailable?'<span class="library-status-dot" aria-hidden="true"></span>Disponível':'Aguardando arquivo')+'</span>'+
+  (isAvailable?'':'Aguardando arquivo')+'</span>'+
   (isAvailable?'<span class="library-resource-progress">'+doneBox(key)+'</span>':'')+'</div></article>';
 }
 
