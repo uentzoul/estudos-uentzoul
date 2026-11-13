@@ -1972,9 +1972,9 @@ html[data-theme="dark"] .tz-pending-icon{background:#40375e;color:#d6c4ff}
 <script src="estudos-dirigidos-avaliacao.js?v=20261112-4"></script>
 <script src="estudos-dirigidos-tcc.js?v=20261112-3"></script>
 <script src="estudos-dirigidos-meta.js?v=20261112-4"></script>
-<script src="estudos-dirigidos.js?v=20261112-2"></script>
+<script src="estudos-dirigidos.js?v=20261113-formal-1"></script>
 <script src="estudos-casos-data.js?v=20261112-1"></script>
-<script src="estudo-ativo.js?v=20261112-reviewed-3"></script>
+<script src="estudo-ativo.js?v=20261113-formal-1"></script>
 <script src="psicomoodle-new-content.js?v=20261113-social-family-2"></script>
 <script src="casos-act-social.js?v=20261113-1"></script>
 <link rel="stylesheet" href="chat-whatsapp.css?v=20261112-whatsapp-chat-7">
@@ -2053,7 +2053,7 @@ html[data-theme="dark"] .tz-library-download{background:#26374c;border-color:#45
 .library-resource .library-resource-bottom{justify-content:flex-end}
 </style>
 <link rel="stylesheet" href="./trilhas-estudos.css">
-<script src="./trilhas-estudos.js"></script>
+<script src="./trilhas-estudos.js?v=20261113-formal-1"></script>
 </head>
 <body>
 <section id="staticFallback" class="static-fallback" aria-label="Central de Estudos — modo de leitura compatível com celular">
@@ -3084,7 +3084,7 @@ function renderCalendar(){
  '<button type="button" class="agenda-toggle" data-action="agenda-past">'+(calendarShowPast?'Mostrar só próximas':'Incluir aulas anteriores')+'</button></div>'+
  (upcoming.length?calendarDateGroups(upcoming,calendarClassRow):'<div class="panel">Não há outras aulas cadastradas após hoje. Use “Incluir aulas anteriores” para consultar o registro.</div>')+
  '<div class="agenda-caveat">“Ler revisão deste tópico” abre a seção correspondente do próprio site. Não é o texto original do livro. Quando o PDF ou capítulo não está publicado, a referência bibliográfica fica visível sem um link de download inválido.</div>'+caveat;
- return head('Organização do semestre','Agenda e Horários','Acompanha as avaliações, os horários e os conteúdos previstos para cada aula.')+
+ return head('Organização do semestre','Agenda e Horários','Acompanhe as avaliações, os horários e os conteúdos previstos para cada aula.')+
  tabs+'<div role="tabpanel">'+(calendarView==='provas'?examsView:calendarView==='horarios'?renderClassSchedule(true):classesView)+'</div>';
 }
 
@@ -3331,7 +3331,7 @@ function renderAI(){
 '<div class="tz-body"><aside class="tz-sidebar" aria-label="Conversas anteriores"><div class="tz-sidebar-header"><strong>Conversas</strong><button type="button" data-tz-reset="1" title="Criar conversa">+</button></div><div class="tz-history">'+(tz.loading?'<p class="tz-history-empty">Carregando…</p>':tz.conversations.length?tz.conversations.map(c=>'<div class="tz-history-item '+(tz.active===c.id?'selected':'')+'"><button type="button" class="tz-history-open" data-tz-open="'+esc(c.id)+'" title="'+esc(c.title)+'"><span>'+esc(c.title)+'</span><small>'+new Date(c.updated_at).toLocaleDateString('pt-BR')+'</small></button><button type="button" class="tz-history-menu" data-tz-rename="'+esc(c.id)+'" title="Renomear conversa">✎</button><button type="button" class="tz-history-menu" data-tz-delete="'+esc(c.id)+'" title="Excluir conversa">×</button></div>').join(''):'<p class="tz-history-empty">As suas conversas vão aparecer aqui.</p>')+'</div></aside><div class="tz-chat" role="region" aria-label="Chat de estudos — '+esc(status)+'">'+
  '<div class="tz-floating-actions"><button type="button" class="tz-new-chat" data-tz-reset="1" aria-label="Iniciar nova conversa" title="Iniciar nova conversa"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg><span>Nova conversa</span></button></div>'+
  '<div class="tz-thread" id="tzThread" aria-live="polite">'+messages+(tz.busy?'<div class="tz-thinking">IA Tzoul está respondendo</div>':'')+'</div>'+
- (notice?'<div class="tz-notice" role="status">'+esc(notice)+(logged&&tz.ready===false?'<div class="tz-retry-area"><button type="button" class="tz-retry-button" data-tz-retry="1">↻ Testar conexão novamente</button><small>Se a chave acabou de ser configurada no servidor, verifica aqui sem precisar sair do site.</small></div>':'')+'</div>':'')+
+ (notice?'<div class="tz-notice" role="status">'+esc(notice)+(logged&&tz.ready===false?'<div class="tz-retry-area"><button type="button" class="tz-retry-button" data-tz-retry="1">↻ Testar conexão novamente</button><small>Se a chave acabou de ser configurada no servidor, verifique aqui sem precisar sair do site.</small></div>':'')+'</div>':'')+
  (!logged&&hasContent?'<div class="tz-login"><button type="button" class="tz-send" data-action="tz-login">Entrar / Cadastrar</button></div>':'')+
  '<form class="tz-form" id="tzForm">'+
  '<details class="tz-context" id="tzContext" '+(tz.contextOpen?'open':'')+'>'+
@@ -3622,7 +3622,7 @@ function geRenderExam(){
   (alreadyShared.length?'<p class="small">Enviado para '+alreadyShared.length+' pessoa(s).</p>':'')+'</section>':'';
  return '<button class="back" type="button" data-ge-back>← Voltar aos simulados</button>'+
   '<div class="ge-test-header"><span class="eyebrow">'+esc(geSubjectName(exam.subject))+' · '+(exam.difficulty==='dificil'?'Difícil':'Normal')+'</span>'+
-  '<h1>Simulado personalizado</h1><p>13 questões objetivas e 2 dissertativas. '+(review?'Prova entregue: pode rever perguntas, respostas e correção, mas não refazer.':'A entrega é definitiva: confere suas respostas antes de enviar.')+'</p>'+
+  '<h1>Simulado personalizado</h1><p>13 questões objetivas e 2 dissertativas. '+(review?'Prova entregue: pode rever perguntas, respostas e correção, mas não refazer.':'A entrega é definitiva: confira suas respostas antes de enviar.')+'</p>'+
   (review?'<div class="ge-score"><strong>'+Number(submission.feedback?.correct||0)+'/13</strong><span>objetivas corretas · dissertativas com critérios de revisão</span></div>':
    '<div class="ge-progress">'+complete+'/15 respostas preenchidas</div>')+
   '</div><div class="ge-questions">'+questions+'</div>'+
@@ -3670,7 +3670,7 @@ async function geCreate(){
    if(!ge.answers[exam.id])ge.answers[exam.id]=Array(15).fill('');
    ge.error='';ge.notice='';
   }else{
-   ge.error=error||'Não foi possível confirmar a criação do simulado. Verifica o histórico antes de tentar novamente.';
+   ge.error=error||'Não foi possível confirmar a criação do simulado. Verifique o histórico antes de tentar novamente.';
    ge.notice='';
   }
   ge.busy=false;
@@ -3706,7 +3706,7 @@ async function geCreate(){
   .then(data=>{
    if(finished)return;
    if(data?.generatedExam)finish(data.generatedExam);
-   else checkSaved().then(()=>{if(!finished)finish(null,'O servidor não retornou a prova. Verifica o histórico.');});
+   else checkSaved().then(()=>{if(!finished)finish(null,'O servidor não retornou a prova. Verifique o histórico.');});
   })
   .catch(async e=>{
    if(finished)return;
@@ -4252,7 +4252,7 @@ async function submit(id){
  toast('Simulado corrigido. Consulta as respostas e os comentários.');
 }
 function copyForAI(qid){const exam=DB.exams.find(e=>e.id===current.exam);const q=exam?.questions.find(x=>x.id===qid);if(!q)return;const ans=getAnswers(exam.id)[qid]||'[sem resposta]';const prompt=`Corrige esta resposta dissertativa de Psicologia no estilo universitário, com rigor e linguagem natural. Avalia o conteúdo, identifica erros conceituais e omissões, corrige a gramática SEM alterar o sentido e apresenta nota orientativa de 0 a 10 e uma versão revisada. Use critérios explicitados.\n\nQuestão: ${q.prompt}\n\nMinha resposta: ${ans}\n\nCritérios: ${q.criteria.join('; ')}\n\nResposta orientativa: ${q.model}\n\nSe minha resposta trouxer ideia válida não presente na referência, considera-a com cuidado.`;
- const open=()=>{toast('Texto copiado. Cola-o no ChatGPT.');window.open('https://chatgpt.com/','_blank','noopener');};if(navigator.clipboard?.writeText){navigator.clipboard.writeText(prompt).then(open).catch(()=>{window.prompt('Copia o texto para o ChatGPT:',prompt)})}else window.prompt('Copia o texto para o ChatGPT:',prompt);}
+ const open=()=>{toast('Texto copiado. Cole-o no ChatGPT.');window.open('https://chatgpt.com/','_blank','noopener');};if(navigator.clipboard?.writeText){navigator.clipboard.writeText(prompt).then(open).catch(()=>{window.prompt('Copie o texto para o ChatGPT:',prompt)})}else window.prompt('Copie o texto para o ChatGPT:',prompt);}
 // Navigation and form persistence.
 // Navigation mobile: abrir disciplinas e fechar depois da escolha.
 const mobileSubjectsButton=document.getElementById('mobileSubjectToggle');
@@ -6362,7 +6362,7 @@ function pcOverview(subject){
 function pcSourcesView(subject){
  const src=pcSources(subject.id);
  const note='<section class="pc2-panel pc2-notes"><header><h3>Anotações principais</h3><small>Material-base da matéria</small></header>'+
-  '<textarea id="pcMainNotes" maxlength="16000" rows="7" placeholder="Cola aqui o conteúdo das aulas, textos-base ou seus próprios apontamentos…">'+esc(pc.drafts[subject.id]??subject.description??'')+'</textarea>'+
+  '<textarea id="pcMainNotes" maxlength="16000" rows="7" placeholder="Cole aqui o conteúdo das aulas, textos-base ou seus próprios apontamentos…">'+esc(pc.drafts[subject.id]??subject.description??'')+'</textarea>'+
   '<div class="pc2-toolbar"><small>Até 16.000 caracteres. A IA usa este texto como fonte.</small><button class="pc-primary" data-pc-save-notes>Salvar anotações</button></div></section>';
  const items=src.map(x=>{
   const symbol=x.kind==='arquivo'?'📄':x.kind==='link'?'🔗':'📝';
@@ -6509,7 +6509,7 @@ function pcModalMarkup(){
  if(pc.modal==='create'||edit){
   title=edit?'Editar matéria':'Criar uma nova matéria';
   body='<form id="pc2SubjectForm"><label>Nome da matéria<input name="title" minlength="3" maxlength="80" required placeholder="Ex.: Psicologia do Desenvolvimento" value="'+esc(edit?subject?.title||'':'')+'"></label>'+
-  '<label>Conteúdos ou anotações iniciais (opcional)<textarea name="description" maxlength="16000" rows="5" placeholder="Cola aqui o conteúdo, o plano da disciplina ou seus apontamentos…">'+esc(edit?subject?.description||'':'')+'</textarea></label>'+
+  '<label>Conteúdos ou anotações iniciais (opcional)<textarea name="description" maxlength="16000" rows="5" placeholder="Cole aqui o conteúdo, o plano da disciplina ou seus apontamentos…">'+esc(edit?subject?.description||'':'')+'</textarea></label>'+
   (!edit?'<div class="pc2-modal-extra"><label>Adicionar arquivos de aula (opcional)<input name="files" type="file" multiple accept=".pdf,.docx,.pptx,.txt,.md,application/pdf,text/plain,text/markdown,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.openxmlformats-officedocument.presentationml.presentation"></label>'+
   '<div class="pc2-modal-cols"><label>Nome de um link (opcional)<input name="link_title" maxlength="180" placeholder="Ex.: Aula 1 — referência"></label>'+
   '<label>Endereço do link<input name="link_url" type="url" maxlength="2000" placeholder="https://..."></label></div></div>':'')+
@@ -6711,7 +6711,7 @@ async function pcCreateSource(form){
    if(!title)throw Error('Informa o título da fonte.');
    const content=kind==='nota'?String(data.get('content')||'').trim():'';
    const url=kind==='link'?String(data.get('url')||'').trim():'';
-   if(kind==='nota'&&!content)throw Error('Cola o texto da fonte.');
+   if(kind==='nota'&&!content)throw Error('Cole o texto da fonte.');
    if(kind==='link'&&!/^https:\/\//i.test(url))throw Error('Use um endereço HTTPS válido.');
    const r=await client.from('uentzoul_personal_sources').insert({user_id:onlineUser.id,subject_id:subject.id,title,kind,content,url}).select('*').single();
    if(r.error)throw r.error;pc.sources.unshift(r.data);
@@ -6909,7 +6909,7 @@ function pcSourceFields(kind){
  const el=document.getElementById('pc2SourceFields');if(!el)return;
  if(kind==='arquivo')el.innerHTML='<label>Arquivos de aula (até 12 MB cada)<input type="file" name="files" multiple accept=".pdf,.docx,.pptx,.txt,.md"></label>';
  else if(kind==='nota')el.innerHTML='<label>Título<input name="title" maxlength="180" required placeholder="Ex.: Slides da aula 3"></label>'+
-  '<label>Texto ou anotações<textarea name="content" maxlength="35000" rows="7" required placeholder="Cola o conteúdo para a IA consultar…"></textarea></label>';
+  '<label>Texto ou anotações<textarea name="content" maxlength="35000" rows="7" required placeholder="Cole o conteúdo para a IA consultar…"></textarea></label>';
  else el.innerHTML='<label>Nome da referência<input name="title" maxlength="180" required placeholder="Ex.: Texto indicado pelo professor"></label>'+
   '<label>Endereço HTTPS<input name="url" type="url" maxlength="2000" required placeholder="https://..."></label>';
 }
@@ -7060,8 +7060,8 @@ document.addEventListener("click",e=>{if(!e.target.closest("[data-theme-toggle]"
 })();
 </script>
 <script src="library-content-analyzer.js?v=20261111-2"></script>
-<script src="library-manager.js?v=20261113-zip-2"></script>
-<script src="admin-config.js?v=20261113-library-2"></script>
+<script src="library-manager.js?v=20261113-formal-1"></script>
+<script src="admin-config.js?v=20261113-formal-1"></script>
 <script src="site-version.js?v=20261112-5"></script>
 
 <script>
