@@ -2658,11 +2658,14 @@ function libraryResourceCard(m,i=0){
 function materialGroup(m){
  const name=String(m.title||'').toLocaleLowerCase('pt-BR'),kind=String(m.kind||'').toLocaleLowerCase('pt-BR');
  const source=String(m.source||m._libraryUpload?.filename||'').toLocaleLowerCase('pt-BR');
+ const unaccented=name.normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+ if(m.subject==='familia'&&/violencia intrafamiliar/.test(unaccented))return 'Aulas e apresentações';
  if(/cronograma|plano(?:s)? (?:de ensino|e cronograma)|calendário/.test(name))return 'Planos de ensino e cronogramas';
  if(/estudo dirigido|atividade|exercício|questionário|roteiro de (estudo|perguntas)|guia|caderno|apostila|matéria da prova|revisão/.test(name)||/atividade|exercício/.test(kind))return 'Guias e materiais de revisão';
  if(/slides|apresenta|aula|lâminas/.test(name+' '+source)||/slides|apresenta/.test(kind))return 'Aulas e apresentações';
  if(/texto|artigo|capítulo|bibliografia|leitura|livro|pesquisa|epistemicídio|desideologização|psicologia sócio-histórica/.test(name)||/texto|bibliografia|artigo/.test(kind))return 'Textos-base e bibliografia';
  if(kind==='vídeo'||kind==='link')return 'Vídeos e referências online';
+ if(m.subject==='grupos')return 'Textos-base e bibliografia';
  return 'Materiais complementares';
 }
 function organizedMaterialBlock(materials,pending=false,libraryView=false){
