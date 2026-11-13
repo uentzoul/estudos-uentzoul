@@ -49,7 +49,7 @@
    if(!guides.length)return '<div class="sd-empty">Ainda não há um estudo dirigido com enunciados suficientes para montar esta área.</div>';
    return '<section class="sd-root" aria-label="Estudos dirigidos da disciplina">'+
     '<header class="sd-header"><span class="sd-kicker">ESTUDO EXPLICADO</span><h2>Estudos dirigidos</h2>'+
-    '<p>As perguntas, respostas e explicações estão reunidas aqui, sem abrir outros sites nem trocar de página. Selecione um roteiro para ler o conteúdo inteiro.</p></header>'+
+    '<p>Encontre perguntas, respostas comentadas e explicações em um só lugar. Selecione um roteiro para consultar o conteúdo completo.</p></header>'+
     guides.map((g,i)=>'<details class="sd-guide" '+(i===0?'open':'')+'>'+
       '<summary class="sd-guide-summary"><span class="sd-guide-icon" aria-hidden="true">▤</span><span class="sd-guide-label">'+
       '<strong>'+fmt(g.title)+'</strong><small>'+fmt(g.subtitle)+'</small></span><span class="sd-count">'+g.questions.length+' '+(g.status==='adaptado'?'temas':'questões')+'</span><span class="sd-arrow" aria-hidden="true">⌄</span></summary>'+
