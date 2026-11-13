@@ -2837,8 +2837,7 @@ document.addEventListener('input',event=>{
 function audioSelectionIndex(){return current.audioSubject==='tcc'?currentChapter:currentEpisode;}
 function audioKey(k,i){return k+':'+i;}
 function podcastEpisode(k,i){return audioEpisodes(k)[i];}
-/* O episódio 7 de Psicologia Social consta no catálogo, mas não está no bucket de áudios. */
-function episodeAvailable(k,i){return !!podcastEpisode(k,i)?.src&&!(k==='social'&&i===6);}
+function episodeAvailable(k,i){return !!podcastEpisode(k,i)?.src&&!/\/social\/07_identidade_e_representacoes_sociais_revisao\.m4a$/i.test(podcastEpisode(k,i)?.src||'');}
 function episodeUri(k,i){const ep=podcastEpisode(k,i);return episodeAvailable(k,i)?(ep?.src||''):'';}
 function readyStatus(k,i){const key=audioKey(k,i);return episodeDownloading.has(key) ? 'Preparando áudio…' : 'Disponível para reproduzir';}
 function podcastPlayerMarkup(){
