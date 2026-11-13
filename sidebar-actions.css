@@ -1,0 +1,38 @@
+/* PsicoMoodle — aparência integrada à navegação esquerda; relatório no rodapé. */
+@media(min-width:761px){
+ #siteSidebar .sidebar-appearance{display:block;margin:5px 3px 11px;flex:none}
+ #siteSidebar .sidebar-appearance .sidebar-theme-toggle{
+  display:flex;align-items:center;justify-content:flex-start;gap:10px;
+  width:100%;min-width:0;min-height:41px;padding:9px 12px;
+  color:var(--ink);background:var(--paper);border:1px solid var(--line);
+  border-radius:11px;box-shadow:none;font-size:12px;font-weight:740;
+  cursor:pointer;transition:background .2s,border-color .2s;
+ }
+ #siteSidebar .sidebar-appearance .sidebar-theme-toggle:hover{transform:none;background:var(--soft);border-color:var(--blue)}
+ #siteSidebar .sidebar-appearance .sidebar-theme-toggle:focus-visible,
+ #siteSidebar .sidebar-report-button:focus-visible{outline:3px solid var(--blue);outline-offset:2px}
+ #siteSidebar .sidebar-report{margin-top:auto;display:block;padding:13px 3px 2px}
+ #siteSidebar .sidebar-report-button{display:flex;align-items:center;justify-content:flex-start;gap:10px;width:100%;padding:11px 12px;min-height:44px;white-space:normal;font-size:12px;text-align:left;border-radius:11px;background:transparent;border:1px solid var(--line);color:var(--muted);box-shadow:none}
+ #siteSidebar .sidebar-report-button:hover{background:var(--soft);border-color:var(--blue);color:var(--ink)}
+ #siteSidebar .sidebar-report-button svg{flex:none;width:17px;height:17px}
+ .app>.main{padding-top:24px}
+ #compactProfileButton{position:fixed;top:12px;right:51px;z-index:45;margin:0}
+ html[data-members-sidebar="expanded"] #compactProfileButton{display:none!important}
+ html[data-members-sidebar="collapsed"] #compactProfileButton{display:inline-flex}
+ html[data-theme="dark"] #siteSidebar .sidebar-appearance .sidebar-theme-toggle{background:#29243e!important;border-color:#4d4267!important;color:#f4eefd!important}
+ html[data-theme="dark"] #siteSidebar .sidebar-appearance .sidebar-theme-toggle:hover{background:#37304f!important}
+ html[data-theme="dark"] #siteSidebar .sidebar-report-button{background:transparent!important;border-color:#393551!important;color:#c6bfdc!important}
+ html[data-theme="dark"] #siteSidebar .sidebar-report-button:hover{background:#2d2842!important;color:#f4eefd!important}
+}
+@media(max-width:760px){
+ #siteSidebar .sidebar-appearance{display:none!important}
+ #siteSidebar .sidebar-report{display:none!important}
+ .app>.main{padding-top:18px}
+ #compactProfileButton{display:none!important}
+ .mobile-report-button{width:36px;height:36px;flex:none;display:grid;place-items:center;border:1px solid #dce5ee;border-radius:10px;background:#f3f7fc;color:#6154ba;cursor:pointer}
+ .mobile-report-button svg{width:17px;height:17px}
+ html[data-theme="dark"] .mobile-report-button{background:#29243e;border-color:#4d4267;color:#e6dcff}
+}
+@media(min-width:761px){.mobile-report-button{display:none!important}}
+@media(max-width:370px){.mobile-report-button{width:32px;height:34px}}
+@media print{#compactProfileButton,.mobile-report-button,#siteSidebar .sidebar-report{display:none!important}}
