@@ -68,3 +68,57 @@ html[data-theme="dark"] #topics.review-section .review-item .review-info+.review
 @media(prefers-reduced-motion:reduce){
  #topics.review-section .review-item,#topics.review-section .review-chevron,#topics.review-section .review-mini-track>span{transition:none!important}
 }
+
+
+/* Erros comuns: separar inequivocamente a afirmação falsa da explicação. */
+#topics.review-section .review-item .review-mistake{
+ display:grid;gap:11px;
+ padding:13px 14px;
+ border:1px solid #eac5c8;
+ border-left:3px solid #bc5961;
+ border-radius:11px;
+ background:color-mix(in srgb,#f7dfdf 35%,var(--paper,#fff));
+ color:var(--ink,#302c42);
+}
+#topics.review-section .review-item .review-mistake-heading{
+ display:flex;align-items:center;gap:8px;
+ color:#a13741;font-size:11px;line-height:1.3;
+ font-weight:850;letter-spacing:.18px;
+}
+#topics.review-section .review-item .review-mistake-symbol{
+ display:grid;place-items:center;flex:none;
+ width:20px;height:20px;border-radius:6px;
+ background:#a73b46;color:white;
+ font-size:17px;line-height:1;font-weight:800;
+}
+#topics.review-section .review-item .review-mistake .review-mistake-statement{
+ margin:0!important;padding:0!important;
+ color:var(--ink,#302c42)!important;
+ font-size:12px;line-height:1.65;font-weight:580;
+}
+#topics.review-section .review-item .review-mistake-explanation{
+ display:grid;gap:5px;padding:12px 12px 11px;
+ border:1px solid var(--line,#e2deea);
+ border-radius:9px;background:var(--paper,#fff);
+}
+#topics.review-section .review-item .review-mistake-explanation>strong{
+ color:var(--ink,#302c42);font-size:11px;line-height:1.35;
+ font-weight:850;
+}
+#topics.review-section .review-item .review-mistake-explanation>p{
+ margin:0!important;padding:0!important;
+ font-size:12px;line-height:1.65;
+ color:var(--muted,#736d7e)!important;
+ font-weight:400;
+}
+html[data-theme="dark"] #topics.review-section .review-item .review-mistake{
+ background:#372d3a;border-color:#764953;border-left-color:#d88691;
+}
+html[data-theme="dark"] #topics.review-section .review-item .review-mistake-heading{color:#ffb4bc}
+html[data-theme="dark"] #topics.review-section .review-item .review-mistake-symbol{background:#a74856;color:#fff}
+html[data-theme="dark"] #topics.review-section .review-item .review-mistake .review-mistake-statement{color:#f2eaf1!important}
+html[data-theme="dark"] #topics.review-section .review-item .review-mistake-explanation{
+ background:#26263d;border-color:#50455b;
+}
+html[data-theme="dark"] #topics.review-section .review-item .review-mistake-explanation>strong{color:#f4eff8}
+html[data-theme="dark"] #topics.review-section .review-item .review-mistake-explanation>p{color:#d3cbde!important}
