@@ -1974,7 +1974,7 @@ html[data-theme="dark"] .tz-pending-icon{background:#40375e;color:#d6c4ff}
 <script src="estudos-dirigidos-meta.js?v=20261112-4"></script>
 <script src="estudos-dirigidos.js?v=20261113-formal-1"></script>
 <script src="estudos-casos-data.js?v=20261112-1"></script>
-<script src="estudo-ativo.js?v=20261113-formal-1"></script>
+<script src="estudo-ativo.js?v=20261113-formal-2"></script>
 <script src="psicomoodle-new-content.js?v=20261113-social-family-2"></script>
 <script src="casos-act-social.js?v=20261113-1"></script>
 <link rel="stylesheet" href="chat-whatsapp.css?v=20261112-whatsapp-chat-7">
@@ -2053,7 +2053,7 @@ html[data-theme="dark"] .tz-library-download{background:#26374c;border-color:#45
 .library-resource .library-resource-bottom{justify-content:flex-end}
 </style>
 <link rel="stylesheet" href="./trilhas-estudos.css">
-<script src="./trilhas-estudos.js?v=20261113-formal-1"></script>
+<script src="./trilhas-estudos.js?v=20261113-formal-2"></script>
 </head>
 <body>
 <section id="staticFallback" class="static-fallback" aria-label="Central de Estudos — modo de leitura compatível com celular">
@@ -3122,7 +3122,7 @@ function tzQueueFiles(files){
 }
 async function tzUploadFiles(){
  const uid=window.uentzoulAIAuth?.user()?.id;
- if(!uid||!geClient())throw Error('Entra na conta para enviar arquivos.');
+ if(!uid||!geClient())throw Error('Entre na conta para enviar arquivos.');
  const uploaded=[];
  try{
   for(const p of tz.pending){
@@ -3321,7 +3321,7 @@ function renderAI(){
  const files=tzFiles();
  let notice=tz.note;
  if(!hasContent)notice='O semestre 2027/1 ainda não possui materiais. Escolha 2026/2 para consultar as aulas.';
- else if(!logged)notice='Entra na sua conta online para conversar com a IA.';
+ else if(!logged)notice='Entre na sua conta online para conversar com a IA.';
  else if(tz.ready===false&&!notice)notice='A conexão com a IA ainda não foi ativada no servidor.';
  const empty='<div class="tz-empty">'+tzAvatar()+'<h2>Como posso ajudar nos seus estudos?</h2><p>Converse comigo sobre os conteúdos da PUCRS ou peça ajuda com os materiais de aula.</p></div>';
  const messages=tz.messages.length?tz.messages.map(tzMessage).join(''):empty;
@@ -3364,7 +3364,7 @@ function renderAI(){
 }
 async function tzFetch(method,payload){
  const session=await window.uentzoulAIAuth?.getSession();
- if(!session?.access_token)throw Error('A sessão expirou. Entra na sua conta.');
+ if(!session?.access_token)throw Error('A sessão expirou. Entre na sua conta.');
  const cfg=JSON.parse($('uentzoul-auth-config').textContent);
  const r=await fetch(cfg.url+'/functions/v1/ia-tzoul',{method,headers:{Authorization:'Bearer '+session.access_token,apikey:cfg.publishableKey,'Content-Type':'application/json'},body:method==='POST'?JSON.stringify(payload):undefined});
  const data=await r.json().catch(()=>({error:'Resposta inválida do servidor.'}));
@@ -3570,7 +3570,7 @@ function geRenderList(){
  const logged=!!geUser();
  if(logged&&!ge.loaded&&!ge.loading)queueMicrotask(geLoad);
  if(!logged)return head('Simulados','Criar simulados personalizados','A IA gera uma prova nova para cada solicitação, baseada no conteúdo da disciplina e no estilo do professor.')+
-  '<section class="panel ge-panel"><h2>Entra na sua conta</h2><p>Para gerar, guardar e compartilhar provas, é necessário entrar na conta do site.</p><button class="btn" data-action="tz-login">Entrar / Cadastrar</button></section>';
+  '<section class="panel ge-panel"><h2>Entre na sua conta</h2><p>Para gerar, guardar e compartilhar provas, é necessário entrar na conta do site.</p><button class="btn" data-action="tz-login">Entrar / Cadastrar</button></section>';
  const subjects=Object.entries(DB.subjects);
  const form=subjects.length?'<div class="ge-generator"><div><span class="eyebrow">NOVO SIMULADO</span><h2>Uma prova inédita para estudar</h2><p>Escolha a disciplina e a dificuldade. Cada geração cria 13 perguntas objetivas no estilo do professor e 2 dissertativas, com gabarito e critérios após a entrega.</p></div>'+
   '<div class="ge-fields"><label>Disciplina<select id="geSubject">'+subjects.map(([id,v])=>'<option value="'+esc(id)+'" '+(ge.subject===id?'selected':'')+'>'+esc(v.name)+'</option>').join('')+'</select></label>'+
@@ -3778,7 +3778,7 @@ renderSubject=function(k){
   (ready.length?'<div class="subject-sim-ready">'+ready.map(examCard).join('')+'</div>':
    '<div class="subject-sim-status">Ainda não há simulados prontos para esta matéria.</div>')+'</div>';
  let created='';
- if(!user)created='<div class="subject-sim-status">Entra na sua conta para consultar os simulados criados ou recebidos.'+
+ if(!user)created='<div class="subject-sim-status">Entre na sua conta para consultar os simulados criados ou recebidos.'+
   '<div><button type="button" class="subject-sim-create" data-action="tz-login">Entrar na conta</button></div></div>';
  else if(ge.loading&&!ge.loaded)created='<div class="subject-sim-status">Carregando os simulados da sua conta…</div>';
  else if(ge.error&&!ge.loaded)created='<div class="subject-sim-status">'+esc(ge.error)+'</div>';
@@ -4168,7 +4168,7 @@ async function preparePodcast(k,i,autoplay=false){
  if(!online){try{await podcastDBOpening;const blob=sessionPodcastBlobs[key]||await getPodcast(key);if(blob instanceof Blob&&blob.size>=512){activePodcastURL=URL.createObjectURL(blob);p.src=activePodcastURL}else p.src=url;}catch(_){p.src=url;}}
  else p.src=url;
  p.playbackRate=psPlaybackRate;p.load();psSync();psStatus('Abrindo '+ep.title+'…');
- p.play().catch(()=>psStatus('Áudio pronto. Pressiona Reproduzir para começar.'));
+ p.play().catch(()=>psStatus('Áudio pronto. Pressione Reproduzir para começar.'));
 }
 async function downloadEpisodeAction(k,i){
  if(!DB.audio[k]||!Number.isInteger(i)||i<0||i>=audioEpisodes(k).length)return;
@@ -4903,7 +4903,7 @@ function dmReportList(){
  (rows.length?rows.map(r=>'<article class="report-message"><div class="report-meta"><strong>Relato anônimo</strong><time>'+esc(new Date(r.created_at).toLocaleString('pt-BR',{dateStyle:'short',timeStyle:'short'}))+'</time></div><p>'+esc(r.body)+'</p></article>').join(''):'<p class="report-empty">Nenhum relato recebido ainda.</p>');
 }
 function dmRender(){
- if(!onlineUser)return '<section class="dm-login-panel"><h1>Mensagens</h1><p>Entra na sua conta para conversar com outros estudantes do site.</p><button type="button" data-account-action="open" class="profile-action">Entrar / Cadastrar</button></section>';
+ if(!onlineUser)return '<section class="dm-login-panel"><h1>Mensagens</h1><p>Entre na sua conta para conversar com outros estudantes do site.</p><button type="button" data-account-action="open" class="profile-action">Entrar / Cadastrar</button></section>';
  if(dm.tab==='reports'&&dm.isAdmin){
   const tabs=[['private','Privadas'],['groups','Grupos'],['global','Global'],['reports','Report de Erros']];
   return '<section class="dm-shell"><div class="dm-list"><header class="dm-list-head"><div><h1>Mensagens</h1><p>Central de mensagens</p></div></header><nav class="dm-channel-tabs has-admin">'+tabs.map(t=>'<button type="button" data-dm-tab="'+t[0]+'" class="'+(dm.tab===t[0]?'selected':'')+'">'+t[1]+'</button>').join('')+'</nav><p class="report-menu-note">Caixa exclusiva da administração</p></div><div class="dm-main"><header class="dm-chat-head"><span class="dm-room-heading"><strong>Report de Erros</strong><small>Relatos anônimos · '+dm.reports.length+'</small></span></header><div class="dm-messages report-thread" id="dmMessages">'+dmReportList()+'</div></div></section>';
@@ -6438,7 +6438,7 @@ function pcAIView(subject){
  const options=[['resumo','Resumo'],['trabalho','Trabalho acadêmico'],['fichamento','Fichamento'],['roteiro','Roteiro de estudo'],['questoes','Questões de revisão'],['texto','Outro pedido']];
  const docs=pcDocs(subject.id);
  return '<div class="pc2-section-title"><div><h2>IA para esta matéria</h2><p>Crie conteúdos com base nas fontes que adicionou.</p></div></div>'+
-  '<section class="pc2-panel pc2-ai-box"><span class="pc2-ai-kicker">✦ IA Tzoul</span><h3>O que precisas preparar?</h3>'+
+  '<section class="pc2-panel pc2-ai-box"><span class="pc2-ai-kicker">✦ IA Tzoul</span><h3>O que deseja preparar?</h3>'+
   '<div class="pc2-task-grid">'+options.map(x=>'<button type="button" data-pc-task="'+x[0]+'" class="'+(pc.task===x[0]?'active':'')+'">'+esc(x[1])+'</button>').join('')+'</div>'+
   '<label for="pcAiPrompt">Instruções para a IA</label><textarea id="pcAiPrompt" rows="5" maxlength="4000" placeholder="Ex.: Faça um resumo completo sobre os conceitos da aula, relacione as teorias e inclua exemplos.">'+esc(pc.request)+'</textarea>'+
   '<div class="pc2-toolbar"><small>Use as anotações, textos e PDFs desta matéria. Cada solicitação consome uma consulta da IA.</small><button class="pc-primary" data-pc-request '+(pc.busy?'disabled':'')+'>'+(pc.busy?'Elaborando conteúdo…':'Gerar com IA Tzoul')+'</button></div></section>'+
@@ -6757,7 +6757,7 @@ async function pcSaveEvent(form){
  const subject=pcSubject();if(!subject||pc.busy)return;
  const fd=new FormData(form),title=String(fd.get('title')||'').trim(),time=String(fd.get('due_at')||''),notes=String(fd.get('notes')||'').trim(),type=String(fd.get('type')||'estudo');
  const date=new Date(time);
- if(!title||!Number.isFinite(date.getTime()))throw Error('Preenche o título e a data do compromisso.');
+ if(!title||!Number.isFinite(date.getTime()))throw Error('Preencha o título e a data do compromisso.');
  pc.busy=true;pc.error='';
  try{
   const payload={title,due_at:date.toISOString(),notes,type};
@@ -6785,7 +6785,7 @@ async function pcDeleteEvent(id){
 }
 async function pcAIRequest(payload){
  const session=await client.auth.getSession(),token=session?.data?.session?.access_token;
- if(!token)throw Error('Sessão expirada. Entra novamente.');
+ if(!token)throw Error('Sessão expirada. Entre novamente.');
  const response=await fetch(cfg.url+'/functions/v1/ia-tzoul',{method:'POST',headers:{Authorization:'Bearer '+token,apikey:cfg.publishableKey,'Content-Type':'application/json'},body:JSON.stringify(payload)});
  const data=await response.json().catch(()=>({error:'Resposta inválida do servidor.'}));
  if(!response.ok)throw Error(data.error||'A IA não conseguiu concluir o pedido.');
