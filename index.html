@@ -1962,7 +1962,8 @@ html[data-theme="dark"] .tz-pending-icon{background:#40375e;color:#d6c4ff}
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2064%2064%22%3E%3Crect%20width%3D%2264%22%20height%3D%2264%22%20rx%3D%2214%22%20fill%3D%22%23192d44%22%2F%3E%3Ctext%20x%3D%2232%22%20y%3D%2246%22%20fill%3D%22white%22%20font-size%3D%2246%22%20font-family%3D%22Georgia%2Cserif%22%20text-anchor%3D%22middle%22%3E%CE%A8%3C%2Ftext%3E%3C%2Fsvg%3E">
 <link rel="stylesheet" href="library-manager.css?v=20261111-5">
 <link rel="stylesheet" href="biblioteca-moodle.css?v=20261112-3">
-<link rel="stylesheet" href="revisao-compacta.css?v=20261112-1">
+<link rel="stylesheet" href="revisao-compacta.css?v=20261113-errors-1">
+<script src="revisao-erros.js?v=20261113-1"></script>
 <link rel="stylesheet" href="disciplina-clean.css?v=20261113-fullwidth-1">
 <link rel="stylesheet" href="inicio-slogan.css?v=20261112-5">
 <link rel="stylesheet" href="admin-config.css?v=20261112-3">
@@ -2756,7 +2757,11 @@ function renderSubject(k){
     '<span class="review-title">'+esc(t.title)+'</span><span class="review-chevron" aria-hidden="true"></span></summary>'+
     '<div class="review-body"><div class="review-info"><span class="review-info-label">Conceito</span><p>'+esc(t.definition)+'</p></div>'+
     '<div class="review-info"><span class="review-info-label">Exemplo</span><p>'+esc(t.scenario)+'</p></div>'+
-    '<div class="review-info"><span class="review-info-label">Erro comum</span><p>'+esc(t.myth)+'</p></div></div></details>'+
+    (t.myth?'<div class="review-mistake" aria-label="Afirmação incorreta com explicação">'+
+    '<div class="review-mistake-heading"><span class="review-mistake-symbol" aria-hidden="true">×</span><strong>Afirmação incorreta</strong></div>'+
+    '<p class="review-mistake-statement">'+esc(t.myth)+'</p>'+
+    '<div class="review-mistake-explanation"><strong>Por que está errado?</strong><p>'+esc(window.PSICO_REVIEW_ERRORS?.explain?.(k,t)||t.definition||'Confira o conceito apresentado acima para compreender a distinção.')+'</p></div>'+
+    '</div>':'')+'</div></details>'+
     '<div class="topicfoot review-actions">'+doneBox(topicProgressKey(k,i),'Visto')+'</div></article>').join('')+
    '</div></section></div></div>';
  }
