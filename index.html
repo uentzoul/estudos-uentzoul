@@ -2017,6 +2017,12 @@ html[data-theme="dark"] .ps-audio-actions button,html[data-theme="dark"] .ps-spe
 html[data-theme="dark"] .ps-audio-actions .ps-main-play{background:#5283d4;border-color:#5283d4;color:#fff}
 @media(max-width:660px){.ps-audio-shell{padding:13px}.ps-wave{height:53px}.ps-audio-actions{gap:7px}.ps-audio-actions button,.ps-speed-wrap{padding:8px 9px}.ps-audio-actions .ps-download{margin-left:0}.ps-audio-heading{align-items:start}}
 @media(prefers-reduced-motion:reduce){.episodeunit.is-loading .episodeplay::after{animation-duration:1.8s}}
+.tz-library-files{display:flex;flex-direction:column;gap:7px;margin:12px 0 3px}
+.tz-library-download{display:flex;align-items:center;gap:10px;text-align:left;border:1px solid #b9cce3;border-radius:11px;background:var(--paper,#fff);padding:10px 12px;color:var(--ink,#1b2534);font-size:12px;font-weight:650;cursor:pointer;max-width:100%;transition:border-color .18s,background .18s}
+.tz-library-download:hover{border-color:var(--blue,#4876c0);background:var(--soft,#f5f9fd)}
+.tz-library-download>span:nth-child(2){flex:1;overflow-wrap:anywhere}
+.tz-library-download small{font-weight:800;color:var(--muted,#66788b);font-size:10px}
+html[data-theme="dark"] .tz-library-download{background:#26374c;border-color:#45637e;color:#e4eefa}
 </style><style id="new-library-pending-css">
 .new-library-pending{margin-top:20px;padding:15px;border:1px solid var(--line);border-radius:15px;background:var(--paper);color:var(--ink)}
 .new-library-pending summary{cursor:pointer;font-size:13px;font-weight:800;padding:4px 2px;list-style-position:inside}
@@ -3161,24 +3167,75 @@ async function tzExistsPdf(path){
  tzPdfStatus.set(path,test);
  return await test;
 }
+const TZ_LIBRARY_BUCKET='uentzoul-library-files';
+async function tzPrivateLibraryMatches(query){
+ const client=geClient(),user=geUser();if(!client||!user)return [];
+ const terms=tzMaterialTerms(query);if(!terms.length)return [];
+ const {data,error}=await client.from('uentzoul_library_uploads')
+  .select('resource_key,storage_path,filename,mime_type,file_subject,display_title,content_summary,content_tags,exam_scope')
+  .order('resource_key');
+ if(error)throw Error('Não foi possível consultar a biblioteca de arquivos: '+error.message);
+ const ranked=(data||[]).filter(r=>
+  /^materials\/[a-f0-9-]+\.(pdf|docx|pptx)$/i.test(String(r.storage_path||'')) &&
+  typeof r.resource_key==='string'&&r.resource_key.length<300
+ ).map(r=>{
+  const title=tzFold([r.display_title,r.filename,r.resource_key].join(' '));
+  const detail=tzFold([r.content_summary,(r.content_tags||[]).join(' ')].join(' '));
+  const subject=tzFold((DB.subjects[r.file_subject]?.name||'')+' '+(r.file_subject||''));
+  const score=terms.reduce((n,t)=>n+(title.includes(t)?5:detail.includes(t)?2:subject.includes(t)?1:0),0);
+  return {r,score};
+ }).filter(x=>x.score>0&&
+  (tz.subject==='todos'||x.r.file_subject===tz.subject))
+ .sort((a,b)=>b.score-a.score)
+ .slice(0,10);
+ return ranked.map(x=>x.r);
+}
+async function tzOpenLibraryDownload(key){
+ if(!geClient()||!geUser()){window.uentzoulAIAuth?.openLogin?.();return}
+ // Abre a guia durante o clique real: assim o bloqueador de pop-ups não impede o download.
+ const tab=window.open('','_blank');
+ if(tab)try{tab.document.title='Preparando arquivo';tab.document.body.textContent='Preparando download seguro…'}catch(_){}
+ try{
+  const {data:record,error}=await geClient().from('uentzoul_library_uploads')
+   .select('resource_key,storage_path,filename,mime_type').eq('resource_key',String(key)).single();
+  if(error||!record)throw Error('O documento não está disponível na biblioteca.');
+  if(!/^materials\/[a-f0-9-]+\.(pdf|docx|pptx)$/i.test(record.storage_path||''))throw Error('O caminho de armazenamento não é válido.');
+  const {data,error:linkError}=await geClient().storage.from(TZ_LIBRARY_BUCKET)
+   .createSignedUrl(record.storage_path,3600,{download:true});
+  if(linkError||!data?.signedUrl)throw linkError||Error('Não foi possível autorizar o download.');
+  if(tab&&!tab.closed)tab.location.replace(data.signedUrl);
+  else window.location.assign(data.signedUrl);
+ }catch(e){if(tab&&!tab.closed)tab.close();tz.note=e.message||'Não foi possível baixar o arquivo.';if(current.page==='ai')render();}
+}
 async function tzLibraryAnswer(query){
  if(!tzFileRequest(query))return null;
+ const terms=tzMaterialTerms(query);if(!terms.length)return null;
+ const matches=await tzPrivateLibraryMatches(query);
+ const pdfMatches=matches.filter(r=>r.mime_type==='application/pdf'&&/\.pdf$/i.test(r.storage_path||'')).slice(0,6);
+ const otherMatches=matches.filter(r=>r.mime_type!=='application/pdf');
  const ranked=tzRankMaterials(query);
- if(!ranked.length)return null;
  const ready=[],missing=[];
  for(const m of ranked){
   if(ready.length>=5)break;
   const path=tzSafePdfPath(m.url);
-  if(path&&await tzExistsPdf(path))ready.push({...m,path});
-  else missing.push(m);
+  if(path&&await tzExistsPdf(path)){
+   // Não listar o mesmo material novamente caso já tenha sido enviado pelo acervo privado.
+   if(!pdfMatches.some(r=>tzFold(r.display_title||r.filename)===tzFold(m.title)))ready.push({...m,path});
+  }else if(!pdfMatches.some(r=>tzFold(r.display_title||r.filename)===tzFold(m.title)))missing.push(m);
  }
- if(!ready.length){
-  return 'Encontrei '+ranked.length+' referência(s) relacionada(s) ao pedido, mas não encontrei o PDF original publicado em um endereço acessível do site. Não vou enviar um link que não funcione. Os materiais permanecem cadastrados para publicação.';
+ if(!pdfMatches.length&&!ready.length&&!missing.length)return null;
+ const out=[];
+ if(pdfMatches.length){
+  out.push('Encontrei '+pdfMatches.length+' PDF(s) no acervo privado do PsicoMoodle. Usa os botões abaixo para baixar. O site cria uma autorização nova a cada clique, mesmo ao reabrir esta conversa.');
  }
- let answer='Encontrei '+ready.length+' PDF(s) disponível(is) para baixar diretamente do PsicoMoodle:\n\n';
- answer+=ready.map(m=>'- ['+String(m.title||m.source||'Abrir PDF').replace(/[\[\]]/g,'')+']('+new URL(m.path,document.baseURI).href+')').join('\n');
- if(missing.length)answer+='\n\nHá também '+missing.length+' referência(s) relacionada(s) sem PDF original publicado. Elas continuam registradas, mas não geram links inválidos.';
- return answer;
+ if(ready.length)out.push('Também localizei '+ready.length+' PDF(s) publicado(s) diretamente no site:\n\n'+
+  ready.map(m=>'- ['+String(m.title||m.source||'Abrir PDF').replace(/[\[\]]/g,'')+']('+new URL(m.path,document.baseURI).href+')').join('\n'));
+ if(otherMatches.length)out.push('Há '+otherMatches.length+' documento(s) relacionado(s) em formato Word ou PowerPoint, ainda sem versão PDF. Eles continuam preservados na biblioteca.');
+ if(missing.length&&!pdfMatches.length&&!ready.length)out.push('Existem referências correspondentes no catálogo, mas os PDFs originais ainda não estão disponíveis para download. Mantive os registros sem inventar arquivos.');
+ return {answer:out.join('\n\n'),libraryMatches:pdfMatches.map(r=>({
+  key:r.resource_key,name:String(r.display_title||r.filename||'PDF').slice(0,130),
+  type:'pdf'
+ }))};
 }
 function tzFiles(){const seen=new Set();return DB.materials.filter(m=>{
  if(!m.available||!tzSafePdfPath(m.url)||!tzPublishedPdfManifest.has(m.url))return false;
@@ -3190,8 +3247,12 @@ function tzMessage(m,i){
  const answer=m.role==='assistant';
  const sources=answer&&m.sources?.length?'<div class="tz-sources">'+m.sources.slice(0,4).map(v=>
  '<button type="button" data-action="'+(DB.subjects[v.subject]?'subject:'+v.subject:'page:home')+'">'+esc(v.title)+'</button>').join('')+'</div>':'';
+ const downloads=answer&&Array.isArray(m.libraryMatches)&&m.libraryMatches.length?
+  '<div class="tz-library-files" aria-label="Arquivos PDF da biblioteca">'+m.libraryMatches.slice(0,6).filter(f=>f&&f.key&&f.type==='pdf').map(f=>
+    '<button type="button" class="tz-library-download" data-tz-library-key="'+esc(f.key)+'" title="Baixar PDF autenticado">'+
+    '<span aria-hidden="true">↓</span><span>'+esc(f.name||'Documento PDF')+'</span><small>PDF</small></button>').join('')+'</div>':'';
  return '<div class="tz-msg '+(answer?'assistant':'user')+'">'+(answer?tzAvatar():'<span class="tz-me">EU</span>')+
- '<div class="tz-msg-body"><span class="tz-who">'+(answer?'IA Tzoul':'Tu')+'</span><div class="tz-bubble">'+tzMarkdown(m.content)+(!answer&&Array.isArray(m.attachments)&&m.attachments.length?'<div class="tz-sent-attachments">'+m.attachments.slice(0,3).map((a,j)=>'<button type="button" class="tz-sent-file" data-tz-file="'+i+':'+j+'" title="Abrir anexo privado"><span aria-hidden="true">'+(String(a.type||'').startsWith('image/')?'▧':'▤')+'</span>'+(String(a.type||'').startsWith('image/')?'<img data-tz-thumb="'+i+':'+j+'" alt="Foto anexada" loading="lazy">':'')+'<span>'+esc(a.name||'Anexo')+'</span></button>').join('')+'</div>':'')+'</div>'+
+ '<div class="tz-msg-body"><span class="tz-who">'+(answer?'IA Tzoul':'Tu')+'</span><div class="tz-bubble">'+tzMarkdown(m.content)+downloads+(!answer&&Array.isArray(m.attachments)&&m.attachments.length?'<div class="tz-sent-attachments">'+m.attachments.slice(0,3).map((a,j)=>'<button type="button" class="tz-sent-file" data-tz-file="'+i+':'+j+'" title="Abrir anexo privado"><span aria-hidden="true">'+(String(a.type||'').startsWith('image/')?'▧':'▤')+'</span>'+(String(a.type||'').startsWith('image/')?'<img data-tz-thumb="'+i+':'+j+'" alt="Foto anexada" loading="lazy">':'')+'<span>'+esc(a.name||'Anexo')+'</span></button>').join('')+'</div>':'')+'</div>'+
  sources+(answer?'<div class="tz-actions"><button data-tz-copy="'+i+'">Copiar</button><button data-tz-export="'+i+':txt">TXT</button><button data-tz-export="'+i+':md">Markdown</button><button data-tz-export="'+i+':doc">Word (.doc)</button><button data-tz-export="'+i+':pdf">PDF / Imprimir</button></div>':'')+'</div></div>';
 }
 function renderAI(){
@@ -3289,7 +3350,7 @@ async function tzCreateConversation(firstMessage){
 async function tzStoreMessages(id,messages){
  const uid=window.uentzoulAIAuth?.user()?.id;if(!geClient()||!uid)return;
  const {data,error}=await geClient().from('uentzoul_ai_conversations').update({
-  messages:messages.slice(-90).map(m=>({role:m.role,content:String(m.content||'').slice(0,18000),sources:m.sources||[],attachments:Array.isArray(m.attachments)?m.attachments.slice(0,3).map(a=>({path:String(a.path||'').slice(0,160),name:String(a.name||'').slice(0,110),type:String(a.type||'').slice(0,100),size:Number(a.size)||0})):[]})),
+  messages:messages.slice(-90).map(m=>({role:m.role,content:String(m.content||'').slice(0,18000),sources:m.sources||[],libraryMatches:Array.isArray(m.libraryMatches)?m.libraryMatches.slice(0,6).filter(f=>f?.key&&f.type==='pdf').map(f=>({key:String(f.key).slice(0,300),name:String(f.name||'Documento PDF').slice(0,130),type:'pdf'})):[],attachments:Array.isArray(m.attachments)?m.attachments.slice(0,3).map(a=>({path:String(a.path||'').slice(0,160),name:String(a.name||'').slice(0,110),type:String(a.type||'').slice(0,100),size:Number(a.size)||0})):[]})),
   subject:tz.subject,material_path:tz.material,mode:tz.mode,updated_at:new Date().toISOString()
  }).eq('id',id).eq('user_id',uid).select('*').single();
  if(error)throw error;
@@ -3328,10 +3389,10 @@ async function tzAsk(){
   if(!id)id=await tzCreateConversation(message);
   tz.messages.push({role:'user',content:message,attachments:uploaded});added=true;render();
   const localAnswer=!uploaded.length?await tzLibraryAnswer(message):null;
-  const answer=localAnswer?{answer:localAnswer,sources:[],remaining:tz.remaining,usedMaterial:false}:
+  const answer=localAnswer?{...localAnswer,sources:[],remaining:tz.remaining,usedMaterial:false}:
    await tzFetch('POST',{message,history,attachments:uploaded,subject:tz.subject,materialPath:tz.material,mode:tz.mode,quality:tz.quality});
   if(!answer.answer)throw Error('A IA não retornou texto.');
-  tz.messages.push({role:'assistant',content:answer.answer,sources:answer.sources||[]});
+  tz.messages.push({role:'assistant',content:answer.answer,sources:answer.sources||[],libraryMatches:answer.libraryMatches||[]});
   sent=true;tz.remaining=typeof answer.remaining==='number'?answer.remaining:null;tz.draft='';tzCleanPending();
   if(tz.material&&!answer.usedMaterial)tz.note='O texto integral do arquivo selecionado não pôde ser lido. A resposta usou o material indexado.';
  }catch(e){
@@ -3372,6 +3433,8 @@ document.addEventListener('click',e=>{
  if(b){const n=Number(b.dataset.tzRemoveFile);const removed=tz.pending.splice(n,1)[0];if(removed?.preview)URL.revokeObjectURL(removed.preview);tz.draft=document.getElementById('tzPrompt')?.value||tz.draft;render();return;}
  b=e.target.closest('[data-tz-file]');
  if(b){const [i,j]=b.dataset.tzFile.split(':').map(Number);tzOpenAttached(i,j);return;}
+ b=e.target.closest('[data-tz-library-key]');
+ if(b){tzOpenLibraryDownload(b.dataset.tzLibraryKey);return;}
  b=e.target.closest('[data-tz-mode]');
  if(b){tz.draft=$('tzPrompt')?.value||tz.draft;tz.mode=b.dataset.tzMode;render();return;}
  b=e.target.closest('[data-tz-retry]');
