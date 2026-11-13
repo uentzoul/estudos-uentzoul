@@ -2590,6 +2590,7 @@ function examCard(e){
  '<button class="btn light wide" data-action="test:'+e.id+'">'+(r?'Rever / refazer':'Iniciar simulado')+'</button></article>';
 }
 function docCard(m){
+ if(!m.available)return '';
  const key='material:'+(m._libraryLegacyUrl||m.source||m._libraryKey||m.url);
  const href=m._libraryUpload?'#':m.url,attr=m._libraryUpload?' data-library-file="'+esc(m._libraryKey)+'"':'';
  const kind=m._libraryUpload?.filename?.toLowerCase().endsWith('.docx')?'DOC':m.kind==='Vídeo'?'▶':m.kind==='PDF'?'PDF':m.kind==='Página HTML'?'WEB':'TXT';
@@ -2633,6 +2634,7 @@ function docCard(m){
 })();
 
 function libraryResourceCard(m,i=0){
+ if(!m.available)return '';
  const rawKind=String(m.kind||'Arquivo');
  const kind=rawKind.toLocaleLowerCase('pt-BR');
  const type=kind.includes('vídeo')?'video':kind.includes('pdf')?'pdf':(kind.includes('doc')||kind.includes('html'))?'doc':kind.includes('link')?'link':'text';
@@ -2669,9 +2671,9 @@ function materialGroup(m){
  return 'Materiais complementares';
 }
 function organizedMaterialBlock(materials,pending=false,libraryView=false){
- const order=['Planos de ensino e cronogramas','Aulas e apresentações','Guias e materiais de revisão','Textos-base e bibliografia','Vídeos e referências online','Materiais complementares','Referências ainda sem arquivo'];
+ const order=['Planos de ensino e cronogramas','Aulas e apresentações','Guias e materiais de revisão','Textos-base e bibliografia','Vídeos e referências online','Materiais complementares'];
  const groups=new Map();
- for(const m of materials){const title=pending?'Referências ainda sem arquivo':materialGroup(m);if(!groups.has(title))groups.set(title,[]);groups.get(title).push(m);}
+ for(const m of materials.filter(x=>x.available)){const title=materialGroup(m);if(!groups.has(title))groups.set(title,[]);groups.get(title).push(m);}
  return order.filter(name=>groups.has(name)).map(name=>{
   let list=groups.get(name);
   if(name==='Planos de ensino e cronogramas')list=list.slice().sort((a,b)=>{
@@ -2682,7 +2684,7 @@ function organizedMaterialBlock(materials,pending=false,libraryView=false){
  }).join('');
 }
 function organizedSubjectMaterials(materials,libraryView=false){
- return materials.length?organizedMaterialBlock(materials,false,libraryView):'<div class="empty">Nenhum material cadastrado para esta avaliação.</div>';
+ return materials.some(m=>m.available)?organizedMaterialBlock(materials,false,libraryView):'<div class="empty">Nenhum material publicado nesta disciplina.</div>';
 }
 // Uma prova publicada por nível; os registros extras continuam guardados sem aparecer nesta aba.
 function readyExamsFor(subject){
@@ -2691,7 +2693,7 @@ function readyExamsFor(subject){
  return Array.from({length:5},(_,i)=>base.find(e=>Number(e.model)===first+i)).filter(Boolean);
 }
 function renderSubject(k){
- const subj=getSubject(k),docs=DB.materials.filter(x=>x.subject===k),topics=DB.topics[k]||[],tests=readyExamsFor(k);
+ const subj=getSubject(k),docs=DB.materials.filter(x=>x.subject===k&&x.available&&x._libraryUpload?.exam_scope!==false),topics=DB.topics[k]||[],tests=readyExamsFor(k);
  const area=['trail','topics','docs','tests','podcasts','guided','flash','cases'].includes(current.subjectArea)?current.subjectArea:null;
  const top='<div class="subject-hub" style="--subject-accent:'+color(k)+'">'+
  '<div class="subject-hub-crumb"><button type="button" data-action="page:home">Início</button><span aria-hidden="true">/</span><span>'+esc(subj.name)+'</span></div>'+
@@ -2752,7 +2754,7 @@ function renderSubject(k){
   return top+'<div class="subject-hub-area">'+back+
    '<section class="section" id="docs"><div class="sectiontop"><h2>Materiais e textos</h2></div>'+
    '<div class="library-group" style="margin-top:0;--group-accent:'+color(k)+'">'+
-   (docs.length?organizedSubjectMaterials(docs):'<div class="subject-hub-empty">Nenhum material cadastrado nesta disciplina.</div>')+
+   (docs.length?organizedSubjectMaterials(docs):'<div class="subject-hub-empty">Nenhum material publicado nesta disciplina.</div>')+
    '</div></section></div></div>';
  }
  if(area==='podcasts'){
@@ -2804,7 +2806,7 @@ function libraryAdminPanel(){
 }
 function libraryExamMaterials(k){
  // Integra arquivos disponíveis e referências do exame na mesma lista, sem uma aba 'novos'.
- return DB.materials.filter(m=>m.subject===k&&(m.available||m._psicoNew)&&m._libraryUpload?.exam_scope!==false);
+ return DB.materials.filter(m=>m.subject===k&&m.available&&m._libraryUpload?.exam_scope!==false);
 }
 function libraryExamProgress(k){
  const docs=libraryExamMaterials(k).filter(m=>m.available);
@@ -2834,9 +2836,9 @@ function renderLibrary(embedded=false){
     '<span class="eyebrow">Psicologia PUCRS · 2026/2 · Prova final</span><h1 class="h1">'+esc(subj.name)+'</h1>'+
     '<p>Materiais de estudo correspondentes à avaliação final.</p>'+libraryProgressMarkup(p)+'</div></section>'+
     (familyTopics.length?'<h2 style="font-size:16px;margin:0 0 7px">Conteúdos da prova</h2><div class="course-syllabus">'+familyTopics.map(t=>'<span>'+esc(t)+'</span>').join('')+'</div>':'')+
-    '<div class="course-materials-title"><h2>Materiais para estudar</h2><span>'+docs.filter(m=>m.available).length+' disponível(is) · '+docs.filter(m=>!m.available).length+' aguardando</span></div>'+
+    '<div class="course-materials-title"><h2>Materiais para estudar</h2><span>'+docs.length+' publicado(s)</span></div>'+
     '<section class="course-detail-resources">'+(docs.length?organizedSubjectMaterials(docs,true):
-     '<div class="course-empty">Nenhum material cadastrado para esta avaliação.</div>')+'</section>'+
+     '<div class="course-empty">Nenhum material publicado nesta disciplina.</div>')+'</section>'+
     '<p class="course-library-note">O percentual considera apenas arquivos disponíveis marcados como vistos. As marcações são pessoais.</p></div>';
  }
  const order='name',mode='cards';
