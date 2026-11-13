@@ -95,4 +95,35 @@ function finalTests(ctx){
  exams.map((e,i)=>'<button type="button" data-action="test:'+esc(e.id)+'">Simulado '+(i+1)+' <span aria-hidden="true">→</span></button>').join('')+'</div></section>';
 }
 
+
+const originalRender=trail.render.bind(trail);
+function render(ctx){
+ if(!ctx||!catalog[ctx.subject])return originalRender(ctx);
+ const plan=catalog[ctx.subject],pieces=[];
+ let finished=0;
+ for(let i=0;i<plan.length;i++){
+  const entry=plan[i],topics=topicsFor(ctx,entry[2]);
+  if(!topics.length)continue;
+  const key='trail:'+ctx.subject+':'+i+':0';
+  if(ctx.isDone(key))finished++;
+  pieces.push('<section class="ti-stage" id="ti-stage-'+esc(ctx.subject)+'-'+i+'">'+
+   '<div class="ti-stage-heading"><span class="ti-step-no">'+String(i+1).padStart(2,'0')+'</span><div><small>ETAPA '+(i+1)+' DE '+plan.length+'</small><h2>'+esc(entry[0])+'</h2><p>'+esc(entry[1])+'</p></div></div>'+
+   concepts(ctx,topics)+readings(ctx,docsFor(ctx,entry[3]))+
+   podcasts(ctx,audioFor(ctx,entry[4]))+flashcards(ctx,topics)+guided(ctx,topics)+
+   (ctx.subject==='meta'&&i===0?'<a class="ti-timeline" href="metapsicologia-p2.html"><span>▶</span><span><strong>Linha do Tempo das Aulas Gravadas</strong><small>Veja capítulos e minutagens das explicações do professor</small></span><span>↗</span></a>':'')+
+   '<div class="ti-stage-footer"><span>Ao terminar, registre a conclusão desta etapa.</span>'+ctx.doneBox(key,'Concluir etapa')+'</div></section>');
+ }
+ if(!pieces.length)return originalRender(ctx);
+ const pct=Math.round(finished/pieces.length*100);
+ return '<div class="ti-trail" style="--ti-accent:'+esc(ctx.color||'#7866b8')+'">'+
+  '<header class="ti-intro"><div><span>ROTEIRO TEMÁTICO · '+esc(ctx.subjectName||'Psicologia')+'</span><h1>Trilha de Estudos para a Prova</h1>'+
+  '<p>Estude cada tema com explicações, leituras selecionadas, podcasts, flashcards e questões comentadas. Os materiais de apoio não precisam ser lidos integralmente para começar.</p></div>'+
+  '<div class="ti-progress"><strong>'+finished+' de '+pieces.length+' etapas</strong><div role="progressbar" aria-label="Progresso na trilha" aria-valuenow="'+pct+'" aria-valuemin="0" aria-valuemax="100"><i style="width:'+pct+'%"></i></div><small>'+pct+'% concluído</small></div></header>'+
+  '<nav class="ti-quick-nav" aria-label="Etapas desta trilha">'+plan.map((x,i)=>'<button type="button" data-ti-jump="ti-stage-'+esc(ctx.subject)+'-'+i+'">'+String(i+1).padStart(2,'0')+' · '+esc(x[0])+'</button>').join('')+'</nav>'+
+  '<div class="ti-stages">'+pieces.join('')+'</div>'+finalTests(ctx)+
+  '<p class="ti-note">Este roteiro sintetiza os conteúdos cadastrados. Consulte os documentos originais para aprofundamento e verifique as orientações do professor.</p></div>';
+}
+trail.render=render;
+trail.integrated=true;
+
 window.PSICO_TRAIL_STATUS='carregado';})();
