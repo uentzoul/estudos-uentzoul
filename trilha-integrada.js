@@ -54,4 +54,45 @@ function flashcards(ctx,topics){
  '<button class="ti-flash-mark" type="button" data-ti-mark="'+esc(c.key)+'" data-ti-subject="'+esc(ctx.subject)+'"'+(c.remembered?' disabled':'')+'>'+(c.remembered?'✓ Lembrado':'✓ Lembrei')+'</button></article>').join('')+'</div></section>';
 }
 
+
+function guidedQuestions(ctx,topics){
+ const result=[],seen=new Set(),words=new Set(topics.flatMap(t=>norm(t.title).split(/[^a-z0-9]+/).filter(w=>w.length>5)));
+ for(const guide of window.PSICO_GUIDES?.[ctx.subject]||[]){
+  for(const q of guide.questions||[]){
+   const label=norm(q.topic||q.section||''),phrase=norm(q.question||'');
+   if(!phrase||seen.has(phrase))continue;
+   let score=topics.some(t=>label&&label===norm(t.title))?10:0;
+   if(!score)for(const word of words){if(label.includes(word))score+=2;else if(phrase.includes(word))score++;}
+   if(score>=3){seen.add(phrase);result.push({q,origin:guide.status==='original'?'Questão do estudo dirigido original':'Revisão temática adaptada'});}
+   if(result.length>=2)break;
+  }
+  if(result.length>=2)break;
+ }
+ if(!result.length)for(const t of topics.slice(0,2))result.push({
+  q:{question:'Explique '+t.title+' e mostre por que esta afirmação está incorreta: '+(t.myth||'o contexto nunca importa.'),
+   explanation:t.definition+' '+(t.myth?(window.PSICO_REVIEW_ERRORS?.explain?.(ctx.subject,t)||''):'')},
+  origin:'Questão de revisão elaborada para a trilha'
+ });
+ return result;
+}
+function guided(ctx,topics){
+ const list=guidedQuestions(ctx,topics);
+ if(!list.length)return '';
+ return '<details class="ti-guided"><summary><span>▣</span><strong>Estudo dirigido deste assunto</strong><small>'+list.length+' '+(list.length===1?'questão':'questões')+'</small><span aria-hidden="true">⌄</span></summary>'+
+ '<div class="ti-guided-content">'+list.map(({q,origin},i)=>
+ '<article class="ti-question"><small>'+esc(origin)+' · '+(i+1)+'</small><p>'+esc(q.question)+'</p>'+
+ (q.options?.length?'<ol type="A">'+q.options.map(o=>'<li>'+esc(o.text)+'</li>').join('')+'</ol>':'')+
+ '<details><summary>Ver resposta comentada</summary><div>'+
+ (q.answer&&q.options?.length?'<strong>Gabarito: '+esc(q.answer)+'</strong>':'')+
+ '<p>'+esc(q.explanation||'Consulte o conceito indicado acima.')+'</p>'+
+ (q.contrast?'<p>'+esc(q.contrast)+'</p>':'')+'</div></details></article>').join('')+'</div></details>';
+}
+function finalTests(ctx){
+ const exams=(ctx.exams||[]).slice(0,5);
+ if(!exams.length)return '';
+ return '<section class="ti-tests"><span>REVISÃO FINAL</span><h2>Teste o que aprendeu</h2>'+
+ '<p>Faça uma prova e use a correção para identificar quais conceitos precisam de mais estudo.</p><div>'+
+ exams.map((e,i)=>'<button type="button" data-action="test:'+esc(e.id)+'">Simulado '+(i+1)+' <span aria-hidden="true">→</span></button>').join('')+'</div></section>';
+}
+
 window.PSICO_TRAIL_STATUS='carregado';})();
