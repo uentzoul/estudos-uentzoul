@@ -2054,6 +2054,8 @@ html[data-theme="dark"] .tz-library-download{background:#26374c;border-color:#45
 </style>
 <link rel="stylesheet" href="./trilhas-estudos.css">
 <script src="./trilhas-estudos.js?v=20261113-formal-2"></script>
+<link rel="stylesheet" href="materiais-editor.css?v=20261113-1">
+<script src="materiais-editor.js?v=20261113-1"></script>
 </head>
 <body>
 <section id="staticFallback" class="static-fallback" aria-label="Central de Estudos — modo de leitura compatível com celular">
@@ -2226,7 +2228,7 @@ window.uentzoulLibraryApp={
   const next=flag===true;
   if(libraryAdminEnabled===next)return;
   libraryAdminEnabled=next;
-  if(semester==='2026/2'&&(current.page==='home'||current.page==='library'||current.page==='admin'))render();
+  if(semester==='2026/2'&&(current.page==='home'||current.page==='library'||current.page==='admin'||(current.page==='subject'&&current.subjectArea==='docs')))render();
  },
  applyRows:rows=>{
   const next=new Map((rows||[]).map(r=>[r.resource_key,r]));
@@ -2684,7 +2686,14 @@ function organizedMaterialBlock(materials,pending=false,libraryView=false){
   return '<div class="material-block"><h3>'+esc(name)+'<span>'+list.length+' '+(list.length===1?'item':'itens')+'</span></h3><div class="doclist">'+(libraryView?list.map((m,i)=>libraryResourceCard(m,i)):list.map(docCard)).join('')+'</div></div>';
  }).join('');
 }
-function organizedSubjectMaterials(materials,libraryView=false){
+function organizedSubjectMaterials(materials,libraryView=false,subjectId=''){
+ const organizer=window.PSICO_MATERIAL_EDITOR;
+ if(organizer?.render)return organizer.render(materials,{
+  subject:subjectId||materials[0]?.subject||current.subject,
+  libraryView,
+  classify:materialGroup,
+  card:libraryView?libraryResourceCard:docCard
+ });
  return materials.some(m=>m.available)?organizedMaterialBlock(materials,false,libraryView):'<div class="empty">Nenhum material publicado nesta disciplina.</div>';
 }
 // Uma prova publicada por nível; os registros extras continuam guardados sem aparecer nesta aba.
@@ -2753,9 +2762,9 @@ function renderSubject(k){
  }
  if(area==='docs'){
   return top+'<div class="subject-hub-area">'+back+
-   '<section class="section" id="docs"><div class="sectiontop"><h2>Materiais e textos</h2></div>'+
+   '<section class="section" id="docs"><div class="sectiontop"><h2>Materiais e textos</h2>'+(window.PSICO_MATERIAL_EDITOR?.editButton?.(k)||'')+'</div>'+
    '<div class="library-group" style="margin-top:0;--group-accent:'+color(k)+'">'+
-   (docs.length?organizedSubjectMaterials(docs):'<div class="subject-hub-empty">Nenhum material publicado nesta disciplina.</div>')+
+   organizedSubjectMaterials(docs,false,k)+
    '</div></section></div></div>';
  }
  if(area==='podcasts'){
@@ -2838,7 +2847,7 @@ function renderLibrary(embedded=false){
     '<p>Materiais de estudo correspondentes à avaliação final.</p>'+libraryProgressMarkup(p)+'</div></section>'+
     (familyTopics.length?'<h2 style="font-size:16px;margin:0 0 7px">Conteúdos da prova</h2><div class="course-syllabus">'+familyTopics.map(t=>'<span>'+esc(t)+'</span>').join('')+'</div>':'')+
     '<div class="course-materials-title"><h2>Materiais para estudar</h2><span>'+docs.length+' publicado(s)</span></div>'+
-    '<section class="course-detail-resources">'+(docs.length?organizedSubjectMaterials(docs,true):
+    '<section class="course-detail-resources">'+(docs.length?organizedSubjectMaterials(docs,true,selected):
      '<div class="course-empty">Nenhum material publicado nesta disciplina.</div>')+'</section>'+
     '<p class="course-library-note">O percentual considera apenas arquivos disponíveis marcados como vistos. As marcações são pessoais.</p></div>';
  }
@@ -4018,6 +4027,14 @@ function render(){
  }
  let body='';switch(current.page){case 'home':body=renderHome();break;case 'subject':body=renderSubject(current.subject);break;case 'exams':body=renderExams();break;case 'test':body=renderTest(current.exam);break;case 'library':body=renderHome();break;case 'audio':body=renderAudio();break;case 'calendar':body=renderCalendar();break;case 'ai':body=renderAI();break;case 'messages':body=window.uentzoulMessenger?.render()||'<section class="panel">Carregando mensagens…</section>';break;case 'admin':body=window.uentzoulAdminConfig?.render()||'<section class="panel">Acesso restrito.</section>';break;default:body=renderHome()};if(psAudioElement&&psAudioElement.isConnected&&$('main').contains(psAudioElement))document.body.appendChild(psAudioElement);
  $('main').innerHTML=body;if(current.page==='ai')queueMicrotask(tzHydrateThumbnails);if(isPodcastView())setupAudio();if(current.page==='messages')window.uentzoulMessenger?.afterRender(current.peerId||null);if(current.page==='admin')window.uentzoulAdminConfig?.afterRender();}
+/* A camada de organização só altera categorias e posições, nunca os arquivos. */
+if(window.PSICO_MATERIAL_EDITOR){
+ window.PSICO_MATERIAL_EDITOR.classify=materialGroup;
+ window.PSICO_MATERIAL_EDITOR.getMaterials=subject=>DB.materials.filter(x=>x.subject===subject&&x.available&&x._libraryUpload?.exam_scope!==false);
+ window.PSICO_MATERIAL_EDITOR.setRerender(()=>{
+  if(semester==='2026/2'&&current.page==='subject'&&current.subjectArea==='docs')render();
+ });
+}
 /* Armazenamento local de podcasts. A URL de cada episódio é publicada como
    arquivo independente; o HTML não carrega o áudio antecipadamente. */
 const POD_DB_NAME='EstudosUentzoulPodcasts_v1';
