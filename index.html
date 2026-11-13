@@ -1989,7 +1989,11 @@ html[data-theme="dark"] .tz-pending-icon{background:#40375e;color:#d6c4ff}
 .tz-shell .tz-thread{position:relative;z-index:1;}
 @media (max-width:760px){.tz-shell .tz-floating-actions{min-height:44px!important;padding:6px 12px!important;}}
 </style>
-<style id="podcast-reproduce-style">
+<style id="zip-import-ui-style">
+.library-manager .library-import-zip{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:11px 16px;border:1px solid var(--line,#d5e0eb);background:var(--paper,#fff);color:var(--ink,#24364e);border-radius:12px;margin:10px 0 4px;font-weight:750;cursor:pointer}
+.library-manager .library-import-zip:hover{border-color:var(--blue,#416db4);background:var(--soft,#f5f8fd)}
+.library-manager .library-import-zip:focus-visible{outline:3px solid #7596d5;outline-offset:2px}
+</style><style id="podcast-reproduce-style">
 .episodeunit .episodeplay{position:relative}
 .episodeunit.is-loading .episodeplay{opacity:.72;cursor:progress}
 .episodeunit.is-loading .episodeplay::after{content:"";width:15px;height:15px;flex:0 0 15px;display:inline-block;border:2px solid currentColor;border-right-color:transparent;border-radius:50%;animation:podcast-loading-spin .7s linear infinite;margin-left:8px}
@@ -2542,7 +2546,7 @@ function docCard(m){
  let id='material:'+(m._libraryLegacyUrl||m.source||m._libraryKey||m.url);
  const url=m._libraryUpload?'#':m.url,attr=m._libraryUpload?' data-library-file="'+esc(m._libraryKey)+'"':'';
  return '<div class="doc"><span class="docicon">'+(m._libraryUpload?.filename?.toLowerCase().endsWith('.docx')?'DOC':m.kind==='Vídeo'?'▶':m.kind==='PDF'?'PDF':m.kind==='Página HTML'?'WEB':'TXT')+'</span>'+
- '<div class="inlinegrow" style="min-width:0"><div class="docname">'+esc(m.title)+'</div><div class="docnote">'+esc(m.note||m.kind)+'</div></div><div class="actions">'+
+ '<div class="inlinegrow" style="min-width:0"><div class="docname">'+esc(m.title)+'</div><div class="docnote">'+esc(m._libraryUpload?.content_summary||m.note||m.kind)+'</div></div><div class="actions">'+
  (m.available?'<a href="'+esc(url)+'"'+attr+' target="_blank" rel="noopener" class="barlink">Abrir ↗</a>':'<span class="pill">Aguardando arquivo</span>')+
  '</div>'+(m.available?doneBox(id):'')+'</div>';
 }
@@ -2584,11 +2588,11 @@ function libraryResourceCard(m,i=0){
  const rawKind=String(m.kind||'Arquivo');
  const kind=rawKind.toLocaleLowerCase('pt-BR');
  const type=kind.includes('vídeo')?'video':kind.includes('pdf')?'pdf':(kind.includes('doc')||kind.includes('html'))?'doc':kind.includes('link')?'link':'text';
- const typeLabel=type==='video'?'Vídeo':type==='pdf'?'PDF':type==='doc'?'Documento':type==='link'?'Link':'Material';
+ const typeLabel=/slides|apresenta/i.test(rawKind)?'Slides':/texto|artigo|bibliografia/i.test(rawKind)?'Texto-base':/atividade/i.test(rawKind)?'Atividade':type==='video'?'Vídeo':type==='pdf'?'PDF':type==='doc'?'Documento':type==='link'?'Link':'Material';
  const glyph=type==='video'?'▶':type==='pdf'?'PDF':type==='doc'?'DOC':type==='link'?'↗':'▤';
  const isAvailable=!!m.available;
  const name=esc(m.title||'Material sem título');
- const note=esc(m.note||m.kind||'Material de estudo');
+ const note=esc(m._libraryUpload?.content_summary||m.note||m.kind||'Material de estudo');
  const content='<span class="library-resource-icon" aria-hidden="true">'+glyph+'</span>'+
   '<span class="library-resource-copy"><span class="library-resource-type">'+esc(typeLabel)+'</span>'+
   '<strong class="docname">'+name+'</strong><span class="docnote">'+note+'</span></span>'+
@@ -2606,12 +2610,13 @@ function libraryResourceCard(m,i=0){
 }
 
 function materialGroup(m){
- const name=(m.title||'').toLocaleLowerCase('pt-BR'),kind=(m.kind||'').toLocaleLowerCase('pt-BR');
+ const name=String(m.title||'').toLocaleLowerCase('pt-BR'),kind=String(m.kind||'').toLocaleLowerCase('pt-BR');
+ const source=String(m.source||m._libraryUpload?.filename||'').toLocaleLowerCase('pt-BR');
  if(/cronograma|plano(?:s)? (?:de ensino|e cronograma)|calendário/.test(name))return 'Planos de ensino e cronogramas';
- if(/caderno|roteiro|estudo dirigido|guia|apostila|matéria da prova|leitura das aulas|revisão/.test(name))return 'Guias e materiais de revisão';
+ if(/estudo dirigido|atividade|exercício|questionário|roteiro de (estudo|perguntas)|guia|caderno|apostila|matéria da prova|revisão/.test(name)||/atividade|exercício/.test(kind))return 'Guias e materiais de revisão';
+ if(/slides|apresenta|aula|lâminas/.test(name+' '+source)||/slides|apresenta/.test(kind))return 'Aulas e apresentações';
+ if(/texto|artigo|capítulo|bibliografia|leitura|livro|pesquisa|epistemicídio|desideologização|psicologia sócio-histórica/.test(name)||/texto|bibliografia|artigo/.test(kind))return 'Textos-base e bibliografia';
  if(kind==='vídeo'||kind==='link')return 'Vídeos e referências online';
- if(kind==='bibliografia'||/cap\.|vocabulário|dicionário|laplanche|roudinesco|manual/.test(name))return 'Textos-base e bibliografia';
- if(/slides|tópica|édipo|pulsão|angústia|devolução|anamnese|violência intrafamiliar|segredos e adoção|famílias monoparentais|entrevista|esquema/.test(name))return 'Aulas e apresentações';
  return 'Materiais complementares';
 }
 function organizedMaterialBlock(materials,pending=false,libraryView=false){
@@ -2628,8 +2633,7 @@ function organizedMaterialBlock(materials,pending=false,libraryView=false){
  }).join('');
 }
 function organizedSubjectMaterials(materials,libraryView=false){
- const available=materials.filter(m=>m.available);
- return available.length?organizedMaterialBlock(available,false,libraryView):'<div class="empty">Nenhum arquivo publicado para esta avaliação.</div>';
+ return materials.length?organizedMaterialBlock(materials,false,libraryView):'<div class="empty">Nenhum material cadastrado para esta avaliação.</div>';
 }
 function renderSubject(k){
  const subj=getSubject(k),docs=DB.materials.filter(x=>x.subject===k),topics=DB.topics[k]||[],tests=DB.exams.filter(x=>x.subject===k);
@@ -2688,15 +2692,10 @@ function renderSubject(k){
    '</div></section></div></div>';
  }
  if(area==='docs'){
-  const available=docs.filter(m=>m.available);
-  const awaiting=docs.filter(m=>m._psicoNew&&!m.available);
   return top+'<div class="subject-hub-area">'+back+
    '<section class="section" id="docs"><div class="sectiontop"><h2>Materiais e textos</h2></div>'+
    '<div class="library-group" style="margin-top:0;--group-accent:'+color(k)+'">'+
-   (available.length?organizedSubjectMaterials(available):'<div class="subject-hub-empty">Nenhum PDF novo disponível para abrir ainda.</div>')+
-   (awaiting.length?'<details class="new-library-pending"><summary>Arquivos novos cadastrados · '+awaiting.length+' aguardando publicação</summary>'+
-     '<p>Os títulos foram recebidos e organizados. A abertura do PDF original será ativada quando o arquivo estiver no armazenamento do site.</p>'+
-     organizedMaterialBlock(awaiting,false,true)+'</details>':'')+
+   (docs.length?organizedSubjectMaterials(docs):'<div class="subject-hub-empty">Nenhum material cadastrado nesta disciplina.</div>')+
    '</div></section></div></div>';
  }
  if(area==='podcasts'){
@@ -2737,18 +2736,21 @@ function libraryAdminPanel(){
  '<div class="library-upload-counter" id="libraryUploadCounter" role="status"><strong>'+sent+' de '+available.length+'</strong><span>materiais enviados</span><em>'+missing+' faltando</em><div class="library-count-track"><i style="width:'+(available.length?Math.round(sent/available.length*100):100)+'%"></i></div></div></div>'+
  '<form id="libraryUploadForm" class="library-upload-form library-smart-form"><div class="library-file-entry">'+
  '<input id="libraryFileInput" type="file" accept=".pdf,.docx,.pptx,application/pdf" multiple hidden>'+
+ '<input id="libraryPackageInput" type="file" accept=".zip,application/zip" hidden>'+
  '<button type="button" class="library-upload-drop" data-library-upload-drop aria-label="Selecionar ou arrastar arquivos para análise">'+
  '<span class="library-upload-drop-icon" aria-hidden="true">↑</span><strong>Selecionar PDFs, DOCX ou PPTX</strong>'+
  '<small>Até 50 MB por arquivo · múltiplos arquivos · análise do conteúdo antes do envio</small></button>'+
+ '<button type="button" class="library-import-zip" onclick="document.getElementById(&quot;libraryPackageInput&quot;).click()" title="Importar PDFs organizados sem preencher os títulos manualmente">Importar pacote ZIP organizado</button>'+
  '<p class="library-upload-hint">A análise é feita no seu navegador, buscando conceitos do conteúdo. Confirme ou corrija as sugestões antes de publicar. Documentos escaneados podem exigir escolha manual.</p></div>'+
  '<div class="library-upload-controls"><div class="library-review-steps"><span>1 · Selecionar</span><span>2 · Conferir o conteúdo</span><span>3 · Publicar</span></div><button type="submit" class="library-upload-submit" id="libraryUploadSend" disabled>Publicar materiais revisados</button></div>'+
  '</form><div class="library-upload-feedback" id="libraryUploadFeedback" role="status" aria-live="polite">Selecione arquivos para analisar os assuntos e conferir a associação à disciplina.</div></section>';
 }
 function libraryExamMaterials(k){
- return DB.materials.filter(m=>m.subject===k&&m.available&&m._libraryUpload?.exam_scope!==false);
+ // Integra arquivos disponíveis e referências do exame na mesma lista, sem uma aba 'novos'.
+ return DB.materials.filter(m=>m.subject===k&&(m.available||m._psicoNew)&&m._libraryUpload?.exam_scope!==false);
 }
 function libraryExamProgress(k){
- const docs=libraryExamMaterials(k);
+ const docs=libraryExamMaterials(k).filter(m=>m.available);
  const n=doneCount(docs.map(m=>'material:'+(m._libraryLegacyUrl||m.source||m._libraryKey||m.url)));
  return {n,total:docs.length,pct:fmtPct(n,docs.length)};
 }
@@ -2761,7 +2763,6 @@ function renderLibrary(embedded=false){
  const subjects=Object.keys(DB.subjects);
  if(selected&&DB.subjects[selected]){
   const subj=DB.subjects[selected],docs=libraryExamMaterials(selected),p=libraryExamProgress(selected);
-  const pendingNew=DB.materials.filter(m=>m.subject===selected&&m._psicoNew&&!m.available);
   const familyTopics=selected==='familia'?['Luto e reorganização familiar','Dependência química na família','Atendimento clínico familiar']:[];
   return '<div class="library-page"><button type="button" class="course-back" data-action="libraryBack">← Voltar às disciplinas</button>'+
    '<section class="course-detail-hero" style="--course-accent:'+color(selected)+'">'+
@@ -2776,10 +2777,9 @@ function renderLibrary(embedded=false){
     '<span class="eyebrow">Psicologia PUCRS · 2026/2 · Prova final</span><h1 class="h1">'+esc(subj.name)+'</h1>'+
     '<p>Materiais de estudo correspondentes à avaliação final.</p>'+libraryProgressMarkup(p)+'</div></section>'+
     (familyTopics.length?'<h2 style="font-size:16px;margin:0 0 7px">Conteúdos da prova</h2><div class="course-syllabus">'+familyTopics.map(t=>'<span>'+esc(t)+'</span>').join('')+'</div>':'')+
-    '<div class="course-materials-title"><h2>Materiais para estudar</h2><span>'+docs.length+' '+(docs.length===1?'arquivo disponível':'arquivos disponíveis')+'</span></div>'+
+    '<div class="course-materials-title"><h2>Materiais para estudar</h2><span>'+docs.filter(m=>m.available).length+' disponível(is) · '+docs.filter(m=>!m.available).length+' aguardando</span></div>'+
     '<section class="course-detail-resources">'+(docs.length?organizedSubjectMaterials(docs,true):
-     '<div class="course-empty">Nenhum PDF novo disponível para abrir ainda.</div>')+
-     (pendingNew.length?'<details class="new-library-pending"><summary>'+pendingNew.length+' arquivos novos cadastrados — publicação pendente</summary><p>Os materiais foram cadastrados sem exigência de correspondência com arquivos antigos. Os PDFs originais precisam estar no armazenamento antes da abertura.</p>'+organizedMaterialBlock(pendingNew,false,true)+'</details>':'')+'</section>'+
+     '<div class="course-empty">Nenhum material cadastrado para esta avaliação.</div>')+'</section>'+
     '<p class="course-library-note">O percentual considera apenas arquivos disponíveis marcados como vistos. As marcações são pessoais.</p></div>';
  }
  const order='name',mode='cards';
