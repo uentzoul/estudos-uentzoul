@@ -120,6 +120,16 @@ async function refresh(){
 async function select(files){
  if(isBusy)return;
  const list=Array.from(files||[]).filter(f=>f&&typeof f.name==='string');
+ // ZIPs enviados pelo carregador comum são encaminhados ao importador próprio.
+ const zipFiles=list.filter(f=>/\.zip$/i.test(f.name));
+ if(zipFiles.length){
+  if(zipFiles.length!==list.length){
+   ++scanToken;reviewed=[];chosenFiles=[];logEntries=[{ok:false,message:'Seleciona os ZIPs separadamente dos PDFs, DOCX ou PPTX.'}];isAnalyzing=false;paint();return;
+  }
+  ++scanToken;reviewed=[];chosenFiles=[];logEntries=[];paint();
+  for(const archive of zipFiles)await importLibraryPackage(archive,true);
+  return;
+ }
  ++scanToken;const mine=scanToken;
  reviewed=list.map(file=>({file,analysis:null,subject:'',title:titleFromFile(file,null),
   suggestion:getTarget(file),targetKey:'__new__',scope:'in',conflict:false}));
@@ -158,13 +168,14 @@ async function getZipParser(){
 function packageBytesHex(buffer){
  return [...new Uint8Array(buffer)].map(b=>b.toString(16).padStart(2,'0')).join('');
 }
-async function importLibraryPackage(archive){
+async function importLibraryPackage(archive,append=false){
  if(isBusy||isAnalyzing||!archive)return;
  if(!isAdmin){show('Somente o administrador pode importar materiais para o acervo.');return;}
  const lower=String(archive.name||'').toLowerCase();
  if(!lower.endsWith('.zip')){show('Escolhe um dos arquivos ZIP do pacote PsicoMoodle.');return;}
  if(archive.size>85*1024*1024){show('Este pacote é grande demais. Usa os ZIPs separados (até 85 MB).');return;}
- const mine=++scanToken;isAnalyzing=true;reviewed=[];chosenFiles=[];logEntries=[];
+ const previous=append?reviewed.slice():[];
+ const mine=++scanToken;isAnalyzing=true;reviewed=previous;chosenFiles=previous.map(r=>r.file);logEntries=[];
  show('Lendo o ZIP e verificando os arquivos…');
  try{
   const JSZip=await getZipParser();
@@ -202,10 +213,17 @@ async function importLibraryPackage(archive){
     scope:item.scope==='archive'?'archive':'in',conflict:false});
   }
   if(scanToken!==mine)return;
-  reviewed=next;chosenFiles=next.map(x=>x.file);
-  logEntries=[{ok:true,message:'Pacote conferido: '+next.length+' PDF(s). Os nomes e as disciplinas já estão preenchidos. Confirma os destinos e clica em Publicar.'}];
+  const combined=[...previous,...next];
+  const keys=new Set();
+  for(const r of combined){
+   const key=r.subject+'::'+r.title;
+   if(keys.has(key))throw Error('Material repetido entre pacotes: '+r.title);
+   keys.add(key);
+  }
+  reviewed=combined;chosenFiles=combined.map(r=>r.file);
+  logEntries=[{ok:true,message:'Pacotes conferidos: '+combined.length+' PDF(s) prontos para revisão. Os nomes e disciplinas já estão preenchidos. Confirma os destinos e clica em Publicar.'}];
  }catch(err){
-  reviewed=[];chosenFiles=[];logEntries=[{ok:false,message:'Não foi possível importar o pacote: '+(err.message||String(err))}];
+  reviewed=previous;chosenFiles=previous.map(r=>r.file);logEntries=[{ok:false,message:'Falha ao importar '+archive.name+': '+(err.message||String(err))}];
  }finally{
   if(scanToken===mine){isAnalyzing=false;paint();}
  }
@@ -321,7 +339,9 @@ document.addEventListener('click',async e=>{
   return;
  }
  const drop=e.target.closest('[data-library-upload-drop]');
- if(drop){e.preventDefault();document.getElementById('libraryFileInput')?.click();}
+ if(drop){e.preventDefault();const input=document.getElementById('libraryFileInput');
+  if(input){if(!input.accept.includes('.zip'))input.accept=(input.accept?input.accept+',':'')+'.zip';input.click();}
+ }
 });
 document.addEventListener('change',e=>{
  if(e.target.id==='libraryFileInput')select(e.target.files);
