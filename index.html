@@ -3940,7 +3940,7 @@ window.uentzoulAdminBridge={
   if(current.page==='subject'&&current.subjectArea==='topics')render();
  },
  adminLibrary:()=>libraryAdminPanel(),
- refreshNav:()=>renderNav(),
+ refreshNav:()=>{renderNav();if(current.page==='subject'&&current.subjectArea==='docs')render()},
  rerenderAdmin:()=>{if(current.page==='admin')render()},
  goHome:()=>go('home')
 };
