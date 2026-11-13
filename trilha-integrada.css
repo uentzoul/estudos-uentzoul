@@ -97,3 +97,24 @@ html[data-theme="dark"] .ti-podcast audio{color-scheme:dark}
 @media(max-width:900px){.ti-intro{align-items:stretch;flex-direction:column}.ti-progress{width:auto;max-width:280px;text-align:left}.ti-podcast-list{grid-template-columns:minmax(0,1fr)}}
 @media(max-width:650px){.ti-intro,.ti-stage{padding:17px 15px}.ti-concept-grid,.ti-flash-grid{grid-template-columns:minmax(0,1fr)}.ti-stage-heading{gap:10px}.ti-stage-heading h2{font-size:17px}.ti-stage-heading p{font-size:12px}.ti-quick-nav{gap:6px}.ti-block-heading{gap:5px}.ti-block-heading span{font-size:10px}}
 @media(prefers-reduced-motion:reduce){.ti-trail *{scroll-behavior:auto!important}}
+
+.ti-case{margin:20px 0;border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.ti-case>summary{display:flex;align-items:center;gap:10px;cursor:pointer;padding:14px 15px;list-style:none}
+.ti-case>summary::-webkit-details-marker{display:none}
+.ti-case>summary strong{font-size:12px}
+.ti-case>summary span:nth-child(2){font-size:11px;color:var(--muted);flex:1}
+.ti-case>summary span:last-child{font-size:18px;color:var(--ti-accent)}
+.ti-case[open]>summary{border-bottom:1px solid var(--line)}
+.ti-case-content{display:grid;gap:12px;padding:16px}
+.ti-case-content>p{margin:0;font-size:12px;line-height:1.7;color:var(--muted)}
+.ti-case-content>strong{font-size:12px;line-height:1.5}
+.ti-case-choices{display:grid;gap:7px}
+.ti-case-choices button{text-align:left;padding:10px 13px;border:1px solid var(--line);border-radius:9px;color:var(--ink);background:var(--paper);font-size:11.5px;line-height:1.5;cursor:pointer}
+.ti-case-choices button:hover:not(:disabled){border-color:var(--ti-accent);background:var(--soft)}
+.ti-case-choices button.ti-picked{border-color:var(--ti-accent);background:color-mix(in srgb,var(--ti-accent) 7%,var(--paper))}
+.ti-case-choices button:disabled:not(.ti-picked){opacity:.58}
+.ti-case-feedback{display:grid;gap:5px;padding:13px 14px;border-radius:9px;background:color-mix(in srgb,var(--ti-accent) 5%,var(--paper));border:1px solid var(--line)}
+.ti-case-feedback>strong{font-size:11px}.ti-case-feedback>p{font-size:11.5px;line-height:1.65;color:var(--muted);margin:0 0 8px}
+html[data-theme="dark"] .ti-case{border-color:#48465f;background:#2b2a42}
+html[data-theme="dark"] .ti-case-choices button{color:#f0ecf7;background:#29273f;border-color:#504966}
+html[data-theme="dark"] .ti-case-feedback{background:#27253a;border-color:#504966}
