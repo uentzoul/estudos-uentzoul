@@ -4934,646 +4934,6 @@
       "text": "Material cadastrado no PsicoMoodle: Tecnologias da informação e subjetividade — apresentação. Arquivo: Apresentação - Digital.pdf. Consulte o documento integral em Materiais e textos. Amostra do cadastro automatizado, que não substitui a leitura do PDF: Arquivo de Psicologia Social I recebido para a prova."
     },
     {
-      "id": "final-topic-avaliacao-1",
-      "type": "topico",
-      "subject": "avaliacao",
-      "semester": "2026/2",
-      "title": "Entrevista de devolução",
-      "topicIndex": 0,
-      "url": "#avaliacao",
-      "text": "É momento de comunicar resultados e hipóteses de avaliação com linguagem compreensível, acolhimento e possibilidade de diálogo.\nExemplo: Uma psicóloga explica conclusões técnicas e verifica se a pessoa compreendeu as recomendações.\nEquívoco a evitar: A devolução consiste somente em entregar o laudo sem conversar sobre os resultados."
-    },
-    {
-      "id": "final-topic-avaliacao-2",
-      "type": "topico",
-      "subject": "avaliacao",
-      "semester": "2026/2",
-      "title": "Linguagem e comunicação na devolução",
-      "topicIndex": 1,
-      "url": "#avaliacao",
-      "text": "A comunicação deve ser adequada à pessoa e ao contexto, evitando jargão desnecessário e rótulos estigmatizantes.\nExemplo: A profissional adapta sua explicação para responsáveis e para uma criança avaliada.\nEquívoco a evitar: Uma devolução é melhor quanto mais incompreensíveis forem os termos técnicos utilizados."
-    },
-    {
-      "id": "final-topic-avaliacao-3",
-      "type": "topico",
-      "subject": "avaliacao",
-      "semester": "2026/2",
-      "title": "Sigilo e compartilhamento ético",
-      "topicIndex": 2,
-      "url": "#avaliacao",
-      "text": "Informações psicológicas exigem cuidado com confidencialidade, finalidade, necessidade e limites legais na comunicação.\nExemplo: Uma escola solicita detalhes íntimos da avaliação sem justificativa de necessidade.\nEquívoco a evitar: Todo resultado pode ser divulgado a qualquer pessoa que demonstre curiosidade."
-    },
-    {
-      "id": "final-topic-avaliacao-4",
-      "type": "topico",
-      "subject": "avaliacao",
-      "semester": "2026/2",
-      "title": "Avaliação no contexto organizacional",
-      "topicIndex": 3,
-      "url": "#avaliacao",
-      "text": "A avaliação em organizações requer definição de demanda, métodos adequados, ética, comunicação responsável e atenção ao contexto de trabalho.\nExemplo: Uma empresa solicita avaliação para seleção e quer receber dados não pertinentes à finalidade.\nEquívoco a evitar: O psicólogo pode revelar todas as respostas pessoais de um avaliado à empresa sem ponderar sigilo."
-    },
-    {
-      "id": "final-topic-avaliacao-5",
-      "type": "topico",
-      "subject": "avaliacao",
-      "semester": "2026/2",
-      "title": "Avaliação hospitalar",
-      "topicIndex": 4,
-      "url": "#avaliacao",
-      "text": "Considera condições de saúde, adoecimento, contexto assistencial, comunicação com equipe e limites da avaliação em situações clínicas.\nExemplo: Uma pessoa internada e seus familiares precisam de avaliação adaptada ao estado de saúde.\nEquívoco a evitar: É correto ignorar fadiga, dor e contexto clínico ao interpretar o desempenho em testes."
-    },
-    {
-      "id": "final-topic-avaliacao-6",
-      "type": "topico",
-      "subject": "avaliacao",
-      "semester": "2026/2",
-      "title": "Avaliação forense",
-      "topicIndex": 5,
-      "url": "#avaliacao",
-      "text": "O trabalho psicológico no contexto judicial demanda delimitação da questão pericial, imparcialidade, métodos fundamentados e esclarecimento de limites.\nExemplo: O Judiciário solicita um parecer técnico sobre quesito específico envolvendo uma família.\nEquívoco a evitar: O psicólogo forense deve sempre agir como advogado da parte que o contratou."
-    },
-    {
-      "id": "final-topic-avaliacao-7",
-      "type": "topico",
-      "subject": "avaliacao",
-      "semester": "2026/2",
-      "title": "Atendimento a pessoas trans",
-      "topicIndex": 6,
-      "url": "#avaliacao",
-      "text": "A avaliação deve ser não discriminatória, respeitar identidade e nome social e delimitar a demanda sem presumir patologia pela identidade de gênero.\nExemplo: Uma pessoa trans busca avaliação por ansiedade relacionada ao trabalho.\nEquívoco a evitar: A identidade trans, isoladamente, é diagnóstico de transtorno mental."
-    },
-    {
-      "id": "final-topic-avaliacao-8",
-      "type": "topico",
-      "subject": "avaliacao",
-      "semester": "2026/2",
-      "title": "Ética na avaliação psicológica",
-      "topicIndex": 7,
-      "url": "#avaliacao",
-      "text": "Exige competência, consentimento ou autorização apropriada, métodos fundamentados, respeito à dignidade e comunicação responsável.\nExemplo: Uma profissional considera aplicar teste para o qual não tem preparo e que não responde à demanda.\nEquívoco a evitar: Estar diante de uma demanda urgente autoriza aplicar qualquer instrumento sem formação."
-    },
-    {
-      "id": "final-topic-avaliacao-9",
-      "type": "topico",
-      "subject": "avaliacao",
-      "semester": "2026/2",
-      "title": "Resolução CFP 31/2022 e fontes de informação",
-      "topicIndex": 8,
-      "url": "#avaliacao",
-      "text": "Regulamenta diretrizes para a avaliação psicológica e uso de fontes e testes; o SATEPSI apoia a consulta de instrumentos apropriados.\nExemplo: Um psicólogo precisa selecionar fontes adequadas antes de concluir uma avaliação.\nEquívoco a evitar: A Resolução 31/2022 revogou a Resolução 06/2019 sobre documentos."
-    },
-    {
-      "id": "final-exam-avaliacao-rev-final-20261113-1",
-      "type": "simulado",
-      "subject": "avaliacao",
-      "semester": "2026/2",
-      "title": "Simulado 1 — revisão final",
-      "examId": "avaliacao-rev-final-20261113-1",
-      "url": "#avaliacao",
-      "text": "Prova pronta 1 de 5: 10 questões variadas (múltipla escolha, verdadeiro/falso e assertivas), seguidas de duas dissertativas. Conteúdo da prova final de 2026/2."
-    },
-    {
-      "id": "final-question-avaliacao-rev-final-20261113-1-1",
-      "type": "questao",
-      "subject": "avaliacao",
-      "semester": "2026/2",
-      "title": "Simulado 1 — questão 1",
-      "examId": "avaliacao-rev-final-20261113-1",
-      "url": "#avaliacao",
-      "text": "Tipo: choice\nEnunciado: Situação: Uma psicóloga explica conclusões técnicas e verifica se a pessoa compreendeu as recomendações.\n\nQual interpretação é mais coerente com o material da disciplina?\nAssunto: Entrevista de devolução\nAlternativas: Priorizar Avaliação no contexto organizacional: A avaliação em organizações requer definição de demanda, métodos adequados, ética, comunicação responsável e atenção ao contexto de trabalho.; Priorizar Avaliação forense: O trabalho psicológico no contexto judicial demanda delimitação da questão pericial, imparcialidade, métodos fundamentados e esclarecimento de limites.; Entrevista de devolução: É momento de comunicar resultados e hipóteses de avaliação com linguagem compreensível, acolhimento e possibilidade de diálogo.; Priorizar Ética na avaliação psicológica: Exige competência, consentimento ou autorização apropriada, métodos fundamentados, respeito à dignidade e comunicação responsável.; Priorizar Sigilo e compartilhamento ético: Informações psicológicas exigem cuidado com confidencialidade, finalidade, necessidade e limites legais na comunicação."
-    },
-    {
-      "id": "final-question-avaliacao-rev-final-20261113-1-2",
-      "type": "questao",
-      "subject": "avaliacao",
-      "semester": "2026/2",
-      "title": "Simulado 1 — questão 2",
-      "examId": "avaliacao-rev-final-20261113-1",
-      "url": "#avaliacao",
-      "text": "Tipo: choice\nEnunciado: Situação: Uma empresa solicita avaliação para seleção e quer receber dados não pertinentes à finalidade.\n\nQual interpretação é mais coerente com o material da disciplina?\nAssunto: Avaliação no contexto organizacional\nAlternativas: Priorizar Atendimento a pessoas trans: A avaliação deve ser não discriminatória, respeitar identidade e nome social e delimitar a demanda sem presumir patologia pela identidade de gênero.; Priorizar Resolução CFP 31/2022 e fontes de informação: Regulamenta diretrizes para a avaliação psicológica e uso de fontes e testes; o SATEPSI apoia a consulta de instrumentos apropriados.; Priorizar Linguagem e comunicação na devolução: A comunicação deve ser adequada à pessoa e ao contexto, evitando jargão desnecessário e rótulos estigmatizantes.; Avaliação no contexto organizacional: A avaliação em organizações requer definição de demanda, métodos adequados, ética, comunicação responsável e atenção ao contexto de trabalho.; Priorizar Avaliação forense: O trabalho psicológico no contexto judicial demanda delimitação da questão pericial, imparcialidade, métodos fundamentados e esclarecimento de limites."
-    },
-    {
-      "id": "final-question-avaliacao-rev-final-20261113-1-3",
-      "type": "questao",
-      "subject": "avaliacao",
-      "semester": "2026/2",
-      "title": "Simulado 1 — questão 3",
-      "examId": "avaliacao-rev-final-20261113-1",
-      "url": "#avaliacao",
-      "text": "Tipo: combo\nEnunciado: Analise as afirmações abaixo sobre Atendimento a pessoas trans, Ética na avaliação psicológica e Resolução CFP 31/2022 e fontes de informação.\n\nAssinale a alternativa que contém somente as afirmações corretas.\nAssunto: Atendimento a pessoas trans\nAssertivas: I. Estar diante de uma demanda urgente autoriza aplicar qualquer instrumento sem formação.; II. Regulamenta diretrizes para a avaliação psicológica e uso de fontes e testes; o SATEPSI apoia a consulta de instrumentos apropriados.; III. A avaliação deve ser não discriminatória, respeitar identidade e nome social e delimitar a demanda sem presumir patologia pela identidade de gênero.; IV. A identidade trans, isoladamente, é diagnóstico de transtorno mental.; V. Exige competência, consentimento ou autorização apropriada, métodos fundamentados, respeito à dignidade e comunicação responsável."
-    },
-    {
-      "id": "final-question-avaliacao-rev-final-20261113-1-4",
-      "type": "questao",
-      "subject": "avaliacao",
-      "semester": "2026/2",
-      "title": "Simulado 1 — questão 4",
-      "examId": "avaliacao-rev-final-20261113-1",
-      "url": "#avaliacao",
-      "text": "Tipo: tf\nEnunciado: Julgue a seguinte afirmação sobre Entrevista de devolução:\n\nÉ momento de comunicar resultados e hipóteses de avaliação com linguagem compreensível, acolhimento e possibilidade de diálogo.\nAssunto: Entrevista de devolução"
-    },
-    {
-      "id": "final-question-avaliacao-rev-final-20261113-1-5",
-      "type": "questao",
-      "subject": "avaliacao",
-      "semester": "2026/2",
-      "title": "Simulado 1 — questão 5",
-      "examId": "avaliacao-rev-final-20261113-1",
-      "url": "#avaliacao",
-      "text": "Tipo: choice\nEnunciado: Situação: Uma empresa solicita avaliação para seleção e quer receber dados não pertinentes à finalidade.\n\nQual interpretação é mais coerente com o material da disciplina?\nAssunto: Avaliação no contexto organizacional\nAlternativas: Priorizar Atendimento a pessoas trans: A avaliação deve ser não discriminatória, respeitar identidade e nome social e delimitar a demanda sem presumir patologia pela identidade de gênero.; Avaliação no contexto organizacional: A avaliação em organizações requer definição de demanda, métodos adequados, ética, comunicação responsável e atenção ao contexto de trabalho.; Priorizar Resolução CFP 31/2022 e fontes de informação: Regulamenta diretrizes para a avaliação psicológica e uso de fontes e testes; o SATEPSI apoia a consulta de instrumentos apropriados.; Priorizar Linguagem e comunicação na devolução: A comunicação deve ser adequada à pessoa e ao contexto, evitando jargão desnecessário e rótulos estigmatizantes.; Priorizar Avaliação forense: O trabalho psicológico no contexto judicial demanda delimitação da questão pericial, imparcialidade, métodos fundamentados e esclarecimento de limites."
-    },
-    {
-      "id": "final-question-avaliacao-rev-final-20261113-1-6",
-      "type": "questao",
-      "subject": "avaliacao",
-      "semester": "2026/2",
-      "title": "Simulado 1 — questão 6",
-      "examId": "avaliacao-rev-final-20261113-1",
-      "url": "#avaliacao",
-      "text": "Tipo: choice\nEnunciado: Situação: Uma pessoa trans busca avaliação por ansiedade relacionada ao trabalho.\n\nQual interpretação é mais coerente com o material da disciplina?\nAssunto: Atendimento a pessoas trans\nAlternativas: Priorizar Entrevista de devolução: É momento de comunicar resultados e hipóteses de avaliação com linguagem compreensível, acolhimento e possibilidade de diálogo.; Priorizar Sigilo e compartilhamento ético: Informações psicológicas exigem cuidado com confidencialidade, finalidade, necessidade e limites legais na comunicação.; Atendimento a pessoas trans: A avaliação deve ser não discriminatória, respeitar identidade e nome social e delimitar a demanda sem presumir patologia pela identidade de gênero.; Priorizar Avaliação hospitalar: Considera condições de saúde, adoecimento, contexto assistencial, comunicação com equipe e limites da avaliação em situações clínicas.; Priorizar Resolução CFP 31/2022 e fontes de informação: Regulamenta diretrizes para a avaliação psicológica e uso de fontes e testes; o SATEPSI apoia a consulta de instrumentos apropriados."
-    },
-    {
-      "id": "final-question-avaliacao-rev-final-20261113-1-7",
-      "type": "questao",
-      "subject": "avaliacao",
-      "semester": "2026/2",
-      "title": "Simulado 1 — questão 7",
-      "examId": "avaliacao-rev-final-20261113-1",
-      "url": "#avaliacao",
-      "text": "Tipo: tf\nEnunciado: Julgue a seguinte afirmação sobre Entrevista de devolução:\n\nA devolução consiste somente em entregar o laudo sem conversar sobre os resultados.\nAssunto: Entrevista de devolução"
-    },
-    {
-      "id": "final-question-avaliacao-rev-final-20261113-1-8",
-      "type": "questao",
-      "subject": "avaliacao",
-      "semester": "2026/2",
-      "title": "Simulado 1 — questão 8",
-      "examId": "avaliacao-rev-final-20261113-1",
-      "url": "#avaliacao",
-      "text": "Tipo: combo\nEnunciado: Analise as afirmações abaixo sobre Avaliação no contexto organizacional, Avaliação hospitalar e Avaliação forense.\n\nAssinale a alternativa que contém somente as afirmações corretas.\nAssunto: Avaliação no contexto organizacional\nAssertivas: I. É correto ignorar fadiga, dor e contexto clínico ao interpretar o desempenho em testes.; II. O trabalho psicológico no contexto judicial demanda delimitação da questão pericial, imparcialidade, métodos fundamentados e esclarecimento de limites.; III. A avaliação em organizações requer definição de demanda, métodos adequados, ética, comunicação responsável e atenção ao contexto de trabalho.; IV. O psicólogo pode revelar todas as respostas pessoais de um avaliado à empresa sem ponderar sigilo.; V. Considera condições de saúde, adoecimento, contexto assistencial, comunicação com equipe e limites da avaliação em situações clínicas."
-    },
-    {
-      "id": "final-question-avaliacao-rev-final-20261113-1-9",
-      "type": "questao",
-      "subject": "avaliacao",
-      "semester": "2026/2",
-      "title": "Simulado 1 — questão 9",
-      "examId": "avaliacao-rev-final-20261113-1",
-      "url": "#avaliacao",
-      "text": "Tipo: choice\nEnunciado: Situação: Uma pessoa trans busca avaliação por ansiedade relacionada ao trabalho.\n\nQual interpretação é mais coerente com o material da disciplina?\nAssunto: Atendimento a pessoas trans\nAlternativas: Atendimento a pessoas trans: A avaliação deve ser não discriminatória, respeitar identidade e nome social e delimitar a demanda sem presumir patologia pela identidade de gênero.; Priorizar Entrevista de devolução: É momento de comunicar resultados e hipóteses de avaliação com linguagem compreensível, acolhimento e possibilidade de diálogo.; Priorizar Sigilo e compartilhamento ético: Informações psicológicas exigem cuidado com confidencialidade, finalidade, necessidade e limites legais na comunicação.; Priorizar Avaliação hospitalar: Considera condições de saúde, adoecimento, contexto assistencial, comunicação com equipe e limites da avaliação em situações clínicas.; Priorizar Resolução CFP 31/2022 e fontes de informação: Regulamenta diretrizes para a avaliação psicológica e uso de fontes e testes; o SATEPSI apoia a consulta de instrumentos apropriados."
-    },
-    {
-      "id": "final-question-avaliacao-rev-final-20261113-1-10",
-      "type": "questao",
-      "subject": "avaliacao",
-      "semester": "2026/2",
-      "title": "Simulado 1 — questão 10",
-      "examId": "avaliacao-rev-final-20261113-1",
-      "url": "#avaliacao",
-      "text": "Tipo: tf\nEnunciado: Julgue a seguinte afirmação sobre Entrevista de devolução:\n\nÉ momento de comunicar resultados e hipóteses de avaliação com linguagem compreensível, acolhimento e possibilidade de diálogo.\nAssunto: Entrevista de devolução"
-    },
-    {
-      "id": "final-exam-avaliacao-rev-final-20261113-2",
-      "type": "simulado",
-      "subject": "avaliacao",
-      "semester": "2026/2",
-      "title": "Simulado 2 — revisão final",
-      "examId": "avaliacao-rev-final-20261113-2",
-      "url": "#avaliacao",
-      "text": "Prova pronta 2 de 5: 10 questões variadas (múltipla escolha, verdadeiro/falso e assertivas), seguidas de duas dissertativas. Conteúdo da prova final de 2026/2."
-    },
-    {
-      "id": "final-question-avaliacao-rev-final-20261113-2-1",
-      "type": "questao",
-      "subject": "avaliacao",
-      "semester": "2026/2",
-      "title": "Simulado 2 — questão 1",
-      "examId": "avaliacao-rev-final-20261113-2",
-      "url": "#avaliacao",
-      "text": "Tipo: choice\nEnunciado: Situação: Uma profissional considera aplicar teste para o qual não tem preparo e que não responde à demanda.\n\nQue conceito ajuda a compreender melhor o caso apresentado?\nAssunto: Ética na avaliação psicológica\nAlternativas: Priorizar Linguagem e comunicação na devolução: A comunicação deve ser adequada à pessoa e ao contexto, evitando jargão desnecessário e rótulos estigmatizantes.; Priorizar Sigilo e compartilhamento ético: Informações psicológicas exigem cuidado com confidencialidade, finalidade, necessidade e limites legais na comunicação.; Priorizar Avaliação no contexto organizacional: A avaliação em organizações requer definição de demanda, métodos adequados, ética, comunicação responsável e atenção ao contexto de trabalho.; Priorizar Avaliação hospitalar: Considera condições de saúde, adoecimento, contexto assistencial, comunicação com equipe e limites da avaliação em situações clínicas.; Ética na avaliação psicológica: Exige competência, consentimento ou autorização apropriada, métodos fundamentados, respeito à dignidade e comunicação responsável."
-    },
-    {
-      "id": "final-question-avaliacao-rev-final-20261113-2-2",
-      "type": "questao",
-      "subject": "avaliacao",
-      "semester": "2026/2",
-      "title": "Simulado 2 — questão 2",
-      "examId": "avaliacao-rev-final-20261113-2",
-      "url": "#avaliacao",
-      "text": "Tipo: choice\nEnunciado: Situação: A profissional adapta sua explicação para responsáveis e para uma criança avaliada.\n\nQue conceito ajuda a compreender melhor o caso apresentado?\nAssunto: Linguagem e comunicação na devolução\nAlternativas: Linguagem e comunicação na devolução: A comunicação deve ser adequada à pessoa e ao contexto, evitando jargão desnecessário e rótulos estigmatizantes.; Priorizar Avaliação hospitalar: Considera condições de saúde, adoecimento, contexto assistencial, comunicação com equipe e limites da avaliação em situações clínicas.; Priorizar Avaliação forense: O trabalho psicológico no contexto judicial demanda delimitação da questão pericial, imparcialidade, métodos fundamentados e esclarecimento de limites.; Priorizar Atendimento a pessoas trans: A avaliação deve ser não discriminatória, respeitar identidade e nome social e delimitar a demanda sem presumir patologia pela identidade de gênero.; Priorizar Ética na avaliação psicológica: Exige competência, consentimento ou autorização apropriada, métodos fundamentados, respeito à dignidade e comunicação responsável."
-    },
-    {
-      "id": "final-question-avaliacao-rev-final-20261113-2-3",
-      "type": "questao",
-      "subject": "avaliacao",
-      "semester": "2026/2",
-      "title": "Simulado 2 — questão 3",
-      "examId": "avaliacao-rev-final-20261113-2",
-      "url": "#avaliacao",
-      "text": "Tipo: combo\nEnunciado: Analise as afirmações abaixo sobre Avaliação hospitalar, Avaliação forense e Atendimento a pessoas trans.\n\nAssinale a alternativa que contém somente as afirmações corretas.\nAssunto: Avaliação hospitalar\nAssertivas: I. A avaliação deve ser não discriminatória, respeitar identidade e nome social e delimitar a demanda sem presumir patologia pela identidade de gênero.; II. Considera condições de saúde, adoecimento, contexto assistencial, comunicação com equipe e limites da avaliação em situações clínicas.; III. É correto ignorar fadiga, dor e contexto clínico ao interpretar o desempenho em testes.; IV. O trabalho psicológico no contexto judicial demanda delimitação da questão pericial, imparcialidade, métodos fundamentados e esclarecimento de limites.; V. O psicólogo forense deve sempre agir como advogado da parte que o contratou."
-    },
-    {
-      "id": "final-question-avaliacao-rev-final-20261113-2-4",
-      "type": "questao",
-      "subject": "avaliacao",
-      "semester": "2026/2",
-      "title": "Simulado 2 — questão 4",
-      "examId": "avaliacao-rev-final-20261113-2",
-      "url": "#avaliacao",
-      "text": "Tipo: tf\nEnunciado: Julgue a seguinte afirmação sobre Ética na avaliação psicológica:\n\nEstar diante de uma demanda urgente autoriza aplicar qualquer instrumento sem formação.\nAssunto: Ética na avaliação psicológica"
-    },
-    {
-      "id": "final-question-avaliacao-rev-final-20261113-2-5",
-      "type": "questao",
-      "subject": "avaliacao",
-      "semester": "2026/2",
-      "title": "Simulado 2 — questão 5",
-      "examId": "avaliacao-rev-final-20261113-2",
-      "url": "#avaliacao",
-      "text": "Tipo: choice\nEnunciado: Situação: A profissional adapta sua explicação para responsáveis e para uma criança avaliada.\n\nQue conceito ajuda a compreender melhor o caso apresentado?\nAssunto: Linguagem e comunicação na devolução\nAlternativas: Priorizar Avaliação hospitalar: Considera condições de saúde, adoecimento, contexto assistencial, comunicação com equipe e limites da avaliação em situações clínicas.; Priorizar Avaliação forense: O trabalho psicológico no contexto judicial demanda delimitação da questão pericial, imparcialidade, métodos fundamentados e esclarecimento de limites.; Priorizar Atendimento a pessoas trans: A avaliação deve ser não discriminatória, respeitar identidade e nome social e delimitar a demanda sem presumir patologia pela identidade de gênero.; Linguagem e comunicação na devolução: A comunicação deve ser adequada à pessoa e ao contexto, evitando jargão desnecessário e rótulos estigmatizantes.; Priorizar Ética na avaliação psicológica: Exige competência, consentimento ou autorização apropriada, métodos fundamentados, respeito à dignidade e comunicação responsável."
-    },
-    {
-      "id": "final-question-avaliacao-rev-final-20261113-2-6",
-      "type": "questao",
-      "subject": "avaliacao",
-      "semester": "2026/2",
-      "title": "Simulado 2 — questão 6",
-      "examId": "avaliacao-rev-final-20261113-2",
-      "url": "#avaliacao",
-      "text": "Tipo: choice\nEnunciado: Situação: Uma pessoa internada e seus familiares precisam de avaliação adaptada ao estado de saúde.\n\nQue conceito ajuda a compreender melhor o caso apresentado?\nAssunto: Avaliação hospitalar\nAlternativas: Priorizar Ética na avaliação psicológica: Exige competência, consentimento ou autorização apropriada, métodos fundamentados, respeito à dignidade e comunicação responsável.; Priorizar Resolução CFP 31/2022 e fontes de informação: Regulamenta diretrizes para a avaliação psicológica e uso de fontes e testes; o SATEPSI apoia a consulta de instrumentos apropriados.; Priorizar Entrevista de devolução: É momento de comunicar resultados e hipóteses de avaliação com linguagem compreensível, acolhimento e possibilidade de diálogo.; Priorizar Linguagem e comunicação na devolução: A comunicação deve ser adequada à pessoa e ao contexto, evitando jargão desnecessário e rótulos estigmatizantes.; Avaliação hospitalar: Considera condições de saúde, adoecimento, contexto assistencial, comunicação com equipe e limites da avaliação em situações clínicas."
-    },
-    {
-      "id": "final-question-avaliacao-rev-final-20261113-2-7",
-      "type": "questao",
-      "subject": "avaliacao",
-      "semester": "2026/2",
-      "title": "Simulado 2 — questão 7",
-      "examId": "avaliacao-rev-final-20261113-2",
-      "url": "#avaliacao",
-      "text": "Tipo: tf\nEnunciado: Julgue a seguinte afirmação sobre Ética na avaliação psicológica:\n\nExige competência, consentimento ou autorização apropriada, métodos fundamentados, respeito à dignidade e comunicação responsável.\nAssunto: Ética na avaliação psicológica"
-    },
-    {
-      "id": "final-question-avaliacao-rev-final-20261113-2-8",
-      "type": "questao",
-      "subject": "avaliacao",
-      "semester": "2026/2",
-      "title": "Simulado 2 — questão 8",
-      "examId": "avaliacao-rev-final-20261113-2",
-      "url": "#avaliacao",
-      "text": "Tipo: combo\nEnunciado: Analise as afirmações abaixo sobre Linguagem e comunicação na devolução, Sigilo e compartilhamento ético e Avaliação no contexto organizacional.\n\nAssinale a alternativa que contém somente as afirmações corretas.\nAssunto: Linguagem e comunicação na devolução\nAssertivas: I. A avaliação em organizações requer definição de demanda, métodos adequados, ética, comunicação responsável e atenção ao contexto de trabalho.; II. A comunicação deve ser adequada à pessoa e ao contexto, evitando jargão desnecessário e rótulos estigmatizantes.; III. Uma devolução é melhor quanto mais incompreensíveis forem os termos técnicos utilizados.; IV. Informações psicológicas exigem cuidado com confidencialidade, finalidade, necessidade e limites legais na comunicação.; V. Todo resultado pode ser divulgado a qualquer pessoa que demonstre curiosidade."
-    },
-    {
-      "id": "final-question-avaliacao-rev-final-20261113-2-9",
-      "type": "questao",
-      "subject": "avaliacao",
-      "semester": "2026/2",
-      "title": "Simulado 2 — questão 9",
-      "examId": "avaliacao-rev-final-20261113-2",
-      "url": "#avaliacao",
-      "text": "Tipo: choice\nEnunciado: Situação: Uma pessoa internada e seus familiares precisam de avaliação adaptada ao estado de saúde.\n\nQue conceito ajuda a compreender melhor o caso apresentado?\nAssunto: Avaliação hospitalar\nAlternativas: Priorizar Ética na avaliação psicológica: Exige competência, consentimento ou autorização apropriada, métodos fundamentados, respeito à dignidade e comunicação responsável.; Priorizar Resolução CFP 31/2022 e fontes de informação: Regulamenta diretrizes para a avaliação psicológica e uso de fontes e testes; o SATEPSI apoia a consulta de instrumentos apropriados.; Avaliação hospitalar: Considera condições de saúde, adoecimento, contexto assistencial, comunicação com equipe e limites da avaliação em situações clínicas.; Priorizar Entrevista de devolução: É momento de comunicar resultados e hipóteses de avaliação com linguagem compreensível, acolhimento e possibilidade de diálogo.; Priorizar Linguagem e comunicação na devolução: A comunicação deve ser adequada à pessoa e ao contexto, evitando jargão desnecessário e rótulos estigmatizantes."
-    },
-    {
-      "id": "final-question-avaliacao-rev-final-20261113-2-10",
-      "type": "questao",
-      "subject": "avaliacao",
-      "semester": "2026/2",
-      "title": "Simulado 2 — questão 10",
-      "examId": "avaliacao-rev-final-20261113-2",
-      "url": "#avaliacao",
-      "text": "Tipo: tf\nEnunciado: Julgue a seguinte afirmação sobre Ética na avaliação psicológica:\n\nEstar diante de uma demanda urgente autoriza aplicar qualquer instrumento sem formação.\nAssunto: Ética na avaliação psicológica"
-    },
-    {
-      "id": "final-exam-avaliacao-rev-final-20261113-3",
-      "type": "simulado",
-      "subject": "avaliacao",
-      "semester": "2026/2",
-      "title": "Simulado 3 — revisão final",
-      "examId": "avaliacao-rev-final-20261113-3",
-      "url": "#avaliacao",
-      "text": "Prova pronta 3 de 5: 10 questões variadas (múltipla escolha, verdadeiro/falso e assertivas), seguidas de duas dissertativas. Conteúdo da prova final de 2026/2."
-    },
-    {
-      "id": "final-question-avaliacao-rev-final-20261113-3-1",
-      "type": "questao",
-      "subject": "avaliacao",
-      "semester": "2026/2",
-      "title": "Simulado 3 — questão 1",
-      "examId": "avaliacao-rev-final-20261113-3",
-      "url": "#avaliacao",
-      "text": "Tipo: choice\nEnunciado: Situação: O Judiciário solicita um parecer técnico sobre quesito específico envolvendo uma família.\n\nQual alternativa relaciona corretamente teoria, situação e contexto?\nAssunto: Avaliação forense\nAlternativas: Priorizar Linguagem e comunicação na devolução: A comunicação deve ser adequada à pessoa e ao contexto, evitando jargão desnecessário e rótulos estigmatizantes.; Avaliação forense: O trabalho psicológico no contexto judicial demanda delimitação da questão pericial, imparcialidade, métodos fundamentados e esclarecimento de limites.; Priorizar Avaliação no contexto organizacional: A avaliação em organizações requer definição de demanda, métodos adequados, ética, comunicação responsável e atenção ao contexto de trabalho.; Priorizar Ética na avaliação psicológica: Exige competência, consentimento ou autorização apropriada, métodos fundamentados, respeito à dignidade e comunicação responsável.; Priorizar Entrevista de devolução: É momento de comunicar resultados e hipóteses de avaliação com linguagem compreensível, acolhimento e possibilidade de diálogo."
-    },
-    {
-      "id": "final-question-avaliacao-rev-final-20261113-3-2",
-      "type": "questao",
-      "subject": "avaliacao",
-      "semester": "2026/2",
-      "title": "Simulado 3 — questão 2",
-      "examId": "avaliacao-rev-final-20261113-3",
-      "url": "#avaliacao",
-      "text": "Tipo: choice\nEnunciado: Situação: Um psicólogo precisa selecionar fontes adequadas antes de concluir uma avaliação.\n\nQual alternativa relaciona corretamente teoria, situação e contexto?\nAssunto: Resolução CFP 31/2022 e fontes de informação\nAlternativas: Priorizar Avaliação hospitalar: Considera condições de saúde, adoecimento, contexto assistencial, comunicação com equipe e limites da avaliação em situações clínicas.; Priorizar Atendimento a pessoas trans: A avaliação deve ser não discriminatória, respeitar identidade e nome social e delimitar a demanda sem presumir patologia pela identidade de gênero.; Resolução CFP 31/2022 e fontes de informação: Regulamenta diretrizes para a avaliação psicológica e uso de fontes e testes; o SATEPSI apoia a consulta de instrumentos apropriados.; Priorizar Linguagem e comunicação na devolução: A comunicação deve ser adequada à pessoa e ao contexto, evitando jargão desnecessário e rótulos estigmatizantes.; Priorizar Avaliação no contexto organizacional: A avaliação em organizações requer definição de demanda, métodos adequados, ética, comunicação responsável e atenção ao contexto de trabalho."
-    },
-    {
-      "id": "final-question-avaliacao-rev-final-20261113-3-3",
-      "type": "questao",
-      "subject": "avaliacao",
-      "semester": "2026/2",
-      "title": "Simulado 3 — questão 3",
-      "examId": "avaliacao-rev-final-20261113-3",
-      "url": "#avaliacao",
-      "text": "Tipo: combo\nEnunciado: Analise as afirmações abaixo sobre Sigilo e compartilhamento ético, Avaliação no contexto organizacional e Avaliação hospitalar.\n\nAssinale a alternativa que contém somente as afirmações corretas.\nAssunto: Sigilo e compartilhamento ético\nAssertivas: I. Informações psicológicas exigem cuidado com confidencialidade, finalidade, necessidade e limites legais na comunicação.; II. Todo resultado pode ser divulgado a qualquer pessoa que demonstre curiosidade.; III. A avaliação em organizações requer definição de demanda, métodos adequados, ética, comunicação responsável e atenção ao contexto de trabalho.; IV. O psicólogo pode revelar todas as respostas pessoais de um avaliado à empresa sem ponderar sigilo.; V. Considera condições de saúde, adoecimento, contexto assistencial, comunicação com equipe e limites da avaliação em situações clínicas."
-    },
-    {
-      "id": "final-question-avaliacao-rev-final-20261113-3-4",
-      "type": "questao",
-      "subject": "avaliacao",
-      "semester": "2026/2",
-      "title": "Simulado 3 — questão 4",
-      "examId": "avaliacao-rev-final-20261113-3",
-      "url": "#avaliacao",
-      "text": "Tipo: tf\nEnunciado: Julgue a seguinte afirmação sobre Avaliação forense:\n\nO trabalho psicológico no contexto judicial demanda delimitação da questão pericial, imparcialidade, métodos fundamentados e esclarecimento de limites.\nAssunto: Avaliação forense"
-    },
-    {
-      "id": "final-question-avaliacao-rev-final-20261113-3-5",
-      "type": "questao",
-      "subject": "avaliacao",
-      "semester": "2026/2",
-      "title": "Simulado 3 — questão 5",
-      "examId": "avaliacao-rev-final-20261113-3",
-      "url": "#avaliacao",
-      "text": "Tipo: choice\nEnunciado: Situação: Um psicólogo precisa selecionar fontes adequadas antes de concluir uma avaliação.\n\nQual alternativa relaciona corretamente teoria, situação e contexto?\nAssunto: Resolução CFP 31/2022 e fontes de informação\nAlternativas: Resolução CFP 31/2022 e fontes de informação: Regulamenta diretrizes para a avaliação psicológica e uso de fontes e testes; o SATEPSI apoia a consulta de instrumentos apropriados.; Priorizar Avaliação hospitalar: Considera condições de saúde, adoecimento, contexto assistencial, comunicação com equipe e limites da avaliação em situações clínicas.; Priorizar Atendimento a pessoas trans: A avaliação deve ser não discriminatória, respeitar identidade e nome social e delimitar a demanda sem presumir patologia pela identidade de gênero.; Priorizar Linguagem e comunicação na devolução: A comunicação deve ser adequada à pessoa e ao contexto, evitando jargão desnecessário e rótulos estigmatizantes.; Priorizar Avaliação no contexto organizacional: A avaliação em organizações requer definição de demanda, métodos adequados, ética, comunicação responsável e atenção ao contexto de trabalho."
-    },
-    {
-      "id": "final-question-avaliacao-rev-final-20261113-3-6",
-      "type": "questao",
-      "subject": "avaliacao",
-      "semester": "2026/2",
-      "title": "Simulado 3 — questão 6",
-      "examId": "avaliacao-rev-final-20261113-3",
-      "url": "#avaliacao",
-      "text": "Tipo: choice\nEnunciado: Situação: Uma escola solicita detalhes íntimos da avaliação sem justificativa de necessidade.\n\nQual alternativa relaciona corretamente teoria, situação e contexto?\nAssunto: Sigilo e compartilhamento ético\nAlternativas: Priorizar Ética na avaliação psicológica: Exige competência, consentimento ou autorização apropriada, métodos fundamentados, respeito à dignidade e comunicação responsável.; Sigilo e compartilhamento ético: Informações psicológicas exigem cuidado com confidencialidade, finalidade, necessidade e limites legais na comunicação.; Priorizar Entrevista de devolução: É momento de comunicar resultados e hipóteses de avaliação com linguagem compreensível, acolhimento e possibilidade de diálogo.; Priorizar Avaliação hospitalar: Considera condições de saúde, adoecimento, contexto assistencial, comunicação com equipe e limites da avaliação em situações clínicas.; Priorizar Atendimento a pessoas trans: A avaliação deve ser não discriminatória, respeitar identidade e nome social e delimitar a demanda sem presumir patologia pela identidade de gênero."
-    },
-    {
-      "id": "final-question-avaliacao-rev-final-20261113-3-7",
-      "type": "questao",
-      "subject": "avaliacao",
-      "semester": "2026/2",
-      "title": "Simulado 3 — questão 7",
-      "examId": "avaliacao-rev-final-20261113-3",
-      "url": "#avaliacao",
-      "text": "Tipo: tf\nEnunciado: Julgue a seguinte afirmação sobre Avaliação forense:\n\nO psicólogo forense deve sempre agir como advogado da parte que o contratou.\nAssunto: Avaliação forense"
-    },
-    {
-      "id": "final-question-avaliacao-rev-final-20261113-3-8",
-      "type": "questao",
-      "subject": "avaliacao",
-      "semester": "2026/2",
-      "title": "Simulado 3 — questão 8",
-      "examId": "avaliacao-rev-final-20261113-3",
-      "url": "#avaliacao",
-      "text": "Tipo: combo\nEnunciado: Analise as afirmações abaixo sobre Resolução CFP 31/2022 e fontes de informação, Entrevista de devolução e Linguagem e comunicação na devolução.\n\nAssinale a alternativa que contém somente as afirmações corretas.\nAssunto: Resolução CFP 31/2022 e fontes de informação\nAssertivas: I. Regulamenta diretrizes para a avaliação psicológica e uso de fontes e testes; o SATEPSI apoia a consulta de instrumentos apropriados.; II. A Resolução 31/2022 revogou a Resolução 06/2019 sobre documentos.; III. É momento de comunicar resultados e hipóteses de avaliação com linguagem compreensível, acolhimento e possibilidade de diálogo.; IV. A devolução consiste somente em entregar o laudo sem conversar sobre os resultados.; V. A comunicação deve ser adequada à pessoa e ao contexto, evitando jargão desnecessário e rótulos estigmatizantes."
-    },
-    {
-      "id": "final-question-avaliacao-rev-final-20261113-3-9",
-      "type": "questao",
-      "subject": "avaliacao",
-      "semester": "2026/2",
-      "title": "Simulado 3 — questão 9",
-      "examId": "avaliacao-rev-final-20261113-3",
-      "url": "#avaliacao",
-      "text": "Tipo: choice\nEnunciado: Situação: Uma escola solicita detalhes íntimos da avaliação sem justificativa de necessidade.\n\nQual alternativa relaciona corretamente teoria, situação e contexto?\nAssunto: Sigilo e compartilhamento ético\nAlternativas: Priorizar Ética na avaliação psicológica: Exige competência, consentimento ou autorização apropriada, métodos fundamentados, respeito à dignidade e comunicação responsável.; Priorizar Entrevista de devolução: É momento de comunicar resultados e hipóteses de avaliação com linguagem compreensível, acolhimento e possibilidade de diálogo.; Priorizar Avaliação hospitalar: Considera condições de saúde, adoecimento, contexto assistencial, comunicação com equipe e limites da avaliação em situações clínicas.; Priorizar Atendimento a pessoas trans: A avaliação deve ser não discriminatória, respeitar identidade e nome social e delimitar a demanda sem presumir patologia pela identidade de gênero.; Sigilo e compartilhamento ético: Informações psicológicas exigem cuidado com confidencialidade, finalidade, necessidade e limites legais na comunicação."
-    },
-    {
-      "id": "final-question-avaliacao-rev-final-20261113-3-10",
-      "type": "questao",
-      "subject": "avaliacao",
-      "semester": "2026/2",
-      "title": "Simulado 3 — questão 10",
-      "examId": "avaliacao-rev-final-20261113-3",
-      "url": "#avaliacao",
-      "text": "Tipo: tf\nEnunciado: Julgue a seguinte afirmação sobre Avaliação forense:\n\nO trabalho psicológico no contexto judicial demanda delimitação da questão pericial, imparcialidade, métodos fundamentados e esclarecimento de limites.\nAssunto: Avaliação forense"
-    },
-    {
-      "id": "final-exam-avaliacao-rev-final-20261113-4",
-      "type": "simulado",
-      "subject": "avaliacao",
-      "semester": "2026/2",
-      "title": "Simulado 4 — revisão final",
-      "examId": "avaliacao-rev-final-20261113-4",
-      "url": "#avaliacao",
-      "text": "Prova pronta 4 de 5: 10 questões variadas (múltipla escolha, verdadeiro/falso e assertivas), seguidas de duas dissertativas. Conteúdo da prova final de 2026/2."
-    },
-    {
-      "id": "final-question-avaliacao-rev-final-20261113-4-1",
-      "type": "questao",
-      "subject": "avaliacao",
-      "semester": "2026/2",
-      "title": "Simulado 4 — questão 1",
-      "examId": "avaliacao-rev-final-20261113-4",
-      "url": "#avaliacao",
-      "text": "Tipo: choice\nEnunciado: Situação: Uma empresa solicita avaliação para seleção e quer receber dados não pertinentes à finalidade.\n\nQual análise profissional evita inferências indevidas nesse caso?\nAssunto: Avaliação no contexto organizacional\nAlternativas: Priorizar Resolução CFP 31/2022 e fontes de informação: Regulamenta diretrizes para a avaliação psicológica e uso de fontes e testes; o SATEPSI apoia a consulta de instrumentos apropriados.; Priorizar Entrevista de devolução: É momento de comunicar resultados e hipóteses de avaliação com linguagem compreensível, acolhimento e possibilidade de diálogo.; Priorizar Linguagem e comunicação na devolução: A comunicação deve ser adequada à pessoa e ao contexto, evitando jargão desnecessário e rótulos estigmatizantes.; Avaliação no contexto organizacional: A avaliação em organizações requer definição de demanda, métodos adequados, ética, comunicação responsável e atenção ao contexto de trabalho.; Priorizar Sigilo e compartilhamento ético: Informações psicológicas exigem cuidado com confidencialidade, finalidade, necessidade e limites legais na comunicação."
-    },
-    {
-      "id": "final-question-avaliacao-rev-final-20261113-4-2",
-      "type": "questao",
-      "subject": "avaliacao",
-      "semester": "2026/2",
-      "title": "Simulado 4 — questão 2",
-      "examId": "avaliacao-rev-final-20261113-4",
-      "url": "#avaliacao",
-      "text": "Tipo: choice\nEnunciado: Situação: Uma pessoa trans busca avaliação por ansiedade relacionada ao trabalho.\n\nQual análise profissional evita inferências indevidas nesse caso?\nAssunto: Atendimento a pessoas trans\nAlternativas: Priorizar Sigilo e compartilhamento ético: Informações psicológicas exigem cuidado com confidencialidade, finalidade, necessidade e limites legais na comunicação.; Priorizar Avaliação no contexto organizacional: A avaliação em organizações requer definição de demanda, métodos adequados, ética, comunicação responsável e atenção ao contexto de trabalho.; Priorizar Avaliação hospitalar: Considera condições de saúde, adoecimento, contexto assistencial, comunicação com equipe e limites da avaliação em situações clínicas.; Priorizar Avaliação forense: O trabalho psicológico no contexto judicial demanda delimitação da questão pericial, imparcialidade, métodos fundamentados e esclarecimento de limites.; Atendimento a pessoas trans: A avaliação deve ser não discriminatória, respeitar identidade e nome social e delimitar a demanda sem presumir patologia pela identidade de gênero."
-    },
-    {
-      "id": "final-question-avaliacao-rev-final-20261113-4-3",
-      "type": "questao",
-      "subject": "avaliacao",
-      "semester": "2026/2",
-      "title": "Simulado 4 — questão 3",
-      "examId": "avaliacao-rev-final-20261113-4",
-      "url": "#avaliacao",
-      "text": "Tipo: combo\nEnunciado: Analise as afirmações abaixo sobre Entrevista de devolução, Linguagem e comunicação na devolução e Sigilo e compartilhamento ético.\n\nAssinale a alternativa que contém somente as afirmações corretas.\nAssunto: Entrevista de devolução\nAssertivas: I. A devolução consiste somente em entregar o laudo sem conversar sobre os resultados.; II. A comunicação deve ser adequada à pessoa e ao contexto, evitando jargão desnecessário e rótulos estigmatizantes.; III. Uma devolução é melhor quanto mais incompreensíveis forem os termos técnicos utilizados.; IV. Informações psicológicas exigem cuidado com confidencialidade, finalidade, necessidade e limites legais na comunicação.; V. É momento de comunicar resultados e hipóteses de avaliação com linguagem compreensível, acolhimento e possibilidade de diálogo."
-    },
-    {
-      "id": "final-question-avaliacao-rev-final-20261113-4-4",
-      "type": "questao",
-      "subject": "avaliacao",
-      "semester": "2026/2",
-      "title": "Simulado 4 — questão 4",
-      "examId": "avaliacao-rev-final-20261113-4",
-      "url": "#avaliacao",
-      "text": "Tipo: tf\nEnunciado: Julgue a seguinte afirmação sobre Avaliação no contexto organizacional:\n\nO psicólogo pode revelar todas as respostas pessoais de um avaliado à empresa sem ponderar sigilo.\nAssunto: Avaliação no contexto organizacional"
-    },
-    {
-      "id": "final-question-avaliacao-rev-final-20261113-4-5",
-      "type": "questao",
-      "subject": "avaliacao",
-      "semester": "2026/2",
-      "title": "Simulado 4 — questão 5",
-      "examId": "avaliacao-rev-final-20261113-4",
-      "url": "#avaliacao",
-      "text": "Tipo: choice\nEnunciado: Situação: Uma pessoa trans busca avaliação por ansiedade relacionada ao trabalho.\n\nQual análise profissional evita inferências indevidas nesse caso?\nAssunto: Atendimento a pessoas trans\nAlternativas: Priorizar Sigilo e compartilhamento ético: Informações psicológicas exigem cuidado com confidencialidade, finalidade, necessidade e limites legais na comunicação.; Priorizar Avaliação no contexto organizacional: A avaliação em organizações requer definição de demanda, métodos adequados, ética, comunicação responsável e atenção ao contexto de trabalho.; Atendimento a pessoas trans: A avaliação deve ser não discriminatória, respeitar identidade e nome social e delimitar a demanda sem presumir patologia pela identidade de gênero.; Priorizar Avaliação hospitalar: Considera condições de saúde, adoecimento, contexto assistencial, comunicação com equipe e limites da avaliação em situações clínicas.; Priorizar Avaliação forense: O trabalho psicológico no contexto judicial demanda delimitação da questão pericial, imparcialidade, métodos fundamentados e esclarecimento de limites."
-    },
-    {
-      "id": "final-question-avaliacao-rev-final-20261113-4-6",
-      "type": "questao",
-      "subject": "avaliacao",
-      "semester": "2026/2",
-      "title": "Simulado 4 — questão 6",
-      "examId": "avaliacao-rev-final-20261113-4",
-      "url": "#avaliacao",
-      "text": "Tipo: choice\nEnunciado: Situação: Uma psicóloga explica conclusões técnicas e verifica se a pessoa compreendeu as recomendações.\n\nQual análise profissional evita inferências indevidas nesse caso?\nAssunto: Entrevista de devolução\nAlternativas: Priorizar Avaliação forense: O trabalho psicológico no contexto judicial demanda delimitação da questão pericial, imparcialidade, métodos fundamentados e esclarecimento de limites.; Priorizar Atendimento a pessoas trans: A avaliação deve ser não discriminatória, respeitar identidade e nome social e delimitar a demanda sem presumir patologia pela identidade de gênero.; Priorizar Ética na avaliação psicológica: Exige competência, consentimento ou autorização apropriada, métodos fundamentados, respeito à dignidade e comunicação responsável.; Entrevista de devolução: É momento de comunicar resultados e hipóteses de avaliação com linguagem compreensível, acolhimento e possibilidade de diálogo.; Priorizar Resolução CFP 31/2022 e fontes de informação: Regulamenta diretrizes para a avaliação psicológica e uso de fontes e testes; o SATEPSI apoia a consulta de instrumentos apropriados."
-    },
-    {
-      "id": "final-question-avaliacao-rev-final-20261113-4-7",
-      "type": "questao",
-      "subject": "avaliacao",
-      "semester": "2026/2",
-      "title": "Simulado 4 — questão 7",
-      "examId": "avaliacao-rev-final-20261113-4",
-      "url": "#avaliacao",
-      "text": "Tipo: tf\nEnunciado: Julgue a seguinte afirmação sobre Avaliação no contexto organizacional:\n\nA avaliação em organizações requer definição de demanda, métodos adequados, ética, comunicação responsável e atenção ao contexto de trabalho.\nAssunto: Avaliação no contexto organizacional"
-    },
-    {
-      "id": "final-question-avaliacao-rev-final-20261113-4-8",
-      "type": "questao",
-      "subject": "avaliacao",
-      "semester": "2026/2",
-      "title": "Simulado 4 — questão 8",
-      "examId": "avaliacao-rev-final-20261113-4",
-      "url": "#avaliacao",
-      "text": "Tipo: combo\nEnunciado: Analise as afirmações abaixo sobre Atendimento a pessoas trans, Ética na avaliação psicológica e Resolução CFP 31/2022 e fontes de informação.\n\nAssinale a alternativa que contém somente as afirmações corretas.\nAssunto: Atendimento a pessoas trans\nAssertivas: I. A identidade trans, isoladamente, é diagnóstico de transtorno mental.; II. Exige competência, consentimento ou autorização apropriada, métodos fundamentados, respeito à dignidade e comunicação responsável.; III. Estar diante de uma demanda urgente autoriza aplicar qualquer instrumento sem formação.; IV. Regulamenta diretrizes para a avaliação psicológica e uso de fontes e testes; o SATEPSI apoia a consulta de instrumentos apropriados.; V. A avaliação deve ser não discriminatória, respeitar identidade e nome social e delimitar a demanda sem presumir patologia pela identidade de gênero."
-    },
-    {
-      "id": "final-question-avaliacao-rev-final-20261113-4-9",
-      "type": "questao",
-      "subject": "avaliacao",
-      "semester": "2026/2",
-      "title": "Simulado 4 — questão 9",
-      "examId": "avaliacao-rev-final-20261113-4",
-      "url": "#avaliacao",
-      "text": "Tipo: choice\nEnunciado: Situação: Uma psicóloga explica conclusões técnicas e verifica se a pessoa compreendeu as recomendações.\n\nQual análise profissional evita inferências indevidas nesse caso?\nAssunto: Entrevista de devolução\nAlternativas: Priorizar Avaliação forense: O trabalho psicológico no contexto judicial demanda delimitação da questão pericial, imparcialidade, métodos fundamentados e esclarecimento de limites.; Entrevista de devolução: É momento de comunicar resultados e hipóteses de avaliação com linguagem compreensível, acolhimento e possibilidade de diálogo.; Priorizar Atendimento a pessoas trans: A avaliação deve ser não discriminatória, respeitar identidade e nome social e delimitar a demanda sem presumir patologia pela identidade de gênero.; Priorizar Ética na avaliação psicológica: Exige competência, consentimento ou autorização apropriada, métodos fundamentados, respeito à dignidade e comunicação responsável.; Priorizar Resolução CFP 31/2022 e fontes de informação: Regulamenta diretrizes para a avaliação psicológica e uso de fontes e testes; o SATEPSI apoia a consulta de instrumentos apropriados."
-    },
-    {
-      "id": "final-question-avaliacao-rev-final-20261113-4-10",
-      "type": "questao",
-      "subject": "avaliacao",
-      "semester": "2026/2",
-      "title": "Simulado 4 — questão 10",
-      "examId": "avaliacao-rev-final-20261113-4",
-      "url": "#avaliacao",
-      "text": "Tipo: tf\nEnunciado: Julgue a seguinte afirmação sobre Avaliação no contexto organizacional:\n\nO psicólogo pode revelar todas as respostas pessoais de um avaliado à empresa sem ponderar sigilo.\nAssunto: Avaliação no contexto organizacional"
-    },
-    {
-      "id": "final-exam-avaliacao-rev-final-20261113-5",
-      "type": "simulado",
-      "subject": "avaliacao",
-      "semester": "2026/2",
-      "title": "Simulado 5 — revisão final",
-      "examId": "avaliacao-rev-final-20261113-5",
-      "url": "#avaliacao",
-      "text": "Prova pronta 5 de 5: 10 questões variadas (múltipla escolha, verdadeiro/falso e assertivas), seguidas de duas dissertativas. Conteúdo da prova final de 2026/2."
-    },
-    {
-      "id": "final-question-avaliacao-rev-final-20261113-5-1",
-      "type": "questao",
-      "subject": "avaliacao",
-      "semester": "2026/2",
-      "title": "Simulado 5 — questão 1",
-      "examId": "avaliacao-rev-final-20261113-5",
-      "url": "#avaliacao",
-      "text": "Tipo: choice\nEnunciado: Situação: A profissional adapta sua explicação para responsáveis e para uma criança avaliada.\n\nQual formulação integra melhor conceito, aplicação e limites da conclusão?\nAssunto: Linguagem e comunicação na devolução\nAlternativas: Linguagem e comunicação na devolução: A comunicação deve ser adequada à pessoa e ao contexto, evitando jargão desnecessário e rótulos estigmatizantes.; Priorizar Resolução CFP 31/2022 e fontes de informação: Regulamenta diretrizes para a avaliação psicológica e uso de fontes e testes; o SATEPSI apoia a consulta de instrumentos apropriados.; Priorizar Avaliação no contexto organizacional: A avaliação em organizações requer definição de demanda, métodos adequados, ética, comunicação responsável e atenção ao contexto de trabalho.; Priorizar Avaliação forense: O trabalho psicológico no contexto judicial demanda delimitação da questão pericial, imparcialidade, métodos fundamentados e esclarecimento de limites.; Priorizar Ética na avaliação psicológica: Exige competência, consentimento ou autorização apropriada, métodos fundamentados, respeito à dignidade e comunicação responsável."
-    },
-    {
-      "id": "final-question-avaliacao-rev-final-20261113-5-2",
-      "type": "questao",
-      "subject": "avaliacao",
-      "semester": "2026/2",
-      "title": "Simulado 5 — questão 2",
-      "examId": "avaliacao-rev-final-20261113-5",
-      "url": "#avaliacao",
-      "text": "Tipo: choice\nEnunciado: Situação: Uma pessoa internada e seus familiares precisam de avaliação adaptada ao estado de saúde.\n\nQual formulação integra melhor conceito, aplicação e limites da conclusão?\nAssunto: Avaliação hospitalar\nAlternativas: Priorizar Sigilo e compartilhamento ético: Informações psicológicas exigem cuidado com confidencialidade, finalidade, necessidade e limites legais na comunicação.; Avaliação hospitalar: Considera condições de saúde, adoecimento, contexto assistencial, comunicação com equipe e limites da avaliação em situações clínicas.; Priorizar Atendimento a pessoas trans: A avaliação deve ser não discriminatória, respeitar identidade e nome social e delimitar a demanda sem presumir patologia pela identidade de gênero.; Priorizar Resolução CFP 31/2022 e fontes de informação: Regulamenta diretrizes para a avaliação psicológica e uso de fontes e testes; o SATEPSI apoia a consulta de instrumentos apropriados.; Priorizar Linguagem e comunicação na devolução: A comunicação deve ser adequada à pessoa e ao contexto, evitando jargão desnecessário e rótulos estigmatizantes."
-    },
-    {
-      "id": "final-question-avaliacao-rev-final-20261113-5-3",
-      "type": "questao",
-      "subject": "avaliacao",
-      "semester": "2026/2",
-      "title": "Simulado 5 — questão 3",
-      "examId": "avaliacao-rev-final-20261113-5",
-      "url": "#avaliacao",
-      "text": "Tipo: combo\nEnunciado: Analise as afirmações abaixo sobre Ética na avaliação psicológica, Resolução CFP 31/2022 e fontes de informação e Entrevista de devolução.\n\nAssinale a alternativa que contém somente as afirmações corretas.\nAssunto: Ética na avaliação psicológica\nAssertivas: I. Regulamenta diretrizes para a avaliação psicológica e uso de fontes e testes; o SATEPSI apoia a consulta de instrumentos apropriados.; II. A Resolução 31/2022 revogou a Resolução 06/2019 sobre documentos.; III. É momento de comunicar resultados e hipóteses de avaliação com linguagem compreensível, acolhimento e possibilidade de diálogo.; IV. Exige competência, consentimento ou autorização apropriada, métodos fundamentados, respeito à dignidade e comunicação responsável.; V. Estar diante de uma demanda urgente autoriza aplicar qualquer instrumento sem formação."
-    },
-    {
-      "id": "final-question-avaliacao-rev-final-20261113-5-4",
-      "type": "questao",
-      "subject": "avaliacao",
-      "semester": "2026/2",
-      "title": "Simulado 5 — questão 4",
-      "examId": "avaliacao-rev-final-20261113-5",
-      "url": "#avaliacao",
-      "text": "Tipo: tf\nEnunciado: Julgue a seguinte afirmação sobre Linguagem e comunicação na devolução:\n\nA comunicação deve ser adequada à pessoa e ao contexto, evitando jargão desnecessário e rótulos estigmatizantes.\nAssunto: Linguagem e comunicação na devolução"
-    },
-    {
-      "id": "final-question-avaliacao-rev-final-20261113-5-5",
-      "type": "questao",
-      "subject": "avaliacao",
-      "semester": "2026/2",
-      "title": "Simulado 5 — questão 5",
-      "examId": "avaliacao-rev-final-20261113-5",
-      "url": "#avaliacao",
-      "text": "Tipo: choice\nEnunciado: Situação: Uma pessoa internada e seus familiares precisam de avaliação adaptada ao estado de saúde.\n\nQual formulação integra melhor conceito, aplicação e limites da conclusão?\nAssunto: Avaliação hospitalar\nAlternativas: Priorizar Sigilo e compartilhamento ético: Informações psicológicas exigem cuidado com confidencialidade, finalidade, necessidade e limites legais na comunicação.; Priorizar Atendimento a pessoas trans: A avaliação deve ser não discriminatória, respeitar identidade e nome social e delimitar a demanda sem presumir patologia pela identidade de gênero.; Priorizar Resolução CFP 31/2022 e fontes de informação: Regulamenta diretrizes para a avaliação psicológica e uso de fontes e testes; o SATEPSI apoia a consulta de instrumentos apropriados.; Priorizar Linguagem e comunicação na devolução: A comunicação deve ser adequada à pessoa e ao contexto, evitando jargão desnecessário e rótulos estigmatizantes.; Avaliação hospitalar: Considera condições de saúde, adoecimento, contexto assistencial, comunicação com equipe e limites da avaliação em situações clínicas."
-    },
-    {
-      "id": "final-question-avaliacao-rev-final-20261113-5-6",
-      "type": "questao",
-      "subject": "avaliacao",
-      "semester": "2026/2",
-      "title": "Simulado 5 — questão 6",
-      "examId": "avaliacao-rev-final-20261113-5",
-      "url": "#avaliacao",
-      "text": "Tipo: choice\nEnunciado: Situação: Uma profissional considera aplicar teste para o qual não tem preparo e que não responde à demanda.\n\nQual formulação integra melhor conceito, aplicação e limites da conclusão?\nAssunto: Ética na avaliação psicológica\nAlternativas: Ética na avaliação psicológica: Exige competência, consentimento ou autorização apropriada, métodos fundamentados, respeito à dignidade e comunicação responsável.; Priorizar Avaliação forense: O trabalho psicológico no contexto judicial demanda delimitação da questão pericial, imparcialidade, métodos fundamentados e esclarecimento de limites.; Priorizar Entrevista de devolução: É momento de comunicar resultados e hipóteses de avaliação com linguagem compreensível, acolhimento e possibilidade de diálogo.; Priorizar Sigilo e compartilhamento ético: Informações psicológicas exigem cuidado com confidencialidade, finalidade, necessidade e limites legais na comunicação.; Priorizar Avaliação hospitalar: Considera condições de saúde, adoecimento, contexto assistencial, comunicação com equipe e limites da avaliação em situações clínicas."
-    },
-    {
-      "id": "final-question-avaliacao-rev-final-20261113-5-7",
-      "type": "questao",
-      "subject": "avaliacao",
-      "semester": "2026/2",
-      "title": "Simulado 5 — questão 7",
-      "examId": "avaliacao-rev-final-20261113-5",
-      "url": "#avaliacao",
-      "text": "Tipo: tf\nEnunciado: Julgue a seguinte afirmação sobre Linguagem e comunicação na devolução:\n\nUma devolução é melhor quanto mais incompreensíveis forem os termos técnicos utilizados.\nAssunto: Linguagem e comunicação na devolução"
-    },
-    {
-      "id": "final-question-avaliacao-rev-final-20261113-5-8",
-      "type": "questao",
-      "subject": "avaliacao",
-      "semester": "2026/2",
-      "title": "Simulado 5 — questão 8",
-      "examId": "avaliacao-rev-final-20261113-5",
-      "url": "#avaliacao",
-      "text": "Tipo: combo\nEnunciado: Analise as afirmações abaixo sobre Avaliação hospitalar, Avaliação forense e Atendimento a pessoas trans.\n\nAssinale a alternativa que contém somente as afirmações corretas.\nAssunto: Avaliação hospitalar\nAssertivas: I. O trabalho psicológico no contexto judicial demanda delimitação da questão pericial, imparcialidade, métodos fundamentados e esclarecimento de limites.; II. O psicólogo forense deve sempre agir como advogado da parte que o contratou.; III. A avaliação deve ser não discriminatória, respeitar identidade e nome social e delimitar a demanda sem presumir patologia pela identidade de gênero.; IV. Considera condições de saúde, adoecimento, contexto assistencial, comunicação com equipe e limites da avaliação em situações clínicas.; V. É correto ignorar fadiga, dor e contexto clínico ao interpretar o desempenho em testes."
-    },
-    {
-      "id": "final-question-avaliacao-rev-final-20261113-5-9",
-      "type": "questao",
-      "subject": "avaliacao",
-      "semester": "2026/2",
-      "title": "Simulado 5 — questão 9",
-      "examId": "avaliacao-rev-final-20261113-5",
-      "url": "#avaliacao",
-      "text": "Tipo: choice\nEnunciado: Situação: Uma profissional considera aplicar teste para o qual não tem preparo e que não responde à demanda.\n\nQual formulação integra melhor conceito, aplicação e limites da conclusão?\nAssunto: Ética na avaliação psicológica\nAlternativas: Priorizar Avaliação forense: O trabalho psicológico no contexto judicial demanda delimitação da questão pericial, imparcialidade, métodos fundamentados e esclarecimento de limites.; Priorizar Entrevista de devolução: É momento de comunicar resultados e hipóteses de avaliação com linguagem compreensível, acolhimento e possibilidade de diálogo.; Priorizar Sigilo e compartilhamento ético: Informações psicológicas exigem cuidado com confidencialidade, finalidade, necessidade e limites legais na comunicação.; Ética na avaliação psicológica: Exige competência, consentimento ou autorização apropriada, métodos fundamentados, respeito à dignidade e comunicação responsável.; Priorizar Avaliação hospitalar: Considera condições de saúde, adoecimento, contexto assistencial, comunicação com equipe e limites da avaliação em situações clínicas."
-    },
-    {
-      "id": "final-question-avaliacao-rev-final-20261113-5-10",
-      "type": "questao",
-      "subject": "avaliacao",
-      "semester": "2026/2",
-      "title": "Simulado 5 — questão 10",
-      "examId": "avaliacao-rev-final-20261113-5",
-      "url": "#avaliacao",
-      "text": "Tipo: tf\nEnunciado: Julgue a seguinte afirmação sobre Linguagem e comunicação na devolução:\n\nA comunicação deve ser adequada à pessoa e ao contexto, evitando jargão desnecessário e rótulos estigmatizantes.\nAssunto: Linguagem e comunicação na devolução"
-    },
-    {
       "id": "final-material-avaliacao-1",
       "type": "material",
       "subject": "avaliacao",
@@ -5728,6 +5088,676 @@
       "available": true,
       "resourceKey": "avaliacao::Validade e Precisão — slides",
       "text": "Material cadastrado no PsicoMoodle: Validade e Precisão — slides. Arquivo: Validade e Precisão de Testes Psicológicos - slides sem anotações.pdf. Consulte o documento integral em Materiais e textos."
+    },
+    {
+      "id": "final-topic-avaliacao-1",
+      "type": "topico",
+      "subject": "avaliacao",
+      "semester": "2026/2",
+      "title": "Entrevista de devolução",
+      "topicIndex": 0,
+      "url": "#avaliacao",
+      "text": "É momento de comunicar resultados e hipóteses de avaliação com linguagem compreensível, acolhimento e possibilidade de diálogo.\nExemplo: Uma psicóloga explica conclusões técnicas e verifica se a pessoa compreendeu as recomendações.\nEquívoco a evitar: A devolução consiste somente em entregar o laudo sem conversar sobre os resultados."
+    },
+    {
+      "id": "final-topic-avaliacao-2",
+      "type": "topico",
+      "subject": "avaliacao",
+      "semester": "2026/2",
+      "title": "Linguagem e comunicação na devolução",
+      "topicIndex": 1,
+      "url": "#avaliacao",
+      "text": "A comunicação deve ser adequada à pessoa e ao contexto, evitando jargão desnecessário e rótulos estigmatizantes.\nExemplo: A profissional adapta sua explicação para responsáveis e para uma criança avaliada.\nEquívoco a evitar: Uma devolução é melhor quanto mais incompreensíveis forem os termos técnicos utilizados."
+    },
+    {
+      "id": "final-topic-avaliacao-3",
+      "type": "topico",
+      "subject": "avaliacao",
+      "semester": "2026/2",
+      "title": "Sigilo e compartilhamento ético",
+      "topicIndex": 2,
+      "url": "#avaliacao",
+      "text": "Informações psicológicas exigem cuidado com confidencialidade, finalidade, necessidade e limites legais na comunicação.\nExemplo: Uma escola solicita detalhes íntimos da avaliação sem justificativa de necessidade.\nEquívoco a evitar: Todo resultado pode ser divulgado a qualquer pessoa que demonstre curiosidade."
+    },
+    {
+      "id": "final-topic-avaliacao-4",
+      "type": "topico",
+      "subject": "avaliacao",
+      "semester": "2026/2",
+      "title": "Avaliação no contexto organizacional",
+      "topicIndex": 3,
+      "url": "#avaliacao",
+      "text": "A avaliação em organizações requer definição de demanda, métodos adequados, ética, comunicação responsável e atenção ao contexto de trabalho.\nExemplo: Uma empresa solicita avaliação para seleção e quer receber dados não pertinentes à finalidade.\nEquívoco a evitar: O psicólogo pode revelar todas as respostas pessoais de um avaliado à empresa sem ponderar sigilo."
+    },
+    {
+      "id": "final-topic-avaliacao-5",
+      "type": "topico",
+      "subject": "avaliacao",
+      "semester": "2026/2",
+      "title": "Avaliação hospitalar",
+      "topicIndex": 4,
+      "url": "#avaliacao",
+      "text": "Considera condições de saúde, adoecimento, contexto assistencial, comunicação com equipe e limites da avaliação em situações clínicas.\nExemplo: Uma pessoa internada e seus familiares precisam de avaliação adaptada ao estado de saúde.\nEquívoco a evitar: É correto ignorar fadiga, dor e contexto clínico ao interpretar o desempenho em testes."
+    },
+    {
+      "id": "final-topic-avaliacao-6",
+      "type": "topico",
+      "subject": "avaliacao",
+      "semester": "2026/2",
+      "title": "Avaliação forense",
+      "topicIndex": 5,
+      "url": "#avaliacao",
+      "text": "O trabalho psicológico no contexto judicial demanda delimitação da questão pericial, imparcialidade, métodos fundamentados e esclarecimento de limites.\nExemplo: O Judiciário solicita um parecer técnico sobre quesito específico envolvendo uma família.\nEquívoco a evitar: O psicólogo forense deve sempre agir como advogado da parte que o contratou."
+    },
+    {
+      "id": "final-topic-avaliacao-7",
+      "type": "topico",
+      "subject": "avaliacao",
+      "semester": "2026/2",
+      "title": "Atendimento a pessoas trans",
+      "topicIndex": 6,
+      "url": "#avaliacao",
+      "text": "A avaliação deve ser não discriminatória, respeitar identidade e nome social e delimitar a demanda sem presumir patologia pela identidade de gênero.\nExemplo: Uma pessoa trans busca avaliação por ansiedade relacionada ao trabalho.\nEquívoco a evitar: A identidade trans, isoladamente, é diagnóstico de transtorno mental."
+    },
+    {
+      "id": "final-topic-avaliacao-8",
+      "type": "topico",
+      "subject": "avaliacao",
+      "semester": "2026/2",
+      "title": "Ética na avaliação psicológica",
+      "topicIndex": 7,
+      "url": "#avaliacao",
+      "text": "Exige competência, consentimento ou autorização apropriada, métodos fundamentados, respeito à dignidade e comunicação responsável.\nExemplo: Uma profissional considera aplicar teste para o qual não tem preparo e que não responde à demanda.\nEquívoco a evitar: Estar diante de uma demanda urgente autoriza aplicar qualquer instrumento sem formação."
+    },
+    {
+      "id": "final-topic-avaliacao-9",
+      "type": "topico",
+      "subject": "avaliacao",
+      "semester": "2026/2",
+      "title": "Resolução CFP 31/2022 e fontes de informação",
+      "topicIndex": 8,
+      "url": "#avaliacao",
+      "text": "Regulamenta diretrizes para a avaliação psicológica e uso de fontes e testes; o SATEPSI apoia a consulta de instrumentos apropriados.\nExemplo: Um psicólogo precisa selecionar fontes adequadas antes de concluir uma avaliação.\nEquívoco a evitar: A Resolução 31/2022 revogou a Resolução 06/2019 sobre documentos."
+    },
+    {
+      "id": "final-topic-avaliacao-10",
+      "type": "topico",
+      "subject": "avaliacao",
+      "semester": "2026/2",
+      "title": "Resolução CFP 06/2019 e documentos",
+      "topicIndex": 9,
+      "url": "#avaliacao",
+      "text": "Regulamenta a elaboração de documentos escritos produzidos por psicólogas e psicólogos, incluindo declaração, atestado, relatório, laudo e parecer.\nExemplo: Ao concluir avaliação, a psicóloga precisa distinguir laudo de relatório e parecer.\nEquívoco a evitar: Declaração de comparecimento pode incluir livremente diagnósticos detalhados."
+    },
+    {
+      "id": "final-topic-avaliacao-11",
+      "type": "topico",
+      "subject": "avaliacao",
+      "semester": "2026/2",
+      "title": "Laudo e parecer",
+      "topicIndex": 10,
+      "url": "#avaliacao",
+      "text": "O laudo decorre de processo de avaliação psicológica; o parecer responde a questão-problema técnica, podendo analisar documento sem nova avaliação da pessoa.\nExemplo: Uma instituição pede análise técnica fundamentada sobre um laudo já produzido.\nEquívoco a evitar: Parecer e laudo são nomes intercambiáveis para o mesmo tipo de documento."
+    },
+    {
+      "id": "final-topic-avaliacao-12",
+      "type": "topico",
+      "subject": "avaliacao",
+      "semester": "2026/2",
+      "title": "Bateria e escolha de instrumentos",
+      "topicIndex": 11,
+      "url": "#avaliacao",
+      "text": "Uma bateria é um conjunto planejado de instrumentos que deve ser coerente com demanda, características da pessoa e evidências dos instrumentos.\nExemplo: Uma avaliação cognitiva combina fontes e métodos para responder à demanda.\nEquívoco a evitar: Quanto maior a quantidade de testes, melhor será qualquer avaliação independentemente da demanda."
+    },
+    {
+      "id": "final-exam-avaliacao-rev-final-20261113-1",
+      "type": "simulado",
+      "subject": "avaliacao",
+      "semester": "2026/2",
+      "title": "Simulado 1 — revisão final",
+      "examId": "avaliacao-rev-final-20261113-1",
+      "url": "#avaliacao",
+      "text": "Prova pronta 1 de 5: 10 questões variadas e duas dissertativas, cobrindo os tópicos de avaliação."
+    },
+    {
+      "id": "final-question-avaliacao-rev-final-20261113-1-1",
+      "type": "questao",
+      "subject": "avaliacao",
+      "semester": "2026/2",
+      "title": "Simulado 1 — questão 1",
+      "examId": "avaliacao-rev-final-20261113-1",
+      "url": "#avaliacao",
+      "text": "Tipo: choice\nEnunciado: Situação: Uma psicóloga explica conclusões técnicas e verifica se a pessoa compreendeu as recomendações.\n\nQual interpretação é mais coerente com o material da disciplina?\nAssunto: Entrevista de devolução\nAlternativas: Priorizar Avaliação no contexto organizacional: A avaliação em organizações requer definição de demanda, métodos adequados, ética, comunicação responsável e atenção ao contexto de trabalho.; Priorizar Avaliação forense: O trabalho psicológico no contexto judicial demanda delimitação da questão pericial, imparcialidade, métodos fundamentados e esclarecimento de limites.; Entrevista de devolução: É momento de comunicar resultados e hipóteses de avaliação com linguagem compreensível, acolhimento e possibilidade de diálogo.; Priorizar Ética na avaliação psicológica: Exige competência, consentimento ou autorização apropriada, métodos fundamentados, respeito à dignidade e comunicação responsável.; Priorizar Resolução CFP 06/2019 e documentos: Regulamenta a elaboração de documentos escritos produzidos por psicólogas e psicólogos, incluindo declaração, atestado, relatório, laudo e parecer."
+    },
+    {
+      "id": "final-question-avaliacao-rev-final-20261113-1-2",
+      "type": "questao",
+      "subject": "avaliacao",
+      "semester": "2026/2",
+      "title": "Simulado 1 — questão 2",
+      "examId": "avaliacao-rev-final-20261113-1",
+      "url": "#avaliacao",
+      "text": "Tipo: choice\nEnunciado: Situação: Uma empresa solicita avaliação para seleção e quer receber dados não pertinentes à finalidade.\n\nQual interpretação é mais coerente com o material da disciplina?\nAssunto: Avaliação no contexto organizacional\nAlternativas: Priorizar Atendimento a pessoas trans: A avaliação deve ser não discriminatória, respeitar identidade e nome social e delimitar a demanda sem presumir patologia pela identidade de gênero.; Priorizar Resolução CFP 31/2022 e fontes de informação: Regulamenta diretrizes para a avaliação psicológica e uso de fontes e testes; o SATEPSI apoia a consulta de instrumentos apropriados.; Priorizar Laudo e parecer: O laudo decorre de processo de avaliação psicológica; o parecer responde a questão-problema técnica, podendo analisar documento sem nova avaliação da pessoa.; Avaliação no contexto organizacional: A avaliação em organizações requer definição de demanda, métodos adequados, ética, comunicação responsável e atenção ao contexto de trabalho.; Priorizar Entrevista de devolução: É momento de comunicar resultados e hipóteses de avaliação com linguagem compreensível, acolhimento e possibilidade de diálogo."
+    },
+    {
+      "id": "final-question-avaliacao-rev-final-20261113-1-3",
+      "type": "questao",
+      "subject": "avaliacao",
+      "semester": "2026/2",
+      "title": "Simulado 1 — questão 3",
+      "examId": "avaliacao-rev-final-20261113-1",
+      "url": "#avaliacao",
+      "text": "Tipo: combo\nEnunciado: Analise as afirmações abaixo sobre Atendimento a pessoas trans, Ética na avaliação psicológica e Resolução CFP 31/2022 e fontes de informação.\n\nAssinale a alternativa que contém somente as afirmações corretas.\nAssunto: Atendimento a pessoas trans\nAssertivas: I. Estar diante de uma demanda urgente autoriza aplicar qualquer instrumento sem formação.; II. Regulamenta diretrizes para a avaliação psicológica e uso de fontes e testes; o SATEPSI apoia a consulta de instrumentos apropriados.; III. A avaliação deve ser não discriminatória, respeitar identidade e nome social e delimitar a demanda sem presumir patologia pela identidade de gênero.; IV. A identidade trans, isoladamente, é diagnóstico de transtorno mental.; V. Exige competência, consentimento ou autorização apropriada, métodos fundamentados, respeito à dignidade e comunicação responsável."
+    },
+    {
+      "id": "final-question-avaliacao-rev-final-20261113-1-4",
+      "type": "questao",
+      "subject": "avaliacao",
+      "semester": "2026/2",
+      "title": "Simulado 1 — questão 4",
+      "examId": "avaliacao-rev-final-20261113-1",
+      "url": "#avaliacao",
+      "text": "Tipo: tf\nEnunciado: Julgue a seguinte afirmação sobre Resolução CFP 06/2019 e documentos:\n\nRegulamenta a elaboração de documentos escritos produzidos por psicólogas e psicólogos, incluindo declaração, atestado, relatório, laudo e parecer.\nAssunto: Resolução CFP 06/2019 e documentos"
+    },
+    {
+      "id": "final-question-avaliacao-rev-final-20261113-1-5",
+      "type": "questao",
+      "subject": "avaliacao",
+      "semester": "2026/2",
+      "title": "Simulado 1 — questão 5",
+      "examId": "avaliacao-rev-final-20261113-1",
+      "url": "#avaliacao",
+      "text": "Tipo: choice\nEnunciado: Situação: Uma psicóloga explica conclusões técnicas e verifica se a pessoa compreendeu as recomendações.\n\nQual interpretação é mais coerente com o material da disciplina?\nAssunto: Entrevista de devolução\nAlternativas: Priorizar Avaliação no contexto organizacional: A avaliação em organizações requer definição de demanda, métodos adequados, ética, comunicação responsável e atenção ao contexto de trabalho.; Entrevista de devolução: É momento de comunicar resultados e hipóteses de avaliação com linguagem compreensível, acolhimento e possibilidade de diálogo.; Priorizar Avaliação forense: O trabalho psicológico no contexto judicial demanda delimitação da questão pericial, imparcialidade, métodos fundamentados e esclarecimento de limites.; Priorizar Ética na avaliação psicológica: Exige competência, consentimento ou autorização apropriada, métodos fundamentados, respeito à dignidade e comunicação responsável.; Priorizar Resolução CFP 06/2019 e documentos: Regulamenta a elaboração de documentos escritos produzidos por psicólogas e psicólogos, incluindo declaração, atestado, relatório, laudo e parecer."
+    },
+    {
+      "id": "final-question-avaliacao-rev-final-20261113-1-6",
+      "type": "questao",
+      "subject": "avaliacao",
+      "semester": "2026/2",
+      "title": "Simulado 1 — questão 6",
+      "examId": "avaliacao-rev-final-20261113-1",
+      "url": "#avaliacao",
+      "text": "Tipo: choice\nEnunciado: Situação: Uma empresa solicita avaliação para seleção e quer receber dados não pertinentes à finalidade.\n\nQual interpretação é mais coerente com o material da disciplina?\nAssunto: Avaliação no contexto organizacional\nAlternativas: Priorizar Atendimento a pessoas trans: A avaliação deve ser não discriminatória, respeitar identidade e nome social e delimitar a demanda sem presumir patologia pela identidade de gênero.; Priorizar Resolução CFP 31/2022 e fontes de informação: Regulamenta diretrizes para a avaliação psicológica e uso de fontes e testes; o SATEPSI apoia a consulta de instrumentos apropriados.; Avaliação no contexto organizacional: A avaliação em organizações requer definição de demanda, métodos adequados, ética, comunicação responsável e atenção ao contexto de trabalho.; Priorizar Laudo e parecer: O laudo decorre de processo de avaliação psicológica; o parecer responde a questão-problema técnica, podendo analisar documento sem nova avaliação da pessoa.; Priorizar Entrevista de devolução: É momento de comunicar resultados e hipóteses de avaliação com linguagem compreensível, acolhimento e possibilidade de diálogo."
+    },
+    {
+      "id": "final-question-avaliacao-rev-final-20261113-1-7",
+      "type": "questao",
+      "subject": "avaliacao",
+      "semester": "2026/2",
+      "title": "Simulado 1 — questão 7",
+      "examId": "avaliacao-rev-final-20261113-1",
+      "url": "#avaliacao",
+      "text": "Tipo: tf\nEnunciado: Julgue a seguinte afirmação sobre Atendimento a pessoas trans:\n\nA identidade trans, isoladamente, é diagnóstico de transtorno mental.\nAssunto: Atendimento a pessoas trans"
+    },
+    {
+      "id": "final-question-avaliacao-rev-final-20261113-1-8",
+      "type": "questao",
+      "subject": "avaliacao",
+      "semester": "2026/2",
+      "title": "Simulado 1 — questão 8",
+      "examId": "avaliacao-rev-final-20261113-1",
+      "url": "#avaliacao",
+      "text": "Tipo: combo\nEnunciado: Analise as afirmações abaixo sobre Resolução CFP 06/2019 e documentos, Laudo e parecer e Bateria e escolha de instrumentos.\n\nAssinale a alternativa que contém somente as afirmações corretas.\nAssunto: Resolução CFP 06/2019 e documentos\nAssertivas: I. Parecer e laudo são nomes intercambiáveis para o mesmo tipo de documento.; II. Uma bateria é um conjunto planejado de instrumentos que deve ser coerente com demanda, características da pessoa e evidências dos instrumentos.; III. Regulamenta a elaboração de documentos escritos produzidos por psicólogas e psicólogos, incluindo declaração, atestado, relatório, laudo e parecer.; IV. Declaração de comparecimento pode incluir livremente diagnósticos detalhados.; V. O laudo decorre de processo de avaliação psicológica; o parecer responde a questão-problema técnica, podendo analisar documento sem nova avaliação da pessoa."
+    },
+    {
+      "id": "final-question-avaliacao-rev-final-20261113-1-9",
+      "type": "questao",
+      "subject": "avaliacao",
+      "semester": "2026/2",
+      "title": "Simulado 1 — questão 9",
+      "examId": "avaliacao-rev-final-20261113-1",
+      "url": "#avaliacao",
+      "text": "Tipo: choice\nEnunciado: Situação: Uma psicóloga explica conclusões técnicas e verifica se a pessoa compreendeu as recomendações.\n\nQual interpretação é mais coerente com o material da disciplina?\nAssunto: Entrevista de devolução\nAlternativas: Entrevista de devolução: É momento de comunicar resultados e hipóteses de avaliação com linguagem compreensível, acolhimento e possibilidade de diálogo.; Priorizar Avaliação no contexto organizacional: A avaliação em organizações requer definição de demanda, métodos adequados, ética, comunicação responsável e atenção ao contexto de trabalho.; Priorizar Avaliação forense: O trabalho psicológico no contexto judicial demanda delimitação da questão pericial, imparcialidade, métodos fundamentados e esclarecimento de limites.; Priorizar Ética na avaliação psicológica: Exige competência, consentimento ou autorização apropriada, métodos fundamentados, respeito à dignidade e comunicação responsável.; Priorizar Resolução CFP 06/2019 e documentos: Regulamenta a elaboração de documentos escritos produzidos por psicólogas e psicólogos, incluindo declaração, atestado, relatório, laudo e parecer."
+    },
+    {
+      "id": "final-question-avaliacao-rev-final-20261113-1-10",
+      "type": "questao",
+      "subject": "avaliacao",
+      "semester": "2026/2",
+      "title": "Simulado 1 — questão 10",
+      "examId": "avaliacao-rev-final-20261113-1",
+      "url": "#avaliacao",
+      "text": "Tipo: tf\nEnunciado: Julgue a seguinte afirmação sobre Avaliação no contexto organizacional:\n\nA avaliação em organizações requer definição de demanda, métodos adequados, ética, comunicação responsável e atenção ao contexto de trabalho.\nAssunto: Avaliação no contexto organizacional"
+    },
+    {
+      "id": "final-exam-avaliacao-rev-final-20261113-2",
+      "type": "simulado",
+      "subject": "avaliacao",
+      "semester": "2026/2",
+      "title": "Simulado 2 — revisão final",
+      "examId": "avaliacao-rev-final-20261113-2",
+      "url": "#avaliacao",
+      "text": "Prova pronta 2 de 5: 10 questões variadas e duas dissertativas, cobrindo os tópicos de avaliação."
+    },
+    {
+      "id": "final-question-avaliacao-rev-final-20261113-2-1",
+      "type": "questao",
+      "subject": "avaliacao",
+      "semester": "2026/2",
+      "title": "Simulado 2 — questão 1",
+      "examId": "avaliacao-rev-final-20261113-2",
+      "url": "#avaliacao",
+      "text": "Tipo: choice\nEnunciado: Situação: Uma profissional considera aplicar teste para o qual não tem preparo e que não responde à demanda.\n\nQue conceito ajuda a compreender melhor o caso apresentado?\nAssunto: Ética na avaliação psicológica\nAlternativas: Priorizar Laudo e parecer: O laudo decorre de processo de avaliação psicológica; o parecer responde a questão-problema técnica, podendo analisar documento sem nova avaliação da pessoa.; Priorizar Bateria e escolha de instrumentos: Uma bateria é um conjunto planejado de instrumentos que deve ser coerente com demanda, características da pessoa e evidências dos instrumentos.; Priorizar Entrevista de devolução: É momento de comunicar resultados e hipóteses de avaliação com linguagem compreensível, acolhimento e possibilidade de diálogo.; Priorizar Linguagem e comunicação na devolução: A comunicação deve ser adequada à pessoa e ao contexto, evitando jargão desnecessário e rótulos estigmatizantes.; Ética na avaliação psicológica: Exige competência, consentimento ou autorização apropriada, métodos fundamentados, respeito à dignidade e comunicação responsável."
+    },
+    {
+      "id": "final-question-avaliacao-rev-final-20261113-2-2",
+      "type": "questao",
+      "subject": "avaliacao",
+      "semester": "2026/2",
+      "title": "Simulado 2 — questão 2",
+      "examId": "avaliacao-rev-final-20261113-2",
+      "url": "#avaliacao",
+      "text": "Tipo: choice\nEnunciado: Situação: Uma instituição pede análise técnica fundamentada sobre um laudo já produzido.\n\nQue conceito ajuda a compreender melhor o caso apresentado?\nAssunto: Laudo e parecer\nAlternativas: Laudo e parecer: O laudo decorre de processo de avaliação psicológica; o parecer responde a questão-problema técnica, podendo analisar documento sem nova avaliação da pessoa.; Priorizar Linguagem e comunicação na devolução: A comunicação deve ser adequada à pessoa e ao contexto, evitando jargão desnecessário e rótulos estigmatizantes.; Priorizar Sigilo e compartilhamento ético: Informações psicológicas exigem cuidado com confidencialidade, finalidade, necessidade e limites legais na comunicação.; Priorizar Avaliação no contexto organizacional: A avaliação em organizações requer definição de demanda, métodos adequados, ética, comunicação responsável e atenção ao contexto de trabalho.; Priorizar Avaliação hospitalar: Considera condições de saúde, adoecimento, contexto assistencial, comunicação com equipe e limites da avaliação em situações clínicas."
+    },
+    {
+      "id": "final-question-avaliacao-rev-final-20261113-2-3",
+      "type": "questao",
+      "subject": "avaliacao",
+      "semester": "2026/2",
+      "title": "Simulado 2 — questão 3",
+      "examId": "avaliacao-rev-final-20261113-2",
+      "url": "#avaliacao",
+      "text": "Tipo: combo\nEnunciado: Analise as afirmações abaixo sobre Linguagem e comunicação na devolução, Sigilo e compartilhamento ético e Avaliação no contexto organizacional.\n\nAssinale a alternativa que contém somente as afirmações corretas.\nAssunto: Linguagem e comunicação na devolução\nAssertivas: I. A avaliação em organizações requer definição de demanda, métodos adequados, ética, comunicação responsável e atenção ao contexto de trabalho.; II. A comunicação deve ser adequada à pessoa e ao contexto, evitando jargão desnecessário e rótulos estigmatizantes.; III. Uma devolução é melhor quanto mais incompreensíveis forem os termos técnicos utilizados.; IV. Informações psicológicas exigem cuidado com confidencialidade, finalidade, necessidade e limites legais na comunicação.; V. Todo resultado pode ser divulgado a qualquer pessoa que demonstre curiosidade."
+    },
+    {
+      "id": "final-question-avaliacao-rev-final-20261113-2-4",
+      "type": "questao",
+      "subject": "avaliacao",
+      "semester": "2026/2",
+      "title": "Simulado 2 — questão 4",
+      "examId": "avaliacao-rev-final-20261113-2",
+      "url": "#avaliacao",
+      "text": "Tipo: tf\nEnunciado: Julgue a seguinte afirmação sobre Avaliação hospitalar:\n\nÉ correto ignorar fadiga, dor e contexto clínico ao interpretar o desempenho em testes.\nAssunto: Avaliação hospitalar"
+    },
+    {
+      "id": "final-question-avaliacao-rev-final-20261113-2-5",
+      "type": "questao",
+      "subject": "avaliacao",
+      "semester": "2026/2",
+      "title": "Simulado 2 — questão 5",
+      "examId": "avaliacao-rev-final-20261113-2",
+      "url": "#avaliacao",
+      "text": "Tipo: choice\nEnunciado: Situação: Uma profissional considera aplicar teste para o qual não tem preparo e que não responde à demanda.\n\nQue conceito ajuda a compreender melhor o caso apresentado?\nAssunto: Ética na avaliação psicológica\nAlternativas: Priorizar Laudo e parecer: O laudo decorre de processo de avaliação psicológica; o parecer responde a questão-problema técnica, podendo analisar documento sem nova avaliação da pessoa.; Priorizar Bateria e escolha de instrumentos: Uma bateria é um conjunto planejado de instrumentos que deve ser coerente com demanda, características da pessoa e evidências dos instrumentos.; Priorizar Entrevista de devolução: É momento de comunicar resultados e hipóteses de avaliação com linguagem compreensível, acolhimento e possibilidade de diálogo.; Ética na avaliação psicológica: Exige competência, consentimento ou autorização apropriada, métodos fundamentados, respeito à dignidade e comunicação responsável.; Priorizar Linguagem e comunicação na devolução: A comunicação deve ser adequada à pessoa e ao contexto, evitando jargão desnecessário e rótulos estigmatizantes."
+    },
+    {
+      "id": "final-question-avaliacao-rev-final-20261113-2-6",
+      "type": "questao",
+      "subject": "avaliacao",
+      "semester": "2026/2",
+      "title": "Simulado 2 — questão 6",
+      "examId": "avaliacao-rev-final-20261113-2",
+      "url": "#avaliacao",
+      "text": "Tipo: choice\nEnunciado: Situação: Uma instituição pede análise técnica fundamentada sobre um laudo já produzido.\n\nQue conceito ajuda a compreender melhor o caso apresentado?\nAssunto: Laudo e parecer\nAlternativas: Priorizar Linguagem e comunicação na devolução: A comunicação deve ser adequada à pessoa e ao contexto, evitando jargão desnecessário e rótulos estigmatizantes.; Priorizar Sigilo e compartilhamento ético: Informações psicológicas exigem cuidado com confidencialidade, finalidade, necessidade e limites legais na comunicação.; Priorizar Avaliação no contexto organizacional: A avaliação em organizações requer definição de demanda, métodos adequados, ética, comunicação responsável e atenção ao contexto de trabalho.; Priorizar Avaliação hospitalar: Considera condições de saúde, adoecimento, contexto assistencial, comunicação com equipe e limites da avaliação em situações clínicas.; Laudo e parecer: O laudo decorre de processo de avaliação psicológica; o parecer responde a questão-problema técnica, podendo analisar documento sem nova avaliação da pessoa."
+    },
+    {
+      "id": "final-question-avaliacao-rev-final-20261113-2-7",
+      "type": "questao",
+      "subject": "avaliacao",
+      "semester": "2026/2",
+      "title": "Simulado 2 — questão 7",
+      "examId": "avaliacao-rev-final-20261113-2",
+      "url": "#avaliacao",
+      "text": "Tipo: tf\nEnunciado: Julgue a seguinte afirmação sobre Linguagem e comunicação na devolução:\n\nA comunicação deve ser adequada à pessoa e ao contexto, evitando jargão desnecessário e rótulos estigmatizantes.\nAssunto: Linguagem e comunicação na devolução"
+    },
+    {
+      "id": "final-question-avaliacao-rev-final-20261113-2-8",
+      "type": "questao",
+      "subject": "avaliacao",
+      "semester": "2026/2",
+      "title": "Simulado 2 — questão 8",
+      "examId": "avaliacao-rev-final-20261113-2",
+      "url": "#avaliacao",
+      "text": "Tipo: combo\nEnunciado: Analise as afirmações abaixo sobre Avaliação hospitalar, Avaliação forense e Atendimento a pessoas trans.\n\nAssinale a alternativa que contém somente as afirmações corretas.\nAssunto: Avaliação hospitalar\nAssertivas: I. A avaliação deve ser não discriminatória, respeitar identidade e nome social e delimitar a demanda sem presumir patologia pela identidade de gênero.; II. Considera condições de saúde, adoecimento, contexto assistencial, comunicação com equipe e limites da avaliação em situações clínicas.; III. É correto ignorar fadiga, dor e contexto clínico ao interpretar o desempenho em testes.; IV. O trabalho psicológico no contexto judicial demanda delimitação da questão pericial, imparcialidade, métodos fundamentados e esclarecimento de limites.; V. O psicólogo forense deve sempre agir como advogado da parte que o contratou."
+    },
+    {
+      "id": "final-question-avaliacao-rev-final-20261113-2-9",
+      "type": "questao",
+      "subject": "avaliacao",
+      "semester": "2026/2",
+      "title": "Simulado 2 — questão 9",
+      "examId": "avaliacao-rev-final-20261113-2",
+      "url": "#avaliacao",
+      "text": "Tipo: choice\nEnunciado: Situação: Uma profissional considera aplicar teste para o qual não tem preparo e que não responde à demanda.\n\nQue conceito ajuda a compreender melhor o caso apresentado?\nAssunto: Ética na avaliação psicológica\nAlternativas: Priorizar Laudo e parecer: O laudo decorre de processo de avaliação psicológica; o parecer responde a questão-problema técnica, podendo analisar documento sem nova avaliação da pessoa.; Priorizar Bateria e escolha de instrumentos: Uma bateria é um conjunto planejado de instrumentos que deve ser coerente com demanda, características da pessoa e evidências dos instrumentos.; Ética na avaliação psicológica: Exige competência, consentimento ou autorização apropriada, métodos fundamentados, respeito à dignidade e comunicação responsável.; Priorizar Entrevista de devolução: É momento de comunicar resultados e hipóteses de avaliação com linguagem compreensível, acolhimento e possibilidade de diálogo.; Priorizar Linguagem e comunicação na devolução: A comunicação deve ser adequada à pessoa e ao contexto, evitando jargão desnecessário e rótulos estigmatizantes."
+    },
+    {
+      "id": "final-question-avaliacao-rev-final-20261113-2-10",
+      "type": "questao",
+      "subject": "avaliacao",
+      "semester": "2026/2",
+      "title": "Simulado 2 — questão 10",
+      "examId": "avaliacao-rev-final-20261113-2",
+      "url": "#avaliacao",
+      "text": "Tipo: tf\nEnunciado: Julgue a seguinte afirmação sobre Laudo e parecer:\n\nParecer e laudo são nomes intercambiáveis para o mesmo tipo de documento.\nAssunto: Laudo e parecer"
+    },
+    {
+      "id": "final-exam-avaliacao-rev-final-20261113-3",
+      "type": "simulado",
+      "subject": "avaliacao",
+      "semester": "2026/2",
+      "title": "Simulado 3 — revisão final",
+      "examId": "avaliacao-rev-final-20261113-3",
+      "url": "#avaliacao",
+      "text": "Prova pronta 3 de 5: 10 questões variadas e duas dissertativas, cobrindo os tópicos de avaliação."
+    },
+    {
+      "id": "final-question-avaliacao-rev-final-20261113-3-1",
+      "type": "questao",
+      "subject": "avaliacao",
+      "semester": "2026/2",
+      "title": "Simulado 3 — questão 1",
+      "examId": "avaliacao-rev-final-20261113-3",
+      "url": "#avaliacao",
+      "text": "Tipo: choice\nEnunciado: Situação: Uma escola solicita detalhes íntimos da avaliação sem justificativa de necessidade.\n\nQual alternativa relaciona corretamente teoria, situação e contexto?\nAssunto: Sigilo e compartilhamento ético\nAlternativas: Priorizar Ética na avaliação psicológica: Exige competência, consentimento ou autorização apropriada, métodos fundamentados, respeito à dignidade e comunicação responsável.; Sigilo e compartilhamento ético: Informações psicológicas exigem cuidado com confidencialidade, finalidade, necessidade e limites legais na comunicação.; Priorizar Resolução CFP 06/2019 e documentos: Regulamenta a elaboração de documentos escritos produzidos por psicólogas e psicólogos, incluindo declaração, atestado, relatório, laudo e parecer.; Priorizar Bateria e escolha de instrumentos: Uma bateria é um conjunto planejado de instrumentos que deve ser coerente com demanda, características da pessoa e evidências dos instrumentos.; Priorizar Linguagem e comunicação na devolução: A comunicação deve ser adequada à pessoa e ao contexto, evitando jargão desnecessário e rótulos estigmatizantes."
+    },
+    {
+      "id": "final-question-avaliacao-rev-final-20261113-3-2",
+      "type": "questao",
+      "subject": "avaliacao",
+      "semester": "2026/2",
+      "title": "Simulado 3 — questão 2",
+      "examId": "avaliacao-rev-final-20261113-3",
+      "url": "#avaliacao",
+      "text": "Tipo: choice\nEnunciado: Situação: O Judiciário solicita um parecer técnico sobre quesito específico envolvendo uma família.\n\nQual alternativa relaciona corretamente teoria, situação e contexto?\nAssunto: Avaliação forense\nAlternativas: Priorizar Laudo e parecer: O laudo decorre de processo de avaliação psicológica; o parecer responde a questão-problema técnica, podendo analisar documento sem nova avaliação da pessoa.; Priorizar Entrevista de devolução: É momento de comunicar resultados e hipóteses de avaliação com linguagem compreensível, acolhimento e possibilidade de diálogo.; Avaliação forense: O trabalho psicológico no contexto judicial demanda delimitação da questão pericial, imparcialidade, métodos fundamentados e esclarecimento de limites.; Priorizar Sigilo e compartilhamento ético: Informações psicológicas exigem cuidado com confidencialidade, finalidade, necessidade e limites legais na comunicação.; Priorizar Avaliação hospitalar: Considera condições de saúde, adoecimento, contexto assistencial, comunicação com equipe e limites da avaliação em situações clínicas."
+    },
+    {
+      "id": "final-question-avaliacao-rev-final-20261113-3-3",
+      "type": "questao",
+      "subject": "avaliacao",
+      "semester": "2026/2",
+      "title": "Simulado 3 — questão 3",
+      "examId": "avaliacao-rev-final-20261113-3",
+      "url": "#avaliacao",
+      "text": "Tipo: combo\nEnunciado: Analise as afirmações abaixo sobre Resolução CFP 31/2022 e fontes de informação, Resolução CFP 06/2019 e documentos e Laudo e parecer.\n\nAssinale a alternativa que contém somente as afirmações corretas.\nAssunto: Resolução CFP 31/2022 e fontes de informação\nAssertivas: I. Regulamenta diretrizes para a avaliação psicológica e uso de fontes e testes; o SATEPSI apoia a consulta de instrumentos apropriados.; II. A Resolução 31/2022 revogou a Resolução 06/2019 sobre documentos.; III. Regulamenta a elaboração de documentos escritos produzidos por psicólogas e psicólogos, incluindo declaração, atestado, relatório, laudo e parecer.; IV. Declaração de comparecimento pode incluir livremente diagnósticos detalhados.; V. O laudo decorre de processo de avaliação psicológica; o parecer responde a questão-problema técnica, podendo analisar documento sem nova avaliação da pessoa."
+    },
+    {
+      "id": "final-question-avaliacao-rev-final-20261113-3-4",
+      "type": "questao",
+      "subject": "avaliacao",
+      "semester": "2026/2",
+      "title": "Simulado 3 — questão 4",
+      "examId": "avaliacao-rev-final-20261113-3",
+      "url": "#avaliacao",
+      "text": "Tipo: tf\nEnunciado: Julgue a seguinte afirmação sobre Bateria e escolha de instrumentos:\n\nUma bateria é um conjunto planejado de instrumentos que deve ser coerente com demanda, características da pessoa e evidências dos instrumentos.\nAssunto: Bateria e escolha de instrumentos"
+    },
+    {
+      "id": "final-question-avaliacao-rev-final-20261113-3-5",
+      "type": "questao",
+      "subject": "avaliacao",
+      "semester": "2026/2",
+      "title": "Simulado 3 — questão 5",
+      "examId": "avaliacao-rev-final-20261113-3",
+      "url": "#avaliacao",
+      "text": "Tipo: choice\nEnunciado: Situação: Uma escola solicita detalhes íntimos da avaliação sem justificativa de necessidade.\n\nQual alternativa relaciona corretamente teoria, situação e contexto?\nAssunto: Sigilo e compartilhamento ético\nAlternativas: Sigilo e compartilhamento ético: Informações psicológicas exigem cuidado com confidencialidade, finalidade, necessidade e limites legais na comunicação.; Priorizar Ética na avaliação psicológica: Exige competência, consentimento ou autorização apropriada, métodos fundamentados, respeito à dignidade e comunicação responsável.; Priorizar Resolução CFP 06/2019 e documentos: Regulamenta a elaboração de documentos escritos produzidos por psicólogas e psicólogos, incluindo declaração, atestado, relatório, laudo e parecer.; Priorizar Bateria e escolha de instrumentos: Uma bateria é um conjunto planejado de instrumentos que deve ser coerente com demanda, características da pessoa e evidências dos instrumentos.; Priorizar Linguagem e comunicação na devolução: A comunicação deve ser adequada à pessoa e ao contexto, evitando jargão desnecessário e rótulos estigmatizantes."
+    },
+    {
+      "id": "final-question-avaliacao-rev-final-20261113-3-6",
+      "type": "questao",
+      "subject": "avaliacao",
+      "semester": "2026/2",
+      "title": "Simulado 3 — questão 6",
+      "examId": "avaliacao-rev-final-20261113-3",
+      "url": "#avaliacao",
+      "text": "Tipo: choice\nEnunciado: Situação: O Judiciário solicita um parecer técnico sobre quesito específico envolvendo uma família.\n\nQual alternativa relaciona corretamente teoria, situação e contexto?\nAssunto: Avaliação forense\nAlternativas: Priorizar Laudo e parecer: O laudo decorre de processo de avaliação psicológica; o parecer responde a questão-problema técnica, podendo analisar documento sem nova avaliação da pessoa.; Avaliação forense: O trabalho psicológico no contexto judicial demanda delimitação da questão pericial, imparcialidade, métodos fundamentados e esclarecimento de limites.; Priorizar Entrevista de devolução: É momento de comunicar resultados e hipóteses de avaliação com linguagem compreensível, acolhimento e possibilidade de diálogo.; Priorizar Sigilo e compartilhamento ético: Informações psicológicas exigem cuidado com confidencialidade, finalidade, necessidade e limites legais na comunicação.; Priorizar Avaliação hospitalar: Considera condições de saúde, adoecimento, contexto assistencial, comunicação com equipe e limites da avaliação em situações clínicas."
+    },
+    {
+      "id": "final-question-avaliacao-rev-final-20261113-3-7",
+      "type": "questao",
+      "subject": "avaliacao",
+      "semester": "2026/2",
+      "title": "Simulado 3 — questão 7",
+      "examId": "avaliacao-rev-final-20261113-3",
+      "url": "#avaliacao",
+      "text": "Tipo: tf\nEnunciado: Julgue a seguinte afirmação sobre Resolução CFP 31/2022 e fontes de informação:\n\nA Resolução 31/2022 revogou a Resolução 06/2019 sobre documentos.\nAssunto: Resolução CFP 31/2022 e fontes de informação"
+    },
+    {
+      "id": "final-question-avaliacao-rev-final-20261113-3-8",
+      "type": "questao",
+      "subject": "avaliacao",
+      "semester": "2026/2",
+      "title": "Simulado 3 — questão 8",
+      "examId": "avaliacao-rev-final-20261113-3",
+      "url": "#avaliacao",
+      "text": "Tipo: combo\nEnunciado: Analise as afirmações abaixo sobre Bateria e escolha de instrumentos, Entrevista de devolução e Linguagem e comunicação na devolução.\n\nAssinale a alternativa que contém somente as afirmações corretas.\nAssunto: Bateria e escolha de instrumentos\nAssertivas: I. Uma bateria é um conjunto planejado de instrumentos que deve ser coerente com demanda, características da pessoa e evidências dos instrumentos.; II. Quanto maior a quantidade de testes, melhor será qualquer avaliação independentemente da demanda.; III. É momento de comunicar resultados e hipóteses de avaliação com linguagem compreensível, acolhimento e possibilidade de diálogo.; IV. A devolução consiste somente em entregar o laudo sem conversar sobre os resultados.; V. A comunicação deve ser adequada à pessoa e ao contexto, evitando jargão desnecessário e rótulos estigmatizantes."
+    },
+    {
+      "id": "final-question-avaliacao-rev-final-20261113-3-9",
+      "type": "questao",
+      "subject": "avaliacao",
+      "semester": "2026/2",
+      "title": "Simulado 3 — questão 9",
+      "examId": "avaliacao-rev-final-20261113-3",
+      "url": "#avaliacao",
+      "text": "Tipo: choice\nEnunciado: Situação: Uma escola solicita detalhes íntimos da avaliação sem justificativa de necessidade.\n\nQual alternativa relaciona corretamente teoria, situação e contexto?\nAssunto: Sigilo e compartilhamento ético\nAlternativas: Priorizar Ética na avaliação psicológica: Exige competência, consentimento ou autorização apropriada, métodos fundamentados, respeito à dignidade e comunicação responsável.; Priorizar Resolução CFP 06/2019 e documentos: Regulamenta a elaboração de documentos escritos produzidos por psicólogas e psicólogos, incluindo declaração, atestado, relatório, laudo e parecer.; Priorizar Bateria e escolha de instrumentos: Uma bateria é um conjunto planejado de instrumentos que deve ser coerente com demanda, características da pessoa e evidências dos instrumentos.; Priorizar Linguagem e comunicação na devolução: A comunicação deve ser adequada à pessoa e ao contexto, evitando jargão desnecessário e rótulos estigmatizantes.; Sigilo e compartilhamento ético: Informações psicológicas exigem cuidado com confidencialidade, finalidade, necessidade e limites legais na comunicação."
+    },
+    {
+      "id": "final-question-avaliacao-rev-final-20261113-3-10",
+      "type": "questao",
+      "subject": "avaliacao",
+      "semester": "2026/2",
+      "title": "Simulado 3 — questão 10",
+      "examId": "avaliacao-rev-final-20261113-3",
+      "url": "#avaliacao",
+      "text": "Tipo: tf\nEnunciado: Julgue a seguinte afirmação sobre Avaliação forense:\n\nO trabalho psicológico no contexto judicial demanda delimitação da questão pericial, imparcialidade, métodos fundamentados e esclarecimento de limites.\nAssunto: Avaliação forense"
+    },
+    {
+      "id": "final-exam-avaliacao-rev-final-20261113-4",
+      "type": "simulado",
+      "subject": "avaliacao",
+      "semester": "2026/2",
+      "title": "Simulado 4 — revisão final",
+      "examId": "avaliacao-rev-final-20261113-4",
+      "url": "#avaliacao",
+      "text": "Prova pronta 4 de 5: 10 questões variadas e duas dissertativas, cobrindo os tópicos de avaliação."
+    },
+    {
+      "id": "final-question-avaliacao-rev-final-20261113-4-1",
+      "type": "questao",
+      "subject": "avaliacao",
+      "semester": "2026/2",
+      "title": "Simulado 4 — questão 1",
+      "examId": "avaliacao-rev-final-20261113-4",
+      "url": "#avaliacao",
+      "text": "Tipo: choice\nEnunciado: Situação: Ao concluir avaliação, a psicóloga precisa distinguir laudo de relatório e parecer.\n\nQual análise profissional evita inferências indevidas nesse caso?\nAssunto: Resolução CFP 06/2019 e documentos\nAlternativas: Priorizar Sigilo e compartilhamento ético: Informações psicológicas exigem cuidado com confidencialidade, finalidade, necessidade e limites legais na comunicação.; Priorizar Avaliação no contexto organizacional: A avaliação em organizações requer definição de demanda, métodos adequados, ética, comunicação responsável e atenção ao contexto de trabalho.; Priorizar Avaliação hospitalar: Considera condições de saúde, adoecimento, contexto assistencial, comunicação com equipe e limites da avaliação em situações clínicas.; Resolução CFP 06/2019 e documentos: Regulamenta a elaboração de documentos escritos produzidos por psicólogas e psicólogos, incluindo declaração, atestado, relatório, laudo e parecer.; Priorizar Avaliação forense: O trabalho psicológico no contexto judicial demanda delimitação da questão pericial, imparcialidade, métodos fundamentados e esclarecimento de limites."
+    },
+    {
+      "id": "final-question-avaliacao-rev-final-20261113-4-2",
+      "type": "questao",
+      "subject": "avaliacao",
+      "semester": "2026/2",
+      "title": "Simulado 4 — questão 2",
+      "examId": "avaliacao-rev-final-20261113-4",
+      "url": "#avaliacao",
+      "text": "Tipo: choice\nEnunciado: Situação: Uma psicóloga explica conclusões técnicas e verifica se a pessoa compreendeu as recomendações.\n\nQual análise profissional evita inferências indevidas nesse caso?\nAssunto: Entrevista de devolução\nAlternativas: Priorizar Avaliação forense: O trabalho psicológico no contexto judicial demanda delimitação da questão pericial, imparcialidade, métodos fundamentados e esclarecimento de limites.; Priorizar Atendimento a pessoas trans: A avaliação deve ser não discriminatória, respeitar identidade e nome social e delimitar a demanda sem presumir patologia pela identidade de gênero.; Priorizar Ética na avaliação psicológica: Exige competência, consentimento ou autorização apropriada, métodos fundamentados, respeito à dignidade e comunicação responsável.; Priorizar Resolução CFP 31/2022 e fontes de informação: Regulamenta diretrizes para a avaliação psicológica e uso de fontes e testes; o SATEPSI apoia a consulta de instrumentos apropriados.; Entrevista de devolução: É momento de comunicar resultados e hipóteses de avaliação com linguagem compreensível, acolhimento e possibilidade de diálogo."
+    },
+    {
+      "id": "final-question-avaliacao-rev-final-20261113-4-3",
+      "type": "questao",
+      "subject": "avaliacao",
+      "semester": "2026/2",
+      "title": "Simulado 4 — questão 3",
+      "examId": "avaliacao-rev-final-20261113-4",
+      "url": "#avaliacao",
+      "text": "Tipo: combo\nEnunciado: Analise as afirmações abaixo sobre Avaliação no contexto organizacional, Avaliação hospitalar e Avaliação forense.\n\nAssinale a alternativa que contém somente as afirmações corretas.\nAssunto: Avaliação no contexto organizacional\nAssertivas: I. O psicólogo pode revelar todas as respostas pessoais de um avaliado à empresa sem ponderar sigilo.; II. Considera condições de saúde, adoecimento, contexto assistencial, comunicação com equipe e limites da avaliação em situações clínicas.; III. É correto ignorar fadiga, dor e contexto clínico ao interpretar o desempenho em testes.; IV. O trabalho psicológico no contexto judicial demanda delimitação da questão pericial, imparcialidade, métodos fundamentados e esclarecimento de limites.; V. A avaliação em organizações requer definição de demanda, métodos adequados, ética, comunicação responsável e atenção ao contexto de trabalho."
+    },
+    {
+      "id": "final-question-avaliacao-rev-final-20261113-4-4",
+      "type": "questao",
+      "subject": "avaliacao",
+      "semester": "2026/2",
+      "title": "Simulado 4 — questão 4",
+      "examId": "avaliacao-rev-final-20261113-4",
+      "url": "#avaliacao",
+      "text": "Tipo: tf\nEnunciado: Julgue a seguinte afirmação sobre Atendimento a pessoas trans:\n\nA identidade trans, isoladamente, é diagnóstico de transtorno mental.\nAssunto: Atendimento a pessoas trans"
+    },
+    {
+      "id": "final-question-avaliacao-rev-final-20261113-4-5",
+      "type": "questao",
+      "subject": "avaliacao",
+      "semester": "2026/2",
+      "title": "Simulado 4 — questão 5",
+      "examId": "avaliacao-rev-final-20261113-4",
+      "url": "#avaliacao",
+      "text": "Tipo: choice\nEnunciado: Situação: Ao concluir avaliação, a psicóloga precisa distinguir laudo de relatório e parecer.\n\nQual análise profissional evita inferências indevidas nesse caso?\nAssunto: Resolução CFP 06/2019 e documentos\nAlternativas: Priorizar Sigilo e compartilhamento ético: Informações psicológicas exigem cuidado com confidencialidade, finalidade, necessidade e limites legais na comunicação.; Priorizar Avaliação no contexto organizacional: A avaliação em organizações requer definição de demanda, métodos adequados, ética, comunicação responsável e atenção ao contexto de trabalho.; Resolução CFP 06/2019 e documentos: Regulamenta a elaboração de documentos escritos produzidos por psicólogas e psicólogos, incluindo declaração, atestado, relatório, laudo e parecer.; Priorizar Avaliação hospitalar: Considera condições de saúde, adoecimento, contexto assistencial, comunicação com equipe e limites da avaliação em situações clínicas.; Priorizar Avaliação forense: O trabalho psicológico no contexto judicial demanda delimitação da questão pericial, imparcialidade, métodos fundamentados e esclarecimento de limites."
+    },
+    {
+      "id": "final-question-avaliacao-rev-final-20261113-4-6",
+      "type": "questao",
+      "subject": "avaliacao",
+      "semester": "2026/2",
+      "title": "Simulado 4 — questão 6",
+      "examId": "avaliacao-rev-final-20261113-4",
+      "url": "#avaliacao",
+      "text": "Tipo: choice\nEnunciado: Situação: Uma psicóloga explica conclusões técnicas e verifica se a pessoa compreendeu as recomendações.\n\nQual análise profissional evita inferências indevidas nesse caso?\nAssunto: Entrevista de devolução\nAlternativas: Priorizar Avaliação forense: O trabalho psicológico no contexto judicial demanda delimitação da questão pericial, imparcialidade, métodos fundamentados e esclarecimento de limites.; Priorizar Atendimento a pessoas trans: A avaliação deve ser não discriminatória, respeitar identidade e nome social e delimitar a demanda sem presumir patologia pela identidade de gênero.; Priorizar Ética na avaliação psicológica: Exige competência, consentimento ou autorização apropriada, métodos fundamentados, respeito à dignidade e comunicação responsável.; Entrevista de devolução: É momento de comunicar resultados e hipóteses de avaliação com linguagem compreensível, acolhimento e possibilidade de diálogo.; Priorizar Resolução CFP 31/2022 e fontes de informação: Regulamenta diretrizes para a avaliação psicológica e uso de fontes e testes; o SATEPSI apoia a consulta de instrumentos apropriados."
+    },
+    {
+      "id": "final-question-avaliacao-rev-final-20261113-4-7",
+      "type": "questao",
+      "subject": "avaliacao",
+      "semester": "2026/2",
+      "title": "Simulado 4 — questão 7",
+      "examId": "avaliacao-rev-final-20261113-4",
+      "url": "#avaliacao",
+      "text": "Tipo: tf\nEnunciado: Julgue a seguinte afirmação sobre Avaliação no contexto organizacional:\n\nA avaliação em organizações requer definição de demanda, métodos adequados, ética, comunicação responsável e atenção ao contexto de trabalho.\nAssunto: Avaliação no contexto organizacional"
+    },
+    {
+      "id": "final-question-avaliacao-rev-final-20261113-4-8",
+      "type": "questao",
+      "subject": "avaliacao",
+      "semester": "2026/2",
+      "title": "Simulado 4 — questão 8",
+      "examId": "avaliacao-rev-final-20261113-4",
+      "url": "#avaliacao",
+      "text": "Tipo: combo\nEnunciado: Analise as afirmações abaixo sobre Atendimento a pessoas trans, Ética na avaliação psicológica e Resolução CFP 31/2022 e fontes de informação.\n\nAssinale a alternativa que contém somente as afirmações corretas.\nAssunto: Atendimento a pessoas trans\nAssertivas: I. A identidade trans, isoladamente, é diagnóstico de transtorno mental.; II. Exige competência, consentimento ou autorização apropriada, métodos fundamentados, respeito à dignidade e comunicação responsável.; III. Estar diante de uma demanda urgente autoriza aplicar qualquer instrumento sem formação.; IV. Regulamenta diretrizes para a avaliação psicológica e uso de fontes e testes; o SATEPSI apoia a consulta de instrumentos apropriados.; V. A avaliação deve ser não discriminatória, respeitar identidade e nome social e delimitar a demanda sem presumir patologia pela identidade de gênero."
+    },
+    {
+      "id": "final-question-avaliacao-rev-final-20261113-4-9",
+      "type": "questao",
+      "subject": "avaliacao",
+      "semester": "2026/2",
+      "title": "Simulado 4 — questão 9",
+      "examId": "avaliacao-rev-final-20261113-4",
+      "url": "#avaliacao",
+      "text": "Tipo: choice\nEnunciado: Situação: Ao concluir avaliação, a psicóloga precisa distinguir laudo de relatório e parecer.\n\nQual análise profissional evita inferências indevidas nesse caso?\nAssunto: Resolução CFP 06/2019 e documentos\nAlternativas: Priorizar Sigilo e compartilhamento ético: Informações psicológicas exigem cuidado com confidencialidade, finalidade, necessidade e limites legais na comunicação.; Resolução CFP 06/2019 e documentos: Regulamenta a elaboração de documentos escritos produzidos por psicólogas e psicólogos, incluindo declaração, atestado, relatório, laudo e parecer.; Priorizar Avaliação no contexto organizacional: A avaliação em organizações requer definição de demanda, métodos adequados, ética, comunicação responsável e atenção ao contexto de trabalho.; Priorizar Avaliação hospitalar: Considera condições de saúde, adoecimento, contexto assistencial, comunicação com equipe e limites da avaliação em situações clínicas.; Priorizar Avaliação forense: O trabalho psicológico no contexto judicial demanda delimitação da questão pericial, imparcialidade, métodos fundamentados e esclarecimento de limites."
+    },
+    {
+      "id": "final-question-avaliacao-rev-final-20261113-4-10",
+      "type": "questao",
+      "subject": "avaliacao",
+      "semester": "2026/2",
+      "title": "Simulado 4 — questão 10",
+      "examId": "avaliacao-rev-final-20261113-4",
+      "url": "#avaliacao",
+      "text": "Tipo: tf\nEnunciado: Julgue a seguinte afirmação sobre Entrevista de devolução:\n\nA devolução consiste somente em entregar o laudo sem conversar sobre os resultados.\nAssunto: Entrevista de devolução"
+    },
+    {
+      "id": "final-exam-avaliacao-rev-final-20261113-5",
+      "type": "simulado",
+      "subject": "avaliacao",
+      "semester": "2026/2",
+      "title": "Simulado 5 — revisão final",
+      "examId": "avaliacao-rev-final-20261113-5",
+      "url": "#avaliacao",
+      "text": "Prova pronta 5 de 5: 10 questões variadas e duas dissertativas, cobrindo os tópicos de avaliação."
+    },
+    {
+      "id": "final-question-avaliacao-rev-final-20261113-5-1",
+      "type": "questao",
+      "subject": "avaliacao",
+      "semester": "2026/2",
+      "title": "Simulado 5 — questão 1",
+      "examId": "avaliacao-rev-final-20261113-5",
+      "url": "#avaliacao",
+      "text": "Tipo: choice\nEnunciado: Situação: Uma pessoa internada e seus familiares precisam de avaliação adaptada ao estado de saúde.\n\nQual formulação integra melhor conceito, aplicação e limites da conclusão?\nAssunto: Avaliação hospitalar\nAlternativas: Avaliação hospitalar: Considera condições de saúde, adoecimento, contexto assistencial, comunicação com equipe e limites da avaliação em situações clínicas.; Priorizar Bateria e escolha de instrumentos: Uma bateria é um conjunto planejado de instrumentos que deve ser coerente com demanda, características da pessoa e evidências dos instrumentos.; Priorizar Linguagem e comunicação na devolução: A comunicação deve ser adequada à pessoa e ao contexto, evitando jargão desnecessário e rótulos estigmatizantes.; Priorizar Avaliação no contexto organizacional: A avaliação em organizações requer definição de demanda, métodos adequados, ética, comunicação responsável e atenção ao contexto de trabalho.; Priorizar Avaliação forense: O trabalho psicológico no contexto judicial demanda delimitação da questão pericial, imparcialidade, métodos fundamentados e esclarecimento de limites."
+    },
+    {
+      "id": "final-question-avaliacao-rev-final-20261113-5-2",
+      "type": "questao",
+      "subject": "avaliacao",
+      "semester": "2026/2",
+      "title": "Simulado 5 — questão 2",
+      "examId": "avaliacao-rev-final-20261113-5",
+      "url": "#avaliacao",
+      "text": "Tipo: choice\nEnunciado: Situação: Uma profissional considera aplicar teste para o qual não tem preparo e que não responde à demanda.\n\nQual formulação integra melhor conceito, aplicação e limites da conclusão?\nAssunto: Ética na avaliação psicológica\nAlternativas: Priorizar Sigilo e compartilhamento ético: Informações psicológicas exigem cuidado com confidencialidade, finalidade, necessidade e limites legais na comunicação.; Ética na avaliação psicológica: Exige competência, consentimento ou autorização apropriada, métodos fundamentados, respeito à dignidade e comunicação responsável.; Priorizar Avaliação hospitalar: Considera condições de saúde, adoecimento, contexto assistencial, comunicação com equipe e limites da avaliação em situações clínicas.; Priorizar Atendimento a pessoas trans: A avaliação deve ser não discriminatória, respeitar identidade e nome social e delimitar a demanda sem presumir patologia pela identidade de gênero.; Priorizar Resolução CFP 31/2022 e fontes de informação: Regulamenta diretrizes para a avaliação psicológica e uso de fontes e testes; o SATEPSI apoia a consulta de instrumentos apropriados."
+    },
+    {
+      "id": "final-question-avaliacao-rev-final-20261113-5-3",
+      "type": "questao",
+      "subject": "avaliacao",
+      "semester": "2026/2",
+      "title": "Simulado 5 — questão 3",
+      "examId": "avaliacao-rev-final-20261113-5",
+      "url": "#avaliacao",
+      "text": "Tipo: combo\nEnunciado: Analise as afirmações abaixo sobre Laudo e parecer, Bateria e escolha de instrumentos e Entrevista de devolução.\n\nAssinale a alternativa que contém somente as afirmações corretas.\nAssunto: Laudo e parecer\nAssertivas: I. Uma bateria é um conjunto planejado de instrumentos que deve ser coerente com demanda, características da pessoa e evidências dos instrumentos.; II. Quanto maior a quantidade de testes, melhor será qualquer avaliação independentemente da demanda.; III. É momento de comunicar resultados e hipóteses de avaliação com linguagem compreensível, acolhimento e possibilidade de diálogo.; IV. O laudo decorre de processo de avaliação psicológica; o parecer responde a questão-problema técnica, podendo analisar documento sem nova avaliação da pessoa.; V. Parecer e laudo são nomes intercambiáveis para o mesmo tipo de documento."
+    },
+    {
+      "id": "final-question-avaliacao-rev-final-20261113-5-4",
+      "type": "questao",
+      "subject": "avaliacao",
+      "semester": "2026/2",
+      "title": "Simulado 5 — questão 4",
+      "examId": "avaliacao-rev-final-20261113-5",
+      "url": "#avaliacao",
+      "text": "Tipo: tf\nEnunciado: Julgue a seguinte afirmação sobre Linguagem e comunicação na devolução:\n\nA comunicação deve ser adequada à pessoa e ao contexto, evitando jargão desnecessário e rótulos estigmatizantes.\nAssunto: Linguagem e comunicação na devolução"
+    },
+    {
+      "id": "final-question-avaliacao-rev-final-20261113-5-5",
+      "type": "questao",
+      "subject": "avaliacao",
+      "semester": "2026/2",
+      "title": "Simulado 5 — questão 5",
+      "examId": "avaliacao-rev-final-20261113-5",
+      "url": "#avaliacao",
+      "text": "Tipo: choice\nEnunciado: Situação: Uma pessoa internada e seus familiares precisam de avaliação adaptada ao estado de saúde.\n\nQual formulação integra melhor conceito, aplicação e limites da conclusão?\nAssunto: Avaliação hospitalar\nAlternativas: Priorizar Bateria e escolha de instrumentos: Uma bateria é um conjunto planejado de instrumentos que deve ser coerente com demanda, características da pessoa e evidências dos instrumentos.; Priorizar Linguagem e comunicação na devolução: A comunicação deve ser adequada à pessoa e ao contexto, evitando jargão desnecessário e rótulos estigmatizantes.; Priorizar Avaliação no contexto organizacional: A avaliação em organizações requer definição de demanda, métodos adequados, ética, comunicação responsável e atenção ao contexto de trabalho.; Priorizar Avaliação forense: O trabalho psicológico no contexto judicial demanda delimitação da questão pericial, imparcialidade, métodos fundamentados e esclarecimento de limites.; Avaliação hospitalar: Considera condições de saúde, adoecimento, contexto assistencial, comunicação com equipe e limites da avaliação em situações clínicas."
+    },
+    {
+      "id": "final-question-avaliacao-rev-final-20261113-5-6",
+      "type": "questao",
+      "subject": "avaliacao",
+      "semester": "2026/2",
+      "title": "Simulado 5 — questão 6",
+      "examId": "avaliacao-rev-final-20261113-5",
+      "url": "#avaliacao",
+      "text": "Tipo: choice\nEnunciado: Situação: Uma profissional considera aplicar teste para o qual não tem preparo e que não responde à demanda.\n\nQual formulação integra melhor conceito, aplicação e limites da conclusão?\nAssunto: Ética na avaliação psicológica\nAlternativas: Ética na avaliação psicológica: Exige competência, consentimento ou autorização apropriada, métodos fundamentados, respeito à dignidade e comunicação responsável.; Priorizar Sigilo e compartilhamento ético: Informações psicológicas exigem cuidado com confidencialidade, finalidade, necessidade e limites legais na comunicação.; Priorizar Avaliação hospitalar: Considera condições de saúde, adoecimento, contexto assistencial, comunicação com equipe e limites da avaliação em situações clínicas.; Priorizar Atendimento a pessoas trans: A avaliação deve ser não discriminatória, respeitar identidade e nome social e delimitar a demanda sem presumir patologia pela identidade de gênero.; Priorizar Resolução CFP 31/2022 e fontes de informação: Regulamenta diretrizes para a avaliação psicológica e uso de fontes e testes; o SATEPSI apoia a consulta de instrumentos apropriados."
+    },
+    {
+      "id": "final-question-avaliacao-rev-final-20261113-5-7",
+      "type": "questao",
+      "subject": "avaliacao",
+      "semester": "2026/2",
+      "title": "Simulado 5 — questão 7",
+      "examId": "avaliacao-rev-final-20261113-5",
+      "url": "#avaliacao",
+      "text": "Tipo: tf\nEnunciado: Julgue a seguinte afirmação sobre Laudo e parecer:\n\nParecer e laudo são nomes intercambiáveis para o mesmo tipo de documento.\nAssunto: Laudo e parecer"
+    },
+    {
+      "id": "final-question-avaliacao-rev-final-20261113-5-8",
+      "type": "questao",
+      "subject": "avaliacao",
+      "semester": "2026/2",
+      "title": "Simulado 5 — questão 8",
+      "examId": "avaliacao-rev-final-20261113-5",
+      "url": "#avaliacao",
+      "text": "Tipo: combo\nEnunciado: Analise as afirmações abaixo sobre Linguagem e comunicação na devolução, Sigilo e compartilhamento ético e Avaliação no contexto organizacional.\n\nAssinale a alternativa que contém somente as afirmações corretas.\nAssunto: Linguagem e comunicação na devolução\nAssertivas: I. Informações psicológicas exigem cuidado com confidencialidade, finalidade, necessidade e limites legais na comunicação.; II. Todo resultado pode ser divulgado a qualquer pessoa que demonstre curiosidade.; III. A avaliação em organizações requer definição de demanda, métodos adequados, ética, comunicação responsável e atenção ao contexto de trabalho.; IV. A comunicação deve ser adequada à pessoa e ao contexto, evitando jargão desnecessário e rótulos estigmatizantes.; V. Uma devolução é melhor quanto mais incompreensíveis forem os termos técnicos utilizados."
+    },
+    {
+      "id": "final-question-avaliacao-rev-final-20261113-5-9",
+      "type": "questao",
+      "subject": "avaliacao",
+      "semester": "2026/2",
+      "title": "Simulado 5 — questão 9",
+      "examId": "avaliacao-rev-final-20261113-5",
+      "url": "#avaliacao",
+      "text": "Tipo: choice\nEnunciado: Situação: Uma pessoa internada e seus familiares precisam de avaliação adaptada ao estado de saúde.\n\nQual formulação integra melhor conceito, aplicação e limites da conclusão?\nAssunto: Avaliação hospitalar\nAlternativas: Priorizar Bateria e escolha de instrumentos: Uma bateria é um conjunto planejado de instrumentos que deve ser coerente com demanda, características da pessoa e evidências dos instrumentos.; Priorizar Linguagem e comunicação na devolução: A comunicação deve ser adequada à pessoa e ao contexto, evitando jargão desnecessário e rótulos estigmatizantes.; Priorizar Avaliação no contexto organizacional: A avaliação em organizações requer definição de demanda, métodos adequados, ética, comunicação responsável e atenção ao contexto de trabalho.; Avaliação hospitalar: Considera condições de saúde, adoecimento, contexto assistencial, comunicação com equipe e limites da avaliação em situações clínicas.; Priorizar Avaliação forense: O trabalho psicológico no contexto judicial demanda delimitação da questão pericial, imparcialidade, métodos fundamentados e esclarecimento de limites."
+    },
+    {
+      "id": "final-question-avaliacao-rev-final-20261113-5-10",
+      "type": "questao",
+      "subject": "avaliacao",
+      "semester": "2026/2",
+      "title": "Simulado 5 — questão 10",
+      "examId": "avaliacao-rev-final-20261113-5",
+      "url": "#avaliacao",
+      "text": "Tipo: tf\nEnunciado: Julgue a seguinte afirmação sobre Ética na avaliação psicológica:\n\nExige competência, consentimento ou autorização apropriada, métodos fundamentados, respeito à dignidade e comunicação responsável.\nAssunto: Ética na avaliação psicológica"
     }
   ]
 }
