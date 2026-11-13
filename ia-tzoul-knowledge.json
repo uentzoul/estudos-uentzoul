@@ -3296,778 +3296,8 @@
       "semester": "2026/2",
       "subject": "social",
       "title": "Psicologia Social",
-      "text": "Disciplina: Psicologia Social I. Prova principal: Avaliação 3 2026-11-25. Observações: Cronograma do semestre. Estilo da avaliação: Prova anterior de Social: assertivas, V/F e respostas dissertativas; P3 prevista como avaliação integradora em dupla..",
+      "text": "Psicologia Social I — escopo da prova atualizado em 13/11/2026. Materiais: Psicologia Sócio-Histórica, Psicologia da Libertação e Martín-Baró (fatalismo e desideologização), epistemicídio e racismo epistêmico, gênero e feminismos, interseccionalidade, migração, infância e políticas públicas e tecnologias da informação e subjetividade. Responder com base nesses materiais, não em resumos de provas anteriores.",
       "url": "#social"
-    },
-    {
-      "id": "c331",
-      "type": "topico",
-      "semester": "2026/2",
-      "subject": "social",
-      "title": "Viés de confirmação",
-      "text": "É a tendência de buscar, interpretar e valorizar informações de modo mais favorável a crenças prévias, sem que isso exija intenção consciente.\nExemplo: Duas pessoas atribuem confiabilidade oposta à mesma notícia política, conforme seus posicionamentos.\nErro comum: O viés de confirmação foi inventado pelos algoritmos das redes sociais.",
-      "topicIndex": 0,
-      "url": "#social"
-    },
-    {
-      "id": "c332",
-      "type": "topico",
-      "semester": "2026/2",
-      "subject": "social",
-      "title": "Identidade social e pertencimento",
-      "text": "A identidade social envolve parte da autoimagem vinculada a grupos e pode influenciar avaliações de membros e não membros.\nExemplo: A crítica a um partido é vivida como ataque pessoal por um integrante muito identificado com ele.\nErro comum: Pertencer a um grupo elimina a capacidade individual de reflexão em todos os casos.",
-      "topicIndex": 1,
-      "url": "#social"
-    },
-    {
-      "id": "c333",
-      "type": "topico",
-      "semester": "2026/2",
-      "subject": "social",
-      "title": "Polarização afetiva",
-      "text": "Caracteriza-se pelo aumento de antipatia, desconfiança ou hostilidade entre grupos, além da simples divergência de ideias.\nExemplo: Uma discussão política termina com participantes chamando integrantes do outro grupo de inimigos.\nErro comum: Qualquer discordância respeitosa já é polarização afetiva extrema.",
-      "topicIndex": 2,
-      "url": "#social"
-    },
-    {
-      "id": "c334",
-      "type": "topico",
-      "semester": "2026/2",
-      "subject": "social",
-      "title": "Bolha de filtros",
-      "text": "Refere-se à seleção e personalização do que chega ao usuário, potencialmente reduzindo diversidade de perspectivas vistas.\nExemplo: Dois celulares exibem notícias muito diferentes sobre o mesmo assunto.\nErro comum: Bolha de filtros depende unicamente de reuniões presenciais de pessoas que já concordam entre si.",
-      "topicIndex": 3,
-      "url": "#social"
-    },
-    {
-      "id": "c335",
-      "type": "topico",
-      "semester": "2026/2",
-      "subject": "social",
-      "title": "Câmara de eco",
-      "text": "É uma dinâmica em que opiniões circulam e se reforçam em grupos ou redes de confiança, frequentemente desqualificando fontes discordantes.\nExemplo: Um grupo aceita apenas links enviados por integrantes e chama todas as fontes externas de falsas.\nErro comum: Câmara de eco significa somente que o algoritmo ordena vídeos sem relações sociais.",
-      "topicIndex": 4,
-      "url": "#social"
-    },
-    {
-      "id": "c336",
-      "type": "topico",
-      "semester": "2026/2",
-      "subject": "social",
-      "title": "Modulação algorítmica e visibilidade",
-      "text": "Sérgio Amadeu discute como sistemas classificam, priorizam e distribuem mensagens, interferindo no que ganha visibilidade e poder informacional.\nExemplo: Uma narrativa muito recomendada parece majoritária, mesmo sem uma pesquisa que comprove isso.\nErro comum: Uma mensagem muito visível é necessariamente verdadeira e representa a maioria da população.",
-      "topicIndex": 5,
-      "url": "#social"
-    },
-    {
-      "id": "c337",
-      "type": "topico",
-      "semester": "2026/2",
-      "subject": "social",
-      "title": "Ideologização em Martín-Baró",
-      "text": "A crítica à ideologização questiona processos históricos e sociais que aparecem como naturais, inevitáveis ou exclusivamente individuais.\nExemplo: Um discurso repetido faz parecer natural que todos de determinado grupo sejam iguais.\nErro comum: Ideologização significa sempre revelar todas as condições históricas e relações de poder.",
-      "topicIndex": 6,
-      "url": "#social"
-    },
-    {
-      "id": "c338",
-      "type": "topico",
-      "semester": "2026/2",
-      "subject": "social",
-      "title": "Desideologização",
-      "text": "Implica recuperar a história, os interesses e as relações de poder para questionar versões naturalizadas da realidade social.\nExemplo: Um estudante pergunta quem produz determinada narrativa, quais vozes foram excluídas e a quem beneficia.\nErro comum: Desideologizar é apenas trocar uma propaganda por outra sem examinar contexto.",
-      "topicIndex": 7,
-      "url": "#social"
-    },
-    {
-      "id": "c339",
-      "type": "topico",
-      "semester": "2026/2",
-      "subject": "social",
-      "title": "Fatalismo",
-      "text": "Na Psicologia da Libertação, fatalismo envolve naturalização da impossibilidade de mudança diante de condições históricas de dominação.\nExemplo: Pessoas dizem que sua comunidade nunca pode melhorar e que reivindicar direitos é inútil.\nErro comum: Fatalismo é uma evidência de que desigualdades sociais não têm causas históricas.",
-      "topicIndex": 8,
-      "url": "#social"
-    },
-    {
-      "id": "c340",
-      "type": "topico",
-      "semester": "2026/2",
-      "subject": "social",
-      "title": "Democracia formal e efetiva",
-      "text": "A distinção questiona se a existência de instituições e procedimentos democráticos se traduz também em participação e direitos concretamente acessíveis.\nExemplo: Um país realiza eleições, mas grupos excluídos enfrentam barreiras persistentes à participação social.\nErro comum: A existência de eleições garante, por si, igualdade substantiva de participação.",
-      "topicIndex": 9,
-      "url": "#social"
-    },
-    {
-      "id": "c341",
-      "type": "topico",
-      "semester": "2026/2",
-      "subject": "social",
-      "title": "Marcadores étnico-raciais",
-      "text": "Raça e racialização operam socialmente em desigualdades, identidades, discriminações e experiências que precisam ser contextualizadas.\nExemplo: Um estudante percebe que dois jovens recebem tratamento desigual por características racializadas.\nErro comum: Racismo pode ser analisado adequadamente sem considerar história ou relações de poder.",
-      "topicIndex": 10,
-      "url": "#social"
-    },
-    {
-      "id": "c342",
-      "type": "topico",
-      "semester": "2026/2",
-      "subject": "social",
-      "title": "Gênero e sexualidade",
-      "text": "Normas de gênero e expectativas culturais influenciam identidades, oportunidades e relações, sem se reduzirem a experiências individuais isoladas.\nExemplo: Uma pessoa sofre exclusão por não corresponder ao comportamento esperado de seu gênero.\nErro comum: Gênero e sexualidade são conceitos intercambiáveis que significam exatamente a mesma coisa.",
-      "topicIndex": 11,
-      "url": "#social"
-    },
-    {
-      "id": "c343",
-      "type": "topico",
-      "semester": "2026/2",
-      "subject": "social",
-      "title": "Comentários e consenso aparente",
-      "text": "A repetição de comentários pode criar impressão enganosa de apoio majoritário, inclusive quando não representa opinião pública.\nExemplo: Várias respostas iguais abaixo de uma notícia fazem leitores imaginarem unanimidade.\nErro comum: A quantidade de comentários equivale necessariamente a uma pesquisa representativa.",
-      "topicIndex": 12,
-      "url": "#social"
-    },
-    {
-      "id": "c344",
-      "type": "topico",
-      "semester": "2026/2",
-      "subject": "social",
-      "title": "Publicidade personalizada",
-      "text": "Plataformas podem usar interações, cookies e outros sinais para segmentar anúncios, influenciando exposição e consumo.\nExemplo: Uma pessoa visita uma loja de tênis e depois vê anúncios semelhantes em outros serviços.\nErro comum: O reaparecimento de anúncios comprova que todo celular grava secretamente conversas.",
-      "topicIndex": 13,
-      "url": "#social"
-    },
-    {
-      "id": "c345",
-      "type": "topico",
-      "semester": "2026/2",
-      "subject": "social",
-      "title": "Experimento de dois feeds",
-      "text": "Uma observação exploratória com perfis de interesses distintos pode descrever recomendações, mas não provar sozinha mudança de opinião ou causalidade.\nExemplo: O grupo criou dois perfis, um sobre PT/Lula e outro sobre Bolsonaro, e comparou recomendações.\nErro comum: Observar dois feeds permite provar que o algoritmo radicaliza todas as pessoas.",
-      "topicIndex": 14,
-      "url": "#social"
-    },
-    {
-      "id": "c346",
-      "type": "simulado",
-      "semester": "2026/2",
-      "subject": "social",
-      "title": "Simulado 1 — Psicologia Social",
-      "text": "Simulado 1, 10 questões. Estilo Prova anterior de Social: assertivas, V/F e respostas dissertativas; P3 prevista como avaliação integradora em dupla..",
-      "examId": "social-1",
-      "url": "#social-1"
-    },
-    {
-      "id": "c347",
-      "type": "questao",
-      "semester": "2026/2",
-      "subject": "social",
-      "title": "Psicologia Social — Simulado 1",
-      "text": "Tipo: combo\nEnunciado: Analise as afirmações abaixo sobre viés de confirmação, câmara de eco e fatalismo. Assinale a alternativa que contém SOMENTE as afirmações corretas.\nConceito: Viés de confirmação\nResposta orientativa: Conjunto correto [\"I\",\"III\",\"V\"]. I: É uma dinâmica em que opiniões circulam e se reforçam em grupos ou redes de confiança, frequentemente desqualificando fontes discordantes. III: É a tendência de buscar, interpretar e valorizar informações de modo mais favorável a crenças prévias, sem que isso exija intenção consciente. V: Na Psicologia da Libertação, fatalismo envolve naturalização da impossibilidade de mudança diante de condições históricas de dominação.\n",
-      "examId": "social-1",
-      "url": "#social-1"
-    },
-    {
-      "id": "c348",
-      "type": "questao",
-      "semester": "2026/2",
-      "subject": "social",
-      "title": "Psicologia Social — Simulado 1",
-      "text": "Tipo: tf\nEnunciado: Sobre polarização afetiva, julgue a afirmação:\n\n“Caracteriza-se pelo aumento de antipatia, desconfiança ou hostilidade entre grupos, além da simples divergência de ideias.”\nConceito: Polarização afetiva\nResposta orientativa: Verdadeiro\n",
-      "examId": "social-1",
-      "url": "#social-1"
-    },
-    {
-      "id": "c349",
-      "type": "questao",
-      "semester": "2026/2",
-      "subject": "social",
-      "title": "Psicologia Social — Simulado 1",
-      "text": "Tipo: essay\nEnunciado: Explique câmara de eco com precisão conceitual. Analise a situação a seguir: Um grupo aceita apenas links enviados por integrantes e chama todas as fontes externas de falsas. Na resposta, diferencie esse conceito de desideologização e descreva ao menos uma implicação prática.\nConceito: Câmara de eco\nResposta orientativa: É uma dinâmica em que opiniões circulam e se reforçam em grupos ou redes de confiança, frequentemente desqualificando fontes discordantes. Na situação proposta, o aspecto central é a relação entre a experiência descrita e esse conceito; é necessário explicitar essa conexão, sem afirmar diagnósticos a partir de um exemplo isolado. É diferente de desideologização, que se refere a: Implica recuperar a história, os interesses e as relações de poder para questionar versões naturalizadas da realidade social. A implicação prática envolve avaliar o contexto, os limites da situação e a função do processo descrito.\n\nCritérios: Definir corretamente câmara de eco; Analisar a situação apresentada, sem apenas copiar a definição; Diferenciar de desideologização; Apresentar implicação prática coerente e usar terminologia adequada",
-      "examId": "social-1",
-      "url": "#social-1"
-    },
-    {
-      "id": "c350",
-      "type": "questao",
-      "semester": "2026/2",
-      "subject": "social",
-      "title": "Psicologia Social — Simulado 1",
-      "text": "Tipo: choice\nEnunciado: Situação: Um discurso repetido faz parecer natural que todos de determinado grupo sejam iguais.\n\nQual conceito ou formulação explica MELHOR essa situação?\nConceito: Ideologização em Martín-Baró\nResposta orientativa: Ideologização em Martín-Baró\nA) Fatalismo\nB) Ideologização em Martín-Baró\nC) Gênero e sexualidade\nD) Experimento de dois feeds",
-      "examId": "social-1",
-      "url": "#social-1"
-    },
-    {
-      "id": "c351",
-      "type": "questao",
-      "semester": "2026/2",
-      "subject": "social",
-      "title": "Psicologia Social — Simulado 1",
-      "text": "Tipo: tf\nEnunciado: Sobre fatalismo, julgue a afirmação:\n\n“Fatalismo é uma evidência de que desigualdades sociais não têm causas históricas.”\nConceito: Fatalismo\nResposta orientativa: Falso\n",
-      "examId": "social-1",
-      "url": "#social-1"
-    },
-    {
-      "id": "c352",
-      "type": "questao",
-      "semester": "2026/2",
-      "subject": "social",
-      "title": "Psicologia Social — Simulado 1",
-      "text": "Tipo: essay\nEnunciado: Explique marcadores étnico-raciais com precisão conceitual. Analise a situação a seguir: Um estudante percebe que dois jovens recebem tratamento desigual por características racializadas. Na resposta, diferencie esse conceito de publicidade personalizada e descreva ao menos uma implicação prática.\nConceito: Marcadores étnico-raciais\nResposta orientativa: Raça e racialização operam socialmente em desigualdades, identidades, discriminações e experiências que precisam ser contextualizadas. Na situação proposta, o aspecto central é a relação entre a experiência descrita e esse conceito; é necessário explicitar essa conexão, sem afirmar diagnósticos a partir de um exemplo isolado. É diferente de publicidade personalizada, que se refere a: Plataformas podem usar interações, cookies e outros sinais para segmentar anúncios, influenciando exposição e consumo. A implicação prática envolve avaliar o contexto, os limites da situação e a função do processo descrito.\n\nCritérios: Definir corretamente marcadores étnico-raciais; Analisar a situação apresentada, sem apenas copiar a definição; Diferenciar de publicidade personalizada; Apresentar implicação prática coerente e usar terminologia adequada",
-      "examId": "social-1",
-      "url": "#social-1"
-    },
-    {
-      "id": "c353",
-      "type": "questao",
-      "semester": "2026/2",
-      "subject": "social",
-      "title": "Psicologia Social — Simulado 1",
-      "text": "Tipo: choice\nEnunciado: Situação: Várias respostas iguais abaixo de uma notícia fazem leitores imaginarem unanimidade.\n\nQual conceito ou formulação explica MELHOR essa situação?\nConceito: Comentários e consenso aparente\nResposta orientativa: Comentários e consenso aparente\nA) Experimento de dois feeds\nB) Modulação algorítmica e visibilidade\nC) Polarização afetiva\nD) Comentários e consenso aparente",
-      "examId": "social-1",
-      "url": "#social-1"
-    },
-    {
-      "id": "c354",
-      "type": "questao",
-      "semester": "2026/2",
-      "subject": "social",
-      "title": "Psicologia Social — Simulado 1",
-      "text": "Tipo: essay\nEnunciado: Explique experimento de dois feeds com precisão conceitual. Analise a situação a seguir: O grupo criou dois perfis, um sobre PT/Lula e outro sobre Bolsonaro, e comparou recomendações. Na resposta, diferencie esse conceito de polarização afetiva e descreva ao menos uma implicação prática.\nConceito: Experimento de dois feeds\nResposta orientativa: Uma observação exploratória com perfis de interesses distintos pode descrever recomendações, mas não provar sozinha mudança de opinião ou causalidade. Na situação proposta, o aspecto central é a relação entre a experiência descrita e esse conceito; é necessário explicitar essa conexão, sem afirmar diagnósticos a partir de um exemplo isolado. É diferente de polarização afetiva, que se refere a: Caracteriza-se pelo aumento de antipatia, desconfiança ou hostilidade entre grupos, além da simples divergência de ideias. A implicação prática envolve avaliar o contexto, os limites da situação e a função do processo descrito.\n\nCritérios: Definir corretamente experimento de dois feeds; Analisar a situação apresentada, sem apenas copiar a definição; Diferenciar de polarização afetiva; Apresentar implicação prática coerente e usar terminologia adequada",
-      "examId": "social-1",
-      "url": "#social-1"
-    },
-    {
-      "id": "c355",
-      "type": "questao",
-      "semester": "2026/2",
-      "subject": "social",
-      "title": "Psicologia Social — Simulado 1",
-      "text": "Tipo: tf\nEnunciado: Sobre identidade social e pertencimento, julgue a afirmação:\n\n“Pertencer a um grupo elimina a capacidade individual de reflexão em todos os casos.”\nConceito: Identidade social e pertencimento\nResposta orientativa: Falso\n",
-      "examId": "social-1",
-      "url": "#social-1"
-    },
-    {
-      "id": "c356",
-      "type": "questao",
-      "semester": "2026/2",
-      "subject": "social",
-      "title": "Psicologia Social — Simulado 1",
-      "text": "Tipo: essay\nEnunciado: Explique bolha de filtros com precisão conceitual. Analise a situação a seguir: Dois celulares exibem notícias muito diferentes sobre o mesmo assunto. Na resposta, diferencie esse conceito de ideologização em martín-baró e descreva ao menos uma implicação prática.\nConceito: Bolha de filtros\nResposta orientativa: Refere-se à seleção e personalização do que chega ao usuário, potencialmente reduzindo diversidade de perspectivas vistas. Na situação proposta, o aspecto central é a relação entre a experiência descrita e esse conceito; é necessário explicitar essa conexão, sem afirmar diagnósticos a partir de um exemplo isolado. É diferente de ideologização em martín-baró, que se refere a: A crítica à ideologização questiona processos históricos e sociais que aparecem como naturais, inevitáveis ou exclusivamente individuais. A implicação prática envolve avaliar o contexto, os limites da situação e a função do processo descrito.\n\nCritérios: Definir corretamente bolha de filtros; Analisar a situação apresentada, sem apenas copiar a definição; Diferenciar de ideologização em martín-baró; Apresentar implicação prática coerente e usar terminologia adequada",
-      "examId": "social-1",
-      "url": "#social-1"
-    },
-    {
-      "id": "c357",
-      "type": "simulado",
-      "semester": "2026/2",
-      "subject": "social",
-      "title": "Simulado 2 — Psicologia Social",
-      "text": "Simulado 2, 10 questões. Estilo Prova anterior de Social: assertivas, V/F e respostas dissertativas; P3 prevista como avaliação integradora em dupla..",
-      "examId": "social-2",
-      "url": "#social-2"
-    },
-    {
-      "id": "c358",
-      "type": "questao",
-      "semester": "2026/2",
-      "subject": "social",
-      "title": "Psicologia Social — Simulado 2",
-      "text": "Tipo: combo\nEnunciado: Analise as afirmações abaixo sobre ideologização em martín-baró, marcadores étnico-raciais e experimento de dois feeds. Assinale a alternativa que contém SOMENTE as afirmações corretas.\nConceito: Ideologização em Martín-Baró\nResposta orientativa: Conjunto correto [\"III\",\"IV\",\"V\"]. III: Raça e racialização operam socialmente em desigualdades, identidades, discriminações e experiências que precisam ser contextualizadas. IV: A crítica à ideologização questiona processos históricos e sociais que aparecem como naturais, inevitáveis ou exclusivamente individuais. V: Uma observação exploratória com perfis de interesses distintos pode descrever recomendações, mas não provar sozinha mudança de opinião ou causalidade.\n",
-      "examId": "social-2",
-      "url": "#social-2"
-    },
-    {
-      "id": "c359",
-      "type": "questao",
-      "semester": "2026/2",
-      "subject": "social",
-      "title": "Psicologia Social — Simulado 2",
-      "text": "Tipo: tf\nEnunciado: Sobre democracia formal e efetiva, julgue a afirmação:\n\n“A existência de eleições garante, por si, igualdade substantiva de participação.”\nConceito: Democracia formal e efetiva\nResposta orientativa: Falso\n",
-      "examId": "social-2",
-      "url": "#social-2"
-    },
-    {
-      "id": "c360",
-      "type": "questao",
-      "semester": "2026/2",
-      "subject": "social",
-      "title": "Psicologia Social — Simulado 2",
-      "text": "Tipo: essay\nEnunciado: Explique comentários e consenso aparente com precisão conceitual. Analise a situação a seguir: Várias respostas iguais abaixo de uma notícia fazem leitores imaginarem unanimidade. Na resposta, diferencie esse conceito de viés de confirmação e descreva ao menos uma implicação prática.\nConceito: Comentários e consenso aparente\nResposta orientativa: A repetição de comentários pode criar impressão enganosa de apoio majoritário, inclusive quando não representa opinião pública. Na situação proposta, o aspecto central é a relação entre a experiência descrita e esse conceito; é necessário explicitar essa conexão, sem afirmar diagnósticos a partir de um exemplo isolado. É diferente de viés de confirmação, que se refere a: É a tendência de buscar, interpretar e valorizar informações de modo mais favorável a crenças prévias, sem que isso exija intenção consciente. A implicação prática envolve avaliar o contexto, os limites da situação e a função do processo descrito.\n\nCritérios: Definir corretamente comentários e consenso aparente; Analisar a situação apresentada, sem apenas copiar a definição; Diferenciar de viés de confirmação; Apresentar implicação prática coerente e usar terminologia adequada",
-      "examId": "social-2",
-      "url": "#social-2"
-    },
-    {
-      "id": "c361",
-      "type": "questao",
-      "semester": "2026/2",
-      "subject": "social",
-      "title": "Psicologia Social — Simulado 2",
-      "text": "Tipo: choice\nEnunciado: Situação: Duas pessoas atribuem confiabilidade oposta à mesma notícia política, conforme seus posicionamentos.\n\nQual conceito ou formulação explica MELHOR essa situação?\nConceito: Viés de confirmação\nResposta orientativa: Viés de confirmação\nA) Viés de confirmação\nB) Polarização afetiva\nC) Fatalismo\nD) Modulação algorítmica e visibilidade",
-      "examId": "social-2",
-      "url": "#social-2"
-    },
-    {
-      "id": "c362",
-      "type": "questao",
-      "semester": "2026/2",
-      "subject": "social",
-      "title": "Psicologia Social — Simulado 2",
-      "text": "Tipo: tf\nEnunciado: Sobre bolha de filtros, julgue a afirmação:\n\n“Refere-se à seleção e personalização do que chega ao usuário, potencialmente reduzindo diversidade de perspectivas vistas.”\nConceito: Bolha de filtros\nResposta orientativa: Verdadeiro\n",
-      "examId": "social-2",
-      "url": "#social-2"
-    },
-    {
-      "id": "c363",
-      "type": "questao",
-      "semester": "2026/2",
-      "subject": "social",
-      "title": "Psicologia Social — Simulado 2",
-      "text": "Tipo: essay\nEnunciado: Explique ideologização em martín-baró com precisão conceitual. Analise a situação a seguir: Um discurso repetido faz parecer natural que todos de determinado grupo sejam iguais. Na resposta, diferencie esse conceito de democracia formal e efetiva e descreva ao menos uma implicação prática.\nConceito: Ideologização em Martín-Baró\nResposta orientativa: A crítica à ideologização questiona processos históricos e sociais que aparecem como naturais, inevitáveis ou exclusivamente individuais. Na situação proposta, o aspecto central é a relação entre a experiência descrita e esse conceito; é necessário explicitar essa conexão, sem afirmar diagnósticos a partir de um exemplo isolado. É diferente de democracia formal e efetiva, que se refere a: A distinção questiona se a existência de instituições e procedimentos democráticos se traduz também em participação e direitos concretamente acessíveis. A implicação prática envolve avaliar o contexto, os limites da situação e a função do processo descrito.\n\nCritérios: Definir corretamente ideologização em martín-baró; Analisar a situação apresentada, sem apenas copiar a definição; Diferenciar de democracia formal e efetiva; Apresentar implicação prática coerente e usar terminologia adequada",
-      "examId": "social-2",
-      "url": "#social-2"
-    },
-    {
-      "id": "c364",
-      "type": "questao",
-      "semester": "2026/2",
-      "subject": "social",
-      "title": "Psicologia Social — Simulado 2",
-      "text": "Tipo: choice\nEnunciado: Situação: Um país realiza eleições, mas grupos excluídos enfrentam barreiras persistentes à participação social.\n\nQual conceito ou formulação explica MELHOR essa situação?\nConceito: Democracia formal e efetiva\nResposta orientativa: Democracia formal e efetiva\nA) Polarização afetiva\nB) Democracia formal e efetiva\nC) Gênero e sexualidade\nD) Experimento de dois feeds",
-      "examId": "social-2",
-      "url": "#social-2"
-    },
-    {
-      "id": "c365",
-      "type": "questao",
-      "semester": "2026/2",
-      "subject": "social",
-      "title": "Psicologia Social — Simulado 2",
-      "text": "Tipo: essay\nEnunciado: Explique comentários e consenso aparente com precisão conceitual. Analise a situação a seguir: Várias respostas iguais abaixo de uma notícia fazem leitores imaginarem unanimidade. Na resposta, diferencie esse conceito de viés de confirmação e descreva ao menos uma implicação prática.\nConceito: Comentários e consenso aparente\nResposta orientativa: A repetição de comentários pode criar impressão enganosa de apoio majoritário, inclusive quando não representa opinião pública. Na situação proposta, o aspecto central é a relação entre a experiência descrita e esse conceito; é necessário explicitar essa conexão, sem afirmar diagnósticos a partir de um exemplo isolado. É diferente de viés de confirmação, que se refere a: É a tendência de buscar, interpretar e valorizar informações de modo mais favorável a crenças prévias, sem que isso exija intenção consciente. A implicação prática envolve avaliar o contexto, os limites da situação e a função do processo descrito.\n\nCritérios: Definir corretamente comentários e consenso aparente; Analisar a situação apresentada, sem apenas copiar a definição; Diferenciar de viés de confirmação; Apresentar implicação prática coerente e usar terminologia adequada",
-      "examId": "social-2",
-      "url": "#social-2"
-    },
-    {
-      "id": "c366",
-      "type": "questao",
-      "semester": "2026/2",
-      "subject": "social",
-      "title": "Psicologia Social — Simulado 2",
-      "text": "Tipo: tf\nEnunciado: Sobre viés de confirmação, julgue a afirmação:\n\n“É a tendência de buscar, interpretar e valorizar informações de modo mais favorável a crenças prévias, sem que isso exija intenção consciente.”\nConceito: Viés de confirmação\nResposta orientativa: Verdadeiro\n",
-      "examId": "social-2",
-      "url": "#social-2"
-    },
-    {
-      "id": "c367",
-      "type": "questao",
-      "semester": "2026/2",
-      "subject": "social",
-      "title": "Psicologia Social — Simulado 2",
-      "text": "Tipo: essay\nEnunciado: Explique bolha de filtros com precisão conceitual. Analise a situação a seguir: Dois celulares exibem notícias muito diferentes sobre o mesmo assunto. Na resposta, diferencie esse conceito de ideologização em martín-baró e descreva ao menos uma implicação prática.\nConceito: Bolha de filtros\nResposta orientativa: Refere-se à seleção e personalização do que chega ao usuário, potencialmente reduzindo diversidade de perspectivas vistas. Na situação proposta, o aspecto central é a relação entre a experiência descrita e esse conceito; é necessário explicitar essa conexão, sem afirmar diagnósticos a partir de um exemplo isolado. É diferente de ideologização em martín-baró, que se refere a: A crítica à ideologização questiona processos históricos e sociais que aparecem como naturais, inevitáveis ou exclusivamente individuais. A implicação prática envolve avaliar o contexto, os limites da situação e a função do processo descrito.\n\nCritérios: Definir corretamente bolha de filtros; Analisar a situação apresentada, sem apenas copiar a definição; Diferenciar de ideologização em martín-baró; Apresentar implicação prática coerente e usar terminologia adequada",
-      "examId": "social-2",
-      "url": "#social-2"
-    },
-    {
-      "id": "c368",
-      "type": "simulado",
-      "semester": "2026/2",
-      "subject": "social",
-      "title": "Simulado 3 — Psicologia Social",
-      "text": "Simulado 3, 10 questões. Estilo Prova anterior de Social: assertivas, V/F e respostas dissertativas; P3 prevista como avaliação integradora em dupla..",
-      "examId": "social-3",
-      "url": "#social-3"
-    },
-    {
-      "id": "c369",
-      "type": "questao",
-      "semester": "2026/2",
-      "subject": "social",
-      "title": "Psicologia Social — Simulado 3",
-      "text": "Tipo: combo\nEnunciado: Analise as afirmações abaixo sobre comentários e consenso aparente, identidade social e pertencimento e modulação algorítmica e visibilidade. Assinale a alternativa que contém SOMENTE as afirmações corretas.\nConceito: Comentários e consenso aparente\nResposta orientativa: Conjunto correto [\"I\",\"III\",\"IV\"]. I: A identidade social envolve parte da autoimagem vinculada a grupos e pode influenciar avaliações de membros e não membros. III: A repetição de comentários pode criar impressão enganosa de apoio majoritário, inclusive quando não representa opinião pública. IV: Sérgio Amadeu discute como sistemas classificam, priorizam e distribuem mensagens, interferindo no que ganha visibilidade e poder informacional.\n",
-      "examId": "social-3",
-      "url": "#social-3"
-    },
-    {
-      "id": "c370",
-      "type": "questao",
-      "semester": "2026/2",
-      "subject": "social",
-      "title": "Psicologia Social — Simulado 3",
-      "text": "Tipo: tf\nEnunciado: Sobre identidade social e pertencimento, julgue a afirmação:\n\n“A identidade social envolve parte da autoimagem vinculada a grupos e pode influenciar avaliações de membros e não membros.”\nConceito: Identidade social e pertencimento\nResposta orientativa: Verdadeiro\n",
-      "examId": "social-3",
-      "url": "#social-3"
-    },
-    {
-      "id": "c371",
-      "type": "questao",
-      "semester": "2026/2",
-      "subject": "social",
-      "title": "Psicologia Social — Simulado 3",
-      "text": "Tipo: essay\nEnunciado: Explique modulação algorítmica e visibilidade com precisão conceitual. Analise a situação a seguir: Uma narrativa muito recomendada parece majoritária, mesmo sem uma pesquisa que comprove isso. Na resposta, diferencie esse conceito de fatalismo e descreva ao menos uma implicação prática.\nConceito: Modulação algorítmica e visibilidade\nResposta orientativa: Sérgio Amadeu discute como sistemas classificam, priorizam e distribuem mensagens, interferindo no que ganha visibilidade e poder informacional. Na situação proposta, o aspecto central é a relação entre a experiência descrita e esse conceito; é necessário explicitar essa conexão, sem afirmar diagnósticos a partir de um exemplo isolado. É diferente de fatalismo, que se refere a: Na Psicologia da Libertação, fatalismo envolve naturalização da impossibilidade de mudança diante de condições históricas de dominação. A implicação prática envolve avaliar o contexto, os limites da situação e a função do processo descrito.\n\nCritérios: Definir corretamente modulação algorítmica e visibilidade; Analisar a situação apresentada, sem apenas copiar a definição; Diferenciar de fatalismo; Apresentar implicação prática coerente e usar terminologia adequada",
-      "examId": "social-3",
-      "url": "#social-3"
-    },
-    {
-      "id": "c372",
-      "type": "questao",
-      "semester": "2026/2",
-      "subject": "social",
-      "title": "Psicologia Social — Simulado 3",
-      "text": "Tipo: choice\nEnunciado: Situação: Um país realiza eleições, mas grupos excluídos enfrentam barreiras persistentes à participação social.\n\nQual conceito ou formulação explica MELHOR essa situação?\nConceito: Democracia formal e efetiva\nResposta orientativa: Democracia formal e efetiva\nA) Gênero e sexualidade\nB) Experimento de dois feeds\nC) Democracia formal e efetiva\nD) Polarização afetiva",
-      "examId": "social-3",
-      "url": "#social-3"
-    },
-    {
-      "id": "c373",
-      "type": "questao",
-      "semester": "2026/2",
-      "subject": "social",
-      "title": "Psicologia Social — Simulado 3",
-      "text": "Tipo: tf\nEnunciado: Sobre publicidade personalizada, julgue a afirmação:\n\n“O reaparecimento de anúncios comprova que todo celular grava secretamente conversas.”\nConceito: Publicidade personalizada\nResposta orientativa: Falso\n",
-      "examId": "social-3",
-      "url": "#social-3"
-    },
-    {
-      "id": "c374",
-      "type": "questao",
-      "semester": "2026/2",
-      "subject": "social",
-      "title": "Psicologia Social — Simulado 3",
-      "text": "Tipo: essay\nEnunciado: Explique polarização afetiva com precisão conceitual. Analise a situação a seguir: Uma discussão política termina com participantes chamando integrantes do outro grupo de inimigos. Na resposta, diferencie esse conceito de modulação algorítmica e visibilidade e descreva ao menos uma implicação prática.\nConceito: Polarização afetiva\nResposta orientativa: Caracteriza-se pelo aumento de antipatia, desconfiança ou hostilidade entre grupos, além da simples divergência de ideias. Na situação proposta, o aspecto central é a relação entre a experiência descrita e esse conceito; é necessário explicitar essa conexão, sem afirmar diagnósticos a partir de um exemplo isolado. É diferente de modulação algorítmica e visibilidade, que se refere a: Sérgio Amadeu discute como sistemas classificam, priorizam e distribuem mensagens, interferindo no que ganha visibilidade e poder informacional. A implicação prática envolve avaliar o contexto, os limites da situação e a função do processo descrito.\n\nCritérios: Definir corretamente polarização afetiva; Analisar a situação apresentada, sem apenas copiar a definição; Diferenciar de modulação algorítmica e visibilidade; Apresentar implicação prática coerente e usar terminologia adequada",
-      "examId": "social-3",
-      "url": "#social-3"
-    },
-    {
-      "id": "c375",
-      "type": "questao",
-      "semester": "2026/2",
-      "subject": "social",
-      "title": "Psicologia Social — Simulado 3",
-      "text": "Tipo: choice\nEnunciado: Situação: Um discurso repetido faz parecer natural que todos de determinado grupo sejam iguais.\n\nQual conceito ou formulação explica MELHOR essa situação?\nConceito: Ideologização em Martín-Baró\nResposta orientativa: Ideologização em Martín-Baró\nA) Gênero e sexualidade\nB) Ideologização em Martín-Baró\nC) Experimento de dois feeds\nD) Fatalismo",
-      "examId": "social-3",
-      "url": "#social-3"
-    },
-    {
-      "id": "c376",
-      "type": "questao",
-      "semester": "2026/2",
-      "subject": "social",
-      "title": "Psicologia Social — Simulado 3",
-      "text": "Tipo: essay\nEnunciado: Explique marcadores étnico-raciais com precisão conceitual. Analise a situação a seguir: Um estudante percebe que dois jovens recebem tratamento desigual por características racializadas. Na resposta, diferencie esse conceito de publicidade personalizada e descreva ao menos uma implicação prática.\nConceito: Marcadores étnico-raciais\nResposta orientativa: Raça e racialização operam socialmente em desigualdades, identidades, discriminações e experiências que precisam ser contextualizadas. Na situação proposta, o aspecto central é a relação entre a experiência descrita e esse conceito; é necessário explicitar essa conexão, sem afirmar diagnósticos a partir de um exemplo isolado. É diferente de publicidade personalizada, que se refere a: Plataformas podem usar interações, cookies e outros sinais para segmentar anúncios, influenciando exposição e consumo. A implicação prática envolve avaliar o contexto, os limites da situação e a função do processo descrito.\n\nCritérios: Definir corretamente marcadores étnico-raciais; Analisar a situação apresentada, sem apenas copiar a definição; Diferenciar de publicidade personalizada; Apresentar implicação prática coerente e usar terminologia adequada",
-      "examId": "social-3",
-      "url": "#social-3"
-    },
-    {
-      "id": "c377",
-      "type": "questao",
-      "semester": "2026/2",
-      "subject": "social",
-      "title": "Psicologia Social — Simulado 3",
-      "text": "Tipo: tf\nEnunciado: Sobre experimento de dois feeds, julgue a afirmação:\n\n“Observar dois feeds permite provar que o algoritmo radicaliza todas as pessoas.”\nConceito: Experimento de dois feeds\nResposta orientativa: Falso\n",
-      "examId": "social-3",
-      "url": "#social-3"
-    },
-    {
-      "id": "c378",
-      "type": "questao",
-      "semester": "2026/2",
-      "subject": "social",
-      "title": "Psicologia Social — Simulado 3",
-      "text": "Tipo: essay\nEnunciado: Explique bolha de filtros com precisão conceitual. Analise a situação a seguir: Dois celulares exibem notícias muito diferentes sobre o mesmo assunto. Na resposta, diferencie esse conceito de ideologização em martín-baró e descreva ao menos uma implicação prática.\nConceito: Bolha de filtros\nResposta orientativa: Refere-se à seleção e personalização do que chega ao usuário, potencialmente reduzindo diversidade de perspectivas vistas. Na situação proposta, o aspecto central é a relação entre a experiência descrita e esse conceito; é necessário explicitar essa conexão, sem afirmar diagnósticos a partir de um exemplo isolado. É diferente de ideologização em martín-baró, que se refere a: A crítica à ideologização questiona processos históricos e sociais que aparecem como naturais, inevitáveis ou exclusivamente individuais. A implicação prática envolve avaliar o contexto, os limites da situação e a função do processo descrito.\n\nCritérios: Definir corretamente bolha de filtros; Analisar a situação apresentada, sem apenas copiar a definição; Diferenciar de ideologização em martín-baró; Apresentar implicação prática coerente e usar terminologia adequada",
-      "examId": "social-3",
-      "url": "#social-3"
-    },
-    {
-      "id": "c379",
-      "type": "simulado",
-      "semester": "2026/2",
-      "subject": "social",
-      "title": "Simulado 4 — Psicologia Social",
-      "text": "Simulado 4, 10 questões. Estilo Prova anterior de Social: assertivas, V/F e respostas dissertativas; P3 prevista como avaliação integradora em dupla..",
-      "examId": "social-4",
-      "url": "#social-4"
-    },
-    {
-      "id": "c380",
-      "type": "questao",
-      "semester": "2026/2",
-      "subject": "social",
-      "title": "Psicologia Social — Simulado 4",
-      "text": "Tipo: combo\nEnunciado: Uma pesquisa acompanha dois perfis com padrões de interação política diferentes e registra conteúdos recomendados. Examine os limites e os mecanismos envolvidos.\nConceito: Algoritmos, viés de confirmação e limites do experimento\nResposta orientativa: Conjunto correto [\"II\",\"III\",\"V\"]. II: Predisposições cognitivas e dinâmicas técnicas e sociais podem se reforçar mutuamente. III: Há componente relacional na seleção e reforço de narrativas. V: Sem controle de histórico, interações e contextos, as conclusões permanecem exploratórias.\n",
-      "examId": "social-4",
-      "url": "#social-4"
-    },
-    {
-      "id": "c381",
-      "type": "questao",
-      "semester": "2026/2",
-      "subject": "social",
-      "title": "Psicologia Social — Simulado 4",
-      "text": "Tipo: choice\nEnunciado: Um estudante compara dois feeds construídos por perfis que interagem com grupos políticos opostos. Conclui que o algoritmo necessariamente 'inventou' todas as crenças desses perfis. Qual crítica é mais adequada?\nConceito: Experimento de dois feeds\nResposta orientativa: A segmentação observada deve ser interpretada como processo sociotécnico que interage com escolhas anteriores, sem atribuir causalidade total ao algoritmo\nA) O viés de confirmação não existe fora das plataformas\nB) A segmentação observada deve ser interpretada como processo sociotécnico que interage com escolhas anteriores, sem atribuir causalidade total ao algoritmo\nC) A existência de conteúdos diferentes prova que todos os usuários verão exatamente as mesmas recomendações\nD) O fato de se tratar de política torna qualquer observação inválida",
-      "examId": "social-4",
-      "url": "#social-4"
-    },
-    {
-      "id": "c382",
-      "type": "questao",
-      "semester": "2026/2",
-      "subject": "social",
-      "title": "Psicologia Social — Simulado 4",
-      "text": "Tipo: choice\nEnunciado: Um discurso associa desigualdade social apenas à 'falta de esforço individual' e desconsidera condições históricas; membros do grupo passam a ver mudanças coletivas como impossíveis. Qual combinação de conceitos é mais pertinente?\nConceito: Martín-Baró: ideologização e fatalismo\nResposta orientativa: Ideologização e fatalismo analisados criticamente à luz das relações de poder\nA) Publicidade personalizada e escolha de produto, sem dimensões histórico-sociais\nB) Efeito meramente estético da interface\nC) Identidade social como explicação suficiente sem contexto de dominação\nD) Ideologização e fatalismo analisados criticamente à luz das relações de poder",
-      "examId": "social-4",
-      "url": "#social-4"
-    },
-    {
-      "id": "c383",
-      "type": "questao",
-      "semester": "2026/2",
-      "subject": "social",
-      "title": "Psicologia Social — Simulado 4",
-      "text": "Tipo: tf\nEnunciado: Julgue: uma pessoa pode participar ativamente de uma câmara de eco mesmo sem recomendação algorítmica personalizada, porque redes de confiança e desqualificação de fontes discordantes também podem sustentá-la.\nConceito: Câmara de eco\nResposta orientativa: Verdadeiro\n",
-      "examId": "social-4",
-      "url": "#social-4"
-    },
-    {
-      "id": "c384",
-      "type": "questao",
-      "semester": "2026/2",
-      "subject": "social",
-      "title": "Psicologia Social — Simulado 4",
-      "text": "Tipo: tf\nEnunciado: Julgue: se duas contas recebem conteúdos diferentes depois de seguir e curtir atores políticos opostos, o experimento isola perfeitamente o efeito do algoritmo, pois o histórico criado não é uma variável relevante.\nConceito: Método observacional\nResposta orientativa: Falso\n",
-      "examId": "social-4",
-      "url": "#social-4"
-    },
-    {
-      "id": "c385",
-      "type": "questao",
-      "semester": "2026/2",
-      "subject": "social",
-      "title": "Psicologia Social — Simulado 4",
-      "text": "Tipo: tf\nEnunciado: Julgue: a distinção entre democracia formal e efetiva autoriza perguntar se direitos e participação são vividos de modo concreto, para além da existência de regras institucionais.\nConceito: Democracia formal e efetiva\nResposta orientativa: Verdadeiro\n",
-      "examId": "social-4",
-      "url": "#social-4"
-    },
-    {
-      "id": "c386",
-      "type": "questao",
-      "semester": "2026/2",
-      "subject": "social",
-      "title": "Psicologia Social — Simulado 4",
-      "text": "Tipo: essay\nEnunciado: No experimento de duas contas políticas, um grupo observa linguagem cada vez mais hostil após semanas de interação, mas não mede atitudes dos usuários. Diferencie exposição, engajamento e mudança de opinião; explique quais afirmações são sustentadas pelos dados.\nConceito: Exposição algorítmica e inferência causal\nResposta orientativa: A observação pode sustentar que feeds associados a diferentes interações exibiram certos padrões de recomendação e hostilidade. Não mede automaticamente crenças, conversão ideológica ou causalidade. São necessários controle de histórico, observação comparativa, amostragem e medidas específicas para inferir efeitos. Comentários hostis ou muitas visualizações não constituem consenso populacional.\n\nCritérios: Relacionar com precisão Exposição algorítmica e inferência causal aos conceitos relevantes; Interpretar as evidências do caso, evitando apenas repetir definições; Diferenciar hipóteses plausíveis de conclusões não autorizadas; Justificar implicações e limitações da análise com coerência e respeito ético",
-      "examId": "social-4",
-      "url": "#social-4"
-    },
-    {
-      "id": "c387",
-      "type": "questao",
-      "semester": "2026/2",
-      "subject": "social",
-      "title": "Psicologia Social — Simulado 4",
-      "text": "Tipo: essay\nEnunciado: Um influenciador repete que determinados grupos são pobres porque não se esforçam, enquanto os comentários reforçam essa ideia. Analise ideologização, naturalização de desigualdades e possibilidade de desideologização em Psicologia Social crítica.\nConceito: Ideologização e desideologização\nResposta orientativa: Atribuir fenômeno estrutural exclusivamente a falhas individuais pode ocultar relações de poder e condições históricas. A crítica de Martín-Baró busca revelar esses processos e recuperar experiência vivida e agência coletiva. A desideologização envolve questionamento contextualizado de discursos naturalizados, não simples substituição de uma propaganda por outra.\n\nCritérios: Relacionar com precisão Ideologização e desideologização aos conceitos relevantes; Interpretar as evidências do caso, evitando apenas repetir definições; Diferenciar hipóteses plausíveis de conclusões não autorizadas; Justificar implicações e limitações da análise com coerência e respeito ético",
-      "examId": "social-4",
-      "url": "#social-4"
-    },
-    {
-      "id": "c388",
-      "type": "questao",
-      "semester": "2026/2",
-      "subject": "social",
-      "title": "Psicologia Social — Simulado 4",
-      "text": "Tipo: essay\nEnunciado: Uma rede é acusada de estimular polarização porque prioriza publicações com muito engajamento, inclusive indignação. Explique por que engajamento negativo pode ampliar visibilidade e por que isso não implica consenso ou concordância.\nConceito: Polarização afetiva e visibilidade\nResposta orientativa: Sistemas de distribuição podem tratar sinais de interação como relevantes, mas a visibilidade depende de múltiplos fatores e não deve ser descrita como regra universal. Respostas indignadas também geram atividade, de modo que discursos controversos podem alcançar públicos amplos. Entretanto, comentários e compartilhamentos não expressam necessariamente apoio, nem traduzem representatividade.\n\nCritérios: Relacionar com precisão Polarização afetiva e visibilidade aos conceitos relevantes; Interpretar as evidências do caso, evitando apenas repetir definições; Diferenciar hipóteses plausíveis de conclusões não autorizadas; Justificar implicações e limitações da análise com coerência e respeito ético",
-      "examId": "social-4",
-      "url": "#social-4"
-    },
-    {
-      "id": "c389",
-      "type": "questao",
-      "semester": "2026/2",
-      "subject": "social",
-      "title": "Psicologia Social — Simulado 4",
-      "text": "Tipo: essay\nEnunciado: Uma escola debate discriminação racial e de gênero após divulgação de conteúdo viral. Relacione marcadores sociais, identidade, estigma e poder, evitando reduzir a situação a uma 'briga de opiniões individuais'.\nConceito: Marcadores sociais e relações de poder\nResposta orientativa: Marcadores étnico-raciais e gênero/sexualidade têm dimensões históricas e sociais que afetam reconhecimento, pertencimento e desigualdades. A circulação de discursos pode reforçar estereótipos e produzir exclusão. A análise deve considerar relações institucionais, posições de poder, direitos e possibilidade de respostas coletivas, evitando diagnósticos sobre indivíduos a partir de um comentário isolado.\n\nCritérios: Relacionar com precisão Marcadores sociais e relações de poder aos conceitos relevantes; Interpretar as evidências do caso, evitando apenas repetir definições; Diferenciar hipóteses plausíveis de conclusões não autorizadas; Justificar implicações e limitações da análise com coerência e respeito ético",
-      "examId": "social-4",
-      "url": "#social-4"
-    },
-    {
-      "id": "c390",
-      "type": "simulado",
-      "semester": "2026/2",
-      "subject": "social",
-      "title": "Simulado 5 — Psicologia Social",
-      "text": "Simulado 5, 10 questões. Estilo Prova anterior de Social: assertivas, V/F e respostas dissertativas; P3 prevista como avaliação integradora em dupla..",
-      "examId": "social-5",
-      "url": "#social-5"
-    },
-    {
-      "id": "c391",
-      "type": "questao",
-      "semester": "2026/2",
-      "subject": "social",
-      "title": "Psicologia Social — Simulado 5",
-      "text": "Tipo: combo\nEnunciado: Um relatório afirma que um teste com dois feeds provou manipulação eleitoral, que comentários representam opinião pública e que recomendação equivale a persuasão. Examine os enunciados.\nConceito: Limites causais, identidade e poder\nResposta orientativa: Conjunto correto [\"I\",\"II\",\"V\"]. I: A inferência de efeito eleitoral demanda desenho robusto e medidas específicas. II: Exposição, reação e apoio não se confundem. V: Pertencimento e hostilidade entre grupos não dependem exclusivamente de algoritmos.\n",
-      "examId": "social-5",
-      "url": "#social-5"
-    },
-    {
-      "id": "c392",
-      "type": "questao",
-      "semester": "2026/2",
-      "subject": "social",
-      "title": "Psicologia Social — Simulado 5",
-      "text": "Tipo: choice\nEnunciado: Dois grupos recebem idêntico conteúdo político. Um interpreta a fala como prova de honestidade, o outro como evidência de ameaça. Antes de atribuir todo o efeito ao algoritmo, o pesquisador deveria considerar:\nConceito: Identidade social e polarização afetiva\nResposta orientativa: Identidade social, vieses de interpretação e histórico de relações entre grupos\nA) Somente a velocidade da internet\nB) Que a reação deve ser igual quando o conteúdo é igual\nC) Que o algoritmo é sempre irrelevante para formação de atitudes\nD) Identidade social, vieses de interpretação e histórico de relações entre grupos",
-      "examId": "social-5",
-      "url": "#social-5"
-    },
-    {
-      "id": "c393",
-      "type": "questao",
-      "semester": "2026/2",
-      "subject": "social",
-      "title": "Psicologia Social — Simulado 5",
-      "text": "Tipo: choice\nEnunciado: Uma campanha digital usa públicos segmentados e repetição de mensagens. Um pesquisador observa anúncios em perfis diferentes e conclui que isso explica o resultado eleitoral. Qual posição metodológica é mais consistente?\nConceito: Publicidade personalizada e eleições\nResposta orientativa: A distribuição segmentada é um mecanismo possível de exposição, mas atribuir efeitos eleitorais demanda evidências e desenho causal adicionais\nA) A distribuição segmentada é um mecanismo possível de exposição, mas atribuir efeitos eleitorais demanda evidências e desenho causal adicionais\nB) O número de anúncios observados é suficiente para determinar votos que mudaram\nC) Remarketing prova acesso permanente ao microfone dos usuários\nD) Qualquer anúncio determina automaticamente opinião e comportamento",
-      "examId": "social-5",
-      "url": "#social-5"
-    },
-    {
-      "id": "c394",
-      "type": "questao",
-      "semester": "2026/2",
-      "subject": "social",
-      "title": "Psicologia Social — Simulado 5",
-      "text": "Tipo: tf\nEnunciado: Julgue: o fato de um perfil ver repetidamente uma narrativa é compatível com reforço de sua familiaridade percebida, mas não autoriza afirmar que toda pessoa exposta passou a acreditar nela.\nConceito: Repetição e inferência sobre crenças\nResposta orientativa: Verdadeiro\n",
-      "examId": "social-5",
-      "url": "#social-5"
-    },
-    {
-      "id": "c395",
-      "type": "questao",
-      "semester": "2026/2",
-      "subject": "social",
-      "title": "Psicologia Social — Simulado 5",
-      "text": "Tipo: tf\nEnunciado: Julgue: a democracia formal é condição suficiente para igualdade real de participação social, porque a existência de procedimentos legais elimina automaticamente todas as barreiras materiais e subjetivas.\nConceito: Democracia efetiva\nResposta orientativa: Falso\n",
-      "examId": "social-5",
-      "url": "#social-5"
-    },
-    {
-      "id": "c396",
-      "type": "questao",
-      "semester": "2026/2",
-      "subject": "social",
-      "title": "Psicologia Social — Simulado 5",
-      "text": "Tipo: tf\nEnunciado: Julgue: associar polarização afetiva a identidade social não implica negar algoritmos, pois condições técnicas, experiências históricas e relações entre grupos podem interagir sem uma causa única.\nConceito: Polarização afetiva e multicausalidade\nResposta orientativa: Verdadeiro\n",
-      "examId": "social-5",
-      "url": "#social-5"
-    },
-    {
-      "id": "c397",
-      "type": "questao",
-      "semester": "2026/2",
-      "subject": "social",
-      "title": "Psicologia Social — Simulado 5",
-      "text": "Tipo: essay\nEnunciado: Desenhe uma estratégia de pesquisa que permita avançar da descrição de dois feeds políticos para uma inferência mais cuidadosa sobre exposição e eventual mudança de atitudes. Diferencie variáveis observadas, vieses e limites éticos.\nConceito: Pesquisa sobre algoritmos e causalidade\nResposta orientativa: Uma pesquisa melhor delimita hipótese, define medidas de recomendação, exposição e atitudes em momentos distintos, registra padrões de interação e controla características relevantes. Amostragem adequada e procedimentos comparativos podem fortalecer inferências, embora nem sempre estabeleçam causalidade total. Devem-se considerar consentimento, privacidade, riscos de desinformação e vieses de seleção, sem usar observações isoladas como prova eleitoral.\n\nCritérios: Relacionar com precisão Pesquisa sobre algoritmos e causalidade aos conceitos relevantes; Interpretar as evidências do caso, evitando apenas repetir definições; Diferenciar hipóteses plausíveis de conclusões não autorizadas; Justificar implicações e limitações da análise com coerência e respeito ético",
-      "examId": "social-5",
-      "url": "#social-5"
-    },
-    {
-      "id": "c398",
-      "type": "questao",
-      "semester": "2026/2",
-      "subject": "social",
-      "title": "Psicologia Social — Simulado 5",
-      "text": "Tipo: essay\nEnunciado: Compare ideologização, fatalismo e desideologização numa situação em que desigualdades raciais são tratadas como naturais e a população afetada é descrita como incapaz de promover mudanças. Mostre o papel de memória histórica e ação coletiva.\nConceito: Martín-Baró, memória e desideologização\nResposta orientativa: Ideologização pode transformar desigualdade historicamente produzida em aparência de ordem natural; fatalismo pode funcionar como percepção de ausência de possibilidades de transformação. A desideologização envolve recuperar experiência histórica, reconhecer relações de poder e abrir espaço para interpretação crítica e ação. Marcadores raciais são parte das estruturas e relações sociais, não atributos que determinem capacidades.\n\nCritérios: Relacionar com precisão Martín-Baró, memória e desideologização aos conceitos relevantes; Interpretar as evidências do caso, evitando apenas repetir definições; Diferenciar hipóteses plausíveis de conclusões não autorizadas; Justificar implicações e limitações da análise com coerência e respeito ético",
-      "examId": "social-5",
-      "url": "#social-5"
-    },
-    {
-      "id": "c399",
-      "type": "questao",
-      "semester": "2026/2",
-      "subject": "social",
-      "title": "Psicologia Social — Simulado 5",
-      "text": "Tipo: essay\nEnunciado: Explique por que um discurso com grande alcance, comentários agressivos e publicidade personalizada pode parecer consensual sem sê-lo. Relacione câmara de eco, polarização afetiva, viés de confirmação e distribuição algorítmica.\nConceito: Consenso aparente e polarização sociotécnica\nResposta orientativa: A seleção de conteúdos pode ampliar a exposição a narrativas congruentes com preferências, enquanto redes e câmaras de eco reforçam fontes de confiança e desqualificação de dissenso. Hostilidade pode elevar engajamento e circulação, mas não equivale a concordância. A interpretação deve distinguir efeitos cognitivos, laços sociais e mecanismos de distribuição, sem pressupor causalidade uniforme.\n\nCritérios: Relacionar com precisão Consenso aparente e polarização sociotécnica aos conceitos relevantes; Interpretar as evidências do caso, evitando apenas repetir definições; Diferenciar hipóteses plausíveis de conclusões não autorizadas; Justificar implicações e limitações da análise com coerência e respeito ético",
-      "examId": "social-5",
-      "url": "#social-5"
-    },
-    {
-      "id": "c400",
-      "type": "questao",
-      "semester": "2026/2",
-      "subject": "social",
-      "title": "Psicologia Social — Simulado 5",
-      "text": "Tipo: essay\nEnunciado: Uma instituição anuncia políticas inclusivas, mas grupos marginalizados seguem com acesso precário, violência simbólica e pouca influência nas decisões. Discuta democracia formal e efetiva, marcadores de raça e gênero e o risco de uma análise exclusivamente individual.\nConceito: Democracia formal, efetiva e desigualdades\nResposta orientativa: Regras inclusivas podem existir formalmente sem que participação, proteção e direitos sejam efetivamente acessíveis. As barreiras podem ser institucionais, materiais e subjetivas e atravessar marcadores raciais e de gênero. Uma leitura crítica investiga relações de poder, práticas concretas e condições de transformação, em vez de atribuir tudo a atitudes de pessoas isoladas.\n\nCritérios: Relacionar com precisão Democracia formal, efetiva e desigualdades aos conceitos relevantes; Interpretar as evidências do caso, evitando apenas repetir definições; Diferenciar hipóteses plausíveis de conclusões não autorizadas; Justificar implicações e limitações da análise com coerência e respeito ético",
-      "examId": "social-5",
-      "url": "#social-5"
-    },
-    {
-      "id": "c401",
-      "type": "material",
-      "semester": "2026/2",
-      "subject": "social",
-      "title": "Cronograma de Psicologia Social",
-      "text": "Referência registrada na biblioteca: Cronograma de Psicologia Social. Tipo: PDF. Nota: sem observação. Origem: Atualizado Plano Psicologia Social.pdf. Marcado no catálogo como disponível; o conteúdo integral do arquivo não está embutido na base da IA.",
-      "url": "#library",
-      "available": true,
-      "filename": "Atualizado Plano Psicologia Social.pdf",
-      "filePath": "biblioteca/doc_31.pdf",
-      "source": "Atualizado Plano Psicologia Social.pdf",
-      "kind": "PDF"
-    },
-    {
-      "id": "c402",
-      "type": "material",
-      "semester": "2026/2",
-      "subject": "social",
-      "title": "Psicologia Social Crítica — Martín-Baró",
-      "text": "Referência registrada na biblioteca: Psicologia Social Crítica — Martín-Baró. Tipo: PDF. Nota: sem observação. Origem: Psicologia Social Crítica - Baró.pdf. Marcado no catálogo como disponível; o conteúdo integral do arquivo não está embutido na base da IA.",
-      "url": "#library",
-      "available": true,
-      "filename": "Psicologia Social Crítica - Baró.pdf",
-      "filePath": "biblioteca/doc_32.pdf",
-      "source": "Psicologia Social Crítica - Baró.pdf",
-      "kind": "PDF"
-    },
-    {
-      "id": "c403",
-      "type": "material",
-      "semester": "2026/2",
-      "subject": "social",
-      "title": "Seminário sobre algoritmos e polarização",
-      "text": "Referência registrada na biblioteca: Seminário sobre algoritmos e polarização. Tipo: PDF. Nota: Complementar; experimento final com duas contas.. Origem: Trabalho_Psicologia_Social_ABNT_CORRIGIDO.pdf. Marcado no catálogo como disponível; o conteúdo integral do arquivo não está embutido na base da IA.",
-      "url": "#library",
-      "available": true,
-      "filename": "Trabalho_Psicologia_Social_ABNT_CORRIGIDO.pdf",
-      "filePath": "biblioteca/doc_33.pdf",
-      "source": "Trabalho_Psicologia_Social_ABNT_CORRIGIDO.pdf",
-      "kind": "PDF"
-    },
-    {
-      "id": "c404",
-      "type": "material",
-      "semester": "2026/2",
-      "subject": "social",
-      "title": "Texto-base sobre relações étnico-raciais",
-      "text": "Referência registrada na biblioteca: Texto-base sobre relações étnico-raciais. Tipo: Bibliografia. Nota: Tema do plano, texto individual não localizado.. Origem: não informada. Referência ainda sem arquivo original cadastrado.",
-      "url": "#library",
-      "available": false,
-      "filename": "",
-      "filePath": "",
-      "source": "",
-      "kind": "Bibliografia"
-    },
-    {
-      "id": "c405",
-      "type": "material",
-      "semester": "2026/2",
-      "subject": "social",
-      "title": "Texto-base sobre gênero e sexualidade",
-      "text": "Referência registrada na biblioteca: Texto-base sobre gênero e sexualidade. Tipo: Bibliografia. Nota: Tema do plano, texto individual não localizado.. Origem: não informada. Referência ainda sem arquivo original cadastrado.",
-      "url": "#library",
-      "available": false,
-      "filename": "",
-      "filePath": "",
-      "source": "",
-      "kind": "Bibliografia"
     },
     {
       "id": "c406",
@@ -4085,15 +3315,6 @@
       "subject": "social",
       "title": "Psicologia Social — Podcast 2: Ideologia e fatalismo em Martín-Baró",
       "text": "Episódio 2 de podcast sobre Ideologia e fatalismo em Martín-Baró. Este índice contém o título, não a transcrição do áudio.",
-      "url": "#audio"
-    },
-    {
-      "id": "c408",
-      "type": "podcast",
-      "semester": "2026/2",
-      "subject": "social",
-      "title": "Psicologia Social — Podcast 3: O estigma prisional além dos muros",
-      "text": "Episódio 3 de podcast sobre O estigma prisional além dos muros. Este índice contém o título, não a transcrição do áudio.",
       "url": "#audio"
     },
     {
@@ -4121,24 +3342,6 @@
       "subject": "social",
       "title": "Psicologia Social — Podcast 6: Martín-Baró e a Psicologia da Libertação",
       "text": "Episódio 6 de podcast sobre Martín-Baró e a Psicologia da Libertação. Este índice contém o título, não a transcrição do áudio.",
-      "url": "#audio"
-    },
-    {
-      "id": "c412",
-      "type": "podcast",
-      "semester": "2026/2",
-      "subject": "social",
-      "title": "Psicologia Social — Podcast 7: Identidade e representações sociais — revisão",
-      "text": "Episódio 7 de podcast sobre Identidade e representações sociais — revisão. Este índice contém o título, não a transcrição do áudio.",
-      "url": "#audio"
-    },
-    {
-      "id": "c413",
-      "type": "podcast",
-      "semester": "2026/2",
-      "subject": "social",
-      "title": "Psicologia Social — Podcast 8: Revisão integradora — questões objetivas e dissertativas",
-      "text": "Episódio 8 de podcast sobre Revisão integradora — questões objetivas e dissertativas. Este índice contém o título, não a transcrição do áudio.",
       "url": "#audio"
     },
     {
@@ -5140,16 +4343,6 @@
       "url": "#calendar"
     },
     {
-      "id": "c508",
-      "type": "aula",
-      "semester": "2026/2",
-      "subject": "social",
-      "title": "2026-11-05 — Apresentação — Grupo 2",
-      "text": "Aula em 2026-11-05: Apresentação — Grupo 2. Matéria: Psicologia Social. Discussão coletiva; sem leitura específica indicada.\nLeituras: O cronograma não indica leitura específica.",
-      "date": "2026-11-05",
-      "url": "#calendar"
-    },
-    {
       "id": "c509",
       "type": "aula",
       "semester": "2026/2",
@@ -5240,16 +4433,6 @@
       "url": "#calendar"
     },
     {
-      "id": "c518",
-      "type": "aula",
-      "semester": "2026/2",
-      "subject": "social",
-      "title": "2026-11-12 — Apresentação — Grupo 3",
-      "text": "Aula em 2026-11-12: Apresentação — Grupo 3. Matéria: Psicologia Social. Discussão coletiva; sem texto-base específico.\nLeituras: O cronograma não indica leitura específica.",
-      "date": "2026-11-12",
-      "url": "#calendar"
-    },
-    {
       "id": "c519",
       "type": "aula",
       "semester": "2026/2",
@@ -5310,16 +4493,6 @@
       "url": "#calendar"
     },
     {
-      "id": "c525",
-      "type": "aula",
-      "semester": "2026/2",
-      "subject": "social",
-      "title": "2026-11-18 — Aula expositivo-dialogada — tema não informado",
-      "text": "Aula em 2026-11-18: Aula expositivo-dialogada — tema não informado. Matéria: Psicologia Social. O plano informa aula, mas não registra o tema ou texto de leitura.\nLeituras: O cronograma não indica leitura específica.",
-      "date": "2026-11-18",
-      "url": "#calendar"
-    },
-    {
       "id": "c526",
       "type": "aula",
       "semester": "2026/2",
@@ -5336,16 +4509,6 @@
       "subject": "avaliacao",
       "title": "2026-11-19 — Ética na avaliação psicológica",
       "text": "Aula em 2026-11-19: Ética na avaliação psicológica. Matéria: Avaliação Psicológica. \nLeituras: Ética profissional e normas aplicáveis: A aula está prevista, mas o cronograma não atribui uma leitura nova específica.",
-      "date": "2026-11-19",
-      "url": "#calendar"
-    },
-    {
-      "id": "c528",
-      "type": "aula",
-      "semester": "2026/2",
-      "subject": "social",
-      "title": "2026-11-19 — Apresentação — Grupo 4",
-      "text": "Aula em 2026-11-19: Apresentação — Grupo 4. Matéria: Psicologia Social. Discussão coletiva; sem texto específico.\nLeituras: O cronograma não indica leitura específica.",
       "date": "2026-11-19",
       "url": "#calendar"
     },
@@ -5380,16 +4543,6 @@
       "url": "#calendar"
     },
     {
-      "id": "c532",
-      "type": "aula",
-      "semester": "2026/2",
-      "subject": "social",
-      "title": "2026-11-25 — Integração dos conteúdos",
-      "text": "Aula em 2026-11-25: Integração dos conteúdos. Matéria: Psicologia Social. \nLeituras: Psicologia Social I: conceitos integradores: Sem texto separado para a aula; retomar Psicologia Social Crítica e marcadores sociais.",
-      "date": "2026-11-25",
-      "url": "#calendar"
-    },
-    {
       "id": "c533",
       "type": "aula",
       "semester": "2026/2",
@@ -5406,16 +4559,6 @@
       "subject": "familia",
       "title": "2026-12-02 — Entrega de notas e avaliação da disciplina",
       "text": "Aula em 2026-12-02: Entrega de notas e avaliação da disciplina. Matéria: Psicologia da Família. Sem leitura indicada.\nLeituras: O cronograma não indica leitura específica.",
-      "date": "2026-12-02",
-      "url": "#calendar"
-    },
-    {
-      "id": "c535",
-      "type": "aula",
-      "semester": "2026/2",
-      "subject": "social",
-      "title": "2026-12-02 — Devolutiva de notas",
-      "text": "Aula em 2026-12-02: Devolutiva de notas. Matéria: Psicologia Social. Aula destinada à devolutiva.\nLeituras: O cronograma não indica leitura específica.",
       "date": "2026-12-02",
       "url": "#calendar"
     },
@@ -5905,7 +5048,7 @@
       "semester": "2026/2",
       "subject": "social",
       "title": "Epistemicídio: racismo e sexismo — Grosfoguel",
-      "text": "Material indicado: Texto_ Epistemicídio_Racismo e Sexismo_Grosfoguel(1).pdf. Arquivo original ainda não publicado em URL pública. Tema: Epistemicídio",
+      "text": "Material indicado: Texto_ Epistemicídio_Racismo e Sexismo_Grosfoguel(1).pdf. Para abrir o documento, consulte os materiais da Biblioteca do PsicoMoodle. A disponibilidade depende da publicação pelo administrador. Tema: Epistemicídio",
       "source": "Texto_ Epistemicídio_Racismo e Sexismo_Grosfoguel(1).pdf",
       "url": "#social"
     },
@@ -5915,7 +5058,7 @@
       "semester": "2026/2",
       "subject": "social",
       "title": "Interseccionalidade e processos de subjetivação — Hoepers",
-      "text": "Material indicado: Texto 9_interseccionalidades e processos de subjetivação(1).pdf. Arquivo original ainda não publicado em URL pública. Tema: Interseccionalidades",
+      "text": "Material indicado: Texto 9_interseccionalidades e processos de subjetivação(1).pdf. Para abrir o documento, consulte os materiais da Biblioteca do PsicoMoodle. A disponibilidade depende da publicação pelo administrador. Tema: Interseccionalidades",
       "source": "Texto 9_interseccionalidades e processos de subjetivação(1).pdf",
       "url": "#social"
     },
@@ -5925,7 +5068,7 @@
       "semester": "2026/2",
       "subject": "social",
       "title": "Infância e políticas públicas — Cruz, Hillesheim e Guareschi",
-      "text": "Material indicado: Texto 10_Infância e políticas públicas(1).pdf. Arquivo original ainda não publicado em URL pública. Tema: Infância e políticas públicas",
+      "text": "Material indicado: Texto 10_Infância e políticas públicas(1).pdf. Para abrir o documento, consulte os materiais da Biblioteca do PsicoMoodle. A disponibilidade depende da publicação pelo administrador. Tema: Infância e políticas públicas",
       "source": "Texto 10_Infância e políticas públicas(1).pdf",
       "url": "#social"
     },
@@ -5935,7 +5078,7 @@
       "semester": "2026/2",
       "subject": "social",
       "title": "Infância e políticas públicas — apresentação",
-      "text": "Material indicado: Slides_Infância e Políticas Públicas(1).pdf. Arquivo original ainda não publicado em URL pública. Tema: Infância e políticas públicas",
+      "text": "Material indicado: Slides_Infância e Políticas Públicas(1).pdf. Para abrir o documento, consulte os materiais da Biblioteca do PsicoMoodle. A disponibilidade depende da publicação pelo administrador. Tema: Infância e políticas públicas",
       "source": "Slides_Infância e Políticas Públicas(1).pdf",
       "url": "#social"
     },
@@ -5945,7 +5088,7 @@
       "semester": "2026/2",
       "subject": "social",
       "title": "Gênero, feminismo e Psicologia Social — apresentação",
-      "text": "Material indicado: Genero, feminismo e psicologia social.pdf. Arquivo original ainda não publicado em URL pública. Tema: Gênero e feminismo",
+      "text": "Material indicado: Genero, feminismo e psicologia social.pdf. Para abrir o documento, consulte os materiais da Biblioteca do PsicoMoodle. A disponibilidade depende da publicação pelo administrador. Tema: Gênero e feminismo",
       "source": "Genero, feminismo e psicologia social.pdf",
       "url": "#social"
     },
@@ -5955,7 +5098,7 @@
       "semester": "2026/2",
       "subject": "social",
       "title": "Gênero, feminismo e Psicologia Social no Brasil — artigo",
-      "text": "Material indicado: gênero, feminismo e psicologia social.pdf. Arquivo original ainda não publicado em URL pública. Tema: Gênero e feminismo",
+      "text": "Material indicado: gênero, feminismo e psicologia social.pdf. Para abrir o documento, consulte os materiais da Biblioteca do PsicoMoodle. A disponibilidade depende da publicação pelo administrador. Tema: Gênero e feminismo",
       "source": "gênero, feminismo e psicologia social.pdf",
       "url": "#social"
     },
@@ -5965,7 +5108,7 @@
       "semester": "2026/2",
       "subject": "social",
       "title": "Interseccionalidades e experiências de migrantes brasileiras — Piscitelli",
-      "text": "Material indicado: Texto 9_Interseccionalidades, categorias de articulação e experiências de migrantes brasileiras(1).pdf. Arquivo original ainda não publicado em URL pública. Tema: Interseccionalidades",
+      "text": "Material indicado: Texto 9_Interseccionalidades, categorias de articulação e experiências de migrantes brasileiras(1).pdf. Para abrir o documento, consulte os materiais da Biblioteca do PsicoMoodle. A disponibilidade depende da publicação pelo administrador. Tema: Interseccionalidades",
       "source": "Texto 9_Interseccionalidades, categorias de articulação e experiências de migrantes brasileiras(1).pdf",
       "url": "#social"
     },
@@ -5975,7 +5118,7 @@
       "semester": "2026/2",
       "subject": "social",
       "title": "Tecnologias da informação e subjetividade — apresentação",
-      "text": "Material indicado: Apresentação - Digital.pdf. Arquivo original ainda não publicado em URL pública. Tema: Tecnologia e subjetividade",
+      "text": "Material indicado: Apresentação - Digital.pdf. Para abrir o documento, consulte os materiais da Biblioteca do PsicoMoodle. A disponibilidade depende da publicação pelo administrador. Tema: Tecnologia e subjetividade",
       "source": "Apresentação - Digital.pdf",
       "url": "#social"
     },
@@ -5985,7 +5128,7 @@
       "semester": "2026/2",
       "subject": "social",
       "title": "O latino indolente — Martín-Baró (texto)",
-      "text": "Material indicado: 436114568-Martin-Baro-2017-O-latino-indolente-carater-ideologico-do-fatalismo-latino-americano-pdf.pdf. Arquivo original ainda não publicado em URL pública. Tema: Fatalismo",
+      "text": "Material indicado: 436114568-Martin-Baro-2017-O-latino-indolente-carater-ideologico-do-fatalismo-latino-americano-pdf.pdf. Para abrir o documento, consulte os materiais da Biblioteca do PsicoMoodle. A disponibilidade depende da publicação pelo administrador. Tema: Fatalismo",
       "source": "436114568-Martin-Baro-2017-O-latino-indolente-carater-ideologico-do-fatalismo-latino-americano-pdf.pdf",
       "url": "#social"
     },
@@ -5995,7 +5138,7 @@
       "semester": "2026/2",
       "subject": "social",
       "title": "Fatalismo e identidade brasileira — Oliveira e Schlösser",
-      "text": "Material indicado: Texto 8_Fatalismo(1).pdf. Arquivo original ainda não publicado em URL pública. Tema: Fatalismo",
+      "text": "Material indicado: Texto 8_Fatalismo(1).pdf. Para abrir o documento, consulte os materiais da Biblioteca do PsicoMoodle. A disponibilidade depende da publicação pelo administrador. Tema: Fatalismo",
       "source": "Texto 8_Fatalismo(1).pdf",
       "url": "#social"
     },
@@ -6005,7 +5148,7 @@
       "semester": "2026/2",
       "subject": "social",
       "title": "Fatalismo latino-americano — apresentação",
-      "text": "Material indicado: O latino indolente.pdf. Arquivo original ainda não publicado em URL pública. Tema: Fatalismo",
+      "text": "Material indicado: O latino indolente.pdf. Para abrir o documento, consulte os materiais da Biblioteca do PsicoMoodle. A disponibilidade depende da publicação pelo administrador. Tema: Fatalismo",
       "source": "O latino indolente.pdf",
       "url": "#social"
     },
@@ -6015,7 +5158,7 @@
       "semester": "2026/2",
       "subject": "social",
       "title": "Psicologia Social Crítica e Libertação — apresentação atualizada",
-      "text": "Material indicado: Psicologia Social Crítica - Baró(1).pdf. Arquivo original ainda não publicado em URL pública. Tema: Psicologia da Libertação",
+      "text": "Material indicado: Psicologia Social Crítica - Baró(1).pdf. Para abrir o documento, consulte os materiais da Biblioteca do PsicoMoodle. A disponibilidade depende da publicação pelo administrador. Tema: Psicologia da Libertação",
       "source": "Psicologia Social Crítica - Baró(1).pdf",
       "url": "#social"
     },
@@ -6025,7 +5168,7 @@
       "semester": "2026/2",
       "subject": "social",
       "title": "A desideologização como contribuição da Psicologia Social — Martín-Baró",
-      "text": "Material indicado: 612056836-Martin-Baro-A-desideologizacao-como-contribuicao-da-Psicologia-Social(1).pdf. Arquivo original ainda não publicado em URL pública. Tema: Psicologia da Libertação",
+      "text": "Material indicado: 612056836-Martin-Baro-A-desideologizacao-como-contribuicao-da-Psicologia-Social(1).pdf. Para abrir o documento, consulte os materiais da Biblioteca do PsicoMoodle. A disponibilidade depende da publicação pelo administrador. Tema: Psicologia da Libertação",
       "source": "612056836-Martin-Baro-A-desideologizacao-como-contribuicao-da-Psicologia-Social(1).pdf",
       "url": "#social"
     },
@@ -6035,7 +5178,7 @@
       "semester": "2026/2",
       "subject": "social",
       "title": "Psicologia Sócio-Histórica — apresentação",
-      "text": "Material indicado: Psicologia socio historica.pdf. Arquivo original ainda não publicado em URL pública. Tema: Psicologia Sócio-Histórica",
+      "text": "Material indicado: Psicologia socio historica.pdf. Para abrir o documento, consulte os materiais da Biblioteca do PsicoMoodle. A disponibilidade depende da publicação pelo administrador. Tema: Psicologia Sócio-Histórica",
       "source": "Psicologia socio historica.pdf",
       "url": "#social"
     },
@@ -6045,7 +5188,7 @@
       "semester": "2026/2",
       "subject": "social",
       "title": "Psicologia Sócio-Histórica — capítulo 1, Ana Bock",
-      "text": "Material indicado: Texto 7_Cap 1_Psicologia-Socio-Historica-Ana Bock(2).pdf. Arquivo original ainda não publicado em URL pública. Tema: Psicologia Sócio-Histórica",
+      "text": "Material indicado: Texto 7_Cap 1_Psicologia-Socio-Historica-Ana Bock(2).pdf. Para abrir o documento, consulte os materiais da Biblioteca do PsicoMoodle. A disponibilidade depende da publicação pelo administrador. Tema: Psicologia Sócio-Histórica",
       "source": "Texto 7_Cap 1_Psicologia-Socio-Historica-Ana Bock(2).pdf",
       "url": "#social"
     },
@@ -6055,7 +5198,7 @@
       "semester": "2026/2",
       "subject": "social",
       "title": "Epistemicídio, racismo e sexismo — apresentação",
-      "text": "Material indicado: Slides_Epistemicídio_Racismo e Sexismo_Psicologia Social I(1).pdf. Arquivo original ainda não publicado em URL pública. Tema: Epistemicídio",
+      "text": "Material indicado: Slides_Epistemicídio_Racismo e Sexismo_Psicologia Social I(1).pdf. Para abrir o documento, consulte os materiais da Biblioteca do PsicoMoodle. A disponibilidade depende da publicação pelo administrador. Tema: Epistemicídio",
       "source": "Slides_Epistemicídio_Racismo e Sexismo_Psicologia Social I(1).pdf",
       "url": "#social"
     }
