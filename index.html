@@ -1977,7 +1977,7 @@ html[data-theme="dark"] .tz-pending-icon{background:#40375e;color:#d6c4ff}
 <script src="estudos-casos-data.js?v=20261112-1"></script>
 <script src="estudo-ativo.js?v=20261113-trilha-1"></script>
 <script src="psicomoodle-new-content.js?v=20261113-social-family-2"></script>
-<script src="simulados-finais-2026.js?v=20261113-2"></script>
+<script src="simulados-finais-2026.js?v=20261113-3"></script>
 <script src="estudos-dirigidos-finais-2026.js?v=20261113-1"></script>
 <link rel="stylesheet" href="simulados-finais-2026.css?v=20261113-1">
 <script src="casos-act-social.js?v=20261113-1"></script>
@@ -3838,9 +3838,9 @@ function geReadyLibrary(){
   const group=items=>'<div class="examgrid ge-ready-grid">'+items.map(examCard).join('')+'</div>';
   return '<section class="section ge-ready-subject"><div class="sectiontop"><h2 style="border-left:4px solid '+color(id)+';padding-left:10px">'+esc(DB.subjects[id].name)+'</h2><span class="pill">'+all.length+' simulados</span></div>'+
   group(all)+
-  (DB.exams.some(e=>e.subject===id&&!e.final2026&&store.results[e.id])?
+  (DB.exams.some(e=>e.subject===id&&e.revision!==window.PSICO_FINAL_EXAMS?.version&&store.results[e.id])?
    '<details class="ge-old-archive"><summary>Simulados anteriores concluídos · consultar correções</summary><div class="examgrid">'+
-    DB.exams.filter(e=>e.subject===id&&!e.final2026&&store.results[e.id]).map(examCard).join('')+
+    DB.exams.filter(e=>e.subject===id&&e.revision!==window.PSICO_FINAL_EXAMS?.version&&store.results[e.id]).map(examCard).join('')+
    '</div></details>':'')+
   '</section>';
  }).join('');
