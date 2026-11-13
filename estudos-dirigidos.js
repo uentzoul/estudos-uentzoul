@@ -17,7 +17,7 @@
   return '<div class="sd-part"><span class="sd-part-index">'+String(i+1).padStart(2,'0')+'</span><div><strong>'+fmt(p.title)+'</strong><p>'+fmt(p.explanation)+'</p>'+
   (p.example?'<p class="sd-part-example">'+fmt(p.example)+'</p>':'')+'</div></div>';
  }
- function renderItem(q,idx){
+ function renderItem(q,idx,guideId){
   const hasOptions=Array.isArray(q.options)&&q.options.length>0;
   const opts=hasOptions?'<div class="sd-options" aria-label="Alternativas comentadas">'+q.options.map(o=>
    '<div class="sd-option'+(o.letter===q.answer?' sd-correct':'')+'"><span class="sd-option-letter">'+esc(o.letter)+'</span><div>'+fmt(o.text)+'</div>'+
@@ -25,7 +25,7 @@
   ).join('')+'</div>':'';
   const answer=hasOptions?'Resposta correta: alternativa '+q.answer:'Resposta-modelo e explicação';
   const details=q.contrast?'<div class="sd-contrast"><strong>'+(hasOptions?'Por que as outras alternativas não servem':'Como organizar a resposta')+'</strong>'+paragraph(q.contrast)+'</div>':'';
-  return '<article class="sd-question-block" id="sd-question-'+esc(q.n)+'">'+
+  return '<article class="sd-question-block" id="sd-question-'+esc(guideId||'roteiro')+'-'+esc(q.n)+'">'+
     '<div class="sd-question-top"><span class="sd-question-number">'+String(q.n).padStart(2,'0')+'</span><div>'+
     '<span class="sd-question-topic">'+fmt(q.topic||'Questão comentada')+'</span><div class="sd-question-text">'+questionText(q.question)+'</div></div></div>'+
     opts+'<div class="sd-response"><div class="sd-response-title"><span aria-hidden="true">✓</span><strong>'+esc(answer)+'</strong></div>'+paragraph(q.explanation)+'</div>'+
@@ -33,7 +33,19 @@
   '</article>';
  }
  window.renderStudyGuide=function(subject){
-   const guides=window.PSICO_GUIDES?.[subject]||[];
+   const allGuides=window.PSICO_GUIDES?.[subject]||[];
+   // Em 2026/2, mostre somente os roteiros relacionados à revisão atual.
+   // A fonte dos estudos dirigidos anteriores permanece preservada no repositório.
+   const liveGuideIds={
+    tcc:new Set(['final-2026-2-tcc','tcc-novos-textos-2026']),
+    familia:new Set(['final-2026-2-familia']),
+    meta:new Set(['final-2026-2-meta','meta-p2-professor','meta-revisao']),
+    grupos:new Set(['final-2026-2-grupos']),
+    social:new Set(['social-novos-textos-2026']),
+    avaliacao:new Set(['final-2026-2-avaliacao','avaliacao-p2'])
+   };
+   const onlyCurrent=window.PSICO_FINAL_EXAMS?.version&&liveGuideIds[subject];
+   const guides=onlyCurrent?allGuides.filter(g=>liveGuideIds[subject].has(g.id)):allGuides;
    if(!guides.length)return '<div class="sd-empty">Ainda não há um estudo dirigido com enunciados suficientes para montar esta área.</div>';
    return '<section class="sd-root" aria-label="Estudos dirigidos da disciplina">'+
     '<header class="sd-header"><span class="sd-kicker">ESTUDO EXPLICADO</span><h2>Estudos dirigidos</h2>'+
@@ -42,9 +54,9 @@
       '<summary class="sd-guide-summary"><span class="sd-guide-icon" aria-hidden="true">▤</span><span class="sd-guide-label">'+
       '<strong>'+fmt(g.title)+'</strong><small>'+fmt(g.subtitle)+'</small></span><span class="sd-count">'+g.questions.length+' '+(g.status==='adaptado'?'temas':'questões')+'</span><span class="sd-arrow" aria-hidden="true">⌄</span></summary>'+
       '<div class="sd-guide-body"><div class="sd-source"><strong>'+(g.status==='original'?'Enunciados originais':'Revisão temática adaptada')+'</strong>'+
-      '<p>'+fmt(g.source)+'</p><p>'+(g.status==='original'?'As respostas e as análises são explicações de estudo; o gabarito das objetivas foi conferido com o roteiro.':'Não reproduz as perguntas literais do estudo dirigido original: organiza os conteúdos das videoaulas disponíveis.')+'</p></div>'+
+      '<p>'+fmt(g.source)+'</p><p>'+(g.status==='original'?'As respostas e as análises são explicações de estudo; o gabarito das objetivas foi conferido com o roteiro.':'Não reproduz as perguntas literais do estudo dirigido original: organiza os conteúdos dos materiais e das aulas cadastrados na disciplina.')+'</p></div>'+
       '<div class="sd-q-count">'+g.questions.length+' '+(g.status==='adaptado'?'temas explicados':'questões respondidas e comentadas')+'</div>'+
-      '<div class="sd-items">'+g.questions.map((q,idx,all)=> (q.section&&(idx===0||all[idx-1].section!==q.section)?'<div class="sd-topic-divider"><span>'+fmt(q.section)+'</span></div>':'')+renderItem(q,idx)).join('')+'</div></div></details>').join('')+
+      '<div class="sd-items">'+g.questions.map((q,idx,all)=> (q.section&&(idx===0||all[idx-1].section!==q.section)?'<div class="sd-topic-divider"><span>'+fmt(q.section)+'</span></div>':'')+renderItem(q,idx,g.id)).join('')+'</div></div></details>').join('')+
     '</section>';
  };
 })();
