@@ -9,9 +9,9 @@ function makeQuestion(topic,i){
  const idea=String(topic.definition||'').trim();
  const myth=String(topic.myth||'').trim();
  return {n:i+1,topic:topic.title,section:'Revisão final por conceito',
- question:'Explique '+topic.title+'.\n\nConsidere a situação: '+scenario+'\n\nComo o conceito ajuda a compreender esse contexto e qual cuidado precisa ser tomado ao interpretá-lo?',
+ question:'Explique '+topic.title+'.\n\nConsidere a situação: '+scenario+'\n\nQuais elementos dessa situação devem ser considerados ao aplicar o conceito e que limites precisam ser respeitados na interpretação?',
  options:[],answer:null,
- explanation:idea+'\n\nAplicação: '+scenario+' A análise deve considerar os elementos concretos do caso, sem transformar uma hipótese geral em uma conclusão automática.',
+ explanation:'Definição: '+idea+'\n\nSituação para análise: '+scenario+'\n\nPara relacionar o caso ao conceito, identifique os acontecimentos relevantes, considere o contexto e examine outras explicações plausíveis. O exemplo, isoladamente, não autoriza uma conclusão diagnóstica ou causal.',
  contrast:(myth?'Evite a interpretação simplista: '+myth+'\n\n':'')+'Uma resposta completa diferencia descrição, explicação e possível intervenção, com cautela ética.',
  points:[
  {title:'Definição do conceito',explanation:idea,example:''},
@@ -30,7 +30,7 @@ function apply(db){
   guides[subject]=guides[subject]||[];
   if(guides[subject].some(x=>x.id===id))continue;
   guides[subject].unshift({id,title:'Estudo dirigido — revisão final de 2026/2',
-   subtitle:topics.length+' conceitos explicados com aplicação, exemplo e erro comum',
+   subtitle:topics.length+' conceitos comentados com exemplos e limites de interpretação',
    source:'Roteiro didático autoral organizado com base nos tópicos dos materiais cadastrados na disciplina. Não reproduz literalmente um estudo dirigido do professor nem substitui a leitura dos arquivos.',
    status:'adaptado',questions:topics.map(makeQuestion)});
  }
