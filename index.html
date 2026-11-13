@@ -1976,6 +1976,7 @@ html[data-theme="dark"] .tz-pending-icon{background:#40375e;color:#d6c4ff}
 <script src="estudos-casos-data.js?v=20261112-1"></script>
 <script src="estudo-ativo.js?v=20261112-reviewed-3"></script>
 <script src="psicomoodle-new-content.js?v=20261113-1"></script>
+<script src="casos-act-social.js?v=20261113-1"></script>
 <link rel="stylesheet" href="chat-whatsapp.css?v=20261112-whatsapp-chat-7">
 <style id="tz-overlap-fix">
 /* Mantém o botão de nova conversa fora da faixa da barra superior e do histórico. */
@@ -1994,7 +1995,14 @@ html[data-theme="dark"] .tz-pending-icon{background:#40375e;color:#d6c4ff}
 .episodeunit.is-loading .episodeplay::after{content:"";width:15px;height:15px;flex:0 0 15px;display:inline-block;border:2px solid currentColor;border-right-color:transparent;border-radius:50%;animation:podcast-loading-spin .7s linear infinite;margin-left:8px}
 @keyframes podcast-loading-spin{to{transform:rotate(360deg)}}
 @media(prefers-reduced-motion:reduce){.episodeunit.is-loading .episodeplay::after{animation-duration:1.8s}}
-</style></head>
+</style><style id="new-library-pending-css">
+.new-library-pending{margin-top:20px;padding:15px;border:1px solid var(--line);border-radius:15px;background:var(--paper);color:var(--ink)}
+.new-library-pending summary{cursor:pointer;font-size:13px;font-weight:800;padding:4px 2px;list-style-position:inside}
+.new-library-pending>p{font-size:12px;line-height:1.5;color:var(--muted);padding:0 4px}
+.new-library-pending .library-resource{opacity:.88}
+.new-library-pending .library-resource-main{cursor:default}
+</style>
+</head>
 <body>
 <section id="staticFallback" class="static-fallback" aria-label="Central de Estudos — modo de leitura compatível com celular">
 <div class="offline-intro"><span class="offline-mark"><span class="psychology-mark" aria-label="Símbolo da Psicologia">Ψ</span></span><div><strong>Psicologia PUCRS 2026/2</strong><p>by: Enzo F.B.</p></div></div>
@@ -2653,10 +2661,14 @@ function renderSubject(k){
  }
  if(area==='docs'){
   const available=docs.filter(m=>m.available);
+  const awaiting=docs.filter(m=>m._psicoNew&&!m.available);
   return top+'<div class="subject-hub-area">'+back+
    '<section class="section" id="docs"><div class="sectiontop"><h2>Materiais e textos</h2></div>'+
    '<div class="library-group" style="margin-top:0;--group-accent:'+color(k)+'">'+
-   (available.length?organizedSubjectMaterials(available):'<div class="subject-hub-empty">Ainda não há arquivos disponíveis para esta prova.</div>')+
+   (available.length?organizedSubjectMaterials(available):'<div class="subject-hub-empty">Nenhum PDF novo disponível para abrir ainda.</div>')+
+   (awaiting.length?'<details class="new-library-pending"><summary>Arquivos novos cadastrados · '+awaiting.length+' aguardando publicação</summary>'+
+     '<p>Os títulos foram recebidos e organizados. A abertura do PDF original será ativada quando o arquivo estiver no armazenamento do site.</p>'+
+     organizedMaterialBlock(awaiting,false,true)+'</details>':'')+
    '</div></section></div></div>';
  }
  if(area==='podcasts'){
@@ -2721,6 +2733,7 @@ function renderLibrary(embedded=false){
  const subjects=Object.keys(DB.subjects);
  if(selected&&DB.subjects[selected]){
   const subj=DB.subjects[selected],docs=libraryExamMaterials(selected),p=libraryExamProgress(selected);
+  const pendingNew=DB.materials.filter(m=>m.subject===selected&&m._psicoNew&&!m.available);
   const familyTopics=selected==='familia'?['Luto e reorganização familiar','Dependência química na família','Atendimento clínico familiar']:[];
   return '<div class="library-page"><button type="button" class="course-back" data-action="libraryBack">← Voltar às disciplinas</button>'+
    '<section class="course-detail-hero" style="--course-accent:'+color(selected)+'">'+
@@ -2737,7 +2750,8 @@ function renderLibrary(embedded=false){
     (familyTopics.length?'<h2 style="font-size:16px;margin:0 0 7px">Conteúdos da prova</h2><div class="course-syllabus">'+familyTopics.map(t=>'<span>'+esc(t)+'</span>').join('')+'</div>':'')+
     '<div class="course-materials-title"><h2>Materiais para estudar</h2><span>'+docs.length+' '+(docs.length===1?'arquivo disponível':'arquivos disponíveis')+'</span></div>'+
     '<section class="course-detail-resources">'+(docs.length?organizedSubjectMaterials(docs,true):
-     '<div class="course-empty">Ainda não há arquivos publicados para os conteúdos desta prova. Os novos materiais aparecerão aqui quando forem adicionados.</div>')+'</section>'+
+     '<div class="course-empty">Nenhum PDF novo disponível para abrir ainda.</div>')+
+     (pendingNew.length?'<details class="new-library-pending"><summary>'+pendingNew.length+' arquivos novos cadastrados — publicação pendente</summary><p>Os materiais foram cadastrados sem exigência de correspondência com arquivos antigos. Os PDFs originais precisam estar no armazenamento antes da abertura.</p>'+organizedMaterialBlock(pendingNew,false,true)+'</details>':'')+'</section>'+
     '<p class="course-library-note">O percentual considera apenas arquivos disponíveis marcados como vistos. As marcações são pessoais.</p></div>';
  }
  const order='name',mode='cards';
