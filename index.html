@@ -2197,6 +2197,9 @@ const SOCIAL_EXAM_MODELS=new Set(['social-6','social-7','social-8','social-9','s
 // Preserva provas antigas em histórico; os cinco simulados atualizados são escolhidos por readyExamsFor.
 const SOCIAL_AUDIO_SCOPE=new Set([1,2,4,5,6]);
 if(SEMESTER_DB['2026/2'].audio.social?.episodes)SEMESTER_DB['2026/2'].audio.social.episodes=SEMESTER_DB['2026/2'].audio.social.episodes.filter(e=>SOCIAL_AUDIO_SCOPE.has(Number(e.n)));
+// Arquive episódios de Família sobre divórcio e segredos, fora do escopo da prova atual.
+const FAMILY_AUDIO_SCOPE=new Set([3,4,5,6,7]);
+if(SEMESTER_DB['2026/2'].audio.familia?.episodes)SEMESTER_DB['2026/2'].audio.familia.episodes=SEMESTER_DB['2026/2'].audio.familia.episodes.filter(e=>FAMILY_AUDIO_SCOPE.has(Number(e.n)));
 if(window.PSICO_CASES?.social){
  const approvedCases=new Set(['fatalismo-contexto','marcadores-vida','social-epistemicidio','social-interseccionalidade','social-infancia','social-fatalismo']);
  window.PSICO_CASES.social=window.PSICO_CASES.social.filter(item=>approvedCases.has(item.id));
