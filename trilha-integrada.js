@@ -23,12 +23,12 @@ function concepts(ctx,topics){
  (t.myth?'<details><summary>Erro que deve ser evitado</summary><p><b>Afirmação incorreta:</b> '+esc(t.myth)+'</p><p><b>Por que está errado?</b> '+esc(window.PSICO_REVIEW_ERRORS?.explain?.(ctx.subject,t)||t.definition)+'</p></details>':'')+
  '</article>').join('')+'</div></section>';
 }
-function readings(ctx,docs){
+function readings(ctx,docs,topics){
  if(!docs.length)return '';
  return '<section class="ti-block">'+heading('Leitura escolhida','Para aprofundar sem ler uma apresentação inteira')+
  '<div class="ti-reading-list">'+docs.map(m=>{
  const url=m._libraryUpload?'#':m.url,attr=m._libraryUpload?' data-library-file="'+esc(m._libraryKey)+'"':'';
- return '<a class="ti-reading" href="'+esc(url)+'"'+attr+' target="_blank" rel="noopener noreferrer"><span>▤</span><span><strong>'+esc(m.title)+'</strong><small>Consulte os conceitos trabalhados nesta etapa</small></span><span>↗</span></a>';
+ return '<a class="ti-reading" href="'+esc(url)+'"'+attr+' target="_blank" rel="noopener noreferrer"><span>▤</span><span><strong>'+esc(m.title)+'</strong><small>Busque especialmente: '+esc((topics||[]).slice(0,3).map(t=>t.title).join(' · '))+'</small></span><span>↗</span></a>';
  }).join('')+'</div></section>';
 }
 
@@ -108,7 +108,7 @@ function render(ctx){
   if(ctx.isDone(key))finished++;
   pieces.push('<section class="ti-stage" id="ti-stage-'+esc(ctx.subject)+'-'+i+'">'+
    '<div class="ti-stage-heading"><span class="ti-step-no">'+String(i+1).padStart(2,'0')+'</span><div><small>ETAPA '+(i+1)+' DE '+plan.length+'</small><h2>'+esc(entry[0])+'</h2><p>'+esc(entry[1])+'</p></div></div>'+
-   concepts(ctx,topics)+readings(ctx,docsFor(ctx,entry[3]))+
+   concepts(ctx,topics)+readings(ctx,docsFor(ctx,entry[3]),topics)+
    podcasts(ctx,audioFor(ctx,entry[4]))+flashcards(ctx,topics)+guided(ctx,topics)+
    (ctx.subject==='meta'&&i===0?'<a class="ti-timeline" href="metapsicologia-p2.html"><span>▶</span><span><strong>Linha do Tempo das Aulas Gravadas</strong><small>Veja capítulos e minutagens das explicações do professor</small></span><span>↗</span></a>':'')+
    '<div class="ti-stage-footer"><span>Ao terminar, registre a conclusão desta etapa.</span>'+ctx.doneBox(key,'Concluir etapa')+'</div></section>');
