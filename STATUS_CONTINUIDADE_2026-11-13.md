@@ -81,3 +81,12 @@ Este registro distingue código publicado, recursos armazenados e tarefas penden
 - A seta lingueta da barra direita (\`members-drawer-tab.css\`) foi preservada. O layout agora evita reservar o espaço vertical da antiga barra superior. GitHub Actions do commit de interface terminou com sucesso.
 - Teste de publicação no navegador real ainda não realizado: conferir tema, rodapé lateral, relatório, renomeação e atualização simultânea entre diferentes sessões autenticadas.
 
+
+
+## Atualização — seleção e ocultação reversível de materiais (13/11/2026)
+- Em **Materiais e textos → Editar** (somente administrador), cada linha agora inclui uma caixa de seleção; a barra permite selecionar todos, limpar seleção, ocultar vários materiais de uma vez ou restaurá-los.
+- Cada material visível tem botão **Ocultar** e os itens ocultos aparecem em **Materiais ocultos**, dentro do próprio editor, com botão **Restaurar**. Somente **Salvar organização** publica as alterações; **Cancelar** mantém a configuração anterior.
+- Ocultar não apaga objetos do bucket, não remove registros de uploads e não modifica a chave original. Os materiais ocultos não são apresentados na seção pública de materiais das disciplinas; o administrador pode restaurar qualquer item.
+- Coluna **`is_hidden boolean NOT NULL DEFAULT false`** adicionada em `public.uentzoul_material_placements` sem alterar registros existentes. A política RLS anterior continua: qualquer usuário consulta a organização e somente o administrador pode alterá-la.
+- Alterações em `materiais-editor.js` e `materiais-editor.css`, com verificação sintática, simulação de selecionar → ocultar → restaurar e publicação via GitHub Actions com sucesso (commit `f510d822fde61f132099330a620e979dd38e880a`).
+- **Pendente**: testar manualmente com uma sessão administrativa e uma conta de estudante, inclusive a gravação real e o reaparecimento dos itens restaurados. Não afirmar que o teste de navegador já ocorreu.
