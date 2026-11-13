@@ -1,0 +1,1 @@
+(()=>{'use strict';const catalog=window.PSICO_TRAIL_CURRICULUM;const trail=window.PSICO_STUDY_TRAILS;if(!catalog||!trail)return;window.PSICO_TRAIL_STATUS='carregado';})();
