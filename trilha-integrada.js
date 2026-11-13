@@ -87,6 +87,22 @@ function guided(ctx,topics){
  '<p>'+esc(q.explanation||'Consulte o conceito indicado acima.')+'</p>'+
  (q.contrast?'<p>'+esc(q.contrast)+'</p>':'')+'</div></details></article>').join('')+'</div></details>';
 }
+
+function cases(ctx,topics){
+ const available=window.PSICO_CASES?.[ctx.subject]||[];
+ if(!available.length)return '';
+ const relevant=new Set(topics.flatMap(t=>norm(t.title).split(/[^a-z0-9]+/).filter(w=>w.length>=5)));
+ const found=available.map(c=>({case:c,score:norm((c.title||'')+' '+(c.area||'')).split(/[^a-z0-9]+/).filter(w=>relevant.has(w)).length}))
+  .sort((a,b)=>b.score-a.score).find(x=>x.score>0)?.case;
+ const stage=found?.stages?.[0];
+ if(!stage||!stage.choices?.length)return '';
+ return '<details class="ti-case"><summary><strong>Estudo de caso relacionado</strong><span>'+esc(found.title)+'</span><span aria-hidden="true">⌄</span></summary>'+
+ '<div class="ti-case-content"><p>'+esc(found.intro)+'</p><strong>'+esc(stage.prompt)+'</strong>'+
+ '<div class="ti-case-choices">'+stage.choices.map((o,i)=>
+ '<button type="button" data-ti-choice data-ti-outcome="'+esc(o.outcome)+'" data-ti-reason="'+esc(o.reason)+'">'+String.fromCharCode(65+i)+'. '+esc(o.label)+'</button>').join('')+'</div>'+
+ '<div class="ti-case-feedback" role="status" aria-live="polite" hidden></div></div></details>';
+}
+
 function finalTests(ctx){
  const exams=(ctx.exams||[]).slice(0,5);
  if(!exams.length)return '';
@@ -109,7 +125,7 @@ function render(ctx){
   pieces.push('<section class="ti-stage" id="ti-stage-'+esc(ctx.subject)+'-'+i+'">'+
    '<div class="ti-stage-heading"><span class="ti-step-no">'+String(i+1).padStart(2,'0')+'</span><div><small>ETAPA '+(i+1)+' DE '+plan.length+'</small><h2>'+esc(entry[0])+'</h2><p>'+esc(entry[1])+'</p></div></div>'+
    concepts(ctx,topics)+readings(ctx,docsFor(ctx,entry[3]),topics)+
-   podcasts(ctx,audioFor(ctx,entry[4]))+flashcards(ctx,topics)+guided(ctx,topics)+
+   podcasts(ctx,audioFor(ctx,entry[4]))+flashcards(ctx,topics)+guided(ctx,topics)+cases(ctx,topics)+
    (ctx.subject==='meta'&&i===0?'<a class="ti-timeline" href="metapsicologia-p2.html"><span>▶</span><span><strong>Linha do Tempo das Aulas Gravadas</strong><small>Veja capítulos e minutagens das explicações do professor</small></span><span>↗</span></a>':'')+
    '<div class="ti-stage-footer"><span>Ao terminar, registre a conclusão desta etapa.</span>'+ctx.doneBox(key,'Concluir etapa')+'</div></section>');
  }
