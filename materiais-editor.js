@@ -20,6 +20,10 @@ const user=()=>auth()?.user?.();
 const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const key=m=>String(m._libraryKey||(m.subject+'::'+m.title));
 const placementKey=(s,k)=>SEMESTER+'|'+s+'|'+k;
+function titleFor(m){
+ const row=placements.get(placementKey(m.subject,key(m)));
+ return typeof row?.display_title==='string'&&row.display_title.trim()?row.display_title:m.title;
+}
 const allowed=()=>!!user()?.id&&window.uentzoulAdminConfig?.isAdmin?.()===true;
 function category(m,classify){
  const stored=placements.get(placementKey(m.subject,key(m)));
@@ -51,7 +55,8 @@ function currentGroups(materials,subject,classify){
 function copyForEditing(materials,subject,classify){
  const groups=currentGroups(materials,subject,classify);
  return {subject,groups:Object.fromEntries(CATEGORIES.map(c=>[c.id,groups[c.id].map(x=>x.key)])),
-  materials:new Map(materials.filter(m=>m?.available&&m.subject===subject).map(m=>[key(m),m])),busy:false,error:''};
+  materials:new Map(materials.filter(m=>m?.available&&m.subject===subject).map(m=>[key(m),m])),
+  titles:new Map(materials.filter(m=>m?.available&&m.subject===subject).map(m=>[key(m),titleFor(m)])),busy:false,error:''};
 }
 function renderGroups(materials,opts){
  const subject=opts?.subject||materials[0]?.subject||'';
@@ -66,11 +71,11 @@ function renderGroups(materials,opts){
   const cards=isEditing?list.map((x,i)=>
    '<div class="pm-edit-row" draggable="true" data-pm-file="'+esc(x.key)+'">'+
     '<span class="pm-drag-handle" draggable="true" tabindex="0" role="img" aria-label="Arraste para reorganizar '+esc(x.material.title)+'" title="Arraste para reorganizar">⠿</span>'+
-    '<span class="pm-edit-file-title">'+esc(x.material.title)+'</span>'+
+    '<label class="pm-edit-name-label"><span>Nome exibido</span><input type="text" maxlength="180" data-pm-title="'+esc(x.key)+'" value="'+esc(active.titles.get(x.key)??x.material.title)+'" aria-label="Nome exibido do arquivo '+esc(x.material.title)+'" autocomplete="off"></label>'+
     '<label class="pm-edit-move-label"><span>Categoria</span><select data-pm-category="'+esc(x.key)+'" aria-label="Categoria do arquivo '+esc(x.material.title)+'">'+optionMarkup(cat.id)+'</select></label>'+
     '<span class="pm-edit-order-controls"><button type="button" data-pm-order="up" data-pm-key="'+esc(x.key)+'" aria-label="Mover para cima"'+(i===0?' disabled':'')+'>↑</button>'+
     '<button type="button" data-pm-order="down" data-pm-key="'+esc(x.key)+'" aria-label="Mover para baixo"'+(i===list.length-1?' disabled':'')+'>↓</button></span>'+
-   '</div>').join(''):list.map((x,i)=>opts.card(x.material,i)).join('');
+   '</div>').join(''):list.map((x,i)=>opts.card({...x.material,title:titleFor(x.material)},i)).join('');
   return '<section class="material-block pm-material-group'+(isEditing?' pm-is-editing':'')+'" data-pm-group="'+cat.id+'">'+
    '<h3>'+esc(cat.title)+'<span>'+list.length+' '+(list.length===1?'item':'itens')+'</span></h3>'+
    '<div class="'+(isEditing?'pm-edit-list':'doclist')+'">'+(cards||
@@ -78,7 +83,7 @@ function renderGroups(materials,opts){
    '</div></section>';
  }).join('');
  if(!isEditing)return (notice?'<p class="pm-save-notice" role="status">'+esc(notice)+'</p>':'')+sections;
- return '<div class="pm-edit-instructions"><strong>Modo de edição</strong><span>Arraste os arquivos entre as categorias ou use o seletor “Categoria”. As setas alteram a ordem dentro de cada seção. Clique em Salvar organização para publicar as alterações.</span></div>'+
+ return '<div class="pm-edit-instructions"><strong>Modo de edição</strong><span>Arraste os arquivos entre as categorias ou use o seletor “Categoria”. Edite o campo “Nome exibido” para renomear os materiais sem alterar o arquivo original. As setas alteram a ordem dentro de cada seção. Clique em Salvar organização para publicar as alterações.</span></div>'+
   (active.error?'<p class="pm-edit-error" role="alert">'+esc(active.error)+'</p>':'')+
   '<div class="pm-editor-groups">'+sections+'</div>';
 }
@@ -110,6 +115,8 @@ function clearHighlight(){document.querySelectorAll('.pm-material-group.pm-drop-
 async function save(){
  const state=editing;
  if(!state||state.busy||!allowed()||state.owner!==user()?.id)return;
+ const invalid=[...state.titles].find(([k,name])=>state.materials.has(k)&&(!String(name).trim()||String(name).trim().length>180));
+ if(invalid){state.error='O nome de cada material deve conter de 1 a 180 caracteres.';repaint();return;}
  const c=client(),u=user();
  if(!c||!u){state.error='Entre na sua conta para salvar.';repaint();return;}
  state.busy=true;state.error='';repaint();
@@ -117,15 +124,17 @@ async function save(){
   const check=await c.rpc('uentzoul_is_admin');
   if(check.error||check.data!==true||user()?.id!==u.id)throw Error('Sua conta não possui permissão de administrador.');
   const rows=CATEGORIES.flatMap(cat=>(state.groups[cat.id]||[]).map((k,i)=>({
-   semester:SEMESTER,subject:state.subject,resource_key:k,category:cat.id,position:i,updated_at:new Date().toISOString()
+   semester:SEMESTER,subject:state.subject,resource_key:k,category:cat.id,position:i,
+   display_title:String(state.titles.get(k)||'').trim()===String(state.materials.get(k)?.title||'').trim()?null:String(state.titles.get(k)||'').trim(),
+   updated_at:new Date().toISOString()
   })));
   if(rows.length){
    const result=await c.from(TABLE).upsert(rows,{onConflict:'semester,subject,resource_key'});
    if(result.error)throw result.error;
-   const query=await c.from(TABLE).select('resource_key,category,position').eq('semester',SEMESTER).eq('subject',state.subject);
+   const query=await c.from(TABLE).select('resource_key,category,position,display_title').eq('semester',SEMESTER).eq('subject',state.subject);
    if(query.error)throw query.error;
    const verified=new Map((query.data||[]).map(x=>[x.resource_key,x]));
-   if(rows.some(r=>verified.get(r.resource_key)?.category!==r.category||verified.get(r.resource_key)?.position!==r.position)){
+   if(rows.some(r=>verified.get(r.resource_key)?.category!==r.category||verified.get(r.resource_key)?.position!==r.position||(verified.get(r.resource_key)?.display_title||null)!==(r.display_title||null))){
     throw Error('Não foi possível confirmar a gravação de todas as alterações. Atualize a página e confira a organização.');
    }
    for(const row of rows)placements.set(placementKey(row.subject,row.resource_key),row);
@@ -144,7 +153,7 @@ async function refresh(force=false){
  if(!c||(!force&&Date.now()-lastFetch<12000))return;
  fetching=true;
  try{
-  const r=await c.from(TABLE).select('semester,subject,resource_key,category,position').eq('semester',SEMESTER).limit(2000);
+  const r=await c.from(TABLE).select('semester,subject,resource_key,category,position,display_title').eq('semester',SEMESTER).limit(2000);
   if(r.error)throw r.error;
   const next=new Map((r.data||[]).map(x=>[placementKey(x.subject,x.resource_key),x]));
   const changed=JSON.stringify([...placements])!==JSON.stringify([...next]);
@@ -169,6 +178,11 @@ document.addEventListener('click',event=>{
  if(!cat)return;const list=editing.groups[cat.id],index=list.indexOf(k),step=button.dataset.pmOrder==='up'?-1:1,next=index+step;
  if(next<0||next>=list.length)return;
  [list[index],list[next]]=[list[next],list[index]];repaint();
+});
+document.addEventListener('input',event=>{
+ const control=event.target.closest('[data-pm-title]');
+ if(!control||!editing||editing.busy||!allowed())return;
+ if(editing.materials.has(control.dataset.pmTitle))editing.titles.set(control.dataset.pmTitle,control.value);
 });
 document.addEventListener('change',event=>{
  const control=event.target.closest('[data-pm-category]');
@@ -204,5 +218,5 @@ let attempts=0;
 function start(){if(client())refresh(true);else if(attempts++<60)setTimeout(start,900);}
 start();
 window.PSICO_MATERIAL_EDITOR={render:renderGroups,editButton,setRerender,refresh,
- getMaterials:null,classify:null,categories:CATEGORIES,isEditing:()=>!!editing};
+ getMaterials:null,classify:null,categories:CATEGORIES,titleFor,isEditing:()=>!!editing};
 })();
