@@ -54,7 +54,7 @@ function reviewCard(r,i){
  const a=r.analysis,quality=a?.quality||'',hit=a?.hits?.length?a.hits.slice(0,7).join(' · '):'Nenhum marcador forte identificado';
  const status=!a?'Analisando o conteúdo…':quality==='pacote'?'Arquivo identificado em pacote organizado · confirma o destino antes de publicar':quality==='texto'?
   'Texto analisado · '+(a.textLength/1000).toFixed(1)+' mil caracteres amostrados · '+(a.confidence==='alta'?'confiança alta':a.confidence==='moderada'?'confiança moderada':'confirmar classificação'):
-  'Não foi possível ler o texto interno. Confere o documento e escolhe a disciplina manualmente.';
+  'Não foi possível ler o texto interno. Confira o documento e escolha a disciplina manualmente.';
  const examStatus=a?.examMatch==='principal'?'Corresponde ao conteúdo previsto para a prova final':a?.examMatch==='complementar'?'Material complementar relacionado aos temas da prova':a?.examMatch==='fora'?'Pertence à disciplina, mas está fora do foco da prova final':'Relevância para a prova precisa de confirmação';
  const warn=r.conflict?'O nome aponta para outro material. A identificação pelo conteúdo prevaleceu; confirma o destino.':
   a?.quality==='indisponivel'?(a.error||'Leitor indisponível'):'';
@@ -124,7 +124,7 @@ async function select(files){
  const zipFiles=list.filter(f=>/\.zip$/i.test(f.name));
  if(zipFiles.length){
   if(zipFiles.length!==list.length){
-   ++scanToken;reviewed=[];chosenFiles=[];logEntries=[{ok:false,message:'Seleciona os ZIPs separadamente dos PDFs, DOCX ou PPTX.'}];isAnalyzing=false;paint();return;
+   ++scanToken;reviewed=[];chosenFiles=[];logEntries=[{ok:false,message:'Selecione os ZIPs separadamente dos PDFs, DOCX ou PPTX.'}];isAnalyzing=false;paint();return;
   }
   ++scanToken;reviewed=[];chosenFiles=[];logEntries=[];paint();
   for(const archive of zipFiles)await importLibraryPackage(archive,true);
@@ -172,8 +172,8 @@ async function importLibraryPackage(archive,append=false){
  if(isBusy||isAnalyzing||!archive)return;
  if(!isAdmin){show('Somente o administrador pode importar materiais para o acervo.');return;}
  const lower=String(archive.name||'').toLowerCase();
- if(!lower.endsWith('.zip')){show('Escolhe um dos arquivos ZIP do pacote PsicoMoodle.');return;}
- if(archive.size>85*1024*1024){show('Este pacote é grande demais. Usa os ZIPs separados (até 85 MB).');return;}
+ if(!lower.endsWith('.zip')){show('Escolha um dos arquivos ZIP do pacote PsicoMoodle.');return;}
+ if(archive.size>85*1024*1024){show('Este pacote é grande demais. Use os ZIPs separados (até 85 MB).');return;}
  const previous=append?reviewed.slice():[];
  const mine=++scanToken;isAnalyzing=true;reviewed=previous;chosenFiles=previous.map(r=>r.file);logEntries=[];
  show('Lendo o ZIP e verificando os arquivos…');
@@ -221,7 +221,7 @@ async function importLibraryPackage(archive,append=false){
    keys.add(key);
   }
   reviewed=combined;chosenFiles=combined.map(r=>r.file);
-  logEntries=[{ok:true,message:'Pacotes conferidos: '+combined.length+' PDF(s) prontos para revisão. Os nomes e disciplinas já estão preenchidos. Confirma os destinos e clica em Publicar.'}];
+  logEntries=[{ok:true,message:'Pacotes conferidos: '+combined.length+' PDF(s) prontos para revisão. Os nomes e disciplinas já estão preenchidos. Confirme os destinos e clique em Publicar.'}];
  }catch(err){
   reviewed=previous;chosenFiles=previous.map(r=>r.file);logEntries=[{ok:false,message:'Falha ao importar '+archive.name+': '+(err.message||String(err))}];
  }finally{
