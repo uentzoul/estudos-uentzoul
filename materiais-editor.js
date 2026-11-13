@@ -20,7 +20,7 @@ const user=()=>auth()?.user?.();
 const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const key=m=>String(m._libraryKey||(m.subject+'::'+m.title));
 const placementKey=(s,k)=>SEMESTER+'|'+s+'|'+k;
-const allowed=()=>!!user()?.id&&(window.uentzoulAdminConfig?.isAdmin?.()===true||window.uentzoulLibraryManager?.isAdmin?.()===true);
+const allowed=()=>!!user()?.id&&window.uentzoulAdminConfig?.isAdmin?.()===true;
 function category(m,classify){
  const stored=placements.get(placementKey(m.subject,key(m)));
  return BY_ID.has(stored?.category)?stored.category:(BY_TITLE.get(classify(m))||'extras');
@@ -64,7 +64,7 @@ function renderGroups(materials,opts){
  const sections=show.map(cat=>{
   const list=groups[cat.id];
   const cards=isEditing?list.map((x,i)=>
-   '<div class="pm-edit-row" data-pm-file="'+esc(x.key)+'">'+
+   '<div class="pm-edit-row" draggable="true" data-pm-file="'+esc(x.key)+'">'+
     '<span class="pm-drag-handle" draggable="true" tabindex="0" role="img" aria-label="Arraste para reorganizar '+esc(x.material.title)+'" title="Arraste para reorganizar">⠿</span>'+
     '<span class="pm-edit-file-title">'+esc(x.material.title)+'</span>'+
     '<label class="pm-edit-move-label"><span>Categoria</span><select data-pm-category="'+esc(x.key)+'" aria-label="Categoria do arquivo '+esc(x.material.title)+'">'+optionMarkup(cat.id)+'</select></label>'+
@@ -83,6 +83,7 @@ function renderGroups(materials,opts){
   '<div class="pm-editor-groups">'+sections+'</div>';
 }
 function editButton(subject){
+ if(editing&&editing.owner!==user()?.id)editing=null;
  if(!allowed()||!subject)return '';
  if(editing?.subject===subject){
   return '<div class="pm-edit-toolbar">'+
@@ -159,7 +160,7 @@ document.addEventListener('click',event=>{
   const materials=window.PSICO_MATERIAL_EDITOR?.getMaterials?.(subject)||[];
   const classify=window.PSICO_MATERIAL_EDITOR?.classify;
   if(!classify)return;
-  editing=copyForEditing(materials,subject,classify);notice='';repaint();return;
+  editing=copyForEditing(materials,subject,classify);editing.owner=user()?.id;notice='';repaint();return;
  }
  if(event.target.closest('[data-pm-cancel]')){event.preventDefault();if(editing&&!editing.busy){editing=null;notice='';repaint();}return;}
  if(event.target.closest('[data-pm-save]')){event.preventDefault();save();return;}
@@ -175,9 +176,8 @@ document.addEventListener('change',event=>{
  move(control.dataset.pmCategory,control.value,null);
 });
 document.addEventListener('dragstart',event=>{
- const handle=event.target.closest('.pm-drag-handle');
- if(!handle||!editing||editing.busy)return;
- const row=handle.closest('[data-pm-file]');if(!row)return;
+ const row=event.target.closest('[data-pm-file]');
+ if(!row||!editing||editing.busy||event.target.closest('button,select,input,textarea'))return;
  draggedKey=row.dataset.pmFile;event.dataTransfer.effectAllowed='move';
  event.dataTransfer.setData('text/plain',draggedKey);
  row.classList.add('pm-dragging');
