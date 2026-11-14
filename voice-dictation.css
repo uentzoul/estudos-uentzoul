@@ -1,0 +1,64 @@
+/* PsicoMoodle — ditado de fala para texto (IA + Mensagens) */
+.pm-voice-original[hidden]{display:none!important}
+.dm-composer .pm-voice-trigger,
+.tz-shell .tz-composer .pm-voice-trigger{
+ display:grid!important;place-items:center;flex:none;
+ width:35px;min-width:35px;height:35px;
+ margin:0;padding:0;border:1px solid transparent!important;
+ border-radius:11px;background:transparent!important;
+ color:var(--accent,#7761b4)!important;cursor:pointer;
+ box-shadow:none!important;
+ transition:background .18s,border-color .18s,transform .18s;
+}
+.dm-composer .pm-voice-trigger:hover,
+.tz-shell .tz-composer .pm-voice-trigger:hover{
+ background:color-mix(in srgb,var(--paper,#fff) 85%,var(--accent,#8266b4))!important;
+ border-color:var(--line,#e2d9ed)!important;
+ transform:translateY(-1px);
+}
+.pm-voice-trigger svg{width:19px;height:19px;stroke:currentColor}
+.tz-shell .tz-composer .pm-voice-trigger:disabled{opacity:.35;cursor:not-allowed}
+.pm-voice-trigger.is-recording{background:#f9e5ed!important;color:#be4769!important;border-color:#f3c6d6!important;animation:pmVoiceMicGlow 1.3s ease-in-out infinite}
+@keyframes pmVoiceMicGlow{0%,100%{box-shadow:0 0 0 0 #d95d8433}50%{box-shadow:0 0 0 5px #d95d840c}}
+.tz-shell .tz-hints{right:96px!important}
+.pm-voice-panel[hidden]{display:none!important}
+.pm-voice-panel{
+ position:fixed;right:clamp(12px,3vw,36px);bottom:clamp(70px,11vh,116px);
+ z-index:250000;display:flex;align-items:center;gap:13px;
+ width:min(430px,calc(100vw - 24px));min-height:76px;
+ padding:13px 15px;border:1px solid var(--line,#e2dbea);
+ border-radius:16px;background:var(--paper,#fff);
+ box-shadow:0 14px 45px rgba(20,13,40,.22);
+ color:var(--ink,#28223b);font:inherit;
+}
+.pm-voice-indicator{display:flex;align-items:center;justify-content:center;gap:3px;flex:none;width:35px;height:35px;border-radius:11px;background:color-mix(in srgb,var(--paper,#fff) 86%,var(--accent,#8065bc))}
+.pm-voice-indicator span{display:block;width:3px;height:10px;border-radius:8px;background:var(--accent,#8866bd)}
+.pm-voice-indicator span:nth-child(2){height:19px}
+.pm-voice-panel[data-phase="recording"] .pm-voice-indicator span{animation:pmVoiceWave .8s ease-in-out infinite alternate}
+.pm-voice-panel[data-phase="recording"] .pm-voice-indicator span:nth-child(2){animation-delay:.2s}
+.pm-voice-panel[data-phase="recording"] .pm-voice-indicator span:nth-child(3){animation-delay:.4s}
+@keyframes pmVoiceWave{from{transform:scaleY(.65)}to{transform:scaleY(1.2)}}
+.pm-voice-copy{display:flex;flex:1 1 120px;min-width:0;flex-direction:column;gap:3px}
+.pm-voice-copy strong{font-size:12.5px;font-weight:790;line-height:1.35}
+.pm-voice-copy small{font-size:10.5px;line-height:1.45;color:var(--muted,#787181)}
+.pm-voice-actions{display:flex;flex:0 0 auto;gap:5px;align-items:center;flex-wrap:wrap;justify-content:flex-end}
+.pm-voice-actions button{min-height:32px;padding:6px 10px;border:1px solid var(--line,#e1dbe9);border-radius:9px;background:transparent;color:var(--ink,#28223b);font:inherit;font-size:10.5px;font-weight:780;cursor:pointer}
+.pm-voice-actions button[hidden]{display:none!important}
+.pm-voice-actions [data-pm-voice-stop]{background:var(--accent,#7961b5);border-color:var(--accent,#7961b5);color:#fff}
+.pm-voice-actions button:hover{filter:brightness(.97)}
+.pm-voice-actions button:focus-visible,.pm-voice-trigger:focus-visible{outline:2px solid var(--accent,#8064be);outline-offset:2px}
+html[data-theme="dark"] .pm-voice-panel{background:#25243b;color:#f2edf9;border-color:#47415f;box-shadow:0 14px 45px #06040c80}
+html[data-theme="dark"] .pm-voice-actions button{color:#f0eafa;border-color:#51456b}
+html[data-theme="dark"] .pm-voice-actions [data-pm-voice-stop]{color:white;background:#866cc6}
+html[data-theme="dark"] .tz-shell .tz-composer .pm-voice-trigger{color:#c0acf1!important}
+@media(max-width:650px){
+ .pm-voice-panel{left:12px;right:12px;bottom:calc(82px + env(safe-area-inset-bottom));width:auto;gap:9px;padding:11px}
+ .pm-voice-copy{flex-basis:100px}
+ .pm-voice-actions{gap:4px}
+ .pm-voice-actions button{padding:6px 8px;font-size:10px}
+ .pm-voice-indicator{width:30px;height:30px}
+ .tz-shell .tz-composer .pm-voice-trigger,.dm-composer .pm-voice-trigger{width:33px;min-width:33px;height:33px}
+ .tz-shell .tz-hints{right:84px!important}
+}
+@media(max-width:380px){.pm-voice-panel{flex-wrap:wrap}.pm-voice-actions{margin-left:auto}}
+@media(prefers-reduced-motion:reduce){.pm-voice-trigger.is-recording,.pm-voice-panel[data-phase="recording"] .pm-voice-indicator span{animation:none!important}}
