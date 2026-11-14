@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="color-scheme" content="light dark">
-<meta name="site-build" content="psicomoodle-participants-panel-fix-20261114-r9">>>>
+<meta name="site-build" content="psicomoodle-sidebar-ui-fix-20261114-r11">
 <script>try{document.documentElement.dataset.theme=localStorage.getItem("uentzoul_theme_v1")==="dark"?"dark":"light"}catch(e){document.documentElement.dataset.theme="light"}</script>
 <title>PsicoMoodle · Psicologia PUCRS</title>
 <style>
@@ -1905,6 +1905,15 @@ html[data-theme="dark"] .tz-shell .tz-new-chat{background:#292640;border-color:#
 .tz-sent-file:hover{border-color:#af9ade;background:var(--soft)}
 html[data-theme="dark"] .tz-pending-icon{background:#40375e;color:#d6c4ff}
 @media(max-width:760px){.tz-shell .tz-upload-btn{flex-basis:28px;width:28px;height:31px}.tz-shell .tz-upload-btn svg{width:17px;height:17px}.tz-pending-item{max-width:170px}.tz-pending-label{max-width:85px}}
+
+/* Right sidebar hide/show is desktop-only; mobile participants drawer is unchanged. */
+@media(min-width:761px){
+ .pm-right-handle{position:fixed;right:252px;top:50%;transform:translateY(-50%);z-index:60;width:28px;height:62px;padding:0;border:1px solid var(--line);border-right:0;border-radius:9px 0 0 9px;background:var(--paper);color:var(--ink);box-shadow:0 2px 10px #0002;font-size:21px;display:flex;align-items:center;justify-content:center;cursor:pointer}
+ .pm-right-handle:hover{background:var(--soft)}
+ html.pm-right-closed .app>#profileSidebar{display:none!important}
+ html.pm-right-closed .pm-right-handle{right:0}
+}
+@media(max-width:760px){.pm-right-handle{display:none!important}}
 </style>
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2064%2064%22%3E%3Crect%20width%3D%2264%22%20height%3D%2264%22%20rx%3D%2214%22%20fill%3D%22%23192d44%22%2F%3E%3Ctext%20x%3D%2232%22%20y%3D%2246%22%20fill%3D%22white%22%20font-size%3D%2246%22%20font-family%3D%22Georgia%2Cserif%22%20text-anchor%3D%22middle%22%3E%CE%A8%3C%2Ftext%3E%3C%2Fsvg%3E">
 <link rel="stylesheet" href="library-manager.css?v=20261111-5">
@@ -2145,7 +2154,7 @@ html[data-theme="dark"] .tz-library-download{background:#26374c;border-color:#45
   <div class="mobile-secondary-actions"><button type="button" class="mobile-report-button" data-report-open aria-label="Relatar erro" title="Relatar erro"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 4.5h14v11H9l-4 4V4.5z"/><path d="M9 9h6M9 12h4"/></svg><span>Relatar erro</span></button><button type="button" id="mobileParticipantsToggle" class="members-sidebar-toggle mobile-members-toggle" data-members-toggle aria-controls="profileSidebar" aria-expanded="false" aria-label="Abrir participantes" title="Abrir participantes"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3"/><path d="M3 19v-2c0-3 2-5 6-5s6 2 6 5v2"/><path d="M17 5c2 0 3 1.4 3 3s-1 3-3 3M17 13c2.5.4 4 1.8 4 4v2"/></svg><span>Participantes</span></button></div>
   <div class="navlbl">Disciplinas</div><nav class="menu" id="subjectNav"></nav>
   <div class="sidebarfoot sidebar-report"><button type="button" class="report-launch sidebar-report-button" data-report-open><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 4.5h14v11H9l-4 4V4.5z"/><path d="M9 9h6M9 12h4"/></svg><span>Relatar erro</span></button></div>
-</aside><main class="main" id="main" aria-live="polite"></main><div id="membersBackdrop" class="members-backdrop" hidden aria-hidden="true"></div><aside class="profile-sidebar" id="profileSidebar" aria-label="Meu perfil e participantes da turma"><div class="rank-empty">Carregando perfis...</div></aside></div>
+</aside><main class="main" id="main" aria-live="polite"></main><div id="membersBackdrop" class="members-backdrop" hidden aria-hidden="true"></div><button type="button" id="pmRightHandle" class="pm-right-handle" aria-controls="profileSidebar" aria-expanded="true" aria-label="Ocultar barra lateral direita" title="Ocultar barra lateral direita">›</button><aside class="profile-sidebar" id="profileSidebar" aria-label="Meu perfil e participantes da turma"><div class="rank-empty">Carregando perfis...</div></aside></div>
 <div class="report-overlay" id="errorReportOverlay" hidden><section class="report-dialog" role="dialog" aria-modal="true" aria-labelledby="reportDialogTitle"><div class="report-dialog-head"><h2 id="reportDialogTitle">Relatar erro</h2><button type="button" class="report-dialog-close" data-report-close aria-label="Fechar"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button></div><p>Descreva o erro ou uma sugestão de melhoria. O relato chegará anonimamente à administração, sem identificar quem enviou.</p><form id="errorReportForm"><label for="errorReportBody">Descreva o problema</label><textarea id="errorReportBody" maxlength="3000" minlength="15" required placeholder="Explique o que aconteceu, em qual página e como reproduzir o problema."></textarea><div class="report-dialog-foot"><small id="reportCharCount">0 / 3000</small><button type="submit" class="report-submit" id="reportSubmit">Enviar relato</button></div><p class="report-status" id="reportStatus" role="status"></p></form></section></div>
 <div class="dm-profile-overlay" id="dmProfileOverlay" hidden><section class="dm-profile-dialog" role="dialog" aria-modal="true" aria-labelledby="dmProfileHeading"><button type="button" class="dm-profile-close" data-dm-close-profile aria-label="Fechar perfil"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button><div id="dmProfileContent"></div></section></div>
 <div class="profile-overlay" id="profileOverlay" hidden>
@@ -7241,6 +7250,26 @@ document.addEventListener("click",e=>{if(!e.target.closest("[data-theme-toggle]"
  target.addEventListener('focusout',hide);
  side.addEventListener('scroll',()=>{if(hovered)place()},{passive:true});
  window.addEventListener('resize',()=>{if(hovered)place();else tip.hidden=true},{passive:true});
+})();
+</script>
+<script>
+(function(){
+ const button=document.getElementById('pmRightHandle');if(!button)return;
+ const root=document.documentElement;
+ function sync(){
+  const closed=root.classList.contains('pm-right-closed');
+  button.textContent=closed?'‹':'›';
+  button.setAttribute('aria-expanded',String(!closed));
+  button.setAttribute('aria-label',closed?'Mostrar barra lateral direita':'Ocultar barra lateral direita');
+  button.title=button.getAttribute('aria-label');
+ }
+ button.addEventListener('click',function(){
+  root.classList.toggle('pm-right-closed');
+  try{localStorage.setItem('psicomoodle_right_sidebar_collapsed',String(root.classList.contains('pm-right-closed')))}catch(e){}
+  sync();
+ });
+ try{if(localStorage.getItem('psicomoodle_right_sidebar_collapsed')==='true')root.classList.add('pm-right-closed')}catch(e){}
+ sync();
 })();
 </script>
 </body></html>
