@@ -2106,7 +2106,7 @@ html[data-theme="dark"] .tz-library-download{background:#26374c;border-color:#45
 <link id="pm-mobile-drawer-css" rel="stylesheet" href="mobile-drawer.css?v=20261114-smooth-locked-v18">
 <link id="pm-tutorial-styles" rel="stylesheet" href="spotlight-tour.css?v=20261114-podcast-monday-v19">
 <link id="pm-podcast-mini-styles" rel="stylesheet" href="podcast-mini.css?v=20261114-podcast-mini-v2">
-<link id="pm-chat-mobile-css" rel="stylesheet" href="chat-mobile-refinement.css?v=20261114-dictation-proxy-v23">
+<link id="pm-chat-mobile-css" rel="stylesheet" href="chat-mobile-refinement.css?v=20261114-no-emoji-v24">
 </head>
 <body>
 <section id="staticFallback" class="static-fallback" aria-label="Central de Estudos — modo de leitura compatível com celular">
@@ -5536,7 +5536,7 @@ dmComposer=function(){
  const tools=dmW.panel==='tools'?'<div class="dm-tools-menu">'+[['image','Foto / GIF do computador'],['video','Vídeo'],['audio','Arquivo de áudio'],['sticker','Criar figurinha (PNG ou WebP)']].map(x=>'<button type="button" data-dmw-attach="'+x[0]+'">'+x[1]+'</button>').join('')+'<button type="button" data-dmw-gif>GIF do GIPHY</button></div>':
   dmW.panel==='emoji'?'<div class="dm-emoji-panel"><emoji-picker id="dmWPicker" locale="pt"></emoji-picker></div>':'';
  return '<form id="dmSendForm" class="dm-composer-wrap">'+reply+recording+
- '<div class="dm-mention-suggestions" id="dmMentionSuggestions" role="listbox" aria-label="Selecionar participante" hidden></div><div class="dm-composer"><button type="button" class="dm-composer-action" data-dmw-emoji title="Emojis" aria-label="Emojis">☺</button>'+
+ '<div class="dm-mention-suggestions" id="dmMentionSuggestions" role="listbox" aria-label="Selecionar participante" hidden></div><div class="dm-composer">'+
  '<button type="button" class="dm-composer-action" data-dmw-tools title="Anexar" aria-label="Anexar">＋</button><input id="dmWFileInput" type="file" hidden>'+
  '<textarea id="dmPrompt" maxlength="3000" rows="1" placeholder="Escreva uma mensagem…">'+esc(dm.draft)+'</textarea>'+
  '<button type="button" class="dm-composer-action" data-dmw-record title="Gravar áudio" aria-label="Gravar áudio"><svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="2.5" width="6" height="12" rx="3"/><path d="M5 10.5a7 7 0 0 0 14 0M12 17.5V22m-4 0h8"/></svg></button>'+
