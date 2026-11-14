@@ -60,6 +60,11 @@ const dateLabel=e=>String(e.event_date||'').slice(8,10)+'/'+String(e.event_date|
 const plural=(n,single,multi)=>n===1?single:multi;
 function navButton(){
  const el=nav();if(!el)return;
+ // O HTML antigo ainda trazia um segundo item estático "Revisão de Férias — Em breve".
+ // Preserva os outros avisos (por exemplo, Trabalhos) e mantém só a entrada funcional.
+ for(const item of el.querySelectorAll('.nav-upcoming')){
+  if(item.querySelector('.nav-upcoming-name')?.textContent?.trim()==='Revisão de Férias')item.remove();
+ }
  if(document.getElementById('navVacationReview'))return;
  const button=document.createElement('button');
  button.type='button';button.id='navVacationReview';button.className='sidebtn';
@@ -246,7 +251,7 @@ function handleClick(ev){
 function setup(){
  navButton();
  const n=nav();
- if(n&&!navObserver){navObserver=new MutationObserver(()=>{if(!document.getElementById('navVacationReview'))navButton()});navObserver.observe(n,{childList:true});}
+ if(n&&!navObserver){navObserver=new MutationObserver(()=>navButton());navObserver.observe(n,{childList:true});}
  const m=main();
  if(m&&!mainObserver){mainObserver=new MutationObserver(()=>{if(visible&&!document.getElementById('vr-root')){rootElement();render();}});mainObserver.observe(m,{childList:true});}
  document.addEventListener('click',event=>{
