@@ -8,6 +8,7 @@ const steps=[
  {page:'home',find:'.dashboard-hero .hero-status',title:'Seu espaço de estudos',body:'Esta é a página inicial do PsicoMoodle. Aqui você acompanha o progresso do semestre: a porcentagem indica quanto das atividades cadastradas já foi concluído.'},
  {page:'home',find:'#homeCourses .course-card-button',title:'Escolha uma disciplina',body:'Cada cartão abre uma disciplina com seus materiais e atividades. Selecione o cartão destacado para conhecer uma matéria ou pressione Próximo para continuar com um exemplo.',tip:'É possível localizar outra matéria pela busca da Biblioteca.',pick:true},
  {page:'subject',find:'.subject-hub-menu',title:'Tudo de uma matéria em um só lugar',body:'A disciplina reúne trilha de estudos para a prova, materiais e textos, estudos dirigidos, simulados, flashcards, casos, podcasts e conteúdos para revisar.',tip:'Uma boa sequência é começar pela trilha e praticar com questões depois.'},
+ {page:'subject',tab:'docs',find:'#docs .doc-compact .donecontrol',fallback:'#docs .doclist .doc-compact, #docs .sectiontop',title:'Materiais e textos',body:'Nesta seção, você encontra os conteúdos disponíveis para cada disciplina, como textos-base, artigos, slides, capítulos, roteiros de estudo e outros arquivos ou links. Depois de consultar ou estudar um material, utilize “Marcar como visto” no próprio item. Assim, você acompanha o que já foi lido ou revisado e identifica facilmente o que ainda falta, mesmo quando a lista é extensa.',tip:'A marcação é pessoal e manual: abrir um arquivo ou link externo não o marca automaticamente como visto.'},
  {page:'calendar',tab:'provas',find:'.agenda-switch',title:'Agenda e Horários',body:'A agenda reúne três consultas: datas das avaliações, grade semanal de aulas e conteúdos previstos para cada encontro. Vamos conhecer cada uma.'},
  {page:'calendar',tab:'provas',find:'.agenda-calendar-layout',fallback:'[data-action="agenda-tab:provas"]',title:'Provas e avaliações',body:'Veja as datas das provas no calendário, confira a disciplina correspondente e consulte informações sobre avaliações e substitutivas.',tip:'As datas podem mudar. Confirme eventuais alterações no Moodle oficial.'},
  {page:'calendar',tab:'horarios',find:'.schedule-day',fallback:'[data-action="agenda-tab:horarios"]',title:'Horários das aulas',body:'Esta visão mostra os dias da semana, as disciplinas e os respectivos horários. Consulte-a para organizar a rotina de aulas.',tip:'Use as abas acima para alternar entre as diferentes visões da agenda.'},
@@ -37,31 +38,17 @@ function markTourOpened(){
  try{localStorage.setItem(FIRST_VISIT_KEY,'1')}catch(_){}
  byId('pmTourEntry')?.classList.remove('is-first-visit');
 }
-function mainReady(){return !!(q('#main .dashboard-hero.slogan-hero')&&q('#main #homeCourses .library-page .course-toolbar'))}
+function mainReady(){return !!q('#main #homeCourses .course-intro')}
 function insertEntry(){
  if(!mainReady())return;
- const hero=q('#main .dashboard-hero.slogan-hero');
- const library=q('#main #homeCourses .library-page');
- const toolbar=library?.querySelector('.course-toolbar');
- if(!hero||!toolbar)return;
+ const intro=q('#main #homeCourses .course-intro');
  let entry=byId('pmTourEntry');
  if(!entry){
   entry=document.createElement('div');entry.id='pmTourEntry';entry.className='pm-tour-entry';
-  entry.innerHTML='<button type="button" id="pmTourLaunch" class="pm-tour-launch" aria-label="Iniciar tutorial guiado do site"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 6.5A2.5 2.5 0 0 1 6.5 4H20v15H6.5A2.5 2.5 0 0 1 4 16.5zM4 16.5A2.5 2.5 0 0 1 6.5 14H20M8 8h8"/></svg><span>Tutorial</span></button>';
+  entry.innerHTML='<button type="button" id="pmTourLaunch" class="pm-tour-launch" aria-label="Iniciar tutorial guiado do site"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 6.5A2.5 2.5 0 0 1 6.5 4H20v15H6.5A2.5 2.5 0 0 1 4 16.5zM4 16.5A2.5 2.5 0 0 1 6.5 14H20M8 8h8"/></svg><span>Tutorial</span></button>';
  }
  entry.classList.toggle('is-first-visit',isFirstVisit());
- // Fora do cabeçalho: não forma uma segunda barra e não altera o alinhamento do título.
- if(entry.parentNode!==library||entry.nextElementSibling!==toolbar)library.insertBefore(entry,toolbar);
- const wide=window.matchMedia('(min-width:1101px)').matches;
- entry.classList.toggle('is-placed-between',wide);
- if(wide){
-  // Metade exata da distância entre a borda inferior do banner e a busca.
-  const heroBottom=hero.getBoundingClientRect().bottom;
-  const searchTop=toolbar.getBoundingClientRect().top;
-  const parentTop=library.getBoundingClientRect().top;
-  const buttonHeight=entry.querySelector('button').getBoundingClientRect().height;
-  entry.style.top=Math.round((heroBottom+searchTop)/2-parentTop-buttonHeight/2)+'px';
- }else entry.style.top='';
+ if(entry.parentNode!==intro)intro.appendChild(entry);
 }
 function build(){
  if(shell)return;
@@ -108,14 +95,20 @@ function selectTab(step){
  if(tab&&!tab.matches('[aria-selected="true"],[aria-pressed="true"],.selected,.active'))tab.click();
 }
 function prep(step){
- if(step.page==='subject')chooseSubject();
- else navigate(step.page);
+ if(step.page==='subject'){
+  if(step.tab==='docs'){
+   // Acesse de verdade Materiais e textos; não marque nenhum material durante o tour.
+   if(page()!=='subject')chooseSubject();
+   const docs=q('#main .subject-hub-menu [data-action="subjectArea:docs"]');
+   if(docs)docs.click();
+  }else chooseSubject();
+ }else navigate(step.page);
  // "Chat Global" é um contato fixo logo abaixo da busca, não uma aba no cabeçalho.
  if(step.page==='messages' && step.tab==='global'){
   const search=q('#dmUserSearch');
   if(search?.value){search.value='';search.dispatchEvent(new Event('input',{bubbles:true}));}
  }
- if(step.tab)selectTab(step);
+ if(step.tab&&step.page!=='subject')selectTab(step);
 }
 function findNode(step){
  const node=available('#main '+step.find)||available(step.find);
