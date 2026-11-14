@@ -491,7 +491,14 @@ function close(){
  if(sidebarSpot)sidebarSpot.hidden=true;
  if(changedSemester&&originSemester)q('.semester-option[data-semester="'+originSemester+'"]')?.click();
  changedSemester=false;
- lastFocus?.isConnected&&lastFocus.focus?.({preventScroll:true});
+ // Ao concluir ou fechar, a navegação pode ter recriado a página Início:
+ // recoloca o botão sem exigir recarregamento ou gesto do usuário.
+ insertEntry();
+ requestAnimationFrame(()=>{
+  insertEntry();
+  const original=lastFocus?.isConnected?lastFocus:byId('pmTourLaunch');
+  original?.focus?.({preventScroll:true});
+ });
 }
 function click(event){
  if(event.target.closest('#pmTourLaunch')){event.preventDefault();markTourOpened();open();return}
@@ -545,7 +552,9 @@ function refresh(){
  frame=requestAnimationFrame(()=>{
   frame=0;
   if(active&&((innerWidth<=760)!==(runSteps===mobileSteps))){close();return}
-  if(active)layout(false);else insertEntry();
+  // A entrada precisa existir até mesmo quando o tour muda de página.
+  insertEntry();
+  if(active)layout(false);
  });
 }
 function init(){
