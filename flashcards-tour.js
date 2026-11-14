@@ -75,6 +75,7 @@ function position(node,shouldScroll){
  const bottom=clamp(r.bottom+6,top+18,vh-5);
  ring.style.left=left+'px';ring.style.top=top+'px';ring.style.width=(right-left)+'px';ring.style.height=(bottom-top)+'px';
  if(mobile){dialog.style.left='12px';dialog.style.right='12px';dialog.style.top='auto';dialog.style.bottom='max(12px, env(safe-area-inset-bottom))';return;}
+ dialog.style.left='12px';dialog.style.right='auto';dialog.style.top='12px';dialog.style.bottom='auto';
  const bounds=dialog.getBoundingClientRect(),w=bounds.width,h=bounds.height,gap=18;
  let x,y;
  if(vw-right>=w+gap+12){x=right+gap;y=clamp(top,12,vh-h-12)}
@@ -89,7 +90,7 @@ function show(i){
  const steps=liveSteps();
  step=clamp(i,0,steps.length-1);
  const seq=++runId,s=steps[step];
- if(!activeRoot()){finish(false);return}
+ if(!activeRoot()){finish();return}
  setDemo(s);
  dialog.querySelector('h2').textContent=s.title;
  dialog.querySelector('.pm-flashtour-body').textContent=s.body;
@@ -124,8 +125,8 @@ function finish(restore=true){
  open=false;++runId;
  overlay.hidden=true;
  document.documentElement.classList.remove('pm-flash-tour-running');
- if(restore&&subject&&activeRoot()?.dataset.activeId===subject&&original){
-  window.PSICO_PRACTICE?.flashTutorialShow?.(subject,original.cardIndex,original.flipped);
+ if(restore&&subject&&original){
+  window.PSICO_PRACTICE?.flashTutorialRestore?.(subject,original.cardIndex,original.flipped);
  }
  subject=null;original=null;
  const focus=lastFocus?.isConnected?lastFocus:q('[data-flash-tour="start"]');
@@ -154,6 +155,7 @@ function keydown(e){
  if(e.key==='Escape'){e.preventDefault();finish();return}
  if(e.key==='ArrowRight'){e.preventDefault();show(Math.min(step+1,liveSteps().length-1));return}
  if(e.key==='ArrowLeft'){e.preventDefault();show(Math.max(0,step-1));return}
+ if([' ','Spacebar','PageUp','PageDown','Home','End','ArrowUp','ArrowDown'].includes(e.key)&&!dialog.contains(e.target)){e.preventDefault();return}
  if(e.key!=='Tab')return;
  const btns=[...dialog.querySelectorAll('button:not(:disabled)')];
  const first=btns[0],last=btns[btns.length-1];
@@ -169,7 +171,7 @@ function refresh(){
  raf=requestAnimationFrame(()=>{
   raf=0;
   if(!open)return;
-  if(!activeRoot()||activeRoot().dataset.activeId!==subject){finish(false);return}
+  if(!activeRoot()||activeRoot().dataset.activeId!==subject){finish();return}
   position(target(liveSteps()[step]),false);
  });
 }
@@ -187,7 +189,7 @@ function init(){
  if(main)new MutationObserver(refresh).observe(main,{childList:true,subtree:true});
  window.addEventListener('resize',refresh,{passive:true});
  window.addEventListener('scroll',refresh,{passive:true});
- window.addEventListener('popstate',()=>{if(open)finish(false)});
+ window.addEventListener('popstate',()=>{if(open)finish()});
  window.pmStartFlashcardsTour=start;
 }
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});
