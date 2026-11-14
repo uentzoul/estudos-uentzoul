@@ -75,13 +75,12 @@
   closeButton.addEventListener('click',()=>setOpen(false,true));
   backdrop.addEventListener('click',()=>setOpen(false,true));
 
-  // Gestos no telefone: faixa perto da borda, mas fora do gesto nativo
-  // de Voltar do iOS/Android. Não captura rolagem vertical nem carrosséis.
-  const GESTURE_MIN_X=24;
-  const GESTURE_MAX_X=88;
-  const SWIPE_OPEN_PX=76;
-  const SWIPE_CLOSE_PX=67;
-  let gesture=null;
+  // Gaveta que acompanha o dedo — sem disputar rolagem, controles ou gesto
+  // de voltar do navegador. O estado aberto só muda ao soltar o dedo.
+  const EDGE_MIN=24,EDGE_MAX=96;
+  const START_SLOP=13,FINISH_RATIO=.48,FLICK_VELOCITY=.48;
+  let gesture=null,clickBlockUntil=0;
+  const clamp=(v,min,max)=>Math.max(min,Math.min(max,v));
   function horizontalScroller(target){
    for(let el=target;el&&el!==document.body;el=el.parentElement){
     if(!(el instanceof Element))break;
@@ -95,37 +94,94 @@
    return [...document.querySelectorAll('dialog[open],[role="dialog"][aria-modal="true"]')]
     .some(el=>!el.hidden&&el.getClientRects().length>0&&getComputedStyle(el).visibility!=='hidden');
   }
+  function redrawDrag(progress){
+   const p=clamp(progress,0,1);
+   document.body.style.setProperty('--pm-drawer-offset',(-105*(1-p)).toFixed(3)+'%');
+   document.body.style.setProperty('--pm-drawer-opacity',String(p));
+   if(gesture)gesture.progress=p;
+  }
+  function clearDrag(){
+   document.body.classList.remove('pm-mobile-menu-dragging');
+   document.body.style.removeProperty('--pm-drawer-offset');
+   document.body.style.removeProperty('--pm-drawer-opacity');
+  }
+  function finishDrag(touch,cancel=false){
+   const g=gesture;gesture=null;
+   if(!g)return;
+   if(!g.claimed){clearDrag();return;}
+   const elapsed=Math.max(1,Date.now()-g.lastTime);
+   const velocity=touch?clamp((touch.clientX-g.lastX)/elapsed,-2,2):0;
+   const travelled=touch?touch.clientX-g.x:(g.progress-g.start)*g.width;
+   const distance=Math.abs(travelled);
+   const fast=distance>32&&Math.abs(velocity)>FLICK_VELOCITY;
+   const shouldOpen=cancel?g.start===1:
+    fast?(velocity>0):g.progress>=FINISH_RATIO;
+   // Até o último pixel do gesto, a gaveta fica na posição do dedo.
+   // Ao soltar, a transição CSS assume a partir dessa posição.
+   setOpen(shouldOpen,false,false);
+   clearDrag();
+   clickBlockUntil=Date.now()+420;
+  }
+  function cancelDrag(){finishDrag(null,true)}
   document.addEventListener('touchstart',event=>{
-   gesture=null;
+   if(gesture)cancelDrag();
    if(!media.matches||event.touches.length!==1||modalVisible())return;
-   const touch=event.touches[0],target=event.target;
-   const mode=opened?'close':'open';
+   const t=event.touches[0],target=event.target;
    if(horizontalScroller(target))return;
    if(target?.closest?.('input,textarea,select,[contenteditable="true"],[role="slider"]'))return;
-   if(mode==='open'){
-    // iOS/Android reservam os primeiros pixels para voltar no navegador.
-    if(touch.clientX<GESTURE_MIN_X||touch.clientX>GESTURE_MAX_X)return;
-    if(target?.closest?.('button,a,[role="button"],.pm-mobile-backdrop'))return;
+   const start=opened?1:0;
+   if(!opened){
+    // Deixa a borda extrema para a navegação nativa do iOS/Android.
+    if(t.clientX<EDGE_MIN||t.clientX>EDGE_MAX)return;
+    const control=target?.closest?.('button,a,[role="button"]');
+    if(control&&!control.matches('#pmMobileMenuToggle'))return;
    }else if(!side.contains(target))return;
-   gesture={mode,x:touch.clientX,y:touch.clientY,time:Date.now()};
+   gesture={start,progress:start,x:t.clientX,y:t.clientY,
+    lastX:t.clientX,lastTime:Date.now(),width:Math.max(side.getBoundingClientRect().width,1),
+    claimed:false};
   },{passive:true});
   document.addEventListener('touchmove',event=>{
-   if(!gesture)return;
-   if(event.touches.length!==1){gesture=null;return;}
-   const t=event.touches[0];
-   const dx=t.clientX-gesture.x,dy=t.clientY-gesture.y;
-   // Ao reconhecer uma rolagem vertical, ignora o gesto por completo.
-   if(Math.abs(dy)>18&&Math.abs(dy)>Math.abs(dx)*.7)gesture=null;
-  },{passive:true});
+   const g=gesture;
+   if(!g)return;
+   if(event.touches.length!==1){cancelDrag();return;}
+   const t=event.touches[0],dx=t.clientX-g.x,dy=t.clientY-g.y;
+   if(!g.claimed){
+    if(Math.abs(dy)>11&&Math.abs(dy)>Math.abs(dx)*.8){
+     gesture=null;return; // rolagem vertical segue nativa
+    }
+    if(Math.abs(dx)<START_SLOP)return;
+    if(Math.abs(dx)<Math.abs(dy)*1.35)return;
+    if((g.start===0&&dx<0)||(g.start===1&&dx>0)){
+     gesture=null;return;
+    }
+    g.claimed=true;
+    document.body.classList.add('pm-mobile-menu-dragging');
+   }
+   if(event.cancelable)event.preventDefault();
+   redrawDrag(g.start+dx/g.width);
+   g.lastX=t.clientX;g.lastTime=Date.now();
+  },{passive:false});
   document.addEventListener('touchend',event=>{
-   const g=gesture;gesture=null;
-   if(!g||!media.matches||event.changedTouches.length!==1)return;
-   const t=event.changedTouches[0],dx=t.clientX-g.x,dy=t.clientY-g.y;
-   if(Date.now()-g.time>1000||Math.abs(dy)>65||Math.abs(dx)<Math.abs(dy)*1.65)return;
-   if(g.mode==='open'&&!opened&&dx>=SWIPE_OPEN_PX)setOpen(true,false,true);
-   else if(g.mode==='close'&&opened&&dx<=-SWIPE_CLOSE_PX)setOpen(false,true,false);
+   if(!gesture)return;
+   if(event.changedTouches.length!==1){cancelDrag();return;}
+   const t=event.changedTouches[0],g=gesture;
+   if(g.claimed){
+    // Inclui o trecho final que pode ocorrer após o último touchmove.
+    redrawDrag(g.start+(t.clientX-g.x)/g.width);
+   }
+   finishDrag(t);
   },{passive:true});
-  document.addEventListener('touchcancel',()=>{gesture=null},{passive:true});
+  document.addEventListener('touchcancel',cancelDrag,{passive:true});
+  window.addEventListener('blur',cancelDrag);
+  document.addEventListener('visibilitychange',()=>{
+   if(document.hidden)cancelDrag();
+  });
+  // Um arraste começado sobre ☰ ou item do menu não deve virar clique.
+  document.addEventListener('click',event=>{
+   if(Date.now()>=clickBlockUntil||!event.isTrusted)return;
+   event.preventDefault();
+   event.stopImmediatePropagation();
+  },true);
 
   document.addEventListener('click',event=>{
    if(!opened)return;
@@ -153,7 +209,7 @@
     event.preventDefault();first.focus();
    }
   });
-  function onResize(){setOpen(false)}
+  function onResize(){cancelDrag();setOpen(false)}
   if(media.addEventListener)media.addEventListener('change',onResize);
   else if(media.addListener)media.addListener(onResize);
   setOpen(false);
