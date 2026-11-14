@@ -35,6 +35,53 @@ function show(message){
  if(el)el.textContent=message||'';
 }
 const subjects=()=>api()?.subjects?.()||window.UentzoulLibraryAnalyzer?.subjects||{geral:'Cadernos integrados',meta:'Metapsicologia',tcc:'TCC'};
+
+const WEEK_TABLE='uentzoul_material_weeks',PLACEMENTS='uentzoul_material_placements';
+const LIBRARY_CATEGORIES=[['plans','Planos de ensino e cronogramas'],['classes','Aulas e apresentações'],['texts','Textos-base e bibliografia'],['review','Guias e materiais de revisão'],['videos','Vídeos e referências online'],['extras','Materiais complementares']];
+const foldText=x=>String(x||'').toLocaleLowerCase('pt-BR').normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]+/g,' ').trim();
+function suggestCategory(r){
+ const t=foldText([r.file?.name,r.title,r.suggestion?.kind].join(' '));
+ if(/plano de ensino|cronograma/.test(t))return 'plans';
+ if(/estudo dirigido|roteiro de estudo|revisao|gabarito|simulado|questoes/.test(t))return 'review';
+ if(/video|podcast|aula gravada/.test(t))return 'videos';
+ if(/slides|apresentacao|aula|atividade pratica|seminario/.test(t))return 'classes';
+ if(/texto|livro|capitulo|artigo|bibliografia|leitura|dicionario/.test(t))return 'texts';
+ return r.analysis?.quality==='texto'?'texts':'extras';
+}
+function suggestOrganization(r){
+ const d=window.PSICO_COURSE_MANAGER?.suggestSection?.(r.subject,r.file,r.analysis,r.title);
+ r.sectionNumber=d?.number||0;r.sectionHint=d?.label||'';r.category=suggestCategory(r);
+}
+function sectionOptions(r){
+ const defs=window.PSICO_COURSE_MANAGER?.moodleSections?.(r.subject)||[];
+ return '<option value="0" '+(!r.sectionNumber?'selected':'')+'>Sem seção definida — revisar depois</option>'+
+ defs.map(d=>'<option value="'+d.number+'" '+(d.number===r.sectionNumber?'selected':'')+'>'+clean(d.label)+'</option>').join('');
+}
+function categoryOptions(r){return LIBRARY_CATEGORIES.map(([id,label])=>'<option value="'+id+'" '+(id===r.category?'selected':'')+'>'+clean(label)+'</option>').join('');}
+async function saveOrganization(c,semester,entry){
+ if(semester!=='2026/2')return [];
+ const warnings=[];
+ if(entry.sectionNumber&&window.PSICO_COURSE_MANAGER?.moodleSections?.(entry.subject)?.some(x=>x.number===entry.sectionNumber)){
+  try{
+   const old=await c.from(WEEK_TABLE).select('week_number').eq('semester',semester).eq('subject',entry.subject).eq('resource_key',entry.key).limit(1);
+   if(old.error)throw old.error;
+   if(!old.data?.length){const q=await c.from(WEEK_TABLE).insert({semester,subject:entry.subject,resource_key:entry.key,week_number:entry.sectionNumber,position:0});if(q.error)throw q.error;}
+  }catch(e){warnings.push('seção: '+(e.message||e));}
+ }
+ if(LIBRARY_CATEGORIES.some(x=>x[0]===entry.category)){
+  try{
+   const old=await c.from(PLACEMENTS).select('category').eq('semester',semester).eq('subject',entry.subject).eq('resource_key',entry.key).limit(1);
+   if(old.error)throw old.error;
+   if(!old.data?.length){
+    const q=await c.from(PLACEMENTS).select('position').eq('semester',semester).eq('subject',entry.subject).eq('category',entry.category).order('position',{ascending:false}).limit(1);
+    if(q.error)throw q.error;
+    const add=await c.from(PLACEMENTS).insert({semester,subject:entry.subject,resource_key:entry.key,category:entry.category,position:(q.data?.[0]?.position??-1)+1});if(add.error)throw add.error;
+   }
+  }catch(e){warnings.push('categoria: '+(e.message||e));}
+ }
+ return warnings;
+}
+
 function titleFromFile(file,analysis){
  const original=String(file.name||'').replace(/\.(pdf|docx|pptx)$/i,'').replace(/[_]+/g,' ').trim();
  if(/^doc\s*\d+$/i.test(original)&&analysis?.topics?.length)return analysis.topics.slice(0,2).join(' e ');
