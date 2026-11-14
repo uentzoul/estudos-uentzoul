@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="color-scheme" content="light dark">
-<meta name="site-build" content="psicomoodle-sidebar-ui-fix-20261114-r11">
+<meta name="site-build" content="psicomoodle-readings-mobile-podcast-semesters-r12">
 <script>try{document.documentElement.dataset.theme=localStorage.getItem("uentzoul_theme_v1")==="dark"?"dark":"light"}catch(e){document.documentElement.dataset.theme="light"}</script>
 <title>PsicoMoodle · Psicologia PUCRS</title>
 <style>
@@ -1914,6 +1914,20 @@ html[data-theme="dark"] .tz-pending-icon{background:#40375e;color:#d6c4ff}
  html.pm-right-closed .pm-right-handle{right:0}
 }
 @media(max-width:760px){.pm-right-handle{display:none!important}}
+
+#nav .sidebtn[data-page="calendar"] .nav-label-short{display:none}
+@media(max-width:760px){
+ #nav .sidebtn[data-page="calendar"] .nav-label-full{display:none!important}
+ #nav .sidebtn[data-page="calendar"] .nav-label-short{display:inline!important;max-width:100%;overflow:visible;text-overflow:clip;white-space:nowrap}
+ .agenda-switch{grid-template-columns:minmax(0,1fr)!important;gap:9px!important}
+ .agenda-switch-button{width:100%;min-width:0;max-width:100%;padding:12px!important;overflow-wrap:anywhere}
+ .agenda-switch-copy{min-width:0;flex:1}
+ .agenda-switch-copy strong,.agenda-switch-copy small{white-space:normal;overflow-wrap:anywhere}
+ .agenda-daytitle,.agenda-classrow,.agenda-examrow,.agenda-reading{min-width:0;overflow-wrap:anywhere}
+ .agenda-reading-action{white-space:normal;max-width:100%;text-align:left}
+ .agenda-calendar-layout,.agenda-calendar,.agenda-calendar-details{max-width:100%;min-width:0}
+}
+.agenda-reading-unavailable{display:block;font-size:11px;color:var(--muted);margin-top:8px}
 </style>
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2064%2064%22%3E%3Crect%20width%3D%2264%22%20height%3D%2264%22%20rx%3D%2214%22%20fill%3D%22%23192d44%22%2F%3E%3Ctext%20x%3D%2232%22%20y%3D%2246%22%20fill%3D%22white%22%20font-size%3D%2246%22%20font-family%3D%22Georgia%2Cserif%22%20text-anchor%3D%22middle%22%3E%CE%A8%3C%2Ftext%3E%3C%2Fsvg%3E">
 <link rel="stylesheet" href="library-manager.css?v=20261111-5">
@@ -2250,14 +2264,16 @@ for(const m of LIBRARY_MATERIALS){
  if(m._libraryWasLocal){m.available=false;m.url='';}
 }
 window.uentzoulLibraryApp={
- items:()=>LIBRARY_MATERIALS.filter(m=>!/^https?:\/\//i.test(m._libraryLegacyUrl) && (m._libraryWasLocal||!m._libraryBaseAvailable)).map(m=>({
+ semester:()=>semester,
+ subjects:()=>Object.fromEntries([['geral','Cadernos integrados'],...Object.entries(DB.subjects).map(([k,v])=>[k,v.name])]),
+ items:()=> (semester==='2026/1'?SEMESTER_DB['2026/1'].materials:LIBRARY_MATERIALS).filter(m=>!/^https?:\/\//i.test(m._libraryLegacyUrl) && (m._libraryWasLocal||!m._libraryBaseAvailable)).map(m=>({
   key:m._libraryKey,title:m.title,subject:m.subject,source:m.source||'',
   legacyUrl:m._libraryLegacyUrl,uploaded:!!m._libraryUpload,
   inExam:BASE_LIBRARY_MATERIALS.includes(m),note:m.note||''
  })),
  record:key=>libraryRecords.get(key)||null,
  uploadStats:()=>{
-  const candidates=SEMESTER_DB['2026/2'].materials.filter(m=>!/^https?:\/\//i.test(m._libraryLegacyUrl||m.url||'') && (m._libraryWasLocal||!m._libraryBaseAvailable||m._fromUpload));
+  const candidates=SEMESTER_DB[semester].materials.filter(m=>!/^https?:\/\//i.test(m._libraryLegacyUrl||m.url||'') && (m._libraryWasLocal||!m._libraryBaseAvailable||m._fromUpload));
   const sent=candidates.filter(m=>!!libraryRecords.get(m._libraryKey)).length;
   return {sent,total:candidates.length,missing:Math.max(0,candidates.length-sent)};
  },
@@ -2277,6 +2293,16 @@ window.uentzoulLibraryApp={
    m.available=!!record||(!m._libraryWasLocal&&m._libraryBaseAvailable);
    m.url=record?'':m._libraryLegacyUrl;
   }
+
+  // Isolate first-semester materials with a semester-prefixed resource key.
+  SEMESTER_DB['2026/1'].materials=[...next.values()]
+   .filter(r=>String(r.resource_key||'').startsWith('2026/1::')&&String(r.file_subject||'').startsWith('2026/1::')&&r.exam_scope!==false)
+   .map(r=>{
+    const subject=String(r.file_subject).slice('2026/1::'.length),key=String(r.resource_key);
+    if(!(subject==='geral'||SEMESTER_DB['2026/1'].subjects[subject])||!key.startsWith('2026/1::'+subject+'::'))return null;
+    return {subject,title:r.display_title||key.split('::').slice(2).join('::'),source:r.filename,kind:'PDF',note:r.content_summary||'',available:true,url:'',
+     _libraryKey:key,_libraryUpload:r,_fromUpload:true,_libraryLegacyUrl:'',_libraryWasLocal:false,_libraryBaseAvailable:false};
+   }).filter(Boolean);
   const shown=BASE_LIBRARY_MATERIALS.filter(m=>next.get(m._libraryKey)?.exam_scope!==false);
   const known=new Set(shown.map(m=>m._libraryKey));
   // Preserva os arquivos no armazenamento, mas não traz de volta os temas retirados.
@@ -2302,7 +2328,7 @@ window.uentzoulLibraryApp={
    known.add(r.resource_key);
   }
   SEMESTER_DB['2026/2'].materials=shown;
-  if(changed&&semester==='2026/2'&&(current.page==='home'||current.page==='library'||current.page==='subject'||current.page==='admin'))render();
+  if(changed&&['2026/1','2026/2'].includes(semester)&&['home','library','subject','admin','calendar'].includes(current.page))render();
  },
  refresh:()=>{if(semester==='2026/2'&&(current.page==='home'||current.page==='library'))render()}
 };
@@ -2848,11 +2874,11 @@ function reviewHTML(q,answer){if(q.type==='essay')return `<div class="review"><h
  let ok=String(answer)===String(q.answer);return `<div class="review"><span class="pill ${ok?'ok':'warn'}">${ok?'Acertou':'Resposta incorreta / não respondida'}</span><div class="why good"><b>Alternativa correta: ${'ABCDE'[q.answer]}.</b> ${esc(q.options[q.answer].why)}</div><h4 style="margin-top:12px">Comentário de cada alternativa</h4>${q.options.map((o,i)=>`<div class="why ${i===q.answer?'good':'neutral'}"><b>${'ABCDE'[i]} — ${i===q.answer?'correta':'não é a melhor resposta'}.</b> ${esc(o.why)}</div>`).join('')}</div>`;
 }
 function libraryAdminPanel(){
- if(!libraryAdminEnabled||semester!=='2026/2')return '';
- const available=SEMESTER_DB['2026/2'].materials.filter(m=>!/^https?:\/\//i.test(m._libraryLegacyUrl||m.url||'')&&(m._libraryWasLocal||!m._libraryBaseAvailable||m._fromUpload));
+ if(!libraryAdminEnabled||!['2026/1','2026/2'].includes(semester))return '';
+ const available=SEMESTER_DB[semester].materials.filter(m=>!/^https?:\/\//i.test(m._libraryLegacyUrl||m.url||'')&&(m._libraryWasLocal||!m._libraryBaseAvailable||m._fromUpload));
  const sent=available.filter(m=>libraryRecords.has(m._libraryKey)).length,missing=available.length-sent;
  return '<section class="library-manager library-manager-smart" aria-labelledby="libraryUploadTitle">'+
- '<div class="library-manager-head"><div><span class="library-manager-kicker">EXCLUSIVO DO ADMINISTRADOR · GESTÃO DOS MATERIAIS</span><h2 id="libraryUploadTitle">Adicionar e analisar materiais</h2>'+
+ '<div class="library-manager-head"><div><span class="library-manager-kicker">EXCLUSIVO DO ADMINISTRADOR · GESTÃO DOS MATERIAIS</span><h2 id="libraryUploadTitle">Adicionar e analisar materiais · '+semesterLabel(semester)+'</h2>'+
  '<p>Selecione arquivos para analisar o texto interno, conferir os assuntos e decidir onde cada material ficará. Os arquivos são enviados somente após sua confirmação.</p></div>'+
  '<div class="library-upload-counter" id="libraryUploadCounter" role="status"><strong>'+sent+' de '+available.length+'</strong><span>materiais enviados</span><em>'+missing+' faltando</em><div class="library-count-track"><i style="width:'+(available.length?Math.round(sent/available.length*100):100)+'%"></i></div></div></div>'+
  '<form id="libraryUploadForm" class="library-upload-form library-smart-form"><div class="library-file-entry">'+
@@ -3003,7 +3029,7 @@ function renderAudio(embedded=false){
  <section class="section"><div class="sectiontop"><h2>${k==='tcc'?'Episódios de TCC':'Episódios de '+esc(name)}</h2><span class="small">${eps.filter((_,i)=>episodeAvailable(k,i)).length} episódios disponíveis para reprodução</span></div><div class="audiocards">${cards}</div></section>`;
 }
 
-const AGENDA_LESSONS_2026_2=[{"d":"2026-11-03","s":"avaliacao","t":"Entrevista de devolução","r":[{"n":"Nobre e colaboradores — caso clínico de devolução","c":"Avaliação psicológica e desenvolvimento humano: casos clínicos (2019), p. 211–228","p":0},{"n":"Entrevista simulada de devolução","c":"Vídeo previsto no cronograma","u":"https://youtu.be/NR6Vidww50M"}]},{"d":"2026-11-04","s":"social","t":"Marcadores sociais: gênero e sexualidade","r":[{"n":"Tema da aula","c":"O plano não indica um texto específico para esta data.","p":11}]},{"d":"2026-11-04","s":"familia","t":"Atendimento familiar na clínica","r":[],"note":"Palestra de estagiárias, sem leitura indicada no cronograma."},{"d":"2026-11-05","s":"avaliacao","t":"Avaliação no contexto organizacional","r":[],"note":"Palestra de Gabryellen Fraga Des Essarts; sem texto indicado."},{"d":"2026-11-05","s":"social","t":"Apresentação — Grupo 2","r":[],"note":"Discussão coletiva; sem leitura específica indicada."},{"d":"2026-11-09","s":"meta","t":"Segunda teoria do aparelho psíquico","r":[{"n":"Laplanche e Pontalis — Vocabulário da Psicanálise","c":"Verbetes selecionados; termos não individualizados no cronograma.","p":1},{"n":"Roudinesco e Plon — Dicionário de Psicanálise","c":"Verbetes selecionados; termos não individualizados no cronograma.","p":1}]},{"d":"2026-11-09","s":"tcc","t":"Terapia de Aceitação e Compromisso — aula 1","r":[{"n":"ACT: introdução ao modelo","c":"O cronograma indica a aula, mas não especifica texto separado para 09/11.","p":8}]},{"d":"2026-11-09","s":"familia","t":"Atendimento familiar no hospital","r":[],"note":"Palestra; o cronograma não indica leitura."},{"d":"2026-11-10","s":"avaliacao","t":"Avaliação psicológica no contexto hospitalar","r":[],"note":"Palestra de Kamilla Antunes Gonçalves; sem texto indicado."},{"d":"2026-11-10","s":"grupos","t":"Apresentação T1 — Rogers e grupos comunitários","r":[],"note":"O plano registra “texto a definir”."},{"d":"2026-11-11","s":"familia","t":"Atendimento familiar na escola","r":[],"note":"Palestra; sem texto-base individualizado."},{"d":"2026-11-11","s":"social","t":"Tecnologias da informação e subjetividade","r":[{"n":"Tecnologias, algoritmos e visibilidade social","c":"O plano indica o tema, sem bibliografia específica nesta data. Revisão do material disponível.","p":5}]},{"d":"2026-11-12","s":"tcc","t":"Terapia de Aceitação e Compromisso — aula 2","r":[{"n":"Hayes e colaboradores (2008) — ACT","c":"Leitura indicada no cronograma. Capítulo ou página não discriminado.","p":8}]},{"d":"2026-11-12","s":"avaliacao","t":"Avaliação psicológica no contexto forense","r":[],"note":"Palestra de Simone Lemes; sem texto indicado."},{"d":"2026-11-12","s":"social","t":"Apresentação — Grupo 3","r":[],"note":"Discussão coletiva; sem texto-base específico."},{"d":"2026-11-16","s":"familia","t":"Atendimento familiar no contexto jurídico","r":[],"note":"Palestra prevista; sem texto-base específico."},{"d":"2026-11-16","s":"tcc","t":"Terapia de Aceitação e Compromisso — aula 3","r":[{"n":"ACT: valores e ação comprometida","c":"Continuação do conteúdo; sem nova leitura individualizada no cronograma.","p":11}]},{"d":"2026-11-16","s":"meta","t":"Dualismos pulsionais","r":[{"n":"Macedo (2015), Neurose: leituras psicanalíticas","c":"Cap. 4 — “Pulsão: entrelaçamentos entre sujeito, vida e morte”, p. 95–103.","p":12},{"n":"Laplanche e Pontalis / Roudinesco e Plon","c":"Verbetes selecionados sobre pulsão; o plano não lista verbetes individualmente.","p":10},{"n":"Freud (1933), Novas conferências introdutórias","c":"Conferência XXXII, indicada no cronograma.","p":12}]},{"d":"2026-11-17","s":"grupos","t":"Grupos virtuais e revisão de conteúdos","r":[{"n":"Pieruccini, Ângela (2005)","c":"“Dinâmica dos Grupos aplicada em grupos virtuais: possibilidade ou ficção?”, Revista da SBDG, n. 2, p. 42–49."}],"note":"Este tema está no cronograma, mas não foi incluído nos três tópicos de revisão selecionados para Grupos."},{"d":"2026-11-17","s":"avaliacao","t":"Avaliação psicológica de pessoas trans","r":[],"note":"Palestra de Nathália de Souza Ávila; sem texto especificado."},{"d":"2026-11-18","s":"familia","t":"Atendimento familiar na Assistência Social","r":[],"note":"Previsto no cronograma original; a data também foi informada posteriormente para a Prova 2. Confira no Moodle.","conflict":true},{"d":"2026-11-18","s":"social","t":"Aula expositivo-dialogada — tema não informado","r":[],"note":"O plano informa aula, mas não registra o tema ou texto de leitura."},{"d":"2026-11-19","s":"tcc","t":"Atualidades em TCCs","r":[],"note":"Previsto no cronograma original; a data também foi informada posteriormente para a Prova 2. Confira no Moodle.","conflict":true},{"d":"2026-11-19","s":"avaliacao","t":"Ética na avaliação psicológica","r":[{"n":"Ética profissional e normas aplicáveis","c":"A aula está prevista, mas o cronograma não atribui uma leitura nova específica.","p":7}]},{"d":"2026-11-19","s":"social","t":"Apresentação — Grupo 4","r":[],"note":"Discussão coletiva; sem texto específico."},{"d":"2026-11-23","s":"familia","t":"Discussão sobre as palestras","r":[],"note":"Retomada dos atendimentos familiar clínico, hospitalar, escolar, jurídico e assistência social."},{"d":"2026-11-23","s":"tcc","t":"Fechamento e revisão para a Prova 2","r":[{"n":"Terapia do Esquema e terapias de terceira onda","c":"Revisão dos temas do semestre; o cronograma não acrescenta capítulo para 23/11.","p":0}]},{"d":"2026-11-24","s":"avaliacao","t":"Palestra — Conselho de Orientação e Fiscalização (COF)","r":[],"note":"Atividade informada no cronograma; sem leitura específica."},{"d":"2026-11-25","s":"social","t":"Integração dos conteúdos","r":[{"n":"Psicologia Social I: conceitos integradores","c":"Sem texto separado para a aula; retomar Psicologia Social Crítica e marcadores sociais.","p":6}]},{"d":"2026-11-30","s":"tcc","t":"Encerramento da disciplina; orientações sobre PS e G2","r":[],"note":"Sem nova leitura indicada."},{"d":"2026-12-02","s":"familia","t":"Entrega de notas e avaliação da disciplina","r":[],"note":"Sem leitura indicada."},{"d":"2026-12-02","s":"social","t":"Devolutiva de notas","r":[],"note":"Aula destinada à devolutiva."},{"d":"2026-12-03","s":"avaliacao","t":"Fechamento da disciplina","r":[],"note":"Sem nova leitura."}];
+const AGENDA_LESSONS_2026_2=[{"d":"2026-11-03","s":"avaliacao","t":"Entrevista de devolução","r":[{"n":"Nobre e colaboradores — caso clínico de devolução","c":"Avaliação psicológica e desenvolvimento humano: casos clínicos (2019), p. 211–228","p":0},{"n":"Entrevista simulada de devolução","c":"Vídeo previsto no cronograma","u":"https://youtu.be/NR6Vidww50M"}]},{"d":"2026-11-04","s":"social","t":"Marcadores sociais: gênero e sexualidade","r":[{"n":"Tema da aula","c":"O plano não indica um texto específico para esta data.","p":11}]},{"d":"2026-11-04","s":"familia","t":"Atendimento familiar na clínica","r":[],"note":"Palestra de estagiárias, sem leitura indicada no cronograma."},{"d":"2026-11-05","s":"avaliacao","t":"Avaliação no contexto organizacional","r":[],"note":"Palestra de Gabryellen Fraga Des Essarts; sem texto indicado."},{"d":"2026-11-05","s":"social","t":"Apresentação — Grupo 2","r":[],"note":"Discussão coletiva; sem leitura específica indicada."},{"d":"2026-11-09","s":"meta","t":"Segunda teoria do aparelho psíquico","r":[{"n":"Laplanche e Pontalis — Vocabulário da Psicanálise","c":"Verbetes selecionados; termos não individualizados no cronograma.","p":1,"docs":[{"key":"meta::Vocabulário da Psicanálise — Laplanche e Pontalis","label":"Abrir Vocabulário da Psicanálise"}]},{"n":"Roudinesco e Plon — Dicionário de Psicanálise","c":"Verbetes selecionados; termos não individualizados no cronograma.","p":1,"docs":[{"key":"meta::Dicionário de Psicanálise — Roudinesco e Plon","label":"Abrir Dicionário de Psicanálise"}]}]},{"d":"2026-11-09","s":"tcc","t":"Terapia de Aceitação e Compromisso — aula 1","r":[{"n":"ACT: introdução ao modelo","c":"O cronograma indica a aula, mas não especifica texto separado para 09/11.","p":8}]},{"d":"2026-11-09","s":"familia","t":"Atendimento familiar no hospital","r":[],"note":"Palestra; o cronograma não indica leitura."},{"d":"2026-11-10","s":"avaliacao","t":"Avaliação psicológica no contexto hospitalar","r":[],"note":"Palestra de Kamilla Antunes Gonçalves; sem texto indicado."},{"d":"2026-11-10","s":"grupos","t":"Apresentação T1 — Rogers e grupos comunitários","r":[],"note":"O plano registra “texto a definir”."},{"d":"2026-11-11","s":"familia","t":"Atendimento familiar na escola","r":[],"note":"Palestra; sem texto-base individualizado."},{"d":"2026-11-11","s":"social","t":"Tecnologias da informação e subjetividade","r":[{"n":"Tecnologias, algoritmos e visibilidade social","c":"O plano indica o tema, sem bibliografia específica nesta data. Revisão do material disponível.","p":5}]},{"d":"2026-11-12","s":"tcc","t":"Terapia de Aceitação e Compromisso — aula 2","r":[{"n":"Hayes e colaboradores (2008) — ACT","c":"Leitura indicada no cronograma. Capítulo ou página não discriminado.","p":8}]},{"d":"2026-11-12","s":"avaliacao","t":"Avaliação psicológica no contexto forense","r":[],"note":"Palestra de Simone Lemes; sem texto indicado."},{"d":"2026-11-12","s":"social","t":"Apresentação — Grupo 3","r":[],"note":"Discussão coletiva; sem texto-base específico."},{"d":"2026-11-16","s":"familia","t":"Atendimento familiar no contexto jurídico","r":[],"note":"Palestra prevista; sem texto-base específico."},{"d":"2026-11-16","s":"tcc","t":"Terapia de Aceitação e Compromisso — aula 3","r":[{"n":"ACT: valores e ação comprometida","c":"Continuação do conteúdo; sem nova leitura individualizada no cronograma.","p":11}]},{"d":"2026-11-16","s":"meta","t":"Dualismos pulsionais","r":[{"n":"Macedo (2015), Neurose: leituras psicanalíticas","c":"Cap. 4 — “Pulsão: entrelaçamentos entre sujeito, vida e morte”, p. 95–103.","p":12,"docs":[{"key":"meta::Neurose - parte I","label":"Abrir Neurose — parte I (localizar capítulo 4)"}]},{"n":"Laplanche e Pontalis / Roudinesco e Plon","c":"Verbetes selecionados sobre pulsão; o plano não lista verbetes individualmente.","p":10,"docs":[{"key":"meta::Vocabulário da Psicanálise — Laplanche e Pontalis","label":"Abrir Vocabulário da Psicanálise"},{"key":"meta::Dicionário de Psicanálise — Roudinesco e Plon","label":"Abrir Dicionário de Psicanálise"}]},{"n":"Freud (1933), Novas conferências introdutórias","c":"Conferência XXXII, indicada no cronograma.","p":12,"docs":[{"key":"meta::Pulsão — slides","label":"Abrir slides que citam a Conferência XXXII"}]}]},{"d":"2026-11-17","s":"grupos","t":"Grupos virtuais e revisão de conteúdos","r":[{"n":"Pieruccini, Ângela (2005)","c":"“Dinâmica dos Grupos aplicada em grupos virtuais: possibilidade ou ficção?”, Revista da SBDG, n. 2, p. 42–49."}],"note":"Este tema está no cronograma, mas não foi incluído nos três tópicos de revisão selecionados para Grupos."},{"d":"2026-11-17","s":"avaliacao","t":"Avaliação psicológica de pessoas trans","r":[],"note":"Palestra de Nathália de Souza Ávila; sem texto especificado."},{"d":"2026-11-18","s":"familia","t":"Atendimento familiar na Assistência Social","r":[],"note":"Previsto no cronograma original; a data também foi informada posteriormente para a Prova 2. Confira no Moodle.","conflict":true},{"d":"2026-11-18","s":"social","t":"Aula expositivo-dialogada — tema não informado","r":[],"note":"O plano informa aula, mas não registra o tema ou texto de leitura."},{"d":"2026-11-19","s":"tcc","t":"Atualidades em TCCs","r":[],"note":"Previsto no cronograma original; a data também foi informada posteriormente para a Prova 2. Confira no Moodle.","conflict":true},{"d":"2026-11-19","s":"avaliacao","t":"Ética na avaliação psicológica","r":[{"n":"Ética profissional e normas aplicáveis","c":"A aula está prevista, mas o cronograma não atribui uma leitura nova específica.","p":7}]},{"d":"2026-11-19","s":"social","t":"Apresentação — Grupo 4","r":[],"note":"Discussão coletiva; sem texto específico."},{"d":"2026-11-23","s":"familia","t":"Discussão sobre as palestras","r":[],"note":"Retomada dos atendimentos familiar clínico, hospitalar, escolar, jurídico e assistência social."},{"d":"2026-11-23","s":"tcc","t":"Fechamento e revisão para a Prova 2","r":[{"n":"Terapia do Esquema e terapias de terceira onda","c":"Revisão dos temas do semestre; o cronograma não acrescenta capítulo para 23/11.","p":0}]},{"d":"2026-11-24","s":"avaliacao","t":"Palestra — Conselho de Orientação e Fiscalização (COF)","r":[],"note":"Atividade informada no cronograma; sem leitura específica."},{"d":"2026-11-25","s":"social","t":"Integração dos conteúdos","r":[{"n":"Psicologia Social I: conceitos integradores","c":"Sem texto separado para a aula; retomar Psicologia Social Crítica e marcadores sociais.","p":6}]},{"d":"2026-11-30","s":"tcc","t":"Encerramento da disciplina; orientações sobre PS e G2","r":[],"note":"Sem nova leitura indicada."},{"d":"2026-12-02","s":"familia","t":"Entrega de notas e avaliação da disciplina","r":[],"note":"Sem leitura indicada."},{"d":"2026-12-02","s":"social","t":"Devolutiva de notas","r":[],"note":"Aula destinada à devolutiva."},{"d":"2026-12-03","s":"avaliacao","t":"Fechamento da disciplina","r":[],"note":"Sem nova leitura."}];
 const AGENDA_EXTRA_EXAMS_2026_2=[{"d":"2026-11-25","s":"familia","t":"Prova 2 — data do cronograma original","kind":"original"},{"d":"2026-11-26","s":"tcc","t":"Prova 2 — data do cronograma original","kind":"original"},{"d":"2026-11-26","s":"social","t":"Avaliação 4 — conforme plano enviado","kind":"original"},{"d":"2026-11-30","s":"familia","t":"PS (substituição)","kind":"ps"},{"d":"2026-11-30","s":"meta","t":"Prova de substituição","kind":"ps"},{"d":"2026-12-01","s":"grupos","t":"Prova substitutiva (PS)","kind":"ps"},{"d":"2026-12-01","s":"avaliacao","t":"Prova substitutiva cumulativa","kind":"ps"},{"d":"2026-12-03","s":"tcc","t":"Prova de substituição","kind":"ps"},{"d":"2026-12-07","s":"familia","t":"G2","kind":"g2"},{"d":"2026-12-07","s":"meta","t":"G2","kind":"g2"},{"d":"2026-12-08","s":"grupos","t":"G2","kind":"g2"},{"d":"2026-12-08","s":"avaliacao","t":"G2","kind":"g2"},{"d":"2026-12-09","s":"social","t":"PS","kind":"ps"},{"d":"2026-12-10","s":"tcc","t":"G2","kind":"g2"},{"d":"2026-12-16","s":"social","t":"G2","kind":"g2"}];
 let calendarView='provas',calendarShowPast=false;
 function calendarNiceDate(date){return new Date(date+'T12:00:00').toLocaleDateString('pt-BR',{weekday:'long',day:'2-digit',month:'short'}).replace(/^\w/,ch=>ch.toUpperCase())}
@@ -3020,8 +3046,12 @@ function calendarDateGroups(events,renderRow){
 function calendarClassRow(e){
  const readings=e.r.length?e.r.map(r=>
   '<div class="agenda-reading"><strong>'+esc(r.n)+'</strong><p>'+esc(r.c)+'</p>'+
-  (Number.isInteger(r.p)&&DB.topics[e.s]?.[r.p]?
-   '<button type="button" class="agenda-reading-action" data-action="agenda-topic:'+e.s+':'+r.p+'">Ler revisão deste tópico ↗</button>':'')+
+  (Array.isArray(r.docs)&&r.docs.length?
+   r.docs.map(d=>libraryRecords.has(d.key)?
+    '<a class="agenda-reading-action" href="#" data-library-file="'+esc(d.key)+'">'+esc(d.label)+' ↗</a>':
+    '<span class="agenda-reading-unavailable">'+esc(d.label)+' — arquivo ainda não publicado</span>').join(''):
+   Number.isInteger(r.p)&&DB.topics[e.s]?.[r.p]?
+    '<button type="button" class="agenda-reading-action" data-action="agenda-topic:'+e.s+':'+r.p+'">Ler revisão deste tópico ↗</button>':'')+
   (r.u&&/^https:\/\//.test(r.u)?'<a class="agenda-reading-action" href="'+esc(r.u)+'" target="_blank" rel="noopener noreferrer">Abrir material indicado ↗</a>':'')+
   '</div>').join(''):'<p class="agenda-reading-empty">O cronograma não especifica um capítulo ou texto para esta aula.</p>';
  return '<div class="agenda-classrow" style="--accent:'+color(e.s)+'"><div><span class="agenda-subject">'+esc(agendaSubjectLabel(e.s))+'</span>'+
@@ -3144,7 +3174,7 @@ function renderCalendar(){
  const classesView='<div class="agenda-toolbar"><div><h2>Matéria de cada dia</h2><small>Conteúdo previsto e referência indicada no cronograma</small></div>'+
  '<button type="button" class="agenda-toggle" data-action="agenda-past">'+(calendarShowPast?'Mostrar só próximas':'Incluir aulas anteriores')+'</button></div>'+
  (upcoming.length?calendarDateGroups(upcoming,calendarClassRow):'<div class="panel">Não há outras aulas cadastradas após hoje. Use “Incluir aulas anteriores” para consultar o registro.</div>')+
- '<div class="agenda-caveat">“Ler revisão deste tópico” abre a seção correspondente do próprio site. Não é o texto original do livro. Quando o PDF ou capítulo não está publicado, a referência bibliográfica fica visível sem um link de download inválido.</div>'+caveat;
+ '<div class="agenda-caveat">Os materiais bibliográficos anexados abrem os PDFs ou slides correspondentes. Quando a leitura indica um capítulo, procure-o no documento original. As demais revisões continuam disponíveis no site.</div>'+caveat;
  return head('Organização do semestre','Agenda e Horários','Acompanhe as avaliações, os horários e os conteúdos previstos para cada aula.')+
  tabs+'<div role="tabpanel">'+(calendarView==='provas'?examsView:calendarView==='horarios'?renderClassSchedule(true):classesView)+'</div>';
 }
@@ -4063,12 +4093,11 @@ function renderThirdSemester(){
    '<div class="subject-hub-heading"><span class="subject-hub-kicker">'+period+(subj.code?' · '+esc(subj.code):'')+(subj.hours?' · '+subj.hours+'h':'')+'</span>'+
    '<h1>'+esc(subj.name)+'</h1><p class="subject-hub-date">Calendário da disciplina ainda não cadastrado.</p></div></header>';
   if(area==='docs'){
-   const organizer=window.PSICO_COURSE_MANAGER?.weeklyView?.(period,subjectId,[],docCard);
+   const docs=DB.materials.filter(m=>m.subject===subjectId&&m.available&&m._libraryUpload?.exam_scope!==false);
    return top+'<div class="subject-hub-area">'+
     '<button type="button" class="subject-hub-back" data-action="subjectArea:home">← Voltar às opções</button>'+
     '<section class="section" id="docs"><div class="sectiontop"><h2>Materiais e textos</h2></div>'+
-    (organizer?.tabs||'')+
-    (organizer?.weekly?organizer.body:'<div class="subject-hub-empty">Nenhum material cadastrado nesta disciplina.</div>')+
+    (docs.length?'<div class="doclist">'+docs.map(docCard).join('')+'</div>':'<div class="subject-hub-empty">Nenhum material cadastrado nesta disciplina.</div>')+
     '</section></div></div>';
   }
   if(area&&titles[area])return top+'<div class="subject-hub-area">'+
@@ -4245,7 +4274,7 @@ function setupAudio(){
  const play=document.getElementById('psPlayToggle');
  if(play)play.onclick=()=>{if(!psAudioElement.src)return;psAudioElement.paused?psAudioElement.play().catch(()=>psStatus('Clique novamente para iniciar o áudio.')):psAudioElement.pause()};
  const back=document.getElementById('psBack10');
- if(back)back.onclick=()=>{psAudioElement.currentTime=Math.max(0,psAudioElement.currentTime-10);psSync()};
+ if(back)back.onclick=()=>{psAudioElement.currentTime=Math.max(podcastPlayerKey==='tcc:1'?1:0,psAudioElement.currentTime-10);psSync()};
  const forward=document.getElementById('psForward10');
  if(forward)forward.onclick=()=>{const max=Number.isFinite(psAudioElement.duration)?psAudioElement.duration:Infinity;psAudioElement.currentTime=Math.min(max,psAudioElement.currentTime+10);psSync()};
  const seek=document.getElementById('psSeek');
@@ -4277,7 +4306,9 @@ async function preparePodcast(k,i,autoplay=false){
  const online=typeof navigator.onLine==='boolean'?navigator.onLine:true;
  if(!online){try{await podcastDBOpening;const blob=sessionPodcastBlobs[key]||await getPodcast(key);if(blob instanceof Blob&&blob.size>=512){activePodcastURL=URL.createObjectURL(blob);p.src=activePodcastURL}else p.src=url;}catch(_){p.src=url;}}
  else p.src=url;
- p.playbackRate=psPlaybackRate;p.load();psSync();psStatus('Abrindo '+ep.title+'…');
+ p.playbackRate=psPlaybackRate;
+ if(k==='tcc'&&i===1){p.addEventListener('loadedmetadata',()=>{if(podcastPlayerKey===key&&p.currentTime<1)p.currentTime=1;},{once:true});}
+ p.load();psSync();psStatus('Abrindo '+ep.title+'…');
  p.play().catch(()=>psStatus('Áudio pronto. Pressione Reproduzir para começar.'));
 }
 async function downloadEpisodeAction(k,i){
@@ -4343,7 +4374,7 @@ function onAction(act){
   if(el){el.open=true;requestAnimationFrame(()=>el.scrollIntoView({behavior:'smooth',block:'start'}))}
   return;
  }if(act.startsWith('download:')){const [k,i]=act.slice(9).split(':');downloadEpisodeAction(k,Number(i));return;}if(act==='libraryBack'){current.libraryCourse=null;render();requestAnimationFrame(()=>document.getElementById('homeCourses')?.scrollIntoView({block:'start',behavior:'auto'}));return}if(act.startsWith('libraryCourse:')){const id=act.slice(14);if(DB.subjects[id])return go('subject',{subject:id,subjectArea:null});return}if(act.startsWith('page:'))return go(act.slice(5));if(act.startsWith('subjectArea:')){const area=act.slice('subjectArea:'.length);if(area==='home'||['trail','topics','docs','tests','podcasts','guided','flash','cases'].includes(area)){if(area==='podcasts')current.audioSubject=current.subject;go('subject',{subject:current.subject,subjectArea:area==='home'?null:area});}return}if(act.startsWith('subject:'))return go('subject',{subject:act.slice(8),subjectArea:null});if(act==='subjectCreateExam'){ge.subject=current.subject||ge.subject;ge.tab='ai';ge.selected=null;return go('exams')}if(act.startsWith('subjectTests:'))return go('subject',{subject:act.slice('subjectTests:'.length),subjectArea:'tests'});if(act.startsWith('test:'))return go('test',{exam:act.slice(5)});if(act.startsWith('audioFor:')){const k=act.slice(9);if(!DB.audio[k])return;current.audioSubject=k;currentEpisode=0;currentChapter=0; if(manualAudioUrl){URL.revokeObjectURL(manualAudioUrl);manualAudioUrl=null;manualAudioName='';}return go('audio');}if(act.startsWith('filter:')){current.filter=act.slice(7);let v=$('matSearch')?.value||current.search;current.search=v;render();return}if(act.startsWith('scroll:'))return document.getElementById(act.slice(7))?.scrollIntoView({behavior:'smooth'});if(act==='save'){persist();return toast('Respostas salvas neste navegador.')}if(act==='export'){const b=new Blob([JSON.stringify(store,null,2)],{type:'application/json'});let u=URL.createObjectURL(b);let a=document.createElement('a');a.href=u;a.download='meu_progresso_psicologia.json';a.click();setTimeout(()=>URL.revokeObjectURL(u),2000);return toast('Progresso exportado. Guarde o arquivo para a próxima versão.')}if(act==='import'){document.getElementById('importProgress')?.click();return}if(act==='print')return window.print();if(act.startsWith('submit:'))return submit(act.slice(7));if(act.startsWith('redo:')){toast('Este simulado já foi entregue e não pode ser refeito.');return}
- if(act==='resetAudio'){const a=$('audioPlayer');if(a){a.pause();a.currentTime=0;}toast('Reprodutor reiniciado.');return;}
+ if(act==='resetAudio'){const a=$('audioPlayer');if(a){a.pause();a.currentTime=podcastPlayerKey==='tcc:1'?1:0;}toast('Reprodutor reiniciado.');return;}
  if(act.startsWith('chapter:'))return openChapter(+act.slice(8));
  if(act.startsWith('episode:'))return openEpisode(+act.slice(8));
  if(act==='prevAudio')return current.audioSubject==='tcc'?openChapter(currentChapter-1):openEpisode(currentEpisode-1);
