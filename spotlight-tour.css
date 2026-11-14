@@ -1,8 +1,36 @@
 /* PsicoMoodle | Spotlight Tour — fundo escuro e recorte real da interface. */
-.pm-tour-entry{display:flex;justify-content:flex-end;align-items:center;min-height:35px;margin:13px 2px 9px}
-.pm-tour-launch{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:35px;padding:7px 17px;border-radius:999px;border:1px solid var(--line,#dcd7e8);background:var(--paper,#fff);color:var(--ink,#292439);font:inherit;font-size:12px;font-weight:760;letter-spacing:.01em;box-shadow:0 3px 12px #18102b0a;cursor:pointer;transition:border-color .18s,background .18s,transform .18s}
-.pm-tour-launch:hover{border-color:var(--accent,#7961ad);background:color-mix(in srgb,var(--paper,#fff) 94%,var(--accent,#7b60b8));transform:translateY(-1px)}
-.pm-tour-launch svg{flex:none;width:16px;height:16px;opacity:.8}
+/* A chamada do tutorial agora compartilha a mesma linha do cabeçalho da Biblioteca. */
+.library-page .course-intro .pm-tour-entry{
+ display:flex;flex:0 0 auto;align-items:center;justify-content:flex-end;
+ margin:0 2px 2px auto;padding:0;min-height:0;
+}
+.pm-tour-launch{
+ display:inline-flex;align-items:center;justify-content:center;gap:10px;
+ min-height:43px;padding:10px 22px;border-radius:999px;
+ border:1px solid #9680df;background:linear-gradient(130deg,#6953b5,#8064ce);
+ color:#fff;font:inherit;font-size:13px;font-weight:790;letter-spacing:.015em;
+ box-shadow:0 3px 13px rgba(67,44,143,.18);
+ cursor:pointer;transition:background .18s,border-color .18s,box-shadow .18s,transform .18s;
+}
+.pm-tour-launch svg{flex:none;width:18px;height:18px;stroke:currentColor;opacity:.95}
+.pm-tour-launch:hover{
+ border-color:#bba9f6;background:linear-gradient(130deg,#755dc9,#8b6de0);
+ box-shadow:0 5px 17px rgba(77,51,151,.26);transform:translateY(-1px);
+}
+/* No primeiro acesso, o destaque respira suavemente; depois deixa de animar. */
+.pm-tour-entry.is-first-visit .pm-tour-launch{
+ animation:pmTourFirstGlance 2.8s ease-in-out 4;
+}
+@keyframes pmTourFirstGlance{
+ 0%,100%{box-shadow:0 3px 13px rgba(67,44,143,.18),0 0 0 0 rgba(161,123,239,0)}
+ 48%{box-shadow:0 5px 17px rgba(80,54,163,.26),0 0 0 6px rgba(161,123,239,.13)}
+}
+html[data-theme="dark"] .pm-tour-launch{
+ background:linear-gradient(130deg,#7055c9,#8769d7);border-color:#a78eea;color:#fff;
+}
+html[data-theme="dark"] .pm-tour-launch:hover{
+ background:linear-gradient(130deg,#8064d6,#9879ec);border-color:#bfaafa;
+}
 .pm-tour-launch:focus-visible,.pm-spotlight button:focus-visible{outline:3px solid var(--accent,#8068ba);outline-offset:3px}
 .pm-spotlight[hidden]{display:none!important}
 .pm-spotlight{position:fixed;inset:0;z-index:2147482600;pointer-events:none;font-family:inherit}
@@ -38,8 +66,8 @@ html[data-theme="dark"] .pm-spotlight-tip{color:#bdb6d0}
 html[data-theme="dark"] .pm-spotlight-popover[data-side="bottom"]:before,html[data-theme="dark"] .pm-spotlight-popover[data-side="top"]:before{background:#232337;border-color:#45415e}
 html[data-theme="dark"] .pm-spotlight-back{color:#eee7f9}
 @media(max-width:760px){
- .pm-tour-entry{margin:12px 0 9px}
- .pm-tour-launch{min-height:34px;padding:7px 14px}
+ .library-page .course-intro .pm-tour-entry{margin:2px 0 0 auto}
+ .pm-tour-launch{min-height:41px;padding:9px 19px;font-size:12.5px}
  .pm-spotlight-popover{width:min(355px,calc(100vw - 24px));max-height:min(390px,calc(100dvh - 20px));padding:17px 17px 14px;border-radius:15px}
  .pm-spotlight-head{margin-bottom:9px}
  .pm-spotlight-popover h2{font-size:19px}
@@ -54,5 +82,5 @@ html[data-theme="dark"] .pm-spotlight-back{color:#eee7f9}
  .pm-spotlight-popover{padding:13px}
  .pm-spotlight-actions button{padding:6px}
 }
-@media(prefers-reduced-motion:reduce){.pm-tour-launch,.pm-spotlight-ring,.pm-spotlight-track span{transition:none!important}}
+@media(prefers-reduced-motion:reduce){.pm-tour-launch,.pm-spotlight-ring,.pm-spotlight-track span{transition:none!important}.pm-tour-entry.is-first-visit .pm-tour-launch{animation:none!important}}
 @media print{.pm-tour-entry,.pm-spotlight{display:none!important}}
