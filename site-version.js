@@ -187,13 +187,13 @@ setTimeout(check,15000);
   if(!document.getElementById('pm-vacation-timeline-css')){
    const css=document.createElement('link');
    css.id='pm-vacation-timeline-css';css.rel='stylesheet';
-   css.href='revisao-ferias.css?v=20261114-editorial-v2';
+   css.href='revisao-ferias.css?v=20261114-direct-documents-v1';
    document.head.appendChild(css);
   }
   if(!document.getElementById('pm-vacation-timeline-js')){
    const js=document.createElement('script');
    js.id='pm-vacation-timeline-js';
-   js.src='revisao-ferias.js?v=20261114-editorial-v4';
+   js.src='revisao-ferias.js?v=20261114-direct-documents-v1';
    js.async=true;document.head.appendChild(js);
   }
  };
