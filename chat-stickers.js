@@ -195,6 +195,21 @@ async function transmit(item,pending){
 }
 function send(id){
   const item=state.byId.get(id);
+  if(dm.tab==='maintenance'){
+    if(!item||!showableSticker(item)||!session())return;
+    state.open=false;
+    dmShow();
+    Promise.resolve(window.uentzoulMaintenance?.sendSticker?.(id)).then(saved=>{
+      if(!saved||!onlineUser)return;
+      const uid=onlineUser.id;
+      state.recents=[id,...state.recents.filter(x=>x!==id)].slice(0,60);
+      client.from('uentzoul_sticker_recents').upsert(
+       {user_id:uid,sticker_id:id,used_at:new Date().toISOString()},
+       {onConflict:'user_id,sticker_id'}
+      ).then(({error})=>{if(error)console.warn('Recentes de figurinhas',error)});
+    });
+    return;
+  }
   const destination=selected();
   if(!item||!showableSticker(item)||!UUID.test(destination||'')||!session())return;
   const pending={localId:crypto.randomUUID(),owner:onlineUser.id,
@@ -272,5 +287,5 @@ dmWOpen=function(type,id){state.open=false;return originalOpen(type,id)};
 const originalLogout=dmOnLogout;
 dmOnLogout=function(){reset();state.owner=null;return originalLogout()};
 window.uentzoulMessenger.onLogout=dmOnLogout;
-window.uentzoulStickerPacks={refresh:()=>retrieve(true)};
+window.uentzoulStickerPacks={refresh:()=>retrieve(true),panel:drawer,getSticker:id=>state.byId.get(id)||null};
 })();
