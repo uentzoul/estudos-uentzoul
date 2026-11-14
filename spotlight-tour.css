@@ -84,3 +84,9 @@ html[data-theme="dark"] .pm-spotlight-back{color:#eee7f9}
 }
 @media(prefers-reduced-motion:reduce){.pm-tour-launch,.pm-spotlight-ring,.pm-spotlight-track span{transition:none!important}.pm-tour-entry.is-first-visit .pm-tour-launch{animation:none!important}}
 @media print{.pm-tour-entry,.pm-spotlight{display:none!important}}
+
+/* O menu lateral acompanha o assunto de cada etapa do tutorial. */
+.pm-spotlight-sidebar-ring{position:fixed;border:2px solid #cbb5ff;border-radius:11px;box-shadow:0 0 0 2px rgba(255,255,255,.22),0 0 22px rgba(164,129,255,.4);pointer-events:none;box-sizing:border-box;transition:top .17s ease,left .17s ease,width .17s ease,height .17s ease}
+.pm-spotlight-sidebar-ring[hidden]{display:none!important}
+html.pm-tour-running #nav .pm-tour-nav-current{background:color-mix(in srgb,var(--accent,#8068ba) 22%,var(--paper,#fff))!important;color:var(--ink,#211b35)!important;box-shadow:inset 3px 0 0 #9b7be6,inset 0 0 0 1px rgba(160,127,226,.24)!important;border-radius:9px}
+html[data-theme="dark"].pm-tour-running #nav .pm-tour-nav-current{background:#403664!important;color:#f8f3ff!important}
