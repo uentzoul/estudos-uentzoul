@@ -2,33 +2,33 @@
    Mantém a navegação e a estrutura do desktop intactas. */
 .pm-mobile-topbar,.pm-mobile-backdrop,.pm-mobile-drawer-head{display:none}
 @media(max-width:760px){
- html{scroll-padding-top:105px!important}
+ html{scroll-padding-top:72px!important}
  body.pm-mobile-menu-open{overflow:hidden}
  .app{display:block!important}
  .pm-mobile-topbar{
-  display:flex!important;flex-direction:column;position:sticky;top:0;z-index:75;
-  width:100%;min-width:0;min-height:0;padding:8px max(13px,env(safe-area-inset-right))
-   7px max(13px,env(safe-area-inset-left));gap:4px;
+  display:flex!important;flex-direction:row;position:sticky;top:0;z-index:75;
+  width:100%;min-width:0;min-height:0;padding:8px max(12px,env(safe-area-inset-right))
+   8px max(12px,env(safe-area-inset-left));gap:0;
   background:var(--paper);border-bottom:1px solid var(--line);
   box-shadow:0 3px 14px rgba(31,25,67,.075)
  }
  .pm-mobile-topbar .mobile-brand{
   display:flex!important;align-items:center;justify-content:space-between;
-  width:100%;min-width:0;min-height:43px;margin:0;padding:0;gap:9px;
+  width:100%;min-width:0;min-height:42px;margin:0;padding:0;gap:8px;
  }
  .pm-mobile-topbar .mobile-identity{
-  display:flex;align-items:center;gap:10px;flex:1 1 auto;min-width:0
+  display:flex;align-items:center;gap:8px;flex:1 1 auto;min-width:0
  }
  .pm-mobile-topbar .mobile-brand-mark.psychology-mark{
-  display:grid;place-items:center;flex:0 0 39px;width:39px;height:39px;
+  display:grid;place-items:center;flex:0 0 36px;width:36px;height:36px;
   border-radius:11px;background:linear-gradient(145deg,#5042a5,#8772d7);
-  color:#fff;font:normal 27px/1 Georgia,serif;letter-spacing:-2px
+  color:#fff;font:normal 25px/1 Georgia,serif;letter-spacing:-2px
  }
  .pm-mobile-topbar .mobile-heading{
   display:flex;flex-direction:column;justify-content:center;gap:2px;min-width:0;flex:1 1 auto
  }
  .pm-mobile-topbar .mobile-heading strong{
-  display:block;min-width:0;font-size:17px!important;line-height:1.13;
+  display:block;min-width:0;font-size:clamp(14px,4.3vw,17px)!important;line-height:1.13;
   font-weight:850;letter-spacing:-.045em;white-space:nowrap;
   color:var(--ink)!important
  }
@@ -46,20 +46,16 @@
  }
  .pm-mobile-topbar .mobile-theme-toggle .theme-toggle-text{display:none!important}
  .pm-mobile-topbar .mobile-profile-button svg{width:20px;height:20px}
- .pm-mobile-menu-row{display:flex;align-items:center;min-height:34px}
- .pm-mobile-menu-toggle{
-  display:inline-flex;align-items:center;justify-content:center;
-  width:44px;height:34px;min-width:44px;min-height:34px;gap:0;
-  padding:5px;border:1px solid var(--line);border-radius:10px;
+ .pm-mobile-topbar .pm-mobile-menu-toggle{
+  display:inline-flex;align-items:center;justify-content:center;flex:0 0 39px;
+  width:39px;height:39px;min-width:39px;min-height:39px;gap:0;
+  padding:6px;border:1px solid var(--line);border-radius:11px;
   background:var(--soft);color:var(--ink);cursor:pointer;
   -webkit-tap-highlight-color:transparent
  }
  .pm-mobile-menu-toggle svg{width:22px;height:22px;stroke:currentColor}
  .pm-mobile-menu-toggle:focus-visible,.pm-mobile-drawer-close:focus-visible{
   outline:3px solid var(--blue);outline-offset:2px
- }
- .pm-mobile-menu-row .pm-mobile-menu-hint{
-  color:var(--muted);font-weight:690;font-size:12px;margin-left:9px;line-height:1.2
  }
  .pm-mobile-backdrop{
   display:block!important;position:fixed;inset:0;z-index:85;
@@ -191,12 +187,19 @@
  }
  #siteSidebar>.sidebarfoot{display:none!important}
  .app>.main:has(>.tz-shell),.app:has(>.main .dm-shell)>.main{padding-top:9px}
- .main>.tz-shell,.dm-shell{height:calc(100dvh - 118px);min-height:360px}
+ .main>.tz-shell,.dm-shell{height:calc(100dvh - 80px);min-height:360px}
 }
 @media(max-width:370px){
- .pm-mobile-topbar .mobile-heading strong{font-size:16px!important}
+ .pm-mobile-topbar .mobile-brand{gap:6px}
+ .pm-mobile-topbar .mobile-identity{gap:6px}
+ .pm-mobile-topbar .mobile-brand-mark.psychology-mark{
+  flex-basis:33px;width:33px;height:33px;font-size:23px
+ }
+ .pm-mobile-topbar .mobile-heading strong{font-size:14px!important}
+ .pm-mobile-topbar .mobile-brand-actions{gap:4px}
+ .pm-mobile-topbar .pm-mobile-menu-toggle{flex-basis:36px;width:36px;min-width:36px;height:36px;min-height:36px}
  .pm-mobile-topbar .mobile-brand-actions :is(.mobile-theme-toggle,.mobile-profile-button){
-  flex-basis:35px;width:35px;height:35px;min-width:35px;min-height:35px
+  flex-basis:34px;width:34px;height:34px;min-width:34px;min-height:34px
  }
  #siteSidebar{width:min(304px,calc(100vw - 36px))!important;max-width:min(304px,calc(100vw - 36px))!important}
 }
