@@ -32,7 +32,7 @@ function setup(){
  }
  if(!document.getElementById('pm-voice-script')){
   const script=document.createElement('script');
-  script.id='pm-voice-script';script.src='voice-dictation.js?v=20261114-v1';
+  script.id='pm-voice-script';script.src='voice-dictation.js?v=20261114-v2';
   script.async=true;document.head.appendChild(script);
  }
  if(!document.getElementById('pm-tutorial-script')){
