@@ -14,13 +14,13 @@ function setup(){
   const style=document.createElement('link');
   style.id='pm-tutorial-styles';
   style.rel='stylesheet';
-  style.href='spotlight-tour.css?v=20261114-2';
+  style.href='spotlight-tour.css?v=20261114-4';
   document.head.appendChild(style);
  }
  if(!document.getElementById('pm-tutorial-script')){
   const script=document.createElement('script');
   script.id='pm-tutorial-script';
-  script.src='spotlight-tour.js?v=20261114-2';
+  script.src='spotlight-tour.js?v=20261114-4';
   script.async=true;
   document.head.appendChild(script);
  }
