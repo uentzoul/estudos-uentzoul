@@ -1,5 +1,5 @@
 /* PsicoMoodle — Revisão de Férias. Meses expansíveis, um por vez.
-   A linha do tempo fica no Supabase e só pode ser consultada por admin via RLS.
+   A linha do tempo do 1º semestre é pública; a do 2º é agendada no Supabase (RLS).
    Não cria novas abas de semestre: usa a escolha existente no site. */
 (()=>{
 'use strict';
@@ -7,6 +7,7 @@ if(window.PSICO_VACATION_REVIEW)return;
 const TABLE='uentzoul_vacation_review_events';
 const UPLOAD_TABLE='uentzoul_library_uploads';
 const LIBRARY_BUCKET='uentzoul-library-files';
+const SECOND_SEMESTER_RELEASE=Date.parse('2026-11-27T03:00:00Z');
 const SUBJECTS={
  profissao:['Psicologia como Profissão','#3c91a4','Profissão'],
  processos:['Processos Psicológicos Básicos','#6296d1','PPB'],
@@ -26,6 +27,7 @@ let navObserver=null,mainObserver=null,monthSequence=0;
 const nav=()=>document.getElementById('nav');
 const main=()=>document.querySelector('.app > .main')||document.querySelector('main.main')||document.querySelector('.main');
 const admin=()=>window.uentzoulAdminConfig?.isAdmin?.()===true;
+const canView=(sem=semester)=>sem===1||admin()||(sem===2&&Date.now()>=SECOND_SEMESTER_RELEASE);
 const client=()=>window.uentzoulAIAuth?.client?.();
 const currSemester=()=>{
  const el=document.getElementById('semesterCurrent');
@@ -83,9 +85,9 @@ function navButton(){
 function updateNavStatus(){
  const b=document.getElementById('navVacationReview');if(!b)return;
  const old=b.querySelector('.vr-soon');
- if(admin()){old?.remove();b.title='Abrir Revisão de Férias';}
+ if(canView(currSemester())){old?.remove();b.title='Abrir Revisão de Férias';}
  else{if(!old){const tag=document.createElement('span');tag.className='vr-soon';tag.textContent='Em breve';b.appendChild(tag);}
-  b.title='Revisão de Férias — em breve';}
+  b.title='Revisão de Férias do 2º semestre — disponível em 27/11';}
 }
 function rootElement(){
  const container=main();if(!container)return null;
@@ -111,9 +113,9 @@ function deactivate(){
  document.getElementById('vr-root')?.remove();
 }
 function privateHTML(){
- return '<div class="vr-private"><span class="vr-private-icon" aria-hidden="true">⌁</span><h2>Revisão de Férias</h2>'+
-  '<p>Em breve, tu vai poder revisitar os principais conceitos de cada semestre numa linha do tempo interativa.</p>'+
-  '<p>Esta área está em desenvolvimento e, por enquanto, só pode ser acessada pela administração.</p></div>';
+ return '<div class="vr-private"><span class="vr-private-icon" aria-hidden="true">⌁</span><h2>Revisão de Férias · 2º semestre</h2>'+
+  '<p>A revisão do segundo semestre estará disponível para todos em 27/11/2026, à meia-noite (horário de Brasília).</p>'+
+  '<p>Até essa data, o acesso aos novos conteúdos é reservado à administração. A revisão do primeiro semestre já está liberada.</p></div>';
 }
 function hero(){
  const which=semester===1?'Primeiro semestre':'Segundo semestre',count=events.length;
@@ -219,14 +221,15 @@ function fileFeedback(message,kind){
  if(box){box.textContent=message||'';box.dataset.state=kind||'info';}
 }
 async function openMaterial(index){
- if(!visible||!admin()||!Number.isInteger(index)||index<0)return;
+ if(!visible||!canView()||!Number.isInteger(index)||index<0)return;
  const event=events.find(x=>x.id===selectedEvent);
  if(!event||monthOf(event)!==openedMonth)return;
  const label=event.material_names?.[index],file=label?materialFor(event,label):null;
  if(!file){fileFeedback('Este documento ainda não está disponível no acervo original.','error');return;}
  const user=window.uentzoulAIAuth?.user?.();
  const c=client();
- if(!c||!user){fileFeedback('Entre na sua conta de administrador para abrir o documento.','error');return;}
+ if(!c){fileFeedback('O serviço de arquivos não está disponível no momento.','error');return;}
+ if(!user){fileFeedback('Entre na sua conta para abrir o arquivo original. A revisão pode ser consultada sem login.','error');return;}
  if(!/^materials\/(?:scheduled\/)?[0-9a-f-]{36}\.(pdf|docx|pptx)$/i.test(file.storage_path)){
   fileFeedback('O caminho do documento não está válido.','error');return;
  }
@@ -239,7 +242,7 @@ async function openMaterial(index){
  try{
   const {data,error}=await c.storage.from(LIBRARY_BUCKET).createSignedUrl(file.storage_path,3600);
   if(error||!data?.signedUrl)throw error||Error('Link temporário indisponível.');
-  if(!visible||!admin()){if(tab&&!tab.closed)tab.close();return;}
+  if(!visible||!canView()){if(tab&&!tab.closed)tab.close();return;}
   if(tab&&!tab.closed)tab.location.replace(data.signedUrl);
   else window.location.assign(data.signedUrl);
   fileFeedback('Documento aberto em uma nova guia.','success');
@@ -268,7 +271,7 @@ function render(){
  if(!visible)return;
  const root=rootElement();if(!root)return;
  setActive(true);
- if(!admin()){root.innerHTML=privateHTML();return;}
+ if(!canView()){root.innerHTML=privateHTML();return;}
  if(loading){root.innerHTML='<div class="vr-private"><h2>Preparando a linha do tempo…</h2><p>Conferindo os marcos selecionados.</p></div>';return;}
  root.innerHTML=hero()+monthsHTML();
 }
@@ -302,12 +305,12 @@ async function show(){
  try{await window.uentzoulAdminConfig?.refresh?.();}catch(_){}
  if(!visible)return;
  updateNavStatus();
- if(!admin()){loading=false;events=[];render();return;}
+ if(!canView()){loading=false;events=[];render();return;}
  await load();
 }
 function setMonth(month){
  const shell=document.getElementById('vr-panel-'+month),months=MONTHS[semester];
- if(!shell||!months.includes(month)||!admin())return;
+ if(!shell||!months.includes(month)||!canView())return;
  const next=openedMonth===month?null:month;
  openedMonth=next;selectedEvent=null;
  const navRail=document.querySelector('.vr-months');
@@ -326,7 +329,7 @@ function setMonth(month){
  });
 }
 function chooseEvent(id){
- const e=events.find(x=>x.id===id);if(!e||monthOf(e)!==openedMonth||!admin())return;
+ const e=events.find(x=>x.id===id);if(!e||monthOf(e)!==openedMonth||!canView())return;
  selectedEvent=selectedEvent===id?null:id;
  const panel=document.getElementById('vr-panel-'+openedMonth);
  const preview=panel?.querySelector('.vr-story-preview');
@@ -340,7 +343,7 @@ function chooseEvent(id){
  }
 }
 function handleClick(ev){
- if(!admin())return;
+ if(!canView())return;
  const month=ev.target.closest('[data-vr-month]');
  if(month){setMonth(Number(month.dataset.vrMonth));return;}
  const event=ev.target.closest('[data-vr-event]');
@@ -367,10 +370,10 @@ function setup(){
  },true);
  window.addEventListener('uentzoul:auth',()=>{
   updateNavStatus();
-  if(visible&&!admin()){events=[];loading=false;openedMonth=null;selectedEvent=null;render();}
+  if(visible){if(!canView()){events=[];loading=false;openedMonth=null;selectedEvent=null;render();}else if(!events.length&&!loading)load();}
  });
 }
-window.PSICO_VACATION_REVIEW={show,close:deactivate,refresh:()=>{if(visible&&admin())load();},currentSemester:()=>semester};
+window.PSICO_VACATION_REVIEW={show,close:deactivate,refresh:()=>{if(visible&&canView())load();},currentSemester:()=>semester};
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',setup,{once:true});
 else setup();
 })();
