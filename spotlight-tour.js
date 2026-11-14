@@ -157,9 +157,9 @@ function layout(scrollTarget=false){
 function renderCopy(step){
  const found=findNode(step);
  shell.querySelector('#pmSpotlightTitle').textContent=step.title;
- shell.querySelector('.pm-spotlight-body').textContent=found.login?(step.login||step.body):step.body;
+ shell.querySelector('.pm-spotlight-body').textContent=step.body;
  const hint=shell.querySelector('.pm-spotlight-tip');
- hint.textContent=found.login?'As opções completas serão exibidas depois de entrar na conta.':(step.tip||'');
+ hint.textContent=found.login?(step.login||'Entre na sua conta para usar este recurso.'):(step.tip||'');
  hint.hidden=!hint.textContent;
  shell.querySelector('.pm-spotlight-counter').textContent=(index+1)+' / '+steps.length;
  shell.querySelector('.pm-spotlight-track span').style.width=100*(index+1)/steps.length+'%';
@@ -175,6 +175,7 @@ function show(n){
   if(!active||serial!==stepSerial)return;
   // A navegação pode exibir um placeholder momentâneo durante a autenticação.
   renderCopy(step);layout(true);
+  balloon.querySelector('.pm-spotlight-next')?.focus({preventScroll:true});
   clearTimeout(fadeTimer);
   fadeTimer=setTimeout(()=>{if(active&&serial===stepSerial){renderCopy(step);layout(false)}},240);
  }));
