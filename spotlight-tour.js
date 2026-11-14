@@ -16,7 +16,7 @@ const steps=[
  {page:'exams',tab:'ai',find:'.ge-generator',fallback:'[data-ge-tab="ai"]',title:'Crie seu próprio simulado',body:'Na aba Criar simulado, escolha a disciplina, a dificuldade normal ou difícil, a quantidade de questões e se deseja incluir dissertativas. Depois, acesse a correção e o histórico das suas provas.',tip:'A criação e o compartilhamento de simulados personalizados exigem uma conta conectada.'},
  {page:'messages',tab:'private',find:'#dmUserSearch',fallback:'.dm-channel-tabs [data-dm-tab="private"]',title:'Converse em particular',body:'Na aba Privadas, procure um colega pelo nome e inicie uma conversa direta para tirar dúvidas, combinar estudos e trocar materiais.',login:'Entre na sua conta para acessar as conversas privadas e as demais funções de Mensagens.'},
  {page:'messages',tab:'groups',find:'[data-dm-new-group]',fallback:'.dm-channel-tabs [data-dm-tab="groups"]',title:'Crie um grupo de estudos',body:'Na aba Grupos, selecione Criar grupo, escolha um nome e convide os colegas. É um espaço para organizar trabalhos, discutir questões e estudar em conjunto.',login:'Com a conta conectada, abra Grupos e crie uma conversa com seus colegas.'},
- {page:'messages',tab:'global',find:'.dm-global-info',fallback:'.dm-channel-tabs [data-dm-tab="global"]',title:'Participe do chat global',body:'A aba Global é um espaço de conversa aberto aos estudantes cadastrados. Use-o para trocar ideias com a turma, pedir ajuda e compartilhar informações relevantes.',login:'O chat global fica disponível para estudantes conectados à conta.'},
+ {page:'messages',tab:'global',find:'.dm-channel-tabs [data-dm-tab="global"]',fallback:'.dm-global-info',title:'Participe do chat global',body:'A aba Global é um espaço de conversa aberto aos estudantes cadastrados. Use-o para trocar ideias com a turma, pedir ajuda e compartilhar informações relevantes.',login:'O chat global fica disponível para estudantes conectados à conta.'},
  {page:'messages',tab:'global',find:'[data-dmv-share-open]',fallback:'.dm-composer, .dm-channel-tabs',title:'Compartilhe conteúdos sem sair do chat',body:'Dentro de uma conversa, use o recurso de compartilhamento para encontrar materiais, simulados, podcasts e tópicos já listados no PsicoMoodle. Também é possível enviar mensagens, imagens e stickers.',tip:'Simulados personalizados são enviados por conversa privada, com convite para o colega acessar.',login:'Depois de entrar na conta e abrir uma conversa, você poderá compartilhar materiais do catálogo diretamente pelo chat.'},
  {page:'home',find:'#semesterCurrent',title:'Escolha o semestre',body:'Use este seletor para alternar entre os períodos de Psicologia. Cada semestre tem sua própria organização, e os conteúdos aparecem conforme são cadastrados. O modo claro ou escuro também pode ser alterado no menu.',tip:'O tutorial terminou. Você poderá iniciá-lo novamente pelo botão Tutorial.'}
 ];
@@ -132,6 +132,26 @@ function positionPopover(r){
  const pop=balloon.getBoundingClientRect();
  const pw=pop.width,ph=pop.height,gap=17;
  const spaceBottom=h-r.bottom,spaceTop=r.top,spaceRight=w-r.right,spaceLeft=r.left;
+ // Na visão de disciplina, a explicação fica sob os perfis da barra direita:
+ // não esconde os cartões das ferramentas de estudo.
+ if(index===2 && w>=980){
+  const sidebar=available('#profileSidebar');
+  if(sidebar){
+   const sb=sidebar.getBoundingClientRect();
+   const people=available('#profileSidebar .rank-list')||available('#profileSidebar .rank-entry')||sidebar;
+   const peopleRect=people.getBoundingClientRect();
+   const desiredWidth=Math.max(190,Math.min(248,sb.width-16));
+   balloon.style.width=desiredWidth+'px';
+   const compact=balloon.getBoundingClientRect();
+   const x=clamp(sb.left+(sb.width-compact.width)/2,8,w-compact.width-8);
+   const y=clamp(peopleRect.bottom+20,Math.max(12,sb.top+65),Math.max(12,h-compact.height-12));
+   balloon.dataset.side='sidebar';
+   balloon.style.left=Math.round(x)+'px';
+   balloon.style.top=Math.round(y)+'px';
+   return;
+  }
+ }
+ balloon.style.width='';
  let x,y,side='bottom';
  if(spaceBottom>=ph+gap+8){x=clamp(r.left,12,w-pw-12);y=r.bottom+gap;}
  else if(spaceTop>=ph+gap+8){x=clamp(r.left,12,w-pw-12);y=r.top-ph-gap;side='top';}
