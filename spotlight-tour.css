@@ -90,3 +90,32 @@ html[data-theme="dark"] .pm-spotlight-back{color:#eee7f9}
 .pm-spotlight-sidebar-ring[hidden]{display:none!important}
 html.pm-tour-running #nav .pm-tour-nav-current{background:color-mix(in srgb,var(--accent,#8068ba) 22%,var(--paper,#fff))!important;color:var(--ink,#211b35)!important;box-shadow:inset 3px 0 0 #9b7be6,inset 0 0 0 1px rgba(160,127,226,.24)!important;border-radius:9px}
 html[data-theme="dark"].pm-tour-running #nav .pm-tour-nav-current{background:#403664!important;color:#f8f3ff!important}
+
+/* Bloqueio do gesto de rolagem durante o tour; o balão mantém scroll próprio. */
+html.pm-tour-running{overscroll-behavior:none;scroll-behavior:auto!important}
+html.pm-tour-running body{overscroll-behavior:none}
+html.pm-tour-running .pm-spotlight{touch-action:none}
+html.pm-tour-running .pm-spotlight-popover{touch-action:pan-y;overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
+html.pm-tour-running .pm-spotlight-popover button{touch-action:manipulation}
+@media(max-width:760px){
+ .pm-spotlight{inset:0;width:100vw;height:100dvh}
+ .pm-spotlight-popover{
+  width:min(355px,calc(100vw - 16px));
+  max-width:calc(100dvh - 16px);
+  padding:14px 15px 12px;
+  overflow-wrap:anywhere;
+  overflow-x:hidden;
+ }
+ .pm-spotlight-head{gap:7px}
+ .pm-spotlight-popover h2{font-size:clamp(16px,5vw,19px);line-height:1.2}
+ .pm-spotlight-body{font-size:12px}
+ .pm-spotlight-actions{flex-wrap:wrap;row-gap:8px}
+ .pm-spotlight-counter{min-width:34px}
+ .pm-spotlight-back,.pm-spotlight-next{flex:0 0 auto}
+ .pm-spotlight-sidebar-ring{display:none!important}
+}
+@media(max-width:350px){
+ .pm-spotlight-popover{padding:12px}
+ .pm-spotlight-actions{gap:3px}
+ .pm-spotlight-actions button{padding:7px!important;font-size:10.5px}
+}
