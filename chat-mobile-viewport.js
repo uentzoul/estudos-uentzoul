@@ -11,7 +11,7 @@ function update(){
  const chat=phone&&!!document.querySelector('.app > .main > .dm-shell');
  if(!chat){root.style.removeProperty('--pm-chat-viewport-height');return}
  const visible=window.visualViewport?.height||window.innerHeight;
- if(Number.isFinite(visible)&&visible>220)
+ if(Number.isFinite(visible)&&visible>120)
   root.style.setProperty('--pm-chat-viewport-height',Math.round(visible)+'px');
 }
 function schedule(){
