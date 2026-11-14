@@ -1,0 +1,43 @@
+name: Auditoria visual de interface — desktop e celular
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'index.html'
+      - '*.js'
+      - '*.css'
+      - 'tests/**'
+      - '.github/workflows/qa-ui.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  qa-visual:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Instalar navegadores de teste
+        run: |
+          pip install --disable-pip-version-check playwright==1.56.0
+          python -m playwright install --with-deps chromium webkit
+      - name: Servir site local para auditoria
+        run: |
+          python -m http.server 8765 --bind 127.0.0.1 > /tmp/psicomoodle-qa-http.log 2>&1 &
+          sleep 3
+      - name: Auditar três semestres em Chromium desktop, Android e WebKit iPhone
+        run: python tests/ui-smoke.py
+      - name: Publicar evidências da auditoria
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: qa-visual-screenshots
+          path: qa-artifacts/
+          if-no-files-found: ignore
+          retention-days: 14
