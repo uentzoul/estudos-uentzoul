@@ -148,7 +148,7 @@ html[data-theme="dark"] .admin-log-avatar{background:#4a3a66;color:#e7d8ff}
 }
 .admin-config-page .admin-online-big{
  font-size:clamp(44px,4.9vw,68px);font-weight:850;
- line-height:1.04;letter-spacing:-.065em;tabular-nums:true;
+ line-height:1.04;letter-spacing:-.065em;
  color:#147969;margin-top:12px;
  font-variant-numeric:tabular-nums;
 }
