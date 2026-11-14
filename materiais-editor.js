@@ -10,6 +10,7 @@ const CATEGORIES=[
  {id:'books',title:'Livros, capítulos e obras de referência',core:true},
  {id:'activities',title:'Atividades e estudos dirigidos',core:false},
  {id:'regulations',title:'Normas e documentos profissionais',core:false},
+ {id:'reports',title:'Relatórios, cartilhas e infográficos',core:false},
  {id:'review',title:'Guias e materiais de revisão',core:false},
  {id:'videos',title:'Vídeos e referências online',core:false},
  {id:'extras',title:'Materiais complementares',core:false}
