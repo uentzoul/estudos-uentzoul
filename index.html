@@ -2883,8 +2883,8 @@ function renderSubject(k){
 function renderExams(){return `${head('Simulados','Provas para praticar','Simulados das disciplinas com questões comentadas e conteúdos correspondentes à revisão atual de cada matéria.')}
 <p class="small muted" style="margin-top:19px">Responda aos simulados e consulte a correção depois da entrega.</p>${Object.keys(DB.subjects).sort((a,b)=>DB.subjects[a].date.localeCompare(DB.subjects[b].date)).map(k=>`<section class="section"><div class="sectiontop"><h2 style="border-left:4px solid ${color(k)};padding-left:10px">${esc(getSubject(k).name)}</h2><button class="plainlink" data-action="subject:${k}">Ver matéria</button></div><div class="examgrid exam-grid-5">${DB.exams.filter(e=>e.subject===k).map(examCard).join('')}</div></section>`).join('')}`}
 function getAnswers(id){return store.answers[id]||{};}
-function renderTest(id){const exam=DB.exams.find(e=>e.id===id);if(!exam)return renderHome();const subj=getSubject(exam.subject),ans=getAnswers(id),r=store.results[id];const answered=exam.questions.filter(q=>String(ans[q.id]??'').trim()!=='').length;return `<button class="back" data-action="subjectTests:${exam.subject}">← Voltar para ${esc(subj.name)}</button><div class="panel" style="border-top:3px solid ${color(exam.subject)}"><div class="eyebrow">${esc(subj.name)} · ${esc(exam.title)}</div><h1 class="h1">Simulado ${exam.model}</h1><div class="exam-test-difficulty">${exam.sameDifficulty?'Padrão de dificuldade equivalente à prova':difficultyStars(difficultyStep(exam))+' <span>'+esc(DIFFICULTY_STEPS[difficultyStep(exam)-1].label)+'</span>'}</div><div style="margin:10px 0 14px">${doneBox(`sim:${id}`)}</div><p class="lead">${esc(subj.style)}</p><div class="statline"><span>${answered} de ${exam.questions.length} respondidas</span><span>${r?'Correção liberada':'Em andamento'}</span></div><div class="progressline"><div style="width:${answered/exam.questions.length*100}%"></div></div></div>
-${r?`<section class="section"><div class="panel"><h2 style="margin:0 0 12px">Resultado da tentativa</h2><div class="resultstats"><div class="resultstat"><strong>${r.correct}/${r.total}</strong><span class="small">Objetivas / V-F</span></div><div class="resultstat"><strong>${Math.round(100*r.correct/(r.total||1))}%</strong><span class="small">Aproveitamento objetivo</span></div><div class="resultstat"><strong>${exam.questions.filter(q=>q.type==='essay').length}</strong><span class="small">Dissertativas para revisar</span></div></div><p class="small muted" style="margin-top:12px">Dissertativas: consulte os critérios e a resposta orientativa para revisar.</p><div class="actions" style="margin-top:14px">${button('Imprimir correção','print','btn ghost')}</div></div></section>`:''}
+function renderTest(id){const exam=DB.exams.find(e=>e.id===id);if(!exam)return renderHome();const subj=getSubject(exam.subject),ans=getAnswers(id),r=store.results[id];const answered=exam.questions.filter(q=>String(ans[q.id]??'').trim()!=='').length;return `<button class="back" data-action="subjectTests:${exam.subject}">← Voltar para ${esc(subj.name)}</button><div class="panel" style="border-top:3px solid ${color(exam.subject)}"><div class="eyebrow">${esc(subj.name)} · ${esc(exam.title)}</div><h1 class="h1">Simulado ${exam.model}</h1><div class="exam-test-difficulty">${exam.sameDifficulty?'Padrão de dificuldade equivalente à prova':difficultyStars(difficultyStep(exam))+' <span>'+esc(DIFFICULTY_STEPS[difficultyStep(exam)-1].label)+'</span>'}</div><div style="margin:10px 0 14px">${doneBox(`sim:${id}`)}</div><p class="lead">${exam.subject==="grupos"&&exam.revision===window.PSICO_FINAL_EXAMS?.groupVersion?"Relacione cenas de Escritores da Liberdade aos conceitos de Moreno e Carl Rogers. Justifique cada análise. Este simulado tem cinco questões dissertativas, com critérios e respostas orientativas após a entrega.":esc(subj.style)}</p><div class="statline"><span>${answered} de ${exam.questions.length} respondidas</span><span>${r?'Correção liberada':'Em andamento'}</span></div><div class="progressline"><div style="width:${answered/exam.questions.length*100}%"></div></div></div>
+${r?`<section class="section"><div class="panel"><h2 style="margin:0 0 12px">Resultado da tentativa</h2><div class="resultstats"><div class="resultstat"><strong>${r.total===0?exam.questions.length:[r.correct,r.total].join("/")}</strong><span class="small">${r.total===0?"Dissertativas entregues":"Objetivas / V-F"}</span></div><div class="resultstat"><strong>${r.total===0?"—":Math.round(100*r.correct/(r.total||1))+"%"}</strong><span class="small">${r.total===0?"Revisão orientativa":"Aproveitamento objetivo"}</span></div><div class="resultstat"><strong>${exam.questions.filter(q=>q.type==='essay').length}</strong><span class="small">Dissertativas para revisar</span></div></div><p class="small muted" style="margin-top:12px">Dissertativas: consulte os critérios e a resposta orientativa para revisar.</p><div class="actions" style="margin-top:14px">${button('Imprimir correção','print','btn ghost')}</div></div></section>`:''}
 <section class="section">${exam.questions.map((q,i)=>questionHTML(q,i,ans[q.id],!!r)).join('')}</section>
 <div class="panel" style="display:flex;align-items:center;gap:12px;justify-content:space-between;flex-wrap:wrap"><span class="small">${answered}/${exam.questions.length} questões respondidas · ${exam.questions.filter(q=>q.type==='essay').length} dissertativas</span><div class="actions">${button('Salvar andamento','save','btn ghost')}${button(r?'Voltar aos simulados':'Entregar e corrigir',r?'page:exams':`submit:${id}`,'btn')}</div></div><div class="footer">As correções objetivas explicam todas as opções. As respostas dissertativas exigem julgamento contextual, por isso disponibilizamos critérios e avaliação via ChatGPT em etapa manual.</div>`}
 function questionHTML(q,i,answer,review){let body='';const disabled=review?'disabled':'';if(q.type==='choice'||q.type==='combo'){
@@ -3680,7 +3680,7 @@ function geExamCard(exam){
  const sent=ge.invites.filter(x=>x.exam_id===exam.id&&x.sender_id===geUser()?.id);
  return '<article class="ge-card" style="--accent:'+color(exam.subject)+'">'+
   '<div class="ge-card-head"><span class="pill">'+(mine?'Meu simulado':'Compartilhado comigo')+'</span><span class="ge-difficulty">'+(exam.difficulty==='dificil'?'Difícil':'Normal')+'</span></div>'+
-  '<h3>'+esc(geSubjectName(exam.subject))+'</h3><p>'+exam.questions.filter(q=>q.type==='choice').length+' objetivas'+(exam.questions.some(q=>q.type==='essay')?' e '+exam.questions.filter(q=>q.type==='essay').length+' dissertativas':'')+'</p><small>'+
+  '<h3>'+esc(geSubjectName(exam.subject))+'</h3><p>'+(exam.questions.every(q=>q.type==='essay')?exam.questions.length+' dissertativas':exam.questions.filter(q=>q.type==='choice').length+' objetivas'+(exam.questions.some(q=>q.type==='essay')?' e '+exam.questions.filter(q=>q.type==='essay').length+' dissertativas':''))+'</p><small>'+
   new Date(exam.created_at).toLocaleDateString('pt-BR',{day:'2-digit',month:'short',year:'numeric'})+
   '</small><div class="ge-card-foot"><span class="pill '+(submitted?'ok':'')+'">'+(submitted?'Entregue':'Não entregue')+'</span>'+
   '<button type="button" data-ge-open="'+esc(exam.id)+'">'+(submitted?'Rever':'Responder')+'</button></div>'+
@@ -3699,11 +3699,11 @@ function geRenderList(){
  if(!logged)return head('Simulados','Criar simulados personalizados','A IA gera uma prova nova para cada solicitação, baseada no conteúdo da disciplina e no estilo do professor.')+
   '<section class="panel ge-panel"><h2>Entre na sua conta</h2><p>Para gerar, guardar e compartilhar provas, é necessário entrar na conta do site.</p><button class="btn" data-action="tz-login">Entrar / Cadastrar</button></section>';
  const subjects=Object.entries(DB.subjects);
- const form=subjects.length?'<div class="ge-generator"><div><span class="eyebrow">NOVO SIMULADO</span><h2>Uma prova inédita para estudar</h2><p>Escolha a disciplina, a dificuldade e a quantidade total de questões. Se desejar, inclua duas questões dissertativas dentro da quantidade escolhida. O gabarito e os critérios ficam disponíveis após a entrega.</p></div>'+
+ const form=subjects.length?'<div class="ge-generator"><div><span class="eyebrow">NOVO SIMULADO</span><h2>Uma prova inédita para estudar</h2><p>'+(ge.subject==='grupos'?'Para Psicologia de Grupos, os simulados gerados têm cinco questões dissertativas sobre cenas de Escritores da Liberdade, relacionadas a Moreno e Carl Rogers. As respostas orientativas ficam disponíveis após a entrega.':'Escolha a disciplina, a dificuldade e a quantidade total de questões. Se desejar, inclua duas questões dissertativas dentro da quantidade escolhida. O gabarito e os critérios ficam disponíveis após a entrega.')+'</p></div>'+
   '<div class="ge-fields"><label>Disciplina<select id="geSubject">'+subjects.map(([id,v])=>'<option value="'+esc(id)+'" '+(ge.subject===id?'selected':'')+'>'+esc(v.name)+'</option>').join('')+'</select></label>'+
   '<label>Dificuldade<select id="geDifficulty"><option value="normal" '+(ge.difficulty==='normal'?'selected':'')+'>Normal</option><option value="dificil" '+(ge.difficulty==='dificil'?'selected':'')+'>Difícil</option></select></label>'+
-  '<label>Quantidade total de questões<select id="geQuestionCount">'+[5,10,15,20].map(n=>'<option value="'+n+'" '+(ge.questionCount===n?'selected':'')+'>'+n+' questões</option>').join('')+'</select></label>'+
-  '<label class="ge-essay-choice"><input type="checkbox" id="geIncludeEssays" '+(ge.includeEssays?'checked':'')+'> Incluir 2 questões dissertativas finais (dentro do total)</label>'+
+  '<label>Quantidade total de questões<select id="geQuestionCount">'+(ge.subject==='grupos'?[5]:[5,10,15,20]).map(n=>'<option value="'+n+'" '+(ge.questionCount===n?'selected':'')+'>'+n+' questões</option>').join('')+'</select></label>'+
+  '<label class="ge-essay-choice"><input type="checkbox" id="geIncludeEssays" '+(ge.subject==='grupos'?'checked disabled':ge.includeEssays?'checked':'')+'> '+(ge.subject==='grupos'?'Todas as cinco questões serão dissertativas':'Incluir 2 questões dissertativas finais (dentro do total)')+'</label>'+
   '<button type="button" class="btn ge-primary" data-ge-create '+(ge.busy?'disabled':'')+'>'+(ge.busy?'Preparando o simulado…':'Gerar novo simulado')+'</button></div></div>':
   '<div class="ge-generator"><h2>Sem disciplinas cadastradas em '+esc(semester)+'</h2><p>Volte ao semestre 2026/2 para gerar provas com os materiais disponíveis.</p></div>';
  const visible=ge.exams.filter(e=>!ge.hidden.some(h=>h.exam_id===e.id));
@@ -3752,8 +3752,8 @@ function geRenderExam(){
   (alreadyShared.length?'<p class="small">Enviado para '+alreadyShared.length+' pessoa(s).</p>':'')+'</section>':'';
  return '<button class="back" type="button" data-ge-back>← Voltar aos simulados</button>'+
   '<div class="ge-test-header"><span class="eyebrow">'+esc(geSubjectName(exam.subject))+' · '+(exam.difficulty==='dificil'?'Difícil':'Normal')+'</span>'+
-  '<h1>Simulado personalizado</h1><p>'+objectiveCount+' questões objetivas'+(essayCount?' e '+essayCount+' dissertativas':'')+'. '+(review?'Prova entregue: pode rever perguntas, respostas e correção, mas não refazer.':'A entrega é definitiva: confira suas respostas antes de enviar.')+'</p>'+
-  (review?'<div class="ge-score"><strong>'+Number(submission.feedback?.correct||0)+'/'+objectiveCount+'</strong><span>objetivas corretas'+(essayCount?' · dissertativas com critérios de revisão':'')+'</span></div>':
+  '<h1>Simulado personalizado</h1><p>'+(objectiveCount?objectiveCount+' questões objetivas'+(essayCount?' e '+essayCount+' dissertativas':''):essayCount+' questões dissertativas')+'. '+(review?'Prova entregue: pode rever perguntas, respostas e correção, mas não refazer.':'A entrega é definitiva: confira suas respostas antes de enviar.')+'</p>'+
+  (review?'<div class="ge-score"><strong>'+(objectiveCount?Number(submission.feedback?.correct||0)+'/'+objectiveCount:essayCount+' questões')+'</strong><span>'+(objectiveCount?'objetivas corretas'+(essayCount?' · dissertativas com critérios de revisão':''):'dissertativas com critérios e respostas orientativas')+'</span></div>':
    '<div class="ge-progress">'+complete+'/'+exam.questions.length+' respostas preenchidas</div>')+
   '</div><div class="ge-questions">'+questions+'</div>'+
   (ge.error?'<div class="tz-notice">'+esc(ge.error)+'</div>':'')+
@@ -3783,7 +3783,7 @@ async function geLoad(){
 }
 async function geCreate(){
  if(ge.busy||!geUser()||!DB.subjects[ge.subject])return;
- const userId=geUser().id,requestedSubject=ge.subject,requestedSemester=semester,requestedDifficulty=ge.difficulty,requestedCount=ge.questionCount,requestedEssays=ge.includeEssays;
+ const userId=geUser().id,requestedSubject=ge.subject,requestedSemester=semester,requestedDifficulty=ge.difficulty,requestedCount=ge.subject==='grupos'?5:ge.questionCount,requestedEssays=ge.subject==='grupos'?true:ge.includeEssays;
  const startedAt=new Date().toISOString();
  ge.busy=true;ge.error='';ge.notice='A IA está montando a prova a partir dos materiais da disciplina.';
  render();
@@ -3819,7 +3819,7 @@ async function geCreate(){
     .eq('subject',requestedSubject).eq('difficulty',requestedDifficulty)
     .gte('created_at',startedAt).order('created_at',{ascending:false}).limit(5);
    if(error)throw error;
-   const exam=(data||[]).find(e=>Array.isArray(e.questions)&&e.questions.length===15);
+   const exam=(data||[]).find(e=>Array.isArray(e.questions)&&e.questions.length===requestedCount);
    if(exam)finish(exam);
   }catch(e){console.warn('Consulta automática do simulado:',e);}
   finally{polling=false;}
@@ -3850,7 +3850,7 @@ async function geSubmit(){
  const total=exam?.questions?.length||0,objectiveCount=exam?.questions?.filter(q=>q.type==='choice').length||0;
  if(!total||values.length!==total||values.slice(0,objectiveCount).some(v=>!["0","1","2","3","4"].includes(String(v)))||
   values.slice(objectiveCount).some(v=>String(v).trim().length<20)){
-  ge.error='Responda às '+objectiveCount+' objetivas'+(total>objectiveCount?' e escreva pelo menos 20 caracteres em cada dissertativa':'')+'.';render();return;
+  ge.error=objectiveCount?'Responda às '+objectiveCount+' objetivas'+(total>objectiveCount?' e escreva pelo menos 20 caracteres em cada dissertativa':'')+'.':'Escreva pelo menos 20 caracteres em cada uma das cinco questões dissertativas.';render();return;
  }
  if(!confirm('Entregar definitivamente? Depois da entrega não é possível refazer este simulado.'))return;
  ge.busy=true;ge.error='';render();
@@ -4014,7 +4014,7 @@ document.addEventListener('click',e=>{
  if(e.target.closest('[data-ge-refresh]')){ge.loaded=false;geLoad();return}
 });
 document.addEventListener('change',e=>{
- if(e.target.id==='geSubject'){ge.subject=e.target.value;return}
+ if(e.target.id==='geSubject'){ge.subject=e.target.value;if(ge.subject==='grupos'){ge.questionCount=5;ge.includeEssays=true;}render();return}
  if(e.target.id==='geDifficulty'){ge.difficulty=e.target.value;return}
  if(e.target.id==='geQuestionCount'){const n=Number(e.target.value);if([5,10,15,20].includes(n))ge.questionCount=n;return}
  if(e.target.id==='geIncludeEssays'){ge.includeEssays=e.target.checked;return}
@@ -4435,7 +4435,7 @@ async function submit(id){
  store.results[id]={correct,total:objective.length,date:new Date().toISOString()};
  store.completed['sim:'+id]=true;persist();render();
  try{window.scrollTo({top:0,behavior:'smooth'})}catch(_){}
- toast('Simulado corrigido. Consulte as respostas e os comentários.');
+ toast(objective.length?'Simulado corrigido. Consulte as respostas e os comentários.':'Respostas entregues. Consulte os critérios e os modelos orientativos.');
 }
 function copyForAI(qid){const exam=DB.exams.find(e=>e.id===current.exam);const q=exam?.questions.find(x=>x.id===qid);if(!q)return;const ans=getAnswers(exam.id)[qid]||'[sem resposta]';const prompt=`Corrige esta resposta dissertativa de Psicologia no estilo universitário, com rigor e linguagem natural. Avalia o conteúdo, identifica erros conceituais e omissões, corrige a gramática SEM alterar o sentido e apresenta nota orientativa de 0 a 10 e uma versão revisada. Use critérios explicitados.\n\nQuestão: ${q.prompt}\n\nMinha resposta: ${ans}\n\nCritérios: ${q.criteria.join('; ')}\n\nResposta orientativa: ${q.model}\n\nSe minha resposta trouxer ideia válida não presente na referência, considera-a com cuidado.`;
  const open=()=>{toast('Texto copiado. Cole-o no ChatGPT.');window.open('https://chatgpt.com/','_blank','noopener');};if(navigator.clipboard?.writeText){navigator.clipboard.writeText(prompt).then(open).catch(()=>{window.prompt('Copie o texto para o ChatGPT:',prompt)})}else window.prompt('Copie o texto para o ChatGPT:',prompt);}
