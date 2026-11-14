@@ -35,7 +35,7 @@ function setup(){
   const style=document.createElement('link');
   style.id='pm-tutorial-styles';
   style.rel='stylesheet';
-  style.href='spotlight-tour.css?v=20261114-smooth-locked-v18';
+  style.href='spotlight-tour.css?v=20261114-podcast-monday-v19';
   document.head.appendChild(style);
  }
  if(!document.getElementById('pm-ai-sidebar-polish')){
@@ -71,7 +71,7 @@ function setup(){
  if(!document.getElementById('pm-tutorial-script')){
   const script=document.createElement('script');
   script.id='pm-tutorial-script';
-  script.src='spotlight-tour.js?v=20261114-smooth-locked-v18';
+  script.src='spotlight-tour.js?v=20261114-podcast-monday-v19';
   script.async=true;
   document.head.appendChild(script);
  }
@@ -79,13 +79,13 @@ function setup(){
   const link=document.createElement('link');
   link.id='pm-podcast-mini-styles';
   link.rel='stylesheet';
-  link.href='podcast-mini.css?v=20261114-podcast-mini-v1';
+  link.href='podcast-mini.css?v=20261114-podcast-mini-v2';
   document.head.appendChild(link);
  }
  if(!document.getElementById('pm-podcast-mini-script')){
   const script=document.createElement('script');
   script.id='pm-podcast-mini-script';
-  script.src='podcast-mini.js?v=20261114-podcast-mini-v1';
+  script.src='podcast-mini.js?v=20261114-podcast-mini-v2';
   script.async=true;
   document.head.appendChild(script);
  }
