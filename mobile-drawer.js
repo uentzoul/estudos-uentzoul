@@ -109,8 +109,8 @@
    const g=gesture;gesture=null;
    if(!g)return;
    if(!g.claimed){clearDrag();return;}
-   const elapsed=Math.max(1,Date.now()-g.lastTime);
-   const velocity=touch?clamp((touch.clientX-g.lastX)/elapsed,-2,2):0;
+   const elapsed=Math.max(1,Date.now()-g.time);
+   const velocity=touch?clamp((touch.clientX-g.x)/elapsed,-2,2):0;
    const travelled=touch?touch.clientX-g.x:(g.progress-g.start)*g.width;
    const distance=Math.abs(travelled);
    const fast=distance>32&&Math.abs(velocity)>FLICK_VELOCITY;
@@ -137,7 +137,7 @@
     if(control&&!control.matches('#pmMobileMenuToggle'))return;
    }else if(!side.contains(target))return;
    gesture={start,progress:start,x:t.clientX,y:t.clientY,
-    lastX:t.clientX,lastTime:Date.now(),width:Math.max(side.getBoundingClientRect().width,1),
+    time:Date.now(),width:Math.max(side.getBoundingClientRect().width,1),
     claimed:false};
   },{passive:true});
   document.addEventListener('touchmove',event=>{
@@ -159,7 +159,6 @@
    }
    if(event.cancelable)event.preventDefault();
    redrawDrag(g.start+dx/g.width);
-   g.lastX=t.clientX;g.lastTime=Date.now();
   },{passive:false});
   document.addEventListener('touchend',event=>{
    if(!gesture)return;
