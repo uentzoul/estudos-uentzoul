@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="color-scheme" content="light dark">
-<meta name="site-build" content="psicomoodle-tour-blocked-mobile-desktop-20261114-r8">>>>
+<meta name="site-build" content="psicomoodle-participants-panel-fix-20261114-r9">>>>
 <script>try{document.documentElement.dataset.theme=localStorage.getItem("uentzoul_theme_v1")==="dark"?"dark":"light"}catch(e){document.documentElement.dataset.theme="light"}</script>
 <title>PsicoMoodle · Psicologia PUCRS</title>
 <style>
@@ -1834,59 +1834,6 @@ html[data-theme="dark"] .schedule-today{background:#382f59;color:#dcd0ff}
 @media(max-width:760px){.schedule-week{grid-template-columns:1fr;gap:12px}.schedule-day-heading{min-height:74px;padding:14px 16px}.schedule-day-content{padding:12px}.schedule-day-content.is-period-grid{min-height:332px;grid-template-rows:repeat(3,minmax(96px,1fr))}.schedule-lesson{padding:13px 12px}.schedule-page .schedule-legend{border-radius:12px}}
 
 
-/* Barra lateral da turma recolhível: a página ocupa o espaço liberado. */
-@media(min-width:761px){
- .app>.main{transition:width .34s ease,max-width .34s ease}
- .app>.profile-sidebar{
-  min-width:0;
-  transition:flex-basis .34s cubic-bezier(.2,.72,.25,1),width .34s cubic-bezier(.2,.72,.25,1),
-   padding .34s ease,transform .34s cubic-bezier(.2,.72,.25,1),opacity .25s ease,visibility 0s;
- }
- html[data-members-sidebar="collapsed"] .app>.profile-sidebar{
-  flex:0 0 0px!important;width:0!important;min-width:0!important;max-width:0!important;
-  padding-left:0!important;padding-right:0!important;border-left-width:0!important;
-  overflow:hidden!important;transform:translateX(110%);opacity:0;visibility:hidden;pointer-events:none;
-  transition: flex-basis .34s cubic-bezier(.2,.72,.25,1),width .34s cubic-bezier(.2,.72,.25,1),
-    padding .34s ease,transform .34s cubic-bezier(.2,.72,.25,1),opacity .25s ease,visibility 0s .34s;
- }
- .theme-topbar{transition:right .34s cubic-bezier(.2,.72,.25,1)}
- html[data-members-sidebar="collapsed"] .theme-topbar{right:18px!important}
-}
-.members-sidebar-toggle{display:inline-flex;justify-content:center;align-items:center;flex:none;
- width:36px;height:35px;border:1px solid var(--line);border-radius:9px;background:var(--paper);
- color:var(--ink);cursor:pointer;transition:background .2s,border-color .2s}
-.members-sidebar-toggle:hover{background:var(--soft);border-color:var(--blue)}
-.members-sidebar-toggle:focus-visible,.compact-profile-button:focus-visible{outline:3px solid var(--blue);outline-offset:2px}
-.members-sidebar-toggle svg{width:17px;height:17px;stroke:currentColor;stroke-width:2.1;fill:none;stroke-linecap:round;stroke-linejoin:round;
- transition:transform .3s ease}
-html[data-members-sidebar="collapsed"] .members-sidebar-toggle svg{transform:rotate(180deg)}
-.compact-profile-button{display:none;align-items:center;gap:8px;max-width:180px;min-width:0;
- border:1px solid var(--line);border-radius:9px;padding:4px 8px;background:var(--paper);color:var(--ink);
- font-size:11px;font-weight:750;cursor:pointer;white-space:nowrap}
-.compact-profile-button .profile-avatar{width:28px;height:28px;font-size:10px;flex:0 0 28px}
-.compact-profile-name{overflow:hidden;text-overflow:ellipsis}
-html[data-members-sidebar="collapsed"] .compact-profile-button{display:inline-flex}
-.mobile-members-toggle{display:none}
-@media(max-width:760px){
- .mobile-members-toggle{display:inline-flex;width:36px;height:36px;min-height:36px;margin-left:1px}
- .app>.profile-sidebar{
-  transition:opacity .3s ease,transform .34s cubic-bezier(.2,.72,.25,1),max-height .34s ease,padding .34s ease,visibility 0s;
-  max-height:40000px;
- }
- html[data-members-sidebar="collapsed"] .app>.profile-sidebar{
-  max-height:0!important;min-height:0!important;height:0!important;padding:0!important;margin:0!important;
-  border:0!important;opacity:0;visibility:hidden;transform:translateX(110%);
-  overflow:hidden!important;pointer-events:none;transition:opacity .25s ease,transform .34s ease,max-height .34s ease,padding .34s ease,visibility 0s .34s;
- }
- .compact-profile-button{display:none!important}
-}
-@media(max-width:370px){.mobile-members-toggle{width:32px;height:34px}}
-@media(prefers-reduced-motion:reduce){
- .app>.profile-sidebar,.app>.main,.theme-topbar,.members-sidebar-toggle svg{transition:none!important}
-}
-@media print{.members-sidebar-toggle,.compact-profile-button{display:none!important}}
-
-
 /* IA Tzoul - layout amplo e compacto, preservando a navegacao lateral. */
 @media(min-width:761px){
  .app>.main:has(>.tz-shell){flex:1 1 0;min-width:0;max-width:none;width:auto;height:100dvh;min-height:0;padding:12px clamp(10px,1.25vw,20px);overflow:hidden;display:flex;flex-direction:column}
@@ -2056,6 +2003,61 @@ html[data-theme="dark"] .tz-library-download{background:#26374c;border-color:#45
 .library-resource .library-resource-copy .docnote,.library-resource .library-resource-type{display:none!important}
 .library-resource.is-available .library-resource-status{display:none!important}
 .library-resource .library-resource-bottom{justify-content:flex-end}
+
+/* Participantes: lateral desktop, drawer móvel e ausência de puxador acima da tela. */
+#membersDrawerHandle,.members-drawer-handle,#compactProfileButton{display:none!important}
+.members-backdrop[hidden]{display:none!important}
+.members-drawer-head{display:none}
+.members-refresh{flex:0 0 auto;border:1px solid var(--line);border-radius:8px;background:var(--paper);color:var(--ink);cursor:pointer;font-size:17px;line-height:1;padding:5px 8px}
+.member-list-heading{display:flex;align-items:center;gap:8px;flex-wrap:wrap;min-width:0}
+.member-list-heading h2{margin-right:auto}
+@media(min-width:761px){
+ .mobile-secondary-actions{display:none!important}
+ .app>.profile-sidebar{visibility:visible!important;opacity:1!important;transform:none!important;pointer-events:auto!important;min-width:0}
+}
+@media(max-width:760px){
+ html.members-drawer-open,html.members-drawer-open body{overflow:hidden!important;overscroll-behavior:none}
+ .mobile-secondary-actions{display:flex;justify-content:center;align-items:center;flex-wrap:wrap;gap:8px;padding:6px 0 2px;margin:0 auto;max-width:720px}
+ .mobile-secondary-actions button{display:inline-flex;align-items:center;justify-content:center;gap:7px;min-height:36px;max-width:calc(50% - 4px);padding:7px 12px;border:1px solid var(--line);border-radius:10px;background:var(--paper);color:var(--ink);font:inherit;font-size:12px;font-weight:740;white-space:nowrap;cursor:pointer}
+ .mobile-secondary-actions .mobile-members-toggle{width:auto!important;height:auto!important;min-width:130px!important;max-width:55%;margin:0!important;flex:none}
+ .mobile-secondary-actions .mobile-report-button{max-width:45%}
+ .mobile-secondary-actions button svg{flex:0 0 18px;width:18px;height:18px;stroke:currentColor}
+ .members-backdrop{position:fixed;inset:0;z-index:210;background:rgba(12,13,27,.65);touch-action:none}
+ .app>#profileSidebar{
+  position:fixed!important;inset:0 0 0 auto!important;
+  z-index:211!important;display:block!important;
+  width:min(390px,92vw)!important;max-width:390px!important;min-width:0!important;
+  height:100dvh!important;max-height:100dvh!important;min-height:0!important;
+  flex:none!important;box-sizing:border-box;
+  padding:0 14px calc(25px + env(safe-area-inset-bottom))!important;
+  margin:0!important;overflow-y:auto!important;overflow-x:hidden!important;
+  overscroll-behavior:contain;background:var(--paper)!important;
+  border:0!important;border-left:1px solid var(--line)!important;
+  box-shadow:-12px 0 40px rgba(0,0,0,.22)!important;
+  transform:translateX(110%)!important;visibility:hidden!important;opacity:0!important;pointer-events:none!important;
+  transition:transform .23s ease,visibility .23s,opacity .23s;
+ }
+ html.members-drawer-open .app>#profileSidebar{
+  transform:translateX(0)!important;visibility:visible!important;opacity:1!important;pointer-events:auto!important
+ }
+ .members-drawer-head{
+  display:flex;position:sticky;top:0;z-index:2;
+  align-items:center;justify-content:space-between;gap:10px;
+  min-height:56px;padding:10px 2px;margin-bottom:14px;
+  background:var(--paper);border-bottom:1px solid var(--line)
+ }
+ .members-drawer-head strong{font-size:16px;color:var(--ink);font-weight:830}
+ .members-drawer-close{display:grid;place-items:center;flex:0 0 38px;width:38px;height:38px;border-radius:11px;border:1px solid var(--line);background:var(--paper);color:var(--ink);font-size:27px;line-height:1;cursor:pointer}
+ .app>#profileSidebar .rank-list{display:flex;flex-direction:column;gap:6px;max-width:100%}
+ .app>#profileSidebar .rank-entry{padding:9px 8px;min-width:0}
+ .app>#profileSidebar .rank-user-trigger{min-width:0;max-width:100%}
+}
+@media(max-width:370px){
+ .mobile-secondary-actions{gap:5px}
+ .mobile-secondary-actions button{padding:6px 8px;font-size:11px}
+ .mobile-secondary-actions .mobile-members-toggle{min-width:116px!important}
+}
+@media(prefers-reduced-motion:reduce){.app>#profileSidebar{transition:none!important}}
 </style>
 <link rel="stylesheet" href="./trilhas-estudos.css">
 <script src="./trilhas-estudos.js?v=20261113-revisao-global-1"></script>
@@ -7207,7 +7209,7 @@ document.addEventListener("click",e=>{if(!e.target.closest("[data-theme-toggle]"
 <script src="library-content-analyzer.js?v=20261111-2"></script>
 <script src="library-manager.js?v=20261113-revisao-global-1"></script>
 <script src="admin-config.js?v=20261113-formal-1"></script>
-<script src="site-version.js?v=20261114-tutorial-blocked-v8"></script>
+<script src="site-version.js?v=20261114-participants-drawer-v9"></script>
 
 <script>
 /* Aviso desacoplado do scroll da sidebar. Nenhuma alteração em navegação. */
