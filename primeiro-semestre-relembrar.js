@@ -209,14 +209,23 @@ function top(id,subj){
 }
 const back='<button type="button" class="subject-hub-back" data-action="subjectArea:home">← Voltar às opções</button>';
 function docsView(ctx){
- const list=ctx.docs||[],sources=SOURCES[ctx.id]||[];
- const available=list.filter(m=>m.available);
- const html=available.length?'<div class="doclist">'+available.map(ctx.docCard).join('')+'</div>':
-  '<p class="s1-help">Os materiais enviados aqui na conversa precisam ser publicados na Biblioteca do site. Até lá, a lista abaixo identifica os textos usados para elaborar esta revisão.</p>';
- return panel('Materiais e textos',html+
-  '<details class="s1-ref-list"><summary>Fontes para conferência ('+sources.length+' referências temáticas)</summary><ul>'+
-  sources.map(x=>'<li>'+esc(x)+'</li>').join('')+'</ul></details>',
-  'Os títulos abaixo identificam arquivos de referência, não comprovam que já estejam publicados no site.');
+ const available=(ctx.docs||[]).filter(m=>m.available);
+ const manager=window.PSICO_COURSE_MANAGER;
+ const organizer=manager?.weeklyView?.('2026/1',ctx.id,available,ctx.docCard);
+ const weekly=!!organizer?.weekly;
+ const editor=window.PSICO_MATERIAL_EDITOR;
+ const general=editor?.render?.(available,{
+  subject:ctx.id,libraryView:false,
+  classify:ctx.classify||(()=> 'Materiais complementares'),
+  card:ctx.docCard
+ })||'<div class="doclist">'+available.map(ctx.docCard).join('')+'</div>';
+ const content='<div class="s1-library-organized">'+(organizer?.tabs||'')+
+  (weekly?organizer.body:
+   '<div class="s1-library-general">'+(editor?.editButton?.(ctx.id)||'')+
+   (available.length?general:'<p class="s1-help">Nenhum documento desta disciplina está publicado.</p>')+'</div>')+
+  '</div>';
+ return panel('Materiais e textos',content,
+  'Acervo geral: arquivos por tipo. Por semanas: os nomes e a sequência aparecem como no Moodle de 2026/1.');
 }
 function topicsView(ctx){
  const arr=ctx.topics||[],done=ctx.doneBox||(()=>''),key=ctx.topicProgressKey||((_,i)=>'topic:'+ctx.id+':'+i);
