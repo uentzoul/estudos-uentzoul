@@ -71,7 +71,7 @@ function setup(){
  if(!document.getElementById('pm-tutorial-script')){
   const script=document.createElement('script');
   script.id='pm-tutorial-script';
-  script.src='spotlight-tour.js?v=20261114-nav-tour-v16';
+  script.src='spotlight-tour.js?v=20261114-anywhere-swipe-v17';
   script.async=true;
   document.head.appendChild(script);
  }
@@ -92,7 +92,7 @@ function setup(){
  if(!document.getElementById('pm-mobile-drawer-js')){
   const script=document.createElement('script');
   script.id='pm-mobile-drawer-js';
-  script.src='mobile-drawer.js?v=20261114-nav-tour-v16';
+  script.src='mobile-drawer.js?v=20261114-anywhere-swipe-v17';
   script.async=true;
   document.head.appendChild(script);
  }
