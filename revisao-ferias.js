@@ -130,12 +130,15 @@ function privateHTML(){
 }
 function hero(){
  const which=semester===1?'Primeiro semestre':'Segundo semestre',count=events.length;
+ const intro=semester===1?
+  'Aproveite as férias para revisar os conteúdos mais importantes estudados no primeiro semestre. Relembre os principais assuntos pela linha do tempo e consulte os materiais relacionados. Para explorar as revisões de outros semestres, use o seletor de semestres e confira os que já estiverem disponíveis.':
+  'Aproveite as férias para revisar os conteúdos mais importantes estudados no segundo semestre. Relembre os principais assuntos pela linha do tempo e consulte os materiais relacionados. Para explorar as revisões de outros semestres, use o seletor de semestres e confira os que já estiverem disponíveis.';
  return '<header class="vr-hero">'+
   '<div class="vr-hero-grid"><div class="vr-hero-main">'+
   '<div class="vr-overline"><span class="vr-dot-kicker" aria-hidden="true"></span> PSICOMOODLE / ARQUIVO DE APRENDIZAGENS</div>'+
   '<span class="vr-hero-eyebrow">Revisão de Férias · 2026</span>'+
   '<h1>O que vale<br><em>levar adiante.</em></h1>'+
-  '<p>Um semestre de descobertas, reunido nos momentos que realmente importam. Explore os meses e reencontre os conceitos que se conectam ao resto do curso.</p>'+
+  '<p>'+intro+'</p>'+
   '<div class="vr-hero-bottom"><span class="vr-year"><span aria-hidden="true">✦</span> '+which+'</span>'+
   '<span class="vr-hint">'+(count?count+' momentos selecionados':'Novos marcos em preparação')+'</span></div>'+
   '</div><div class="vr-hero-art" aria-hidden="true"><span class="vr-art-ring vr-art-ring-one"></span>'+
