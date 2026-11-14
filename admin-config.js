@@ -3,7 +3,8 @@
 'use strict';
 const TABLE='uentzoul_admin_topics',PRESENCE='uentzoul_presence';
 let admin=false,owner=null,checking=false,topics=[],topicsSignature='',presence=[],reports=[],busy=false,notice='',editing=null,lastPresence=0,lastReports=0;
-let accessLog=[],logOpen=false,logTab='online',lastLog=0,logError='';
+let accessLog=[],logOpen=false,logTab='online',lastLog=0,logError='',markingTest=false;
+const TEST_LABELS='uentzoul_access_log_labels';
 const auth=()=>window.uentzoulAIAuth;
 const bridge=()=>window.uentzoulAdminBridge;
 const client=()=>auth()?.client?.();
@@ -63,15 +64,20 @@ async function loadPresence(){
 async function loadAccess(){
  if(!isAdmin()||!client())return;
  try{
-  const [events,profiles]=await Promise.all([
-   client().from('uentzoul_access_log').select('id,user_id,actor,entered_at')
-     .order('entered_at',{ascending:false}).limit(200),
-   client().from('uentzoul_profiles').select('user_id,display_name').limit(500)
+  const [events,profiles,labels]=await Promise.all([
+   client().from('uentzoul_access_log').select('id,user_id,actor,entered_at').order('entered_at',{ascending:false}).limit(200),
+   client().from('uentzoul_profiles').select('user_id,display_name').limit(500),
+   client().from(TEST_LABELS).select('access_id').limit(1000)
   ]);
   if(events.error)throw events.error;
   if(profiles.error)throw profiles.error;
+  if(labels.error)throw labels.error;
   const names=new Map((profiles.data||[]).map(p=>[p.user_id,p.display_name]));
-  accessLog=(events.data||[]).map(r=>({...r,name:r.actor==='anonymous'?'Usuário anônimo':names.get(r.user_id)||'Usuário cadastrado'}));
+  const marked=new Set((labels.data||[]).map(x=>String(x.access_id)));
+  accessLog=(events.data||[]).map(r=>{
+   const isTest=r.actor==='anonymous'&&marked.has(String(r.id));
+   return {...r,isTest,name:r.actor==='anonymous'?(isTest?'Meu teste anônimo':'Visitante anônimo'):names.get(r.user_id)||'Usuário cadastrado'};
+  });
   lastLog=Date.now();logError='';updateLogPanel();
  }catch(e){logError='Não foi possível carregar o histórico de entradas.';updateLogPanel();console.warn('Log indisponível:',e)}
 }
@@ -89,10 +95,15 @@ function logMarkup(){
   const active=logTab==='online'?true:logTab==='last'&&loggedOnline(row);
   const name=esc(row.name||'Usuário cadastrado');
   const when=logTab==='entries'?row.entered_at:row.last_seen;
-  const status=logTab==='online'?'Online agora':logTab==='last'?(active?'Online agora':'Última atividade registrada'):(row.actor==='anonymous'?'Visitante sem conta':'Entrou na conta');
+  const status=logTab==='online'?'Online agora':logTab==='last'?(active?'Online agora':'Última atividade registrada'):
+   row.actor==='anonymous'?(row.isTest?'Identificado manualmente como teste do administrador':'Origem não identificada · sem conta'):'Entrou na conta';
+  const markButton=logTab==='entries'&&row.actor==='anonymous'?
+   '<button type="button" class="admin-log-test-toggle" data-admin-test-access="'+esc(row.id)+'" '+(markingTest?'disabled':'')+
+   ' aria-label="'+(row.isTest?'Desfazer identificação deste acesso como meu teste':'Identificar este acesso como meu teste')+'">'+
+   (row.isTest?'Desfazer marcação':'Marcar como meu teste')+'</button>':'';
   return '<div class="admin-log-row"><span class="admin-log-avatar '+(active?'is-online':'')+'" aria-hidden="true">'+(row.actor==='anonymous'?'?':name.trim().charAt(0).toUpperCase()||'U')+'</span>'+
    '<span class="admin-log-person"><strong>'+name+'</strong><small>'+esc(status)+'</small></span>'+
-   '<time datetime="'+esc(when||'')+'">'+esc(logDate(when))+'</time></div>';
+   '<time datetime="'+esc(when||'')+'">'+esc(logDate(when))+'</time>'+markButton+'</div>';
  }).join('')+'</div>';
 }
 function updateLogPanel(){
@@ -108,7 +119,7 @@ function adminLogMarkup(){
   '<summary><div class="admin-log-title"><span class="admin-log-glyph" aria-hidden="true">⌁</span>'+
   '<div><strong>LOG</strong><small>Entradas e presença das contas</small></div></div>'+
   '<span class="admin-log-summary-meta">Privado <span aria-hidden="true">⌄</span></span></summary>'+
-  '<div class="admin-log-content"><p class="admin-log-explain">Registra somente entradas e horários, não acompanha páginas nem ações. O status online é estimado pela atividade recente. Visitantes anônimos não têm identificação nem presença individual.</p>'+
+  '<div class="admin-log-content"><p class="admin-log-explain">Registra somente entradas e horários, não acompanha páginas nem ações. O status online é estimado pela atividade recente. Visitantes anônimos não têm identificação automática do computador. Na aba Entradas, marque manualmente os registros que reconhecer como seus testes; a marcação preserva o histórico original.</p>'+
   '<div class="admin-log-toolbar" role="tablist" aria-label="Visualização dos acessos">'+
   [['online','Online','adminLogOnlineCount'],['last','Último acesso',''],['entries','Entradas','']].map(([tab,label,id])=>
    '<button type="button" role="tab" data-admin-log-tab="'+tab+'" aria-selected="'+(logTab===tab)+'">'+label+(id?' <span id="'+id+'">'+presence.filter(loggedOnline).length+'</span>':'')+'</button>').join('')+
@@ -199,12 +210,31 @@ async function deleteTopic(id){
  catch(e){notice='Falha ao excluir: '+(e?.message||'erro');refreshAdminPage();}
  finally{busy=false;}
 }
+async function toggleTestAccess(id){
+ if(!isAdmin()||markingTest)return;
+ const event=accessLog.find(x=>String(x.id)===String(id)&&x.actor==='anonymous');
+ if(!event)return;
+ const c=client();if(!c)return;
+ markingTest=true;updateLogPanel();
+ try{
+  const check=await c.rpc('uentzoul_is_admin');
+  if(check.error||check.data!==true)throw Error('Permissão administrativa não confirmada.');
+  const res=event.isTest?await c.from(TEST_LABELS).delete().eq('access_id',event.id):
+   await c.from(TEST_LABELS).insert({access_id:event.id});
+  if(res.error)throw res.error;
+  await loadAccess();
+ }catch(e){
+  logError='Falha ao identificar acesso: '+(e?.message||'erro desconhecido');
+ }finally{markingTest=false;updateLogPanel();}
+}
 document.addEventListener('submit',e=>{if(e.target.id!=='adminTopicForm')return;e.preventDefault();saveTopic(e.target);});
 document.addEventListener('click',e=>{
  const edit=e.target.closest('[data-admin-edit]');if(edit&&isAdmin()){editing=edit.dataset.adminEdit;refreshAdminPage();return;}
  const del=e.target.closest('[data-admin-delete]');if(del&&isAdmin()){deleteTopic(del.dataset.adminDelete);return;}
  if(e.target.closest('[data-admin-cancel]')&&isAdmin()){editing=null;refreshAdminPage();return;}
  if(e.target.closest('[data-admin-refresh]')&&isAdmin()){heartbeat().then(loadPresence);loadAccess();loadReports();}
+ const test=e.target.closest('[data-admin-test-access]');
+ if(test&&isAdmin()){toggleTestAccess(test.dataset.adminTestAccess);return;}
  const log=e.target.closest('[data-admin-log-tab]');
  if(log&&isAdmin()){logTab=log.dataset.adminLogTab;updateLogPanel();return}
  if(e.target.closest('[data-admin-log-refresh]')&&isAdmin()){loadPresence();loadAccess();return}
