@@ -15,7 +15,7 @@ const FORMATS={
 };
 let client=null,user=null,isAdmin=false,isBusy=false,chosenFiles=[],logEntries=[],refreshing=false,adminCheckedFor=null,initialized=false;
 let lastRowsSignature='',lastAdmin=false,refreshPending=false;
-let reviewed=[],isAnalyzing=false,scanToken=0,reviewSemester='';
+let reviewed=[],isAnalyzing=false,scanToken=0,reviewSemester='',batchSubjectValue='';
 const api=()=>window.uentzoulLibraryApp;
 const auth=()=>window.uentzoulAIAuth;
 function clean(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;','\'':'&#39;'}[c]));}
@@ -35,6 +35,11 @@ function show(message){
  if(el)el.textContent=message||'';
 }
 const subjects=()=>api()?.subjects?.()||window.UentzoulLibraryAnalyzer?.subjects||{geral:'Cadernos integrados',meta:'Metapsicologia',tcc:'TCC'};
+function selectedBatchSubject(){
+ const input=document.getElementById('libraryBatchSubject');
+ if(input)batchSubjectValue=String(input.value||'');
+ return Object.prototype.hasOwnProperty.call(subjects(),batchSubjectValue)?batchSubjectValue:'';
+}
 
 const WEEK_TABLE='uentzoul_material_weeks',PLACEMENTS='uentzoul_material_placements';
 const LIBRARY_CATEGORIES=[['plans','Planos de ensino e cronogramas'],['classes','Aulas e apresentações'],['texts','Textos-base e bibliografia'],['review','Guias e materiais de revisão'],['videos','Vídeos e referências online'],['extras','Materiais complementares']];
@@ -198,7 +203,7 @@ async function select(files){
   return;
  }
  ++scanToken;const mine=scanToken;
- reviewed=list.map(file=>({file,analysis:null,subject:'',title:titleFromFile(file,null),
+ reviewed=list.map(file=>({file,analysis:null,subject:selectedBatchSubject(),title:titleFromFile(file,null),
   suggestion:getTarget(file),targetKey:'__new__',scope:'in',conflict:false}));
  chosenFiles=list;logEntries=[];isAnalyzing=!!list.length;paint();
  for(let i=0;i<reviewed.length;i++){
@@ -210,12 +215,13 @@ async function select(files){
     {quality:'indisponivel',error:'O leitor de documentos não carregou',topics:[],hits:[]};
    const suggested=r.analysis?.subject||'',known=r.suggestion;
    // Cadernos multidisciplinares não devem ser tratados como material de uma disciplina única.
-   r.subject=known?.subject==='geral'?'geral':(subjects()[suggested]?suggested:(subjects()[known?.subject]?known.subject:''));
+   const batch=selectedBatchSubject();
+   r.subject=batch||(known?.subject==='geral'?'geral':(subjects()[suggested]?suggested:(subjects()[known?.subject]?known.subject:'')));
    r.title=known?.title||titleFromFile(r.file,r.analysis);
-   r.conflict=!!(suggested&&known?.subject&&known.subject!=='geral'&&suggested!==known.subject);
+   r.conflict=!batch&&!!(suggested&&known?.subject&&known.subject!=='geral'&&suggested!==known.subject);
    r.targetKey=mustSchedule(reviewSemester)?'__new__':(known&&!r.conflict?known.key:'__new__');
    r.scope=mustSchedule(reviewSemester)?'scheduled':(api()?.semester?.()==='2026/1'?'in':(known?.inExam||['principal','complementar'].includes(r.analysis?.examMatch)?'in':'archive'));
-  }catch(err){r.analysis={quality:'indisponivel',error:err?.message||'Leitura indisponível'};r.subject=r.suggestion?.subject||'';r.targetKey=mustSchedule(reviewSemester)?'__new__':(r.suggestion?.key||'__new__');r.scope=mustSchedule(reviewSemester)?'scheduled':(api()?.semester?.()==='2026/1'||r.suggestion?.inExam?'in':'archive')}
+  }catch(err){r.analysis={quality:'indisponivel',error:err?.message||'Leitura indisponível'};r.subject=selectedBatchSubject()||r.suggestion?.subject||'';r.targetKey=mustSchedule(reviewSemester)?'__new__':(r.suggestion?.key||'__new__');r.scope=mustSchedule(reviewSemester)?'scheduled':(api()?.semester?.()==='2026/1'||r.suggestion?.inExam?'in':'archive')}
   suggestOrganization(r);
   paint();
  }
@@ -430,6 +436,16 @@ document.addEventListener('click',async e=>{
  }
 });
 document.addEventListener('change',e=>{
+ if(e.target.id==='libraryBatchSubject'){
+  batchSubjectValue=String(e.target.value||'');
+  for(const r of reviewed){
+   const guess=r.analysis?.subject||r.suggestion?.subject||'';
+   r.subject=selectedBatchSubject()||(subjects()[guess]?guess:'');
+   r.conflict=false;r.targetKey='__new__';
+   suggestOrganization(r);
+  }
+  paint();return;
+ }
  if(e.target.id==='libraryFileInput')select(e.target.files);
  if(e.target.id==='libraryPackageInput'){importLibraryPackage(e.target.files?.[0]);e.target.value='';}
  const subj=e.target.closest('[data-review-subject]');
@@ -480,6 +496,6 @@ function tryStart(){
  if(attempts++<35)setTimeout(tryStart,1000);
 }
 tryStart();
-window.uentzoulLibraryManager={refresh,ready:()=>initialized,isAdmin:()=>isAdmin};
+window.uentzoulLibraryManager={refresh,ready:()=>initialized,isAdmin:()=>isAdmin,batchSubject:()=>batchSubjectValue};
 
 })();
