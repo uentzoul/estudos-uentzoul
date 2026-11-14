@@ -75,6 +75,20 @@ function setup(){
   script.async=true;
   document.head.appendChild(script);
  }
+ if(!document.getElementById('pm-podcast-mini-styles')){
+  const link=document.createElement('link');
+  link.id='pm-podcast-mini-styles';
+  link.rel='stylesheet';
+  link.href='podcast-mini.css?v=20261114-podcast-mini-v1';
+  document.head.appendChild(link);
+ }
+ if(!document.getElementById('pm-podcast-mini-script')){
+  const script=document.createElement('script');
+  script.id='pm-podcast-mini-script';
+  script.src='podcast-mini.js?v=20261114-podcast-mini-v1';
+  script.async=true;
+  document.head.appendChild(script);
+ }
  if(!document.getElementById('pm-flashcards-tour-style')){
   const css=document.createElement('link');
   css.id='pm-flashcards-tour-style';
