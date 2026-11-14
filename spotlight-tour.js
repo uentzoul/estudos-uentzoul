@@ -41,7 +41,7 @@ const mobileCopy=[
 ];
 const mobileSteps=[
  {page:'home',find:'#pmMobileMenuToggle',tourScene:'menu-button',
-  title:'Abra o menu',body:'Toque em ☰ ou arraste da esquerda para a direita. O menu acompanha seu dedo.'},
+  title:'Abra o menu',body:'Arraste para a direita em qualquer parte da tela. O menu acompanha seu dedo. Ou toque em ☰.'},
  {page:'home',find:'#siteSidebar',tourScene:'menu-list',
   title:'Explore o PsicoMoodle',body:'Aqui estão as páginas, matérias e outras opções. Para fechar, arraste para a esquerda em qualquer lugar da tela ou toque fora.'},
  ...steps.slice(0,-1).map((s,i)=>({...s,...mobileCopy[i],baseIndex:i,
