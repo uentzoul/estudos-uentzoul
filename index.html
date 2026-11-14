@@ -1925,6 +1925,41 @@ html[data-theme="dark"] .tz-pending-icon{background:#40375e;color:#d6c4ff}
 @media(min-width:761px) and (max-width:1190px){html:not(.pm-right-closed) .pm-right-handle{right:205px}}
 @media(max-width:760px){.pm-right-handle{display:none!important}}
 
+/* Agenda exclusivamente do semestre acadêmico vigente.
+   Botão bloqueado em primeiro/terceiro até a mudança oficial da vigência. */
+#nav .sidebtn.agenda-locked[data-page="calendar"]{
+ display:grid!important;grid-template-columns:18px minmax(0,1fr);
+ grid-template-rows:auto auto;column-gap:10px;row-gap:2px;
+ align-items:center;text-align:left;opacity:.74;
+ color:var(--muted,#7b7b91)!important;background:transparent!important;
+ cursor:not-allowed!important;box-shadow:none!important;transform:none!important;
+}
+#nav .sidebtn.agenda-locked[data-page="calendar"] svg{
+ grid-column:1;grid-row:1/3;opacity:.7;
+}
+#nav .sidebtn.agenda-locked[data-page="calendar"] .nav-label{
+ grid-column:2;grid-row:1;min-width:0;
+}
+#nav .sidebtn.agenda-locked[data-page="calendar"] .agenda-availability-note{
+ grid-column:2;grid-row:2;display:block;
+ min-width:0;color:var(--muted,#7b7b91);
+ font-size:10px;font-weight:750;line-height:1.35;letter-spacing:0;
+ white-space:normal;overflow-wrap:normal;
+}
+#nav .sidebtn.agenda-locked[data-page="calendar"]:hover{background:transparent!important}
+@media(max-width:760px){
+ #nav .sidebtn.agenda-locked[data-page="calendar"]{
+  grid-template-columns:minmax(0,1fr);grid-template-rows:auto auto auto;
+  gap:2px;padding:5px 2px;min-height:72px;text-align:center;
+ }
+ #nav .sidebtn.agenda-locked[data-page="calendar"] svg{grid-column:1;grid-row:1;width:17px;height:17px;margin:auto}
+ #nav .sidebtn.agenda-locked[data-page="calendar"] .nav-label{grid-column:1;grid-row:2}
+ #nav .sidebtn.agenda-locked[data-page="calendar"] .agenda-availability-note{
+  grid-column:1;grid-row:3;font-size:8px;line-height:1.16;
+  max-width:100%;margin:auto;overflow-wrap:anywhere;
+ }
+}
+
 #nav .sidebtn[data-page="calendar"] .nav-label-short{display:none}
 @media(max-width:760px){
  #nav .sidebtn[data-page="calendar"] .nav-label-full{display:none!important}
@@ -2203,6 +2238,24 @@ html[data-theme="dark"] .tz-library-download{background:#26374c;border-color:#45
 const SEMESTER_PREF='uentzoul_semester_v1';
 const SEMESTER_LABELS={'2026/1':'1º Semestre','2026/2':'2º Semestre','2027/1':'3º Semestre'};
 const semesterLabel=key=>SEMESTER_LABELS[key]||key;
+/* Um único semestre acadêmico fica com a Agenda e Horários ativa.
+   O calendário presencial oficial da PUCRS informa início 2027/1 em 22/02/2027.
+   Para semestres posteriores, adicionar a data oficial a esta lista. */
+const AGENDA_PROMOTIONS=[
+ ['2027/1','2027-02-22T00:00:00-03:00']
+];
+function activeAgendaSemester(){
+ let active='2026/2';
+ for(const [id,starts] of AGENDA_PROMOTIONS)
+  if(Date.now()>=Date.parse(starts))active=id;
+ return active;
+}
+const agendaAvailable=()=>semester===activeAgendaSemester();
+function agendaLockedMessage(){
+ const semesterNow=activeAgendaSemester();
+ const ordinal={'2026/1':'primeiro','2026/2':'segundo','2027/1':'terceiro'}[semesterNow]||semesterNow;
+ return 'Apenas '+ordinal+' semestre disponível';
+}
 const SEMESTER_DB={
  '2026/1':{subjects:{
   "profissao":{name:"Psicologia como Profissão",code:"",hours:0,color:"#6577b2"},
@@ -2580,6 +2633,7 @@ function pmNavRestore(state){
   if(current.page==='subject'&&!DB.subjects[current.subject])current.page='home';
   if(current.page==='test'&&!DB.exams.some(x=>x.id===current.exam))current.page='exams';
   if(current.page==='admin'&&!window.uentzoulAdminConfig?.isAdmin?.())current.page='home';
+  if(current.page==='calendar'&&!agendaAvailable())current.page='home';
   if(state.agenda){
    calendarView=['provas','horarios','conteudos'].includes(state.agenda.view)?state.agenda.view:'provas';
    calendarShowPast=!!state.agenda.showPast;
@@ -2604,6 +2658,7 @@ const go=(page,extra={})=>{
  if(page==='personal')page='home'; // Funcionalidade suspensa, sem apagar dados
  if(page==='library')page='home';
  if(page==='schedule'){calendarView='horarios';page='calendar';}
+ if(page==='calendar'&&!agendaAvailable())return;
  if(page==='admin'&&!window.uentzoulAdminConfig?.isAdmin?.())page='home';
  const previousScroll=window.scrollY||0;
  if(page==='home')current.libraryCourse=null;
@@ -2638,7 +2693,23 @@ function renderNav(){
  const currentLabel=$('semesterCurrentLabel');if(currentLabel)currentLabel.textContent=semesterLabel(semester);
  document.querySelectorAll('.brand strong,.mobile-heading strong').forEach(el=>el.textContent='PsicoMoodle');
  document.title='PsicoMoodle · Psicologia PUCRS '+semesterLabel(semester);
- const nav=$('subjectNav');nav.innerHTML=Object.keys(DB.subjects).map(k=>`<button class="sidebtn ${current.subject===k && current.page==='subject'?'active':''}" data-action="subject:${k}"><i style="color:${color(k)}">●</i> ${esc(getSubject(k).name)}</button>`).join('');if(!Object.keys(DB.subjects).length)nav.innerHTML='<p class="semester-subjects-empty">As matérias de 2027/1 ainda não foram adicionadas.</p>';document.querySelectorAll('[data-page]').forEach(b=>b.classList.toggle('active',b.dataset.page===current.page));const adminButton=document.getElementById('navAdminConfig');if(adminButton)adminButton.hidden=!window.uentzoulAdminConfig?.isAdmin?.();}
+ const nav=$('subjectNav');nav.innerHTML=Object.keys(DB.subjects).map(k=>`<button class="sidebtn ${current.subject===k && current.page==='subject'?'active':''}" data-action="subject:${k}"><i style="color:${color(k)}">●</i> ${esc(getSubject(k).name)}</button>`).join('');if(!Object.keys(DB.subjects).length)nav.innerHTML='<p class="semester-subjects-empty">As matérias de 2027/1 ainda não foram adicionadas.</p>';document.querySelectorAll('[data-page]').forEach(b=>b.classList.toggle('active',b.dataset.page===current.page));
+ // Botão realmente desativado no semestre que não é o vigente; não só aparência.
+ const calendarNav=document.querySelector('#nav .sidebtn[data-page="calendar"]');
+ if(calendarNav){
+  const locked=!agendaAvailable(),label=agendaLockedMessage();
+  calendarNav.disabled=locked;
+  calendarNav.classList.toggle('agenda-locked',locked);
+  calendarNav.setAttribute('aria-disabled',String(locked));
+  calendarNav.setAttribute('aria-label',locked?'Agenda e Horários. '+label:'Agenda e Horários');
+  calendarNav.title=locked?label:'Agenda e Horários';
+  let note=calendarNav.querySelector('.agenda-availability-note');
+  if(locked){
+   if(!note){note=document.createElement('small');note.className='agenda-availability-note';calendarNav.appendChild(note)}
+   note.textContent=label;
+  }else note?.remove();
+ }
+ const adminButton=document.getElementById('navAdminConfig');if(adminButton)adminButton.hidden=!window.uentzoulAdminConfig?.isAdmin?.();}
 function head(k,h,sub){return `<div class="eyebrow">${esc(k)}</div><h1 class="h1">${esc(h)}</h1>${sub?`<p class="lead">${esc(sub)}</p>`:''}`}
 function renderHome(){
  const order=Object.keys(DB.subjects).sort((a,b)=>getSubject(a).date.localeCompare(getSubject(b).date));
@@ -4236,6 +4307,7 @@ function renderThirdSemester(){
  return courseCards();
 }
 function render(){
+ if(current.page==='calendar'&&!agendaAvailable())current.page='home';
  renderNav();
  if((semester==='2027/1'||semester==='2026/1')&&!['ai','messages','admin','exams','test'].includes(current.page)){
   $('main').innerHTML=renderThirdSemester();return;
@@ -4462,6 +4534,7 @@ function onAction(act){
   return;
  }
  if(act==='tz-login'){window.uentzoulAIAuth?.openLogin();return}
+ if((act.startsWith('agenda-')||act==='agenda-past')&&!agendaAvailable())return;
  if(act.startsWith('agenda-tab:')){
   const tab=act.slice('agenda-tab:'.length);
   if(tab==='provas'||tab==='horarios'||tab==='conteudos'){calendarView=tab;go('calendar')}
