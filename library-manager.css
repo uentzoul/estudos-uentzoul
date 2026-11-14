@@ -86,3 +86,16 @@ html[data-theme="dark"] .library-count-track{background:#403653}
  .library-count-track{grid-column:1/-1}
  .library-review-card{padding:13px}.library-review-file{flex-wrap:wrap}
 }
+
+
+/* Uma única disciplina para todo o lote; disponível antes de escolher arquivos. */
+.library-batch-subject{
+ grid-column:1/-1;display:grid;grid-template-columns:minmax(160px,1fr) minmax(220px,1.45fr);
+ gap:7px 15px;align-items:center;padding:13px 15px;border:1px solid var(--line,#dcd7e5);
+ border-radius:14px;background:var(--paper,#fff);min-width:0
+}
+.library-batch-subject label{font-size:12px;font-weight:800;color:var(--ink)}
+.library-batch-subject select{min-width:0;width:100%;min-height:43px;padding:9px 12px;border:1px solid var(--line,#dcd7e5);border-radius:10px;background:var(--bg,var(--paper,#fff));color:var(--ink);font:inherit;font-size:12px}
+.library-batch-subject select:focus-visible{outline:2px solid #8069c3;outline-offset:2px}
+.library-batch-subject small{grid-column:1/-1;color:var(--muted);font-size:11px;line-height:1.5}
+@media(max-width:620px){.library-batch-subject{grid-template-columns:minmax(0,1fr);padding:12px}.library-batch-subject small{grid-column:1}}
