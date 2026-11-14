@@ -180,7 +180,7 @@ function findNode(step){
    2:()=>available('#main .subject-hub-menu [data-action="subjectArea:trail"]'),
    1:()=>available('#homeCourses [data-action="subject:avaliacao"]')?.closest('.course-card')||available('#homeCourses .course-card'),
    5:()=>calendarEventDay(),
-   6:()=>available('#main .schedule-day:has(.schedule-lesson) .schedule-lesson'),
+   6:()=>available('#main .schedule-day:has(.schedule-lesson)'),
    7:()=>mondayClassRow(),
    10:()=>available('#main .dm-list .dm-search-label')||available('#main .dm-list-head'),
    11:()=>available('#main .dm-channel-tabs [data-dm-tab="groups"]'),
@@ -341,20 +341,10 @@ function calendarWeekRect(node){
 }
 function targetVisualBounds(node,mobile){
  if(originalIndex()===5 && node.matches('.agenda-cal-day'))return calendarWeekRect(node);
- if(mobile&&originalIndex()===6&&node.matches('.schedule-lesson')){
-  // Horários (9/18): enquadra a primeira aula e, se couber, o dia junto.
-  // Nunca recorta as outras três aulas de uma grade alta.
-  const lesson=node.getBoundingClientRect();
-  const title=node.closest('.schedule-day')?.querySelector('.schedule-day-heading')?.getBoundingClientRect();
-  const room=mobileShowcase(),maxHeight=room.bottom-room.top-18;
-  if(title){
-   const top=Math.min(lesson.top,title.top),bottom=lesson.bottom;
-   if(bottom-top<=maxHeight){
-    return {left:Math.min(title.left,lesson.left),top,right:Math.max(title.right,lesson.right),
-     bottom,width:Math.max(title.right,lesson.right)-Math.min(title.left,lesson.left),height:bottom-top};
-   }
-  }
-  return lesson;
+ if(mobile&&originalIndex()===6&&node.matches('.schedule-day')){
+  // Etapa 9/18: enquadra o cartão inteiro da segunda-feira, do título
+  // à última aula, mantendo todos os horários visíveis.
+  return node.getBoundingClientRect();
  }
  // A data aparece na faixa anexada à própria aula; destacar só a aula
  // de Metapsicologia, não todos os outros encontros de segunda-feira.
