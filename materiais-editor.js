@@ -109,7 +109,7 @@ function renderGroups(materials,opts){
   '<button type="button" data-pm-bulk="clear"'+(active.selected.size?'':' disabled')+'>Limpar seleção</button>'+
   '<button type="button" data-pm-bulk="hide"'+(selectedVisible?'':' disabled')+'>Ocultar selecionados</button>'+
   '<button type="button" data-pm-bulk="restore"'+(selectedHidden?'':' disabled')+'>Restaurar selecionados</button></div>';
- return '<div class="pm-edit-instructions"><strong>Modo de edição</strong><span>Selecione os materiais para ocultá-los ou restaurá-los em conjunto. Também é possível editar o nome exibido, escolher a categoria, arrastar e alterar a ordem. Os arquivos originais não são apagados. Clique em Salvar organização para publicar as alterações.</span></div>'+
+ return '<div class="pm-edit-instructions"><strong>Modo de edição</strong><span>Selecione os materiais para ocultá-los ou restaurá-los em conjunto. Também é possível editar o nome exibido, escolher a categoria, arrastar e alterar a ordem. Os arquivos originais não são apagados. Clique em Salvar organização para guardar as alterações. Os materiais agendados continuam ocultos para alunos até a data programada.</span></div>'+
   (active.error?'<p class="pm-edit-error" role="alert">'+esc(active.error)+'</p>':'')+
   controls+'<div class="pm-editor-groups">'+sections+hiddenSection+'</div>';
 }
@@ -180,7 +180,7 @@ async function save(){
    }
    for(const row of rows)placements.set(placementKey(row.subject,row.resource_key,row.semester),row);
   }
-  notice='Alterações de materiais salvas para todos os usuários.';
+  notice='Organização salva. Os arquivos agendados continuam exclusivos dos administradores até a liberação.';
   editing=null;lastFetch=Date.now();repaint();
  }catch(e){if(editing===state){state.error=e?.message||'Falha ao salvar a organização.';state.busy=false;repaint();}}
 }
