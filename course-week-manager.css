@@ -113,3 +113,19 @@
  .pm-private-materials-notice{padding:10px 11px}
  .doc-full-link .pm-scheduled-file-label{width:auto;max-width:100%}
 }
+
+/* Destaque sereno e visível para documentos das últimas provas. */
+.pm-exam-badge{
+ display:inline-flex;align-items:center;gap:5px;white-space:nowrap;
+ padding:4px 9px;border-radius:999px;
+ border:1px solid #c3acd7;background:#f1eaf5;color:#664c80;
+ font-size:10px;font-weight:800;line-height:1.4;letter-spacing:.01em
+}
+.pm-exam-badge::before{content:"●";font-size:7px}
+.pm-exam-info{margin:11px 0 16px;padding:12px 14px;border:1px solid var(--line,#ddd8e6);
+ border-left:3px solid #8e71a5;border-radius:10px;background:var(--paper,#fff);font-size:12px;line-height:1.6}
+.pm-exam-info>strong{font-size:12px}.pm-exam-info p{margin:5px 0 0}
+.pm-exam-info .pm-exam-badge{vertical-align:middle;margin:0 2px}
+.doc-full-link .pm-exam-badge{flex:none}
+.library-resource-copy .pm-exam-badge{margin-top:7px}
+@media(max-width:580px){.pm-exam-info{padding:10px 11px}.doc-full-link .pm-exam-badge{white-space:normal}}
