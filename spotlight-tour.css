@@ -119,3 +119,49 @@ html.pm-tour-running .pm-spotlight-popover button{touch-action:manipulation}
  .pm-spotlight-actions{gap:3px}
  .pm-spotlight-actions button{padding:7px!important;font-size:10.5px}
 }
+
+/* Tour mobile — o conteúdo apontado ocupa a área superior; a explicação,
+   independente da posição do destaque, permanece num painel inferior. */
+@media(max-width:760px){
+ html.pm-tour-running #main::after{content:"";display:block;height:55dvh;pointer-events:none}
+ html.pm-tour-running .pm-spotlight-popover{
+  position:fixed!important;
+  top:auto!important;bottom:max(10px,env(safe-area-inset-bottom))!important;
+  left:8px!important;right:8px!important;width:auto!important;
+  max-height:min(44dvh,350px)!important;
+  display:flex;flex-direction:column;
+  overflow:hidden;
+  padding:14px 15px 12px;
+  box-sizing:border-box;
+  border-radius:16px;
+  box-shadow:0 -12px 50px rgba(0,0,0,.30);
+ }
+ html.pm-tour-running .pm-spotlight-head,
+ html.pm-tour-running .pm-spotlight-popover h2,
+ html.pm-tour-running .pm-spotlight-track,
+ html.pm-tour-running .pm-spotlight-actions{flex:0 0 auto}
+ html.pm-tour-running .pm-spotlight-popover h2{margin-bottom:7px;font-size:17px}
+ html.pm-tour-running .pm-spotlight-body{
+  flex:1 1 auto;min-height:0;overflow-y:auto;
+  margin:0 0 5px;line-height:1.5;
+  overscroll-behavior:contain;-webkit-overflow-scrolling:touch;
+ }
+ html.pm-tour-running .pm-spotlight-tip{
+  flex:0 1 auto;min-height:0;max-height:63px;
+  overflow-y:auto;margin:4px 0;
+ }
+ html.pm-tour-running .pm-spotlight-track{margin:9px 0 10px}
+ html.pm-tour-running .pm-spotlight-actions{flex-wrap:nowrap;gap:3px}
+ html.pm-tour-running .pm-spotlight-actions button{
+  min-width:0;min-height:34px;font-size:10.7px;
+  padding:7px 8px;
+ }
+ html.pm-tour-running .pm-spotlight-counter{min-width:32px;margin-right:auto}
+ html.pm-tour-running .pm-spotlight-ring{transition:none}
+}
+@media(max-width:360px){
+ html.pm-tour-running .pm-spotlight-popover{max-height:min(48dvh,345px)!important;padding:12px}
+ html.pm-tour-running .pm-spotlight-head{margin-bottom:6px}
+ html.pm-tour-running .pm-spotlight-popover h2{font-size:16px}
+ html.pm-tour-running .pm-spotlight-actions button{padding:7px 6px}
+}
