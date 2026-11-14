@@ -29,17 +29,25 @@ let lastRect=null,pendingScroll=false;
 const margin=8;
 const clamp=(n,min,max)=>Math.max(min,Math.min(max,n));
 const esc=s=>String(s||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-function mainReady(){return !!q('#main #homeCourses .course-toolbar')}
+const FIRST_VISIT_KEY='pm-tour-opened-v1';
+function isFirstVisit(){
+ try{return localStorage.getItem(FIRST_VISIT_KEY)!=='1'}catch(_){return false}
+}
+function markTourOpened(){
+ try{localStorage.setItem(FIRST_VISIT_KEY,'1')}catch(_){}
+ byId('pmTourEntry')?.classList.remove('is-first-visit');
+}
+function mainReady(){return !!q('#main #homeCourses .course-intro')}
 function insertEntry(){
  if(!mainReady())return;
- const toolbar=q('#main #homeCourses .course-toolbar');
- if(!toolbar)return;
+ const intro=q('#main #homeCourses .course-intro');
  let entry=byId('pmTourEntry');
  if(!entry){
   entry=document.createElement('div');entry.id='pmTourEntry';entry.className='pm-tour-entry';
-  entry.innerHTML='<button type="button" id="pmTourLaunch" class="pm-tour-launch" aria-label="Iniciar tutorial guiado do site"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 6.5A2.5 2.5 0 0 1 6.5 4H20v15H6.5A2.5 2.5 0 0 1 4 16.5zM4 16.5A2.5 2.5 0 0 1 6.5 14H20M8 8h8"/></svg><span>Tutorial</span></button>';
+  entry.innerHTML='<button type="button" id="pmTourLaunch" class="pm-tour-launch" aria-label="Iniciar tutorial guiado do site"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 6.5A2.5 2.5 0 0 1 6.5 4H20v15H6.5A2.5 2.5 0 0 1 4 16.5zM4 16.5A2.5 2.5 0 0 1 6.5 14H20M8 8h8"/></svg><span>Tutorial</span></button>';
  }
- if(entry.nextElementSibling!==toolbar)toolbar.parentNode.insertBefore(entry,toolbar);
+ entry.classList.toggle('is-first-visit',isFirstVisit());
+ if(entry.parentNode!==intro)intro.appendChild(entry);
 }
 function build(){
  if(shell)return;
@@ -204,7 +212,7 @@ function close(){
  lastFocus?.isConnected&&lastFocus.focus?.({preventScroll:true});
 }
 function click(event){
- if(event.target.closest('#pmTourLaunch')){event.preventDefault();open();return}
+ if(event.target.closest('#pmTourLaunch')){event.preventDefault();markTourOpened();open();return}
  if(!active)return;
  const command=event.target.closest('[data-pmtour]')?.dataset.pmtour;
  if(command){
