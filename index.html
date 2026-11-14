@@ -2269,7 +2269,7 @@ window.uentzoulLibraryApp={
  items:()=> (semester==='2026/1'?SEMESTER_DB['2026/1'].materials:LIBRARY_MATERIALS).filter(m=>!/^https?:\/\//i.test(m._libraryLegacyUrl) && (m._libraryWasLocal||!m._libraryBaseAvailable)).map(m=>({
   key:m._libraryKey,title:m.title,subject:m.subject,source:m.source||'',
   legacyUrl:m._libraryLegacyUrl,uploaded:!!m._libraryUpload,
-  inExam:BASE_LIBRARY_MATERIALS.includes(m),note:m.note||''
+  inExam:semester==='2026/1'?m._libraryUpload?.exam_scope!==false:BASE_LIBRARY_MATERIALS.includes(m),note:m.note||''
  })),
  record:key=>libraryRecords.get(key)||null,
  uploadStats:()=>{
