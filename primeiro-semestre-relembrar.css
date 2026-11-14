@@ -28,12 +28,21 @@
 .s1-done{margin-left:auto}
 .s1-global-exams{padding:12px 4px}
 .s1-global-exams>h1{font-size:clamp(24px,4vw,32px);margin:0 0 8px}
-.s1-global-exams>p{margin:0 0 24px;color:var(--text-muted,#596675);line-height:1.6}
+.s1-global-exams>p{margin:0 0 24px;color:var(--muted,var(--text-muted,#596675));line-height:1.6}
 .s1-global-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:15px}
-.s1-exam-course{padding:20px;border:1px solid var(--border,#dce2ec);border-radius:16px;background:var(--card,#fff);display:grid;gap:9px}
-.s1-exam-course>strong{font-size:16px;margin-bottom:8px}
-.s1-exam-course>button{text-align:left;border:1px solid var(--border,#dce2ec);border-radius:10px;background:transparent;padding:12px;color:inherit;font:inherit;cursor:pointer}
-.s1-exam-course>button:hover,.s1-exam-course>button:focus-visible{border-color:#7695c5;background:rgba(95,133,190,.08)}
+.s1-exam-course{padding:20px;border:1px solid var(--line,var(--border,#dce2ec));border-radius:16px;background:var(--paper,#fff);color:var(--ink,#292638);display:grid;gap:9px}
+.s1-exam-course>strong{font-size:16px;margin-bottom:8px;color:inherit}
+.s1-exam-course>button{text-align:left;border:1px solid var(--line,var(--border,#dce2ec));border-radius:10px;background:transparent;padding:12px;color:inherit;font:inherit;cursor:pointer}
+.s1-exam-course>button:hover,.s1-exam-course>button:focus-visible{border-color:#7695c5;background:rgba(95,133,190,.08);color:inherit}
+.s1-exam-course>button:focus-visible{outline:2px solid #7894d1;outline-offset:2px}
+/* O primeiro semestre usa as variáveis de superfície e texto do tema ativo.
+   Garantimos contraste na versão escura, mesmo com regras globais nos botões. */
+html[data-theme="dark"] .s1-exam-course{background:#24243b!important;color:#f0ebfa!important;border-color:#45425c!important}
+html[data-theme="dark"] .s1-exam-course>strong{color:#f0ebfa!important}
+html[data-theme="dark"] .s1-exam-course>button{background:#292941!important;color:#f0ebfa!important;border-color:#4b4b66!important}
+html[data-theme="dark"] .s1-exam-course>button:hover,
+html[data-theme="dark"] .s1-exam-course>button:focus-visible{background:#373751!important;color:#fff!important;border-color:#a9b4ff!important}
+html[data-theme="dark"] .s1-global-exams>p{color:#b8c4d8}
 @media(max-width:700px){
  .s1-step ol,.s1-global-grid{grid-template-columns:1fr}
  .s1-ref-list ul{columns:1}
