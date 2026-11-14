@@ -1958,8 +1958,9 @@ html[data-theme="dark"] .tz-pending-icon{background:#40375e;color:#d6c4ff}
 <script src="estudo-ativo.js?v=20261114-flash-tour-v2"></script>
 <script src="psicomoodle-new-content.js?v=20261113-social-family-2"></script>
 <script src="simulados-finais-2026.js?v=20261113-provas-equivalentes-1"></script>
+<script src="simulados-grupos-filme-2026.js?v=20261114-grupos-filme-v1"></script>
 <script src="estudos-dirigidos-finais-2026.js?v=20261113-revisao-global-1"></script>
-<link rel="stylesheet" href="simulados-finais-2026.css?v=20261114-clean-1">
+<link rel="stylesheet" href="simulados-finais-2026.css?v=20261114-grupos-info-v2">
 <script src="casos-act-social.js?v=20261113-revisao-global-1"></script>
 <script src="casos-finais-2026.js?v=20261113-1"></script>
 <link rel="stylesheet" href="chat-whatsapp.css?v=20261114-final-review-v4">
@@ -2679,7 +2680,7 @@ function examCard(e){
   '<div class="ge-clean-head"><h3>'+esc(e.title)+'</h3>'+
   '<div class="ge-clean-mark">'+doneBox('sim:'+e.id,'Visto')+'</div></div>'+
   '<p class="ge-clean-specs">'+esc(count)+'</p>'+
-  (result?'<p class="ge-clean-result">✓ Entregue · '+result.correct+'/'+result.total+' acertos</p>':'')+
+  (result?'<p class="ge-clean-result">✓ Entregue · '+(result.total===0?'respostas para revisar':result.correct+'/'+result.total+' acertos')+'</p>':'')+
   '<button class="btn ge-clean-launch" type="button" data-action="test:'+esc(e.id)+'">'+
    (result?'Ver correção':'Iniciar simulado')+
    '<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14m-6-6 6 6-6 6"/></svg>'+
@@ -2792,7 +2793,8 @@ function organizedSubjectMaterials(materials,libraryView=false,subjectId=''){
 // Uma prova publicada por nível; os registros extras continuam guardados sem aparecer nesta aba.
 function readyExamsFor(subject){
  const base=DB.exams.filter(e=>e.subject===subject);
- const latest=base.filter(e=>e.final2026===true&&e.revision===window.PSICO_FINAL_EXAMS?.version);
+ const currentRevision=subject==='grupos'?window.PSICO_FINAL_EXAMS?.groupVersion:window.PSICO_FINAL_EXAMS?.version;
+ const latest=base.filter(e=>e.final2026===true&&e.revision===currentRevision);
  if(latest.length===5)return [1,2,3,4,5].map(level=>latest.find(e=>Number(e.model)===level)).filter(Boolean);
  const first=subject==='social'?6:1;
  return Array.from({length:5},(_,i)=>base.find(e=>Number(e.model)===first+i)).filter(Boolean);
@@ -3917,24 +3919,31 @@ renderSubject=function(k){
   '<p>Provas geradas por ti ou compartilhadas contigo.</p></div>'+
   (user?'<button type="button" class="subject-sim-create" data-action="subjectCreateExam">+ Criar simulado</button>':'')+
   '</div>'+created+'</div>';
- const section='<section class="section" id="tests"><div class="sectiontop"><h2>Simulados</h2></div>'+
+ const section='<section class="section" id="tests"><div class="sectiontop"><h2>Simulados</h2></div>'+geOriginDetails()+
   '<div class="subject-sim-groups">'+readyGroup+'</div></section>';
  return html.slice(0,start)+section+html.slice(end+'</section>'.length);
 };
+function geOriginDetails(){
+ return '<details class="ge-origin-explain"><summary><span class="ge-origin-icon" aria-hidden="true">?</span> Como foram feitos os simulados?</summary>'+
+ '<div class="ge-origin-copy"><p>Estudantes compartilharam provas e exemplos de avaliações anteriores. Eles foram analisados para entender o estilo de cobrança de cada professor, como a forma dos enunciados, os conceitos mais explorados, a aplicação de casos e o nível de justificativa pedido. Com essas referências e os conteúdos previstos para a avaliação final, foram criadas questões inéditas que procuram se aproximar desse estilo.</p>'+
+ '<p>Nem todas as disciplinas tiveram a mesma quantidade de provas como referência. <strong>Os simulados não são provas oficiais nem uma previsão do que será cobrado.</strong> São ferramentas de treino e revisão.</p>'+
+ '<p>Em Psicologia de Grupos, os cinco simulados prontos relacionam cenas de <em>Escritores da Liberdade</em> com conceitos de Moreno e Carl Rogers. Cada modelo tem cinco questões dissertativas e respostas orientativas.</p></div></details>';
+}
 function geReadyLibrary(){
  const subjects=Object.keys(DB.subjects);
  return '<header class="ge-ready-intro"><h1 class="h1">Provas para praticar</h1>'+
-  '<p>Escolha um simulado para começar. Atividades de estudo, não avaliações oficiais.</p></header>'+
+  '<p>Escolha um simulado para começar. Atividades de estudo, não avaliações oficiais.</p></header>'+geOriginDetails()+
  subjects.map(id=>{
   const all=readyExamsFor(id),completed=all.filter(e=>!!store.results[e.id]).length;
+  const archived=DB.exams.filter(e=>e.subject===id&&!all.some(item=>item.id===e.id)&&store.results[e.id]);
   const group=items=>'<div class="examgrid ge-ready-grid">'+items.map(examCard).join('')+'</div>';
   return '<section class="section ge-ready-subject"><div class="sectiontop">'+
    '<h2 style="border-left:4px solid '+color(id)+';padding-left:10px">'+esc(DB.subjects[id].name)+'</h2>'+
    (completed?'<span class="ge-ready-progress">'+completed+' de '+all.length+' concluídos</span>':'')+
    '</div>'+group(all)+
-   (DB.exams.some(e=>e.subject===id&&e.revision!==window.PSICO_FINAL_EXAMS?.version&&store.results[e.id])?
+   (archived.length?
     '<details class="ge-old-archive"><summary>Simulados anteriores concluídos · consultar correções</summary><div class="examgrid">'+
-     DB.exams.filter(e=>e.subject===id&&e.revision!==window.PSICO_FINAL_EXAMS?.version&&store.results[e.id]).map(examCard).join('')+
+     archived.map(examCard).join('')+
     '</div></details>':'')+
    '</section>';
  }).join('');
