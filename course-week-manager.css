@@ -51,3 +51,33 @@
  .pm-admin-subject-list button{margin-left:auto}
 }
 @media(max-width:380px){.pm-week-group>summary small{width:100%;padding-left:2px}.pm-material-tabs button{font-size:11px}}
+
+/* Proteções adicionais para larguras pequenas, orientação e zoom. */
+@media(max-width:760px){
+ html,body{max-width:100%;overflow-x:clip}
+ #main,.main,.library-page,.course-intro,.course-grid,.course-card,
+ .subject-hub,.subject-hub-area,.admin-config-page,.admin-card,
+ .library-group,.material-block,.pm-week-list,.pm-week-group{
+  min-width:0;max-width:100%;box-sizing:border-box
+ }
+ .course-grid{grid-template-columns:minmax(0,1fr)!important}
+ .course-card,.course-card-button{width:100%;min-width:0;max-width:100%}
+ .course-card-content,.course-card-title,.course-card-desc,
+ .subject-hub-heading,.subject-hub-card-copy,.docname{
+  min-width:0;max-width:100%;overflow-wrap:anywhere
+ }
+ .subject-hub-menu{grid-template-columns:minmax(0,1fr)!important;min-width:0}
+ .subject-hub-card{min-width:0;max-width:100%;box-sizing:border-box}
+ .subject-hub-card-copy{flex:1}
+ .course-intro,.course-toolbar,.sectiontop{flex-wrap:wrap;min-width:0}
+ .course-toolbar input,.course-toolbar select{max-width:100%;min-width:0}
+ .admin-config-page input,.admin-config-page select,
+ .admin-config-page textarea{max-width:100%;min-width:0;box-sizing:border-box}
+ .doc-compact,.doc-full-link,.docname{min-width:0;overflow-wrap:anywhere}
+ .pm-week-row>.doc .doc-full-link{max-width:100%}
+}
+@media(max-width:390px){
+ .course-toolbar{gap:8px}
+ .course-toolbar input,.course-toolbar select{width:100%}
+ .pm-week-number{max-width:100%}
+}
