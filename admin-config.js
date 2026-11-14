@@ -4,6 +4,9 @@
 const TABLE='uentzoul_admin_topics',PRESENCE='uentzoul_presence';
 let admin=false,owner=null,checking=false,topics=[],topicsSignature='',presence=[],reports=[],busy=false,notice='',editing=null,lastPresence=0,lastReports=0;
 let accessLog=[],logOpen=false,logTab='online',lastLog=0,logError='',markingTest=false;
+let guestOnlineCount=null,lastGuestCount=0,guestCountError='';
+let guestPingBusy=false,lastGuestPing=0;
+const GUEST_SESSION_KEY='pm_guest_online_session_v1';
 const TEST_LABELS='uentzoul_access_log_labels';
 const auth=()=>window.uentzoulAIAuth;
 const bridge=()=>window.uentzoulAdminBridge;
@@ -45,6 +48,90 @@ async function loadReports(){
   const area=document.getElementById('adminErrorReports');
   if(area)area.innerHTML=reportsMarkup();
  }catch(e){console.warn('Não foi possível consultar relatos:',e);}
+}
+
+
+/* Presença de visitantes: uma chave aleatória por aba, guardada apenas nesta sessão.
+   Não coleta nome, rota ou IP; a tabela expira sessões rapidamente.
+   O backend conta abas/sessões com atividade nos últimos dois minutos. */
+function guestSessionKey(create=false){
+ try{
+  let key=sessionStorage.getItem(GUEST_SESSION_KEY);
+  if(!key&&create){
+   key=globalThis.crypto?.randomUUID?.()||'';
+   if(!key&&globalThis.crypto?.getRandomValues){
+    const b=new Uint8Array(16);globalThis.crypto.getRandomValues(b);
+    b[6]=(b[6]&15)|64;b[8]=(b[8]&63)|128;
+    const hex=Array.from(b,x=>x.toString(16).padStart(2,'0')).join('');
+    key=hex.slice(0,8)+'-'+hex.slice(8,12)+'-'+hex.slice(12,16)+'-'+hex.slice(16,20)+'-'+hex.slice(20);
+   }
+   if(key)sessionStorage.setItem(GUEST_SESSION_KEY,key);
+  }
+  return key||null;
+ }catch(_){return null;}
+}
+async function guestPresenceHeartbeat(){
+ const c=client();
+ if(!c||document.visibilityState!=='visible'||guestPingBusy)return;
+ if(user()?.id){await guestPresenceLeave();return;}
+ if(Date.now()-lastGuestPing<25000)return;
+ guestPingBusy=true;
+ try{
+  // A checagem da sessão impede contar como visitante um usuário já logado
+  // cujo estado de autenticação ainda esteja inicializando.
+  const session=await c.auth.getSession();
+  if(session.error||session.data?.session?.user?.id)return;
+  const key=guestSessionKey(true);if(!key)return;
+  const res=await c.rpc('uentzoul_guest_heartbeat',{p_session_key:key,p_online:true});
+  if(res.error)throw res.error;
+  lastGuestPing=Date.now();
+ }catch(error){console.warn('Presença anônima indisponível:',error?.message||error)}
+ finally{guestPingBusy=false;}
+}
+async function guestPresenceLeave(){
+ const c=client(),key=guestSessionKey(false);
+ if(!c||!key)return;
+ try{
+  const {error}=await c.rpc('uentzoul_guest_heartbeat',{p_session_key:key,p_online:false});
+  if(error)throw error;
+  sessionStorage.removeItem(GUEST_SESSION_KEY);
+  lastGuestPing=0;
+ }catch(error){console.warn('Não foi possível encerrar presença anônima:',error?.message||error);}
+}
+async function loadGuestOnline(){
+ if(!isAdmin()||!logOpen||!client())return;
+ try{
+  const {data,error}=await client().rpc('uentzoul_guest_online_count');
+  if(error)throw error;
+  guestOnlineCount=Math.max(0,Number(data)||0);
+  guestCountError='';
+  lastGuestCount=Date.now();
+ }catch(error){
+  guestOnlineCount=null;guestCountError='Contagem temporariamente indisponível.';
+  console.warn('Contagem de visitantes indisponível:',error?.message||error);
+ }
+ updateLogPanel();
+}
+function onlineAccountsCount(){return presence.filter(loggedOnline).length;}
+function onlineTotalCount(){
+ return guestOnlineCount===null?null:onlineAccountsCount()+guestOnlineCount;
+}
+function guestOnlineMarkup(){
+ const accounts=onlineAccountsCount();
+ const guests=guestOnlineCount===null?'—':String(guestOnlineCount);
+ const total=onlineTotalCount();
+ return '<div class="admin-online-overview" aria-label="Resumo dos acessos ativos">'+
+   '<section class="admin-online-stat admin-online-guests" aria-label="Visitantes sem login online">'+
+   '<div class="admin-online-label"><span class="admin-online-pulse" aria-hidden="true"></span><strong>VISITANTES ANÔNIMOS</strong></div>'+
+   '<div class="admin-online-big" id="adminLogGuestCount">'+guests+'</div>'+
+   '<p>Sem login · atividade nos últimos 2 minutos</p>'+
+   '<small id="adminLogGuestState">'+esc(guestCountError||'Somente quantidade, sem identificação')+'</small></section>'+
+   '<section class="admin-online-stat"><span class="admin-online-label">CONTAS LOGADAS</span>'+
+   '<strong class="admin-online-number" id="adminLogAccountCount">'+accounts+'</strong>'+
+   '<p>Usuários identificados ativos</p></section>'+
+   '<section class="admin-online-stat"><span class="admin-online-label">TOTAL ONLINE</span>'+
+   '<strong class="admin-online-number" id="adminLogTotalCount">'+(total===null?'—':total)+'</strong>'+
+   '<p>Contas e sessões anônimas</p></section></div>';
 }
 
 async function loadPresence(){
@@ -109,23 +196,33 @@ function logMarkup(){
 function updateLogPanel(){
  const contents=document.getElementById('adminLogData');
  if(contents)contents.innerHTML=logMarkup();
+ const accounts=onlineAccountsCount(),total=onlineTotalCount();
  const counter=document.getElementById('adminLogOnlineCount');
- if(counter)counter.textContent=String(presence.filter(loggedOnline).length);
+ if(counter)counter.textContent=total===null?'—':String(total);
+ const anonymous=document.getElementById('adminLogGuestCount');
+ if(anonymous)anonymous.textContent=guestOnlineCount===null?'—':String(guestOnlineCount);
+ const identified=document.getElementById('adminLogAccountCount');
+ if(identified)identified.textContent=String(accounts);
+ const combined=document.getElementById('adminLogTotalCount');
+ if(combined)combined.textContent=total===null?'—':String(total);
+ const status=document.getElementById('adminLogGuestState');
+ if(status)status.textContent=guestCountError||'Somente quantidade, sem identificação';
  const tabs=document.querySelectorAll('[data-admin-log-tab]');
  for(const button of tabs)button.setAttribute('aria-selected',String(button.dataset.adminLogTab===logTab));
 }
 function adminLogMarkup(){
  return '<details id="adminLogDisclosure" class="admin-card admin-log-card" '+(logOpen?'open':'')+'>'+
   '<summary><div class="admin-log-title"><span class="admin-log-glyph" aria-hidden="true">⌁</span>'+
-  '<div><strong>LOG</strong><small>Entradas e presença das contas</small></div></div>'+
+  '<div><strong>LOG</strong><small>Contas e visitantes online</small></div></div>'+
   '<span class="admin-log-summary-meta">Privado <span aria-hidden="true">⌄</span></span></summary>'+
-  '<div class="admin-log-content"><p class="admin-log-explain">Registra somente entradas e horários, não acompanha páginas nem ações. O status online é estimado pela atividade recente. Visitantes anônimos não têm identificação automática do computador. Na aba Entradas, marque manualmente os registros que reconhecer como seus testes; a marcação preserva o histórico original.</p>'+
+  '<div class="admin-log-content"><p class="admin-log-explain">O status online é uma estimativa de atividade nos últimos dois minutos. Para visitantes sem login, contamos apenas sessões anônimas ativas, sem identificar pessoas nem acompanhar páginas ou ações. Cada aba pode representar uma sessão diferente. No histórico de Entradas, você ainda pode identificar manualmente registros de teste sem alterar os dados originais.</p>'+ 
+  guestOnlineMarkup()+
   '<div class="admin-log-toolbar" role="tablist" aria-label="Visualização dos acessos">'+
   [['online','Online','adminLogOnlineCount'],['last','Último acesso',''],['entries','Entradas','']].map(([tab,label,id])=>
-   '<button type="button" role="tab" data-admin-log-tab="'+tab+'" aria-selected="'+(logTab===tab)+'">'+label+(id?' <span id="'+id+'">'+presence.filter(loggedOnline).length+'</span>':'')+'</button>').join('')+
+   '<button type="button" role="tab" data-admin-log-tab="'+tab+'" aria-selected="'+(logTab===tab)+'">'+label+(id?' <span id="'+id+'">'+(onlineTotalCount()===null?'—':onlineTotalCount())+'</span>':'')+'</button>').join('')+
   '<button type="button" class="admin-log-refresh" data-admin-log-refresh title="Atualizar registros" aria-label="Atualizar registros">↻</button></div>'+
   '<div id="adminLogData">'+logMarkup()+'</div>'+
-  '<p class="admin-log-foot">Os registros de entrada são mantidos por até 60 dias. O navegador não informa se uma conta está aberta em outro dispositivo; a presença indica atividade recente.</p></div></details>';
+  '<p class="admin-log-foot">Os registros de entrada são mantidos por até 60 dias. A contagem anônima é aproximada, não identifica visitantes e não corresponde necessariamente a pessoas únicas; abas em segundo plano deixam de contar após dois minutos sem atividade.</p></div></details>';
 }
 function refreshAdminPage(){
  if(document.getElementById('adminConfigPage')&&isAdmin())bridge()?.rerenderAdmin?.();
@@ -133,7 +230,7 @@ function refreshAdminPage(){
 async function refresh(){
  const c=client(),u=user();
  if(!c||!u){
-  if(owner){owner=null;admin=false;presence=[];accessLog=[];topics=[];topicsSignature='';updateNav();}
+  if(owner){owner=null;admin=false;presence=[];accessLog=[];guestOnlineCount=null;topics=[];topicsSignature='';updateNav();}
   return;
  }
  if(checking)return;checking=true;
@@ -147,7 +244,7 @@ async function refresh(){
    if(isAdmin())window.uentzoulLibraryManager?.refresh?.();
   }
   await loadTopics();
-  if(isAdmin()&&document.getElementById('adminConfigPage')){await loadReports();if(logOpen)await Promise.all([loadPresence(),loadAccess()]);}
+  if(isAdmin()&&document.getElementById('adminConfigPage')){await loadReports();if(logOpen)await Promise.all([loadPresence(),loadAccess(),loadGuestOnline()]);}
  }catch(e){console.warn('Verificação de administrador:',e);if(user()?.id===owner){admin=false;updateNav();}}
  finally{checking=false;}
 }
@@ -183,7 +280,9 @@ function render(){
 }
 function afterRender(){
  if(!isAdmin())return;
- if(logOpen&&(Date.now()-lastPresence>12000||Date.now()-lastLog>12000)){loadPresence();loadAccess()}
+ if(logOpen&&(Date.now()-lastPresence>12000||Date.now()-lastLog>12000||Date.now()-lastGuestCount>12000)){
+  loadPresence();loadAccess();loadGuestOnline();
+ }
  if(Date.now()-lastReports>25000)loadReports();
 }
 
@@ -232,18 +331,20 @@ document.addEventListener('click',e=>{
  const edit=e.target.closest('[data-admin-edit]');if(edit&&isAdmin()){editing=edit.dataset.adminEdit;refreshAdminPage();return;}
  const del=e.target.closest('[data-admin-delete]');if(del&&isAdmin()){deleteTopic(del.dataset.adminDelete);return;}
  if(e.target.closest('[data-admin-cancel]')&&isAdmin()){editing=null;refreshAdminPage();return;}
- if(e.target.closest('[data-admin-refresh]')&&isAdmin()){heartbeat().then(loadPresence);loadAccess();loadReports();}
+ if(e.target.closest('[data-admin-refresh]')&&isAdmin()){heartbeat().then(loadPresence);loadAccess();loadGuestOnline();loadReports();}
  const test=e.target.closest('[data-admin-test-access]');
  if(test&&isAdmin()){toggleTestAccess(test.dataset.adminTestAccess);return;}
  const log=e.target.closest('[data-admin-log-tab]');
  if(log&&isAdmin()){logTab=log.dataset.adminLogTab;updateLogPanel();return}
- if(e.target.closest('[data-admin-log-refresh]')&&isAdmin()){loadPresence();loadAccess();return}
+ if(e.target.closest('[data-admin-log-refresh]')&&isAdmin()){loadPresence();loadAccess();loadGuestOnline();return}
 });
 
 document.addEventListener('toggle',e=>{
  if(e.target.id!=='adminLogDisclosure'||!isAdmin())return;
  logOpen=e.target.open;
- if(logOpen&&(Date.now()-lastPresence>5000||Date.now()-lastLog>5000)){loadPresence();loadAccess()}
+ if(logOpen&&(Date.now()-lastPresence>5000||Date.now()-lastLog>5000||Date.now()-lastGuestCount>5000)){
+  loadPresence();loadAccess();loadGuestOnline();
+ }
 },true);
 /* Registro leve e não identificável de visitantes sem conta.
    Uma entrada por sessão do navegador, não um log das páginas visualizadas. */
@@ -264,13 +365,21 @@ async function recordAccess(){
  finally{accessRecording=false}
 }
 
-window.addEventListener('uentzoul:auth',()=>{refresh();heartbeat();recordAccess();});
-window.addEventListener('focus',()=>{refresh();heartbeat();});
-document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'){refresh();heartbeat();}});
-window.addEventListener('online',()=>{refresh();heartbeat();});
-setInterval(()=>{if(document.visibilityState==='visible'){refresh();heartbeat();}},45000);
+window.addEventListener('uentzoul:auth',()=>{
+ refresh();heartbeat();recordAccess();
+ if(user()?.id)void guestPresenceLeave();else void guestPresenceHeartbeat();
+});
+window.addEventListener('focus',()=>{refresh();heartbeat();guestPresenceHeartbeat();});
+document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'){refresh();heartbeat();guestPresenceHeartbeat();}});
+window.addEventListener('online',()=>{refresh();heartbeat();guestPresenceHeartbeat();});
+setInterval(()=>{if(document.visibilityState==='visible'){refresh();heartbeat();guestPresenceHeartbeat();}},45000);
+// Mantém o painel online atualizando enquanto o administrador o consulta.
+setInterval(()=>{
+ if(!isAdmin()||!logOpen||!document.getElementById('adminConfigPage')||document.visibilityState!=='visible')return;
+ void loadPresence();void loadGuestOnline();
+},20000);
 window.uentzoulAdminConfig={isAdmin,render,afterRender,refresh,loadPresence,loadReports};
 let tries=0;
-const start=()=>{if(client()){refresh();heartbeat();recordAccess()}else if(tries++<40)setTimeout(start,800)};
+const start=()=>{if(client()){refresh();heartbeat();recordAccess();guestPresenceHeartbeat()}else if(tries++<40)setTimeout(start,800)};
 start();
 })();
