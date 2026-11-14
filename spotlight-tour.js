@@ -129,6 +129,7 @@ function cutout(r){
 }
 function positionPopover(r){
  const w=innerWidth,h=innerHeight;
+ if(index!==2)balloon.style.width='';
  const pop=balloon.getBoundingClientRect();
  const pw=pop.width,ph=pop.height,gap=17;
  const spaceBottom=h-r.bottom,spaceTop=r.top,spaceRight=w-r.right,spaceLeft=r.left;
