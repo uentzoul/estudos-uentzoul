@@ -54,6 +54,20 @@ function setup(){
   script.async=true;
   document.head.appendChild(script);
  }
+ if(!document.getElementById('pm-flashcards-tour-style')){
+  const css=document.createElement('link');
+  css.id='pm-flashcards-tour-style';
+  css.rel='stylesheet';
+  css.href='flashcards-tour.css?v=20261114-flash-tour-v1';
+  document.head.appendChild(css);
+ }
+ if(!document.getElementById('pm-flashcards-tour-script')){
+  const script=document.createElement('script');
+  script.id='pm-flashcards-tour-script';
+  script.src='flashcards-tour.js?v=20261114-flash-tour-v1';
+  script.async=true;
+  document.head.appendChild(script);
+ }
 }
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',setup,{once:true});
 else setup();
