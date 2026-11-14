@@ -5516,7 +5516,7 @@ dmMessageHtml=function(m,channel='private'){
  const authorColor=dmVNameColor(m.sender_id);
  const photoOnly=!m.deleted_at&&(m.kind==='image'&&!!m.media_path||m.kind==='sticker'&&!!m.media_path||m.kind==='gif')&&(!m.reply_to&&!m.forwarded)&&(!m.body||m.kind==='gif'||/^\[(Imagem|Figurinha)\]$/.test(m.body));
  const quoted=m.reply_to?dmWMessage(m.reply_to,channel==='private'?'private':'room'):null;
- const quote=m.reply_to?'<button type="button" class="dm-reply-quote" data-dmw-jump="'+esc(m.reply_to)+'"><strong>'+
+ const quote=m.reply_to&&quoted?'<button type="button" class="dm-reply-quote" data-dmw-jump="'+esc(m.reply_to)+'"><strong>'+
   esc(quoted?(quoted.sender_id===dm.owner?'Você':dmPrettyPerson(quoted.sender_id).display_name):'Mensagem anterior')+
   '</strong><small>'+esc(quoted?dmWPreview(quoted):'Mensagem não disponível')+'</small></button>':'';
  const options=!m.deleted_at?'<button class="dm-message-menu-button" type="button" data-dmw-msgmenu="'+esc(m.id)+'" aria-label="Opções da mensagem" aria-expanded="'+(dmW.menu===m.id)+'"><svg width="16" height="16" viewBox="0 0 20 20" fill="none" aria-hidden="true" focusable="false"><path d="m4.5 7.5 5.5 5 5.5-5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></button>'+
