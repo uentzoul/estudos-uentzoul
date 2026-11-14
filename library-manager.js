@@ -344,6 +344,38 @@ async function transfer(file,path,mime,update){
   uploader.start();
  });
 }
+/* Reaproveita uploads privados anteriores conferindo conteúdo SHA-256, não só o tamanho. */
+async function orphanUploadCandidates(c){
+ const [files,records]=await Promise.all([
+  c.storage.from(BUCKET).list('materials/scheduled',{limit:1000,offset:0,sortBy:{column:'created_at',order:'desc'}}),
+  c.from(TABLE).select('storage_path').like('storage_path','materials/scheduled/%').limit(1000)
+ ]);
+ if(files.error)throw files.error;
+ if(records.error)throw records.error;
+ const used=new Set((records.data||[]).map(r=>r.storage_path));
+ return (files.data||[]).filter(f=>/^[0-9a-f-]{36}\.(pdf|docx|pptx)$/i.test(f.name||'')).map(f=>{
+  const path='materials/scheduled/'+f.name;
+  return {path,size:Number(f.metadata?.size??f.metadata?.contentLength??0),
+   mime:String(f.metadata?.mimetype||''),used:used.has(path)};
+ }).filter(f=>f.size>0&&!f.used);
+}
+async function sha256Of(blob){
+ const digest=await crypto.subtle.digest('SHA-256',await blob.arrayBuffer());
+ return Array.from(new Uint8Array(digest),b=>b.toString(16).padStart(2,'0')).join('');
+}
+async function recoverMatchingOrphan(c,file,mime,candidates){
+ const matching=candidates.filter(o=>!o.used&&o.size===file.size&&o.mime===mime);
+ if(!matching.length)return '';
+ const expected=await sha256Of(file);
+ for(const candidate of matching){
+  try{
+   const saved=await c.storage.from(BUCKET).download(candidate.path);
+   if(saved.error||!saved.data||saved.data.size!==file.size)continue;
+   if(await sha256Of(saved.data)===expected){candidate.used=true;return candidate.path;}
+  }catch(err){console.warn('Não foi possível conferir uma cópia privada anterior:',err);}
+ }
+ return '';
+}
 async function submit(event){
  event.preventDefault();
  if(isBusy||isAnalyzing||!reviewed.length)return;
@@ -364,6 +396,11 @@ async function submit(event){
  });
  let passed=0,failed=0;const used=new Set();
  isBusy=true;logEntries=[];paint();
+ let previousObjects=[];
+ if(mustSchedule(sem)){
+  try{previousObjects=await orphanUploadCandidates(c);}
+  catch(e){console.warn('Não foi possível consultar as tentativas anteriores para reaproveitamento:',e);}
+ }
  for(let i=0;i<queue.length;i++){
   const {file,r,key,subject,title,scope,scheduled,sectionNumber,category}=queue[i],fmt=typeOf(file);
   const progress=n=>{
@@ -377,8 +414,17 @@ async function submit(event){
   used.add(key);
   try{
    if(a.user()?.id!==u.id)throw Error('Conta alterada durante o envio.');
-   const path='materials/'+(scheduled?'scheduled/':'')+crypto.randomUUID()+'.'+fmt.ext;
-   await transfer(file,path,fmt.mime,progress);
+   let path='',recovered=false;
+   if(scheduled&&previousObjects.length){
+    progress(2);
+    try{path=await recoverMatchingOrphan(c,file,fmt.mime,previousObjects);}
+    catch(e){console.warn('Não foi possível comparar o arquivo com cópias anteriores:',e);}
+    recovered=!!path;
+   }
+   if(!path){
+    path='materials/'+(scheduled?'scheduled/':'')+crypto.randomUUID()+'.'+fmt.ext;
+    await transfer(file,path,fmt.mime,progress);
+   }else progress(100);
    const {error}=await c.from(TABLE).upsert({
     resource_key:key,storage_path:path,filename:file.name.slice(0,255),mime_type:fmt.mime,
     size_bytes:file.size,updated_by:u.id,updated_at:new Date().toISOString(),
@@ -392,7 +438,7 @@ async function submit(event){
    // Seções e categorias são gravadas imediatamente e seu publish_at é replicado
    // por trigger/RLS: só administradores as veem antes de 27/11.
    const organizationWarnings=await saveOrganization(c,sem,{key,subject,sectionNumber,category});
-   logEntries.push({ok:true,message:(scheduled?'Agendado em área privada até 27/11 00h: ':(scope?'Publicado na revisão: ':'Guardado fora da revisão: '))+title+' ('+file.name+')'+(sectionNumber?' · seção '+sectionNumber:'')});
+   logEntries.push({ok:true,message:(recovered?'Cópia privada anterior reaproveitada · ':'')+(scheduled?'Agendado em área privada até 27/11 00h: ':(scope?'Publicado na revisão: ':'Guardado fora da revisão: '))+title+' ('+file.name+')'+(sectionNumber?' · seção '+sectionNumber:'')});
    if(organizationWarnings.length)logEntries.push({ok:false,message:'Arquivo salvo, mas é necessário revisar a organização: '+organizationWarnings.join('; ')});
    passed++;
   }catch(err){failed++;logEntries.push({ok:false,message:file.name+': '+(err?.message||'falha no envio')});}
