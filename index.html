@@ -4576,7 +4576,7 @@ const bridge=window.uentzoulProfileBridge;if(!bridge)return;
 window.uentzoulVerifiedScore=0;
 window.uentzoulSubmitVerifiedExam=async()=>null;
 const $=id=>document.getElementById(id), esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;','\'':'&#39;'}[c]));
-let onlineUser=null,remoteProfile=null,client=null,modalView='login',pendingConfirmationEmail='',busy=false,syncTimer=null,rankData=[],rankBusy=false,cloudSnapshot=null,rankingSemester=null,cloudLoading=false,cloudError='',cloudInitPromise=null,enteringUserId=null,enteringPromise=null;
+let onlineUser=null,remoteProfile=null,client=null,modalView='login',pendingConfirmationEmail='',busy=false,syncTimer=null,rankData=[],rankBusy=false,rankError='',cloudSnapshot=null,rankingSemester=null,cloudLoading=false,cloudError='',cloudInitPromise=null,enteringUserId=null,enteringPromise=null;
 const cfg=(()=>{try{return JSON.parse($('uentzoul-auth-config').textContent)}catch{return {}}})();
 const backendReady=!!(cfg.url&&cfg.publishableKey&&/^https:\/\//.test(cfg.url));
 const CONFIRMATION_RETURN_URL=new URL('.',window.location.href).href;
@@ -4594,14 +4594,15 @@ function renderAside(){
   '<button type="button" class="rank-user-trigger" data-dm-profile="'+esc(x.user_id)+'" title="Ver perfil de '+esc(x.display_name)+'">'+
   avatar(x.display_name,x.avatar_url,true)+'<span class="rank-person"><strong>'+esc(x.display_name)+'</strong><span>'+
   (p?.id===x.user_id?'Meu perfil':'Ver perfil e conversar')+'</span></span></button></div>').join(''):
-  '<div class="rank-empty">'+(logged?'Ainda não há perfis cadastrados.':'Entre na conta para ver os usuários.')+'</div>';
- el.innerHTML='<section class="profile-panel"><div class="profile-panel-top">'+avatar(p?.name||'Visitante',p?.avatar)+
+  '<div class="rank-empty">'+(logged?(rankError?esc(rankError):rankBusy?'Carregando participantes…':'Ainda não há perfis cadastrados.'):'Entre na conta para visualizar a lista de participantes.')+'</div>';
+ el.innerHTML='<div class="members-drawer-head"><strong>Participantes</strong><button type="button" class="members-drawer-close" data-members-close aria-label="Fechar participantes">×</button></div>'+
+ '<section class="profile-panel"><div class="profile-panel-top">'+avatar(p?.name||'Visitante',p?.avatar)+
  '<div class="profile-panel-info"><strong>'+esc(p?.name||'Visitante')+'</strong>'+
  (window.uentzoulAdminConfig?.isAdmin?.()?'<span class="admin-mini-label">Administrador</span>':'')+
  '<span>'+(p?'Conta conectada':'Não conectado')+'</span></div></div>'+
  '<button class="profile-action" data-account-action="open">'+(p?'Meu perfil / Configurações':'Entrar / Cadastrar')+'</button></section>'+
  '<section class="members-panel"><div class="member-list-heading"><h2>Usuários</h2>'+
- (logged?'<span>'+rows.length+' '+(rows.length===1?'perfil':'perfis')+'</span>':'')+'</div>'+
+ (logged?'<span>'+rows.length+' '+(rows.length===1?'perfil':'perfis')+'</span><button type="button" class="members-refresh" data-members-refresh title="Atualizar participantes" aria-label="Atualizar participantes">↻</button>':'')+'</div>'+
  '<div class="rank-list">'+members+'</div></section>';
 }
 function showModal(view='login'){modalView=view;$('profileOverlay').hidden=false;document.body.style.overflow='hidden';renderModal()}
@@ -4742,15 +4743,18 @@ window.addEventListener('focus',()=>{if(onlineUser)loadRanking().catch(console.w
 setInterval(()=>{if(onlineUser&&document.visibilityState==='visible')loadRanking().catch(console.warn)},45000);
 async function loadRanking(){
  if(!onlineUser||!client||rankBusy)return;
- rankBusy=true;
+ rankBusy=true;rankError='';renderAside();
  try{
   const {data,error}=await client.from('uentzoul_profiles').select('user_id,display_name,avatar_url').order('display_name',{ascending:true}).limit(400);
   if(error)throw error;
   rankData=(data||[]).filter(p=>p.user_id&&p.display_name);
-  rankingSemester=bridge.semester();renderAside();
- }catch(e){console.warn('Lista da turma indisponível',e);}
- finally{rankBusy=false;}
+  rankingSemester=bridge.semester();
+ }catch(e){
+  rankError='Não foi possível carregar os participantes. Tente atualizar.';
+  console.warn('Lista da turma indisponível',e);
+ }finally{rankBusy=false;renderAside();}
 }
+window.uentzoulRefreshParticipants=()=>loadRanking();
 async function handleOnlineAuth(form){if(!client){msg('O serviço de contas ainda não foi conectado.');return}const f=new FormData(form),email=String(f.get('email')||'').trim(),password=String(f.get('password')||''),name=String(f.get('name')||'').trim();if(modalView==='register'){const {data,error}=await client.auth.signUp({email,password,options:{data:{display_name:name},emailRedirectTo:CONFIRMATION_RETURN_URL}});if(error)throw error;if(data.session){await enterCloud(data.user);closeModal()}else{pendingConfirmationEmail=email;modalView='verify-email';renderModal()}}else{const {data,error}=await client.auth.signInWithPassword({email,password});if(error)throw error;await enterCloud(data.user);closeModal()}}
 async function handleOnlineProfile(form){
  if(!client||!onlineUser)return;
@@ -7048,28 +7052,68 @@ renderAside();initCloud();
 
 </script><script>
 
-(function(){
- const KEY='psicomoodle_members_sidebar_v1',root=document.documentElement;
- try{root.dataset.membersSidebar=localStorage.getItem(KEY)==='collapsed'?'collapsed':'expanded'}
- catch(_){root.dataset.membersSidebar='expanded'}
- function update(){
-  const visible=root.dataset.membersSidebar!=='collapsed',sidebar=document.getElementById('profileSidebar');
-  if(sidebar){sidebar.inert=!visible;sidebar.setAttribute('aria-hidden',String(!visible))}
-  document.querySelectorAll('[data-members-toggle]').forEach(button=>{
-   button.setAttribute('aria-expanded',String(visible));
-   button.setAttribute('aria-label',visible?'Ocultar usuários':'Mostrar usuários');
-   button.title=visible?'Ocultar usuários':'Mostrar usuários';
-  });
+/* Participantes: lateral estável no desktop e drawer no celular. */
+(()=>{
+ const root=document.documentElement;
+ const aside=document.getElementById('profileSidebar');
+ const backdrop=document.getElementById('membersBackdrop');
+ const button=document.getElementById('mobileParticipantsToggle');
+ const mobile=window.matchMedia('(max-width:760px)');
+ let opened=false,lastFocus=null;
+ function sync(){
+  const isMobile=mobile.matches;
+  if(!isMobile)opened=false;
+  root.classList.toggle('members-drawer-open',isMobile&&opened);
+  if(aside){
+   aside.inert=isMobile&&!opened;
+   aside.setAttribute('aria-hidden',String(isMobile&&!opened));
+   if(isMobile&&opened){
+    aside.setAttribute('role','dialog');
+    aside.setAttribute('aria-modal','true');
+    aside.setAttribute('aria-label','Participantes da turma');
+   }else{
+    aside.removeAttribute('role');aside.removeAttribute('aria-modal');
+    aside.setAttribute('aria-label','Meu perfil e participantes da turma');
+   }
+  }
+  if(backdrop)backdrop.hidden=!isMobile||!opened;
+  if(button){
+   button.setAttribute('aria-expanded',String(isMobile&&opened));
+   button.setAttribute('aria-label',opened?'Fechar participantes':'Abrir participantes');
+   button.title=opened?'Fechar participantes':'Abrir participantes';
+  }
  }
- document.addEventListener('click',event=>{
-  const btn=event.target.closest('[data-members-toggle]');if(!btn)return;
-  event.preventDefault();
-  root.dataset.membersSidebar=root.dataset.membersSidebar==='collapsed'?'expanded':'collapsed';
-  try{localStorage.setItem(KEY,root.dataset.membersSidebar)}catch(_){}
-  update();
+ function open(){
+  if(!mobile.matches)return;
+  lastFocus=document.activeElement;opened=true;sync();
+  aside?.querySelector('[data-members-close]')?.focus({preventScroll:true});
+  window.uentzoulRefreshParticipants?.();
+ }
+ function close(){
+  if(!opened)return;
+  opened=false;sync();
+  if(lastFocus?.isConnected)lastFocus.focus({preventScroll:true});
+ }
+ document.addEventListener('click',e=>{
+  if(e.target.closest('[data-members-toggle]')){e.preventDefault();opened?close():open();return;}
+  if(e.target.closest('[data-members-close]')||e.target===backdrop){e.preventDefault();close();return;}
+  if(e.target.closest('[data-members-refresh]')){e.preventDefault();window.uentzoulRefreshParticipants?.();return;}
+  if(e.target.closest('#profileSidebar [data-dm-profile], #profileSidebar [data-account-action]'))close();
  });
- update();
-})();
+ document.addEventListener('keydown',e=>{
+  if(!mobile.matches||!opened)return;
+  if(e.key==='Escape'){e.preventDefault();close();return;}
+  if(e.key!=='Tab')return;
+  const focusable=[...aside.querySelectorAll('button:not([disabled]),a[href],input:not([disabled])')];
+  if(!focusable.length)return;
+  const first=focusable[0],last=focusable[focusable.length-1];
+  if(e.shiftKey&&document.activeElement===first){e.preventDefault();last.focus();}
+  if(!e.shiftKey&&document.activeElement===last){e.preventDefault();first.focus();}
+ },true);
+ if(mobile.addEventListener)mobile.addEventListener('change',sync);
+ else window.addEventListener('resize',sync);
+ sync();
+})();;
 </script><script>
 (function(){const key="uentzoul_theme_v1";let theme=document.documentElement.dataset.theme==="dark"?"dark":"light";
 function apply(){document.documentElement.dataset.theme=theme;document.querySelectorAll("[data-theme-toggle]").forEach(b=>{b.innerHTML=theme==="dark"?'☀ <span class="theme-toggle-text">Modo claro</span>':'☾ <span class="theme-toggle-text">Modo escuro</span>';b.setAttribute("aria-label",theme==="dark"?"Ativar modo claro":"Ativar modo escuro");b.setAttribute("aria-pressed",theme==="dark"?"true":"false");b.title=theme==="dark"?"Ativar modo claro":"Ativar modo escuro"})}
