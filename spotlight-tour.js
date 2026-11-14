@@ -99,6 +99,7 @@ function selectTab(step){
  if(tab&&!tab.matches('[aria-selected="true"],[aria-pressed="true"],.selected,.active'))tab.click();
 }
 function prep(step){
+ document.querySelectorAll('.pm-tour-day-lesson').forEach(n=>n.classList.remove('pm-tour-day-lesson'));
  if(step.page==='subject'){
   if(step.tab==='docs'){
    // Acesse de verdade Materiais e textos; não marque nenhum material durante o tour.
@@ -113,6 +114,10 @@ function prep(step){
   if(search?.value){search.value='';search.dispatchEvent(new Event('input',{bubbles:true}));}
  }
  if(step.tab&&step.page!=='subject')selectTab(step);
+ if(index===7){
+  // Marcador visual temporário; não modifica nem salva o conteúdo real.
+  mondayClassRow()?.classList.add('pm-tour-day-lesson');
+ }
 }
 function calendarEventDay(){
  const cells=[...document.querySelectorAll('#main .agenda-calendar .agenda-cal-day[data-calendar-date]')];
@@ -176,6 +181,7 @@ function sidebarNode(step){
 }
 function updateSidebarHighlight(step){
  document.querySelectorAll('#nav .pm-tour-nav-current').forEach(el=>el.classList.remove('pm-tour-nav-current'));
+ document.querySelectorAll('.pm-tour-day-lesson').forEach(el=>el.classList.remove('pm-tour-day-lesson'));
  const node=sidebarNode(step);
  if(node)node.classList.add('pm-tour-nav-current');
  if(!node)return null;
@@ -217,6 +223,25 @@ function positionPopover(r){
  const pop=balloon.getBoundingClientRect();
  const pw=pop.width,ph=pop.height,gap=17;
  const spaceBottom=h-r.bottom,spaceTop=r.top,spaceRight=w-r.right,spaceLeft=r.left;
+ if(index===7&&w>=1050){
+  // Materiais por dia: destaque à esquerda e explicação no espaço reservado à direita.
+  const group=available('#main .agenda-daygroup[data-agenda-date="2026-11-16"]');
+  const gr=group?.getBoundingClientRect();
+  if(gr){
+   const x=Math.max(12,gr.right+16);
+   const panelWidth=Math.min(345,w-x-14);
+   if(panelWidth>=260){
+    balloon.style.width=panelWidth+'px';
+    const h2=balloon.getBoundingClientRect().height;
+    const lesson=mondayClassRow()?.getBoundingClientRect();
+    const preferredTop=lesson?lesson.top:gr.top;
+    balloon.dataset.side='right';
+    balloon.style.left=Math.round(x)+'px';
+    balloon.style.top=Math.round(clamp(preferredTop,12,Math.max(12,h-h2-12)))+'px';
+    return;
+   }
+  }
+ }
  if(index===2 && w>=800){
   balloon.style.width=Math.min(370,Math.max(310,w*.26))+'px';
   const box=balloon.getBoundingClientRect();
@@ -274,18 +299,8 @@ function calendarWeekRect(node){
 }
 function targetVisualBounds(node,mobile){
  if(index===5 && node.matches('.agenda-cal-day'))return calendarWeekRect(node);
- if(index===7){
-  const group=node.closest('.agenda-daygroup')||node;
-  const header=group.querySelector('.agenda-daytitle');
-  const row=node.matches('.agenda-classrow')?node:mondayClassRow();
-  if(header&&row&&group.contains(row)){
-   const h=header.getBoundingClientRect(),r=row.getBoundingClientRect();
-   return {left:Math.min(h.left,r.left),right:Math.max(h.right,r.right),
-    top:Math.min(h.top,r.top),bottom:Math.max(h.bottom,r.bottom),
-    width:Math.max(h.right,r.right)-Math.min(h.left,r.left),
-    height:Math.max(h.bottom,r.bottom)-Math.min(h.top,r.top)};
-  }
- }
+ // A data aparece na faixa anexada à própria aula; destacar só a aula
+ // de Metapsicologia, não todos os outros encontros de segunda-feira.
  return node.getBoundingClientRect();
 }
 function clipVisualBounds(r,zone){
