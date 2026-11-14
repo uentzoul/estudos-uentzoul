@@ -34,10 +34,10 @@ const mobileCopy=[
  {title:'Conteúdo de cada dia',body:'Consulte os temas e as leituras previstos para cada aula.'},
  {title:'Simulados prontos',body:'Cada prova tem cinco simulados. Responda e confira a correção.'},
  {title:'Criar simulado',body:'Escolha a matéria e a dificuldade para criar questões e treinar.'},
- {title:'Conversas privadas',body:'Pesquise um colega e converse com ele. É preciso entrar na conta.'},
- {title:'Grupos de estudos',body:'Crie um grupo para estudar e organizar trabalhos com colegas.'},
- {title:'Chat Geral',body:'Converse e tire dúvidas com os estudantes cadastrados.'},
- {title:'Compartilhar no chat',body:'Envie materiais, simulados, podcasts, imagens e figurinhas nas conversas.'}
+ {title:'Conversas privadas',body:'Pesquise o nome de um colega e abra uma conversa privada.'},
+ {title:'Grupos de estudos',body:'Use o botão de criar grupo para reunir colegas e combinar trabalhos.'},
+ {title:'Chat Geral',body:'Selecione Chat Geral para conversar com a turma.'},
+ {title:'Compartilhar no chat',body:'Em uma conversa, use Compartilhar para enviar materiais do PsicoMoodle.'}
 ];
 const mobileSteps=[
  {page:'home',find:'#pmMobileMenuToggle',tourScene:'menu-button',
@@ -52,11 +52,37 @@ const mobileSteps=[
  {...steps[steps.length-1],baseIndex:steps.length-1,tourScene:'semester',
   title:'Escolha o semestre',body:'Abra ☰ e escolha o semestre. Você pode repetir o tutorial quando quiser.'}
 ];
+/* Quatro percursos: desktop/celular e usuário conectado/visitante.
+   No acesso sem conta, o chat é apresentado sem simular recursos indisponíveis. */
+const guestMessageStep={
+ page:'messages',find:'.dm-login-panel [data-account-action="open"]',
+ fallback:'.dm-login-panel',baseIndex:10,tourScene:'guest-message',
+ title:'Mensagens: entre para conversar',
+ body:'Para enviar mensagens, participar do chat geral, criar grupos e compartilhar materiais com colegas, entre na sua conta ou cadastre-se. O botão Entrar / Cadastrar aparece nesta tela.',
+ login:'O chat exige uma conta. Depois de entrar, inicie o tutorial novamente para conhecer todas as funções de Mensagens.'
+};
+const desktopGuestSteps=[
+ ...steps.slice(0,10).map((s,i)=>({...s,baseIndex:i})),
+ guestMessageStep,
+ {...steps[steps.length-1],baseIndex:14,
+  body:'Escolha o semestre para consultar os conteúdos disponíveis. O modo claro ou escuro também pode ser alterado no menu. Entre na sua conta para participar dos chats e acompanhar suas atividades.'}
+];
+const mobileGuestSteps=[
+ ...mobileSteps.slice(0,12),
+ {...guestMessageStep,
+  title:'Mensagens exigem uma conta',
+  body:'Para conversar com a turma, participar de grupos e compartilhar materiais, primeiro entre ou cadastre-se. Este é o botão de acesso.'},
+ {...mobileSteps[mobileSteps.length-2],
+  body:'Aqui você pode mudar o tema do site. Para acessar seu perfil, entre na conta ou cadastre-se.'},
+ {...mobileSteps[mobileSteps.length-1],
+  body:'Abra ☰ para mudar de semestre. Você poderá repetir o tutorial depois de entrar na conta.'}
+];
 const byId=id=>document.getElementById(id);
 const q=s=>document.querySelector(s);
 let active=false,index=0,chosen='avaliacao',lastFocus=null,originSemester=null,changedSemester=false;
-let runSteps=steps;
-const originalIndex=()=>runSteps===steps?index:(runSteps[index]?.baseIndex??-1);
+let runSteps=steps,tourMobile=false,tourLoggedIn=false;
+const isLoggedIn=()=>!!window.uentzoulAIAuth?.user?.();
+const originalIndex=()=>Number.isInteger(runSteps[index]?.baseIndex)?runSteps[index].baseIndex:(!tourMobile&&runSteps===steps?index:-1);
 const tourScene=()=>runSteps[index]?.tourScene||'';
 let shell=null,spot=null,sidebarSpot=null,balloon=null,fadeTimer=0,frame=0,stepSerial=0;
 let lastRect=null,pendingScroll=false;
@@ -115,6 +141,13 @@ function navigate(p){
  const btn=q('#nav [data-page="'+p+'"]');
  if(btn)btn.click();
 }
+function targetNode(selector){
+ if(!selector)return null;
+ const node=q(selector);
+ if(!node)return null;
+ const rect=node.getBoundingClientRect();
+ return rect.width>0&&rect.height>0?node:null;
+}
 function available(selector){
  if(!selector)return null;
  const n=q(selector);
@@ -154,6 +187,11 @@ function prep(step){
   if(search?.value){search.value='';search.dispatchEvent(new Event('input',{bubbles:true}));}
  }
  if(step.tab&&step.page!=='subject')selectTab(step);
+ if(step.page==='messages'&&step.tab==='global'&&originalIndex()===13&&tourLoggedIn){
+  // O compartilhamento só é mostrado dentro de uma conversa aberta.
+  const general=q('#main #dmContacts [data-dmw-global]');
+  if(general)general.click();
+ }
  if(originalIndex()===7){
   // Marcador visual temporário; não modifica nem salva o conteúdo real.
   mondayClassRow()?.classList.add('pm-tour-day-lesson');
@@ -173,34 +211,35 @@ function mondayClassRow(){
   group.querySelector('.agenda-classrow')||group;
 }
 function findNode(step){
- const mobile=runSteps===mobileSteps;
- if(mobile){
-  // Alvos escolhidos pela informação que o estudante precisa de fato ver.
-  const targeted={
-   2:()=>available('#main .subject-hub-menu [data-action="subjectArea:trail"]'),
-   1:()=>available('#homeCourses [data-action="subject:avaliacao"]')?.closest('.course-card')||available('#homeCourses .course-card'),
-   5:()=>calendarEventDay(),
-   6:()=>available('#main .schedule-day:has(.schedule-lesson)'),
-   7:()=>mondayClassRow(),
-   10:()=>available('#main .dm-list .dm-search-label')||available('#main .dm-list-head'),
-   11:()=>available('#main .dm-channel-tabs [data-dm-tab="groups"]'),
-   12:()=>available('#main #dmContacts [data-dmw-global]')||available('#main .dm-channel-tabs [data-dm-tab="global"]'),
-   13:()=>available('#main .dm-composer')||available('#main .dm-list-head'),
-   14:()=>available('#semesterCurrent')
-  }[originalIndex()];
-  const target=targeted?.();
-  if(target)return {node:target,login:false};
+ if(step.tourScene==='guest-message'){
+  const signIn=targetNode('#main .dm-login-panel [data-account-action="open"]')||
+   targetNode('#main .dm-login-panel');
+  if(signIn)return {node:signIn,login:true};
  }
- let node=available('#main '+step.find)||available(step.find);
- if(mobile&&node){
-  if(node.matches('.subject-hub-menu'))node=available('#main .subject-hub-menu .subject-hub-card')||node;
-  if(node.matches('.agenda-switch'))node=available('#main .agenda-switch button')||node;
-  if(node.matches('.ge-generator'))node=available('#main .ge-generator button, #main .ge-generator select')||node;
+ if(tourMobile){
+  const focused={
+   1:()=>targetNode('#homeCourses [data-action="subject:avaliacao"]')?.closest('.course-card')||targetNode('#homeCourses .course-card'),
+   2:()=>targetNode('#main .subject-hub-menu [data-action="subjectArea:trail"]'),
+   5:()=>calendarEventDay(),
+   6:()=>targetNode('#main .schedule-day:has(.schedule-lesson)'),
+   7:()=>mondayClassRow(),
+   10:()=>tourLoggedIn?targetNode('#main .dm-list .dm-search-label')||targetNode('#main .dm-list-head'):null,
+   11:()=>tourLoggedIn?targetNode('#main [data-dm-new-group]'):null,
+   12:()=>tourLoggedIn?targetNode('#main #dmContacts [data-dmw-global]'):null,
+   13:()=>tourLoggedIn?targetNode('#main [data-dmv-share-open]')||targetNode('#main .dm-composer'):null
+  }[originalIndex()]?.();
+  if(focused)return {node:focused,login:false};
+ }
+ let node=targetNode('#main '+step.find)||targetNode(step.find);
+ if(tourMobile&&node){
+  if(node.matches('.subject-hub-menu'))node=targetNode('#main .subject-hub-menu .subject-hub-card')||node;
+  if(node.matches('.agenda-switch'))node=targetNode('#main .agenda-switch button')||node;
+  if(node.matches('.ge-generator'))node=targetNode('#main .ge-generator button, #main .ge-generator select')||node;
  }
  if(node)return {node,login:false};
- const substitute=step.fallback?step.fallback.split(',').map(x=>x.trim()).map(x=>available('#main '+x)||available(x)).find(Boolean):null;
- const login=step.page==='messages'?available('#main .dm-login-panel'):null;
- const fallback=substitute||login||available('#nav [data-page="'+step.page+'"]')||available('#main > :first-child')||available('.dashboard-hero');
+ const substitute=step.fallback?step.fallback.split(',').map(x=>x.trim()).map(x=>targetNode('#main '+x)||targetNode(x)).find(Boolean):null;
+ const login=step.page==='messages'?targetNode('#main .dm-login-panel [data-account-action="open"]')||targetNode('#main .dm-login-panel'):null;
+ const fallback=substitute||login||available('#nav [data-page="'+step.page+'"]')||targetNode('#main > :first-child')||available('.dashboard-hero');
  return {node:fallback,login:!!login&&!substitute};
 }
 function currentRect(node){
@@ -373,7 +412,7 @@ function positionMobileTarget(node){
  const next=clamp(window.scrollY+delta,0,Math.max(0,maxScroll));
  if(Math.abs(next-window.scrollY)<3)return;
  pendingScroll=true;
- window.scrollTo({top:next,behavior:'instant'});
+ window.scrollTo({top:next,behavior:'auto'});
  requestAnimationFrame(()=>requestAnimationFrame(()=>{
   pendingScroll=false;
   if(active)layout(false);
@@ -384,7 +423,7 @@ function layout(scrollTarget=false){
  const found=findNode(runSteps[index]),node=found.node;
  if(!node)return;
  if(originalIndex()===7&&node.matches('.agenda-classrow'))node.classList.add('pm-tour-day-lesson');
- const mobile=runSteps===mobileSteps;
+ const mobile=tourMobile;
  if(mobile){
   positionPopover(null);
   if(scrollTarget&&!pendingScroll)positionMobileTarget(node);
@@ -398,6 +437,16 @@ function layout(scrollTarget=false){
  }
  const zone=mobile?mobileShowcase():null;
  const visual=targetVisualBounds(node,mobile);
+ const fixedMobile=['menu-button','menu-list','preferences','semester'].includes(tourScene());
+ if(mobile&&!fixedMobile&&(visual.bottom<zone.top+4||visual.top>zone.bottom-4)){
+  // Alvo fora do espaço visível: não destaque um recorte falso.
+  spot.style.display='none';
+  shell.querySelector('.pm-spotlight-svg').setAttribute('viewBox','0 0 '+innerWidth+' '+innerHeight);
+  shell.querySelector('.pm-spotlight-path').setAttribute('d','M 0 0 H '+innerWidth+' V '+innerHeight+' H 0 Z');
+  if(sidebarSpot)sidebarSpot.hidden=true;
+  return;
+ }
+ spot.style.display='';
  let r;
  if(mobile&&tourScene()==='menu-list'){
   const side=node.getBoundingClientRect(),popup=balloon.getBoundingClientRect();
@@ -421,7 +470,7 @@ function layout(scrollTarget=false){
 function renderCopy(step){
  const found=findNode(step);
  shell.querySelector('#pmSpotlightTitle').textContent=step.title;
- const mobile=runSteps===mobileSteps;
+ const mobile=tourMobile;
  const extra=mobile?'':(found.login?(step.login||'Entre na sua conta para usar este recurso.'):(step.tip||''));
  shell.querySelector('.pm-spotlight-body').textContent=step.body;
  // No celular há um único texto curto; no desktop mantemos as dicas.
@@ -434,7 +483,7 @@ function renderCopy(step){
  shell.querySelector('.pm-spotlight-next').innerHTML=index===runSteps.length-1?'Concluir <span aria-hidden="true">✓</span>':'Próximo <span aria-hidden="true">→</span>';
 }
 function syncMobileMenu(step){
- if(runSteps!==mobileSteps)return;
+ if(!tourMobile)return;
  const drawer=window.pmMobileDrawer;
  if(step.tourScene==='menu-list'||step.tourScene==='semester'){
   drawer?.open?.();
@@ -470,7 +519,10 @@ function open(){
  originSemester=q('.semester-option[aria-current="true"]')?.dataset.semester||null;
  changedSemester=!!(originSemester&&originSemester!=='2026/2');
  if(changedSemester)q('.semester-option[data-semester="2026/2"]')?.click();
- runSteps=innerWidth<=760?mobileSteps:steps;
+ tourMobile=innerWidth<=760;
+  tourLoggedIn=isLoggedIn();
+  runSteps=tourMobile?(tourLoggedIn?mobileSteps:mobileGuestSteps):(tourLoggedIn?steps:desktopGuestSteps);
+  document.documentElement.dataset.pmTourAuth=tourLoggedIn?'logged':'guest';
  // Qualquer gesto já iniciado deve terminar antes do bloqueio total da tela.
  window.pmMobileDrawer?.cancelGesture?.();
  window.pmMobileDrawer?.close?.();
@@ -485,6 +537,7 @@ function close(){
  document.documentElement.classList.remove('pm-tour-running');
  delete document.documentElement.dataset.pmTourStep;
  delete document.documentElement.dataset.pmTourScene;
+  delete document.documentElement.dataset.pmTourAuth;
  document.querySelectorAll('#nav .pm-tour-nav-current').forEach(el=>el.classList.remove('pm-tour-nav-current'));
  if(sidebarSpot)sidebarSpot.hidden=true;
  if(changedSemester&&originSemester)q('.semester-option[data-semester="'+originSemester+'"]')?.click();
@@ -524,15 +577,14 @@ function keepTutorialFocus(event){
 }
 function blockManualScroll(event){
  if(!active)return;
- // Mobile: o usuário não pode deslizar NADA durante o tutorial, nem o balão.
- // Somente os movimentos programáticos entre etapas ficam liberados.
- if(runSteps!==mobileSteps&&event.target?.closest?.('.pm-spotlight-popover'))return;
+ // Permita ler o balão do tutorial em telas menores, sem rolar a página atrás.
+ if(event.target?.closest?.('.pm-spotlight-popover'))return;
  if(event.cancelable)event.preventDefault();
- if(runSteps===mobileSteps)event.stopImmediatePropagation();
+ if(tourMobile)event.stopImmediatePropagation();
 }
 function blockScrollKeys(event){
  if(!active)return;
- if(runSteps!==mobileSteps&&event.target?.closest?.('.pm-spotlight-popover'))return;
+ if(!tourMobile&&event.target?.closest?.('.pm-spotlight-popover'))return;
  if([' ','Spacebar','PageUp','PageDown','Home','End','ArrowUp','ArrowDown'].includes(event.key)){
   event.preventDefault();
  }
@@ -552,7 +604,7 @@ function refresh(){
  if(frame)return;
  frame=requestAnimationFrame(()=>{
   frame=0;
-  if(active&&((innerWidth<=760)!==(runSteps===mobileSteps))){close();return}
+  if(active&&((innerWidth<=760)!==tourMobile)){close();return}
   // A entrada precisa existir até mesmo quando o tour muda de página.
   insertEntry();
   if(active)layout(false);
@@ -563,6 +615,11 @@ function init(){
  const main=byId('main');
  if(main)new MutationObserver(refresh).observe(main,{childList:true,subtree:false});
  window.addEventListener('resize',refresh,{passive:true});
+ window.addEventListener('uentzoul:auth',()=>{
+  // O estado da sessão pode mudar durante o tour.
+  if(active&&isLoggedIn()!==tourLoggedIn)close();
+  else refresh();
+ });
  window.addEventListener('scroll',refresh,{capture:true,passive:true});
  if(window.visualViewport)window.visualViewport.addEventListener('resize',refresh,{passive:true});
  document.addEventListener('click',click,true);

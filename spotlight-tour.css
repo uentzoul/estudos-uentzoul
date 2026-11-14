@@ -398,3 +398,36 @@ html.pm-tour-running[data-pm-tour-step="8"] .agenda-classrow.pm-tour-day-lesson:
   max-height:min(25dvh,155px)!important
  }
 }
+
+
+/* Quatro cenários de tutorial: desktop/celular com e sem login.
+   Somente a explicação pode rolar; a página de fundo permanece bloqueada. */
+@media(max-width:760px){
+  html.pm-tour-running,
+  html.pm-tour-running body{
+    touch-action:auto!important;
+    overflow:hidden!important;
+    overscroll-behavior:none!important;
+  }
+  html.pm-tour-running .pm-spotlight{
+    touch-action:auto!important;
+  }
+  html.pm-tour-running .pm-spotlight-popover{
+    touch-action:pan-y!important;
+    overflow-y:auto!important;
+    overflow-x:hidden!important;
+    overscroll-behavior:contain!important;
+    -webkit-overflow-scrolling:touch;
+  }
+  html.pm-tour-running .pm-spotlight-actions{
+    position:sticky;
+    bottom:-12px;
+    z-index:3;
+    background:var(--paper,#fff);
+    padding-bottom:max(2px,env(safe-area-inset-bottom));
+  }
+  html[data-theme="dark"].pm-tour-running .pm-spotlight-actions{background:#232337}
+  html.pm-tour-running[data-pm-tour-auth="guest"][data-pm-tour-scene="guest-message"] .pm-spotlight-popover{
+    max-height:min(44dvh,310px)!important;
+  }
+}
