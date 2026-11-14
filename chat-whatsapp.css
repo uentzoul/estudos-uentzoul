@@ -1170,6 +1170,40 @@ html[data-theme="dark"] .dm-shell .dm-messages .dm-message .dm-message-bubble.dm
 }
 
 
+/* Cabeçalho ajustado para a coluna estreita de conversas no desktop. */
+@media (min-width:761px){
+  .app:has(> .main .dm-shell) > .main .dm-shell .dm-list-head{
+    display:flex;
+    flex-wrap:wrap;
+    align-items:center;
+    gap:7px;
+    min-height:0;
+    padding:13px 12px 9px;
+  }
+  .app:has(> .main .dm-shell) > .main .dm-shell .dm-list-head > div:first-child{
+    flex:1 1 100%;
+    min-width:0;
+  }
+  .app:has(> .main .dm-shell) > .main .dm-shell .dm-list-actions{
+    width:100%;
+    min-width:0;
+    justify-content:flex-start;
+    flex-wrap:wrap;
+    gap:5px;
+  }
+  .app:has(> .main .dm-shell) > .main .dm-shell .dm-contact-text{min-width:0;overflow:hidden}
+  .app:has(> .main .dm-shell) > .main .dm-shell .dm-contact-text strong,
+  .app:has(> .main .dm-shell) > .main .dm-shell .dm-contact-text small{
+    overflow:hidden;
+    text-overflow:ellipsis;
+    white-space:nowrap;
+  }
+}
+@media (min-width:761px) and (max-width:1350px){
+  .dm-shell .pm-maintenance-shortcut span,
+  .dm-shell .pm-group-label{display:none}
+}
+
 /* Desktop: reduzir apenas a lista de conversas (esquerda), não o chat todo. */
 @media (min-width:761px){
   .app:has(> .main .dm-shell) > .main .dm-shell {
