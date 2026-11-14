@@ -48,7 +48,8 @@ test('Linha do tempo colorida mantém todos os semestres e publicação programa
  const pairs={tcc:'#3963c7',familia:'#b46e3d',meta:'#8463b1',grupos:'#2a967d',social:'#ac597f',avaliacao:'#27869e'};
  for(const [subject,color] of Object.entries(pairs))
   assert.ok(review.includes(subject+':[')&&review.includes(color),subject);
- assert.match(review,/2026-11-27T03:00:00Z/);
+ assert.match(review,/const canView=\(sem=semester\)=>sem===1\|\|sem===2\|\|admin\(\)/);
+ assert.doesNotMatch(review,/2026-11-27|SECOND_SEMESTER_RELEASE|Revisão de Férias — em breve/);
  assert.match(review,/data-major/);
  assert.match(review,/--vr-color/);
 });
