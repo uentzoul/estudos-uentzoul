@@ -2345,7 +2345,7 @@ function adminScheduledMaterial(m){
 }
 const libraryKey=m=>String(m.subject||'geral')+'::'+String(m.title||'');
 function isCurrentExamMaterial(m){
- return semester==='2026/2'&&BASE_LIBRARY_MATERIALS.includes(m)&&m.available&&m._libraryUpload?.exam_scope!==false;
+ return semester==='2026/2'&&BASE_LIBRARY_MATERIALS.some(base=>base._libraryKey===m._libraryKey)&&m.available&&m._libraryUpload?.exam_scope!==false;
 }
 for(const m of LIBRARY_MATERIALS){
  m._libraryKey=libraryKey(m);
@@ -2904,7 +2904,7 @@ function readyExamsFor(subject){
  return Array.from({length:5},(_,i)=>base.find(e=>Number(e.model)===first+i)).filter(Boolean);
 }
 function renderSubject(k){
- const subj=getSubject(k),docs=DB.materials.filter(x=>x.subject===k&&x.available&&x._libraryUpload?.exam_scope!==false),topics=DB.topics[k]||[],tests=readyExamsFor(k);
+ const subj=getSubject(k),docs=DB.materials.filter(x=>x.subject===k&&x.available&&isCurrentExamMaterial(x)),topics=DB.topics[k]||[],tests=readyExamsFor(k);
  const area=['trail','topics','docs','tests','podcasts','guided','flash','cases'].includes(current.subjectArea)?current.subjectArea:null;
  const top='<div class="subject-hub" style="--subject-accent:'+color(k)+'">'+
  '<div class="subject-hub-crumb"><button type="button" data-action="page:home">Início</button><span aria-hidden="true">/</span><span>'+esc(subj.name)+'</span></div>'+
