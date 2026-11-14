@@ -100,13 +100,13 @@ function setup(){
   const link=document.createElement('link');
   link.id='pm-chat-mobile-css';
   link.rel='stylesheet';
-  link.href='chat-mobile-refinement.css?v=20261114-chat-mobile-v20';
+  link.href='chat-mobile-refinement.css?v=20261114-chat-mobile-v21';
   document.head.appendChild(link);
  }
  if(!document.getElementById('pm-chat-mobile-js')){
   const script=document.createElement('script');
   script.id='pm-chat-mobile-js';
-  script.src='chat-mobile-viewport.js?v=20261114-chat-mobile-v20';
+  script.src='chat-mobile-viewport.js?v=20261114-chat-mobile-v21';
   script.async=true;
   document.head.appendChild(script);
  }
