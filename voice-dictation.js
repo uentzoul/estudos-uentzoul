@@ -58,7 +58,7 @@ function updateButtons(){
  });
 }
 function install(){
- const msg=$('#main .dm-composer [data-dmw-record]');
+ const msg=$('#main .dm-composer [data-dmw-record]:not(.pm-voice-original)');
  if(msg){
   msg.removeAttribute('data-dmw-record');
   msg.setAttribute('data-pm-dictate','messages');
