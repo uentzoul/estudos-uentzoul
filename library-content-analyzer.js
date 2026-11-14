@@ -79,7 +79,7 @@ async function analyze(file){
   else examMatch='fora';
  }
  const preview=text.replace(/\s+/g,' ').trim().slice(0,360);
- return {quality:meaningful?'texto':(error?'indisponivel':'sem_texto'),error,textLength:text.length,preview,
+ return {quality:meaningful?'texto':(error?'indisponivel':'sem_texto'),error,textLength:text.length,preview,sectionText:text.slice(0,16000),
   ranked,subject:confident?best.subject:'',topics:best?.topics||[],hits:best?.hits||[],examMatch,
   confidence:confident?((runner?.score||0)<=best.score/2?'alta':'moderada'):'revisao',
   summary:meaningful?('Conteúdo identificado: '+(best?.topics?.slice(0,6).join(', ')||'sem assunto identificado')+'. Amostra: '+preview.slice(0,180)):'Não foi possível extrair texto verificável; classificação manual necessária.'};
