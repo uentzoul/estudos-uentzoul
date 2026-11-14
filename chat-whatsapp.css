@@ -1170,12 +1170,13 @@ html[data-theme="dark"] .dm-shell .dm-messages .dm-message .dm-message-bubble.dm
 }
 
 
-/* Desktop: conversas 1/3 mais estreitas, sem reduzir o layout móvel. */
+/* Desktop: reduzir apenas a lista de conversas (esquerda), não o chat todo. */
 @media (min-width:761px){
   .app:has(> .main .dm-shell) > .main .dm-shell {
-    width:67%;
-    min-width:min(100%,660px);
+    width:100%;
+    min-width:0;
     max-width:none;
-    margin-inline:auto;
+    margin-inline:0;
+    grid-template-columns:minmax(215px,23.33%) minmax(0,1fr);
   }
 }
