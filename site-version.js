@@ -86,7 +86,7 @@ function setup(){
   const link=document.createElement('link');
   link.id='pm-mobile-drawer-css';
   link.rel='stylesheet';
-  link.href='mobile-drawer.css?v=20261114-drag-follow-v14';
+  link.href='mobile-drawer.css?v=20261114-logo-home-v15';
   document.head.appendChild(link);
  }
  if(!document.getElementById('pm-mobile-drawer-js')){
