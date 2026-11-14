@@ -293,7 +293,7 @@ html.pm-tour-running[data-pm-tour-step="8"] .agenda-classrow.pm-tour-day-lesson:
   display:none!important
  }
  html.pm-tour-running .pm-spotlight-popover{
-  max-height:min(46dvh,340px)!important;
+  max-height:min(54dvh,390px)!important;
   padding:12px 15px 12px!important;
   gap:0!important;
   overflow-y:auto!important;
@@ -338,7 +338,7 @@ html.pm-tour-running[data-pm-tour-step="8"] .agenda-classrow.pm-tour-day-lesson:
 }
 @media(max-width:360px){
  html.pm-tour-running .pm-spotlight-popover{
-  max-height:min(47dvh,325px)!important;
+  max-height:min(55dvh,370px)!important;
   padding:10px 11px!important;
  }
  html.pm-tour-running .pm-spotlight-body{font-size:11.7px!important;line-height:1.4!important}
