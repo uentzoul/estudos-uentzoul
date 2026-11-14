@@ -79,7 +79,7 @@
   // de voltar do navegador. O estado aberto só muda ao soltar o dedo.
   const EDGE_MIN=24,EDGE_MAX=96;
   const START_SLOP=13,FINISH_RATIO=.48,FLICK_VELOCITY=.48;
-  let gesture=null,clickBlockUntil=0;
+  let gesture=null;
   const clamp=(v,min,max)=>Math.max(min,Math.min(max,v));
   function horizontalScroller(target){
    for(let el=target;el&&el!==document.body;el=el.parentElement){
@@ -120,7 +120,6 @@
    // Ao soltar, a transição CSS assume a partir dessa posição.
    setOpen(shouldOpen,false,false);
    clearDrag();
-   clickBlockUntil=Date.now()+420;
   }
   function cancelDrag(){finishDrag(null,true)}
   document.addEventListener('touchstart',event=>{
@@ -135,7 +134,9 @@
     if(t.clientX<EDGE_MIN||t.clientX>EDGE_MAX)return;
     const control=target?.closest?.('button,a,[role="button"]');
     if(control&&!control.matches('#pmMobileMenuToggle'))return;
-   }else if(!side.contains(target))return;
+   }
+   // Com a gaveta aberta, o gesto de fechar pode começar na própria
+   // gaveta OU em qualquer ponto do fundo escurecido.
    gesture={start,progress:start,x:t.clientX,y:t.clientY,
     time:Date.now(),width:Math.max(side.getBoundingClientRect().width,1),
     claimed:false};
@@ -167,23 +168,24 @@
    if(g.claimed){
     // Inclui o trecho final que pode ocorrer após o último touchmove.
     redrawDrag(g.start+(t.clientX-g.x)/g.width);
+    // Não produzir um clique fantasma ao soltar o arraste no fundo.
+    if(event.cancelable)event.preventDefault();
    }
    finishDrag(t);
-  },{passive:true});
+  },{passive:false});
   document.addEventListener('touchcancel',cancelDrag,{passive:true});
   window.addEventListener('blur',cancelDrag);
   document.addEventListener('visibilitychange',()=>{
    if(document.hidden)cancelDrag();
   });
-  // Um arraste começado sobre ☰ ou item do menu não deve virar clique.
-  document.addEventListener('click',event=>{
-   if(Date.now()>=clickBlockUntil||!event.isTrusted)return;
-   event.preventDefault();
-   event.stopImmediatePropagation();
-  },true);
-
   document.addEventListener('click',event=>{
    if(!opened)return;
+   // Fechamento pelo fundo também funciona sem depender do clique
+   // específico na sobreposição, inclusive após um gesto anterior.
+   if(!side.contains(event.target)&&!toggle.contains(event.target)){
+    setOpen(false,false,false);
+    return;
+   }
    const item=event.target.closest(
     '#siteSidebar #nav [data-page], #siteSidebar #subjectNav .sidebtn, '+
     '#siteSidebar #semesterDropdown [data-semester], '+
