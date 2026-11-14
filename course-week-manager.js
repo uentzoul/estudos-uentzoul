@@ -15,9 +15,9 @@ const tabs=new Map();
    IDs numéricos preservam a tabela existente de vínculos, sem migração. */
 const COURSE_SECTIONS={
  social:[
-  [1,'Semana 1',['evolucao historica da psicologia social','silvia lane','homem em movimento']],
+  [1,'Semana 1 - Introdução à Psicologia Social',['evolucao historica da psicologia social','silvia lane','homem em movimento']],
   [2,'Semana 2 - Origens do pensamento psicossociológico',['origens do pensamento psicossociologico','perspectivas psicossociologicas']],
-  [4,'Semana 4',['texto complementar','slides complementar']],
+  [4,'Semana 4 - Genealogia da Psicologia Social',['texto complementar','slides complementar']],
   [5,'Semana 5 - Identidade',['identidade social','identidade e representacoes']],
   [6,'Semana 6 - Representações sociais',['representacoes sociais','representacoes sociais e clinica escola']],
   [7,'Semana 7 - Estigma e preconceito',['estigma e preconceito','construcao de territorio','preconceitos e estigmas']],
@@ -293,7 +293,9 @@ function weeklyView(semester,subject,materials,card){
  const numbers=[...new Set(assigned.filter(r=>editing||map.has(r.resource_key)).map(r=>r.week_number))].sort((a,b)=>a-b);
  const groups=numbers.map((n,i)=>{
   const records=assigned.filter(r=>r.week_number===n).sort((a,b)=>a.position-b.position);
-  const label=sectionMap.get(n)?.label||(semester==='2026/1'?'Tema '+n:'Semana '+n);
+  // Se o Moodle identificou a semana mas não lhe atribuiu assunto, exibir título simples.
+  // Disciplinas organizadas por temas, sem semanas originais, conservam seus próprios títulos.
+  const label=sectionMap.get(n)?.label||(semester==='2026/1'?'Tema '+n:'Semana '+n+' - Materiais da semana');
   const shortLabel=semester==='2026/1'?'TEMA':named?'MOODLE':'SEMANA '+String(n).padStart(2,'0');
   return '<details class="pm-week-group" '+(i===0?'open':'')+'><summary><span class="pm-week-number">'+shortLabel+'</span><strong>'+esc(label)+'</strong><small>'+records.length+' '+(records.length===1?'material':'materiais')+'</small><span class="pm-week-chevron" aria-hidden="true">⌄</span></summary><div class="pm-week-content">'+
   (records.length?records.map(r=>{
