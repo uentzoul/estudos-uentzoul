@@ -42,15 +42,18 @@ function selectedBatchSubject(){
 }
 
 const WEEK_TABLE='uentzoul_material_weeks',PLACEMENTS='uentzoul_material_placements';
-const LIBRARY_CATEGORIES=[['plans','Planos de ensino e cronogramas'],['classes','Aulas e apresentações'],['texts','Textos-base e bibliografia'],['review','Guias e materiais de revisão'],['videos','Vídeos e referências online'],['extras','Materiais complementares']];
+const LIBRARY_CATEGORIES=[['plans','Planos de ensino e cronogramas'],['classes','Aulas e apresentações'],['texts','Artigos e textos-base'],['books','Livros, capítulos e obras de referência'],['activities','Atividades e estudos dirigidos'],['regulations','Normas e documentos profissionais'],['review','Guias e materiais de revisão'],['videos','Vídeos e referências online'],['extras','Materiais complementares']];
 const foldText=x=>String(x||'').toLocaleLowerCase('pt-BR').normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]+/g,' ').trim();
 function suggestCategory(r){
  const t=foldText([r.file?.name,r.title,r.suggestion?.kind].join(' '));
  if(/plano de ensino|cronograma/.test(t))return 'plans';
- if(/estudo dirigido|roteiro de estudo|revisao|gabarito|simulado|questoes/.test(t))return 'review';
- if(/video|podcast|aula gravada/.test(t))return 'videos';
- if(/slides|apresentacao|aula|atividade pratica|seminario/.test(t))return 'classes';
- if(/texto|livro|capitulo|artigo|bibliografia|leitura|dicionario/.test(t))return 'texts';
+ if(/video|podcast|aula gravada|filme/.test(t))return 'videos';
+ if(/(^| )(resolucao [0-9]|declaracao universal|codigo de etica|normas abnt|cfp [0-9]|lei [0-9])/.test(t))return 'regulations';
+ if(/estudo dirigido|atividade pratica|exercicio|questoes|gabarito|trabalho discente|roteiro de estudos|tde /.test(t))return 'activities';
+ if(/revisao|simulado|guia de estudo/.test(t))return 'review';
+ if(/livro|dicionario|vocabulario|capitulo|(^| )cap [0-9]|colecao|obras completas/.test(t))return 'books';
+ if(/slides|apresentacao|(^| )aula |laminas|seminario|\.pptx/.test(t))return 'classes';
+ if(/texto|(^| )txt [0-9]|artigo|bibliografia|leitura|freud|piaget|vygotsky/.test(t))return 'texts';
  return r.analysis?.quality==='texto'?'texts':'extras';
 }
 function suggestOrganization(r){
