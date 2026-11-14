@@ -25,11 +25,11 @@ const steps=[
 /* O desktop conserva suas etapas; o celular usa uma ordem adaptada ao menu compacto. */
 const mobileSteps=[
  {page:'home',find:'#pmMobileMenuToggle',tourScene:'menu-button',title:'Onde ficam as opções do site?',
-  body:'O botão de três linhas (☰), ao lado do símbolo do PsicoMoodle, abre o menu lateral. Você também pode abri-lo deslizando o dedo da esquerda para a direita, começando um pouco para dentro da borda esquerda da tela. Assim, as opções ficam acessíveis sem ocupar o topo enquanto você estuda.',
+  body:'O botão de três linhas (☰), ao lado do símbolo do PsicoMoodle, abre o menu lateral. Também dá para começar um pouco para dentro da borda esquerda e arrastar para a direita: o menu vai aparecendo aos poucos, acompanhando seu dedo. Quando você soltar, ele termina de abrir ou volta a se esconder. Assim, a navegação não ocupa o topo enquanto você estuda.',
   tip:'Toque em Próximo para ver as opções que ficam dentro dele.'},
  {page:'home',find:'#siteSidebar',tourScene:'menu-list',title:'Tudo ao seu alcance',
   body:'No menu estão Início, para acompanhar os estudos; Agenda e Horários, com aulas e provas; Simulados, para praticar; IA Tzoul, para tirar dúvidas; e Mensagens, para falar com a turma. Há também as disciplinas, participantes e opção de relatar erros. Trabalhos e Revisão de Férias são recursos anunciados para depois.',
-  tip:'No uso normal, role a lista para encontrar mais opções. Para fechar, toque fora do menu ou deslize o dedo da direita para a esquerda sobre ele.'},
+  tip:'No uso normal, role a lista para encontrar mais opções. Para fechar, arraste o próprio menu da direita para a esquerda: ele acompanha seu dedo e desaparece aos poucos. Você também pode tocar fora do menu.'},
  ...steps.slice(0,-1).map((s,i)=>({...s,baseIndex:i,
   ...(i===2?{tourScene:'trail',find:'.subject-hub-menu [data-action="subjectArea:trail"]',
    title:'Trilha de estudos para a prova',
