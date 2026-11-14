@@ -81,3 +81,17 @@
  .course-toolbar input,.course-toolbar select{width:100%}
  .pm-week-number{max-width:100%}
 }
+
+/* Edição semanal: controles visíveis apenas após clicar em Editar. */
+.pm-week-toolbar{display:flex;align-items:center;justify-content:flex-end;gap:12px;flex-wrap:wrap;min-width:0;margin:5px 0 15px}
+.pm-week-toolbar .pm-week-edit-message{flex:1 1 240px;font-size:12px;line-height:1.5;color:var(--muted,#746b80)}
+.pm-week-toolbar-actions{display:flex;justify-content:flex-end;align-items:center;gap:8px;flex-wrap:wrap;min-width:0}
+.pm-week-toolbar .pm-edit-button,.pm-week-toolbar .pm-cancel,.pm-week-toolbar .pm-save{min-height:39px;max-width:100%;white-space:normal}
+.pm-week-toolbar .pm-edit-button{margin-left:auto}
+.pm-week-form{margin-top:10px}
+@media(max-width:760px){
+ .pm-week-toolbar{align-items:stretch;gap:8px}
+ .pm-week-toolbar-actions{width:100%;display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}
+ .pm-week-toolbar-actions button{min-width:0;width:100%;font-size:12px;padding:8px}
+ .pm-week-toolbar .pm-edit-button{margin-left:auto}
+}
