@@ -187,13 +187,13 @@ setTimeout(check,15000);
   if(!document.getElementById('pm-vacation-timeline-css')){
    const css=document.createElement('link');
    css.id='pm-vacation-timeline-css';css.rel='stylesheet';
-   css.href='revisao-ferias.css?v=20261114-month-accordion-v1';
+   css.href='revisao-ferias.css?v=20261114-editorial-v2';
    document.head.appendChild(css);
   }
   if(!document.getElementById('pm-vacation-timeline-js')){
    const js=document.createElement('script');
    js.id='pm-vacation-timeline-js';
-   js.src='revisao-ferias.js?v=20261114-month-accordion-v3';
+   js.src='revisao-ferias.js?v=20261114-editorial-v4';
    js.async=true;document.head.appendChild(js);
   }
  };
