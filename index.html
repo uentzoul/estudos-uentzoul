@@ -3066,10 +3066,10 @@ function renderLibrary(embedded=false){
     '<span class="course-video-trail-description">Confira o que o professor falou em cada parte das aulas gravadas.</span></span>'+
     '<span class="course-video-trail-cta">Acessar trilha →</span></a></div>':'')+
     '<div class="course-detail-body">'+
-    '<span class="eyebrow">Psicologia PUCRS · 2026/2 · Prova final</span><h1 class="h1">'+esc(subj.name)+'</h1>'+
-    '<p>Materiais de estudo correspondentes à avaliação final.</p>'+libraryProgressMarkup(p)+'</div></section>'+
+    '<span class="eyebrow">Psicologia PUCRS · 2026/2 · Acervo completo</span><h1 class="h1">'+esc(subj.name)+'</h1>'+
+    '<p>Arquivos da disciplina para consulta, com destaque para os temas das últimas provas.</p>'+libraryProgressMarkup(p)+'</div></section>'+
     (familyTopics.length?'<h2 style="font-size:16px;margin:0 0 7px">Conteúdos da prova</h2><div class="course-syllabus">'+familyTopics.map(t=>'<span>'+esc(t)+'</span>').join('')+'</div>':'')+
-    '<div class="course-materials-title"><h2>Materiais para estudar</h2><span>'+docs.length+' publicado(s)</span></div>'+
+    '<div class="pm-exam-info" role="note"><strong>Como identificar os materiais da prova</strong><p>O marcador <span class="pm-exam-badge">Cai na prova</span> indica o foco das últimas avaliações. Outros documentos estão disponíveis para consulta, mas não entram nas atividades atuais.</p></div>'+'<div class="course-materials-title"><h2>Acervo da disciplina</h2><span>'+docs.length+' publicado(s)</span></div>'+
     '<section class="course-detail-resources">'+(docs.length?organizedSubjectMaterials(docs,true,selected):
      '<div class="course-empty">Nenhum material publicado nesta disciplina.</div>')+'</section>'+
     '<p class="course-library-note">O percentual considera apenas arquivos disponíveis marcados como vistos. As marcações são pessoais.</p></div>';
@@ -3083,12 +3083,12 @@ function renderLibrary(embedded=false){
   const hint=semester==='2026/2'?(courseTopics[k]||'Conteúdos da disciplina'):(subj.full||'Materiais da avaliação final');
   return '<article class="course-card" style="--course-accent:'+color(k)+'" data-course-search="'+esc((subj.name+' '+hint).toLocaleLowerCase('pt-BR'))+'">'+
   '<button class="course-card-button" type="button" data-action="subject:'+k+'" aria-label="Abrir disciplina '+esc(subj.name)+'">'+
-  '<div class="course-cover"><span class="course-index">2026/2 · PROVA FINAL</span><span class="course-symbol" aria-hidden="true">Ψ</span></div>'+
+  '<div class="course-cover"><span class="course-index">2026/2 · ACERVO</span><span class="course-symbol" aria-hidden="true">Ψ</span></div>'+
   '<div class="course-card-content"><div class="course-card-title">'+esc(subj.name)+'</div>'+
   '<div class="course-card-desc">'+esc(hint)+'</div>'+libraryProgressMarkup(p)+
   '<div class="course-card-footer"><span>'+p.total+' '+(p.total===1?'material':'materiais')+'</span><span>Abrir disciplina →</span></div></div></button></article>';
  }).join('');
- return '<div class="library-page"><div class="course-intro"><div>'+(embedded?head('Psicologia PUCRS · '+semester,'Disciplinas','Selecione uma matéria para acessar conteúdos, materiais, simulados e podcasts.'):head('Biblioteca · '+semester,'Resumo das disciplinas','Apenas as matérias das provas finais, organizadas como cursos.'))+'</div></div>'+
+ return '<div class="library-page"><div class="course-intro"><div>'+(embedded?head('Psicologia PUCRS · '+semester,'Disciplinas','Selecione uma matéria para acessar conteúdos, materiais, simulados e podcasts.'):head('Biblioteca · '+semester,'Resumo das disciplinas','Todos os materiais liberados por disciplina. Os arquivos que caem nas últimas provas estão identificados.'))+'</div></div>'+
  '<div class="course-toolbar"><span class="course-semester">2026/2</span><input id="libraryCourseSearch" type="search" placeholder="Buscar disciplina..." aria-label="Buscar disciplina" value="'+esc(current.libraryQuery||'')+'">'+
  
  '<select id="libraryCourseOrder" aria-label="Ordenar cursos"><option value="name" selected>Ordenar por nome</option></select>'+
