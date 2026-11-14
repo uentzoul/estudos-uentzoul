@@ -1979,7 +1979,7 @@ html[data-theme="dark"] .tz-pending-icon{background:#40375e;color:#d6c4ff}
 <script src="psicomoodle-new-content.js?v=20261113-social-family-2"></script>
 <script src="simulados-finais-2026.js?v=20261113-provas-equivalentes-1"></script>
 <script src="estudos-dirigidos-finais-2026.js?v=20261113-revisao-global-1"></script>
-<link rel="stylesheet" href="simulados-finais-2026.css?v=20261113-2">
+<link rel="stylesheet" href="simulados-finais-2026.css?v=20261114-clean-1">
 <script src="casos-act-social.js?v=20261113-revisao-global-1"></script>
 <script src="casos-finais-2026.js?v=20261113-1"></script>
 <link rel="stylesheet" href="chat-whatsapp.css?v=20261112-whatsapp-chat-7">
@@ -2603,14 +2603,19 @@ function examDifficulty(exam){if(exam?.sameDifficulty)return '<div class="exam-d
  return '<div class="exam-difficulty" aria-label="Dificuldade '+level+' de 5 estrelas: '+data.label+'">'+difficultyStars(level)+'<span class="difficulty-caption">'+esc(data.label)+'</span></div>';
 }
 function examCard(e){
- const r=store.results[e.id],level=difficultyStep(e),meta=DIFFICULTY_STEPS[level-1];
- return '<article class="examcard" style="--accent:'+color(e.subject)+'">'+
- '<div class="topline" style="align-items:center"><span class="pill '+(r?'ok':'')+'">'+(r?'Entregue':'Não entregue')+'</span>'+doneBox('sim:'+e.id)+'</div>'+
- '<h3>'+esc(e.title)+'</h3>'+examDifficulty(e)+
- '<div class="exammeta">'+esc(e.sameDifficulty?'Cinco simulados equivalentes à avaliação da disciplina.':meta.summary)+'</div>'+
- '<div class="exammeta" style="margin-top:6px">'+e.questions.length+' questões · '+e.questions.filter(q=>q.type==='essay').length+' dissertativas</div>'+
- (r?'<div class="exammeta" style="margin-top:5px">Objetivas e V/F: '+r.correct+'/'+r.total+' acertos</div>':'')+
- '<button class="btn light wide" data-action="test:'+e.id+'">'+(r?'Rever correção':'Iniciar simulado')+'</button></article>';
+ const result=store.results[e.id];
+ const total=e.questions.length;
+ const essay=e.questions.filter(q=>q.type==='essay').length;
+ const count=total+' '+(total===1?'questão':'questões')+(essay?' · '+essay+' '+(essay===1?'dissertativa':'dissertativas'):'');
+ return '<article class="examcard ge-clean-card" style="--accent:'+color(e.subject)+'">'+
+  '<div class="ge-clean-head"><h3>'+esc(e.title)+'</h3>'+
+  '<div class="ge-clean-mark">'+doneBox('sim:'+e.id,'Visto')+'</div></div>'+
+  '<p class="ge-clean-specs">'+esc(count)+'</p>'+
+  (result?'<p class="ge-clean-result">✓ Entregue · '+result.correct+'/'+result.total+' acertos</p>':'')+
+  '<button class="btn ge-clean-launch" type="button" data-action="test:'+esc(e.id)+'">'+
+   (result?'Ver correção':'Iniciar simulado')+
+   '<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14m-6-6 6 6-6 6"/></svg>'+
+  '</button></article>';
 }
 function docCard(m){
  if(!m.available)return '';
@@ -3834,18 +3839,20 @@ renderSubject=function(k){
 };
 function geReadyLibrary(){
  const subjects=Object.keys(DB.subjects);
- return head('Simulados prontos','Provas para praticar','Cinco simulados por disciplina, todos com o mesmo padrão de dificuldade das avaliações de referência.')+
- '<p class="small muted">Simulados de estudo, não avaliações oficiais.</p>'+
+ return '<header class="ge-ready-intro"><h1 class="h1">Provas para praticar</h1>'+
+  '<p>Escolha um simulado para começar. Atividades de estudo, não avaliações oficiais.</p></header>'+
  subjects.map(id=>{
-  const all=readyExamsFor(id);
+  const all=readyExamsFor(id),completed=all.filter(e=>!!store.results[e.id]).length;
   const group=items=>'<div class="examgrid ge-ready-grid">'+items.map(examCard).join('')+'</div>';
-  return '<section class="section ge-ready-subject"><div class="sectiontop"><h2 style="border-left:4px solid '+color(id)+';padding-left:10px">'+esc(DB.subjects[id].name)+'</h2><span class="pill">'+all.length+' simulados</span></div>'+
-  group(all)+
-  (DB.exams.some(e=>e.subject===id&&e.revision!==window.PSICO_FINAL_EXAMS?.version&&store.results[e.id])?
-   '<details class="ge-old-archive"><summary>Simulados anteriores concluídos · consultar correções</summary><div class="examgrid">'+
-    DB.exams.filter(e=>e.subject===id&&e.revision!==window.PSICO_FINAL_EXAMS?.version&&store.results[e.id]).map(examCard).join('')+
-   '</div></details>':'')+
-  '</section>';
+  return '<section class="section ge-ready-subject"><div class="sectiontop">'+
+   '<h2 style="border-left:4px solid '+color(id)+';padding-left:10px">'+esc(DB.subjects[id].name)+'</h2>'+
+   (completed?'<span class="ge-ready-progress">'+completed+' de '+all.length+' concluídos</span>':'')+
+   '</div>'+group(all)+
+   (DB.exams.some(e=>e.subject===id&&e.revision!==window.PSICO_FINAL_EXAMS?.version&&store.results[e.id])?
+    '<details class="ge-old-archive"><summary>Simulados anteriores concluídos · consultar correções</summary><div class="examgrid">'+
+     DB.exams.filter(e=>e.subject===id&&e.revision!==window.PSICO_FINAL_EXAMS?.version&&store.results[e.id]).map(examCard).join('')+
+    '</div></details>':'')+
+   '</section>';
  }).join('');
 }
 renderExams=function(){
@@ -4397,7 +4404,7 @@ document.addEventListener('change',e=>{if(!e.target.matches('[data-complete]'))r
   const c=$('audioCompletedCount'),bar=$('audioCompletedBar');if(c)c.textContent=`${n}/${eps.length} concluídos`;if(bar)bar.style.width=`${fmtPct(n,eps.length)}%`;
   document.querySelectorAll('.audio-tab').forEach((b,i)=>{const sk=['tcc','grupos','familia','meta','avaliacao','social'][i],n=doneCount(audioEpisodes(sk).map(ep=>`audio:${sk}:${ep.n}`)),label=b.querySelector('small');if(label)label.textContent=`${n}/${audioEpisodes(sk).length} concluídos`;});
  }else{
-  const parent=e.target.closest('.donecontrol');if(parent){parent.classList.toggle('is-checked',e.target.checked);const label=parent.querySelector('span');if(label)label.textContent=e.target.checked?'✓ Visto':(e.target.closest('.review-item')?'Visto':'Marcar como visto');}
+  const parent=e.target.closest('.donecontrol');if(parent){parent.classList.toggle('is-checked',e.target.checked);const label=parent.querySelector('span');if(label)label.textContent=e.target.checked?'✓ Visto':(e.target.closest('.review-item')||e.target.closest('.ge-clean-card')?'Visto':'Marcar como visto');}
   const topic=e.target.closest('.topicunit');if(topic)topic.classList.toggle('is-done',e.target.checked);
   if(current.page==='subject'){
    const k=current.subject,keys=subjectKeys(k),n=doneCount(keys);
