@@ -6,7 +6,7 @@ window.__psicoSpotlightTour=true;
 
 const steps=[
  {page:'home',find:'.dashboard-hero .hero-status',title:'Seu espaço de estudos',body:'Esta é a página inicial do PsicoMoodle. Aqui você acompanha o progresso do semestre: a porcentagem indica quanto das atividades cadastradas já foi concluído.'},
- {page:'home',find:'#homeCourses .course-card-button',title:'Escolha uma disciplina',body:'Cada cartão abre uma disciplina com seus materiais e atividades. Selecione o cartão destacado para conhecer uma matéria ou pressione Próximo para continuar com um exemplo.',tip:'É possível localizar outra matéria pela busca da Biblioteca.',pick:true},
+ {page:'home',find:'#homeCourses .course-card-button',title:'Escolha uma disciplina',body:'Cada cartão abre uma disciplina com seus materiais e atividades. Durante o tutorial, apenas observe o cartão destacado. Toque em Próximo para conhecer a disciplina de Avaliação Psicológica.',tip:'Depois de concluir o tutorial, você poderá abrir qualquer disciplina livremente.'},
  {page:'subject',find:'.subject-hub-menu',title:'Tudo de uma matéria em um só lugar',body:'A disciplina reúne trilha de estudos para a prova, materiais e textos, estudos dirigidos, simulados, flashcards, casos, podcasts e conteúdos para revisar.',tip:'Uma boa sequência é começar pela trilha e praticar com questões depois.'},
  {page:'subject',tab:'docs',find:'#docs .doc-compact .donecontrol',fallback:'#docs .doclist .doc-compact, #docs .sectiontop',title:'Materiais e textos',body:'Nesta seção, você encontra os conteúdos disponíveis para cada disciplina, como textos-base, artigos, slides, capítulos, roteiros de estudo e outros arquivos ou links. Depois de consultar ou estudar um material, utilize “Marcar como visto” no próprio item. Assim, você acompanha o que já foi lido ou revisado e identifica facilmente o que ainda falta, mesmo quando a lista é extensa.',tip:'A marcação é pessoal e manual: abrir um arquivo ou link externo não o marca automaticamente como visto.'},
  {page:'calendar',tab:'provas',find:'.agenda-switch',title:'Agenda e Horários',body:'A agenda reúne três consultas: datas das avaliações, grade semanal de aulas e conteúdos previstos para cada encontro. Vamos conhecer cada uma.'},
@@ -24,7 +24,7 @@ const steps=[
 
 const byId=id=>document.getElementById(id);
 const q=s=>document.querySelector(s);
-let active=false,index=0,chosen='tcc',lastFocus=null,originSemester=null,changedSemester=false;
+let active=false,index=0,chosen='avaliacao',lastFocus=null,originSemester=null,changedSemester=false;
 let shell=null,spot=null,sidebarSpot=null,balloon=null,fadeTimer=0,frame=0,stepSerial=0;
 let lastRect=null,pendingScroll=false;
 let mobilePositionAttempts=0;
@@ -55,6 +55,7 @@ function build(){
  if(shell)return;
  shell=document.createElement('div');shell.id='pmSpotlight';shell.className='pm-spotlight';shell.hidden=true;
  shell.innerHTML='<svg class="pm-spotlight-svg" aria-hidden="true" preserveAspectRatio="none"><path class="pm-spotlight-path" fill-rule="evenodd"></path></svg>'+
+ '<div class="pm-spotlight-interaction-shield" aria-hidden="true"></div>'+
  '<div class="pm-spotlight-ring" aria-hidden="true"></div>'+
  '<section class="pm-spotlight-popover" role="dialog" aria-modal="true" aria-labelledby="pmSpotlightTitle" tabindex="-1">'+
  '<div class="pm-spotlight-head"><span class="pm-spotlight-kicker">TOUR PELO PSICOMOODLE</span><button type="button" class="pm-spotlight-close" data-pmtour="close" aria-label="Fechar tutorial">×</button></div>'+
@@ -408,10 +409,18 @@ function click(event){
   else if(command==='back')move(-1);
   return;
  }
- if(steps[index]?.pick){
-  const btn=event.target.closest('#homeCourses [data-action^="subject:"]');
-  if(btn){chosen=btn.dataset.action.slice(8);setTimeout(()=>{if(active&&index===1)move(1)},30)}
- }
+}
+function blockBackgroundInteraction(event){
+ if(!active||!event.isTrusted)return;
+ // Nenhum item atrás do tutorial, nem os elementos recortados, pode receber cliques/toques.
+ if(event.target?.closest?.('.pm-spotlight-popover'))return;
+ if(event.cancelable)event.preventDefault();
+ event.stopImmediatePropagation();
+}
+function keepTutorialFocus(event){
+ if(!active||!balloon||balloon.contains(event.target))return;
+ event.stopPropagation();
+ balloon.querySelector('.pm-spotlight-next')?.focus({preventScroll:true});
 }
 function blockManualScroll(event){
  if(!active)return;
@@ -448,6 +457,12 @@ function init(){
  window.addEventListener('scroll',refresh,{capture:true,passive:true});
  if(window.visualViewport)window.visualViewport.addEventListener('resize',refresh,{passive:true});
  document.addEventListener('click',click,true);
+ // Defesa adicional caso um recorte receba eventos através do SVG em algum navegador.
+ // A navegação interna do tutorial usa cliques programáticos, que não são bloqueados.
+ for(const type of ['pointerdown','pointerup','touchstart','touchend','mousedown','mouseup','click','dblclick','contextmenu']){
+  document.addEventListener(type,blockBackgroundInteraction,{capture:true,passive:false});
+ }
+ document.addEventListener('focusin',keepTutorialFocus,true);
  document.addEventListener('keydown',keys,true);
  document.addEventListener('wheel',blockManualScroll,{capture:true,passive:false});
  document.addEventListener('touchmove',blockManualScroll,{capture:true,passive:false});
