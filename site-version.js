@@ -35,7 +35,7 @@ function setup(){
   const style=document.createElement('link');
   style.id='pm-tutorial-styles';
   style.rel='stylesheet';
-  style.href='spotlight-tour.css?v=20261114-drag-follow-v14';
+  style.href='spotlight-tour.css?v=20261114-smooth-locked-v18';
   document.head.appendChild(style);
  }
  if(!document.getElementById('pm-ai-sidebar-polish')){
@@ -71,7 +71,7 @@ function setup(){
  if(!document.getElementById('pm-tutorial-script')){
   const script=document.createElement('script');
   script.id='pm-tutorial-script';
-  script.src='spotlight-tour.js?v=20261114-anywhere-swipe-v17';
+  script.src='spotlight-tour.js?v=20261114-smooth-locked-v18';
   script.async=true;
   document.head.appendChild(script);
  }
@@ -86,13 +86,13 @@ function setup(){
   const link=document.createElement('link');
   link.id='pm-mobile-drawer-css';
   link.rel='stylesheet';
-  link.href='mobile-drawer.css?v=20261114-nav-tour-v16';
+  link.href='mobile-drawer.css?v=20261114-smooth-locked-v18';
   document.head.appendChild(link);
  }
  if(!document.getElementById('pm-mobile-drawer-js')){
   const script=document.createElement('script');
   script.id='pm-mobile-drawer-js';
-  script.src='mobile-drawer.js?v=20261114-anywhere-swipe-v17';
+  script.src='mobile-drawer.js?v=20261114-smooth-locked-v18';
   script.async=true;
   document.head.appendChild(script);
  }
