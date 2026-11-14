@@ -6,7 +6,7 @@ window.__psicoSpotlightTour=true;
 
 const steps=[
  {page:'home',find:'.dashboard-hero .hero-status',title:'Seu espaço de estudos',body:'Esta é a página inicial do PsicoMoodle. Aqui você acompanha o progresso do semestre: a porcentagem indica quanto das atividades cadastradas já foi concluído.'},
- {page:'home',find:'#homeCourses .course-card-button',title:'Escolha uma disciplina',body:'Cada cartão abre uma disciplina com seus materiais e atividades. Durante o tutorial, apenas observe o cartão destacado. Toque em Próximo para conhecer a disciplina de Avaliação Psicológica.',tip:'Depois de concluir o tutorial, você poderá abrir qualquer disciplina livremente.'},
+ {page:'home',find:'#homeCourses [data-action="subject:avaliacao"]',title:'Escolha uma disciplina',body:'Cada cartão abre uma disciplina com seus materiais e atividades. Durante o tutorial, apenas observe o cartão destacado. Toque em Próximo para conhecer a disciplina de Avaliação Psicológica.',tip:'Depois de concluir o tutorial, você poderá abrir qualquer disciplina livremente.'},
  {page:'subject',find:'.subject-hub-menu',title:'Tudo de uma matéria em um só lugar',body:'A disciplina reúne trilha de estudos para a prova, materiais e textos, estudos dirigidos, simulados, flashcards, casos, podcasts e conteúdos para revisar.',tip:'Uma boa sequência é começar pela trilha e praticar com questões depois.'},
  {page:'subject',tab:'docs',find:'#docs .doc-compact .donecontrol',fallback:'#docs .doclist .doc-compact, #docs .sectiontop',title:'Materiais e textos',body:'Nesta seção, você encontra os conteúdos disponíveis para cada disciplina, como textos-base, artigos, slides, capítulos, roteiros de estudo e outros arquivos ou links. Depois de consultar ou estudar um material, utilize “Marcar como visto” no próprio item. Assim, você acompanha o que já foi lido ou revisado e identifica facilmente o que ainda falta, mesmo quando a lista é extensa.',tip:'A marcação é pessoal e manual: abrir um arquivo ou link externo não o marca automaticamente como visto.'},
  {page:'calendar',tab:'provas',find:'.agenda-switch',title:'Agenda e Horários',body:'A agenda reúne três consultas: datas das avaliações, grade semanal de aulas e conteúdos previstos para cada encontro. Vamos conhecer cada uma.'},
@@ -137,7 +137,7 @@ function findNode(step){
  if(mobile){
   // Alvos escolhidos pela informação que o estudante precisa de fato ver.
   const targeted={
-   1:()=>available('#homeCourses .course-card'),
+   1:()=>available('#homeCourses [data-action="subject:avaliacao"]')?.closest('.course-card')||available('#homeCourses .course-card'),
    5:()=>calendarEventDay(),
    6:()=>available('#main .schedule-day:has(.schedule-lesson)'),
    7:()=>mondayClassRow(),
@@ -335,6 +335,7 @@ function layout(scrollTarget=false){
  if(!active||!shell||shell.hidden)return;
  const found=findNode(steps[index]),node=found.node;
  if(!node)return;
+ if(index===7&&node.matches('.agenda-classrow'))node.classList.add('pm-tour-day-lesson');
  const mobile=innerWidth<=760;
  if(mobile){
   positionPopover(null);
