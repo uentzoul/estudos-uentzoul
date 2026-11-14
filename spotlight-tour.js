@@ -130,8 +130,11 @@ function currentRect(node){
 }
 function sidebarNode(step){
  if(!step)return null;
- const p=step.page==='subject'?'home':step.page;
- return available('#nav [data-page="'+p+'"]');
+ if(step.page==='subject'){
+  return available('#subjectNav [data-action="subject:'+chosen+'"]')||
+         available('#nav [data-page="home"]');
+ }
+ return available('#nav [data-page="'+step.page+'"]');
 }
 function updateSidebarHighlight(step){
  document.querySelectorAll('#nav .pm-tour-nav-current').forEach(el=>el.classList.remove('pm-tour-nav-current'));
