@@ -61,6 +61,25 @@ def run_case(browser,device,settings,semester):
             if informal.search(label):
                 issues.append("Imperativo informal em botão: "+repr(label[:100]))
         page.screenshot(path=str(OUT/(prefix+"_home.png")),full_page=True,timeout=20000)
+        # Valida a revisão pública com sessão realmente anônima (sem cookies nem login).
+        if semester in ("2026/1","2026/2"):
+            try:
+                page.wait_for_function("Boolean(window.PSICO_VACATION_REVIEW?.show)",timeout=20000)
+                page.evaluate("() => window.PSICO_VACATION_REVIEW.show()")
+                page.locator("#vr-root .vr-month").first.wait_for(state="visible",timeout=20000)
+                expected_events=21 if semester=="2026/1" else 24
+                real_events=page.locator("#vr-root .vr-event").count()
+                if real_events!=expected_events:
+                    issues.append("Revisão pública incompleta: "+str(real_events)+"/"+str(expected_events))
+                if page.locator("#vr-root").get_by_text("Não foi possível carregar a revisão").count():
+                    issues.append("Revisão pública falhou ao buscar dados")
+                if page.locator("#vr-root .vr-month").count()!=4:
+                    issues.append("Linha do tempo não mostra quatro meses")
+                page.locator("#vr-root .vr-month").first.click(timeout=8000)
+                page.screenshot(path=str(OUT/(prefix+"_revisao.png")),full_page=True,timeout=20000)
+                page.evaluate("() => window.PSICO_VACATION_REVIEW.close()")
+            except Exception as exc:
+                issues.append("Revisão pública anônima não abriu: "+str(exc)[:300])
         card=page.locator(".course-card button").first
         if card.count():
             try:
