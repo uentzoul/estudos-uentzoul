@@ -82,6 +82,9 @@ html[data-theme="dark"] .dm-shell .dm-global-avatar {
     height:100%!important;
     overflow:hidden!important;
   }
+  /* Respeita a navegação em duas telas: lista OU conversa aberta. */
+  .dm-shell:not(.has-conversation) .dm-main{display:none!important}
+  .dm-shell.has-conversation .dm-list{display:none!important}
   .dm-shell .dm-list {
     min-width:0!important;
     min-height:0!important;
