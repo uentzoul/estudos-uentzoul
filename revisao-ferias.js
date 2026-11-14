@@ -113,57 +113,76 @@ function privateHTML(){
   '<p>Esta área está em desenvolvimento e, por enquanto, só pode ser acessada pela administração.</p></div>';
 }
 function hero(){
- const which=semester===1?'Primeiro semestre':'Segundo semestre';
- const count=events.length;
- return '<header class="vr-hero"><div class="vr-overline"><span class="vr-dot-kicker"></span> Revisão de Férias · Acesso administrativo</div>'+
- '<h1>'+which+'</h1>'+
- '<p>Uma viagem pelos conceitos que vale a pena levar adiante. Abra um mês para ver os marcos de aprendizagem, depois selecione uma bolinha para recordar o tema e suas conexões.</p>'+
- '<div class="vr-hero-bottom"><span class="vr-year">2026 · '+which+'</span>'+
- '<span class="vr-hint">'+(count?count+' marcos selecionados · 7 disciplinas':'Espaço preparado para os próximos conteúdos')+'</span></div></header>';
+ const which=semester===1?'Primeiro semestre':'Segundo semestre',count=events.length;
+ return '<header class="vr-hero">'+
+  '<div class="vr-hero-grid"><div class="vr-hero-main">'+
+  '<div class="vr-overline"><span class="vr-dot-kicker" aria-hidden="true"></span> PSICOMOODLE / ARQUIVO DE APRENDIZAGENS</div>'+
+  '<span class="vr-hero-eyebrow">Revisão de Férias · 2026</span>'+
+  '<h1>O que vale<br><em>levar adiante.</em></h1>'+
+  '<p>Um semestre de descobertas, reunido nos momentos que realmente importam. Explore os meses e reencontre os conceitos que se conectam ao resto do curso.</p>'+
+  '<div class="vr-hero-bottom"><span class="vr-year"><span aria-hidden="true">✦</span> '+which+'</span>'+
+  '<span class="vr-hint">'+(count?count+' momentos selecionados':'Novos marcos em preparação')+'</span></div>'+
+  '</div><div class="vr-hero-art" aria-hidden="true"><span class="vr-art-ring vr-art-ring-one"></span>'+
+  '<span class="vr-art-ring vr-art-ring-two"></span><span class="vr-art-ring vr-art-ring-three"></span>'+
+  '<span class="vr-art-symbol">Ψ</span><span class="vr-art-annotation">MEMÓRIA / PERCURSO / CONEXÕES</span></div></div></header>';
 }
 function monthsHTML(){
- return '<section class="vr-months-wrap"><div class="vr-months-intro"><h2>O percurso do semestre</h2>'+
- '<p>Escolha um mês. Quando outro é aberto, o anterior se recolhe automaticamente.</p></div>'+
- '<nav class="vr-months" aria-label="Meses do '+(semester===1?'primeiro':'segundo')+' semestre">'+
- MONTHS[semester].map((m,i)=>{
-  const total=events.filter(e=>monthOf(e)===m).length;
-  const on=openedMonth===m;
-  return '<button type="button" class="vr-month'+(on?' is-active':'')+'" data-vr-month="'+m+'" aria-expanded="'+on+'" aria-controls="vrMonthExpanded">'+
-   '<span class="vr-month-index">0'+(i+1)+'</span><span class="vr-month-orb" aria-hidden="true"></span>'+
-   '<strong>'+MONTH_NAME[m]+'</strong><small>'+total+' '+plural(total,'marco','marcos')+'</small></button>';
+ const months=MONTHS[semester],openedIndex=months.indexOf(openedMonth);
+ return '<section class="vr-months-wrap"><div class="vr-months-intro">'+
+ '<div><span class="vr-section-kicker">01 — EXPLORE O PERCURSO</span><h2>Uma história em quatro capítulos.</h2>'+
+ '<p>Clique em um mês para expandir. Só um capítulo fica aberto por vez.</p></div>'+
+ '<span class="vr-timeline-year">2026</span></div>'+
+ '<nav class="vr-months" style="--vr-progress:'+(openedIndex<0?0:(openedIndex/(months.length-1)*100))+'%" aria-label="Meses do '+(semester===1?'primeiro':'segundo')+' semestre">'+
+ months.map((m,i)=>{
+  const total=events.filter(e=>monthOf(e)===m).length,on=openedMonth===m;
+  return '<button type="button" class="vr-month'+(on?' is-active':'')+'" data-vr-month="'+m+'" aria-expanded="'+on+'" aria-controls="vr-panel-'+m+'">'+
+   '<span class="vr-month-index">CAPÍTULO 0'+(i+1)+'</span><span class="vr-month-orb" aria-hidden="true"><span></span></span>'+
+   '<strong>'+MONTH_NAME[m]+'</strong><small>'+total+' '+plural(total,'momento','momentos')+'</small></button>';
  }).join('')+'</nav>'+
- '<div class="vr-expand-shell'+(openedMonth?' is-open':'')+'" id="vrMonthExpanded"><div class="vr-expand-clip"><div class="vr-month-detail" id="vrMonthDetail">'+(openedMonth?monthHTML(openedMonth):'')+'</div></div></div></section>';
+ months.map(m=>'<div class="vr-expand-shell'+(openedMonth===m?' is-open':'')+'" id="vr-panel-'+m+'" aria-hidden="'+(openedMonth!==m)+'">'+
+  '<div class="vr-expand-clip"><div class="vr-month-detail">'+monthHTML(m)+'</div></div></div>').join('')+
+ '</section>';
 }
 function monthHTML(month){
  const monthEvents=events.filter(e=>monthOf(e)===month).sort((a,b)=>a.event_date.localeCompare(b.event_date)||a.subject.localeCompare(b.subject));
- if(!monthEvents.length){
-  return '<div class="vr-month-detail-head"><h3>'+MONTH_NAME[month]+'</h3></div><p>Sem marcos cadastrados neste mês.</p>'+
-   '<div class="vr-empty">Este período ainda está sendo organizado. Os marcos aparecerão aqui depois que os cronogramas e materiais forem conferidos.</div>';
- }
- return '<div class="vr-month-detail-head"><h3>'+MONTH_NAME[month]+'</h3><span class="vr-count">'+monthEvents.length+' '+plural(monthEvents.length,'marco selecionado','marcos selecionados')+'</span></div>'+
- '<p>As bolinhas maiores indicam os conceitos de conexão entre matérias. Toque ou clique para abrir a explicação.</p>'+
- '<div class="vr-events-scroll" tabindex="0" aria-label="Marcos de '+MONTH_NAME[month]+'">'+
- '<div class="vr-events" style="--vr-columns:'+monthEvents.length+'">'+monthEvents.map(e=>{
-  const col=colorFor(e.subject),abbr=SUBJECTS[e.subject]?.[2]||e.subject;
-  return '<button type="button" class="vr-event'+(selectedEvent===e.id?' is-selected':'')+'" data-vr-event="'+esc(e.id)+'" data-major="'+(e.intensity==='major')+'" style="--vr-color:'+esc(col)+'" title="'+esc(dateLabel(e)+' · '+e.title)+'" aria-label="'+esc(dateLabel(e)+' · '+abbr+' · '+e.title)+'" aria-expanded="'+(selectedEvent===e.id)+'">'+
-   '<span class="vr-event-date">'+dateLabel(e)+'</span><span class="vr-event-stem" aria-hidden="true"></span><span class="vr-event-orb" aria-hidden="true"></span>'+
-   '<span class="vr-event-subject">'+esc(abbr)+'</span><span class="vr-event-title">'+esc(e.title)+'</span></button>';
- }).join('')+'</div></div><div id="vrSelectedCard">'+(selectedEvent?eventHTML(monthEvents.find(e=>e.id===selectedEvent)):'')+'</div>';
+ if(!monthEvents.length)return '<div class="vr-month-detail-head"><div><span class="vr-section-kicker">CAPÍTULO DO SEMESTRE</span><h3>'+MONTH_NAME[month]+'</h3></div></div>'+
+  '<div class="vr-empty"><span aria-hidden="true">✧</span><strong>Este capítulo ainda está em construção.</strong><p>Os marcos deste mês serão adicionados depois da conferência dos cronogramas e materiais.</p></div>';
+ return '<div class="vr-month-detail-head"><div><span class="vr-section-kicker">CAPÍTULO / '+MONTH_SHORT[month]+' 2026</span><h3>'+MONTH_NAME[month]+'</h3>'+
+ '<p>Momentos marcantes de aprendizagem, organizados por data.</p></div>'+
+ '<span class="vr-count">'+String(monthEvents.length).padStart(2,'0')+' MOMENTOS</span></div>'+
+ '<div class="vr-story-layout"><div class="vr-story-list" aria-label="Conteúdos estudados em '+MONTH_NAME[month]+'">'+
+ monthEvents.map((e,i)=>{
+  const col=colorFor(e.subject),abbr=SUBJECTS[e.subject]?.[2]||e.subject,on=selectedEvent===e.id;
+  return '<button type="button" class="vr-event'+(on?' is-selected':'')+'" data-vr-event="'+esc(e.id)+'" data-major="'+(e.intensity==='major')+'" style="--vr-color:'+esc(col)+';--vr-order:'+i+'" title="'+esc(e.title)+'" aria-label="'+esc(dateLabel(e)+' · '+abbr+' · '+e.title)+'" aria-expanded="'+on+'">'+
+   '<span class="vr-event-marker" aria-hidden="true"><span class="vr-event-orb"></span></span>'+
+   '<span class="vr-event-content"><span class="vr-event-kicker"><span class="vr-event-date">'+dateLabel(e)+'</span><span class="vr-event-subject">'+esc(abbr)+'</span>'+
+   (e.intensity==='major'?'<span class="vr-event-important">ESSENCIAL</span>':'')+'</span>'+
+   '<span class="vr-event-title">'+esc(e.title)+'</span><span class="vr-event-caption">'+esc(e.importance.slice(0,105))+(e.importance.length>105?'…':'')+'</span></span>'+
+   '<span class="vr-event-arrow" aria-hidden="true">↗</span></button>';
+ }).join('')+'</div>'+
+ '<div class="vr-story-preview" id="vrSelectedCard-'+month+'">'+(selectedEvent?eventHTML(monthEvents.find(e=>e.id===selectedEvent)):emptyPreview())+'</div></div>';
+}
+function emptyPreview(){
+ return '<div class="vr-preview-empty"><span class="vr-preview-icon" aria-hidden="true">✳</span>'+
+ '<span class="vr-preview-label">SEU PRÓXIMO CLIQUE</span><h4>Um ponto.<br>Uma descoberta.</h4>'+
+ '<p>Selecione um marco na linha ao lado para explorar o conceito, entender sua importância e encontrar os materiais relacionados.</p>'+
+ '<div class="vr-preview-foot"><span aria-hidden="true">↗</span> ESCOLHA UM MOMENTO</div></div>';
 }
 function eventHTML(e){
- if(!e)return '';
- const meta=SUBJECTS[e.subject]||[e.subject,'#8187a5',e.subject];
- const color=colorFor(e.subject);
+ if(!e)return emptyPreview();
+ const meta=SUBJECTS[e.subject]||[e.subject,'#8187a5',e.subject],color=colorFor(e.subject);
  return '<article class="vr-card" style="--vr-selected:'+esc(color)+'" aria-label="Detalhes de '+esc(e.title)+'">'+
-  '<div class="vr-card-head"><div><span class="vr-card-subject">'+esc(meta[0])+'</span>'+
-  '<h4 class="vr-card-title">'+esc(e.title)+'</h4><span class="vr-card-meta">'+dateLabel(e)+' de 2026 · '+(e.intensity==='major'?'Conexão essencial':'Conceito importante')+'</span></div>'+
+  '<div class="vr-card-topline"><span class="vr-card-top-dot"></span><span>'+esc(meta[0])+'</span>'+
+  '<span class="vr-card-top-kind">'+(e.intensity==='major'?'MARCO ESSENCIAL':'CONCEITO-CHAVE')+'</span></div>'+
+  '<div class="vr-card-head"><div><span class="vr-card-meta">'+dateLabel(e)+' · 2026</span>'+
+  '<h4 class="vr-card-title">'+esc(e.title)+'</h4></div>'+
   '<button type="button" class="vr-card-close" data-vr-close aria-label="Fechar detalhes">×</button></div>'+
-  '<div class="vr-card-grid"><div class="vr-card-block"><strong>O que aprendemos</strong><p>'+esc(e.summary)+'</p></div>'+
-  '<div class="vr-card-block"><strong>Por que lembrar</strong><p>'+esc(e.importance)+'</p></div></div>'+
-  (e.connection?'<div class="vr-card-connection"><strong>Conexão:</strong> '+esc(e.connection)+'</div>':'')+
-  '<div class="vr-materials"><strong>Materiais relacionados do acervo de estudos</strong><ul class="vr-material-list">'+
+  '<div class="vr-card-block"><strong>O QUE APRENDEMOS</strong><p>'+esc(e.summary)+'</p></div>'+
+  '<div class="vr-card-block"><strong>POR QUE LEVAR ADIANTE</strong><p>'+esc(e.importance)+'</p></div>'+
+  (e.connection?'<div class="vr-card-connection"><strong><span aria-hidden="true">⌁</span> A CONEXÃO</strong><p>'+esc(e.connection)+'</p></div>':'')+
+  '<div class="vr-materials"><strong>MATERIAIS RELACIONADOS</strong><ul class="vr-material-list">'+
   (Array.isArray(e.material_names)?e.material_names:[]).map(m=>'<li>'+esc(m)+'</li>').join('')+'</ul>'+
-  '<button type="button" class="vr-open-library" data-vr-library>Abrir a Biblioteca <span aria-hidden="true">→</span></button></div></article>';
+  '<button type="button" class="vr-open-library" data-vr-library>Abrir a Biblioteca <span aria-hidden="true">↗</span></button></div></article>';
 }
 function render(){
  if(!visible)return;
@@ -201,37 +220,37 @@ async function show(){
  await load();
 }
 function setMonth(month){
- const shell=document.getElementById('vrMonthExpanded');if(!shell)return;
- const transition=++monthSequence;
- if(openedMonth===month){
-  openedMonth=null;selectedEvent=null;shell.classList.remove('is-open');
-  document.querySelectorAll('.vr-month').forEach(b=>{b.classList.remove('is-active');b.setAttribute('aria-expanded','false')});
-  return;
- }
- const previous=openedMonth;
- const switchTo=()=>{
-  if(!visible||!admin()||transition!==monthSequence)return;
-  openedMonth=month;selectedEvent=null;
-  document.querySelectorAll('.vr-month').forEach(b=>{const on=Number(b.dataset.vrMonth)===month;b.classList.toggle('is-active',on);b.setAttribute('aria-expanded',String(on))});
-  const detail=document.getElementById('vrMonthDetail');
-  if(detail)detail.innerHTML=monthHTML(month);
-  requestAnimationFrame(()=>shell.classList.add('is-open'));
- };
- if(previous){
-  openedMonth=null;shell.classList.remove('is-open');
-  setTimeout(switchTo,190);
- }else{switchTo();}
+ const shell=document.getElementById('vr-panel-'+month),months=MONTHS[semester];
+ if(!shell||!months.includes(month)||!admin())return;
+ const next=openedMonth===month?null:month;
+ openedMonth=next;selectedEvent=null;
+ const navRail=document.querySelector('.vr-months');
+ if(navRail)navRail.style.setProperty('--vr-progress',next===null?'0%':(months.indexOf(next)/(months.length-1)*100)+'%');
+ document.querySelectorAll('.vr-month').forEach(b=>{
+  const on=Number(b.dataset.vrMonth)===next;
+  b.classList.toggle('is-active',on);b.setAttribute('aria-expanded',String(on));
+ });
+ document.querySelectorAll('.vr-expand-shell').forEach(panel=>{
+  const on=panel.id==='vr-panel-'+next;
+  panel.classList.toggle('is-open',on);panel.setAttribute('aria-hidden',String(!on));
+  const card=panel.querySelector('.vr-story-preview');
+  if(card&&card.querySelector('.vr-card'))card.innerHTML=emptyPreview();
+  panel.querySelectorAll('.vr-event').forEach(b=>{b.classList.remove('is-selected');b.setAttribute('aria-expanded','false');});
+ });
 }
 function chooseEvent(id){
- const e=events.find(x=>x.id===id);if(!e||monthOf(e)!==openedMonth)return;
+ const e=events.find(x=>x.id===id);if(!e||monthOf(e)!==openedMonth||!admin())return;
  selectedEvent=selectedEvent===id?null:id;
- const selectedCard=document.getElementById('vrSelectedCard');
- if(selectedCard)selectedCard.innerHTML=selectedEvent?eventHTML(e):'';
- document.querySelectorAll('.vr-event').forEach(node=>{
+ const panel=document.getElementById('vr-panel-'+openedMonth);
+ const preview=panel?.querySelector('.vr-story-preview');
+ if(preview)preview.innerHTML=selectedEvent?eventHTML(e):emptyPreview();
+ panel?.querySelectorAll('.vr-event').forEach(node=>{
   const on=node.dataset.vrEvent===selectedEvent;
   node.classList.toggle('is-selected',on);node.setAttribute('aria-expanded',String(on));
  });
- selectedCard?.querySelector('.vr-card')?.scrollIntoView({behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth',block:'nearest'});
+ if(preview&&selectedEvent&&window.matchMedia('(max-width:820px)').matches){
+  preview.scrollIntoView({behavior:window.matchMedia('(prefers-reduced-motion:reduce)').matches?'auto':'smooth',block:'nearest'});
+ }
 }
 function handleClick(ev){
  if(!admin())return;
@@ -240,8 +259,10 @@ function handleClick(ev){
  const event=ev.target.closest('[data-vr-event]');
  if(event){chooseEvent(event.dataset.vrEvent);return;}
  if(ev.target.closest('[data-vr-close]')){
-  selectedEvent=null;const card=document.getElementById('vrSelectedCard');if(card)card.innerHTML='';
-  document.querySelectorAll('.vr-event').forEach(b=>{b.classList.remove('is-selected');b.setAttribute('aria-expanded','false')});return;
+  selectedEvent=null;
+  const panel=document.getElementById('vr-panel-'+openedMonth);
+  const card=panel?.querySelector('.vr-story-preview');if(card)card.innerHTML=emptyPreview();
+  panel?.querySelectorAll('.vr-event').forEach(b=>{b.classList.remove('is-selected');b.setAttribute('aria-expanded','false')});return;
  }
  if(ev.target.closest('[data-vr-library]')){
   const library=nav()?.querySelector('[data-page="library"]');
