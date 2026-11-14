@@ -218,7 +218,7 @@ function onClick(e){
  const record=e.target.closest('[data-pm-voice-message]');
  if(record){
   e.preventDefault();e.stopImmediatePropagation();
-  const original=$('#main .dm-composer [data-dmw-record].pm-voice-original');
+  const original=$('#main .dm-composer [data-dmw-record].pm-voice-original')||$('#main .dm-composer [data-dmw-record]');
   if(original)original.click();
   return;
  }
@@ -232,7 +232,7 @@ function init(){
  makePanel();install();
  const main=$('#main');
  if(main)new MutationObserver(schedule).observe(main,{childList:true,subtree:true});
- document.addEventListener('click',onClick,true);
+ window.addEventListener('click',onClick,true);
  document.addEventListener('visibilitychange',()=>{if(document.hidden&&state.phase==='recording')stop()});
  window.addEventListener('pagehide',()=>{if(state.phase==='recording')cancel()});
 }
