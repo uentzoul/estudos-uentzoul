@@ -244,3 +244,11 @@
   transition:none!important
  }
 }
+
+/* Logo e nome do PsicoMoodle: navegação direta para Início, sem animação. */
+.pm-home-brand-link{cursor:pointer}
+.pm-home-brand-link:focus-visible{
+ outline:2px solid var(--blue,#3568ba);
+ outline-offset:4px;
+ border-radius:10px
+}
