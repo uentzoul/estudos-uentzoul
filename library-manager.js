@@ -117,6 +117,8 @@ function reviewCard(r,i){
   (a?.quality==='texto'?'<div class="library-review-evidence"><strong>Assuntos reconhecidos no conteúdo</strong><span>'+clean(hit)+'</span><small class="library-review-exam-match">'+clean(examStatus)+'</small>'+
   (a.preview?'<details><summary>Ver trecho extraído para conferência</summary><p>'+clean(a.preview)+'</p></details>':'')+'</div>':'')+
   (warn?'<p class="library-review-warning">'+clean(warn)+'</p>':'')+
+  (mustSchedule(api()?.semester?.())&&r.suggestion?.uploaded?
+   '<p class="library-review-warning">Um arquivo com este nome já existe no acervo. Este envio criará uma nova cópia privada, sem substituir o material atual das provas.</p>':'')+
   '<div class="library-review-fields"><label>Disciplina <select data-review-subject="'+i+'">'+choices+'</select></label>'+
   '<label>Vincular a material existente ou criar novo <select data-review-target="'+i+'">'+destinationOptions(r)+'</select></label>'+
   (r.targetKey==='__new__'?'<label>Nome exibido na Biblioteca <input data-review-title="'+i+'" maxlength="160" type="text" value="'+clean(r.title)+'" placeholder="Título do material"></label>':'')+
