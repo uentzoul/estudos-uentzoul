@@ -5080,10 +5080,10 @@ function dmRender(){
  }
  const selected=dm.tab==='private'?dm.peerId:dm.tab==='global'?DM_GLOBAL_ROOM:dm.roomId;
  const peer=dm.tab==='private'&&selected?dmPrettyPerson(selected):null;
- const room=dm.tab==='global'?{name:'Chat geral',kind:'global'}:dm.tab==='groups'?dmRoom(selected):null;
+ const room=dm.tab==='global'?{name:'Chat Geral',kind:'global'}:dm.tab==='groups'?dmRoom(selected):null;
  const heading=peer?'<button type="button" class="dm-chat-person" data-dm-profile="'+esc(peer.user_id)+'">'+avatar(peer.display_name,peer.avatar_url,true)+'<span><strong>'+esc(peer.display_name)+'</strong><small>Ver perfil e bio</small></span></button>':room?'<span class="dm-room-heading"><strong>'+esc(room.name)+'</strong><small>'+(room.kind==='global'?'Aberto a todos os estudantes cadastrados':'Conversa privada do grupo')+'</small></span>':'<strong>Escolha uma conversa</strong>';
  const list=dm.tab==='private'?'<label class="dm-search-label"><span>Encontrar pessoas</span><input id="dmUserSearch" type="search" placeholder="Buscar estudante pelo nome" value="'+esc(dm.search)+'" autocomplete="off"></label><div class="dm-contacts" id="dmContacts">'+dmContactRows()+'</div>':
-  dm.tab==='groups'?'<div class="dm-contacts dm-room-contacts">'+dmRoomList()+'</div>':'<div class="dm-global-info"><span>🌍</span><h3>Chat geral do app</h3><p>Um espaço de conversa para todas as pessoas do site. Respeitem os colegas e evitem compartilhar dados pessoais.</p></div>';
+  dm.tab==='groups'?'<div class="dm-contacts dm-room-contacts">'+dmRoomList()+'</div>':'<div class="dm-global-info"><span>🌍</span><h3>Chat Geral do app</h3><p>Um espaço de conversa para todas as pessoas do site. Respeitem os colegas e evitem compartilhar dados pessoais.</p></div>';
  return '<section class="dm-shell"><div class="dm-list">'+
  '<header class="dm-list-head"><div><h1>Mensagens</h1><p>Conversas entre estudantes</p></div><span class="dm-online-dot"></span></header>'+
  '<nav class="dm-channel-tabs '+(dm.isAdmin?'has-admin':'')+'" aria-label="Tipos de conversa">'+
