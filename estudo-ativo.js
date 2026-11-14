@@ -48,7 +48,8 @@ function cardView(id){
  if(!Number.isInteger(s.cardIndex))s.cardIndex=-1;
  if(s.cardIndex>=all.length)s.cardIndex=-1;
  const completed=all.filter(c=>data[c.key]?.hits>0).length;
- const shell='<section class="as-shell as-flash-shell" data-active-mode="flash" data-active-id="'+esc(id)+'"><header class="as-head"><div><small>RECORDAÇÃO ATIVA</small><h2>Flashcards</h2><p>Escolha qualquer cartão. Os cartões já lembrados continuam acessíveis; a opção Pular não registra conclusão.</p></div><span>'+completed+' / '+all.length+' lembrados</span></header>';
+ const shell='<section class="as-shell as-flash-shell" data-active-mode="flash" data-active-id="'+esc(id)+'"><header class="as-head"><div><small>RECORDAÇÃO ATIVA</small><h2>Flashcards</h2><p>Escolha qualquer cartão. Os cartões já lembrados continuam acessíveis; a opção Pular não registra conclusão.</p></div><span>'+completed+' / '+all.length+' lembrados</span></header>'+
+ '<div class="as-flash-guide-bar"><button type="button" class="as-flash-guide-button" data-flash-tour="start" aria-label="Abrir tutorial de uso dos flashcards"><span aria-hidden="true">?</span> Como funcionam os flashcards?</button></div>';
  if(!all.length)return shell+'<div class="as-empty">Não há cartões cadastrados nesta disciplina.</div></section>';
  if(s.cardIndex<0){
   return shell+'<div class="as-flash-overview"><div class="as-flash-meter" aria-label="'+completed+' de '+all.length+' lembrados"><span style="width:'+(100*completed/all.length).toFixed(1)+'%"></span></div>'+
@@ -101,6 +102,26 @@ window.PSICO_PRACTICE={
   save(id,data);return true;
  },
  flashcards(id,topics,semester){const s=S(id);s.topics=Array.isArray(topics)?topics:[];s.semester=semester||'2026/2';return cardView(id)},
+ // UI-only helpers used by the flashcards tutorial; never modify saved review records.
+ flashTutorialState(id){
+  const s=S(id);return {cardIndex:Number.isInteger(s.cardIndex)?s.cardIndex:-1,flipped:!!s.flipped,count:cards(id).length};
+ },
+ flashTutorialShow(id,index,flipped=false){
+  const root=document.querySelector('.as-flash-shell[data-active-mode="flash"]');
+  if(!root||root.dataset.activeId!==id)return false;
+  const s=S(id),total=cards(id).length;
+  s.cardIndex=Number.isInteger(index)&&index>=0&&index<total?index:-1;
+  s.flipped=s.cardIndex>=0&&!!flipped;
+  refresh(root);
+  return true;
+ },
+ flashTutorialRestore(id,index,flipped=false){
+  const s=S(id),total=cards(id).length;
+  s.cardIndex=Number.isInteger(index)&&index>=0&&index<total?index:-1;
+  s.flipped=s.cardIndex>=0&&!!flipped;
+  const root=document.querySelector('.as-flash-shell[data-active-mode="flash"]');
+  if(root?.dataset.activeId===id)refresh(root);
+ },
  cases(id){return (window.PSICO_CASES?.[id]?.length?caseView(id):'<div class="as-empty">Nenhum caso disponível nesta matéria.</div>')},
  hasCases(id){return !!window.PSICO_CASES?.[id]?.length}
 };
