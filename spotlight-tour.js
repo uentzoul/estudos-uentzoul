@@ -22,9 +22,35 @@ const steps=[
  {page:'home',find:'#semesterCurrent',title:'Escolha o semestre',body:'Use este seletor para alternar entre os períodos de Psicologia. Cada semestre tem sua própria organização, e os conteúdos aparecem conforme são cadastrados. O modo claro ou escuro também pode ser alterado no menu.',tip:'O tutorial terminou. Você poderá iniciá-lo novamente pelo botão Tutorial.'}
 ];
 
+/* O desktop conserva suas etapas; o celular usa uma ordem adaptada ao menu compacto. */
+const mobileSteps=[
+ {page:'home',find:'#pmMobileMenuToggle',tourScene:'menu-button',title:'Onde ficam as opções do site?',
+  body:'O botão de três linhas (☰), ao lado do símbolo do PsicoMoodle, abre o menu lateral. Assim, a navegação não ocupa espaço no topo enquanto você estuda.',
+  tip:'Toque em Próximo para ver as opções que ficam dentro dele.'},
+ {page:'home',find:'#siteSidebar',tourScene:'menu-list',title:'Tudo ao seu alcance',
+  body:'No menu estão Início, para acompanhar os estudos; Agenda e Horários, com aulas e provas; Simulados, para praticar; IA Tzoul, para tirar dúvidas; e Mensagens, para falar com a turma. Há também as disciplinas, participantes e opção de relatar erros. Trabalhos e Revisão de Férias são recursos anunciados para depois.',
+  tip:'Deslize o menu para baixo para encontrar mais itens. Ao escolher uma página ou tocar fora, ele fecha.'},
+ ...steps.slice(0,-1).map((s,i)=>({...s,baseIndex:i,
+  ...(i===2?{tourScene:'trail',find:'.subject-hub-menu [data-action="subjectArea:trail"]',
+   title:'Trilha de estudos para a prova',
+   body:'Ao entrar em uma matéria, você encontra a Trilha de estudos para a prova, que orienta por onde começar e como revisar. Na mesma disciplina também estão materiais, estudos dirigidos, simulados, flashcards, casos, podcasts e conteúdos para revisar.',
+   tip:'Para chegar aqui, escolha primeiro uma disciplina na página Início.'}:{})
+ })),
+ {page:'home',find:'#pmMobileTopbar .mobile-brand-actions',tourScene:'preferences',
+  title:'Preferências e perfil',
+  body:'No canto superior direito estão os botões para alternar entre modo claro e escuro e acessar a sua foto de perfil. Pela foto, você pode entrar na conta e atualizar seus dados.',
+  tip:'Esses controles continuam no topo mesmo quando o menu lateral está fechado.'},
+ {...steps[steps.length-1],baseIndex:steps.length-1,tourScene:'semester',
+  title:'Escolha o semestre',
+  body:'Para trocar de período, abra o menu ☰ e escolha o semestre logo abaixo do nome PsicoMoodle. Cada período organiza as disciplinas e os materiais correspondentes.',
+  tip:'O passeio terminou. Você pode repeti-lo pelo botão Tutorial, na página Início.'}
+];
 const byId=id=>document.getElementById(id);
 const q=s=>document.querySelector(s);
 let active=false,index=0,chosen='avaliacao',lastFocus=null,originSemester=null,changedSemester=false;
+let runSteps=steps;
+const originalIndex=()=>runSteps===steps?index:(runSteps[index]?.baseIndex??-1);
+const tourScene=()=>runSteps[index]?.tourScene||'';
 let shell=null,spot=null,sidebarSpot=null,balloon=null,fadeTimer=0,frame=0,stepSerial=0;
 let lastRect=null,pendingScroll=false;
 let mobilePositionAttempts=0;
@@ -114,7 +140,7 @@ function prep(step){
   if(search?.value){search.value='';search.dispatchEvent(new Event('input',{bubbles:true}));}
  }
  if(step.tab&&step.page!=='subject')selectTab(step);
- if(index===7){
+ if(originalIndex()===7){
   // Marcador visual temporário; não modifica nem salva o conteúdo real.
   mondayClassRow()?.classList.add('pm-tour-day-lesson');
  }
@@ -133,10 +159,11 @@ function mondayClassRow(){
   group.querySelector('.agenda-classrow')||group;
 }
 function findNode(step){
- const mobile=innerWidth<=760;
+ const mobile=runSteps===mobileSteps;
  if(mobile){
   // Alvos escolhidos pela informação que o estudante precisa de fato ver.
   const targeted={
+   2:()=>available('#main .subject-hub-menu [data-action="subjectArea:trail"]'),
    1:()=>available('#homeCourses [data-action="subject:avaliacao"]')?.closest('.course-card')||available('#homeCourses .course-card'),
    5:()=>calendarEventDay(),
    6:()=>available('#main .schedule-day:has(.schedule-lesson)'),
@@ -146,7 +173,7 @@ function findNode(step){
    12:()=>available('#main #dmContacts [data-dmw-global]')||available('#main .dm-channel-tabs [data-dm-tab="global"]'),
    13:()=>available('#main .dm-composer')||available('#main .dm-list-head'),
    14:()=>available('#semesterCurrent')
-  }[index];
+  }[originalIndex()];
   const target=targeted?.();
   if(target)return {node:target,login:false};
  }
@@ -269,9 +296,10 @@ function positionPopover(r){
 }
 function mobileShowcase(){
  const popup=balloon.getBoundingClientRect();
- const sidebar=available('.sidebar')||available('#sidebar');
- const headerBottom=sidebar?sidebar.getBoundingClientRect().bottom:0;
- const top=clamp(headerBottom>0&&headerBottom<innerHeight*.4?headerBottom+8:12,12,Math.max(12,innerHeight*.38));
+ const bar=available('#pmMobileTopbar');
+ const headerBottom=bar?bar.getBoundingClientRect().bottom:0;
+ const drawerOpen=document.body.classList.contains('pm-mobile-menu-open');
+ const top=drawerOpen?12:clamp(headerBottom>0?headerBottom+8:12,12,Math.max(12,innerHeight*.38));
  const bottom=Math.max(top+48,popup.top-14);
  return {top,bottom};
 }
@@ -298,7 +326,7 @@ function calendarWeekRect(node){
   width:last.right-first.left,height:Math.max(...row.map(e=>e.getBoundingClientRect().bottom))-first.top};
 }
 function targetVisualBounds(node,mobile){
- if(index===5 && node.matches('.agenda-cal-day'))return calendarWeekRect(node);
+ if(originalIndex()===5 && node.matches('.agenda-cal-day'))return calendarWeekRect(node);
  // A data aparece na faixa anexada à própria aula; destacar só a aula
  // de Metapsicologia, não todos os outros encontros de segunda-feira.
  return node.getBoundingClientRect();
@@ -311,13 +339,14 @@ function clipVisualBounds(r,zone){
  return {left,right,top,bottom,width:right-left,height:bottom-top};
 }
 function positionMobileTarget(node){
- // O seletor está no cabeçalho fixo: nunca tentar jogá-lo para o corpo da página.
- if(index===14)return;
+ // Os botões da barra e da gaveta não dependem da rolagem do documento.
+ if(['menu-button','menu-list','preferences','semester'].includes(tourScene()))return;
  const zone=mobileShowcase(),r=targetVisualBounds(node,true),room=zone.bottom-zone.top;
  if(room<50)return;
- const marginTop=index===1||index===6||index===7?6:12;
+ const old=originalIndex();
+ const marginTop=old===1||old===6||old===7?6:12;
  let desired=zone.top+marginTop;
- if(index!==1&&index!==6&&index!==7&&r.height<room-24)desired=zone.top+(room-r.height)/2;
+ if(old!==1&&old!==6&&old!==7&&r.height<room-24)desired=zone.top+(room-r.height)/2;
  // Não recentrar blocos altos no meio, pois isso cortava o título do item.
  const delta=r.top-desired;
  if(Math.abs(delta)<4)return;
@@ -333,10 +362,10 @@ function positionMobileTarget(node){
 }
 function layout(scrollTarget=false){
  if(!active||!shell||shell.hidden)return;
- const found=findNode(steps[index]),node=found.node;
+ const found=findNode(runSteps[index]),node=found.node;
  if(!node)return;
- if(index===7&&node.matches('.agenda-classrow'))node.classList.add('pm-tour-day-lesson');
- const mobile=innerWidth<=760;
+ if(originalIndex()===7&&node.matches('.agenda-classrow'))node.classList.add('pm-tour-day-lesson');
+ const mobile=runSteps===mobileSteps;
  if(mobile){
   positionPopover(null);
   if(scrollTarget&&!pendingScroll)positionMobileTarget(node);
@@ -350,10 +379,19 @@ function layout(scrollTarget=false){
  }
  const zone=mobile?mobileShowcase():null;
  const visual=targetVisualBounds(node,mobile);
- const r=mobile?(index===14?currentRect(node):clipVisualBounds(visual,zone)):
-  (index===7?currentRect({getBoundingClientRect:()=>visual}):currentRect(node));
+ let r;
+ if(mobile&&tourScene()==='menu-list'){
+  const side=node.getBoundingClientRect(),popup=balloon.getBoundingClientRect();
+  const left=clamp(side.left+6,6,innerWidth-40),right=clamp(side.right-6,left+24,innerWidth-6);
+  const top=clamp(side.top+8,6,innerHeight-90);
+  const bottom=clamp(Math.min(side.bottom-8,popup.top-12),top+40,innerHeight-6);
+  r={left,right,top,bottom,width:right-left,height:bottom-top};
+ }else if(mobile&&['menu-button','semester','preferences'].includes(tourScene())){
+  r=currentRect(node);
+ }else if(mobile)r=clipVisualBounds(visual,zone);
+ else r=originalIndex()===7?currentRect({getBoundingClientRect:()=>visual}):currentRect(node);
  lastRect=r;
- const navNode=updateSidebarHighlight(steps[index]);
+ const navNode=updateSidebarHighlight(runSteps[index]);
  const navRect=!mobile&&navNode?currentRect(navNode):null;
  const overlap=navRect&&navRect.left<r.right&&navRect.right>r.left&&navRect.top<r.bottom&&navRect.bottom>r.top;
  cutout(r,overlap?null:navRect);
@@ -367,18 +405,28 @@ function renderCopy(step){
  const hint=shell.querySelector('.pm-spotlight-tip');
  hint.textContent=found.login?(step.login||'Entre na sua conta para usar este recurso.'):(step.tip||'');
  hint.hidden=!hint.textContent;
- shell.querySelector('.pm-spotlight-counter').textContent=(index+1)+' / '+steps.length;
- shell.querySelector('.pm-spotlight-track span').style.width=100*(index+1)/steps.length+'%';
+ shell.querySelector('.pm-spotlight-counter').textContent=(index+1)+' / '+runSteps.length;
+ shell.querySelector('.pm-spotlight-track span').style.width=100*(index+1)/runSteps.length+'%';
  shell.querySelector('.pm-spotlight-back').disabled=index===0;
- shell.querySelector('.pm-spotlight-next').innerHTML=index===steps.length-1?'Concluir <span aria-hidden="true">✓</span>':'Próximo <span aria-hidden="true">→</span>';
+ shell.querySelector('.pm-spotlight-next').innerHTML=index===runSteps.length-1?'Concluir <span aria-hidden="true">✓</span>':'Próximo <span aria-hidden="true">→</span>';
+}
+function syncMobileMenu(step){
+ if(runSteps!==mobileSteps)return;
+ const drawer=window.pmMobileDrawer;
+ if(step.tourScene==='menu-list'||step.tourScene==='semester'){
+  drawer?.open?.();
+  drawer?.scrollToTop?.();
+ }else drawer?.close?.();
 }
 function show(n){
  if(!active)return;
- index=clamp(n,0,steps.length-1);
- document.documentElement.dataset.pmTourStep=String(index+1);
+ index=clamp(n,0,runSteps.length-1);
+ document.documentElement.dataset.pmTourStep=String(originalIndex()+1);
+ document.documentElement.dataset.pmTourScene=tourScene();
  mobilePositionAttempts=0;
- const serial=++stepSerial,step=steps[index];
+ const serial=++stepSerial,step=runSteps[index];
  prep(step);
+ syncMobileMenu(step);
  requestAnimationFrame(()=>requestAnimationFrame(()=>{
   if(!active||serial!==stepSerial)return;
   // A navegação pode exibir um placeholder momentâneo durante a autenticação.
@@ -390,7 +438,7 @@ function show(n){
 }
 function move(dir){
  if(!active)return;
- if(index===steps.length-1&&dir>0){close();return}
+ if(index===runSteps.length-1&&dir>0){close();return}
  show(index+dir);
 }
 function open(){
@@ -399,6 +447,8 @@ function open(){
  originSemester=q('.semester-option[aria-current="true"]')?.dataset.semester||null;
  changedSemester=!!(originSemester&&originSemester!=='2026/2');
  if(changedSemester)q('.semester-option[data-semester="2026/2"]')?.click();
+ runSteps=innerWidth<=760?mobileSteps:steps;
+ window.pmMobileDrawer?.close?.();
  active=true;shell.hidden=false;document.documentElement.classList.add('pm-tour-running');
  show(0);
 }
@@ -406,8 +456,10 @@ function close(){
  if(!active)return;
  active=false;++stepSerial;
  clearTimeout(fadeTimer);shell.hidden=true;
+ window.pmMobileDrawer?.close?.();
  document.documentElement.classList.remove('pm-tour-running');
  delete document.documentElement.dataset.pmTourStep;
+ delete document.documentElement.dataset.pmTourScene;
  document.querySelectorAll('#nav .pm-tour-nav-current').forEach(el=>el.classList.remove('pm-tour-nav-current'));
  if(sidebarSpot)sidebarSpot.hidden=true;
  if(changedSemester&&originSemester)q('.semester-option[data-semester="'+originSemester+'"]')?.click();
@@ -463,7 +515,11 @@ function keys(event){
 }
 function refresh(){
  if(frame)return;
- frame=requestAnimationFrame(()=>{frame=0;if(active)layout(false);else insertEntry()});
+ frame=requestAnimationFrame(()=>{
+  frame=0;
+  if(active&&((innerWidth<=760)!==(runSteps===mobileSteps))){close();return}
+  if(active)layout(false);else insertEntry();
+ });
 }
 function init(){
  build();insertEntry();
