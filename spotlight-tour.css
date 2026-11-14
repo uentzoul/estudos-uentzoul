@@ -8,7 +8,7 @@
  position:relative;z-index:3;
 }
 #homeCourses .library-page > .pm-tour-entry.is-placed-between{
- position:absolute;left:50%;margin:0;
+ position:absolute;left:70%;margin:0;
  transform:translateX(-50%);
 }
 .pm-tour-launch{
