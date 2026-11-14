@@ -4015,7 +4015,7 @@ function renderThirdSemester(){
      '<button class="course-card-button" type="button" data-action="subject:'+k+'" aria-label="Abrir disciplina '+esc(s.name)+'">'+
      '<div class="course-cover"><span class="course-index">'+period+' · '+ordinal+' SEMESTRE</span><span class="course-symbol" aria-hidden="true">Ψ</span></div>'+
      '<div class="course-card-content"><div class="course-card-title">'+esc(s.name)+'</div>'+
-     '<div class="course-card-desc">'+(s.code?esc(s.code)+(s.hours?' · '+s.hours+'h':''):'Disciplina do '+ordinal+' semestre')</div>'+
+     '<div class="course-card-desc">'+(s.code?esc(s.code)+(s.hours?' · '+s.hours+'h':''):'Disciplina do '+ordinal+' semestre')+'</div>'+
      '<div class="course-card-footer"><span>Conteúdos ainda não cadastrados</span><span>Abrir disciplina →</span></div></div></button></article>';
    }).join('')+'</div>'+
    '<div class="course-empty" id="libraryCourseNoResults" hidden>Nenhuma disciplina corresponde à busca.</div></div>';
@@ -4030,7 +4030,7 @@ function renderThirdSemester(){
   const top='<div class="subject-hub" style="--subject-accent:'+color(subjectId)+'">'+
    '<div class="subject-hub-crumb"><button type="button" data-action="page:home">Início</button><span aria-hidden="true">/</span><span>'+esc(subj.name)+'</span></div>'+
    '<header class="subject-hub-hero"><span class="subject-hub-emblem" aria-hidden="true">Ψ</span>'+
-   '<div class="subject-hub-heading"><span class="subject-hub-kicker">'+period+(subj.code?' · '+esc(subj.code):'')+(subj.hours?' · '+subj.hours+'h':'')</span>'+
+   '<div class="subject-hub-heading"><span class="subject-hub-kicker">'+period+(subj.code?' · '+esc(subj.code):'')+(subj.hours?' · '+subj.hours+'h':'')+'</span>'+
    '<h1>'+esc(subj.name)+'</h1><p class="subject-hub-date">Calendário da disciplina ainda não cadastrado.</p></div></header>';
   if(area&&titles[area])return top+'<div class="subject-hub-area">'+
     '<button type="button" class="subject-hub-back" data-action="subjectArea:home">← Voltar às opções</button>'+
