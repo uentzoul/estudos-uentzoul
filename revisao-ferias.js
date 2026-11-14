@@ -140,7 +140,7 @@ function monthsHTML(){
    '<strong>'+MONTH_NAME[m]+'</strong><small>'+total+' '+plural(total,'momento','momentos')+'</small></button>';
  }).join('')+'</nav>'+
  months.map(m=>'<div class="vr-expand-shell'+(openedMonth===m?' is-open':'')+'" id="vr-panel-'+m+'" aria-hidden="'+(openedMonth!==m)+'">'+
-  '<div class="vr-expand-clip"><div class="vr-month-detail">'+monthHTML(m)+'</div></div></div>').join('')+
+  '<div class="vr-expand-clip"'+(openedMonth===m?'':' inert')+'><div class="vr-month-detail">'+monthHTML(m)+'</div></div></div>').join('')+
  '</section>';
 }
 function monthHTML(month){
@@ -233,6 +233,7 @@ function setMonth(month){
  document.querySelectorAll('.vr-expand-shell').forEach(panel=>{
   const on=panel.id==='vr-panel-'+next;
   panel.classList.toggle('is-open',on);panel.setAttribute('aria-hidden',String(!on));
+  const clip=panel.querySelector('.vr-expand-clip');if(clip)clip.inert=!on;
   const card=panel.querySelector('.vr-story-preview');
   if(card&&card.querySelector('.vr-card'))card.innerHTML=emptyPreview();
   panel.querySelectorAll('.vr-event').forEach(b=>{b.classList.remove('is-selected');b.setAttribute('aria-expanded','false');});
