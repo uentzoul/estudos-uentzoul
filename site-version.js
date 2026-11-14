@@ -71,7 +71,7 @@ function setup(){
  if(!document.getElementById('pm-tutorial-script')){
   const script=document.createElement('script');
   script.id='pm-tutorial-script';
-  script.src='spotlight-tour.js?v=20261114-podcast-monday-v19';
+  script.src='spotlight-tour.js?v=20261114-chat-mobile-v20';
   script.async=true;
   document.head.appendChild(script);
  }
@@ -95,6 +95,20 @@ function setup(){
   css.rel='stylesheet';
   css.href='flashcards-tour.css?v=20261114-flash-tour-v1';
   document.head.appendChild(css);
+ }
+ if(!document.getElementById('pm-chat-mobile-css')){
+  const link=document.createElement('link');
+  link.id='pm-chat-mobile-css';
+  link.rel='stylesheet';
+  link.href='chat-mobile-refinement.css?v=20261114-chat-mobile-v20';
+  document.head.appendChild(link);
+ }
+ if(!document.getElementById('pm-chat-mobile-js')){
+  const script=document.createElement('script');
+  script.id='pm-chat-mobile-js';
+  script.src='chat-mobile-viewport.js?v=20261114-chat-mobile-v20';
+  script.async=true;
+  document.head.appendChild(script);
  }
  if(!document.getElementById('pm-mobile-drawer-css')){
   const link=document.createElement('link');
