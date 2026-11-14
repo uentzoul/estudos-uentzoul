@@ -1,4 +1,4 @@
-/* Navegação prioritária e tutorial contextual do PsicoMoodle. */
+/* Navegação principal e passeio contextual pelo PsicoMoodle. */
 (()=>{
 'use strict';
 function setup(){
@@ -14,13 +14,13 @@ function setup(){
   const style=document.createElement('link');
   style.id='pm-tutorial-styles';
   style.rel='stylesheet';
-  style.href='tutorial-site.css?v=20261114-1';
+  style.href='spotlight-tour.css?v=20261114-2';
   document.head.appendChild(style);
  }
  if(!document.getElementById('pm-tutorial-script')){
   const script=document.createElement('script');
   script.id='pm-tutorial-script';
-  script.src='tutorial-site.js?v=20261114-1';
+  script.src='spotlight-tour.js?v=20261114-2';
   script.async=true;
   document.head.appendChild(script);
  }
