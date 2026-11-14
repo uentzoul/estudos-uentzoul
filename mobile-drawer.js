@@ -48,7 +48,7 @@
 
   const media=window.matchMedia('(max-width:760px)');
   let opened=false;
-  function setOpen(value,restoreFocus=false){
+  function setOpen(value,restoreFocus=false,focusClose=true){
    opened=Boolean(value&&media.matches);
    document.body.classList.toggle('pm-mobile-menu-open',opened);
    toggle.setAttribute('aria-expanded',String(opened));
@@ -61,9 +61,16 @@
     side.inert=false;
     side.removeAttribute('aria-hidden');
    }
-   if(opened)closeButton.focus({preventScroll:true});
-   else if(restoreFocus&&media.matches)toggle.focus({preventScroll:true});
+   if(opened&&focusClose)closeButton.focus({preventScroll:true});
+   else if(!opened&&restoreFocus&&media.matches)toggle.focus({preventScroll:true});
   }
+  // API do tutorial: abre e fecha sem deslocar o foco do balão explicativo.
+  window.pmMobileDrawer={
+   open:()=>setOpen(true,false,false),
+   close:()=>setOpen(false,false,false),
+   isOpen:()=>opened,
+   scrollToTop:()=>{side.scrollTop=0;}
+  };
   toggle.addEventListener('click',()=>setOpen(!opened,true));
   closeButton.addEventListener('click',()=>setOpen(false,true));
   backdrop.addEventListener('click',()=>setOpen(false,true));
