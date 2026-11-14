@@ -17,7 +17,7 @@ const steps=[
  {page:'exams',tab:'ai',find:'.ge-generator',fallback:'[data-ge-tab="ai"]',title:'Crie seu próprio simulado',body:'Na aba Criar simulado, escolha a disciplina, a dificuldade normal ou difícil, a quantidade de questões e se deseja incluir dissertativas. Depois, acesse a correção e o histórico das suas provas.',tip:'A criação e o compartilhamento de simulados personalizados exigem uma conta conectada.'},
  {page:'messages',tab:'private',find:'#dmUserSearch',fallback:'.dm-channel-tabs [data-dm-tab="private"]',title:'Converse em particular',body:'Na aba Privadas, procure um colega pelo nome e inicie uma conversa direta para tirar dúvidas, combinar estudos e trocar materiais.',login:'Entre na sua conta para acessar as conversas privadas e as demais funções de Mensagens.'},
  {page:'messages',tab:'groups',find:'[data-dm-new-group]',fallback:'.dm-channel-tabs [data-dm-tab="groups"]',title:'Crie um grupo de estudos',body:'Na aba Grupos, selecione Criar grupo, escolha um nome e convide os colegas. É um espaço para organizar trabalhos, discutir questões e estudar em conjunto.',login:'Com a conta conectada, abra Grupos e crie uma conversa com seus colegas.'},
- {page:'messages',tab:'global',find:'#dmContacts [data-dmw-global]',fallback:'#dmContacts .dm-global',title:'Participe do chat global',body:'Na lista de conversas, selecione Chat Global, logo abaixo de Pesquisar conversas. Esse espaço reúne os estudantes cadastrados para trocar informações, tirar dúvidas e conversar com a turma.',login:'O chat global fica disponível para estudantes conectados à conta.'},
+ {page:'messages',tab:'global',find:'#dmContacts [data-dmw-global]',fallback:'#dmContacts .dm-global',title:'Participe do chat geral',body:'Na lista de conversas, selecione Chat Geral, logo abaixo de Pesquisar conversas. Esse espaço reúne os estudantes cadastrados para trocar informações, tirar dúvidas e conversar com a turma.',login:'O chat geral fica disponível para estudantes conectados à conta.'},
  {page:'messages',tab:'global',find:'[data-dmv-share-open]',fallback:'.dm-composer, .dm-channel-tabs',title:'Compartilhe conteúdos sem sair do chat',body:'Dentro de uma conversa, use o recurso de compartilhamento para encontrar materiais, simulados, podcasts e tópicos já listados no PsicoMoodle. Também é possível enviar mensagens, imagens e stickers.',tip:'Simulados personalizados são enviados por conversa privada, com convite para o colega acessar.',login:'Depois de entrar na conta e abrir uma conversa, você poderá compartilhar materiais do catálogo diretamente pelo chat.'},
  {page:'home',find:'#semesterCurrent',title:'Escolha o semestre',body:'Use este seletor para alternar entre os períodos de Psicologia. Cada semestre tem sua própria organização, e os conteúdos aparecem conforme são cadastrados. O modo claro ou escuro também pode ser alterado no menu.',tip:'O tutorial terminou. Você poderá iniciá-lo novamente pelo botão Tutorial.'}
 ];
@@ -36,7 +36,7 @@ const mobileCopy=[
  {title:'Criar simulado',body:'Escolha a matéria e a dificuldade para criar questões e treinar.'},
  {title:'Conversas privadas',body:'Pesquise um colega e converse com ele. É preciso entrar na conta.'},
  {title:'Grupos de estudos',body:'Crie um grupo para estudar e organizar trabalhos com colegas.'},
- {title:'Chat Global',body:'Converse e tire dúvidas com os estudantes cadastrados.'},
+ {title:'Chat Geral',body:'Converse e tire dúvidas com os estudantes cadastrados.'},
  {title:'Compartilhar no chat',body:'Envie materiais, simulados, podcasts, imagens e stickers nas conversas.'}
 ];
 const mobileSteps=[
@@ -148,7 +148,7 @@ function prep(step){
    if(docs)docs.click();
   }else chooseSubject();
  }else navigate(step.page);
- // "Chat Global" é um contato fixo logo abaixo da busca, não uma aba no cabeçalho.
+ // "Chat Geral" é um contato fixo logo abaixo da busca, não uma aba no cabeçalho.
  if(step.page==='messages' && step.tab==='global'){
   const search=q('#dmUserSearch');
   if(search?.value){search.value='';search.dispatchEvent(new Event('input',{bubbles:true}));}
