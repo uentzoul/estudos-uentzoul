@@ -68,7 +68,7 @@ function install(){
   const toolbar=msg.closest('.dm-composer');
   if(toolbar&&!toolbar.querySelector('.pm-voice-original')){
    const proxy=document.createElement('button');
-   proxy.type='button';proxy.hidden=true;proxy.tabIndex=-1;proxy.setAttribute('aria-hidden','true');
+   proxy.type='button';proxy.hidden=true;proxy.tabIndex=-1;proxy.setAttribute('aria-hidden','true');proxy.style.setProperty('display','none','important');
    proxy.className='pm-voice-original';proxy.setAttribute('data-dmw-record','');
    toolbar.appendChild(proxy);
   }
