@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="color-scheme" content="light dark">
-<meta name="site-build" content="psicomoodle-tour-ai-fix-20261114-r2">
+<meta name="site-build" content="psicomoodle-ai-sidebar-refresh-20261114-r1">
 <script>try{document.documentElement.dataset.theme=localStorage.getItem("uentzoul_theme_v1")==="dark"?"dark":"light"}catch(e){document.documentElement.dataset.theme="light"}</script>
 <title>PsicoMoodle · Psicologia PUCRS</title>
 <style>
@@ -3368,7 +3368,7 @@ function renderAI(){
  const status=!logged?'Entre na conta para conversar':tz.ready===true?'Conectada':tz.ready===false?'Indisponível':'Verificando conexão';
  const subjectName=tz.subject==='todos'?'Todas as matérias':(DB.subjects[tz.subject]?.name||'Matéria selecionada');
  const html='<section class="tz-shell" aria-label="Conversa com a IA Tzoul">'+
-'<div class="tz-body"><aside class="tz-sidebar" aria-label="Conversas anteriores"><div class="tz-sidebar-header"><strong>Conversas</strong><button type="button" data-tz-reset="1" title="Criar conversa">+</button></div><div class="tz-history">'+(tz.loading?'<p class="tz-history-empty">Carregando…</p>':tz.conversations.length?tz.conversations.map(c=>'<div class="tz-history-item '+(tz.active===c.id?'selected':'')+'"><button type="button" class="tz-history-open" data-tz-open="'+esc(c.id)+'" title="'+esc(c.title)+'"><span>'+esc(c.title)+'</span><small>'+new Date(c.updated_at).toLocaleDateString('pt-BR')+'</small></button><button type="button" class="tz-history-menu" data-tz-rename="'+esc(c.id)+'" title="Renomear conversa">✎</button><button type="button" class="tz-history-menu" data-tz-delete="'+esc(c.id)+'" title="Excluir conversa">×</button></div>').join(''):'<p class="tz-history-empty">As suas conversas vão aparecer aqui.</p>')+'</div></aside><div class="tz-chat" role="region" aria-label="Chat de estudos — '+esc(status)+'">'+
+'<div class="tz-body"><aside class="tz-sidebar" aria-label="Conversas anteriores"><div class="tz-sidebar-header"><strong>Conversas</strong></div><div class="tz-history">'+(tz.loading?'<p class="tz-history-empty">Carregando…</p>':tz.conversations.length?tz.conversations.map(c=>'<div class="tz-history-item '+(tz.active===c.id?'selected':'')+'"><button type="button" class="tz-history-open" data-tz-open="'+esc(c.id)+'" title="'+esc(c.title)+'"><span>'+esc(c.title)+'</span><small>'+new Date(c.updated_at).toLocaleDateString('pt-BR')+'</small></button><button type="button" class="tz-history-menu" data-tz-rename="'+esc(c.id)+'" aria-label="Renomear conversa" title="Renomear conversa"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m15 5 4 4M4 20l4.5-1 11-11a2.1 2.1 0 0 0-3-3l-11 11L4 20Z"/></svg></button><button type="button" class="tz-history-menu" data-tz-delete="'+esc(c.id)+'" aria-label="Excluir conversa" title="Excluir conversa"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M10 10v7m4-7v7M6 7l1 14h10l1-14M9 7V4h6v3"/></svg></button></div>').join(''):'<p class="tz-history-empty">As suas conversas vão aparecer aqui.</p>')+'</div></aside><div class="tz-chat" role="region" aria-label="Chat de estudos — '+esc(status)+'">'+
  '<div class="tz-floating-actions"><button type="button" class="tz-new-chat" data-tz-reset="1" aria-label="Iniciar nova conversa" title="Iniciar nova conversa"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg><span>Nova conversa</span></button></div>'+
  '<div class="tz-thread" id="tzThread" aria-live="polite">'+messages+(tz.busy?'<div class="tz-thinking">IA Tzoul está respondendo</div>':'')+'</div>'+
  (notice?'<div class="tz-notice" role="status">'+esc(notice)+(logged&&tz.ready===false?'<div class="tz-retry-area"><button type="button" class="tz-retry-button" data-tz-retry="1">↻ Testar conexão novamente</button><small>Se a chave acabou de ser configurada no servidor, verifique aqui sem precisar sair do site.</small></div>':'')+'</div>':'')+
@@ -7126,7 +7126,7 @@ document.addEventListener("click",e=>{if(!e.target.closest("[data-theme-toggle]"
 <script src="library-content-analyzer.js?v=20261111-2"></script>
 <script src="library-manager.js?v=20261113-revisao-global-1"></script>
 <script src="admin-config.js?v=20261113-formal-1"></script>
-<script src="site-version.js?v=20261114-tour-ai-fix-2"></script>
+<script src="site-version.js?v=20261114-ai-sidebar-r1"></script>
 
 <script>
 /* Aviso desacoplado do scroll da sidebar. Nenhuma alteração em navegação. */
