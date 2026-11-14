@@ -137,6 +137,10 @@ function updateSidebarHighlight(step){
  document.querySelectorAll('#nav .pm-tour-nav-current').forEach(el=>el.classList.remove('pm-tour-nav-current'));
  const node=sidebarNode(step);
  if(node)node.classList.add('pm-tour-nav-current');
+ if(!node)return null;
+ const r=node.getBoundingClientRect();
+ // No mobile o menu pode estar recolhido: não desenhar um falso recorte na borda.
+ if(r.right<=0||r.left>=innerWidth||r.bottom<=0||r.top>=innerHeight)return null;
  return node;
 }
 function cutout(r,sideRect){
@@ -229,7 +233,9 @@ function layout(scrollTarget=false){
  const r=currentRect(node);lastRect=r;
  const navNode=updateSidebarHighlight(steps[index]);
  const navRect=navNode?currentRect(navNode):null;
- cutout(r,navRect);positionPopover(r);
+ // Se os dois recortes se cruzam, mantém apenas o foco principal.
+ const overlap=navRect&&navRect.left<r.right&&navRect.right>r.left&&navRect.top<r.bottom&&navRect.bottom>r.top;
+ cutout(r,overlap?null:navRect);positionPopover(r);
 }
 function renderCopy(step){
  const found=findNode(step);
