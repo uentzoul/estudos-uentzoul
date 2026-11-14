@@ -29,7 +29,7 @@ const mobileSteps=[
   tip:'Toque em Próximo para ver as opções que ficam dentro dele.'},
  {page:'home',find:'#siteSidebar',tourScene:'menu-list',title:'Tudo ao seu alcance',
   body:'No menu estão Início, para acompanhar os estudos; Agenda e Horários, com aulas e provas; Simulados, para praticar; IA Tzoul, para tirar dúvidas; e Mensagens, para falar com a turma. Há também as disciplinas, participantes e opção de relatar erros. Trabalhos e Revisão de Férias são recursos anunciados para depois.',
-  tip:'Deslize o menu para baixo para encontrar mais itens. Ao escolher uma página ou tocar fora, ele fecha.'},
+  tip:'Depois do tutorial, você poderá rolar essa lista. Ela se fecha ao escolher uma página ou tocar fora.'},
  ...steps.slice(0,-1).map((s,i)=>({...s,baseIndex:i,
   ...(i===2?{tourScene:'trail',find:'.subject-hub-menu [data-action="subjectArea:trail"]',
    title:'Trilha de estudos para a prova',
@@ -392,6 +392,7 @@ function layout(scrollTarget=false){
  else r=originalIndex()===7?currentRect({getBoundingClientRect:()=>visual}):currentRect(node);
  lastRect=r;
  const navNode=updateSidebarHighlight(runSteps[index]);
+ if(originalIndex()===7&&node.matches('.agenda-classrow'))node.classList.add('pm-tour-day-lesson');
  const navRect=!mobile&&navNode?currentRect(navNode):null;
  const overlap=navRect&&navRect.left<r.right&&navRect.right>r.left&&navRect.top<r.bottom&&navRect.bottom>r.top;
  cutout(r,overlap?null:navRect);
