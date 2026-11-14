@@ -5,6 +5,8 @@
 'use strict';
 if(window.PSICO_VACATION_REVIEW)return;
 const TABLE='uentzoul_vacation_review_events';
+const UPLOAD_TABLE='uentzoul_library_uploads';
+const LIBRARY_BUCKET='uentzoul-library-files';
 const SUBJECTS={
  profissao:['Psicologia como Profissão','#3c91a4','Profissão'],
  processos:['Processos Psicológicos Básicos','#6296d1','PPB'],
@@ -19,6 +21,7 @@ const MONTH_NAME={3:'Março',4:'Abril',5:'Maio',6:'Junho',8:'Agosto',9:'Setembro
 const MONTH_SHORT={3:'MAR',4:'ABR',5:'MAI',6:'JUN',8:'AGO',9:'SET',10:'OUT',11:'NOV'};
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 let visible=false,semester=1,events=[],openedMonth=null,selectedEvent=null,loading=false,seq=0;
+let uploadedFiles=[],fileIndex=new Map(),fileLoadError='';
 let navObserver=null,mainObserver=null,monthSequence=0;
 const nav=()=>document.getElementById('nav');
 const main=()=>document.querySelector('.app > .main')||document.querySelector('main.main')||document.querySelector('.main');
@@ -104,7 +107,7 @@ function setActive(active){
 }
 function deactivate(){
  visible=false;seq++;setActive(false);
- openedMonth=null;selectedEvent=null;
+ openedMonth=null;selectedEvent=null;indexMaterials([]);fileLoadError='';
  document.getElementById('vr-root')?.remove();
 }
 function privateHTML(){
@@ -168,6 +171,84 @@ function emptyPreview(){
  '<p>Selecione um marco na linha ao lado para explorar o conceito, entender sua importância e encontrar os materiais relacionados.</p>'+
  '<div class="vr-preview-foot"><span aria-hidden="true">↗</span> ESCOLHA UM MOMENTO</div></div>';
 }
+
+/* Vincula cada material da linha do tempo ao arquivo original armazenado.
+   O número da cópia "(1)", "(2)" etc. não faz parte do título acadêmico.
+   Um nome só vira botão quando aponta para UM documento da mesma disciplina e semestre. */
+function materialName(name){
+ return String(name||'').normalize('NFC').toLocaleLowerCase('pt-BR')
+  .replace(/\.(pdf|docx|pptx)$/i,'').replace(/(\s*\(\d+\))+$/g,'').trim();
+}
+function materialScope(event){
+ return Number(event.semester)===1?'2026/1::'+event.subject:event.subject;
+}
+function indexMaterials(rows){
+ uploadedFiles=Array.isArray(rows)?rows:[];
+ const index=new Map();
+ for(const file of uploadedFiles){
+  if(!file?.resource_key||!file.storage_path||!file.file_subject)continue;
+  const keys=new Set([file.filename,file.display_title].filter(Boolean).map(materialName));
+  for(const label of keys){
+   const key=file.file_subject+'\u0000'+label;
+   if(!index.has(key))index.set(key,[]);
+   if(!index.get(key).some(x=>x.resource_key===file.resource_key))index.get(key).push(file);
+  }
+ }
+ fileIndex=index;
+}
+function materialFor(event,name){
+ const matches=fileIndex.get(materialScope(event)+'\u0000'+materialName(name))||[];
+ return matches.length===1?matches[0]:null;
+}
+function materialButtons(event){
+ const names=Array.isArray(event.material_names)?event.material_names:[];
+ if(!names.length)return '<p class="vr-material-note">Ainda não foram indicados documentos para este marco.</p>';
+ return '<ul class="vr-material-list">'+names.map((label,index)=>{
+  const file=materialFor(event,label),nice=file?.display_title||String(label).replace(/\.(pdf|docx|pptx)$/i,'').trim();
+  if(!file)return '<li><span class="vr-material-unavailable"><span aria-hidden="true">▤</span><span><strong>'+esc(nice)+'</strong><small>Arquivo original indisponível no acervo</small></span></span></li>';
+  const extension=/\.(pdf|docx|pptx)$/i.exec(file.filename||label)?.[1]?.toUpperCase()||'ARQUIVO';
+  return '<li><button type="button" class="vr-material-button" data-vr-material="'+index+'" aria-label="'+esc('Abrir documento completo: '+nice)+'">'+
+   '<span class="vr-file-glyph" aria-hidden="true">▤</span><span class="vr-material-copy"><strong>'+esc(nice)+'</strong>'+
+   '<small>'+extension+' ORIGINAL · ABRIR NA ÍNTEGRA</small></span><span class="vr-material-arrow" aria-hidden="true">↗</span>'+
+   '</button></li>';
+ }).join('')+'</ul>'+
+ (fileLoadError?'<p class="vr-material-note">'+esc(fileLoadError)+'</p>':'');
+}
+function fileFeedback(message,kind){
+ const box=document.querySelector('#vr-root .vr-material-feedback');
+ if(box){box.textContent=message||'';box.dataset.state=kind||'info';}
+}
+async function openMaterial(index){
+ if(!visible||!admin()||!Number.isInteger(index)||index<0)return;
+ const event=events.find(x=>x.id===selectedEvent);
+ if(!event||monthOf(event)!==openedMonth)return;
+ const label=event.material_names?.[index],file=label?materialFor(event,label):null;
+ if(!file){fileFeedback('Este documento ainda não está disponível no acervo original.','error');return;}
+ const user=window.uentzoulAIAuth?.user?.();
+ const c=client();
+ if(!c||!user){fileFeedback('Entre na sua conta de administrador para abrir o documento.','error');return;}
+ if(!/^materials\/(?:scheduled\/)?[0-9a-f-]{36}\.(pdf|docx|pptx)$/i.test(file.storage_path)){
+  fileFeedback('O caminho do documento não está válido.','error');return;
+ }
+ // Criar a guia dentro do clique evita bloqueio de pop-ups em mobile.
+ const tab=window.open('','_blank');
+ if(tab){
+  try{tab.opener=null;tab.document.title='Abrindo material original…';tab.document.body.textContent='Carregando o documento original…';}catch(_){}
+ }
+ fileFeedback('Abrindo o arquivo completo…','info');
+ try{
+  const {data,error}=await c.storage.from(LIBRARY_BUCKET).createSignedUrl(file.storage_path,3600);
+  if(error||!data?.signedUrl)throw error||Error('Link temporário indisponível.');
+  if(!visible||!admin()){if(tab&&!tab.closed)tab.close();return;}
+  if(tab&&!tab.closed)tab.location.replace(data.signedUrl);
+  else window.location.assign(data.signedUrl);
+  fileFeedback('Documento aberto em uma nova guia.','success');
+ }catch(err){
+  if(tab&&!tab.closed)tab.close();
+  fileFeedback('Não foi possível abrir o documento. '+(err?.message||'Verifique o acesso e tente novamente.'),'error');
+ }
+}
+
 function eventHTML(e){
  if(!e)return emptyPreview();
  const meta=SUBJECTS[e.subject]||[e.subject,'#8187a5',e.subject],color=colorFor(e.subject);
@@ -180,9 +261,8 @@ function eventHTML(e){
   '<div class="vr-card-block"><strong>O QUE APRENDEMOS</strong><p>'+esc(e.summary)+'</p></div>'+
   '<div class="vr-card-block"><strong>POR QUE LEVAR ADIANTE</strong><p>'+esc(e.importance)+'</p></div>'+
   (e.connection?'<div class="vr-card-connection"><strong><span aria-hidden="true">⌁</span> A CONEXÃO</strong><p>'+esc(e.connection)+'</p></div>':'')+
-  '<div class="vr-materials"><strong>MATERIAIS RELACIONADOS</strong><ul class="vr-material-list">'+
-  (Array.isArray(e.material_names)?e.material_names:[]).map(m=>'<li>'+esc(m)+'</li>').join('')+'</ul>'+
-  '<button type="button" class="vr-open-library" data-vr-library>Abrir a Biblioteca <span aria-hidden="true">↗</span></button></div></article>';
+  '<div class="vr-materials"><strong>MATERIAIS RELACIONADOS · ARQUIVOS NA ÍNTEGRA</strong>'+
+  materialButtons(e)+'<p class="vr-material-feedback" role="status" aria-live="polite"></p></div></article>';
 }
 function render(){
  if(!visible)return;
@@ -196,9 +276,15 @@ async function load(){
  const request=++seq;loading=true;events=[];openedMonth=null;selectedEvent=null;render();
  try{
   const c=client();if(!c)throw new Error('A conta ainda não está conectada.');
-  const res=await c.from(TABLE).select('id,semester,subject,event_date,intensity,title,summary,importance,connection,material_names')
-   .eq('semester',semester).order('event_date',{ascending:true});
+  const [res,materials]=await Promise.all([
+   c.from(TABLE).select('id,semester,subject,event_date,intensity,title,summary,importance,connection,material_names')
+    .eq('semester',semester).order('event_date',{ascending:true}),
+   c.from(UPLOAD_TABLE).select('resource_key,filename,display_title,file_subject,storage_path,publish_at')
+    .order('resource_key')
+  ]);
   if(res.error)throw res.error;
+  if(materials.error){indexMaterials([]);fileLoadError='Não foi possível consultar os arquivos do acervo agora.';}
+  else{indexMaterials(materials.data||[]);fileLoadError='';}
   if(!visible||request!==seq)return;
   events=res.data||[];
   loading=false;render();
@@ -265,10 +351,8 @@ function handleClick(ev){
   const card=panel?.querySelector('.vr-story-preview');if(card)card.innerHTML=emptyPreview();
   panel?.querySelectorAll('.vr-event').forEach(b=>{b.classList.remove('is-selected');b.setAttribute('aria-expanded','false')});return;
  }
- if(ev.target.closest('[data-vr-library]')){
-  const library=nav()?.querySelector('[data-page="library"]');
-  if(library)library.click();
- }
+ const related=ev.target.closest('[data-vr-material]');
+ if(related){void openMaterial(Number(related.dataset.vrMaterial));return;}
 }
 function setup(){
  navButton();
