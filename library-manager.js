@@ -103,7 +103,7 @@ function updateCounter(){
  '<div class="library-count-track"><i style="width:'+(st.total?Math.round(st.sent/st.total*100):100)+'%"></i></div>';
 }
 function destinationOptions(r){
- if(mustSchedule(api()?.semester?.()))return '<option value="__new__" selected>Novo material · agendado para 27/11</option>';
+ if(mustSchedule(api()?.semester?.()))return '<option value="__new__" selected>Novo material · visível imediatamente no acervo</option>';
  const list=entries().filter(x=>!r.subject||x.subject===r.subject).sort((a,b)=>
   Number(b.key===r.suggestion?.key)-Number(a.key===r.suggestion?.key)||a.title.localeCompare(b.title,'pt-BR'));
  return '<option value="__new__" '+(r.targetKey==='__new__'?'selected':'')+'>+ Adicionar como novo material</option>'+
@@ -127,7 +127,7 @@ function reviewCard(r,i){
   (a.preview?'<details><summary>Ver trecho extraído para conferência</summary><p>'+clean(a.preview)+'</p></details>':'')+'</div>':'')+
   (warn?'<p class="library-review-warning">'+clean(warn)+'</p>':'')+
   (mustSchedule(api()?.semester?.())&&r.suggestion?.uploaded?
-   '<p class="library-review-warning">Um arquivo com este nome já existe no acervo. Este envio criará uma nova cópia privada, sem substituir o material atual das provas.</p>':'')+
+   '<p class="library-review-warning">Um arquivo com este nome já existe no acervo. Este envio criará uma nova cópia, sem substituir o material atual das provas.</p>':'')+
   '<div class="library-review-fields"><label>Disciplina <select data-review-subject="'+i+'">'+choices+'</select></label>'+
   '<label>Vincular a material existente ou criar novo <select data-review-target="'+i+'">'+destinationOptions(r)+'</select></label>'+
   (r.targetKey==='__new__'?'<label>Nome exibido na Biblioteca <input data-review-title="'+i+'" maxlength="160" type="text" value="'+clean(r.title)+'" placeholder="Título do material"></label>':'')+
@@ -135,12 +135,12 @@ function reviewCard(r,i){
    '<label>Categoria no Acervo geral <select data-review-category="'+i+'">'+categoryOptions(r)+'</select></label>':'')+
   '<label>Visibilidade <select data-review-scope="'+i+'">'+
   (mustSchedule(api()?.semester?.())?
-   '<option value="scheduled" selected>Privado para administradores · libera 27/11 às 00h</option>':
+   '<option value="scheduled" selected>Disponível agora no acervo · fora da prova atual</option>':
    '<option value="in" '+(r.scope==='in'?'selected':'')+'>'+(api()?.semester?.()==='2026/1'?'Biblioteca do 1º semestre':'Biblioteca do 2º semestre')+'</option>'+
    '<option value="archive" '+(r.scope==='archive'?'selected':'')+'>Guardar fora da revisão</option>')+
   '</select></label></div>'+
   '<p class="library-review-foot">'+(mustSchedule(api()?.semester?.())?
-  'Novo arquivo separado dos conteúdos das provas. Visível apenas para administração até 26/11; liberação automática em 27/11/2026 às 00h (Brasília). Não substitui documentos atuais.':
+  'Este arquivo aparecerá no Acervo geral e em Por semanas para todos. Os simulados, flashcards e demais atividades do 2º semestre continuarão usando apenas os conteúdos das últimas provas.':
   (r.targetKey==='__new__'?'O arquivo será cadastrado como material novo.':'Este arquivo será associado ao material selecionado.')+
    ' O destino pode ser alterado antes da publicação.')+
    (['2026/1','2026/2'].includes(api()?.semester?.())?(r.sectionNumber?' Seção sugerida: '+clean(r.sectionHint)+'.':' Seção não identificada com segurança; confira o destino.'):'')+'</p></div>';
@@ -183,7 +183,7 @@ async function refresh(){
    }
   }
   if(isAdmin!==lastAdmin){lastAdmin=isAdmin;api().setAdmin(isAdmin);}
-  const {data,error}=await c.from(TABLE).select('resource_key,storage_path,filename,mime_type,size_bytes,updated_at,file_subject,display_title,content_summary,content_tags,exam_scope,scan_quality,publish_at').order('resource_key');
+  const {data,error}=await c.from(TABLE).select('resource_key,storage_path,filename,mime_type,size_bytes,updated_at,file_subject,display_title,content_summary,content_tags,exam_scope,scan_quality,publish_at,library_public').order('resource_key');
   if(error)throw error;
   const rows=(data||[]).filter(r=>typeof r.storage_path==='string'&&r.storage_path.startsWith('materials/'));
   const signature=JSON.stringify(rows);
@@ -433,16 +433,16 @@ async function submit(event){
     resource_key:key,storage_path:path,filename:file.name.slice(0,255),mime_type:fmt.mime,
     size_bytes:file.size,updated_by:u.id,updated_at:new Date().toISOString(),
     file_subject:sem==='2026/1'?'2026/1::'+subject:subject,display_title:title,content_summary:String(r.analysis?.summary||'').slice(0,600),
-    content_tags:(r.analysis?.topics||[]).slice(0,15),exam_scope:scope,scan_quality:r.analysis?.quality||'manual',
+    content_tags:(r.analysis?.topics||[]).slice(0,15),exam_scope:scheduled?false:scope,scan_quality:r.analysis?.quality||'manual',library_public:true,
     publish_at:scheduled?SECOND_SEMESTER_RELEASE:null
    },{onConflict:'resource_key'});
    if(error)throw Error('Arquivo salvo, mas falhou ao associar ao acervo: '+error.message);
    const proof=await c.storage.from(BUCKET).createSignedUrl(path,120);
    if(proof.error)throw Error('Arquivo enviado, mas a abertura falhou: '+proof.error.message);
    // Seções e categorias são gravadas imediatamente e seu publish_at é replicado
-   // por trigger/RLS: só administradores as veem antes de 27/11.
+   // por trigger/RLS: os arquivos do acervo ficam visíveis aos alunos imediatamente.
    const organizationWarnings=await saveOrganization(c,sem,{key,subject,sectionNumber,category});
-   logEntries.push({ok:true,message:(recovered?'Cópia privada anterior reaproveitada · ':'')+(scheduled?'Agendado em área privada até 27/11 00h: ':(scope?'Publicado na revisão: ':'Guardado fora da revisão: '))+title+' ('+file.name+')'+(sectionNumber?' · seção '+sectionNumber:'')});
+   logEntries.push({ok:true,message:(recovered?'Cópia privada anterior reaproveitada · ':'')+(scheduled?'Publicado no acervo · fora da prova atual: ':(scope?'Publicado na revisão: ':'Guardado fora da revisão: '))+title+' ('+file.name+')'+(sectionNumber?' · seção '+sectionNumber:'')});
    if(organizationWarnings.length)logEntries.push({ok:false,message:'Arquivo salvo, mas é necessário revisar a organização: '+organizationWarnings.join('; ')});
    passed++;
   }catch(err){failed++;logEntries.push({ok:false,message:file.name+': '+(err?.message||'falha no envio')});}
