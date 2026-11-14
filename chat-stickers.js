@@ -24,12 +24,14 @@ function reset() {
   state.lastLoad=0;state.lastMissingRefresh=0;
 }
 function avatarUrl(path) {
-  // Pacotes Sticker.ly: permitir somente URLs de imagens do CDN oficial,
-  // sem abrir acesso a domínios arbitrários ou links fornecidos por usuários.
-  if(/^https:\/\/stickerly[.]pstatic[.]net\/sticker_pack\/[A-Za-z0-9_-]+\/[A-Za-z0-9_-]{6}\/[0-9]+\/[A-Za-z0-9._-]+[.](?:webp|png|gif)$/i.test(path||''))return path;
-  if(!/^[a-zA-Z0-9._/-]+$/.test(path||'') || !path.startsWith('packs/')) return '';
+  const url=String(path||'');
+  // As imagens externas agora passam por uma rota própria do site: evita que
+  // bloqueios de hotlink do Sticker.ly deixem os cartões vazios no navegador.
+  if(/^https:\/\/stickerly[.]pstatic[.]net\/sticker_pack\/[A-Za-z0-9_-]+\/(?:DF6ECD|6DMZ8A|X8AI7D|8SWMPS|58ZOGJ|68MD2C)\/[0-9]+\/[A-Za-z0-9._-]+[.](?:webp|png|gif)$/i.test(url))
+    return 'https://swseibmqoetnuctxyusj.supabase.co/functions/v1/sticker-image?src='+encodeURIComponent(url);
+  if(!/^[a-zA-Z0-9._/-]+$/.test(url) || !url.startsWith('packs/')) return '';
   try {
-    return client.storage.from(BUCKET).getPublicUrl(path).data?.publicUrl || '';
+    return client.storage.from(BUCKET).getPublicUrl(url).data?.publicUrl || '';
   } catch(_) { return ''; }
 }
 function retrieve(force) {
