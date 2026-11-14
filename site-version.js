@@ -14,7 +14,7 @@ function setup(){
   const style=document.createElement('link');
   style.id='pm-tutorial-styles';
   style.rel='stylesheet';
-  style.href='spotlight-tour.css?v=20261114-sidebar-2';
+  style.href='spotlight-tour.css?v=20261114-scrolllock-v3';
   document.head.appendChild(style);
  }
  if(!document.getElementById('pm-ai-sidebar-polish')){
@@ -35,10 +35,22 @@ function setup(){
   script.id='pm-voice-script';script.src='voice-dictation.js?v=20261114-v2';
   script.async=true;document.head.appendChild(script);
  }
+ if(!document.getElementById('pm-course-manager-script')){
+  const script=document.createElement('script');
+  script.id='pm-course-manager-script';
+  script.src='course-week-manager.js?v=20261114-weekly-v2';
+  script.async=true;document.head.appendChild(script);
+ }
+ if(!document.getElementById('pm-course-manager-style')){
+  const css=document.createElement('link');
+  css.id='pm-course-manager-style';css.rel='stylesheet';
+  css.href='course-week-manager.css?v=20261114-weekly-v2';
+  document.head.appendChild(css);
+ }
  if(!document.getElementById('pm-tutorial-script')){
   const script=document.createElement('script');
   script.id='pm-tutorial-script';
-  script.src='spotlight-tour.js?v=20261114-sidebar-2';
+  script.src='spotlight-tour.js?v=20261114-scrolllock-v3';
   script.async=true;
   document.head.appendChild(script);
  }
