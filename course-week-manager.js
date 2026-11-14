@@ -112,6 +112,84 @@ const COURSE_SECTIONS={
  ]
 };
 function moodleSections(subject){return (COURSE_SECTIONS[subject]||[]).map(([number,label,aliases])=>({number,label,aliases}));}
+/* No 1º semestre não foram fornecidos vídeos com datas/semanas oficiais.
+   Estas são SEÇÕES TEMÁTICAS DE REVISÃO, não semanas afirmadas como Moodle. */
+const FIRST_SECTIONS={
+ profissao:[
+ [1,'Introdução à Psicologia e à profissão',['o que e psicologia','psicologia como profissao','psicologias ana bock']],
+ [2,'Formação e áreas de atuação',['areas psicologia','areas de atuacao','formar psicologos','formacao em psicologia']],
+ [3,'Psicologia no Brasil e Censo',['censo','psicologia no brasil','apresentacao dados']],
+ [4,'Ética e compromisso profissional',['etica','compromisso social']],
+ [5,'Leituras e referências complementares',['texto','leitura','livro']]
+ ],
+ processos:[
+ [1,'Introdução aos Processos Psicológicos Básicos',['introducao aos processos','processos psicologicos basicos']],
+ [2,'Neurociência e estudos de caso',['gage','hm','h m','neurociencia','phineas','legado']],
+ [3,'Sensação e percepção',['sensacao','percepcao','sensopercepcao','alucinacao']],
+ [4,'Atenção',['atencao']],
+ [5,'Memória',['memoria','amnesia','hipertmesia']],
+ [6,'Representação mental e linguagem',['representacao mental','linguagem']],
+ [7,'Funções executivas, decisões e resolução de problemas',['funcoes executivas','resolucao de problemas','tomada de decisao','julgamento']],
+ [8,'Outros temas e materiais de apoio',['conformidade social','magazine']]
+ ],
+ direitos:[
+ [1,'Introdução e história dos direitos humanos',['introducao aos direitos','breve historia dos direitos','linha historica','direitos humanos professor']],
+ [2,'Declaração e Constituição',['declaracao universal','constituicao','resolucao alianca']],
+ [3,'Psicologia e compromisso com os direitos',['psicologia e direitos humanos','compromisso social','politica de direitos','psicologos','pacto universitario']],
+ [4,'Ditadura, memória e reparação',['ditadura','clinica do testemunho','verdade e revolucionaria']],
+ [5,'Políticas públicas, ODS e Agenda 2030',['agenda2030','ods','politicas publicas']],
+ [6,'Interseccionalidade e vulnerabilização',['interseccionalidade','vulnerabilizacao','iniquidades','universalidade','diferenca']],
+ [7,'Leituras, estudos e materiais complementares',['relato','infografico','leitura']]
+ ],
+ epistemologia:[
+ [1,'Epistemologia, conhecimento e introdução',['epistemologia','conhecimento','historia e epistemologia']],
+ [2,'Antiguidade e filosofia clássica',['pre socratico','socrates','sofistas','platao','aristoteles','filosof','passagem do pensamento mitico']],
+ [3,'Medievo e pensamento cristão',['medievo','cristao']],
+ [4,'Idade Moderna e formação da ciência',['idade moderna','condicoes historicas','reconhecimento institucional']],
+ [5,'Positivismo e ciência',['positivismo','positiva','tipos de conhecimento']],
+ [6,'Popper, Kuhn e Lakatos',['popper','kuhn','lakatos','revolucoes cientificas','logica da pesquisa']],
+ [7,'Métodos, pesquisa e lógica científica',['metodo','qualitativa','quantitativa','pesquisa','laville','protocolo']],
+ [8,'Psicologia, ciência e perspectivas críticas',['revisitando as psicologias','loucura','sete teses','7 teses']],
+ [9,'Estudos dirigidos e apresentações',['estudo dirigido','apresentacao','slides']]
+ ],
+ historia:[
+ [1,'Historiografia e introdução à Psicologia',['historiografia','introducao a psicologia','historia psicologia moderna']],
+ [2,'Grécia Antiga',['grecia','grecia 2','estudos picasso']],
+ [3,'Medievo, Agostinho e Tomás de Aquino',['medievo','filosofia medieval','santo agostinho','tomas de aquino']],
+ [4,'Renascimento e modernidade',['renascimento','renascenca']],
+ [5,'Psicologia como ciência e áreas de atuação',['nocao de ciencia','areas de atuacao']],
+ [6,'Psicanálise',['psicanalise']],
+ [7,'Behaviorismo',['behaviorismo']],
+ [8,'Gestalt',['gestalt']],
+ [9,'Cognitivismo',['cognitivismo']],
+ [10,'Humanismo',['humanismo']],
+ [11,'Psicologia no Brasil e Rio Grande do Sul',['brasil','rio grande do sul','psico rs','cfp 60 anos','entrel inhas','entrelinhas']],
+ [12,'Livros e referências gerais',['livro','rumos e percursos','historia da psicologia moderna']]
+ ],
+ sociocognitivas:[
+ [1,'Introdução e paradigmas do desenvolvimento cognitivo',['paradigmas','introducao dongo','dongo montoya']],
+ [2,'Piaget e epistemologia genética',['piaget','epistemologia genetica','seis estudos','conceitos centrais']],
+ [3,'Vygotsky e desenvolvimento sociocultural',['vygotsky','vigotski','mediacao','formacao social da mente','fps','funcoes psicologicas superiores','zdi','zona de desenvolvimento']],
+ [4,'Linguagem, mediação e aprendizagem',['evolucao da linguagem','santana roazzi','linguagem']],
+ [5,'Outros textos e referências',['desenvolvimento cognitivo','slides','texto']]
+ ],
+ desenvolvimento:[
+ [1,'Introdução e teorias do desenvolvimento',['introducao a psicologia do desenvolvimento','concepcoes do desenvolvimento','teoria do desenvolvimento','erikson','aprendizagem de skinner','perspectiva evolucionista']],
+ [2,'Concepção, gestação, parto e puerpério',['concepcao e gravidez','gravidez','parto','puerperio','obstetricia','carta do bebe']],
+ [3,'Primeira infância',['primeira infancia','sono','psicopatologias infantis']],
+ [4,'Segunda infância',['segunda infancia','autoconceito']],
+ [5,'Terceira infância',['terceira infancia','piaget do egocentrismo']],
+ [6,'Adolescência',['adolescencia']],
+ [7,'Adultez emergente e adulto jovem',['adultez emergente','adulto jovem']],
+ [8,'Adultez intermediária',['adultez intermediaria']],
+ [9,'Adultez tardia e envelhecimento',['adultez tardia','envelhecimento']],
+ [10,'Perdas, morte e luto',['perdas e lutos','processo de luto','luto']],
+ [11,'Estudos e leituras complementares',['violencia','comparacao','artigo']]
+ ]
+};
+function firstSections(subject){return (FIRST_SECTIONS[subject]||[]).map(([number,label,aliases])=>({number,label,aliases}));}
+function sectionCatalog(semester,subject){return semester==='2026/1'?firstSections(subject):moodleSections(subject);}
+
 function fold(s){return String(s||'').toLocaleLowerCase('pt-BR').normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]+/g,' ').trim();}
 function suggestSection(subject,file,analysis,title){
  const defs=moodleSections(subject);if(!defs.length)return null;
@@ -208,15 +286,15 @@ function weeklyView(semester,subject,materials,card){
  const context=tabKey(semester,subject);
  const editing=admin()&&weekEditState?.context===context;
  const assigned=editing?weekEditState.rows:weekRows.filter(r=>r.semester===semester&&r.subject===subject);
- const sections=semester==='2026/2'?moodleSections(subject):[];
+ const sections=sectionCatalog(semester,subject);
  const named=sections.length>0;
  const sectionMap=new Map(sections.map(s=>[s.number,s]));
  // Mostrar somente seções que contêm materiais; sem grade artificial de 18 semanas vazias.
  const numbers=[...new Set(assigned.filter(r=>editing||map.has(r.resource_key)).map(r=>r.week_number))].sort((a,b)=>a-b);
  const groups=numbers.map((n,i)=>{
   const records=assigned.filter(r=>r.week_number===n).sort((a,b)=>a.position-b.position);
-  const label=sectionMap.get(n)?.label||'Semana '+n;
-  const shortLabel=named?'MOODLE':'SEMANA '+String(n).padStart(2,'0');
+  const label=sectionMap.get(n)?.label||(semester==='2026/1'?'Tema '+n:'Semana '+n);
+  const shortLabel=semester==='2026/1'?'TEMA':named?'MOODLE':'SEMANA '+String(n).padStart(2,'0');
   return '<details class="pm-week-group" '+(i===0?'open':'')+'><summary><span class="pm-week-number">'+shortLabel+'</span><strong>'+esc(label)+'</strong><small>'+records.length+' '+(records.length===1?'material':'materiais')+'</small><span class="pm-week-chevron" aria-hidden="true">⌄</span></summary><div class="pm-week-content">'+
   (records.length?records.map(r=>{
    const m=map.get(r.resource_key);
@@ -227,7 +305,7 @@ function weeklyView(semester,subject,materials,card){
  }).join('');
  // Material agendado sem correspondência segura não desaparece do painel.
  // A listagem já foi filtrada por RLS no upload: alunos só a verão após 27/11.
- const pending=items.filter(m=>!!m._libraryUpload?.publish_at&&!assigned.some(r=>r.resource_key===resourceKey(m)));
+ const pending=items.filter(m=>!assigned.some(r=>r.resource_key===resourceKey(m)));
  const pendingBlock=pending.length?'<details class="pm-week-group pm-week-unassigned" open><summary><span class="pm-week-number">REVISAR</span><strong>Aguardando seção do Moodle</strong><small>'+pending.length+' '+(pending.length===1?'material':'materiais')+'</small><span class="pm-week-chevron" aria-hidden="true">⌄</span></summary>'+
  '<div class="pm-week-content"><p class="pm-week-empty">Estes arquivos já estão no acervo, mas ainda precisam ser associados a uma seção. O administrador pode usar Editar para organizá-los.</p>'+
  pending.map(m=>'<div class="pm-week-row">'+card(m)+'</div>').join('')+'</div></details>':'';
@@ -334,7 +412,7 @@ document.addEventListener('click',e=>{
  if(del){removeSubject(del.dataset.pmRemoveSubject);return}
  const week=e.target.closest('[data-pm-week-remove]');if(week)removeWeek(week);
 });
-window.PSICO_COURSE_MANAGER={adminPanel,weeklyView,reload,moodleSections,suggestSection};
+window.PSICO_COURSE_MANAGER={adminPanel,weeklyView,reload,moodleSections,firstSections,sectionCatalog,suggestSection};
 window.addEventListener('uentzoul:auth',reload);
 window.addEventListener('focus',()=>{if(document.visibilityState==='visible')reload()});
 let tries=0;function start(){if(client())reload();else if(tries++<30)setTimeout(start,1000)}
