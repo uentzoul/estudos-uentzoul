@@ -191,8 +191,8 @@ function firstSections(subject){return (FIRST_SECTIONS[subject]||[]).map(([numbe
 function sectionCatalog(semester,subject){return semester==='2026/1'?firstSections(subject):moodleSections(subject);}
 
 function fold(s){return String(s||'').toLocaleLowerCase('pt-BR').normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]+/g,' ').trim();}
-function suggestSection(subject,file,analysis,title){
- const defs=moodleSections(subject);if(!defs.length)return null;
+function suggestSection(subject,file,analysis,title,semester='2026/2'){
+ const defs=sectionCatalog(semester,subject);if(!defs.length)return null;
  const filename=fold([file?.name,title].filter(Boolean).join(' '));
  const extracted=fold([analysis?.preview,(analysis?.hits||[]).join(' '),(analysis?.topics||[]).join(' '),analysis?.sectionText||''].join(' '));
  const ranked=defs.map(d=>{
