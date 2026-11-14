@@ -44,8 +44,9 @@ function build(){
   '<button type="button" id="pmMiniPlay" class="pm-mini-primary" aria-label="Reproduzir podcast">▶ <span>Reproduzir</span></button>'+
   '<button type="button" id="pmMiniForward" aria-label="Avançar 10 segundos" title="Avançar 10 segundos">+10</button>'+
   '<label class="pm-mini-speed">Velocidade <select id="pmMiniSpeed" aria-label="Velocidade do podcast">'+
-   '<option value="0.75">0,75×</option><option value="1">1×</option>'+
-   '<option value="1.25">1,25×</option><option value="1.5">1,5×</option><option value="2">2×</option>'+
+   '<option value="0.5">0,5×</option><option value="0.75">0,75×</option><option value="1">1×</option>'+
+   '<option value="1.25">1,25×</option><option value="1.5">1,5×</option>'+
+   '<option value="1.75">1,75×</option><option value="2">2×</option>'+
   '</select></label>'+
  '</div>';
  document.body.appendChild(panel);
