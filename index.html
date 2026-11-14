@@ -5511,7 +5511,7 @@ dmMessageHtml=function(m,channel='private'){
   '</strong><small>'+esc(quoted?dmWPreview(quoted):'Mensagem não disponível')+'</small></button>':'';
  const options=!m.deleted_at?'<button class="dm-message-menu-button" type="button" data-dmw-msgmenu="'+esc(m.id)+'" aria-label="Opções da mensagem" aria-expanded="'+(dmW.menu===m.id)+'"><svg width="16" height="16" viewBox="0 0 20 20" fill="none" aria-hidden="true" focusable="false"><path d="m4.5 7.5 5.5 5 5.5-5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></button>'+
   (dmW.menu===m.id?'<div class="dm-message-popup"><button data-dmw-reply="'+esc(m.id)+'">↩ Responder</button><button data-dmw-forward="'+esc(m.id)+'">↪ Encaminhar</button>'+
-  (mine?'<button data-dmw-info="'+esc(m.id)+'">ⓘ Informações</button><button data-dmw-delete="'+esc(m.id)+'" data-dmw-delete-type="'+(channel==='private'?'private':'room')+'">Apagar para todos</button>':'')+'</div>':''):'';
+  (mine?'<button data-dmw-info="'+esc(m.id)+'">ⓘ Informações</button><button data-dmw-delete="'+esc(m.id)+'" data-dmw-delete-type="'+(channel==='private'?'private':'room')+'">Apagar para todos</button>':'')+'<button type="button" data-pm-delete-for-me="'+esc(m.id)+'" data-pm-delete-scope="'+(channel==='private'?'private':'room')+'">Apagar só para mim</button></div>':''):'';
  const author=!mine?'<button type="button" class="dm-author" data-dm-profile="'+esc(m.sender_id)+'" style="--dm-author-color:'+authorColor+'" title="Ver perfil de '+esc(display)+'">'+esc(display)+'</button>':'';
  const face=!mine?'<button type="button" class="dm-chat-avatar" data-dm-profile="'+esc(m.sender_id)+'" title="Ver perfil de '+esc(display)+'">'+avatar(display,person.avatar_url,true)+'</button>':'';
  const kind=m.kind||'text';
@@ -5637,19 +5637,21 @@ dmLoad=async function(){
  const id=onlineUser.id;dm.loading=true;dm.error='';
  dm.loadPromise=(async()=>{
   try{
-   const [messages,people,rooms,members,reads]=await Promise.all([
+   const [messages,people,rooms,members,reads,hidden]=await Promise.all([
     client.from('uentzoul_messages').select('id,sender_id,recipient_id,body,created_at,delivered_at,read_at,kind,media_path,deleted_at,reply_to,forwarded,share_payload').or('sender_id.eq.'+id+',recipient_id.eq.'+id).order('created_at',{ascending:false}).limit(800),
     client.from('uentzoul_profiles').select('user_id,display_name,avatar_url,bio').order('display_name').limit(300),
     client.from('uentzoul_chat_rooms').select('id,kind,name,owner_id,avatar_path,message_ttl_seconds,created_at').order('created_at',{ascending:false}).limit(200),
     client.from('uentzoul_chat_members').select('room_id,user_id,is_admin,joined_at').limit(2000),
-    client.from('uentzoul_room_reads').select('room_id,user_id,delivered_at,read_at').limit(2000)
+    client.from('uentzoul_room_reads').select('room_id,user_id,delivered_at,read_at').limit(2000),
+    client.from('uentzoul_hidden_messages').select('message_id,room_message_id').eq('user_id',id).limit(3000)
    ]);
-   for(const row of [messages,people,rooms,members,reads])if(row.error)throw row.error;
+   for(const row of [messages,people,rooms,members,reads,hidden])if(row.error)throw row.error;
+   const excluded=new Set((hidden.data||[]).flatMap(x=>[x.message_id,x.room_message_id]).filter(Boolean));
    const ids=(rooms.data||[]).map(x=>x.id);
    const roomMessages=ids.length?await client.from('uentzoul_room_messages').select('id,room_id,sender_id,body,kind,media_path,created_at,deleted_at,reply_to,forwarded,expires_at,share_payload').in('room_id',ids).order('created_at',{ascending:false}).limit(1200):{data:[]};
    if(roomMessages.error)throw roomMessages.error;
    if(onlineUser?.id!==id)return;
-   dm.messages=messages.data||[];dm.people=people.data||[];dm.rooms=rooms.data||[];dm.roomMessages=roomMessages.data||[];
+   dm.messages=(messages.data||[]).filter(m=>!m.deleted_at&&!excluded.has(m.id));dm.people=people.data||[];dm.rooms=rooms.data||[];dm.roomMessages=(roomMessages.data||[]).filter(m=>!m.deleted_at&&!excluded.has(m.id));
    dmW.members=members.data||[];dmW.reads=reads.data||[];dm.owner=id;dm.ready=true;dm.lastFetch=Date.now();
    if(dm.isAdmin){const r=await client.rpc('uentzoul_list_error_reports');if(!r.error)dm.reports=r.data||[]}
    const invitationRows=await client.from('uentzoul_exam_invites').select('id,exam_id,sender_id,recipient_id,status,created_at').limit(1000);
