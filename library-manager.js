@@ -119,6 +119,8 @@ function reviewCard(r,i){
   '<div class="library-review-fields"><label>Disciplina <select data-review-subject="'+i+'">'+choices+'</select></label>'+
   '<label>Vincular a material existente ou criar novo <select data-review-target="'+i+'">'+destinationOptions(r)+'</select></label>'+
   (r.targetKey==='__new__'?'<label>Nome exibido na Biblioteca <input data-review-title="'+i+'" maxlength="160" type="text" value="'+clean(r.title)+'" placeholder="Título do material"></label>':'')+
+  (api()?.semester?.()==='2026/2'?'<label>Seção no Moodle <select data-review-section="'+i+'">'+sectionOptions(r)+'</select></label>'+
+   '<label>Categoria no Acervo geral <select data-review-category="'+i+'">'+categoryOptions(r)+'</select></label>':'')+
   '<label>Visibilidade <select data-review-scope="'+i+'">'+
   (mustSchedule(api()?.semester?.())?
    '<option value="scheduled" selected>Privado para administradores · libera 27/11 às 00h</option>':
@@ -128,7 +130,8 @@ function reviewCard(r,i){
   '<p class="library-review-foot">'+(mustSchedule(api()?.semester?.())?
   'Novo arquivo separado dos conteúdos das provas. Visível apenas para administração até 26/11; liberação automática em 27/11/2026 às 00h (Brasília). Não substitui documentos atuais.':
   (r.targetKey==='__new__'?'O arquivo será cadastrado como material novo.':'Este arquivo será associado ao material selecionado.')+
-   ' O destino pode ser alterado antes da publicação.')+'</p></div>';
+   ' O destino pode ser alterado antes da publicação.')+
+   (api()?.semester?.()==='2026/2'?(r.sectionNumber?' Seção sugerida: '+clean(r.sectionHint)+'.':' Seção não identificada com segurança; confira o destino.'):'')+'</p></div>';
 }
 function paint(){
  const activeSemester=api()?.semester?.()||'2026/2';
@@ -210,6 +213,7 @@ async function select(files){
    r.targetKey=mustSchedule(reviewSemester)?'__new__':(known&&!r.conflict?known.key:'__new__');
    r.scope=mustSchedule(reviewSemester)?'scheduled':(api()?.semester?.()==='2026/1'?'in':(known?.inExam||['principal','complementar'].includes(r.analysis?.examMatch)?'in':'archive'));
   }catch(err){r.analysis={quality:'indisponivel',error:err?.message||'Leitura indisponível'};r.subject=r.suggestion?.subject||'';r.targetKey=r.suggestion?.key||'__new__';r.scope=api()?.semester?.()==='2026/1'||r.suggestion?.inExam?'in':'archive'}
+  suggestOrganization(r);
   paint();
  }
  if(scanToken!==mine)return;isAnalyzing=false;paint();
@@ -273,6 +277,7 @@ async function importLibraryPackage(archive,append=false){
    next.push({file,analysis:{quality:'pacote',confidence:'alta',topics:[],summary:String(item.summary||'Material original do semestre.').slice(0,600),examMatch:'principal'},
     subject:item.subject,title:item.title.trim(),suggestion:exact||null,targetKey:exact?.key||'__new__',
     scope:item.scope==='archive'?'archive':'in',conflict:false});
+   suggestOrganization(next[next.length-1]);
   }
   if(scanToken!==mine)return;
   const combined=[...previous,...next];
