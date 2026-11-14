@@ -19,6 +19,10 @@ const steps=[
  {page:'messages',tab:'groups',find:'[data-dm-new-group]',fallback:'.dm-channel-tabs [data-dm-tab="groups"]',title:'Crie um grupo de estudos',body:'Em Mensagens, use o botão Criar grupo, escolha um nome e convide os colegas. É um espaço para organizar trabalhos, discutir questões e estudar em conjunto.',login:'Depois de entrar na conta, use Criar grupo para iniciar uma conversa com seus colegas.'},
  {page:'messages',tab:'global',find:'#dmContacts [data-dmw-global]',fallback:'#dmContacts .dm-global',title:'Participe do chat geral',body:'Na lista de conversas, selecione Chat Geral, logo abaixo de Pesquisar conversas. Esse espaço reúne os estudantes cadastrados para trocar informações, tirar dúvidas e conversar com a turma.',login:'O chat geral fica disponível para estudantes conectados à conta.'},
  {page:'messages',tab:'global',find:'[data-dmv-share-open]',fallback:'.dm-composer, .dm-channel-tabs',title:'Compartilhe conteúdos sem sair do chat',body:'Dentro de uma conversa, use o recurso de compartilhamento para encontrar materiais, simulados, podcasts e tópicos já listados no PsicoMoodle. Também é possível enviar mensagens, imagens e figurinhas.',tip:'Simulados personalizados são enviados por conversa privada, com convite para o colega acessar.',login:'Depois de entrar na conta e abrir uma conversa, você poderá compartilhar materiais do catálogo diretamente pelo chat.'},
+ {page:'ai',find:'.tz-shell .tz-composer',fallback:'.tz-shell .tz-form, .tz-shell .tz-chat',tourScene:'ai-chat',title:'Conheça a IA Tzoul',body:'A IA Tzoul é a assistente de estudos do PsicoMoodle. Faça perguntas sobre as disciplinas, peça explicações, resumos, questões, roteiros ou ajuda para interpretar os conteúdos. Você também pode anexar PDFs, documentos e imagens à conversa.',tip:'É preciso estar conectado à conta para enviar mensagens. Confira as informações importantes nos materiais originais e com os professores.'},
+ {page:'ai',find:'.tz-context summary',fallback:'.tz-shell .tz-form, .tz-shell .tz-chat',tourScene:'ai-filters',title:'Personalize sua resposta',body:'Antes de perguntar, abra “Filtrar matérias”. É possível selecionar uma disciplina ou material disponível, escolher entre Conversa e Documento e definir a profundidade Padrão ou Aprofundada. As conversas anteriores ficam no histórico.',tip:'A consulta integral a um documento depende de o arquivo estar acessível; caso contrário, a IA pode usar o conteúdo indexado no site.'},
+ {page:'vacation',find:'#vr-root .vr-months',fallback:'#vr-root .vr-months-wrap, #navVacationReview',tourScene:'vacation-months',title:'Revisão de Férias: reviva o semestre',body:'Esta é a linha do tempo do primeiro semestre: os meses são capítulos. Clique em Março, Abril, Maio ou Junho para expandir os assuntos; abrir um mês fecha o anterior. Bolinhas maiores destacam conceitos essenciais e as cores identificam as disciplinas.',tip:'O primeiro semestre está disponível para todos. O segundo ainda está em preparação e permanece “Em breve” para os alunos até a liberação prevista para 27/11.'},
+ {page:'vacation',find:'#vr-root .vr-material-button',fallback:'#vr-root .vr-materials, #vr-root .vr-month-detail',tourScene:'vacation-materials',title:'Explore os marcos e abra os materiais',body:'Ao escolher um marco da linha do tempo, surge um painel com o que foi aprendido, por que isso importa e as conexões com outras matérias. Em Materiais relacionados, cada botão abre o arquivo original completo, sem passar pela Biblioteca.',tip:'É possível explorar a linha do tempo sem login. Para abrir os PDFs e outros arquivos originais, entre na sua conta.'},
  {page:'home',find:'#semesterCurrent',title:'Escolha o semestre',body:'Use este seletor para alternar entre os períodos de Psicologia. Cada semestre tem sua própria organização, e os conteúdos aparecem conforme são cadastrados. O modo claro ou escuro também pode ser alterado no menu.',tip:'O tutorial terminou. Você poderá iniciá-lo novamente pelo botão Tutorial.'}
 ];
 
@@ -37,7 +41,11 @@ const mobileCopy=[
  {title:'Conversas privadas',body:'Pesquise o nome de um colega e abra uma conversa privada.'},
  {title:'Grupos de estudos',body:'Use o botão de criar grupo para reunir colegas e combinar trabalhos.'},
  {title:'Chat Geral',body:'Este é o Chat Geral, onde todos podem trocar mensagens e tirar dúvidas.'},
- {title:'Compartilhar no chat',body:'Em uma conversa, use Compartilhar para enviar materiais do PsicoMoodle.'}
+ {title:'Compartilhar no chat',body:'Em uma conversa, use Compartilhar para enviar materiais do PsicoMoodle.'},
+ {title:'Converse com a IA Tzoul',body:'Peça explicações, resumos ou questões. Com a conta conectada, dá para anexar PDFs, documentos e fotos.'},
+ {title:'Filtre as respostas da IA',body:'Toque em “Filtrar matérias” para escolher disciplina, material, tipo de resposta e profundidade.'},
+ {title:'Revisão de Férias',body:'A linha do tempo do 1º semestre é aberta a todos. Toque em um mês para ver seus principais assuntos.'},
+ {title:'Conteúdos e materiais originais',body:'Toque num marco para ver a explicação e os arquivos relacionados. Para abrir os PDFs, entre na conta.'}
 ];
 const mobileSteps=[
  {page:'home',find:'#pmMobileMenuToggle',tourScene:'menu-button',
@@ -55,6 +63,13 @@ const mobileSteps=[
 ];
 /* Quatro percursos: desktop/celular e usuário conectado/visitante.
    No acesso sem conta, o chat é apresentado sem simular recursos indisponíveis. */
+const guestAIStep={
+ page:'ai',find:'.tz-login [data-action="tz-login"]',fallback:'.tz-shell .tz-notice, .tz-shell .tz-form',
+ baseIndex:14,tourScene:'guest-ai',
+ title:'IA Tzoul: sua assistente de estudos',
+ body:'A IA Tzoul ajuda a estudar as matérias, explicar conceitos, criar resumos e questões e trabalhar com anexos. Para conversar, anexar arquivos e consultar o histórico, é necessário entrar ou cadastrar uma conta. O botão Entrar / Cadastrar está nesta página.',
+ login:'Depois de entrar, faça o tutorial novamente para conhecer o filtro por disciplina, os materiais e os tipos de resposta.'
+};
 const guestMessageStep={
  page:'messages',find:'.dm-login-panel [data-account-action="open"]',
  fallback:'.dm-login-panel',baseIndex:10,tourScene:'guest-message',
@@ -65,7 +80,11 @@ const guestMessageStep={
 const desktopGuestSteps=[
  ...steps.slice(0,10).map((s,i)=>({...s,baseIndex:i})),
  guestMessageStep,
- {...steps[steps.length-1],baseIndex:14,
+ guestAIStep,
+ {...steps[16],baseIndex:16},
+ {...steps[17],baseIndex:17,
+   body:'Selecione um marco para ler a explicação e ver os documentos associados. A linha do tempo é pública, mas abrir os arquivos completos exige uma conta conectada.'},
+ {...steps[steps.length-1],baseIndex:steps.length-1,
   body:'Escolha o semestre para consultar os conteúdos disponíveis. O modo claro ou escuro também pode ser alterado no menu. Entre na sua conta para participar dos chats e acompanhar suas atividades.'}
 ];
 const mobileGuestSteps=[
@@ -73,6 +92,10 @@ const mobileGuestSteps=[
  {...guestMessageStep,
   title:'Mensagens exigem uma conta',
   body:'Para conversar com a turma, participar de grupos e compartilhar materiais, primeiro entre ou cadastre-se. Este é o botão de acesso.'},
+ {...guestAIStep,title:'IA Tzoul exige login',
+   body:'A IA pode ajudar com dúvidas, resumos e questões. Entre ou cadastre-se para conversar, anexar materiais e usar os filtros.'},
+ {...steps[16],...mobileCopy[16],baseIndex:16},
+ {...steps[17],...mobileCopy[17],baseIndex:17},
  {...mobileSteps[mobileSteps.length-2],
   body:'Aqui você pode mudar o tema do site. Para acessar seu perfil, entre na conta ou cadastre-se.'},
  {...mobileSteps[mobileSteps.length-1],
@@ -80,7 +103,7 @@ const mobileGuestSteps=[
 ];
 const byId=id=>document.getElementById(id);
 const q=s=>document.querySelector(s);
-let active=false,index=0,chosen='avaliacao',lastFocus=null,originSemester=null,changedSemester=false;
+let active=false,index=0,chosen='avaliacao',lastFocus=null,originSemester=null,changedSemester=false,temporaryVacationSemester=false;
 let runSteps=steps,tourMobile=false,tourLoggedIn=false;
 const isLoggedIn=()=>!!window.uentzoulAIAuth?.user?.();
 const originalIndex=()=>Number.isInteger(runSteps[index]?.baseIndex)?runSteps[index].baseIndex:(!tourMobile&&runSteps===steps?index:-1);
@@ -174,6 +197,26 @@ function selectTab(step){
 }
 function prep(step){
  document.querySelectorAll('.pm-tour-day-lesson').forEach(n=>n.classList.remove('pm-tour-day-lesson'));
+ if(step.page==='vacation'){
+  // Demonstra o primeiro semestre real sem publicar nem alterar conteúdos.
+  const first=q('#semesterDropdown [data-semester="2026/1"]');
+  if(first&&!first.classList.contains('active')){first.click();temporaryVacationSemester=true;}
+  const alreadyOpen=!!q('#main.vr-active #vr-root .vr-months');
+  const ready=alreadyOpen?Promise.resolve():Promise.resolve(window.PSICO_VACATION_REVIEW?.show?.());
+  return ready.then(()=>{
+   if(!active||runSteps[index]!==step)return;
+   if(step.tourScene==='vacation-materials'){
+    const month=q('#vr-root [data-vr-month="3"]');
+    if(month&&month.getAttribute('aria-expanded')!=='true')month.click();
+    const firstEvent=q('#vr-panel-3 .vr-event');
+    if(firstEvent&&firstEvent.getAttribute('aria-expanded')!=='true')firstEvent.click();
+   }
+  });
+ }
+ if(temporaryVacationSemester){
+  q('#semesterDropdown [data-semester="2026/2"]')?.click();
+  temporaryVacationSemester=false;
+ }
  if(step.page==='subject'){
   if(step.tab==='docs'){
    // Acesse de verdade Materiais e textos; não marque nenhum material durante o tour.
@@ -258,6 +301,7 @@ function currentRect(node){
 }
 function sidebarNode(step){
  if(!step)return null;
+ if(step.page==='vacation')return available('#navVacationReview');
  if(step.page==='subject'){
   return available('#subjectNav [data-action="subject:'+chosen+'"]')||
          available('#nav [data-page="home"]');
@@ -502,16 +546,21 @@ function show(n){
  document.documentElement.dataset.pmTourScene=tourScene();
  mobilePositionAttempts=0;
  const serial=++stepSerial,step=runSteps[index];
- prep(step);
+ const preparation=prep(step);
  syncMobileMenu(step);
- requestAnimationFrame(()=>requestAnimationFrame(()=>{
+ // Atualiza o texto imediatamente; para a linha do tempo, aguarda a abertura
+ // real dos conteúdos antes de posicionar o destaque no elemento correto.
+ renderCopy(step);
+ Promise.resolve(preparation).catch(error=>{console.warn('Preparação do tutorial:',error)}).then(()=>{
   if(!active||serial!==stepSerial)return;
-  // A navegação pode exibir um placeholder momentâneo durante a autenticação.
-  renderCopy(step);layout(true);
-  balloon.querySelector('.pm-spotlight-next')?.focus({preventScroll:true});
-  clearTimeout(fadeTimer);
-  fadeTimer=setTimeout(()=>{if(active&&serial===stepSerial){renderCopy(step);layout(true)}},240);
- }));
+  requestAnimationFrame(()=>requestAnimationFrame(()=>{
+   if(!active||serial!==stepSerial)return;
+   renderCopy(step);layout(true);
+   balloon.querySelector('.pm-spotlight-next')?.focus({preventScroll:true});
+   clearTimeout(fadeTimer);
+   fadeTimer=setTimeout(()=>{if(active&&serial===stepSerial){renderCopy(step);layout(true)}},270);
+  }));
+ });
 }
 function move(dir){
  if(!active)return;
@@ -520,6 +569,7 @@ function move(dir){
 }
 function open(){
  if(active)return;
+ temporaryVacationSemester=false;
  build();lastFocus=document.activeElement;
  originSemester=q('.semester-option[aria-current="true"]')?.dataset.semester||null;
  changedSemester=!!(originSemester&&originSemester!=='2026/2');
@@ -545,6 +595,10 @@ function close(){
   delete document.documentElement.dataset.pmTourAuth;
  document.querySelectorAll('#nav .pm-tour-nav-current').forEach(el=>el.classList.remove('pm-tour-nav-current'));
  if(sidebarSpot)sidebarSpot.hidden=true;
+ if(temporaryVacationSemester){
+  q('#semesterDropdown [data-semester="2026/2"]')?.click();
+  temporaryVacationSemester=false;
+ }
  if(changedSemester&&originSemester)q('.semester-option[data-semester="'+originSemester+'"]')?.click();
  changedSemester=false;
  // Ao concluir ou fechar, a navegação pode ter recriado a página Início:
