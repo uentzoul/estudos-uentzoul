@@ -28,27 +28,99 @@ function guide(id,arr){
   source:'Roteiro didático novo, baseado nos arquivos identificados no acervo de '+names[id]+'. Não é um roteiro literal do professor.',
   status:'adaptado',questions:arr.map(question)};
 }
-function optionQuestion(id,model,i,arr){
- const ix=((model-1)*3+i)%arr.length,t=arr[ix],used=[ix];
- for(let j=1;j<=3;j++){let candidate=(ix+j)%arr.length;while(used.includes(candidate))candidate=(candidate+1)%arr.length;used.push(candidate);}
- const order=used.map(k=>arr[k]),shift=(model+i)%4;
- const variants=order.map((entry,j)=>({text:entry.title,why:j===0
-   ?'É a melhor resposta: '+entry.definition+' No exemplo: '+t.scenario
-   :'Este conceito se refere a '+entry.definition+' A situação foi construída para enfatizar '+t.title+'.'}));
- const rotated=variants.slice(shift).concat(variants.slice(0,shift));
- return {id:'s1-'+id+'-'+model+'-'+(i+1),type:'choice',
-  prompt:'Considere a situação estudada:\n\n'+t.scenario+'\n\nQual conceito explica MELHOR o aspecto central da situação?',
-  options:rotated,answer:(4-shift)%4,concept:t.title,source:t.source};
+/* Cada simulado trabalha um conjunto próprio de temas.
+   Os agrupamentos seguem apenas os conceitos efetivamente cadastrados no acervo. */
+const examUnits={
+ profissao:[
+  ['Fundamentos, formação e ética',[0,1,2]],
+  ['Filosofia moral e sigilo profissional',[3,4,5]],
+  ['Educação, trabalho e Justiça',[6,7,8]],
+  ['Clínica, especialidades e pesquisa',[9,10,11]],
+  ['Pós-graduação e compromisso social',[12,13]]
+ ],
+ processos:[
+  ['Sensação e percepção',[0,1,2]],
+  ['Atenção e representação mental',[3,4,5]],
+  ['Aprendizagem e sistemas de memória',[6,7,8,9]],
+  ['Casos clínicos e funções executivas',[10,11,12]],
+  ['Resolução de problemas e julgamento',[13,14,15]]
+ ],
+ direitos:[
+  ['Fundamentos e universalidade dos direitos',[0,1,2]],
+  ['Diversidade cultural e interculturalidade',[3,4]],
+  ['Diferenças sociais e interseccionalidade',[5,6,7]],
+  ['Ditadura, memória e compromisso ético',[8,9,10]],
+  ['Políticas públicas, ODS e atuação',[11,12,13,14]]
+ ],
+ epistemologia:[
+  ['Fundamentos do conhecimento científico',[0,1,2]],
+  ['Filosofia antiga e formas de investigação',[3,4,5,6]],
+  ['Ciência moderna e positivismo',[7,8]],
+  ['Popper e Kuhn: teorias e mudanças',[9,10,11]],
+  ['Lakatos e métodos de pesquisa',[12,13]]
+ ],
+ historia:[
+  ['Historiografia e pensamento antigo',[0,1,2]],
+  ['Renascimento e psicologia científica',[3,4,5]],
+  ['Funcionalismo, Gestalt e Behaviorismo',[6,7,8]],
+  ['Psicanálise, humanismo e cognitivismo',[9,10,11]],
+  ['Psicologia no Brasil e pluralidade',[12,13]]
+ ],
+ sociocognitivas:[
+  ['Piaget: esquemas e assimilação',[0,1,2]],
+  ['Acomodação e início dos estágios',[3,4,5]],
+  ['Desenvolvimento do pensamento lógico',[6,7,8]],
+  ['Vygotsky, cultura e mediação',[9,10,11]],
+  ['ZDI, internalização e paradigmas',[12,13,14]]
+ ],
+ desenvolvimento:[
+  ['Fundamentos e teorias do desenvolvimento',[0,1,2,3]],
+  ['Gestação, nascimento e primeira infância',[4,5,6]],
+  ['Infância e mudanças no desenvolvimento',[7,8,9]],
+  ['Adolescência e vida adulta',[10,11,12,13]],
+  ['Envelhecimento, perdas e luto',[14,15,16]]
+ ]
+};
+function themeGroups(id,arr){
+ const plan=examUnits[id]||[];
+ const assigned=new Set(plan.flatMap(([,indices])=>indices));
+ const groups=plan.map(([label,indices])=>({label,items:indices.filter(i=>i<arr.length).map(i=>arr[i])}));
+ // Se novos temas forem cadastrados, não são descartados silenciosamente.
+ const extras=arr.filter((_,i)=>!assigned.has(i));
+ if(extras.length&&groups.length){
+  groups[groups.length-1].items.push(...extras);
+  groups[groups.length-1].label+=' e temas adicionais';
+ }
+ return groups.filter(g=>g.items.length);
 }
-function tfQuestion(id,model,i,arr){
- const t=arr[((model-1)*3+i)%arr.length],isTrue=i%2===0;
- return {id:'s1-'+id+'-'+model+'-'+(i+1),type:'tf',concept:t.title,
+function optionQuestion(id,model,i,focus,all){
+ const t=focus[(i+model-1)%focus.length],others=all.filter(x=>x.title!==t.title);
+ const start=(model*3+i*2)%others.length;
+ const entries=[t,...Array.from({length:3},(_,j)=>others[(start+j)%others.length])];
+ const variants=entries.map((entry,j)=>({text:entry.title,why:j===0
+  ?'É a melhor resposta: '+entry.definition+' No exemplo: '+t.scenario
+  :'Este conceito se refere a '+entry.definition+' A questão destaca '+t.title+'.'}));
+ const shift=(model+i)%4,options=variants.slice(shift).concat(variants.slice(0,shift));
+ const prompts=[
+  'Leia a situação:\n\n'+t.scenario+'\n\nQual conceito explica MELHOR o que acontece?',
+  'Qual conceito corresponde à definição abaixo?\n\n'+t.definition,
+  'Uma interpretação equivocada afirma:\n\n“'+t.myth+'”\n\nA qual conceito essa afirmação se refere?',
+  'Analise a situação à luz dos materiais da disciplina:\n\n'+t.scenario+'\n\nQual tema deve orientar a análise?',
+  'Identifique o conceito central na descrição:\n\n'+t.definition,
+  'Ao relacionar teoria e prática, que conceito se destaca neste exemplo?\n\n'+t.scenario
+ ];
+ return {id:'s1-'+id+'-temas-'+model+'-obj-'+(i+1),type:'choice',
+  prompt:prompts[i%prompts.length],options,answer:(4-shift)%4,concept:t.title,source:t.source};
+}
+function tfQuestion(id,model,i,focus){
+ const t=focus[(i+1)%focus.length],isTrue=(model+i)%2===0;
+ return {id:'s1-'+id+'-temas-'+model+'-vf-'+(i+1),type:'tf',concept:t.title,
   prompt:'Sobre '+t.title+', analise a afirmação:\n\n“'+(isTrue?t.definition:t.myth)+'”',
   answer:isTrue,explanation:(isTrue?'Correta. ':'Incorreta. ')+t.definition+' Referência: '+t.source};
 }
-function essayQuestion(id,model,i,arr){
- const t=arr[((model-1)*3+i)%arr.length],other=arr[(((model-1)*3+i)+1)%arr.length];
- return {id:'s1-'+id+'-'+model+'-'+(i+1),type:'essay',concept:t.title,
+function essayQuestion(id,model,i,focus){
+ const t=focus[(i+model-1)%focus.length],other=focus[(i+model)%focus.length];
+ return {id:'s1-'+id+'-temas-'+model+'-disc-'+(i+1),type:'essay',concept:t.title,
   prompt:'A partir do conteúdo de '+names[id]+', explique '+t.title+'.\n\nSituação: '+t.scenario+
    '\n\nArticule sua resposta com '+other.title+' e discuta os limites de uma interpretação simplificadora.',
   criteria:['Definir corretamente '+t.title,'Analisar a situação concreta sem apenas repetir uma definição',
@@ -58,14 +130,17 @@ function essayQuestion(id,model,i,arr){
   source:'Questão autoral com base em '+t.source+' e '+other.source};
 }
 function exams(id,arr){
- return Array.from({length:5},(_,i)=>{
+ return themeGroups(id,arr).map((group,i)=>{
   const m=i+1,questions=[];
-  for(let j=0;j<6;j++)questions.push(optionQuestion(id,m,j,arr));
-  for(let j=6;j<9;j++)questions.push(tfQuestion(id,m,j,arr));
-  for(let j=9;j<12;j++)questions.push(essayQuestion(id,m,j,arr));
-  return {id:'relembrar-2026-1-'+id+'-'+m,subject:id,model:m,
-    title:'Simulado '+m+' · '+labels[m],description:'9 questões objetivas e 3 dissertativas',questions,
-    source:'Exercícios didáticos baseados no acervo do primeiro semestre',revision:'relembrar-2026-1'};
+  for(let j=0;j<6;j++)questions.push(optionQuestion(id,m,j,group.items,arr));
+  for(let j=0;j<3;j++)questions.push(tfQuestion(id,m,j,group.items));
+  for(let j=0;j<3;j++)questions.push(essayQuestion(id,m,j,group.items));
+  return {id:'relembrar-2026-1-'+id+'-temas-'+m,subject:id,model:m,
+   title:'Simulado '+m+' · '+group.label,
+   description:'9 questões objetivas e 3 dissertativas · dificuldade equilibrada',
+   focus:group.label,topicsCovered:group.items.map(t=>t.title),questions,
+   source:'Exercícios didáticos baseados nos temas cadastrados do primeiro semestre',
+   revision:'relembrar-2026-1'};
  });
 }
 function makeCase(id,t,other,i){
@@ -99,8 +174,11 @@ function apply(db){
  for(const id of Object.keys(names)){
   const arr=topics(id);if(!arr.length)continue;
   db.topics[id]=arr;
-  const examIds=new Set(db.exams.map(e=>e.id));
-  db.exams.push(...exams(id,arr).filter(e=>!examIds.has(e.id)));
+  // Substitui apenas os simulados de revisão do 1º semestre, sem duplicar modelos antigos.
+  for(let j=db.exams.length-1;j>=0;j--){
+   if(db.exams[j].subject===id && db.exams[j].revision==='relembrar-2026-1')db.exams.splice(j,1);
+  }
+  db.exams.push(...exams(id,arr));
   if(!window.PSICO_GUIDES[id]?.some(g=>g.id==='relembrar-2026-1-'+id)){
    window.PSICO_GUIDES[id]=(window.PSICO_GUIDES[id]||[]).concat(guide(id,arr));
   }
@@ -112,7 +190,7 @@ const links=[
  ['trail','✧','Trilha de Estudos para Relembrar','Roteiro guiado para retomar o que foi estudado'],
  ['docs','▤','Materiais e textos','Textos originais enviados e referências utilizadas'],
  ['guided','▣','Estudos dirigidos','Perguntas com explicações por tema'],
- ['tests','✦','Simulados','Cinco níveis de dificuldade por disciplina'],
+ ['tests','✦','Simulados','Cinco temas diferentes, com dificuldade equilibrada'],
  ['flash','▧','Flashcards','Recordação ativa e acompanhamento de progresso'],
  ['cases','◇','Estudos de casos','Aplicações e decisões explicadas por etapas'],
  ['topics','☷','Conteúdos para revisar','Conceitos com exemplos e erros frequentes'],
@@ -156,12 +234,12 @@ function examsView(ctx){
   '<article class="examcard ge-clean-card" style="--accent:'+esc(ctx.subject.color||'#687cb5')+'"><div class="ge-clean-head">'+
   '<h3>'+esc(e.title)+'</h3></div><p class="ge-clean-specs">'+e.questions.length+' questões · 3 dissertativas</p>'+
   '<button type="button" class="btn ge-clean-launch" data-action="test:'+esc(e.id)+'">Iniciar / ver correção →</button></article>').join('')+'</div>',
- 'Simulados autorais de revisão: não são provas antigas nem gabaritos oficiais dos professores.');
+ 'Cinco blocos de temas diferentes, com dificuldade equilibrada. Exercícios autorais: não são provas antigas nem gabaritos oficiais.');
 }
 function trailView(ctx){
  const arr=ctx.topics||[],chunks=[arr.slice(0,4),arr.slice(4,8),arr.slice(8,12),arr.slice(12)];
  const steps=['Retomar os fundamentos','Reconectar explicações e exemplos','Aplicar a conceitos próximos','Consolidar e testar a memória'];
- const stepsText=['Comece pela leitura dos conceitos centrais e confira as fontes.','Relacione explicações distintas e reconheça erros comuns.','Use situações e casos para justificar respostas.','Conclua com prática espaçada e simulados progressivos.'];
+ const stepsText=['Comece pela leitura dos conceitos centrais e confira as fontes.','Relacione explicações distintas e reconheça erros comuns.','Use situações e casos para justificar respostas.','Conclua com prática espaçada e simulados divididos por tema.'];
  const actions=[['topics','Conteúdos para revisar'],['guided','Estudos dirigidos'],['cases','Estudos de casos'],['tests','Simulados']];
  return '<div class="s1-trail"><header><small>ROTEIRO DE RETOMADA · 2026/1</small>'+
   '<h2>Trilha de Estudos para Relembrar</h2><p>Relembre os conteúdos do primeiro semestre com leituras, explicações, flashcards, casos e simulados. Os podcasts serão adicionados depois.</p></header>'+
@@ -193,7 +271,7 @@ function renderSubject(ctx){
  return top(id,ctx.subject)+(area&&area!=='home'?back:'')+output+'</div>';
 }
 function renderExams(db){
- return '<section class="s1-global-exams"><h1>Simulados para relembrar · 1º semestre</h1><p>Selecione uma disciplina. Cada uma tem cinco simulados de revisão, do muito fácil ao muito difícil.</p><div class="s1-global-grid">'+
+ return '<section class="s1-global-exams"><h1>Simulados para relembrar · 1º semestre</h1><p>Selecione uma disciplina. Cada disciplina tem cinco simulados de dificuldade equilibrada, distribuídos por temas diferentes do material já cadastrado.</p><div class="s1-global-grid">'+
  Object.keys(names).map(id=>'<article class="s1-exam-course"><strong>'+esc(names[id])+'</strong>'+
  (db.exams||[]).filter(e=>e.subject===id).map(e=>'<button type="button" data-action="test:'+esc(e.id)+'">'+esc(e.title)+' →</button>').join('')+
  '</article>').join('')+'</div></section>';
