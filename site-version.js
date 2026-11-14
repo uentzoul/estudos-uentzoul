@@ -1,3 +1,34 @@
+/* Navegação prioritária e tutorial contextual do PsicoMoodle. */
+(()=>{
+'use strict';
+function setup(){
+ const nav=document.getElementById('nav');
+ if(nav){
+  const anchor=nav.querySelector('.nav-upcoming')||nav.querySelector('[data-page="admin"]')||null;
+  for(const page of ['home','calendar','exams','messages','ai']){
+   const node=nav.querySelector('[data-page="'+page+'"]');
+   if(node)nav.insertBefore(node,anchor);
+  }
+ }
+ if(!document.getElementById('pm-tutorial-styles')){
+  const style=document.createElement('link');
+  style.id='pm-tutorial-styles';
+  style.rel='stylesheet';
+  style.href='tutorial-site.css?v=20261114-1';
+  document.head.appendChild(style);
+ }
+ if(!document.getElementById('pm-tutorial-script')){
+  const script=document.createElement('script');
+  script.id='pm-tutorial-script';
+  script.src='tutorial-site.js?v=20261114-1';
+  script.async=true;
+  document.head.appendChild(script);
+ }
+}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',setup,{once:true});
+else setup();
+})();
+
 /* Detecta novas publicações, sem interromper simulados ou conversas. */
 (()=>{
 'use strict';
