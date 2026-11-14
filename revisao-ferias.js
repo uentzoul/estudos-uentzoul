@@ -1,5 +1,5 @@
 /* PsicoMoodle — Revisão de Férias. Meses expansíveis, um por vez.
-   A linha do tempo do 1º semestre é pública; a do 2º é agendada no Supabase (RLS).
+   As linhas do tempo do 1º e do 2º semestre são públicas no Supabase (RLS).
    Não cria novas abas de semestre: usa a escolha existente no site. */
 (()=>{
 'use strict';
@@ -7,7 +7,6 @@ if(window.PSICO_VACATION_REVIEW)return;
 const TABLE='uentzoul_vacation_review_events';
 const UPLOAD_TABLE='uentzoul_library_uploads';
 const LIBRARY_BUCKET='uentzoul-library-files';
-const SECOND_SEMESTER_RELEASE=Date.parse('2026-11-27T03:00:00Z');
 const SUBJECTS={
  profissao:['Psicologia como Profissão','#3c91a4','Profissão'],
  processos:['Processos Psicológicos Básicos','#6296d1','PPB'],
@@ -34,7 +33,7 @@ let navObserver=null,mainObserver=null,monthSequence=0;
 const nav=()=>document.getElementById('nav');
 const main=()=>document.querySelector('.app > .main')||document.querySelector('main.main')||document.querySelector('.main');
 const admin=()=>window.uentzoulAdminConfig?.isAdmin?.()===true;
-const canView=(sem=semester)=>sem===1||admin()||(sem===2&&Date.now()>=SECOND_SEMESTER_RELEASE);
+const canView=(sem=semester)=>sem===1||sem===2||admin();
 const client=()=>window.uentzoulAIAuth?.client?.();
 const currSemester=()=>{
  const el=document.getElementById('semesterCurrent');
@@ -91,21 +90,11 @@ function navButton(){
 }
 function updateNavStatus(){
  const b=document.getElementById('navVacationReview');if(!b)return;
- const current=currSemester();
- // 1º semestre: botão comum, sem aviso de lançamento.
- // 2º semestre: mantém "Em breve" para alunos até a liberação prevista.
- const pending=current===2&&!canView(2);
- b.classList.toggle('vr-pending',pending);
- const old=b.querySelector('.vr-soon');
- if(!pending){
-  old?.remove();
-  b.title='Abrir Revisão de Férias';
-  b.setAttribute('aria-label','Revisão de Férias');
- }else{
-  if(!old){const tag=document.createElement('span');tag.className='vr-soon';tag.textContent='Em breve';b.appendChild(tag);}
-  b.title='Revisão de Férias do 2º semestre — em breve';
-  b.setAttribute('aria-label','Revisão de Férias — em breve');
- }
+ // Revisões do primeiro e do segundo semestre liberadas também para visitantes.
+ b.classList.remove('vr-pending');
+ b.querySelector('.vr-soon')?.remove();
+ b.title='Abrir Revisão de Férias';
+ b.setAttribute('aria-label','Revisão de Férias');
 }
 function rootElement(){
  const container=main();if(!container)return null;
@@ -131,9 +120,8 @@ function deactivate(){
  document.getElementById('vr-root')?.remove();
 }
 function privateHTML(){
- return '<div class="vr-private"><span class="vr-private-icon" aria-hidden="true">⌁</span><h2>Revisão de Férias · 2º semestre</h2>'+
-  '<p>A revisão do segundo semestre estará disponível para todos em 27/11/2026, à meia-noite (horário de Brasília).</p>'+
-  '<p>Até essa data, o acesso aos novos conteúdos é reservado à administração. A revisão do primeiro semestre já está liberada.</p></div>';
+ return '<div class="vr-private"><span class="vr-private-icon" aria-hidden="true">⌁</span><h2>Revisão indisponível</h2>'+
+  '<p>Selecione o primeiro ou o segundo semestre para consultar a linha do tempo.</p></div>';
 }
 function hero(){
  const which=semester===1?'Primeiro semestre':'Segundo semestre',count=events.length;
