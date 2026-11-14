@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="color-scheme" content="light dark">
-<meta name="site-build" content="psicomoodle-tour-15-revert-button-20261114-r1">>>>
+<meta name="site-build" content="psicomoodle-semester1-sidebar-tour-20261114-r2">>>>
 <script>try{document.documentElement.dataset.theme=localStorage.getItem("uentzoul_theme_v1")==="dark"?"dark":"light"}catch(e){document.documentElement.dataset.theme="light"}</script>
 <title>PsicoMoodle · Psicologia PUCRS</title>
 <style>
@@ -2159,7 +2159,15 @@ const SEMESTER_PREF='uentzoul_semester_v1';
 const SEMESTER_LABELS={'2026/1':'1º Semestre','2026/2':'2º Semestre','2027/1':'3º Semestre'};
 const semesterLabel=key=>SEMESTER_LABELS[key]||key;
 const SEMESTER_DB={
- '2026/1':{subjects:{},topics:{},materials:[],exams:[],audio:{}},
+ '2026/1':{subjects:{
+  "profissao":{name:"Psicologia como Profissão",code:"",hours:0,color:"#6577b2"},
+  "processos":{name:"Processos Psicológicos Básicos",code:"",hours:0,color:"#44877e"},
+  "direitos":{name:"Psicologia e Direitos Humanos",code:"",hours:0,color:"#af7181"},
+  "epistemologia":{name:"Fundamentos Epistemológicos em Psicologia",code:"",hours:0,color:"#a48755"},
+  "historia":{name:"História da Psicologia",code:"",hours:0,color:"#786fba"},
+  "sociocognitivas":{name:"Teorias Sociocognitivas",code:"",hours:0,color:"#9370a7"},
+  "desenvolvimento":{name:"Psicologia do Desenvolvimento (Ciclo Vital)",code:"",hours:0,color:"#4c87aa"}
+ },topics:{"profissao": [],"processos": [],"direitos": [],"epistemologia": [],"historia": [],"sociocognitivas": [],"desenvolvimento": []},materials:[],exams:[],audio:{}},
  '2026/2':JSON.parse(document.getElementById('dataset').textContent),
  '2027/1':{
  subjects:{
@@ -3992,26 +4000,27 @@ window.uentzoulAdminBridge={
 function isPodcastView(){return current.page==='audio'||(current.page==='subject'&&current.subjectArea==='podcasts')}
 /* 2027/1: cadastro preliminar do 3º semestre, sem datas de avaliações nem arquivos inventados. */
 function renderThirdSemester(){
+ const firstSemester=semester==='2026/1',period=firstSemester?'2026/1':'2027/1',ordinal=firstSemester?'1º':'3º',countText=firstSemester?'Sete':'Oito';
  const ids=Object.keys(DB.subjects),subjectId=current.subject,subj=DB.subjects[subjectId];
  const count=ids.length,totalHours=ids.reduce((sum,k)=>sum+(DB.subjects[k].hours||0),0);
  const activities=overallKeys(),completed=doneCount(activities),pct=fmtPct(completed,activities.length);
  const courseCards=()=>'<div class="library-page"><div class="course-intro"><div>'+
-  head('Psicologia PUCRS · 2027/1','Disciplinas do 3º semestre','Oito disciplinas cadastradas. Os conteúdos, provas e horários serão acrescentados quando estiverem disponíveis.')+
-  '</div></div><div class="course-toolbar"><span class="course-semester">2027/1 · '+count+' disciplinas · '+totalHours+'h</span>'+
+  head('Psicologia PUCRS · '+period,'Disciplinas do '+ordinal+' semestre',countText+' disciplinas cadastradas. Os conteúdos e materiais poderão ser adicionados posteriormente.')+
+  '</div></div><div class="course-toolbar"><span class="course-semester">'+period+' · '+count+' disciplinas'+(totalHours?' · '+totalHours+'h':'')+'</span>'+
   '<input id="libraryCourseSearch" type="search" placeholder="Buscar disciplina..." aria-label="Buscar disciplina" value="'+esc(current.libraryQuery||'')+'">'+
   '<select id="libraryCourseOrder" aria-label="Ordenar cursos"><option value="name" selected>Ordenar por nome</option></select></div>'+
   '<div class="course-grid">'+ids.slice().sort((a,b)=>DB.subjects[a].name.localeCompare(DB.subjects[b].name,'pt-BR')).map(k=>{
     const s=DB.subjects[k];
-    return '<article class="course-card" style="--course-accent:'+color(k)+'" data-course-search="'+esc((s.name+' '+s.code).toLocaleLowerCase('pt-BR'))+'">'+
+    return '<article class="course-card" style="--course-accent:'+color(k)+'" data-course-search="'+esc((s.name+' '+(s.code||'')).toLocaleLowerCase('pt-BR'))+'">'+
      '<button class="course-card-button" type="button" data-action="subject:'+k+'" aria-label="Abrir disciplina '+esc(s.name)+'">'+
-     '<div class="course-cover"><span class="course-index">2027/1 · 3º SEMESTRE</span><span class="course-symbol" aria-hidden="true">Ψ</span></div>'+
+     '<div class="course-cover"><span class="course-index">'+period+' · '+ordinal+' SEMESTRE</span><span class="course-symbol" aria-hidden="true">Ψ</span></div>'+
      '<div class="course-card-content"><div class="course-card-title">'+esc(s.name)+'</div>'+
-     '<div class="course-card-desc">'+esc(s.code)+' · '+s.hours+'h</div>'+
+     '<div class="course-card-desc">'+(s.code?esc(s.code)+(s.hours?' · '+s.hours+'h':''):'Disciplina do '+ordinal+' semestre')</div>'+
      '<div class="course-card-footer"><span>Conteúdos ainda não cadastrados</span><span>Abrir disciplina →</span></div></div></button></article>';
    }).join('')+'</div>'+
    '<div class="course-empty" id="libraryCourseNoResults" hidden>Nenhuma disciplina corresponde à busca.</div></div>';
  if(current.page==='home'||current.page==='library'){
-  return '<header class="dashboard-hero slogan-hero" aria-label="Terceiro semestre"><div class="hero-copy"><div class="slogan-lockup"><span class="slogan-logo" aria-hidden="true">Ψ</span><div class="slogan-identity"><span class="hero-kicker">Psicologia PUCRS · 2027/1</span><h1 class="slogan-title"><span>Psico</span><span class="slogan-title-accent">Moodle</span></h1></div></div></div>'+
+  return '<header class="dashboard-hero slogan-hero" aria-label="'+ordinal+' semestre"><div class="hero-copy"><div class="slogan-lockup"><span class="slogan-logo" aria-hidden="true">Ψ</span><div class="slogan-identity"><span class="hero-kicker">Psicologia PUCRS · '+period+'</span><h1 class="slogan-title"><span>Psico</span><span class="slogan-title-accent">Moodle</span></h1></div></div></div>'+
    '<div class="hero-status"><span>Progresso do semestre</span><strong>'+pct+'%</strong><div class="hero-bar"><b style="width:'+pct+'%"></b></div><span class="hero-label">'+completed+' de '+activities.length+' atividades</span></div></header>'+
    '<section class="section home-course-section" id="homeCourses">'+courseCards()+'</section>';
  }
@@ -4021,12 +4030,12 @@ function renderThirdSemester(){
   const top='<div class="subject-hub" style="--subject-accent:'+color(subjectId)+'">'+
    '<div class="subject-hub-crumb"><button type="button" data-action="page:home">Início</button><span aria-hidden="true">/</span><span>'+esc(subj.name)+'</span></div>'+
    '<header class="subject-hub-hero"><span class="subject-hub-emblem" aria-hidden="true">Ψ</span>'+
-   '<div class="subject-hub-heading"><span class="subject-hub-kicker">2027/1 · '+esc(subj.code)+' · '+subj.hours+'h</span>'+
+   '<div class="subject-hub-heading"><span class="subject-hub-kicker">'+period+(subj.code?' · '+esc(subj.code):'')+(subj.hours?' · '+subj.hours+'h':'')</span>'+
    '<h1>'+esc(subj.name)+'</h1><p class="subject-hub-date">Calendário da disciplina ainda não cadastrado.</p></div></header>';
   if(area&&titles[area])return top+'<div class="subject-hub-area">'+
     '<button type="button" class="subject-hub-back" data-action="subjectArea:home">← Voltar às opções</button>'+
     '<section class="section"><div class="sectiontop"><h2>'+esc(titles[area])+'</h2></div>'+
-    '<div class="subject-hub-empty">Ainda não há registros nesta área para 2027/1.</div></section></div></div>';
+    '<div class="subject-hub-empty">Ainda não há registros nesta área para '+period+'.</div></section></div></div>';
   const sections=[
    ['trail','✧','Trilha de Estudos para a Prova','Roteiro guiado quando os conteúdos forem publicados'],
    ['docs','▤','Materiais e textos','Arquivos e leituras'],
@@ -4049,19 +4058,19 @@ function renderThirdSemester(){
    [['provas','▤','Provas e avaliações','Datas das avaliações'],['horarios','◷','Horários de aula','Grade semanal'],['conteudos','▦','Conteúdos das aulas','Matéria do dia e leituras']].map(([id,icon,title,desc])=>
    '<button type="button" class="agenda-switch-button" role="tab" aria-selected="'+(calendarView===id)+'" data-action="agenda-tab:'+id+'"><span class="agenda-switch-icon" aria-hidden="true">'+icon+'</span><span class="agenda-switch-copy"><strong>'+title+'</strong><small>'+desc+'</small></span></button>').join('')+'</div>';
   const body=calendarView==='horarios'?renderClassSchedule(true):
-    '<section class="section"><div class="subject-hub-empty">'+(calendarView==='provas'?'As datas das avaliações de 2027/1 ainda não foram informadas.':'Os conteúdos e as leituras de 2027/1 ainda não foram informados.')+'</div></section>';
-  return head('2027/1 · 3º semestre','Agenda e Horários','As informações serão preenchidas conforme os cronogramas forem publicados.')+
+    '<section class="section"><div class="subject-hub-empty">'+(calendarView==='provas'?'As datas das avaliações de '+period+' ainda não foram informadas.':'Os conteúdos e as leituras de '+period+' ainda não foram informados.')+'</div></section>';
+  return head(period+' · '+ordinal+' semestre','Agenda e Horários','As informações serão preenchidas conforme os cronogramas forem publicados.')+
     tabs+'<div role="tabpanel">'+body+'</div>';
  }
- if(current.page==='exams')return head('2027/1','Simulados','As oito disciplinas estão cadastradas.')+
-  '<section class="section"><div class="subject-hub-empty">Ainda não há simulados disponíveis para 2027/1.</div></section>';
- if(current.page==='audio')return head('2027/1','Podcasts','As oito disciplinas estão cadastradas.')+
-  '<section class="section"><div class="subject-hub-empty">Ainda não há podcasts disponíveis para 2027/1.</div></section>';
+ if(current.page==='exams')return head(period,'Simulados',countText+' disciplinas cadastradas.')+
+  '<section class="section"><div class="subject-hub-empty">Ainda não há simulados disponíveis para '+period+'.</div></section>';
+ if(current.page==='audio')return head(period,'Podcasts',countText+' disciplinas cadastradas.')+
+  '<section class="section"><div class="subject-hub-empty">Ainda não há podcasts disponíveis para '+period+'.</div></section>';
  return courseCards();
 }
 function render(){
  renderNav();
- if(semester==='2027/1'&&!['ai','messages','admin'].includes(current.page)){
+ if((semester==='2027/1'||semester==='2026/1')&&!['ai','messages','admin'].includes(current.page)){
   $('main').innerHTML=renderThirdSemester();return;
  }
  if(!Object.keys(DB.subjects).length&&current.page!=='ai'&&current.page!=='messages'&&current.page!=='admin'){
