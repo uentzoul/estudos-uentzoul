@@ -2341,9 +2341,12 @@ const LIBRARY_MATERIALS=LIBRARY_CATALOG;
 let libraryAdminEnabled=false,libraryRecords=new Map();
 function adminScheduledMaterial(m){
  const release=Date.parse(m?._libraryUpload?.publish_at||'');
- return libraryAdminEnabled&&Number.isFinite(release)&&Date.now()<release;
+ return libraryAdminEnabled&&m?._libraryUpload?.library_public!==true&&Number.isFinite(release)&&Date.now()<release;
 }
 const libraryKey=m=>String(m.subject||'geral')+'::'+String(m.title||'');
+function isCurrentExamMaterial(m){
+ return semester==='2026/2'&&BASE_LIBRARY_MATERIALS.includes(m)&&m.available&&m._libraryUpload?.exam_scope!==false;
+}
 for(const m of LIBRARY_MATERIALS){
  m._libraryKey=libraryKey(m);
  m._libraryLegacyUrl=String(m.url||'');
@@ -2385,7 +2388,7 @@ window.uentzoulLibraryApp={
 
   // Isolate first-semester materials with a semester-prefixed resource key.
   SEMESTER_DB['2026/1'].materials=[...next.values()]
-   .filter(r=>String(r.resource_key||'').startsWith('2026/1::')&&String(r.file_subject||'').startsWith('2026/1::')&&r.exam_scope!==false)
+   .filter(r=>String(r.resource_key||'').startsWith('2026/1::')&&String(r.file_subject||'').startsWith('2026/1::'))
    .map(r=>{
     const subject=String(r.file_subject).slice('2026/1::'.length),key=String(r.resource_key);
     if(!(subject==='geral'||SEMESTER_DB['2026/1'].subjects[subject])||!key.startsWith('2026/1::'+subject+'::'))return null;
@@ -2403,10 +2406,8 @@ window.uentzoulLibraryApp={
    !approvedSocialKeys.has(String(r.resource_key||''))&&
    !/plano de ensino|cronograma/i.test(String(r.display_title||''));
   for(const r of next.values()){
-   // Arquivos agendados devem aparecer na prévia administrativa, mesmo fora da curadoria das provas.
-   const scheduledUpload=!!r.publish_at;
-   if(r.exam_scope===false||known.has(r.resource_key)||
-      (hiddenFamily(r)&&!scheduledUpload)||(hiddenSocial(r)&&!scheduledUpload))continue;
+   // O Acervo geral mostra tudo. A seleção de prova permanece separada nas trilhas.
+   if(known.has(r.resource_key))continue;
    const existing=LIBRARY_MATERIALS.find(m=>m._libraryKey===r.resource_key);
    if(existing){
     if(!existing._libraryUpload)continue;
@@ -2790,7 +2791,8 @@ function docCard(m){
  const href=m._libraryUpload?'#':m.url,attr=m._libraryUpload?' data-library-file="'+esc(m._libraryKey)+'"':'';
  const kind=m._libraryUpload?.filename?.toLowerCase().endsWith('.docx')?'DOC':m.kind==='Vídeo'?'▶':m.kind==='PDF'?'PDF':m.kind==='Página HTML'?'WEB':'TXT';
  const body='<span class="docicon" aria-hidden="true">'+kind+'</span><span class="docname">'+esc(m.title)+'</span>'+
-  (adminScheduledMaterial(m)?'<span class="pm-scheduled-file-label" title="Este arquivo ainda está oculto para estudantes e visitantes">🔒 Oculto para alunos · libera em 27/11</span>':'')+
+  (isCurrentExamMaterial(m)?'<span class="pm-exam-badge">Cai na prova</span>':'')+
+  (adminScheduledMaterial(m)?'<span class="pm-scheduled-file-label">🔒 Aguardando liberação</span>':'')+
   (m.available?'<span class="doc-open-arrow" aria-hidden="true">↗</span>':'');
  const main=m.available?'<a class="doc-full-link" href="'+esc(href)+'"'+attr+' target="_blank" rel="noopener noreferrer" aria-label="Abrir '+esc(m.title)+'">'+body+'</a>':
   '<div class="doc-full-link doc-not-ready">'+body+'<span class="pill">Aguardando arquivo</span></div>';
@@ -2841,7 +2843,8 @@ function libraryResourceCard(m,i=0){
  const name=esc(m.title||'Material sem título');
  const content='<span class="library-resource-icon" aria-hidden="true">'+glyph+'</span>'+
   '<span class="library-resource-copy"><strong class="docname">'+name+'</strong>'+
-  (adminScheduledMaterial(m)?'<small class="pm-scheduled-file-label">🔒 Oculto para alunos · libera em 27/11</small>':'')+'</span>'+
+  (isCurrentExamMaterial(m)?'<small class="pm-exam-badge">Cai na prova</small>':'')+
+  (adminScheduledMaterial(m)?'<small class="pm-scheduled-file-label">🔒 Aguardando liberação</small>':'')+'</span>'+
   (isAvailable?'<span class="library-resource-arrow" aria-hidden="true">↗</span>':'');
  const url=m._libraryUpload?'#':m.url;
  const uploadAttr=m._libraryUpload?' data-library-file="'+esc(m._libraryKey)+'"':'';
@@ -2966,16 +2969,19 @@ function renderSubject(k){
    '</div></section></div></div>';
  }
  if(area==='docs'){
-  const organizer=window.PSICO_COURSE_MANAGER?.weeklyView?.(semester,k,docs,docCard);
+  const archiveDocs=DB.materials.filter(x=>x.subject===k&&x.available);
+  const organizer=window.PSICO_COURSE_MANAGER?.weeklyView?.(semester,k,archiveDocs,docCard);
   const weekly=organizer?.weekly;
-  const scheduledCount=docs.filter(adminScheduledMaterial).length;
+  const focusCount=archiveDocs.filter(isCurrentExamMaterial).length;
+  const examNotice='<div class="pm-exam-info" role="note"><strong>Materiais para consulta</strong><p>Os arquivos com a indicação <span class="pm-exam-badge">Cai na prova</span> são o foco das últimas avaliações. Os demais estão liberados no acervo, mas ainda não fazem parte dos flashcards, simulados ou trilhas atuais.</p></div>';
+  const scheduledCount=archiveDocs.filter(adminScheduledMaterial).length;
   const adminNotice=scheduledCount?'<div class="pm-private-materials-notice" role="status">🔒 Prévia exclusiva da administração: '+scheduledCount+
    ' '+(scheduledCount===1?'material está oculto':'materiais estão ocultos')+
    ' para estudantes e visitantes até 27/11/2026, à meia-noite. Arquivos das provas permanecem disponíveis normalmente.</div>':'';
   return top+'<div class="subject-hub-area">'+back+
    '<section class="section" id="docs"><div class="sectiontop"><h2>Materiais e textos</h2>'+(!weekly?(window.PSICO_MATERIAL_EDITOR?.editButton?.(k)||''):'')+'</div>'+
-   (organizer?.tabs||'')+adminNotice+
-   (weekly?organizer.body:'<div class="library-group" style="margin-top:0;--group-accent:'+color(k)+'">'+organizedSubjectMaterials(docs,false,k)+'</div>')+
+   (organizer?.tabs||'')+examNotice+adminNotice+
+   (weekly?organizer.body:'<div class="library-group" style="margin-top:0;--group-accent:'+color(k)+'">'+organizedSubjectMaterials(archiveDocs,false,k)+'</div>')+
    '</section></div></div>';
  }
  if(area==='podcasts'){
@@ -3033,7 +3039,7 @@ function libraryAdminPanel(){
 }
 function libraryExamMaterials(k){
  // Integra arquivos disponíveis e referências do exame na mesma lista, sem uma aba 'novos'.
- return DB.materials.filter(m=>m.subject===k&&m.available&&m._libraryUpload?.exam_scope!==false);
+ return DB.materials.filter(m=>m.subject===k&&m.available);
 }
 function libraryExamProgress(k){
  const docs=libraryExamMaterials(k).filter(m=>m.available);
@@ -3475,6 +3481,7 @@ async function tzPrivateLibraryMatches(query){
  const terms=tzMaterialTerms(query);if(!terms.length)return [];
  const {data,error}=await client.from('uentzoul_library_uploads')
   .select('resource_key,storage_path,filename,mime_type,file_subject,display_title,content_summary,content_tags,exam_scope')
+  .eq('exam_scope',true)
   .order('resource_key');
  if(error)throw Error('Não foi possível consultar a biblioteca de arquivos: '+error.message);
  const ranked=(data||[]).filter(r=>
@@ -4265,9 +4272,9 @@ function renderThirdSemester(){
   // em todos os períodos; as outras áreas mantêm os materiais do semestre.
   if(current.subjectArea==='tests')return renderSubject(subjectId);
   if(firstSemester&&window.PSICO_FIRST_SEMESTER){
-   const docs=DB.materials.filter(m=>m.subject===subjectId&&m.available&&m._libraryUpload?.exam_scope!==false);
+   const docs=DB.materials.filter(m=>m.subject===subjectId&&m.available);
    return window.PSICO_FIRST_SEMESTER.renderSubject({id:subjectId,subject:subj,area:current.subjectArea,
-    topics:DB.topics[subjectId]||[],docs,exams:DB.exams.filter(e=>e.subject===subjectId),doneBox,topicProgressKey,docCard});
+    topics:DB.topics[subjectId]||[],docs,exams:DB.exams.filter(e=>e.subject===subjectId),doneBox,topicProgressKey,docCard,classify:materialGroup});
   }
   const titles={trail:'Trilha de Estudos para a Prova',guided:'Estudos dirigidos',tests:'Simulados',flash:'Flashcards',cases:'Estudos de casos',podcasts:'Podcasts',topics:'Conteúdos para revisar',docs:'Materiais e textos'};
   const area=current.subjectArea;
@@ -4338,7 +4345,7 @@ function render(){
 /* A camada de organização só altera categorias e posições, nunca os arquivos. */
 if(window.PSICO_MATERIAL_EDITOR){
  window.PSICO_MATERIAL_EDITOR.classify=materialGroup;
- window.PSICO_MATERIAL_EDITOR.getMaterials=subject=>DB.materials.filter(x=>x.subject===subject&&x.available&&x._libraryUpload?.exam_scope!==false);
+ window.PSICO_MATERIAL_EDITOR.getMaterials=subject=>DB.materials.filter(x=>x.subject===subject&&x.available);
  window.PSICO_MATERIAL_EDITOR.setRerender(()=>{
   if(['2026/1','2026/2'].includes(semester)&&current.page==='subject'&&current.subjectArea==='docs')render();
  });
