@@ -5,6 +5,7 @@ on:
   workflow_dispatch:
 permissions:
   contents: read
+  actions: read
   pages: write
   id-token: write
 concurrency:
@@ -37,5 +38,7 @@ jobs:
       - uses: actions/upload-pages-artifact@v3
         with:
           path: '.'
+      - name: Aguardar indexação do pacote publicado
+        run: sleep 12
       - id: deployment
         uses: actions/deploy-pages@v4
