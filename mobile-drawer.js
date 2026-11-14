@@ -47,7 +47,15 @@
   app.insertBefore(backdrop,side);
 
   const media=window.matchMedia('(max-width:760px)');
-  let opened=false;
+  let opened=false,settleTimer=0,settleFrame=0;
+  function clearSettle(){
+   clearTimeout(settleTimer);
+   if(settleFrame)cancelAnimationFrame(settleFrame);
+   settleFrame=0;settleTimer=0;
+   document.body.classList.remove('pm-mobile-menu-settling');
+   document.body.style.removeProperty('--pm-drawer-offset');
+   document.body.style.removeProperty('--pm-drawer-opacity');
+  }
   function setOpen(value,restoreFocus=false,focusClose=true){
    opened=Boolean(value&&media.matches);
    document.body.classList.toggle('pm-mobile-menu-open',opened);
@@ -77,7 +85,7 @@
 
   // Gaveta acompanha o dedo em qualquer região da tela. Só um arraste
   // horizontal deliberado aciona o menu; rolamentos verticais seguem nativos.
-  const START_SLOP=13,FINISH_RATIO=.48,FLICK_VELOCITY=.48;
+  const START_SLOP=9,FINISH_RATIO=.48,FLICK_VELOCITY=.48;
   let gesture=null;
   const clamp=(v,min,max)=>Math.max(min,Math.min(max,v));
   function horizontalScroller(target){
@@ -104,6 +112,27 @@
    document.body.style.removeProperty('--pm-drawer-offset');
    document.body.style.removeProperty('--pm-drawer-opacity');
   }
+  function settleDrag(from,to){
+   const body=document.body;
+   const remaining=Math.abs(to-from);
+   // Menos distância = desaceleração curta; arrastes longos terminam sem trancos.
+   const ms=Math.round(165+140*remaining);
+   body.style.setProperty('--pm-drawer-duration',ms+'ms');
+   body.classList.remove('pm-mobile-menu-dragging');
+   body.classList.add('pm-mobile-menu-settling');
+   // Força o ponto de partida renderizado antes de iniciar a transição.
+   void side.offsetWidth;
+   settleFrame=requestAnimationFrame(()=>{
+    settleFrame=0;
+    if(!body.classList.contains('pm-mobile-menu-settling'))return;
+    body.style.setProperty('--pm-drawer-offset',(-105*(1-to)).toFixed(3)+'%');
+    body.style.setProperty('--pm-drawer-opacity',String(to));
+   });
+   settleTimer=setTimeout(()=>{
+    clearSettle();
+    body.style.removeProperty('--pm-drawer-duration');
+   },ms+100);
+  }
   function finishDrag(touch,cancel=false){
    const g=gesture;gesture=null;
    if(!g)return;
@@ -115,14 +144,19 @@
    const fast=distance>32&&Math.abs(velocity)>FLICK_VELOCITY;
    const shouldOpen=cancel?g.start===1:
     fast?(velocity>0):g.progress>=FINISH_RATIO;
-   // Até o último pixel do gesto, a gaveta fica na posição do dedo.
-   // Ao soltar, a transição CSS assume a partir dessa posição.
+   // Mantém o deslocamento exato do dedo e anima apenas a distância que restou.
+   // O elemento continua visível até o fim, evitando saltos entre estados.
+   const p=clamp(g.progress,0,1);
    setOpen(shouldOpen,false,false);
-   clearDrag();
+   settleDrag(p,shouldOpen?1:0);
   }
   function cancelDrag(){finishDrag(null,true)}
   document.addEventListener('touchstart',event=>{
    if(gesture)cancelDrag();
+   // O tutorial é totalmente modal; nenhum gesto da página deve alcançá-lo.
+   if(document.documentElement.classList.contains('pm-tour-running'))return;
+   // Não interrompe uma animação de assentamento que ainda está terminando.
+   if(document.body.classList.contains('pm-mobile-menu-settling'))return;
    if(!media.matches||event.touches.length!==1||modalVisible())return;
    const t=event.touches[0],target=event.target;
    if(horizontalScroller(target))return;
@@ -136,6 +170,10 @@
     claimed:false};
   },{passive:true});
   document.addEventListener('touchmove',event=>{
+   if(document.documentElement.classList.contains('pm-tour-running')){
+    if(gesture)cancelDrag();
+    return;
+   }
    const g=gesture;
    if(!g)return;
    if(event.touches.length!==1){cancelDrag();return;}
@@ -204,7 +242,12 @@
     event.preventDefault();first.focus();
    }
   });
-  function onResize(){cancelDrag();setOpen(false)}
+  function onResize(){
+   cancelDrag();
+   clearSettle();
+   document.body.style.removeProperty('--pm-drawer-duration');
+   setOpen(false);
+  }
   if(media.addEventListener)media.addEventListener('change',onResize);
   else if(media.addListener)media.addListener(onResize);
   setOpen(false);
