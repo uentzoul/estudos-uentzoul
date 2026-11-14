@@ -25,7 +25,7 @@ const steps=[
 const byId=id=>document.getElementById(id);
 const q=s=>document.querySelector(s);
 let active=false,index=0,chosen='tcc',lastFocus=null,originSemester=null,changedSemester=false;
-let shell=null,spot=null,balloon=null,fadeTimer=0,frame=0,stepSerial=0;
+let shell=null,spot=null,sidebarSpot=null,balloon=null,fadeTimer=0,frame=0,stepSerial=0;
 let lastRect=null,pendingScroll=false;
 const margin=8;
 const clamp=(n,min,max)=>Math.max(min,Math.min(max,n));
@@ -63,6 +63,7 @@ function build(){
  '<button type="button" class="pm-spotlight-back" data-pmtour="back">Voltar</button>'+
  '<button type="button" class="pm-spotlight-next" data-pmtour="next">Próximo <span aria-hidden="true">→</span></button></div></section>';
  document.body.appendChild(shell);
+ sidebarSpot=document.createElement('div');sidebarSpot.className='pm-spotlight-sidebar-ring';sidebarSpot.setAttribute('aria-hidden','true');shell.appendChild(sidebarSpot);
  spot=shell.querySelector('.pm-spotlight-ring');
  balloon=shell.querySelector('.pm-spotlight-popover');
 }
@@ -127,17 +128,36 @@ function currentRect(node){
  const bottom=clamp(r.bottom+margin,y+16,innerHeight-6);
  return {left:x,top:y,width:right-x,height:bottom-y,right,bottom};
 }
-function cutout(r){
+function sidebarNode(step){
+ if(!step)return null;
+ const p=step.page==='subject'?'home':step.page;
+ return available('#nav [data-page="'+p+'"]');
+}
+function updateSidebarHighlight(step){
+ document.querySelectorAll('#nav .pm-tour-nav-current').forEach(el=>el.classList.remove('pm-tour-nav-current'));
+ const node=sidebarNode(step);
+ if(node)node.classList.add('pm-tour-nav-current');
+ return node;
+}
+function cutout(r,sideRect){
  const w=innerWidth,h=innerHeight,rad=Math.min(15,r.width/3,r.height/3);
  const x=r.left,y=r.top,rx=r.right,by=r.bottom;
- const path='M 0 0 H '+w+' V '+h+' H 0 Z '+
+ let path='M 0 0 H '+w+' V '+h+' H 0 Z '+
  'M '+(x+rad)+' '+y+' H '+(rx-rad)+' Q '+rx+' '+y+' '+rx+' '+(y+rad)+
  ' V '+(by-rad)+' Q '+rx+' '+by+' '+(rx-rad)+' '+by+
  ' H '+(x+rad)+' Q '+x+' '+by+' '+x+' '+(by-rad)+
  ' V '+(y+rad)+' Q '+x+' '+y+' '+(x+rad)+' '+y+' Z';
+ if(sideRect){
+  const a=sideRect,rr=Math.min(11,a.width/3,a.height/3);
+  path+=' M '+(a.left+rr)+' '+a.top+' H '+(a.right-rr)+' Q '+a.right+' '+a.top+' '+a.right+' '+(a.top+rr)+
+  ' V '+(a.bottom-rr)+' Q '+a.right+' '+a.bottom+' '+(a.right-rr)+' '+a.bottom+
+  ' H '+(a.left+rr)+' Q '+a.left+' '+a.bottom+' '+a.left+' '+(a.bottom-rr)+
+  ' V '+(a.top+rr)+' Q '+a.left+' '+a.top+' '+(a.left+rr)+' '+a.top+' Z';
+ }
  shell.querySelector('.pm-spotlight-svg').setAttribute('viewBox','0 0 '+w+' '+h);
  shell.querySelector('.pm-spotlight-path').setAttribute('d',path);
  spot.style.cssText='left:'+r.left+'px;top:'+r.top+'px;width:'+r.width+'px;height:'+r.height+'px;';
+ if(sidebarSpot){sidebarSpot.hidden=!sideRect;if(sideRect)sidebarSpot.style.cssText='left:'+sideRect.left+'px;top:'+sideRect.top+'px;width:'+sideRect.width+'px;height:'+sideRect.height+'px;';}
 }
 function positionPopover(r){
  const w=innerWidth,h=innerHeight;
@@ -192,7 +212,10 @@ function layout(scrollTarget=false){
    requestAnimationFrame(()=>{pendingScroll=false;layout(false)});
   }
  }
- const r=currentRect(node);lastRect=r;cutout(r);positionPopover(r);
+ const r=currentRect(node);lastRect=r;
+ const navNode=updateSidebarHighlight(steps[index]);
+ const navRect=navNode?currentRect(navNode):null;
+ cutout(r,navRect);positionPopover(r);
 }
 function renderCopy(step){
  const found=findNode(step);
@@ -239,6 +262,8 @@ function close(){
  active=false;++stepSerial;
  clearTimeout(fadeTimer);shell.hidden=true;
  document.documentElement.classList.remove('pm-tour-running');
+ document.querySelectorAll('#nav .pm-tour-nav-current').forEach(el=>el.classList.remove('pm-tour-nav-current'));
+ if(sidebarSpot)sidebarSpot.hidden=true;
  if(changedSemester&&originSemester)q('.semester-option[data-semester="'+originSemester+'"]')?.click();
  changedSemester=false;
  lastFocus?.isConnected&&lastFocus.focus?.({preventScroll:true});
