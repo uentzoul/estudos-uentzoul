@@ -1,0 +1,44 @@
+
+/* PsicoMoodle — revisão do primeiro semestre; mantém responsividade. */
+.s1-hub .subject-hub-hero{margin-bottom:20px}
+.s1-panel{margin-top:18px}
+.s1-panel>.sectiontop h2{font-size:clamp(20px,3vw,25px)}
+.s1-help{font-size:14px;color:var(--text-muted,#65707c);line-height:1.65;margin:8px 0 18px}
+.s1-source{font-size:12px;margin-top:13px;line-height:1.5;overflow-wrap:anywhere;color:var(--text-muted,#64748b)}
+.s1-ref-list{margin-top:20px;padding:16px 18px;border:1px solid var(--border,#d6dce7);border-radius:14px}
+.s1-ref-list summary{cursor:pointer;font-weight:750}
+.s1-ref-list ul{padding-left:20px;columns:2;gap:32px}
+.s1-ref-list li{font-size:13px;padding:4px 0;overflow-wrap:anywhere}
+.s1-trail{display:grid;gap:16px}
+.s1-trail>header{border-radius:20px;padding:clamp(20px,4vw,34px);background:linear-gradient(125deg,#19293b,#314b66);color:white}
+.s1-trail>header small{font-size:11px;letter-spacing:.1em;font-weight:800;color:#c9dafa}
+.s1-trail>header h2{font-size:clamp(24px,4vw,34px);margin:10px 0 12px;line-height:1.15;color:white}
+.s1-trail>header p{max-width:740px;line-height:1.65;font-size:14px;color:#e7eef8}
+.s1-step{border-radius:18px;background:var(--card,#fff);border:1px solid var(--border,#dce2ec);padding:clamp(14px,3vw,24px)}
+.s1-step-head{display:flex;align-items:flex-start;gap:15px}
+.s1-step-head>span{flex:none;width:38px;height:38px;border-radius:12px;background:#e7edf7;display:grid;place-items:center;font-weight:800;color:#354d7f}
+.s1-step-head h3{margin:0 0 4px;font-size:19px}
+.s1-step-head p{font-size:13px;line-height:1.45;margin:0;color:var(--text-muted,#596675)}
+.s1-step ol{margin:17px 0 21px;list-style:none;padding:0;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.s1-step li{padding:13px 15px;border:1px solid var(--border,#e0e6ed);border-radius:12px;display:grid;gap:6px;min-width:0}
+.s1-step li strong{font-size:14px;line-height:1.35}
+.s1-step li span{font-size:12px;line-height:1.5;overflow-wrap:anywhere}
+.s1-actions{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.s1-actions>.btn{max-width:100%}
+.s1-done{margin-left:auto}
+.s1-global-exams{padding:12px 4px}
+.s1-global-exams>h1{font-size:clamp(24px,4vw,32px);margin:0 0 8px}
+.s1-global-exams>p{margin:0 0 24px;color:var(--text-muted,#596675);line-height:1.6}
+.s1-global-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:15px}
+.s1-exam-course{padding:20px;border:1px solid var(--border,#dce2ec);border-radius:16px;background:var(--card,#fff);display:grid;gap:9px}
+.s1-exam-course>strong{font-size:16px;margin-bottom:8px}
+.s1-exam-course>button{text-align:left;border:1px solid var(--border,#dce2ec);border-radius:10px;background:transparent;padding:12px;color:inherit;font:inherit;cursor:pointer}
+.s1-exam-course>button:hover,.s1-exam-course>button:focus-visible{border-color:#7695c5;background:rgba(95,133,190,.08)}
+@media(max-width:700px){
+ .s1-step ol,.s1-global-grid{grid-template-columns:1fr}
+ .s1-ref-list ul{columns:1}
+ .s1-actions .btn{flex:1 1 100%;white-space:normal}
+ .s1-done{margin-left:0;width:100%}
+ .s1-panel{max-width:100%;overflow-wrap:anywhere}
+}
+@media(prefers-reduced-motion:reduce){.s1-hub *{scroll-behavior:auto!important}}
