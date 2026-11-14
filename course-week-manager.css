@@ -95,3 +95,21 @@
  .pm-week-toolbar-actions button{min-width:0;width:100%;font-size:12px;padding:8px}
  .pm-week-toolbar .pm-edit-button{margin-left:auto}
 }
+
+/* Pré-visualização de materiais do semestre seguinte, exclusiva dos administradores. */
+.pm-private-materials-notice{
+ margin:12px 0 15px;padding:12px 14px;border:1px solid var(--line,#dcd7e5);
+ border-radius:10px;background:var(--soft,var(--paper,#fff));color:var(--ink,#302b38);
+ font-size:12px;line-height:1.55
+}
+.pm-scheduled-file-label{
+ display:inline-block;max-width:100%;font-size:10px;font-weight:700;line-height:1.35;
+ color:var(--muted,#6d6679);background:var(--soft,#f4f2f7);border:1px solid var(--line,#dcd7e5);
+ border-radius:7px;padding:5px 8px;overflow-wrap:anywhere
+}
+.doc-full-link .pm-scheduled-file-label{flex:0 1 auto}
+.library-resource-copy .pm-scheduled-file-label{display:table;margin-top:8px}
+@media(max-width:600px){
+ .pm-private-materials-notice{padding:10px 11px}
+ .doc-full-link .pm-scheduled-file-label{width:auto;max-width:100%}
+}
