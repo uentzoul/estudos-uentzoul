@@ -3,6 +3,9 @@
 'use strict';
 const BUCKET='uentzoul-library-files';
 const TABLE='uentzoul_library_uploads';
+// Liberação no servidor: 27/11/2026 00h em America/Sao_Paulo (UTC-03).
+const SECOND_SEMESTER_RELEASE='2026-11-27T03:00:00Z';
+const mustSchedule=sem=>sem==='2026/2'&&Date.now()<Date.parse(SECOND_SEMESTER_RELEASE);
 const PROJECT='swseibmqoetnuctxyusj';
 const MAX=50*1024*1024;
 const FORMATS={
@@ -69,10 +72,16 @@ function reviewCard(r,i){
   '<div class="library-review-fields"><label>Disciplina <select data-review-subject="'+i+'">'+choices+'</select></label>'+
   '<label>Vincular a material existente ou criar novo <select data-review-target="'+i+'">'+destinationOptions(r)+'</select></label>'+
   (r.targetKey==='__new__'?'<label>Nome exibido na Biblioteca <input data-review-title="'+i+'" maxlength="160" type="text" value="'+clean(r.title)+'" placeholder="Título do material"></label>':'')+
-  '<label>Visibilidade <select data-review-scope="'+i+'"><option value="in" '+(r.scope==='in'?'selected':'')+'>'+(api()?.semester?.()==='2026/1'?'Biblioteca do 1º semestre':'Biblioteca das provas finais')+'</option>'+
-  '<option value="archive" '+(r.scope==='archive'?'selected':'')+'>Guardar para outro momento (fora da revisão)</option></select></label></div>'+
-  '<p class="library-review-foot">'+(r.targetKey==='__new__'?'O arquivo será cadastrado como material novo.':'Este arquivo será associado ao material selecionado.')+
-  ' O destino pode ser alterado antes da publicação.</p></div>';
+  '<label>Visibilidade <select data-review-scope="'+i+'">'+
+  (mustSchedule(api()?.semester?.())?
+   '<option value="scheduled" selected>Privado para administradores · libera 27/11 às 00h</option>':
+   '<option value="in" '+(r.scope==='in'?'selected':'')+'>'+(api()?.semester?.()==='2026/1'?'Biblioteca do 1º semestre':'Biblioteca do 2º semestre')+'</option>'+
+   '<option value="archive" '+(r.scope==='archive'?'selected':'')+'>Guardar fora da revisão</option>')+
+  '</select></label></div>'+
+  '<p class="library-review-foot">'+(mustSchedule(api()?.semester?.())?
+  'Novo arquivo separado dos conteúdos das provas. Visível apenas para administração até 26/11; liberação automática em 27/11/2026 às 00h (Brasília). Não substitui documentos atuais.':
+  (r.targetKey==='__new__'?'O arquivo será cadastrado como material novo.':'Este arquivo será associado ao material selecionado.')+
+   ' O destino pode ser alterado antes da publicação.')+'</p></div>';
 }
 function paint(){
  const activeSemester=api()?.semester?.()||'2026/2';
@@ -82,7 +91,7 @@ function paint(){
  const el=document.getElementById('libraryUploadFeedback'),btn=document.getElementById('libraryUploadSend');
  updateCounter();
  if(!el)return;
- if(btn){btn.disabled=isBusy||isAnalyzing||!reviewed.length;btn.textContent=isBusy?'Enviando arquivos…':isAnalyzing?'Lendo os materiais…':'Publicar '+reviewed.length+' material(is) revisado(s)';}
+ if(btn){btn.disabled=isBusy||isAnalyzing||!reviewed.length;btn.textContent=isBusy?'Enviando arquivos…':isAnalyzing?'Lendo os materiais…':(mustSchedule(activeSemester)?'Agendar ':'Publicar ')+reviewed.length+' material(is)';}
  let html='';
  if(reviewed.length)html='<div class="library-review-intro"><strong>'+reviewed.length+' arquivo(s) selecionado(s)</strong>'+
  '<small>'+ (isAnalyzing?'Analisando o conteúdo de cada arquivo…':'Confira as disciplinas, destinos e conteúdos antes de publicar.')+'</small></div>'+
@@ -112,7 +121,7 @@ async function refresh(){
    }
   }
   if(isAdmin!==lastAdmin){lastAdmin=isAdmin;api().setAdmin(isAdmin);}
-  const {data,error}=await c.from(TABLE).select('resource_key,storage_path,filename,mime_type,size_bytes,updated_at,file_subject,display_title,content_summary,content_tags,exam_scope,scan_quality').order('resource_key');
+  const {data,error}=await c.from(TABLE).select('resource_key,storage_path,filename,mime_type,size_bytes,updated_at,file_subject,display_title,content_summary,content_tags,exam_scope,scan_quality,publish_at').order('resource_key');
   if(error)throw error;
   const rows=(data||[]).filter(r=>typeof r.storage_path==='string'&&r.storage_path.startsWith('materials/'));
   const signature=JSON.stringify(rows);
@@ -151,8 +160,8 @@ async function select(files){
    r.subject=known?.subject==='geral'?'geral':(subjects()[suggested]?suggested:(subjects()[known?.subject]?known.subject:''));
    r.title=known?.title||titleFromFile(r.file,r.analysis);
    r.conflict=!!(suggested&&known?.subject&&known.subject!=='geral'&&suggested!==known.subject);
-   r.targetKey=known&&!r.conflict?known.key:'__new__';
-   r.scope=api()?.semester?.()==='2026/1'?'in':(known?.inExam||['principal','complementar'].includes(r.analysis?.examMatch)?'in':'archive');
+   r.targetKey=mustSchedule(reviewSemester)?'__new__':(known&&!r.conflict?known.key:'__new__');
+   r.scope=mustSchedule(reviewSemester)?'scheduled':(api()?.semester?.()==='2026/1'?'in':(known?.inExam||['principal','complementar'].includes(r.analysis?.examMatch)?'in':'archive'));
   }catch(err){r.analysis={quality:'indisponivel',error:err?.message||'Leitura indisponível'};r.subject=r.suggestion?.subject||'';r.targetKey=r.suggestion?.key||'__new__';r.scope=api()?.semester?.()==='2026/1'||r.suggestion?.inExam?'in':'archive'}
   paint();
  }
@@ -283,16 +292,19 @@ async function submit(event){
  if(reviewSemester!==sem){show('O semestre mudou. Selecione novamente os arquivos para evitar misturar os acervos.');return;}
  const catalog=entries();
  const queue=reviewed.map(r=>{
-  const existing=catalog.find(x=>x.key===r.targetKey);
+  const scheduled=mustSchedule(sem);
+  const existing=scheduled?null:catalog.find(x=>x.key===r.targetKey);
   const subject=existing?.subject||r.subject;
   const title=(existing?.title||r.title||'').trim().slice(0,160);
-  const key=existing?.key||(subject&&title?(sem==='2026/1'?'2026/1::':'')+subject+'::'+title:'');
-  return {file:r.file,r,key,subject,title,scope:r.scope==='in'};
+  // Nunca substituímos os documentos das provas por um complemento agendado.
+  const key=scheduled?(subject&&title?subject+'::'+title+'::27nov-'+crypto.randomUUID():''):
+    existing?.key||(subject&&title?(sem==='2026/1'?'2026/1::':'')+subject+'::'+title:'');
+  return {file:r.file,r,key,subject,title,scheduled,scope:scheduled||r.scope==='in'};
  });
  let passed=0,failed=0;const used=new Set();
  isBusy=true;logEntries=[];paint();
  for(let i=0;i<queue.length;i++){
-  const {file,r,key,subject,title,scope}=queue[i],fmt=typeOf(file);
+  const {file,r,key,subject,title,scope,scheduled}=queue[i],fmt=typeOf(file);
   const progress=n=>{
    const bar=document.getElementById('libraryUploadBar'),pos=document.getElementById('libraryUploadPosition');
    if(bar)bar.style.width=n+'%';if(pos)pos.textContent=(i+1)+' de '+queue.length+' · '+file.name+' · '+n+'%';
@@ -304,18 +316,19 @@ async function submit(event){
   used.add(key);
   try{
    if(a.user()?.id!==u.id)throw Error('Conta alterada durante o envio.');
-   const path='materials/'+crypto.randomUUID()+'.'+fmt.ext;
+   const path='materials/'+(scheduled?'scheduled/':'')+crypto.randomUUID()+'.'+fmt.ext;
    await transfer(file,path,fmt.mime,progress);
    const {error}=await c.from(TABLE).upsert({
     resource_key:key,storage_path:path,filename:file.name.slice(0,255),mime_type:fmt.mime,
     size_bytes:file.size,updated_by:u.id,updated_at:new Date().toISOString(),
     file_subject:sem==='2026/1'?'2026/1::'+subject:subject,display_title:title,content_summary:String(r.analysis?.summary||'').slice(0,600),
-    content_tags:(r.analysis?.topics||[]).slice(0,15),exam_scope:scope,scan_quality:r.analysis?.quality||'manual'
+    content_tags:(r.analysis?.topics||[]).slice(0,15),exam_scope:scope,scan_quality:r.analysis?.quality||'manual',
+    publish_at:scheduled?SECOND_SEMESTER_RELEASE:null
    },{onConflict:'resource_key'});
    if(error)throw Error('Arquivo salvo, mas falhou ao associar ao acervo: '+error.message);
    const proof=await c.storage.from(BUCKET).createSignedUrl(path,120);
    if(proof.error)throw Error('Arquivo enviado, mas a abertura falhou: '+proof.error.message);
-   logEntries.push({ok:true,message:(scope?'Publicado na revisão: ':'Guardado fora da revisão: ')+title+' ('+file.name+')'});passed++;
+   logEntries.push({ok:true,message:(scheduled?'Agendado em área privada até 27/11 00h: ':(scope?'Publicado na revisão: ':'Guardado fora da revisão: '))+title+' ('+file.name+')'});passed++;
   }catch(err){failed++;logEntries.push({ok:false,message:file.name+': '+(err?.message||'falha no envio')});}
   paint();
  }
@@ -324,7 +337,7 @@ async function submit(event){
  // Atualiza os cartões, o contador e o acervo sem exigir F5.
  await refresh();paint();
  const feedback=document.getElementById('libraryUploadFeedback');
- if(feedback){const summary=document.createElement('strong');summary.textContent='Envio concluído: '+passed+' publicado(s)'+(failed?' · '+failed+' pendência(s)':'')+'.';feedback.prepend(summary)}
+ if(feedback){const summary=document.createElement('strong');summary.textContent='Envio concluído: '+passed+(mustSchedule(sem)?' agendado(s)':' publicado(s)')+(failed?' · '+failed+' pendência(s)':'')+'.';feedback.prepend(summary)}
 }
 document.addEventListener('click',async e=>{
  const packageTrigger=e.target.closest('[data-library-package-choose]');
