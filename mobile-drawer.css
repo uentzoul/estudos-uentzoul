@@ -227,3 +227,20 @@
   margin-top:0!important
  }
 }
+
+/* Menu tátil: o deslocamento é calculado continuamente durante o arraste.
+   Fora do arraste, a animação original assume os pixels finais até abrir/fechar. */
+@media(max-width:760px){
+ body.pm-mobile-menu-dragging #siteSidebar,
+ body.pm-mobile-menu-open.pm-mobile-menu-dragging #siteSidebar{
+  transform:translate3d(var(--pm-drawer-offset,-105%),0,0)!important;
+  visibility:visible!important;pointer-events:none!important;
+  transition:none!important;will-change:transform
+ }
+ body.pm-mobile-menu-dragging .pm-mobile-backdrop,
+ body.pm-mobile-menu-open.pm-mobile-menu-dragging .pm-mobile-backdrop{
+  opacity:var(--pm-drawer-opacity,0)!important;
+  visibility:visible!important;pointer-events:none!important;
+  transition:none!important
+ }
+}
