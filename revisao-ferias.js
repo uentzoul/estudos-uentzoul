@@ -19,7 +19,7 @@ const MONTH_NAME={3:'Março',4:'Abril',5:'Maio',6:'Junho',8:'Agosto',9:'Setembro
 const MONTH_SHORT={3:'MAR',4:'ABR',5:'MAI',6:'JUN',8:'AGO',9:'SET',10:'OUT',11:'NOV'};
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 let visible=false,semester=1,events=[],openedMonth=null,selectedEvent=null,loading=false,seq=0;
-let navObserver=null,mainObserver=null;
+let navObserver=null,mainObserver=null,monthSequence=0;
 const nav=()=>document.getElementById('nav');
 const main=()=>document.querySelector('.app > .main')||document.querySelector('main.main')||document.querySelector('.main');
 const admin=()=>window.uentzoulAdminConfig?.isAdmin?.()===true;
@@ -43,6 +43,13 @@ function colorFor(subject){
    const direct=target.style?.getPropertyValue('--subject-accent')||
     target.style?.getPropertyValue('--accent')||target.dataset?.subjectColor;
    if(direct&&/^(#|rgb|hsl|color\()/i.test(direct.trim()))return direct.trim();
+   // Também aproveita as cores definidas em CSS nos botões das disciplinas.
+   const styles=getComputedStyle(target);
+   const inherited=['--subject-accent','--subject-color','--course-accent','--course-color'];
+   for(const prop of inherited){
+    const computed=styles.getPropertyValue(prop).trim();
+    if(computed&&/^(#|rgb|hsl|color\()/i.test(computed))return computed;
+   }
   }
  }
  return meta[1];
@@ -190,6 +197,7 @@ async function show(){
 }
 function setMonth(month){
  const shell=document.getElementById('vrMonthExpanded');if(!shell)return;
+ const transition=++monthSequence;
  if(openedMonth===month){
   openedMonth=null;selectedEvent=null;shell.classList.remove('is-open');
   document.querySelectorAll('.vr-month').forEach(b=>{b.classList.remove('is-active');b.setAttribute('aria-expanded','false')});
@@ -197,7 +205,7 @@ function setMonth(month){
  }
  const previous=openedMonth;
  const switchTo=()=>{
-  if(!visible||!admin())return;
+  if(!visible||!admin()||transition!==monthSequence)return;
   openedMonth=month;selectedEvent=null;
   document.querySelectorAll('.vr-month').forEach(b=>{const on=Number(b.dataset.vrMonth)===month;b.classList.toggle('is-active',on);b.setAttribute('aria-expanded',String(on))});
   const detail=document.getElementById('vrMonthDetail');
