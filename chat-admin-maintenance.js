@@ -93,7 +93,7 @@ async function sendSticker(stickerId){
   if(!auth()||onlineUser?.id!==uid)return false;
   memo.rows.push(r.data);memo.loaded=true;dmShow();return true;
  }catch(e){toast('Não foi possível enviar a figurinha para seu chat de manutenção.');return false}
- finally{memo.saving=false}
+ finally{memo.saving=false;if(active())dmShow()}
 }
 window.uentzoulMaintenance={sendSticker,refresh:load};
 async function erase(id){
