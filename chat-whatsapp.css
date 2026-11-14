@@ -1018,3 +1018,139 @@ html[data-theme="dark"] .dm-shell .dm-messages .dm-day span{
 @media(hover:none){
   .dm-shell .dm-messages .dm-message-menu-button{opacity:.8}
 }
+
+
+/* Refinamento: mensagens enviadas mais próximas da direita e fotos contidas. */
+.dm-shell .dm-messages:not(.report-thread){
+ padding-right:clamp(10px,1.5vw,18px);
+}
+.dm-shell .dm-messages .dm-message.mine{
+ padding-right:0;
+ margin-right:0;
+ justify-content:flex-end;
+}
+.dm-shell .dm-messages .dm-message.mine .dm-message-bubble:not(.dm-photo-only){
+ max-width:min(78%,650px);
+ padding-right:24px;
+ padding-left:10px;
+}
+.dm-shell .dm-messages .dm-message.mine .dm-message-bubble:not(.dm-photo-only) .dm-message-info{
+ width:calc(100% + 10px);
+ margin-right:-10px;
+ gap:3px;
+ justify-content:flex-end;
+}
+.dm-shell .dm-messages .dm-message.mine .dm-message-info time{
+ display:inline-block;
+ font-variant-numeric:tabular-nums;
+}
+.dm-shell .dm-messages .dm-message.mine .dm-ticks{
+ display:inline-flex;
+ align-items:center;
+ justify-content:flex-end;
+ margin:0 0 0 1px;
+ line-height:1;
+}
+.dm-shell .dm-messages .dm-message .dm-message-bubble.dm-photo-only,
+html[data-theme="dark"] .dm-shell .dm-messages .dm-message .dm-message-bubble.dm-photo-only{
+ position:relative;
+ display:inline-block;
+ box-sizing:border-box;
+ width:max-content;
+ max-width:min(74%,345px);
+ min-width:110px;
+ padding:0!important;
+ border:0!important;
+ border-radius:12px;
+ overflow:visible;
+ background:transparent!important;
+ box-shadow:none!important;
+ vertical-align:top;
+}
+.dm-shell .dm-messages .dm-photo-only .dm-attachment{
+ display:block;
+ width:auto;
+ max-width:100%;
+ min-width:0;
+ margin:0;
+ padding:0;
+ line-height:0;
+}
+.dm-shell .dm-messages .dm-photo-only .dm-attachment img,
+.dm-shell .dm-messages .dm-photo-only .dm-image-preview{
+ display:block;
+ box-sizing:border-box;
+ width:auto;
+ height:auto;
+ max-width:100%;
+ max-height:340px;
+ min-width:0;
+ min-height:0;
+ border-radius:12px;
+ object-fit:contain;
+}
+.dm-shell .dm-messages .dm-photo-only .dm-message-menu-button{
+ position:absolute;
+ z-index:7;
+ top:7px;right:7px;left:auto;
+ display:grid;
+ place-items:center;
+ width:28px;height:28px;min-width:28px;
+ padding:0;
+ margin:0;
+ border:1px solid rgba(255,255,255,.22)!important;
+ border-radius:8px;
+ background:rgba(21,22,29,.62)!important;
+ color:#fff!important;
+ line-height:1;
+ box-shadow:0 2px 8px rgba(0,0,0,.12);
+ transform:none!important;
+}
+.dm-shell .dm-messages .dm-photo-only .dm-message-menu-button svg{
+ display:block;
+ width:15px;height:15px;
+ stroke:currentColor;stroke-width:1.8;
+ fill:none;
+ flex:none;
+}
+.dm-shell .dm-messages .dm-photo-only .dm-message-info{
+ position:absolute;
+ z-index:4;
+ bottom:7px;right:7px;left:auto;
+ display:flex;
+ align-items:center;
+ justify-content:flex-end;
+ max-width:calc(100% - 14px);
+ min-width:0;
+ box-sizing:border-box;
+ margin:0;
+ padding:4px 6px;
+ gap:4px;
+ border-radius:6px;
+ background:rgba(21,22,29,.62);
+ color:#fff;
+ font-size:9px;
+ white-space:nowrap;
+ line-height:1.1;
+ opacity:1;
+}
+.dm-shell .dm-messages .dm-photo-only .dm-message-info time,
+.dm-shell .dm-messages .dm-photo-only .dm-message-info .dm-ticks{
+ color:#fff!important;line-height:1;
+}
+.dm-shell .dm-messages .dm-photo-only .dm-message-popup{
+ position:absolute;
+ top:37px;right:5px;left:auto;
+ z-index:60;
+}
+@media(max-width:760px){
+ .dm-shell .dm-messages:not(.report-thread){padding-right:9px}
+ .dm-shell .dm-messages .dm-message.mine .dm-message-bubble:not(.dm-photo-only){
+  max-width:88%;padding-right:22px;
+ }
+ .dm-shell .dm-messages .dm-message .dm-message-bubble.dm-photo-only{
+  max-width:min(78%,310px);min-width:96px;
+ }
+ .dm-shell .dm-messages .dm-photo-only .dm-attachment img,
+ .dm-shell .dm-messages .dm-photo-only .dm-image-preview{max-height:310px}
+}
