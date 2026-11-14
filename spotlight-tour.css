@@ -441,3 +441,41 @@ html.pm-tour-running[data-pm-tour-step="8"] .agenda-classrow.pm-tour-day-lesson:
   border-radius:12px;
  }
 }
+
+
+/* IA Tzoul e Revisão de Férias: quatro roteiros do tutorial
+   (computador/celular, conectado/visitante).
+   No telefone, reservar espaço suficiente para recortar o mês e os PDFs
+   sem sobrepor as ações Voltar / Próximo nem a barra superior. */
+@media(max-width:760px){
+ html.pm-tour-running[data-pm-tour-scene="ai-chat"] .pm-spotlight-popover,
+ html.pm-tour-running[data-pm-tour-scene="ai-filters"] .pm-spotlight-popover,
+ html.pm-tour-running[data-pm-tour-scene="guest-ai"] .pm-spotlight-popover{
+  max-height:min(42dvh,305px)!important;
+ }
+ html.pm-tour-running[data-pm-tour-scene="vacation-months"] .pm-spotlight-popover,
+ html.pm-tour-running[data-pm-tour-scene="vacation-materials"] .pm-spotlight-popover{
+  max-height:min(42dvh,310px)!important;
+ }
+ html.pm-tour-running[data-pm-tour-scene="vacation-months"] .pm-spotlight-ring{
+  border-radius:18px!important;
+ }
+ html.pm-tour-running[data-pm-tour-scene="vacation-materials"] .pm-spotlight-ring{
+  border-radius:12px!important;
+ }
+ html.pm-tour-running[data-pm-tour-scene="ai-chat"] .pm-spotlight-popover h2,
+ html.pm-tour-running[data-pm-tour-scene="ai-filters"] .pm-spotlight-popover h2,
+ html.pm-tour-running[data-pm-tour-scene="vacation-months"] .pm-spotlight-popover h2,
+ html.pm-tour-running[data-pm-tour-scene="vacation-materials"] .pm-spotlight-popover h2{
+  font-size:16px!important;line-height:1.22!important;
+ }
+}
+@media(max-width:360px){
+ html.pm-tour-running[data-pm-tour-scene="ai-chat"] .pm-spotlight-popover,
+ html.pm-tour-running[data-pm-tour-scene="ai-filters"] .pm-spotlight-popover,
+ html.pm-tour-running[data-pm-tour-scene="guest-ai"] .pm-spotlight-popover,
+ html.pm-tour-running[data-pm-tour-scene="vacation-months"] .pm-spotlight-popover,
+ html.pm-tour-running[data-pm-tour-scene="vacation-materials"] .pm-spotlight-popover{
+  max-height:min(48dvh,320px)!important;
+ }
+}
