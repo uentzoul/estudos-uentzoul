@@ -14,7 +14,7 @@ function setup(){
   const style=document.createElement('link');
   style.id='pm-tutorial-styles';
   style.rel='stylesheet';
-  style.href='spotlight-tour.css?v=20261114-bottom-panel-v6';
+  style.href='spotlight-tour.css?v=20261114-no-background-interaction-curated-v8';
   document.head.appendChild(style);
  }
  if(!document.getElementById('pm-ai-sidebar-polish')){
@@ -50,7 +50,7 @@ function setup(){
  if(!document.getElementById('pm-tutorial-script')){
   const script=document.createElement('script');
   script.id='pm-tutorial-script';
-  script.src='spotlight-tour.js?v=20261114-bottom-panel-v6';
+  script.src='spotlight-tour.js?v=20261114-no-background-interaction-curated-v8';
   script.async=true;
   document.head.appendChild(script);
  }
