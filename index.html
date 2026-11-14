@@ -2338,14 +2338,14 @@ SEMESTER_DB['2026/2'].topics.avaliacao=SEMESTER_DB['2026/2'].topics.avaliacao.fi
 
 const BASE_LIBRARY_MATERIALS=SEMESTER_DB['2026/2'].materials.slice();
 const LIBRARY_MATERIALS=LIBRARY_CATALOG;
-let libraryAdminEnabled=false,libraryRecords=new Map();
+let libraryAdminEnabled=false,libraryRecords=new Map(),currentExamKeys=new Set();
 function adminScheduledMaterial(m){
  const release=Date.parse(m?._libraryUpload?.publish_at||'');
  return libraryAdminEnabled&&m?._libraryUpload?.library_public!==true&&Number.isFinite(release)&&Date.now()<release;
 }
 const libraryKey=m=>String(m.subject||'geral')+'::'+String(m.title||'');
 function isCurrentExamMaterial(m){
- return semester==='2026/2'&&BASE_LIBRARY_MATERIALS.some(base=>base._libraryKey===m._libraryKey)&&m.available&&m._libraryUpload?.exam_scope!==false;
+ return semester==='2026/2'&&currentExamKeys.has(m._libraryKey)&&m.available&&m._libraryUpload?.exam_scope!==false;
 }
 for(const m of LIBRARY_MATERIALS){
  m._libraryKey=libraryKey(m);
@@ -2405,6 +2405,14 @@ window.uentzoulLibraryApp={
   const hiddenSocial=r=>String(r.file_subject||'')==='social'&&
    !approvedSocialKeys.has(String(r.resource_key||''))&&
    !/plano de ensino|cronograma/i.test(String(r.display_title||''));
+  // Congelar exatamente os documentos das últimas provas usados na versão anterior.
+  // Novos uploads liberados para consulta ficam fora dessas fontes.
+  currentExamKeys=new Set(BASE_LIBRARY_MATERIALS.filter(m=>next.get(m._libraryKey)?.exam_scope!==false).map(m=>m._libraryKey));
+  for(const r of next.values()){
+   if(r.exam_scope!==false&&!r.library_public&&!hiddenFamily(r)&&!hiddenSocial(r)){
+    currentExamKeys.add(r.resource_key);
+   }
+  }
   for(const r of next.values()){
    // O Acervo geral mostra tudo. A seleção de prova permanece separada nas trilhas.
    if(known.has(r.resource_key))continue;
