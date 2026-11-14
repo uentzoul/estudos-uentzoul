@@ -37,17 +37,31 @@ function markTourOpened(){
  try{localStorage.setItem(FIRST_VISIT_KEY,'1')}catch(_){}
  byId('pmTourEntry')?.classList.remove('is-first-visit');
 }
-function mainReady(){return !!q('#main #homeCourses .course-intro')}
+function mainReady(){return !!(q('#main .dashboard-hero.slogan-hero')&&q('#main #homeCourses .library-page .course-toolbar'))}
 function insertEntry(){
  if(!mainReady())return;
- const intro=q('#main #homeCourses .course-intro');
+ const hero=q('#main .dashboard-hero.slogan-hero');
+ const library=q('#main #homeCourses .library-page');
+ const toolbar=library?.querySelector('.course-toolbar');
+ if(!hero||!toolbar)return;
  let entry=byId('pmTourEntry');
  if(!entry){
   entry=document.createElement('div');entry.id='pmTourEntry';entry.className='pm-tour-entry';
-  entry.innerHTML='<button type="button" id="pmTourLaunch" class="pm-tour-launch" aria-label="Iniciar tutorial guiado do site"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 6.5A2.5 2.5 0 0 1 6.5 4H20v15H6.5A2.5 2.5 0 0 1 4 16.5zM4 16.5A2.5 2.5 0 0 1 6.5 14H20M8 8h8"/></svg><span>Tutorial</span></button>';
+  entry.innerHTML='<button type="button" id="pmTourLaunch" class="pm-tour-launch" aria-label="Iniciar tutorial guiado do site"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 6.5A2.5 2.5 0 0 1 6.5 4H20v15H6.5A2.5 2.5 0 0 1 4 16.5zM4 16.5A2.5 2.5 0 0 1 6.5 14H20M8 8h8"/></svg><span>Tutorial</span></button>';
  }
  entry.classList.toggle('is-first-visit',isFirstVisit());
- if(entry.parentNode!==intro)intro.appendChild(entry);
+ // Fora do cabeçalho: não forma uma segunda barra e não altera o alinhamento do título.
+ if(entry.parentNode!==library||entry.nextElementSibling!==toolbar)library.insertBefore(entry,toolbar);
+ const wide=window.matchMedia('(min-width:1101px)').matches;
+ entry.classList.toggle('is-placed-between',wide);
+ if(wide){
+  // Metade exata da distância entre a borda inferior do banner e a busca.
+  const heroBottom=hero.getBoundingClientRect().bottom;
+  const searchTop=toolbar.getBoundingClientRect().top;
+  const parentTop=library.getBoundingClientRect().top;
+  const buttonHeight=entry.querySelector('button').getBoundingClientRect().height;
+  entry.style.top=Math.round((heroBottom+searchTop)/2-parentTop-buttonHeight/2)+'px';
+ }else entry.style.top='';
 }
 function build(){
  if(shell)return;
