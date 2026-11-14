@@ -2275,6 +2275,10 @@ SEMESTER_DB['2026/2'].topics.avaliacao=SEMESTER_DB['2026/2'].topics.avaliacao.fi
 const BASE_LIBRARY_MATERIALS=SEMESTER_DB['2026/2'].materials.slice();
 const LIBRARY_MATERIALS=LIBRARY_CATALOG;
 let libraryAdminEnabled=false,libraryRecords=new Map();
+function adminScheduledMaterial(m){
+ const release=Date.parse(m?._libraryUpload?.publish_at||'');
+ return libraryAdminEnabled&&Number.isFinite(release)&&Date.now()<release;
+}
 const libraryKey=m=>String(m.subject||'geral')+'::'+String(m.title||'');
 for(const m of LIBRARY_MATERIALS){
  m._libraryKey=libraryKey(m);
@@ -2335,7 +2339,10 @@ window.uentzoulLibraryApp={
    !approvedSocialKeys.has(String(r.resource_key||''))&&
    !/plano de ensino|cronograma/i.test(String(r.display_title||''));
   for(const r of next.values()){
-   if(r.exam_scope===false||known.has(r.resource_key)||hiddenFamily(r)||hiddenSocial(r))continue;
+   // Arquivos agendados devem aparecer na prévia administrativa, mesmo fora da curadoria das provas.
+   const scheduledUpload=!!r.publish_at;
+   if(r.exam_scope===false||known.has(r.resource_key)||
+      (hiddenFamily(r)&&!scheduledUpload)||(hiddenSocial(r)&&!scheduledUpload))continue;
    const existing=LIBRARY_MATERIALS.find(m=>m._libraryKey===r.resource_key);
    if(existing){
     if(!existing._libraryUpload)continue;
@@ -2696,7 +2703,9 @@ function docCard(m){
  const key='material:'+(m._libraryLegacyUrl||m.source||m._libraryKey||m.url);
  const href=m._libraryUpload?'#':m.url,attr=m._libraryUpload?' data-library-file="'+esc(m._libraryKey)+'"':'';
  const kind=m._libraryUpload?.filename?.toLowerCase().endsWith('.docx')?'DOC':m.kind==='Vídeo'?'▶':m.kind==='PDF'?'PDF':m.kind==='Página HTML'?'WEB':'TXT';
- const body='<span class="docicon" aria-hidden="true">'+kind+'</span><span class="docname">'+esc(m.title)+'</span>'+(m.available?'<span class="doc-open-arrow" aria-hidden="true">↗</span>':'');
+ const body='<span class="docicon" aria-hidden="true">'+kind+'</span><span class="docname">'+esc(m.title)+'</span>'+
+  (adminScheduledMaterial(m)?'<span class="pm-scheduled-file-label" title="Este arquivo ainda está oculto para estudantes e visitantes">🔒 Oculto para alunos · libera em 27/11</span>':'')+
+  (m.available?'<span class="doc-open-arrow" aria-hidden="true">↗</span>':'');
  const main=m.available?'<a class="doc-full-link" href="'+esc(href)+'"'+attr+' target="_blank" rel="noopener noreferrer" aria-label="Abrir '+esc(m.title)+'">'+body+'</a>':
   '<div class="doc-full-link doc-not-ready">'+body+'<span class="pill">Aguardando arquivo</span></div>';
  return '<div class="doc doc-compact '+(m.available?'is-available':'is-pending')+'">'+main+(m.available?'<div class="doc-check">'+doneBox(key)+'</div>':'')+'</div>';
@@ -2745,7 +2754,8 @@ function libraryResourceCard(m,i=0){
  const isAvailable=!!m.available;
  const name=esc(m.title||'Material sem título');
  const content='<span class="library-resource-icon" aria-hidden="true">'+glyph+'</span>'+
-  '<span class="library-resource-copy"><strong class="docname">'+name+'</strong></span>'+
+  '<span class="library-resource-copy"><strong class="docname">'+name+'</strong>'+
+  (adminScheduledMaterial(m)?'<small class="pm-scheduled-file-label">🔒 Oculto para alunos · libera em 27/11</small>':'')+'</span>'+
   (isAvailable?'<span class="library-resource-arrow" aria-hidden="true">↗</span>':'');
  const url=m._libraryUpload?'#':m.url;
  const uploadAttr=m._libraryUpload?' data-library-file="'+esc(m._libraryKey)+'"':'';
@@ -2869,9 +2879,13 @@ function renderSubject(k){
  if(area==='docs'){
   const organizer=window.PSICO_COURSE_MANAGER?.weeklyView?.(semester,k,docs,docCard);
   const weekly=organizer?.weekly;
+  const scheduledCount=docs.filter(adminScheduledMaterial).length;
+  const adminNotice=scheduledCount?'<div class="pm-private-materials-notice" role="status">🔒 Prévia exclusiva da administração: '+scheduledCount+
+   ' '+(scheduledCount===1?'material está oculto':'materiais estão ocultos')+
+   ' para estudantes e visitantes até 27/11/2026, à meia-noite. Arquivos das provas permanecem disponíveis normalmente.</div>':'';
   return top+'<div class="subject-hub-area">'+back+
    '<section class="section" id="docs"><div class="sectiontop"><h2>Materiais e textos</h2>'+(!weekly?(window.PSICO_MATERIAL_EDITOR?.editButton?.(k)||''):'')+'</div>'+
-   (organizer?.tabs||'')+
+   (organizer?.tabs||'')+adminNotice+
    (weekly?organizer.body:'<div class="library-group" style="margin-top:0;--group-accent:'+color(k)+'">'+organizedSubjectMaterials(docs,false,k)+'</div>')+
    '</section></div></div>';
  }
