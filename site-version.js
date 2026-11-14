@@ -17,6 +17,13 @@ function setup(){
   style.href='spotlight-tour.css?v=20261114-4';
   document.head.appendChild(style);
  }
+ if(!document.getElementById('pm-ai-sidebar-polish')){
+  const link=document.createElement('link');
+  link.id='pm-ai-sidebar-polish';
+  link.rel='stylesheet';
+  link.href='ia-sidebar-polish.css?v=20261114-1';
+  document.head.appendChild(link);
+ }
  if(!document.getElementById('pm-tutorial-script')){
   const script=document.createElement('script');
   script.id='pm-tutorial-script';
