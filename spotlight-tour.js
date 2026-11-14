@@ -92,7 +92,8 @@ const mobileGuestSteps=[
  {...guestMessageStep,
   title:'Mensagens exigem uma conta',
   body:'Para conversar com a turma, participar de grupos e compartilhar materiais, primeiro entre ou cadastre-se. Este é o botão de acesso.'},
- {...guestAIStep,title:'IA Tzoul exige login',
+ {...guestAIStep,find:'.tz-shell .tz-empty h2',fallback:'.tz-shell .tz-login, .tz-shell .tz-chat',
+   title:'IA Tzoul exige login',
    body:'A IA pode ajudar com dúvidas, resumos e questões. Entre ou cadastre-se para conversar, anexar materiais e usar os filtros.'},
  {...steps[16],...mobileCopy[16],baseIndex:16},
  {...steps[17],...mobileCopy[17],baseIndex:17},
@@ -202,7 +203,16 @@ function prep(step){
   const first=q('#semesterDropdown [data-semester="2026/1"]');
   if(first&&!first.classList.contains('active')){first.click();temporaryVacationSemester=true;}
   const alreadyOpen=!!q('#main.vr-active #vr-root .vr-months');
-  const ready=alreadyOpen?Promise.resolve():Promise.resolve(window.PSICO_VACATION_REVIEW?.show?.());
+  const ready=alreadyOpen?Promise.resolve():new Promise((resolve,reject)=>{
+   let attempts=0;
+   const start=()=>{
+    const api=window.PSICO_VACATION_REVIEW;
+    if(api?.show){Promise.resolve(api.show()).then(resolve,reject);return;}
+    if(!active||runSteps[index]!==step||attempts++>=12){resolve();return;}
+    setTimeout(start,90);
+   };
+   start();
+  });
   return ready.then(()=>{
    if(!active||runSteps[index]!==step)return;
    if(step.tourScene==='vacation-materials'){
