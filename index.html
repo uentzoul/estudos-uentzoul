@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="color-scheme" content="light dark">
-<meta name="site-build" content="psicomoodle-flashcards-tour-20261114-v13">
+<meta name="site-build" content="psicomoodle-prelaunch-layout-review-20261114-v14">
 <script>try{document.documentElement.dataset.theme=localStorage.getItem("uentzoul_theme_v1")==="dark"?"dark":"light"}catch(e){document.documentElement.dataset.theme="light"}</script>
 <title>PsicoMoodle · Psicologia PUCRS</title>
 <style>
@@ -1913,6 +1913,8 @@ html[data-theme="dark"] .tz-pending-icon{background:#40375e;color:#d6c4ff}
  html.pm-right-closed .app>#profileSidebar{display:none!important}
  html.pm-right-closed .pm-right-handle{right:0}
 }
+/* Keep the desktop collapse handle flush against the actual 205px tablet/laptop sidebar. */
+@media(min-width:761px) and (max-width:1190px){html:not(.pm-right-closed) .pm-right-handle{right:205px}}
 @media(max-width:760px){.pm-right-handle{display:none!important}}
 
 #nav .sidebtn[data-page="calendar"] .nav-label-short{display:none}
