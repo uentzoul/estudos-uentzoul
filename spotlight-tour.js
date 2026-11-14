@@ -69,13 +69,20 @@ function mainReady(){return !!q('#main #homeCourses .course-intro')}
 function insertEntry(){
  if(!mainReady())return;
  const intro=q('#main #homeCourses .course-intro');
+ const mobile=innerWidth<=760;
  let entry=byId('pmTourEntry');
  if(!entry){
   entry=document.createElement('div');entry.id='pmTourEntry';entry.className='pm-tour-entry';
   entry.innerHTML='<button type="button" id="pmTourLaunch" class="pm-tour-launch" aria-label="Iniciar tutorial guiado do site"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 6.5A2.5 2.5 0 0 1 6.5 4H20v15H6.5A2.5 2.5 0 0 1 4 16.5zM4 16.5A2.5 2.5 0 0 1 6.5 14H20M8 8h8"/></svg><span>Tutorial</span></button>';
  }
  entry.classList.toggle('is-first-visit',isFirstVisit());
- if(entry.parentNode!==intro)intro.appendChild(entry);
+ // Mobile: Tutorial entre o resumo do semestre e a apresentação das disciplinas.
+ // Desktop: permanece na linha da descrição da Biblioteca.
+ if(mobile){
+  if(entry.parentNode!==intro.parentNode||entry.nextElementSibling!==intro){
+   intro.parentNode.insertBefore(entry,intro);
+  }
+ }else if(entry.parentNode!==intro)intro.appendChild(entry);
 }
 function build(){
  if(shell)return;
@@ -166,7 +173,7 @@ function findNode(step){
    2:()=>available('#main .subject-hub-menu [data-action="subjectArea:trail"]'),
    1:()=>available('#homeCourses [data-action="subject:avaliacao"]')?.closest('.course-card')||available('#homeCourses .course-card'),
    5:()=>calendarEventDay(),
-   6:()=>available('#main .schedule-day:has(.schedule-lesson)'),
+   6:()=>available('#main .schedule-day:has(.schedule-lesson) .schedule-lesson'),
    7:()=>mondayClassRow(),
    10:()=>available('#main .dm-list .dm-search-label')||available('#main .dm-list-head'),
    11:()=>available('#main .dm-channel-tabs [data-dm-tab="groups"]'),
@@ -327,6 +334,21 @@ function calendarWeekRect(node){
 }
 function targetVisualBounds(node,mobile){
  if(originalIndex()===5 && node.matches('.agenda-cal-day'))return calendarWeekRect(node);
+ if(mobile&&originalIndex()===6&&node.matches('.schedule-lesson')){
+  // Horários (9/18): enquadra a primeira aula e, se couber, o dia junto.
+  // Nunca recorta as outras três aulas de uma grade alta.
+  const lesson=node.getBoundingClientRect();
+  const title=node.closest('.schedule-day')?.querySelector('.schedule-day-heading')?.getBoundingClientRect();
+  const room=mobileShowcase(),maxHeight=room.bottom-room.top-18;
+  if(title){
+   const top=Math.min(lesson.top,title.top),bottom=lesson.bottom;
+   if(bottom-top<=maxHeight){
+    return {left:Math.min(title.left,lesson.left),top,right:Math.max(title.right,lesson.right),
+     bottom,width:Math.max(title.right,lesson.right)-Math.min(title.left,lesson.left),height:bottom-top};
+   }
+  }
+  return lesson;
+ }
  // A data aparece na faixa anexada à própria aula; destacar só a aula
  // de Metapsicologia, não todos os outros encontros de segunda-feira.
  return node.getBoundingClientRect();
@@ -402,10 +424,14 @@ function layout(scrollTarget=false){
 function renderCopy(step){
  const found=findNode(step);
  shell.querySelector('#pmSpotlightTitle').textContent=step.title;
- shell.querySelector('.pm-spotlight-body').textContent=step.body;
+ const extra=found.login?(step.login||'Entre na sua conta para usar este recurso.'):(step.tip||'');
+ const mobile=runSteps===mobileSteps;
+ const content=mobile?[step.body,extra].filter(Boolean).join(' '):step.body;
+ shell.querySelector('.pm-spotlight-body').textContent=content;
+ // No celular a explicação ocupa um único campo, sem notas separadas.
  const hint=shell.querySelector('.pm-spotlight-tip');
- hint.textContent=found.login?(step.login||'Entre na sua conta para usar este recurso.'):(step.tip||'');
- hint.hidden=!hint.textContent;
+ hint.textContent=mobile?'':extra;
+ hint.hidden=mobile||!hint.textContent;
  shell.querySelector('.pm-spotlight-counter').textContent=(index+1)+' / '+runSteps.length;
  shell.querySelector('.pm-spotlight-track span').style.width=100*(index+1)/runSteps.length+'%';
  shell.querySelector('.pm-spotlight-back').disabled=index===0;
