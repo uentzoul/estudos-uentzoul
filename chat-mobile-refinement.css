@@ -425,3 +425,41 @@ html[data-theme="dark"] .dm-shell .dm-global-avatar {
     display:none!important;
   }
 }
+
+/* 14/11 — barra de mensagem sem botão redundante de emoji.
+   O teclado do dispositivo já permite inserir emojis. A grade de QUATRO
+   ações usa um seletor mais específico para superar estilos injetados
+   posteriormente pelo módulo de manutenção, sem afetar o seu compositor. */
+@media(max-width:760px) {
+  body .dm-shell .dm-composer-wrap:not(.pm-maintenance-composer) .dm-composer {
+    grid-template-columns:repeat(4,minmax(0,1fr))!important;
+    grid-template-rows:minmax(44px,auto) 42px!important;
+    grid-auto-rows:0!important;
+    justify-items:center!important;
+    column-gap:6px!important;
+  }
+  body .dm-shell .dm-composer-wrap:not(.pm-maintenance-composer) .dm-composer > textarea {
+    grid-column:1/-1!important;
+    grid-row:1!important;
+  }
+  body .dm-shell .dm-composer-wrap:not(.pm-maintenance-composer) .dm-composer > [data-dmv-share-open] {
+    grid-column:1!important;
+    grid-row:2!important;
+  }
+  body .dm-shell .dm-composer-wrap:not(.pm-maintenance-composer) .dm-composer > [data-dmw-tools] {
+    grid-column:2!important;
+    grid-row:2!important;
+  }
+  body .dm-shell .dm-composer-wrap:not(.pm-maintenance-composer) .dm-composer > [data-pm-dictate="messages"],
+  body .dm-shell .dm-composer-wrap:not(.pm-maintenance-composer) .dm-composer > [data-dmw-record]:not(.pm-voice-original) {
+    grid-column:3!important;
+    grid-row:2!important;
+  }
+  body .dm-shell .dm-composer-wrap:not(.pm-maintenance-composer) .dm-composer > .dm-send-button {
+    grid-column:4!important;
+    grid-row:2!important;
+  }
+  body .dm-shell .dm-composer-wrap:not(.pm-maintenance-composer) .dm-composer > [data-dmw-emoji] {
+    display:none!important;
+  }
+}
