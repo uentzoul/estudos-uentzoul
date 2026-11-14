@@ -10,6 +10,7 @@ const admin=()=>window.uentzoulAdminConfig?.isAdmin?.()===true;
 const bridge=()=>window.uentzoulAdminBridge;
 let additional=[],weekRows=[],loaded=false,notice='',saving=false,openAdmin=false;
 const tabs=new Map();
+let weekEditState=null,weekNotice='';
 const colors=['#6577b2','#44877e','#af7181','#a48755','#786fba','#9370a7','#4c87aa'];
 const resourceKey=m=>String(m._libraryKey||m.subject+'::'+m.title);
 function rerender(){bridge()?.refreshNav?.();bridge()?.rerenderAdmin?.();}
@@ -84,51 +85,118 @@ function weeklyView(semester,subject,materials,card){
  if(mode==='general')return {tabs:base,weekly:false};
  const items=(materials||[]).filter(m=>m.available&&m._libraryUpload?.exam_scope!==false);
  const map=new Map(items.map(m=>[resourceKey(m),m]));
- const assigned=weekRows.filter(r=>r.semester===semester&&r.subject===subject);
+ const context=tabKey(semester,subject);
+ const editing=admin()&&weekEditState?.context===context;
+ const assigned=editing?weekEditState.rows:weekRows.filter(r=>r.semester===semester&&r.subject===subject);
  const maxWeek=Math.max(18,...assigned.map(r=>r.week_number));
  const groups=Array.from({length:maxWeek},(_,i)=>i+1).map(n=>{
   const records=assigned.filter(r=>r.week_number===n).sort((a,b)=>a.position-b.position);
   return '<details class="pm-week-group" '+(n===1?'open':'')+'><summary><span class="pm-week-number">SEMANA '+String(n).padStart(2,'0')+'</span><strong>Semana '+n+'</strong><small>'+records.length+' '+(records.length===1?'material':'materiais')+'</small><span class="pm-week-chevron" aria-hidden="true">⌄</span></summary><div class="pm-week-content">'+
   (records.length?records.map(r=>{
    const m=map.get(r.resource_key);
-   return m?'<div class="pm-week-row">'+card(m)+' '+(admin()?'<button type="button" class="pm-week-remove" data-pm-week-remove="'+esc(r.resource_key)+'" data-pm-week-number="'+n+'" data-pm-week-subject="'+esc(subject)+'" data-pm-week-sem="'+esc(semester)+'" aria-label="Retirar arquivo da semana '+n+'">Retirar</button>':'')+'</div>':
+   return m?'<div class="pm-week-row">'+card(m)+' '+(editing?'<button type="button" class="pm-week-remove" data-pm-week-remove="'+esc(r.resource_key)+'" data-pm-week-number="'+n+'" data-pm-week-subject="'+esc(subject)+'" data-pm-week-sem="'+esc(semester)+'" aria-label="Retirar arquivo da semana '+n+'">Retirar</button>':'')+'</div>':
     '<p class="admin-muted">Arquivo não disponível no acervo atual.</p>';
   }).join(''):'<p class="pm-week-empty">Nenhum material adicionado nesta semana.</p>')+
   '</div></details>';
  }).join('');
  const choices=items.map(m=>'<option value="'+esc(resourceKey(m))+'">'+esc(m.title)+'</option>').join('');
- const add=admin()?'<form class="pm-week-form" id="pmWeekForm"><h3>Organizar arquivo por semana</h3><p>Escolha um arquivo do acervo e a semana em que ele será exibido. O arquivo original continua no Acervo geral.</p><input type="hidden" name="semester" value="'+esc(semester)+'"><input type="hidden" name="subject" value="'+esc(subject)+'">'+
+ const add=editing?'<form class="pm-week-form" id="pmWeekForm"><h3>Organizar arquivo por semana</h3><p>Escolha um arquivo do acervo e a semana em que ele será exibido. O arquivo original continua no Acervo geral.</p><input type="hidden" name="semester" value="'+esc(semester)+'"><input type="hidden" name="subject" value="'+esc(subject)+'">'+
  '<label>Arquivo<select name="resource_key" required>'+choices+'</select></label>'+
  '<label>Semana<input type="number" name="week_number" min="1" max="30" value="1" required></label>'+
  '<button type="submit" '+(!items.length?'disabled':'')+'>Adicionar à semana</button></form>':'';
- return {tabs:base,weekly:true,body:'<div class="pm-weeks-intro"><strong>Organização por semana</strong><p>Os materiais aparecem na semana correspondente, como no Moodle. É possível consultar os mesmos arquivos também no Acervo geral.</p></div>'+add+'<div class="pm-week-list">'+groups+'</div>'};
+ const toolbar=admin()?'<div class="pm-week-toolbar">'+
+  (editing?'<span class="pm-week-edit-message">Modo de edição · escolha os arquivos e suas semanas. As alterações serão publicadas ao salvar.</span>'+
+   '<div class="pm-week-toolbar-actions"><button type="button" class="pm-cancel" data-pm-week-cancel>Cancelar</button><button type="button" class="pm-save" data-pm-week-save '+(saving?'disabled':'')+'>Salvar organização</button></div>':
+   '<button type="button" class="pm-edit-button" data-pm-week-edit="'+esc(context)+'">✎ Editar</button>')+'</div>':'';
+ return {tabs:base,weekly:true,body:'<div class="pm-weeks-intro"><strong>Organização por semana</strong><p>Os materiais aparecem na semana correspondente, como no Moodle. É possível consultar os mesmos arquivos também no Acervo geral.</p></div>'+toolbar+
+ (weekNotice?'<p class="pm-save-notice" role="status">'+esc(weekNotice)+'</p>':'')+add+
+ '<div class="pm-week-list">'+groups+'</div>'};
 }
-async function addWeek(form){
- if(!admin()||saving)return;
- const data=new FormData(form),semester=String(data.get('semester')),subject=String(data.get('subject'));
- const resource_key=String(data.get('resource_key')),week_number=Number(data.get('week_number'));
- if(!resource_key||!Number.isInteger(week_number)||week_number<1||week_number>30)return;
- saving=true;
- try{
-  const {error}=await client().from(WEEKS).upsert({semester,subject,resource_key,week_number,position:weekRows.filter(r=>r.semester===semester&&r.subject===subject&&r.week_number===week_number).length},{onConflict:'semester,subject,resource_key,week_number'});
-  if(error)throw error;await reload();
- }catch(e){alert('Não foi possível organizar o arquivo: '+(e.message||e))}
- finally{saving=false;bridge()?.refreshNav?.()}
+function weekContext(form){
+ const f=new FormData(form);
+ return {semester:String(f.get('semester')||''),subject:String(f.get('subject')||''),resource_key:String(f.get('resource_key')||''),week_number:Number(f.get('week_number'))};
 }
-async function removeWeek(button){
+function enterWeekEdit(context){
  if(!admin()||saving)return;
- saving=true;
+ const [semester,subject]=String(context).split('|');
+ if(!['2026/1','2026/2','2027/1'].includes(semester)||!subject)return;
+ weekEditState={context,rows:weekRows.filter(r=>r.semester===semester&&r.subject===subject).map(r=>({...r})),dirty:false};
+ weekNotice='';bridge()?.refreshNav?.();
+}
+function cancelWeekEdit(){
+ if(saving)return;
+ weekEditState=null;weekNotice='';bridge()?.refreshNav?.();
+}
+function addWeek(form){
+ if(!admin()||saving||!weekEditState)return;
+ const data=weekContext(form);
+ if(tabKey(data.semester,data.subject)!==weekEditState.context)return;
+ if(!data.resource_key||!Number.isInteger(data.week_number)||data.week_number<1||data.week_number>30)return;
+ if(!Array.from(form.querySelector('[name="resource_key"]')?.options||[]).some(o=>o.value===data.resource_key))return;
+ if(weekEditState.rows.some(r=>r.resource_key===data.resource_key&&r.week_number===data.week_number)){
+  weekNotice='Este arquivo já está cadastrado na semana '+data.week_number+'.';bridge()?.refreshNav?.();return;
+ }
+ weekEditState.rows.push({...data,position:weekEditState.rows.filter(r=>r.week_number===data.week_number).length});
+ weekEditState.dirty=true;weekNotice='Arquivo incluído na organização. Clique em Salvar organização para publicar.';
+ bridge()?.refreshNav?.();
+}
+function removeWeek(button){
+ if(!admin()||saving||!weekEditState)return;
+ const {pmWeekSem:semester,pmWeekSubject:subject,pmWeekRemove:resource_key,pmWeekNumber:n}=button.dataset;
+ if(tabKey(semester,subject)!==weekEditState.context)return;
+ const before=weekEditState.rows.length;
+ weekEditState.rows=weekEditState.rows.filter(r=>!(r.resource_key===resource_key&&r.week_number===Number(n)));
+ if(weekEditState.rows.length!==before){weekEditState.dirty=true;weekNotice='Arquivo retirado da semana. Salve para publicar.';bridge()?.refreshNav?.();}
+}
+async function saveWeekEdit(){
+ const state=weekEditState;
+ if(!admin()||saving||!state)return;
+ if(!state.dirty){cancelWeekEdit();return;}
+ const [semester,subject]=state.context.split('|'),c=client();
+ if(!c)return;
+ saving=true;weekNotice='';
  try{
-  const {error}=await client().from(WEEKS).delete().eq('semester',button.dataset.pmWeekSem).eq('subject',button.dataset.pmWeekSubject).eq('week_number',Number(button.dataset.pmWeekNumber)).eq('resource_key',button.dataset.pmWeekRemove);
-  if(error)throw error;await reload();
- }catch(e){alert('Não foi possível retirar o arquivo: '+(e.message||e))}
- finally{saving=false;bridge()?.refreshNav?.()}
+  const check=await c.rpc('uentzoul_is_admin');
+  if(check.error||check.data!==true)throw Error('Permissão de administrador não confirmada.');
+  const previous=weekRows.filter(r=>r.semester===semester&&r.subject===subject);
+  const key=r=>r.resource_key+'|'+r.week_number;
+  const desired=new Set(state.rows.map(key));
+  const existing=new Set(previous.map(key));
+  for(const row of previous.filter(r=>!desired.has(key(r)))){
+   const {error}=await c.from(WEEKS).delete()
+    .eq('semester',semester).eq('subject',subject).eq('resource_key',row.resource_key).eq('week_number',row.week_number);
+   if(error)throw error;
+  }
+  const added=state.rows.filter(r=>!existing.has(key(r)));
+  if(added.length){
+   const {error}=await c.from(WEEKS).upsert(added.map(r=>({semester,subject,resource_key:r.resource_key,week_number:r.week_number,position:r.position})),
+    {onConflict:'semester,subject,resource_key,week_number'});
+   if(error)throw error;
+  }
+  const verify=await c.from(WEEKS).select('resource_key,week_number').eq('semester',semester).eq('subject',subject);
+  if(verify.error)throw verify.error;
+  const actual=new Set((verify.data||[]).map(key));
+  if(actual.size!==desired.size||[...desired].some(k=>!actual.has(k)))throw Error('Nem todos os vínculos foram confirmados. Confira e salve novamente.');
+  weekEditState=null;weekNotice='Organização por semanas salva com sucesso.';
+  await reload();
+ }catch(e){weekNotice='Não foi possível salvar: '+(e.message||e);}
+ finally{saving=false;bridge()?.refreshNav?.();}
 }
 document.addEventListener('toggle',e=>{if(e.target.id==='pmCourseAdmin')openAdmin=e.target.open},true);
 document.addEventListener('submit',e=>{if(e.target.id==='pmSubjectForm'){e.preventDefault();addSubject(e.target)}else if(e.target.id==='pmWeekForm'){e.preventDefault();addWeek(e.target)}});
 document.addEventListener('click',e=>{
  const tab=e.target.closest('[data-pm-material-tab]');
- if(tab){tabs.set(tabKey(tab.dataset.pmSem,tab.dataset.pmSubject),tab.dataset.pmMaterialTab);bridge()?.refreshNav?.();return}
+ if(tab){
+  const context=tabKey(tab.dataset.pmSem,tab.dataset.pmSubject);
+  if(tab.dataset.pmMaterialTab==='general'&&weekEditState?.context===context){
+   if(weekEditState.dirty&&!confirm('Descartar as alterações feitas nas semanas?'))return;
+   weekEditState=null;weekNotice='';
+  }
+  tabs.set(context,tab.dataset.pmMaterialTab);bridge()?.refreshNav?.();return;
+ }
+ const edit=e.target.closest('[data-pm-week-edit]');if(edit){enterWeekEdit(edit.dataset.pmWeekEdit);return}
+ if(e.target.closest('[data-pm-week-cancel]')){cancelWeekEdit();return}
+ if(e.target.closest('[data-pm-week-save]')){saveWeekEdit();return}
  const del=e.target.closest('[data-pm-remove-subject]');
  if(del){removeSubject(del.dataset.pmRemoveSubject);return}
  const week=e.target.closest('[data-pm-week-remove]');if(week)removeWeek(week);
