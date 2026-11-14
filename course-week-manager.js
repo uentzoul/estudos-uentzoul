@@ -225,6 +225,12 @@ function weeklyView(semester,subject,materials,card){
   }).join(''):'<p class="pm-week-empty">Nenhum material adicionado nesta semana.</p>')+
   '</div></details>';
  }).join('');
+ // Material agendado sem correspondência segura não desaparece do painel.
+ // A listagem já foi filtrada por RLS no upload: alunos só a verão após 27/11.
+ const pending=items.filter(m=>!!m._libraryUpload?.publish_at&&!assigned.some(r=>r.resource_key===resourceKey(m)));
+ const pendingBlock=pending.length?'<details class="pm-week-group pm-week-unassigned" open><summary><span class="pm-week-number">REVISAR</span><strong>Aguardando seção do Moodle</strong><small>'+pending.length+' '+(pending.length===1?'material':'materiais')+'</small><span class="pm-week-chevron" aria-hidden="true">⌄</span></summary>'+
+ '<div class="pm-week-content"><p class="pm-week-empty">Estes arquivos já estão no acervo, mas ainda precisam ser associados a uma seção. O administrador pode usar Editar para organizá-los.</p>'+
+ pending.map(m=>'<div class="pm-week-row">'+card(m)+'</div>').join('')+'</div></details>':'';
  const choices=items.map(m=>'<option value="'+esc(resourceKey(m))+'">'+esc(m.title)+'</option>').join('');
  const add=editing?'<form class="pm-week-form" id="pmWeekForm"><h3>Organizar arquivo por semana</h3><p>Escolha um arquivo do acervo e a semana em que ele será exibido. O arquivo original continua no Acervo geral.</p><input type="hidden" name="semester" value="'+esc(semester)+'"><input type="hidden" name="subject" value="'+esc(subject)+'">'+
  '<label>Arquivo<select name="resource_key" required>'+choices+'</select></label>'+
@@ -237,7 +243,7 @@ function weeklyView(semester,subject,materials,card){
    '<button type="button" class="pm-edit-button" data-pm-week-edit="'+esc(context)+'">✎ Editar</button>')+'</div>':'';
  return {tabs:base,weekly:true,body:'<div class="pm-weeks-intro"><strong>Organização por semana</strong><p>Os materiais aparecem na semana correspondente, como no Moodle. É possível consultar os mesmos arquivos também no Acervo geral.</p></div>'+toolbar+
  (weekNotice?'<p class="pm-save-notice" role="status">'+esc(weekNotice)+'</p>':'')+add+
- '<div class="pm-week-list">'+(groups||'<p class="pm-week-empty">Nenhum material organizado nesta visualização. Novos arquivos podem ser classificados ao serem enviados pelo Admin Config.</p>')+'</div>'};
+ '<div class="pm-week-list">'+(groups+pendingBlock||'<p class="pm-week-empty">Nenhum material organizado nesta visualização. Novos arquivos podem ser classificados ao serem enviados pelo Admin Config.</p>')+'</div>'};
 }
 function weekContext(form){
  const f=new FormData(form);
