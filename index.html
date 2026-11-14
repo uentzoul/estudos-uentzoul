@@ -2281,7 +2281,7 @@ window.uentzoulLibraryApp={
   const next=flag===true;
   if(libraryAdminEnabled===next)return;
   libraryAdminEnabled=next;
-  if(semester==='2026/2'&&(current.page==='home'||current.page==='library'||current.page==='admin'||(current.page==='subject'&&current.subjectArea==='docs')))render();
+  if(['2026/1','2026/2'].includes(semester)&&(current.page==='home'||current.page==='library'||current.page==='admin'||(current.page==='subject'&&current.subjectArea==='docs')))render();
  },
  applyRows:rows=>{
   const next=new Map((rows||[]).map(r=>[r.resource_key,r]));
@@ -2330,7 +2330,7 @@ window.uentzoulLibraryApp={
   SEMESTER_DB['2026/2'].materials=shown;
   if(changed&&['2026/1','2026/2'].includes(semester)&&['home','library','subject','admin','calendar'].includes(current.page))render();
  },
- refresh:()=>{if(semester==='2026/2'&&(current.page==='home'||current.page==='library'))render()}
+ refresh:()=>{if(['2026/1','2026/2'].includes(semester)&&(current.page==='home'||current.page==='library'||current.page==='admin'))render()}
 };
 
 const $=(id)=>document.getElementById(id);
@@ -4051,7 +4051,6 @@ window.uentzoulAdminBridge={
   if(current.page==='subject'&&current.subjectArea==='topics')render();
  },
  adminLibrary:()=>libraryAdminPanel(),
- weeklyAdmin:()=>window.PSICO_COURSE_MANAGER?.adminPanel?.()||'',
  refreshNav:()=>{renderNav();if(current.page==='subject'&&current.subjectArea==='docs')render()},
  rerenderAdmin:()=>{if(current.page==='admin')render()},
  goHome:()=>go('home')
