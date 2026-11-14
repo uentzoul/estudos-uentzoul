@@ -25,7 +25,9 @@ function messages(){
  for(const n of memo.rows){
   const key=dmDateKey(n.created_at);
   if(day!==key){day=key;html+='<div class="dm-day"><span>'+esc(dmDateLabel(n.created_at))+'</span></div>'}
-  html+='<div class="dm-message mine pm-maintenance-message"><div class="dm-message-bubble"><p class="dm-text-message">'+esc(n.body).replace(/\n/g,'<br>')+'</p>'+
+  const sticker=n.kind==='sticker'&&n.sticker_id?window.uentzoulStickerPacks?.getSticker?.(n.sticker_id):null;
+  const content=n.kind==='sticker'?(sticker?'<div class="pm-sticker-message"><img class="pm-sticker-displayed" src="'+esc(sticker.url)+'" alt="'+esc(sticker.title)+'" loading="lazy"></div>':'<p>Figurinha indisponível</p>'):'<p class="dm-text-message">'+esc(n.body).replace(/\n/g,'<br>')+'</p>';
+  html+='<div class="dm-message mine pm-maintenance-message"><div class="dm-message-bubble">'+content+
   '<div class="dm-message-info"><time datetime="'+esc(n.created_at)+'">'+esc(dmTime(n.created_at))+'</time><button type="button" class="pm-maintenance-delete" data-pm-maintenance-delete="'+esc(n.id)+'">Excluir</button></div></div></div>';
  }
  return html;
@@ -41,8 +43,8 @@ function notesPage(){
  '<span class="pm-maintenance-private">Privado</span></header>'+
  '<div class="dm-messages pm-maintenance-thread" id="dmMessages">'+messages()+'</div>'+
  '<form id="pmMaintenanceForm" class="dm-composer-wrap pm-maintenance-composer"><div class="dm-composer">'+
- '<textarea id="pmMaintenanceText" rows="2" maxlength="3000" placeholder="Escreva uma anotação de manutenção…">'+esc(memo.draft)+'</textarea>'+
- '<button type="submit" class="dm-send-button" aria-label="Salvar anotação" '+(memo.saving?'disabled':'')+'>➤</button></div>'+
+ '<button type="button" class="dm-composer-action pm-sticker-trigger" data-pm-sticker-open aria-label="Abrir figurinhas" title="Figurinhas">▧</button>'+ '<textarea id="pmMaintenanceText" rows="2" maxlength="3000" placeholder="Envie uma mensagem para você mesmo…">'+esc(memo.draft)+'</textarea>'+
+ '<button type="submit" class="dm-send-button" aria-label="Salvar anotação" '+(memo.saving?'disabled':'')+'>➤</button></div>'+(window.uentzoulStickerPacks?.panel?.()||'')+
  '<small class="pm-maintenance-hint">Anotações visíveis apenas para sua conta de administrador.</small></form></div></section>';
 }
 const beforeRender=dmRender;
@@ -60,7 +62,7 @@ async function load(){
  if(memo.id!==id)reset();
  memo.id=id;memo.loading=true;memo.error='';if(active())dmShow();
  try{
-  const r=await client.from('uentzoul_admin_notes').select('id,body,created_at,user_id').eq('user_id',id).order('created_at',{ascending:true}).limit(500);
+  const r=await client.from('uentzoul_admin_notes').select('id,body,kind,sticker_id,created_at,user_id').eq('user_id',id).order('created_at',{ascending:true}).limit(500);
   if(r.error)throw r.error;
   if(!auth()||onlineUser.id!==id)return;
   memo.rows=r.data||[];memo.loaded=true;
@@ -73,7 +75,7 @@ async function send(){
  if(!body||body.length>3000)return;
  const id=onlineUser.id;memo.saving=true;memo.draft=body;
  try{
-  const r=await client.from('uentzoul_admin_notes').insert({user_id:id,body}).select('id,body,created_at,user_id').single();
+  const r=await client.from('uentzoul_admin_notes').insert({user_id:id,body,kind:'text'}).select('id,body,kind,sticker_id,created_at,user_id').single();
   if(r.error)throw r.error;
   if(onlineUser?.id!==id)return;
   memo.rows.push(r.data);memo.loaded=true;memo.draft='';memo.error='';dmShow();
@@ -81,6 +83,19 @@ async function send(){
  }catch(e){toast(e?.message||'Não foi possível salvar a anotação.')}
  finally{memo.saving=false;if(active())dmShow()}
 }
+async function sendSticker(stickerId){
+ if(!auth()||memo.saving||!window.uentzoulStickerPacks?.getSticker?.(stickerId))return false;
+ const uid=onlineUser.id;memo.saving=true;
+ try{
+  const row={user_id:uid,body:'[Figurinha:'+stickerId+']',kind:'sticker',sticker_id:stickerId};
+  const r=await client.from('uentzoul_admin_notes').insert(row).select('id,body,kind,sticker_id,created_at,user_id').single();
+  if(r.error)throw r.error;
+  if(!auth()||onlineUser?.id!==uid)return false;
+  memo.rows.push(r.data);memo.loaded=true;dmShow();return true;
+ }catch(e){toast('Não foi possível enviar a figurinha para seu chat de manutenção.');return false}
+ finally{memo.saving=false}
+}
+window.uentzoulMaintenance={sendSticker,refresh:load};
 async function erase(id){
  if(!auth()||!dmValid(id))return;
  const r=await client.from('uentzoul_admin_notes').delete().eq('user_id',onlineUser.id).eq('id',id);
