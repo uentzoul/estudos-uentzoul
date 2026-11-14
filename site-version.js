@@ -24,10 +24,21 @@ function setup(){
   link.href='ia-sidebar-polish.css?v=20261114-1';
   document.head.appendChild(link);
  }
+ if(!document.getElementById('pm-voice-style')){
+  const style=document.createElement('link');
+  style.id='pm-voice-style';style.rel='stylesheet';
+  style.href='voice-dictation.css?v=20261114-v1';
+  document.head.appendChild(style);
+ }
+ if(!document.getElementById('pm-voice-script')){
+  const script=document.createElement('script');
+  script.id='pm-voice-script';script.src='voice-dictation.js?v=20261114-v1';
+  script.async=true;document.head.appendChild(script);
+ }
  if(!document.getElementById('pm-tutorial-script')){
   const script=document.createElement('script');
   script.id='pm-tutorial-script';
-  script.src='spotlight-tour.js?v=20261114-4';
+  script.src='spotlight-tour.js?v=20261114-5';
   script.async=true;
   document.head.appendChild(script);
  }
