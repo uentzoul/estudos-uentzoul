@@ -381,9 +381,9 @@ async function submit(event){
    if(error)throw Error('Arquivo salvo, mas falhou ao associar ao acervo: '+error.message);
    const proof=await c.storage.from(BUCKET).createSignedUrl(path,120);
    if(proof.error)throw Error('Arquivo enviado, mas a abertura falhou: '+proof.error.message);
-   // Sem os registros públicos de semanas e categorias antes de 27/11:
-   // eles exporiam o nome dos arquivos agendados mesmo com o arquivo privado.
-   const organizationWarnings=scheduled?[]:await saveOrganization(c,sem,{key,subject,sectionNumber,category});
+   // Seções e categorias são gravadas imediatamente e seu publish_at é replicado
+   // por trigger/RLS: só administradores as veem antes de 27/11.
+   const organizationWarnings=await saveOrganization(c,sem,{key,subject,sectionNumber,category});
    logEntries.push({ok:true,message:(scheduled?'Agendado em área privada até 27/11 00h: ':(scope?'Publicado na revisão: ':'Guardado fora da revisão: '))+title+' ('+file.name+')'+(sectionNumber?' · seção '+sectionNumber:'')});
    if(organizationWarnings.length)logEntries.push({ok:false,message:'Arquivo salvo, mas é necessário revisar a organização: '+organizationWarnings.join('; ')});
    passed++;
