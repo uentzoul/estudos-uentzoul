@@ -71,7 +71,7 @@ function setup(){
  if(!document.getElementById('pm-tutorial-script')){
   const script=document.createElement('script');
   script.id='pm-tutorial-script';
-  script.src='spotlight-tour.js?v=20261114-chat-mobile-v20';
+  script.src='spotlight-tour.js?v=20261114-final-copy-v22';
   script.async=true;
   document.head.appendChild(script);
  }
