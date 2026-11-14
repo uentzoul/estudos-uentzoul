@@ -75,6 +75,58 @@
   closeButton.addEventListener('click',()=>setOpen(false,true));
   backdrop.addEventListener('click',()=>setOpen(false,true));
 
+  // Gestos no telefone: faixa perto da borda, mas fora do gesto nativo
+  // de Voltar do iOS/Android. Não captura rolagem vertical nem carrosséis.
+  const GESTURE_MIN_X=24;
+  const GESTURE_MAX_X=88;
+  const SWIPE_OPEN_PX=76;
+  const SWIPE_CLOSE_PX=67;
+  let gesture=null;
+  function horizontalScroller(target){
+   for(let el=target;el&&el!==document.body;el=el.parentElement){
+    if(!(el instanceof Element))break;
+    const style=getComputedStyle(el);
+    if(/auto|scroll/.test(style.overflowX)&&el.scrollWidth>el.clientWidth+8)return true;
+   }
+   return false;
+  }
+  function modalVisible(){
+   if(document.documentElement.classList.contains('pm-tour-running'))return true;
+   return [...document.querySelectorAll('dialog[open],[role="dialog"][aria-modal="true"]')]
+    .some(el=>!el.hidden&&el.getClientRects().length>0&&getComputedStyle(el).visibility!=='hidden');
+  }
+  document.addEventListener('touchstart',event=>{
+   gesture=null;
+   if(!media.matches||event.touches.length!==1||modalVisible())return;
+   const touch=event.touches[0],target=event.target;
+   const mode=opened?'close':'open';
+   if(horizontalScroller(target))return;
+   if(target?.closest?.('input,textarea,select,[contenteditable="true"],[role="slider"]'))return;
+   if(mode==='open'){
+    // iOS/Android reservam os primeiros pixels para voltar no navegador.
+    if(touch.clientX<GESTURE_MIN_X||touch.clientX>GESTURE_MAX_X)return;
+    if(target?.closest?.('button,a,[role="button"],.pm-mobile-backdrop'))return;
+   }else if(!side.contains(target))return;
+   gesture={mode,x:touch.clientX,y:touch.clientY,time:Date.now()};
+  },{passive:true});
+  document.addEventListener('touchmove',event=>{
+   if(!gesture)return;
+   if(event.touches.length!==1){gesture=null;return;}
+   const t=event.touches[0];
+   const dx=t.clientX-gesture.x,dy=t.clientY-gesture.y;
+   // Ao reconhecer uma rolagem vertical, ignora o gesto por completo.
+   if(Math.abs(dy)>18&&Math.abs(dy)>Math.abs(dx)*.7)gesture=null;
+  },{passive:true});
+  document.addEventListener('touchend',event=>{
+   const g=gesture;gesture=null;
+   if(!g||!media.matches||event.changedTouches.length!==1)return;
+   const t=event.changedTouches[0],dx=t.clientX-g.x,dy=t.clientY-g.y;
+   if(Date.now()-g.time>1000||Math.abs(dy)>65||Math.abs(dx)<Math.abs(dy)*1.65)return;
+   if(g.mode==='open'&&!opened&&dx>=SWIPE_OPEN_PX)setOpen(true,false,true);
+   else if(g.mode==='close'&&opened&&dx<=-SWIPE_CLOSE_PX)setOpen(false,true,false);
+  },{passive:true});
+  document.addEventListener('touchcancel',()=>{gesture=null},{passive:true});
+
   document.addEventListener('click',event=>{
    if(!opened)return;
    const item=event.target.closest(
