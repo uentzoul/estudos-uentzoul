@@ -351,12 +351,12 @@ async function submit(event){
   // Nunca substituímos os documentos das provas por um complemento agendado.
   const key=scheduled?(subject&&title?subject+'::'+title+'::27nov-'+crypto.randomUUID():''):
     existing?.key||(subject&&title?(sem==='2026/1'?'2026/1::':'')+subject+'::'+title:'');
-  return {file:r.file,r,key,subject,title,scheduled,scope:scheduled||r.scope==='in'};
+  return {file:r.file,r,key,subject,title,scheduled,scope:scheduled||r.scope==='in',sectionNumber:r.sectionNumber||0,category:r.category||''};
  });
  let passed=0,failed=0;const used=new Set();
  isBusy=true;logEntries=[];paint();
  for(let i=0;i<queue.length;i++){
-  const {file,r,key,subject,title,scope,scheduled}=queue[i],fmt=typeOf(file);
+  const {file,r,key,subject,title,scope,scheduled,sectionNumber,category}=queue[i],fmt=typeOf(file);
   const progress=n=>{
    const bar=document.getElementById('libraryUploadBar'),pos=document.getElementById('libraryUploadPosition');
    if(bar)bar.style.width=n+'%';if(pos)pos.textContent=(i+1)+' de '+queue.length+' · '+file.name+' · '+n+'%';
@@ -380,14 +380,22 @@ async function submit(event){
    if(error)throw Error('Arquivo salvo, mas falhou ao associar ao acervo: '+error.message);
    const proof=await c.storage.from(BUCKET).createSignedUrl(path,120);
    if(proof.error)throw Error('Arquivo enviado, mas a abertura falhou: '+proof.error.message);
-   logEntries.push({ok:true,message:(scheduled?'Agendado em área privada até 27/11 00h: ':(scope?'Publicado na revisão: ':'Guardado fora da revisão: '))+title+' ('+file.name+')'});passed++;
+   const organizationWarnings=await saveOrganization(c,sem,{key,subject,sectionNumber,category});
+   logEntries.push({ok:true,message:(scheduled?'Agendado em área privada até 27/11 00h: ':(scope?'Publicado na revisão: ':'Guardado fora da revisão: '))+title+' ('+file.name+')'+(sectionNumber?' · seção '+sectionNumber:'')});
+   if(organizationWarnings.length)logEntries.push({ok:false,message:'Arquivo salvo, mas é necessário revisar a organização: '+organizationWarnings.join('; ')});
+   passed++;
   }catch(err){failed++;logEntries.push({ok:false,message:file.name+': '+(err?.message||'falha no envio')});}
   paint();
  }
  isBusy=false;isAnalyzing=false;reviewed=[];chosenFiles=[];
  const input=document.getElementById('libraryFileInput');if(input)input.value='';
  // Atualiza os cartões, o contador e o acervo sem exigir F5.
- await refresh();paint();
+ await refresh();
+ if(sem==='2026/2'){
+  await window.PSICO_COURSE_MANAGER?.reload?.();
+  await window.PSICO_MATERIAL_EDITOR?.refresh?.(true);
+ }
+ paint();
  const feedback=document.getElementById('libraryUploadFeedback');
  if(feedback){const summary=document.createElement('strong');summary.textContent='Envio concluído: '+passed+(mustSchedule(sem)?' agendado(s)':' publicado(s)')+(failed?' · '+failed+' pendência(s)':'')+'.';feedback.prepend(summary)}
 }
@@ -421,11 +429,18 @@ document.addEventListener('change',e=>{
  if(e.target.id==='libraryPackageInput'){importLibraryPackage(e.target.files?.[0]);e.target.value='';}
  const subj=e.target.closest('[data-review-subject]');
  if(subj){const i=Number(subj.dataset.reviewSubject),r=reviewed[i];if(!r)return;
-  r.subject=subj.value;r.targetKey='__new__';if(!r.title)r.title=titleFromFile(r.file,r.analysis);paint();return;}
+  r.subject=subj.value;r.targetKey='__new__';if(!r.title)r.title=titleFromFile(r.file,r.analysis);suggestOrganization(r);paint();return;}
  const dest=e.target.closest('[data-review-target]');
  if(dest){const i=Number(dest.dataset.reviewTarget),r=reviewed[i];if(!r)return;
   r.targetKey=dest.value;const match=entries().find(x=>x.key===dest.value);
-  if(match){r.subject=match.subject;r.title=match.title;r.scope=match.inExam?'in':r.scope;}paint();return;}
+  if(match){r.subject=match.subject;r.title=match.title;r.scope=match.inExam?'in':r.scope;}suggestOrganization(r);paint();return;}
+ const section=e.target.closest('[data-review-section]');
+ if(section){const r=reviewed[Number(section.dataset.reviewSection)];if(r){
+  r.sectionNumber=Number(section.value)||0;
+  r.sectionHint=(window.PSICO_COURSE_MANAGER?.moodleSections?.(r.subject)||[]).find(x=>x.number===r.sectionNumber)?.label||'';
+ }return;}
+ const category=e.target.closest('[data-review-category]');
+ if(category){const r=reviewed[Number(category.dataset.reviewCategory)];if(r)r.category=category.value;return;}
  const scope=e.target.closest('[data-review-scope]');
  if(scope){const r=reviewed[Number(scope.dataset.reviewScope)];if(r)r.scope=scope.value;return;}
 });
