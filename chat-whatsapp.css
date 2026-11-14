@@ -1168,3 +1168,14 @@ html[data-theme="dark"] .dm-shell .dm-messages .dm-message .dm-message-bubble.dm
 .dm-shell .dm-messages .dm-message.mine .dm-message-bubble:not(.dm-photo-only){
   border-radius:15px 15px 5px 15px;
 }
+
+
+/* Desktop: conversas 1/3 mais estreitas, sem reduzir o layout móvel. */
+@media (min-width:761px){
+  .app:has(> .main .dm-shell) > .main .dm-shell {
+    width:67%;
+    min-width:min(100%,660px);
+    max-width:none;
+    margin-inline:auto;
+  }
+}
