@@ -65,13 +65,13 @@ function setup(){
   const link=document.createElement('link');
   link.id='pm-mobile-drawer-css';
   link.rel='stylesheet';
-  link.href='mobile-drawer.css?v=20261114-hamburger-v1';
+  link.href='mobile-drawer.css?v=20261114-compact-single-row-v2';
   document.head.appendChild(link);
  }
  if(!document.getElementById('pm-mobile-drawer-js')){
   const script=document.createElement('script');
   script.id='pm-mobile-drawer-js';
-  script.src='mobile-drawer.js?v=20261114-hamburger-v1';
+  script.src='mobile-drawer.js?v=20261114-compact-single-row-v2';
   script.async=true;
   document.head.appendChild(script);
  }
