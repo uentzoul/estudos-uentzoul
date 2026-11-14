@@ -2338,14 +2338,14 @@ SEMESTER_DB['2026/2'].topics.avaliacao=SEMESTER_DB['2026/2'].topics.avaliacao.fi
 
 const BASE_LIBRARY_MATERIALS=SEMESTER_DB['2026/2'].materials.slice();
 const LIBRARY_MATERIALS=LIBRARY_CATALOG;
-let libraryAdminEnabled=false,libraryRecords=new Map(),currentExamKeys=new Set();
+let libraryAdminEnabled=false,libraryRecords=new Map(),currentExamKeys=new Set(),examBadgeKeys=new Set();
 function adminScheduledMaterial(m){
  const release=Date.parse(m?._libraryUpload?.publish_at||'');
  return libraryAdminEnabled&&m?._libraryUpload?.library_public!==true&&Number.isFinite(release)&&Date.now()<release;
 }
 const libraryKey=m=>String(m.subject||'geral')+'::'+String(m.title||'');
 function isCurrentExamMaterial(m){
- return semester==='2026/2'&&currentExamKeys.has(m._libraryKey)&&m.available&&m._libraryUpload?.exam_scope!==false;
+ return semester==='2026/2'&&examBadgeKeys.has(m._libraryKey)&&m.available&&m._libraryUpload?.exam_scope!==false;
 }
 for(const m of LIBRARY_MATERIALS){
  m._libraryKey=libraryKey(m);
@@ -2407,6 +2407,8 @@ window.uentzoulLibraryApp={
    !/plano de ensino|cronograma/i.test(String(r.display_title||''));
   // Congelar exatamente os documentos das últimas provas usados na versão anterior.
   // Novos uploads liberados para consulta ficam fora dessas fontes.
+  // O selo exige curadoria anterior positiva: não presumir que todo PDF antigo cai na prova.
+  examBadgeKeys=new Set(BASE_LIBRARY_MATERIALS.filter(m=>next.get(m._libraryKey)?.exam_scope!==false).map(m=>m._libraryKey));
   currentExamKeys=new Set(BASE_LIBRARY_MATERIALS.filter(m=>next.get(m._libraryKey)?.exam_scope!==false).map(m=>m._libraryKey));
   for(const r of next.values()){
    if(r.exam_scope!==false&&!r.library_public&&!hiddenFamily(r)&&!hiddenSocial(r)){
@@ -2912,7 +2914,7 @@ function readyExamsFor(subject){
  return Array.from({length:5},(_,i)=>base.find(e=>Number(e.model)===first+i)).filter(Boolean);
 }
 function renderSubject(k){
- const subj=getSubject(k),docs=DB.materials.filter(x=>x.subject===k&&x.available&&isCurrentExamMaterial(x)),topics=DB.topics[k]||[],tests=readyExamsFor(k);
+ const subj=getSubject(k),docs=DB.materials.filter(x=>x.subject===k&&x.available&&currentExamKeys.has(x._libraryKey)&&x._libraryUpload?.exam_scope!==false),topics=DB.topics[k]||[],tests=readyExamsFor(k);
  const area=['trail','topics','docs','tests','podcasts','guided','flash','cases'].includes(current.subjectArea)?current.subjectArea:null;
  const top='<div class="subject-hub" style="--subject-accent:'+color(k)+'">'+
  '<div class="subject-hub-crumb"><button type="button" data-action="page:home">Início</button><span aria-hidden="true">/</span><span>'+esc(subj.name)+'</span></div>'+
