@@ -7127,6 +7127,508 @@ document.addEventListener('keydown',e=>{
 
 window.uentzoulAIAuth={user:()=>onlineUser,client:()=>client,getSession:async()=>{if(!client)return null;const r=await client.auth.getSession();return r?.data?.session||null},openLogin:()=>showModal('login')};
 bridge.switchTo('guest-session',{answers:{},results:{},bookmarks:{},completed:{}});
+/* Módulos do chat integrados no mesmo escopo da sessão autenticada. */
+/* Fonte: chat-admin-maintenance.js */
+/* PsicoMoodle — anotações de manutenção, só do administrador. */
+(function(){
+'use strict';
+if(window.__pmMaintChatLoaded||!window.uentzoulMessenger||typeof dm==='undefined')return;
+window.__pmMaintChatLoaded=true;
+const st=document.createElement('style');st.id='pm-maintenance-style';st.textContent="\n.dm-shell{min-width:0;box-sizing:border-box;overflow:hidden}\n.dm-shell .dm-list,.dm-shell .dm-main{min-width:0;min-height:0}\n.dm-shell .dm-list-head{display:flex;align-items:center;justify-content:space-between;gap:8px}\n.dm-shell .dm-list-actions{display:flex;align-items:center;gap:6px}\n.dm-shell .dm-soft-button,.dm-shell .dm-head-action{display:inline-flex;align-items:center;justify-content:center;min-height:35px;min-width:35px;gap:5px;padding:6px 10px;border:1px solid var(--line);border-radius:9px;background:var(--soft);color:var(--ink);font-size:12px;font-weight:700;cursor:pointer}\n.dm-shell .dm-contact{min-width:0;border-radius:11px}\n.dm-shell .dm-contact-open{min-width:0;width:100%}\n.dm-shell .dm-contact-text{min-width:0}\n.dm-shell .dm-contacts{min-height:0;overflow-y:auto;overscroll-behavior:contain}\n.dm-shell .dm-chat-head,.dm-shell .dm-chat-head-main{min-width:0}\n.dm-shell .dm-composer-wrap{position:relative}\n.dm-shell .dm-tools-menu{z-index:75}\n.dm-shell .dm-message-popup{z-index:85}\n.pm-maintenance-shortcut{font-size:12px!important;font-weight:780;gap:6px;white-space:nowrap;background:#eee8fb!important;color:#62489e!important;border:1px solid #d8cbea!important;padding:0 10px!important}\n.pm-maintenance-shortcut:hover{background:#e0d6f7!important;color:#51348b!important}\nhtml[data-theme=dark] .pm-maintenance-shortcut{background:#493a63!important;color:#eadcfc!important;border-color:#685783!important}\n@media(max-width:1000px){.pm-maintenance-shortcut span{display:none}}\n.pm-maintenance-contact{margin:3px 3px 10px!important;border:1px solid #d9cdef!important;background:#f6f2ff!important}\n.pm-maintenance-contact.selected{background:#eae2ff!important}\n.pm-maintenance-contact .dm-contact-open{gap:9px;padding:9px!important;align-items:center}\n.pm-maintenance-icon{display:grid;place-items:center;width:42px;height:42px;flex:0 0 42px;border-radius:12px;background:#e4dafa;color:#62489e;font-size:23px}\n.pm-maintenance-icon.small{width:36px;height:36px;flex-basis:36px;font-size:19px}\n.pm-maintenance-contact strong{color:#63499f}\n.pm-maintenance-lock{margin-left:auto;font-size:14px}\n.pm-maintenance-shell .dm-chat-head{display:flex;align-items:center;gap:9px}\n.pm-maintenance-heading{min-width:0;flex:1}\n.pm-maintenance-heading strong,.pm-maintenance-heading small{display:block;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}\n.pm-maintenance-private{font-size:10px;border-radius:99px;border:1px solid #d7c8eb;color:#644c9e;padding:5px 9px;background:#f4efff}\n.pm-maintenance-thread{display:flex;flex-direction:column;gap:7px}\n.pm-maintenance-thread .pm-maintenance-message .dm-message-bubble{max-width:min(80%,560px);overflow-wrap:anywhere}\n.pm-maintenance-delete{border:0;background:transparent;color:inherit;text-decoration:underline;font-size:10px;cursor:pointer;opacity:.75}\n.pm-maintenance-composer .dm-composer{display:flex;align-items:center;gap:8px}\n.pm-maintenance-composer .dm-composer textarea{box-sizing:border-box;min-width:0;flex:1;width:100%;min-height:45px;padding:11px;resize:vertical;font-size:14px}\n.pm-maintenance-composer .dm-send-button{flex:0 0 43px}\n.pm-maintenance-hint{display:block;color:var(--muted);font-size:10px;margin:6px 5px 0}\nhtml[data-theme=dark] .pm-maintenance-contact{background:#332b46!important;border-color:#66567e!important}\nhtml[data-theme=dark] .pm-maintenance-contact strong{color:#dccafa}\nhtml[data-theme=dark] .pm-maintenance-icon{background:#47345f;color:#eadbff}\nhtml[data-theme=dark] .pm-maintenance-private{background:#403050;border-color:#725d88;color:#e0ccfb}\n@media(max-width:760px){\n.dm-shell .dm-list-head{padding:12px!important}\n.dm-shell .dm-contacts{padding:4px 8px 12px!important}\n.dm-shell .dm-head-action{padding:6px 9px;min-height:33px;font-size:11px}\n.dm-shell .dm-composer-wrap .dm-composer{grid-template-columns:repeat(5,minmax(0,1fr))!important;grid-template-rows:auto 42px!important}\n.dm-shell .dm-composer-wrap .dm-composer textarea{grid-column:1/-1!important;grid-row:1!important}\n.dm-shell .dm-composer-wrap .dm-composer>[data-dmw-emoji]{grid-column:1!important;grid-row:2!important}\n.dm-shell .dm-composer-wrap .dm-composer>[data-dmv-share-open]{grid-column:2!important;grid-row:2!important}\n.dm-shell .dm-composer-wrap .dm-composer>[data-dmw-tools]{grid-column:3!important;grid-row:2!important}\n.dm-shell .dm-composer-wrap .dm-composer>[data-dmw-record]{grid-column:4!important;grid-row:2!important}\n.dm-shell .dm-composer-wrap .dm-composer>.dm-send-button{grid-column:5!important;grid-row:2!important}\n.dm-shell .pm-maintenance-composer .dm-composer{display:grid!important;grid-template-columns:minmax(0,1fr) 43px!important;grid-template-rows:auto!important;gap:6px!important}\n.dm-shell .pm-maintenance-composer .dm-composer textarea{grid-column:1!important;grid-row:1!important}\n.dm-shell .pm-maintenance-composer .dm-composer .dm-send-button{grid-column:2!important;grid-row:1!important}\n.pm-maintenance-shell .pm-maintenance-private{font-size:9px;padding:4px 6px}\n.pm-maintenance-thread .pm-maintenance-message .dm-message-bubble{max-width:90%}\n}\n@media(max-width:360px){.pm-maintenance-private,.pm-group-label{display:none}}\n";document.head.appendChild(st);
+const memo={id:null,rows:[],draft:'',loading:false,loaded:false,saving:false,error:''};
+/* A permissão é consultada também de forma independente: a carga de conversas
+   pode falhar antes de sincronizar dm.owner/dm.isAdmin. O banco mantém a RLS. */
+let verifiedAdminId=null,checkingAdminId=null;
+const auth=()=>!!(onlineUser&&verifiedAdminId===onlineUser.id);
+const active=()=>auth()&&dm.tab==='maintenance';
+async function verifyAdmin(){
+ const uid=onlineUser?.id;
+ if(!uid||!client||verifiedAdminId===uid||checkingAdminId===uid)return;
+ checkingAdminId=uid;
+ try{
+  const {data,error}=await client.rpc('uentzoul_is_admin');
+  if(onlineUser?.id!==uid)return;
+  if(error)throw error;
+  verifiedAdminId=data===true?uid:null;
+  if(verifiedAdminId===uid){
+   dm.isAdmin=true;
+   dm.owner=uid;
+  }
+  if(document.querySelector('#main .dm-shell')){
+   if(typeof dmW!=='undefined')dmW.lastMarkup=null;
+   dmShow();
+  }
+ }catch(error){console.warn('Falha ao verificar a administração do chat',error)}
+ finally{if(checkingAdminId===uid)checkingAdminId=null}
+}
+const reset=()=>{memo.id=null;memo.rows=[];memo.draft='';memo.loaded=false;memo.loading=false;memo.saving=false;memo.error=''};
+const contactBefore=dmContactRows;
+dmContactRows=function(){
+ const rows=contactBefore();
+ if(!auth())return rows;
+ const q=String(dm.search||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().trim();
+ if(q&&!('chat manutencao anotacoes administrador privado'.includes(q)))return rows;
+ return '<div class="dm-contact pm-maintenance-contact '+(active()?'selected':'')+'"><button type="button" class="dm-contact-open" data-pm-maintenance-open aria-label="Abrir chat de manutenção">'+
+ '<span class="pm-maintenance-icon" aria-hidden="true">✎</span><span class="dm-contact-text"><strong>Chat de Manutenção</strong><small>Conversa privada · somente você</small></span><span class="pm-maintenance-lock" aria-hidden="true">🔒</span></button></div>'+rows;
+};
+function messages(){
+ if(memo.loading&&!memo.loaded)return '<div class="dm-chat-empty"><h3>Carregando anotações…</h3></div>';
+ if(memo.error&&!memo.loaded)return '<div class="dm-chat-empty"><h3>Não foi possível carregar</h3><p>'+esc(memo.error)+'</p><button data-pm-maintenance-retry>Tentar novamente</button></div>';
+ if(!memo.rows.length)return '<div class="dm-chat-empty"><span>✎</span><h3>Seu chat de manutenção</h3><p>Escreva mensagens para você mesmo. Somente o administrador poderá ler.</p></div>';
+ let day='',html='';
+ for(const n of memo.rows){
+  const key=dmDateKey(n.created_at);
+  if(day!==key){day=key;html+='<div class="dm-day"><span>'+esc(dmDateLabel(n.created_at))+'</span></div>'}
+  const sticker=n.kind==='sticker'&&n.sticker_id?window.uentzoulStickerPacks?.getSticker?.(n.sticker_id):null;
+  const content=n.kind==='sticker'?(sticker?'<div class="pm-sticker-message"><img class="pm-sticker-displayed" src="'+esc(sticker.url)+'" alt="'+esc(sticker.title)+'" loading="lazy"></div>':'<p>Figurinha indisponível</p>'):'<p class="dm-text-message">'+esc(n.body).replace(/\n/g,'<br>')+'</p>';
+  html+='<div class="dm-message mine pm-maintenance-message"><div class="dm-message-bubble">'+content+
+  '<div class="dm-message-info"><time datetime="'+esc(n.created_at)+'">'+esc(dmTime(n.created_at))+'</time><button type="button" class="pm-maintenance-delete" data-pm-maintenance-delete="'+esc(n.id)+'">Excluir</button></div></div></div>';
+ }
+ return html;
+}
+function notesPage(){
+ const who=esc(dmPrettyPerson(onlineUser.id).display_name||'Administrador');
+ return '<section class="dm-shell has-conversation pm-maintenance-shell"><div class="dm-list">'+
+ '<header class="dm-list-head"><div><h1>Mensagens</h1><p>Conversas e grupos</p></div></header>'+
+ '<label class="dm-search-label"><input id="dmUserSearch" type="search" placeholder="Pesquisar conversas" value="'+esc(dm.search)+'"></label>'+
+ '<div class="dm-contacts" id="dmContacts">'+dmContactRows()+'</div></div><div class="dm-main">'+
+ '<header class="dm-chat-head"><button type="button" class="dm-back" data-pm-maintenance-back>‹ Voltar</button>'+
+ '<span class="pm-maintenance-icon small" aria-hidden="true">✎</span><span class="dm-chat-head-main pm-maintenance-heading"><strong>Chat de Manutenção</strong><small>Conversa pessoal de '+who+'</small></span>'+
+ '<span class="pm-maintenance-private">Privado</span></header>'+
+ '<div class="dm-messages pm-maintenance-thread" id="dmMessages">'+messages()+'</div>'+
+ '<form id="pmMaintenanceForm" class="dm-composer-wrap pm-maintenance-composer"><div class="dm-composer">'+
+ '<button type="button" class="dm-composer-action pm-sticker-trigger" data-pm-sticker-open aria-label="Abrir figurinhas" title="Figurinhas">▧</button>'+ '<textarea id="pmMaintenanceText" rows="2" maxlength="3000" placeholder="Envie uma mensagem para você mesmo…">'+esc(memo.draft)+'</textarea>'+
+ '<button type="submit" class="dm-send-button" aria-label="Salvar anotação" '+(memo.saving?'disabled':'')+'>➤</button></div>'+(window.uentzoulStickerPacks?.panel?.()||'')+
+ '<small class="pm-maintenance-hint">Anotações visíveis apenas para sua conta de administrador.</small></form></div></section>';
+}
+const beforeRender=dmRender;
+dmRender=function(){
+ if(active())return notesPage();
+ let html=beforeRender();
+ if(auth()){
+  /* Atalho fixo visível mesmo quando o filtro de contatos está ativo. */
+  const groupButton='<button type="button" class="dm-soft-button" title="Criar grupo" data-dm-new-group>＋</button>';
+  const shortcut='<button type="button" class="dm-soft-button pm-maintenance-shortcut" data-pm-maintenance-open title="Abrir Chat de Manutenção" aria-label="Abrir Chat de Manutenção">✎ <span>Manutenção</span></button>';
+  if(html.includes(groupButton))html=html.replace(groupButton,shortcut+groupButton);
+ }
+ return html
+ .replace('title="Criar grupo" data-dm-new-group>＋</button>','title="Criar grupo" aria-label="Criar grupo" data-dm-new-group>＋ <span class="pm-group-label">Grupo</span></button>')
+ .replace('data-dmw-reports title="Relatos">⚑</button>','data-dmw-reports title="Relatos de erros" aria-label="Relatos de erros">Relatos</button>')
+ .replace('data-dmw-wallpaper title="Fundo da conversa">⋯</button>','data-dmw-wallpaper title="Escolher fundo" aria-label="Escolher fundo">Fundo</button>');
+};
+window.uentzoulMessenger.render=dmRender;
+async function load(){
+ if(!auth()||memo.loading)return;
+ const id=onlineUser.id;
+ if(memo.id!==id)reset();
+ memo.id=id;memo.loading=true;memo.error='';if(active())dmShow();
+ try{
+  const r=await client.from('uentzoul_admin_notes').select('id,body,kind,sticker_id,created_at,user_id').eq('user_id',id).order('created_at',{ascending:true}).limit(500);
+  if(r.error)throw r.error;
+  if(!auth()||onlineUser.id!==id)return;
+  memo.rows=r.data||[];memo.loaded=true;
+ }catch(e){memo.error=e?.message||'Não foi possível carregar as anotações.'}
+ finally{memo.loading=false;if(active())dmShow()}
+}
+async function send(){
+ if(!auth()||memo.saving)return;
+ const body=String(document.getElementById('pmMaintenanceText')?.value??memo.draft).trim();
+ if(!body||body.length>3000)return;
+ const id=onlineUser.id;memo.saving=true;memo.draft=body;
+ try{
+  const r=await client.from('uentzoul_admin_notes').insert({user_id:id,body,kind:'text'}).select('id,body,kind,sticker_id,created_at,user_id').single();
+  if(r.error)throw r.error;
+  if(onlineUser?.id!==id)return;
+  memo.rows.push(r.data);memo.loaded=true;memo.draft='';memo.error='';dmShow();
+  document.getElementById('pmMaintenanceText')?.focus({preventScroll:true});
+ }catch(e){toast(e?.message||'Não foi possível salvar a anotação.')}
+ finally{memo.saving=false;if(active())dmShow()}
+}
+async function sendSticker(stickerId){
+ if(!auth()||memo.saving||!window.uentzoulStickerPacks?.getSticker?.(stickerId))return false;
+ const uid=onlineUser.id;memo.saving=true;
+ try{
+  const row={user_id:uid,body:'[Figurinha:'+stickerId+']',kind:'sticker',sticker_id:stickerId};
+  const r=await client.from('uentzoul_admin_notes').insert(row).select('id,body,kind,sticker_id,created_at,user_id').single();
+  if(r.error)throw r.error;
+  if(!auth()||onlineUser?.id!==uid)return false;
+  memo.rows.push(r.data);memo.loaded=true;dmShow();return true;
+ }catch(e){toast('Não foi possível enviar a figurinha para seu chat de manutenção.');return false}
+ finally{memo.saving=false;if(active())dmShow()}
+}
+window.uentzoulMaintenance={sendSticker,refresh:load};
+async function erase(id){
+ if(!auth()||!dmValid(id))return;
+ const r=await client.from('uentzoul_admin_notes').delete().eq('user_id',onlineUser.id).eq('id',id);
+ if(r.error){toast('Não foi possível apagar a anotação.');return}
+ memo.rows=memo.rows.filter(x=>x.id!==id);dmShow();
+}
+document.addEventListener('click',function(e){
+ const open=e.target.closest('[data-pm-maintenance-open]');
+ if(open){
+  e.preventDefault();e.stopImmediatePropagation();
+  if(!auth())return;
+  dm.tab='maintenance';dm.peerId=null;dm.roomId=null;dm.search='';dm.draft='';dm.mediaFile=null;
+  dmW.panel=null;dmW.popup=null;dmW.menu=null;dmW.reply=null;
+  dmShow();load();return;
+ }
+ if(e.target.closest('[data-pm-maintenance-back]')){e.preventDefault();e.stopImmediatePropagation();dmWOpen('private',null);return}
+ if(e.target.closest('[data-pm-maintenance-retry]')){e.preventDefault();e.stopImmediatePropagation();load();return}
+ const del=e.target.closest('[data-pm-maintenance-delete]');
+ if(del){e.preventDefault();e.stopImmediatePropagation();if(confirm('Apagar esta anotação?'))erase(del.dataset.pmMaintenanceDelete)}
+},true);
+document.addEventListener('input',e=>{if(e.target?.id==='pmMaintenanceText')memo.draft=e.target.value});
+document.addEventListener('keydown',e=>{if(e.target?.id==='pmMaintenanceText'&&e.key==='Enter'&&!e.shiftKey&&!e.isComposing){e.preventDefault();send()}});
+document.addEventListener('submit',e=>{if(e.target?.id==='pmMaintenanceForm'){e.preventDefault();e.stopImmediatePropagation();send()}},true);
+const previousLogout=dmOnLogout;
+dmOnLogout=function(){
+ verifiedAdminId=null;checkingAdminId=null;reset();previousLogout();
+};
+window.uentzoulMessenger.onLogout=dmOnLogout;
+/* A verificação acontece tanto quando a sessão entra quanto quando este
+   arquivo é carregado depois do login. */
+const previousLogin=dmOnLogin;
+dmOnLogin=function(){previousLogin();void verifyAdmin()};
+window.uentzoulMessenger.onLogin=dmOnLogin;
+window.addEventListener('uentzoul:auth',()=>{if(onlineUser)void verifyAdmin()});
+queueMicrotask(()=>{if(onlineUser)void verifyAdmin()});
+})();
+
+/* Fonte: chat-stickers.js */
+/* PsicoMoodle — pacotes de figurinhas, recentes e favoritas.
+   Envio por um toque com prévia otimista; nunca armazena binários no histórico.
+   Os arquivos dos pacotes são publicados pelo administrador, não pelos alunos. */
+(function () {
+'use strict';
+if (window.__pmStickerPacksReady || !window.uentzoulMessenger ||
+    typeof dm === 'undefined' || typeof dmW === 'undefined' ||
+    typeof dmComposer !== 'function' || typeof dmWMedia !== 'function') return;
+window.__pmStickerPacksReady = true;
+const BUCKET = 'uentzoul-stickers';
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+const BODY = /^\[Figurinha:([0-9a-f-]{36})\]$/i;
+const state = { owner:null, loaded:false, loading:false, open:false, tab:'recent',
+  packs:[], stickers:[], byId:new Map(), favorites:new Set(), recents:[],
+  pending:[], error:'', lastLoad:0, lastMissingRefresh:0 };
+const clean = value => esc(String(value == null ? '' : value));
+const session = () => onlineUser && client && onlineUser.id;
+const selected = () => dm.tab === 'private' ? dm.peerId :
+                       dm.tab === 'global' ? dmWSelected() : dm.roomId;
+function reset() {
+  state.loaded=false;state.loading=false;state.open=false;state.tab='recent';
+  state.packs=[];state.stickers=[];state.byId.clear();
+  state.favorites.clear();state.recents=[];state.pending=[];state.error='';
+  state.lastLoad=0;state.lastMissingRefresh=0;
+}
+function avatarUrl(path) {
+  if(!/^[a-zA-Z0-9._/-]+$/.test(path||'') || !path.startsWith('packs/')) return '';
+  try {
+    return client.storage.from(BUCKET).getPublicUrl(path).data?.publicUrl || '';
+  } catch(_) { return ''; }
+}
+function retrieve(force) {
+  const uid=session();
+  if (!uid) return;
+  if(state.owner !== uid){reset();state.owner=uid;}
+  if(state.loading || (!force && state.loaded))return;
+  state.loading=true;state.error='';
+  Promise.all([
+    client.from('uentzoul_sticker_packs').select('id,title,description,position,enabled').order('position'),
+    client.from('uentzoul_stickers').select('id,pack_id,title,storage_path,mime_type,position,enabled').order('position'),
+    client.from('uentzoul_sticker_favorites').select('sticker_id').eq('user_id',uid),
+    client.from('uentzoul_sticker_recents').select('sticker_id,used_at').eq('user_id',uid).order('used_at',{ascending:false}).limit(60)
+  ]).then(results=>{
+    if(!onlineUser || onlineUser.id!==uid)return;
+    const bad=results.find(x=>x.error);
+    if(bad)throw bad.error;
+    state.packs=results[0].data||[];
+    state.stickers=(results[1].data||[]).map(item=>({...item,url:avatarUrl(item.storage_path)}))
+      .filter(item=>UUID.test(item.id)&&UUID.test(item.pack_id)&&item.url);
+    state.byId=new Map(state.stickers.map(item=>[item.id,item]));
+    state.favorites=new Set((results[2].data||[]).map(row=>row.sticker_id));
+    state.recents=(results[3].data||[]).map(row=>row.sticker_id);
+    state.loaded=true;state.lastLoad=Date.now();
+    if(state.tab==='recent'&&!state.recents.length)state.tab=state.packs.find(p=>p.enabled)?.id||'favorites';
+  }).catch(error=>{
+    if(onlineUser?.id!==uid)return;
+    state.error=error?.message||'Não foi possível carregar as figurinhas.';
+    state.loaded=true;
+  }).finally(()=>{
+    if(onlineUser?.id!==uid)return;
+    state.loading=false;
+    if(document.querySelector('#main .dm-shell'))dmShow();
+  });
+}
+function showableSticker(item) {
+  return item && item.enabled && state.packs.some(p=>p.id===item.pack_id&&p.enabled);
+}
+function activeItems() {
+  if(state.tab==='recent')return state.recents.map(id=>state.byId.get(id)).filter(showableSticker);
+  if(state.tab==='favorites')return [...state.favorites].map(id=>state.byId.get(id)).filter(showableSticker);
+  return state.stickers.filter(item=>item.pack_id===state.tab&&showableSticker(item));
+}
+const stickerIcon = '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 3.5h14a2 2 0 0 1 2 2v9L14.5 21H5a2 2 0 0 1-2-2V5.5a2 2 0 0 1 2-2Z"/><path d="M14 21v-5a2 2 0 0 1 2-2h5"/><path d="M8 9h.01M16 9h.01M8.2 12.5c1.3 2.1 4.7 2.1 6 0"/></svg>';
+function drawer() {
+  if(!state.open)return '';
+  const tabs=[['recent','Recentes','◷'],['favorites','Favoritas','★']]
+    .concat(state.packs.filter(p=>p.enabled).map(p=>[p.id,p.title,'▧']));
+  const selectedItems=activeItems();
+  const head='<header class="pm-sticker-head"><strong>Figurinhas</strong>'+
+    '<button type="button" data-pm-sticker-close aria-label="Fechar figurinhas">×</button></header>';
+  const nav='<nav class="pm-sticker-tabs" aria-label="Pacotes de figurinhas">'+tabs.map(row=>
+    '<button type="button" data-pm-sticker-tab="'+clean(row[0])+'" aria-pressed="'+(state.tab===row[0])+'" title="'+clean(row[1])+'">'+
+    '<span aria-hidden="true">'+clean(row[2])+'</span><span>'+clean(row[1])+'</span></button>').join('')+'</nav>';
+  const items=selectedItems.map((item,index)=>{
+    const favorite=state.favorites.has(item.id);
+    return '<div class="pm-sticker-tile">'+
+      '<button type="button" class="pm-sticker-tap" data-pm-sticker-send="'+clean(item.id)+'" title="Enviar '+clean(item.title)+'" aria-label="Enviar '+clean(item.title)+'">'+
+      '<img alt="'+clean(item.title)+'" src="'+clean(item.url)+'" loading="'+(index<12?'eager':'lazy')+'" decoding="async"></button>'+ 
+      '<button type="button" class="pm-sticker-star '+(favorite?'is-favorite':'')+'" data-pm-sticker-favorite="'+clean(item.id)+'" aria-label="'+(favorite?'Remover das favoritas':'Adicionar às favoritas')+'" aria-pressed="'+favorite+'">'+(favorite?'★':'☆')+'</button></div>';
+  }).join('');
+  let body;
+  if(state.loading&&!state.loaded)body='<p class="pm-sticker-empty">Carregando pacotes…</p>';
+  else if(state.error)body='<div class="pm-sticker-empty"><p>Não foi possível carregar os pacotes.</p><button type="button" data-pm-sticker-reload>Tentar novamente</button></div>';
+  else if(!state.packs.some(p=>p.enabled))body='<p class="pm-sticker-empty">Nenhum pacote disponível ainda. O administrador poderá adicionar pacotes de figurinhas.</p>';
+  else if(!items)body='<p class="pm-sticker-empty">'+(state.tab==='favorites'?'Suas figurinhas favoritas aparecerão aqui.':state.tab==='recent'?'As figurinhas enviadas recentemente aparecerão aqui.':'Esse pacote ainda não tem figurinhas.')+'</p>';
+  else body='<div class="pm-sticker-grid">'+items+'</div>';
+  return '<section id="pmStickerPanel" class="pm-sticker-panel" aria-label="Escolher figurinha">'+head+nav+
+    '<div class="pm-sticker-content">'+body+'</div></section>';
+}
+const originalComposer=dmComposer;
+dmComposer=function() {
+  const html=originalComposer();
+  if(!html)return html;
+  const marker='<button type="button" class="dm-composer-action dm-share-launch"';
+  if(!html.includes(marker))return html;
+  const trigger='<button type="button" class="dm-composer-action pm-sticker-trigger" data-pm-sticker-open title="Figurinhas" aria-label="Abrir figurinhas" aria-expanded="'+state.open+'">'+stickerIcon+'</button>';
+  return html.replace(marker,trigger+marker).replace('</form>',drawer()+'</form>');
+};
+const originalMedia=dmWMedia;
+dmWMedia=function(message){
+  if(message?.kind!=='sticker'||message.deleted_at)return originalMedia(message);
+  const id=String(message.body||'').match(BODY)?.[1];
+  if(!id)return originalMedia(message);
+  const item=state.byId.get(id);
+  if(!item){
+    // New packs may be published while this chat is open. Refresh once, not per bubble.
+    if(state.loaded&&!state.loading&&Date.now()-state.lastMissingRefresh>30000){
+      state.lastMissingRefresh=Date.now();queueMicrotask(()=>retrieve(true));
+    }
+    return '<div class="pm-sticker-missing" role="img" aria-label="Figurinha">Figurinha indisponível</div>';
+  }
+  const favorite=state.favorites.has(item.id);
+  return '<div class="pm-sticker-message"><img class="pm-sticker-displayed" src="'+clean(item.url)+'" alt="'+clean(item.title)+'" loading="lazy" decoding="async">'+
+    '<button type="button" class="pm-sticker-message-fav" data-pm-sticker-favorite="'+clean(item.id)+'" title="'+(favorite?'Remover das favoritas':'Salvar nas favoritas')+'" aria-label="'+(favorite?'Remover figurinha das favoritas':'Salvar figurinha nas favoritas')+'">'+(favorite?'★':'☆')+'</button></div>';
+};
+function pendingMarkup(p){
+  const item=state.byId.get(p.stickerId);
+  if(!item)return '';
+  const failed=p.status==='failed';
+  return '<div class="dm-message mine pm-sticker-pending" data-pm-sticker-pending="'+clean(p.localId)+'">'+
+    '<div class="dm-message-bubble"><div class="pm-sticker-message"><img class="pm-sticker-displayed" src="'+clean(item.url)+'" alt="'+clean(item.title)+'"></div>'+
+    '<div class="dm-message-info pm-sticker-delivery">'+(failed?
+    '<span>Não enviada</span><button type="button" data-pm-sticker-retry="'+clean(p.localId)+'">Tentar novamente</button>':
+    '<span aria-label="Enviando figurinha">Enviando…</span>')+'</div></div></div>';
+}
+const originalThread=dmThreadHtml;
+dmThreadHtml=function(){
+  let html=originalThread();
+  const conversation=selected();
+  const rows=state.pending.filter(p=>p.owner===onlineUser?.id&&p.tab===dm.tab&&p.destination===conversation);
+  if(!rows.length)return html;
+  const saved=dm.tab==='private'?dm.messages:dm.roomMessages;
+  const unresolved=rows.filter(p=>!p.serverId||!saved.some(m=>m.id===p.serverId));
+  if(!unresolved.length)return html;
+  if(html.includes('class="dm-chat-empty"'))html='';
+  return html+unresolved.map(pendingMarkup).join('');
+};
+const originalRender=dmRender;
+dmRender=function(){
+  if(session())retrieve(false);
+  return originalRender();
+};
+window.uentzoulMessenger.render=dmRender;
+function appendPending(p){
+  const view=document.querySelector('#dmMessages');
+  if(!view||selected()!==p.destination||dm.tab!==p.tab)return;
+  if(view.querySelector('.dm-chat-empty'))view.innerHTML='';
+  view.insertAdjacentHTML('beforeend',pendingMarkup(p));
+  view.scrollTop=view.scrollHeight;
+}
+async function transmit(item,pending){
+  if(!session()||pending.owner!==onlineUser.id)return;
+  pending.status='sending';
+  const match=document.querySelector('[data-pm-sticker-pending="'+pending.localId+'"]');
+  if(match){const info=match.querySelector('.pm-sticker-delivery');if(info)info.innerHTML='<span>Enviando…</span>';}
+  try{
+    const isPrivate=pending.tab==='private';
+    const row={sender_id:pending.owner,body:'[Figurinha:'+item.id+']',kind:'sticker',media_path:null};
+    if(isPrivate)row.recipient_id=pending.destination;
+    else row.room_id=pending.destination;
+    if(pending.replyId)row.reply_to=pending.replyId;
+    const table=isPrivate?'uentzoul_messages':'uentzoul_room_messages';
+    const answer=await client.from(table).insert(row).select('id').single();
+    if(answer.error)throw answer.error;
+    pending.serverId=answer.data?.id;
+    state.recents=[item.id,...state.recents.filter(id=>id!==item.id)].slice(0,60);
+    client.from('uentzoul_sticker_recents').upsert(
+      {user_id:pending.owner,sticker_id:item.id,used_at:new Date().toISOString()},
+      {onConflict:'user_id,sticker_id'}
+    ).then(({error})=>{if(error)console.warn('Não foi possível atualizar recentes',error)});
+    await dmLoad();
+    if(onlineUser?.id===pending.owner){
+      state.pending=state.pending.filter(p=>p.localId!==pending.localId);
+      if(document.querySelector('#dmMessages'))dmShow();
+    }
+  }catch(error){
+    pending.status='failed';
+    const message=document.querySelector('[data-pm-sticker-pending="'+pending.localId+'"]');
+    if(message){
+      const info=message.querySelector('.pm-sticker-delivery');
+      if(info)info.innerHTML='<span>Não enviada</span><button type="button" data-pm-sticker-retry="'+clean(pending.localId)+'">Tentar novamente</button>';
+    }
+    console.warn('Falha ao enviar figurinha',error);
+  }
+}
+function send(id){
+  const item=state.byId.get(id);
+  if(dm.tab==='maintenance'){
+    if(!item||!showableSticker(item)||!session())return;
+    state.open=false;
+    dmShow();
+    Promise.resolve(window.uentzoulMaintenance?.sendSticker?.(id)).then(saved=>{
+      if(!saved||!onlineUser)return;
+      const uid=onlineUser.id;
+      state.recents=[id,...state.recents.filter(x=>x!==id)].slice(0,60);
+      client.from('uentzoul_sticker_recents').upsert(
+       {user_id:uid,sticker_id:id,used_at:new Date().toISOString()},
+       {onConflict:'user_id,sticker_id'}
+      ).then(({error})=>{if(error)console.warn('Recentes de figurinhas',error)});
+    });
+    return;
+  }
+  const destination=selected();
+  if(!item||!showableSticker(item)||!UUID.test(destination||'')||!session())return;
+  const pending={localId:crypto.randomUUID(),owner:onlineUser.id,
+    tab:dm.tab,destination,stickerId:id,status:'sending',serverId:null,
+    replyId:dmW.reply?.id||null};
+  state.pending.push(pending);
+  if(dmW.reply){dmW.reply=null;document.querySelector('.dm-reply-preview')?.remove();}
+  appendPending(pending); // Optimistic: visible on the first tap, before any network request.
+  void transmit(item,pending);
+}
+async function toggleFavorite(id){
+  const item=state.byId.get(id),uid=session();
+  if(!item||!uid)return;
+  const was=state.favorites.has(id);
+  if(was)state.favorites.delete(id);else state.favorites.add(id);
+  if(document.querySelector('#main .dm-shell'))dmShow();
+  try{
+    const request=was?
+      client.from('uentzoul_sticker_favorites').delete().eq('user_id',uid).eq('sticker_id',id):
+      client.from('uentzoul_sticker_favorites').insert({user_id:uid,sticker_id:id});
+    const result=await request;
+    if(result.error)throw result.error;
+  }catch(error){
+    if(onlineUser?.id!==uid)return;
+    if(was)state.favorites.add(id);else state.favorites.delete(id);
+    if(document.querySelector('#main .dm-shell'))dmShow();
+    toast('Não foi possível salvar a favorita. Tente novamente.');
+  }
+}
+document.addEventListener('click',function(event){
+  const target=event.target;
+  if(!(target instanceof Element))return;
+  const trigger=target.closest('[data-pm-sticker-open]');
+  if(trigger){event.preventDefault();event.stopImmediatePropagation();
+    if(!session())return;
+    state.open=!state.open;
+    retrieve(state.open&&state.loaded&&Date.now()-state.lastLoad>60000);
+    if(state.open&&state.tab==='recent'&&!state.recents.length)
+      state.tab=state.packs.find(p=>p.enabled)?.id||'favorites';
+    dmShow();return;
+  }
+  if(target.closest('[data-pm-sticker-close]')){
+    event.preventDefault();event.stopImmediatePropagation();state.open=false;dmShow();return;
+  }
+  const tab=target.closest('[data-pm-sticker-tab]');
+  if(tab){event.preventDefault();event.stopImmediatePropagation();
+    state.tab=tab.dataset.pmStickerTab;dmShow();return;
+  }
+  const favorite=target.closest('[data-pm-sticker-favorite]');
+  if(favorite){event.preventDefault();event.stopImmediatePropagation();
+    void toggleFavorite(favorite.dataset.pmStickerFavorite);return;
+  }
+  const sticker=target.closest('[data-pm-sticker-send]');
+  if(sticker){event.preventDefault();event.stopImmediatePropagation();
+    send(sticker.dataset.pmStickerSend);return;
+  }
+  const retry=target.closest('[data-pm-sticker-retry]');
+  if(retry){event.preventDefault();event.stopImmediatePropagation();
+    const pending=state.pending.find(p=>p.localId===retry.dataset.pmStickerRetry);
+    const item=pending&&state.byId.get(pending.stickerId);
+    if(pending&&item&&pending.status==='failed')void transmit(item,pending);
+    return;
+  }
+  if(target.closest('[data-pm-sticker-reload]')){
+    event.preventDefault();event.stopImmediatePropagation();retrieve(true);dmShow();return;
+  }
+  if(state.open&&!target.closest('#pmStickerPanel')){
+    state.open=false;
+    document.querySelector('#pmStickerPanel')?.remove();
+    document.querySelector('[data-pm-sticker-open]')?.setAttribute('aria-expanded','false');
+  }
+},true);
+const originalOpen=dmWOpen;
+dmWOpen=function(type,id){state.open=false;return originalOpen(type,id)};
+const originalLogout=dmOnLogout;
+dmOnLogout=function(){reset();state.owner=null;return originalLogout()};
+window.uentzoulMessenger.onLogout=dmOnLogout;
+window.uentzoulStickerPacks={refresh:()=>retrieve(true),panel:drawer,getSticker:id=>state.byId.get(id)||null};
+})();
+
+/* Fonte: chat-message-visibility.js */
+/* PsicoMoodle — exclusão individual de mensagens (visão do próprio usuário). */
+(function(){
+'use strict';
+if(window.__pmHideOnlyMeReady || !window.uentzoulMessenger || typeof dm === 'undefined')return;
+window.__pmHideOnlyMeReady=true;
+let busy=false;
+document.addEventListener('click',async function(event){
+ const target=event.target instanceof Element?event.target.closest('[data-pm-delete-for-me]'):null;
+ if(!target)return;
+ event.preventDefault();
+ event.stopImmediatePropagation();
+ if(busy||!onlineUser||!dmValid(target.dataset.pmDeleteForMe))return;
+ const type=target.dataset.pmDeleteScope;
+ if(type!=='private'&&type!=='room')return;
+ const id=target.dataset.pmDeleteForMe,owner=onlineUser.id;
+ const source=type==='private'?dm.messages:dm.roomMessages;
+ const row=source.find(m=>m.id===id);
+ if(!row)return;
+ if(!confirm('Apagar esta mensagem apenas para você? As outras pessoas continuarão vendo a mensagem.'))return;
+ busy=true;dmW.menu=null;
+ try{
+  const payload={user_id:owner};
+  if(type==='private')payload.message_id=id;
+  else payload.room_message_id=id;
+  const r=await client.from('uentzoul_hidden_messages').upsert(payload,{
+   onConflict:type==='private'?'user_id,message_id':'user_id,room_message_id',
+   ignoreDuplicates:true
+  });
+  if(r.error)throw r.error;
+  if(onlineUser?.id!==owner)return;
+  const index=source.findIndex(m=>m.id===id);
+  if(index>=0)source.splice(index,1);
+  if(dmW.reply?.id===id)dmW.reply=null;
+  dmShow();
+  dmBadge();
+ }catch(error){
+  console.warn('Erro ao ocultar mensagem da própria conta',error);
+  toast('Não foi possível apagar a mensagem somente para você.');
+ }finally{busy=false}
+},true);
+})();
 renderAside();initCloud();
 })();
 
@@ -7289,9 +7791,9 @@ document.addEventListener("click",e=>{if(!e.target.closest("[data-theme-toggle]"
 <script src="admin-config.js?v=20261113-formal-1"></script>
 <script id="pm-mobile-drawer-js" src="mobile-drawer.js?v=20261114-smooth-locked-v18" defer></script>
 <script id="pm-chat-mobile-js" src="chat-mobile-viewport.js?v=20261114-chat-mobile-v21" defer></script>
-<script id="pm-chat-maintenance-js" src="chat-admin-maintenance.js?v=20261114-maintenance-v4" defer></script>
-<script id="pm-chat-stickers-js" src="chat-stickers.js?v=20261114-stickers-v3" defer></script>
-<script id="pm-chat-message-visibility-js" src="chat-message-visibility.js?v=20261114-visibility-v1" defer></script>
+<!-- Extensão integrada ao núcleo de mensagens. -->
+<!-- Extensão integrada ao núcleo de mensagens. -->
+<!-- Extensão integrada ao núcleo de mensagens. -->
 <script id="pm-tutorial-script" src="spotlight-tour.js?v=20261114-chat-mobile-v20" defer></script>
 <script id="pm-podcast-mini-script" src="podcast-mini.js?v=20261114-podcast-mini-v2" defer></script>
 <script src="site-version.js?v=20261114-chat-mobile-v21"></script>
