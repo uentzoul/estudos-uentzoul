@@ -310,3 +310,72 @@ html[data-theme="dark"] .dm-shell .dm-global-avatar {
   .dm-shell .dm-chat-actions { gap:3px; }
   .dm-shell .dm-head-action { min-width:32px; padding:5px 6px!important; }
 }
+
+/* O campo de upload deve permanecer oculto: Safari iOS o exibia como um botão
+   roxo vazio e criava uma terceira linha fantasma no compositor. */
+.dm-shell .dm-composer-wrap .dm-composer input[type="file"][hidden],
+.dm-shell .dm-composer-wrap .dm-composer #dmWFileInput,
+.dm-shell .dm-composer-wrap .dm-composer #dmImageInput {
+  display:none!important;
+  visibility:hidden!important;
+  position:absolute!important;
+  width:0!important;
+  height:0!important;
+  padding:0!important;
+  border:0!important;
+  pointer-events:none!important;
+}
+@media(max-width:760px) {
+  .dm-shell .dm-composer-wrap .dm-composer {
+    grid-template-columns:repeat(5,minmax(0,1fr))!important;
+    grid-template-rows:minmax(44px,auto) 42px!important;
+    grid-auto-rows:0!important;
+  }
+  .dm-shell .dm-composer-wrap .dm-composer textarea {
+    grid-column:1/-1!important; grid-row:1!important;
+  }
+  .dm-shell .dm-composer-wrap .dm-composer > [data-dmw-emoji] {
+    grid-column:1!important;grid-row:2!important;
+  }
+  .dm-shell .dm-composer-wrap .dm-composer > [data-dmv-share-open] {
+    grid-column:2!important;grid-row:2!important;
+  }
+  .dm-shell .dm-composer-wrap .dm-composer > [data-dmw-tools] {
+    grid-column:3!important;grid-row:2!important;
+  }
+  .dm-shell .dm-composer-wrap .dm-composer > [data-dmw-record] {
+    grid-column:4!important;grid-row:2!important;
+  }
+  .dm-shell .dm-composer-wrap .dm-composer > .dm-send-button {
+    grid-column:5!important;grid-row:2!important;
+  }
+  .dm-shell .dm-composer-wrap .dm-composer > .dm-composer-action {
+    border:0!important;
+    background:transparent!important;
+    box-shadow:none!important;
+  }
+  .dm-shell .dm-composer-wrap .dm-composer > .dm-share-launch {
+    background:var(--soft)!important;
+    color:var(--ink)!important;
+    border:1px solid var(--line)!important;
+  }
+  html[data-theme="dark"] .dm-shell .dm-composer-wrap .dm-composer > .dm-composer-action {
+    color:#b9abdc!important;
+  }
+  html[data-theme="dark"] .dm-shell .dm-composer-wrap .dm-composer > .dm-share-launch {
+    background:#332d47!important;
+    border-color:#514666!important;
+    color:#e4d9ff!important;
+  }
+  .dm-shell .dm-composer-wrap .dm-composer > .dm-send-button {
+    background:#6b56b8!important;
+    color:white!important;
+    box-shadow:none!important;
+  }
+  .dm-shell .dm-composer-wrap .dm-composer > .dm-send-button:disabled {
+    opacity:.55;
+  }
+  .dm-shell .dm-composer-wrap .dm-composer > .dm-send-button:focus-visible {
+    outline:2px solid #bfaafa;
+  }
+}
