@@ -160,8 +160,22 @@ function cutout(r,sideRect){
  if(sidebarSpot){sidebarSpot.hidden=!sideRect;if(sideRect)sidebarSpot.style.cssText='left:'+sideRect.left+'px;top:'+sideRect.top+'px;width:'+sideRect.width+'px;height:'+sideRect.height+'px;';}
 }
 function positionPopover(r){
- const w=innerWidth,h=innerHeight;
+ const w=innerWidth,h=window.visualViewport?.height||innerHeight;
  if(index!==2)balloon.style.width='';
+ // Em celulares, mantenha sempre a explicação em uma área que não encubra
+ // o elemento destacado; o balão pode rolar internamente se necessário.
+ if(w<761){
+  balloon.style.width='';
+  const p=balloon.getBoundingClientRect(),pw=Math.min(p.width,w-16),ph=Math.min(p.height,h-16);
+  let y=12;
+  if(r.top<h*.48 && h-r.bottom>ph+12)y=h-ph-10;
+  else if(r.top>ph+20)y=10;
+  else y=Math.max(8,h-ph-10);
+  balloon.dataset.side='floating';
+  balloon.style.left=Math.round(Math.max(8,(w-pw)/2))+'px';
+  balloon.style.top=Math.round(Math.max(8,y))+'px';
+  return;
+ }
  const pop=balloon.getBoundingClientRect();
  const pw=pop.width,ph=pop.height,gap=17;
  const spaceBottom=h-r.bottom,spaceTop=r.top,spaceRight=w-r.right,spaceLeft=r.left;
@@ -284,6 +298,18 @@ function click(event){
   if(btn){chosen=btn.dataset.action.slice(8);setTimeout(()=>{if(active&&index===1)move(1)},30)}
  }
 }
+function blockManualScroll(event){
+ if(!active)return;
+ // O texto do tutorial pode rolar dentro do próprio balão, sem mover a página.
+ if(event.target?.closest?.('.pm-spotlight-popover'))return;
+ if(event.cancelable)event.preventDefault();
+}
+function blockScrollKeys(event){
+ if(!active||event.target?.closest?.('.pm-spotlight-popover'))return;
+ if([' ','Spacebar','PageUp','PageDown','Home','End','ArrowUp','ArrowDown'].includes(event.key)){
+  event.preventDefault();
+ }
+}
 function keys(event){
  if(!active)return;
  if(event.key==='Escape'){event.preventDefault();close();return}
@@ -308,6 +334,9 @@ function init(){
  if(window.visualViewport)window.visualViewport.addEventListener('resize',refresh,{passive:true});
  document.addEventListener('click',click,true);
  document.addEventListener('keydown',keys,true);
+ document.addEventListener('wheel',blockManualScroll,{capture:true,passive:false});
+ document.addEventListener('touchmove',blockManualScroll,{capture:true,passive:false});
+ document.addEventListener('keydown',blockScrollKeys,true);
  window.pmStartSpotlightTour=open;
 }
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});
