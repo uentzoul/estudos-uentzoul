@@ -12,7 +12,7 @@ const steps=[
  {page:'calendar',tab:'provas',find:'.agenda-switch',title:'Agenda e Horários',body:'A agenda reúne três consultas: datas das avaliações, grade semanal de aulas e conteúdos previstos para cada encontro. Vamos conhecer cada uma.'},
  {page:'calendar',tab:'provas',find:'.agenda-calendar-layout',fallback:'[data-action="agenda-tab:provas"]',title:'Provas e avaliações',body:'Veja as datas das provas no calendário, confira a disciplina correspondente e consulte informações sobre avaliações e substitutivas.',tip:'As datas podem mudar. Confirme eventuais alterações no Moodle oficial.'},
  {page:'calendar',tab:'horarios',find:'.schedule-day',fallback:'[data-action="agenda-tab:horarios"]',title:'Horários das aulas',body:'Esta visão mostra os dias da semana, as disciplinas e os respectivos horários. Consulte-a para organizar a rotina de aulas.',tip:'Use as abas acima para alternar entre as diferentes visões da agenda.'},
- {page:'calendar',tab:'conteudos',find:'.agenda-toolbar',fallback:'[data-action="agenda-tab:conteudos"]',title:'Conteúdo de cada dia',body:'Confira os assuntos previstos nas aulas e as leituras indicadas nos cronogramas. Quando houver uma revisão correspondente no site, você poderá abri-la por aqui.',tip:'Use “Incluir aulas anteriores” para consultar os registros já passados.'},
+ {page:'calendar',tab:'conteudos',find:'.agenda-daygroup[data-agenda-date="2026-11-16"]',fallback:'.agenda-daygroup, [data-action="agenda-tab:conteudos"]',title:'Conteúdo de cada dia',body:'Confira os assuntos previstos nas aulas e as leituras indicadas nos cronogramas. Quando houver uma revisão correspondente no site, você poderá abri-la por aqui.',tip:'Use “Incluir aulas anteriores” para consultar os registros já passados.'},
  {page:'exams',tab:'ready',find:'.ge-ready-subject .examcard',fallback:'[data-ge-tab="ready"]',title:'Cinco simulados para cada prova',body:'Na aba Simulados prontos, cada disciplina reúne cinco modelos para treinar. Responda às questões, entregue sua tentativa e consulte a correção para descobrir o que precisa revisar.'},
  {page:'exams',tab:'ai',find:'.ge-generator',fallback:'[data-ge-tab="ai"]',title:'Crie seu próprio simulado',body:'Na aba Criar simulado, escolha a disciplina, a dificuldade normal ou difícil, a quantidade de questões e se deseja incluir dissertativas. Depois, acesse a correção e o histórico das suas provas.',tip:'A criação e o compartilhamento de simulados personalizados exigem uma conta conectada.'},
  {page:'messages',tab:'private',find:'#dmUserSearch',fallback:'.dm-channel-tabs [data-dm-tab="private"]',title:'Converse em particular',body:'Na aba Privadas, procure um colega pelo nome e inicie uma conversa direta para tirar dúvidas, combinar estudos e trocar materiais.',login:'Entre na sua conta para acessar as conversas privadas e as demais funções de Mensagens.'},
@@ -27,6 +27,7 @@ const q=s=>document.querySelector(s);
 let active=false,index=0,chosen='tcc',lastFocus=null,originSemester=null,changedSemester=false;
 let shell=null,spot=null,sidebarSpot=null,balloon=null,fadeTimer=0,frame=0,stepSerial=0;
 let lastRect=null,pendingScroll=false;
+let mobilePositionAttempts=0;
 const margin=8;
 const clamp=(n,min,max)=>Math.max(min,Math.min(max,n));
 const esc=s=>String(s||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -112,16 +113,45 @@ function prep(step){
  }
  if(step.tab&&step.page!=='subject')selectTab(step);
 }
+function calendarEventDay(){
+ const cells=[...document.querySelectorAll('#main .agenda-calendar .agenda-cal-day[data-calendar-date]')];
+ const withExams=cells.filter(el=>el.querySelector('.agenda-cal-event'));
+ if(!withExams.length)return null;
+ const today=new Date().toLocaleDateString('en-CA',{timeZone:'America/Sao_Paulo'});
+ return withExams.find(el=>el.dataset.calendarDate>=today)||withExams[withExams.length-1];
+}
+function mondayClassRow(){
+ const group=q('#main .agenda-daygroup[data-agenda-date="2026-11-16"]');
+ if(!group)return null;
+ return [...group.querySelectorAll('.agenda-classrow')].find(el=>/metapsicologia/i.test(el.textContent||''))||
+  group.querySelector('.agenda-classrow')||group;
+}
 function findNode(step){
+ const mobile=innerWidth<=760;
+ if(mobile){
+  // Alvos escolhidos pela informação que o estudante precisa de fato ver.
+  const targeted={
+   1:()=>available('#homeCourses .course-card'),
+   5:()=>calendarEventDay(),
+   6:()=>available('#main .schedule-day:has(.schedule-lesson)'),
+   7:()=>mondayClassRow(),
+   10:()=>available('#main .dm-list .dm-search-label')||available('#main .dm-list-head'),
+   11:()=>available('#main .dm-channel-tabs [data-dm-tab="groups"]'),
+   12:()=>available('#main #dmContacts [data-dmw-global]')||available('#main .dm-channel-tabs [data-dm-tab="global"]'),
+   13:()=>available('#main .dm-composer')||available('#main .dm-list-head'),
+   14:()=>available('#semesterCurrent')
+  }[index];
+  const target=targeted?.();
+  if(target)return {node:target,login:false};
+ }
  let node=available('#main '+step.find)||available(step.find);
- // Áreas muito altas: no celular, destaque um controle representativo, não a coluna inteira.
- if(innerWidth<=760&&node){
+ if(mobile&&node){
   if(node.matches('.subject-hub-menu'))node=available('#main .subject-hub-menu .subject-hub-card')||node;
   if(node.matches('.agenda-switch'))node=available('#main .agenda-switch button')||node;
   if(node.matches('.ge-generator'))node=available('#main .ge-generator button, #main .ge-generator select')||node;
  }
  if(node)return {node,login:false};
- const substitute=step.fallback?step.fallback.split(',').map(s=>s.trim()).map(s=>available('#main '+s)||available(s)).find(Boolean):null;
+ const substitute=step.fallback?step.fallback.split(',').map(x=>x.trim()).map(x=>available('#main '+x)||available(x)).find(Boolean):null;
  const login=step.page==='messages'?available('#main .dm-login-panel'):null;
  const fallback=substitute||login||available('#nav [data-page="'+step.page+'"]')||available('#main > :first-child')||available('.dashboard-hero');
  return {node:fallback,login:!!login&&!substitute};
@@ -227,16 +257,59 @@ function clippedRect(node,zone){
  const bottom=clamp(r.bottom+5,top+12,zone.bottom);
  return {left,right,top,bottom,width:right-left,height:bottom-top};
 }
+function calendarWeekRect(node){
+ const grid=node.closest('.agenda-calendar-grid');
+ if(!grid)return node.getBoundingClientRect();
+ const cells=[...grid.children];
+ const idx=cells.indexOf(node);
+ if(idx<0)return node.getBoundingClientRect();
+ const rowStart=Math.floor(idx/7)*7;
+ const row=cells.slice(rowStart,rowStart+7);
+ if(!row.length)return node.getBoundingClientRect();
+ const first=row[0].getBoundingClientRect(),last=row[row.length-1].getBoundingClientRect();
+ return {left:first.left,top:Math.min(...row.map(e=>e.getBoundingClientRect().top)),
+  right:last.right,bottom:Math.max(...row.map(e=>e.getBoundingClientRect().bottom)),
+  width:last.right-first.left,height:Math.max(...row.map(e=>e.getBoundingClientRect().bottom))-first.top};
+}
+function targetVisualBounds(node,mobile){
+ if(index===5 && node.matches('.agenda-cal-day'))return calendarWeekRect(node);
+ if(index===7){
+  const group=node.closest('.agenda-daygroup')||node;
+  const header=group.querySelector('.agenda-daytitle');
+  const row=node.matches('.agenda-classrow')?node:mondayClassRow();
+  if(header&&row&&group.contains(row)){
+   const h=header.getBoundingClientRect(),r=row.getBoundingClientRect();
+   return {left:Math.min(h.left,r.left),right:Math.max(h.right,r.right),
+    top:Math.min(h.top,r.top),bottom:Math.max(h.bottom,r.bottom),
+    width:Math.max(h.right,r.right)-Math.min(h.left,r.left),
+    height:Math.max(h.bottom,r.bottom)-Math.min(h.top,r.top)};
+  }
+ }
+ return node.getBoundingClientRect();
+}
+function clipVisualBounds(r,zone){
+ const left=clamp(r.left-5,6,innerWidth-26);
+ const right=clamp(r.right+5,left+16,innerWidth-6);
+ const top=clamp(r.top-5,zone.top,zone.bottom-12);
+ const bottom=clamp(r.bottom+5,top+12,zone.bottom);
+ return {left,right,top,bottom,width:right-left,height:bottom-top};
+}
 function positionMobileTarget(node){
- const zone=mobileShowcase(),r=node.getBoundingClientRect(),room=zone.bottom-zone.top;
- if(room<65)return;
- // Só o tutorial faz a rolagem. O alvo fica acima do cartão explicativo.
- let desired=zone.top+12;
- if(r.height<room-30)desired=zone.top+(room-r.height)/2;
+ // O seletor está no cabeçalho fixo: nunca tentar jogá-lo para o corpo da página.
+ if(index===14)return;
+ const zone=mobileShowcase(),r=targetVisualBounds(node,true),room=zone.bottom-zone.top;
+ if(room<50)return;
+ const marginTop=index===1||index===6||index===7?6:12;
+ let desired=zone.top+marginTop;
+ if(index!==1&&index!==6&&index!==7&&r.height<room-24)desired=zone.top+(room-r.height)/2;
+ // Não recentrar blocos altos no meio, pois isso cortava o título do item.
  const delta=r.top-desired;
  if(Math.abs(delta)<4)return;
+ const maxScroll=document.documentElement.scrollHeight-innerHeight;
+ const next=clamp(window.scrollY+delta,0,Math.max(0,maxScroll));
+ if(Math.abs(next-window.scrollY)<3)return;
  pendingScroll=true;
- window.scrollBy(0,delta);
+ window.scrollTo({top:next,behavior:'instant'});
  requestAnimationFrame(()=>requestAnimationFrame(()=>{
   pendingScroll=false;
   if(active)layout(false);
@@ -259,7 +332,9 @@ function layout(scrollTarget=false){
   }
  }
  const zone=mobile?mobileShowcase():null;
- const r=mobile?clippedRect(node,zone):currentRect(node);
+ const visual=targetVisualBounds(node,mobile);
+ const r=mobile?(index===14?currentRect(node):clipVisualBounds(visual,zone)):
+  (index===7?currentRect({getBoundingClientRect:()=>visual}):currentRect(node));
  lastRect=r;
  const navNode=updateSidebarHighlight(steps[index]);
  const navRect=!mobile&&navNode?currentRect(navNode):null;
@@ -283,6 +358,8 @@ function renderCopy(step){
 function show(n){
  if(!active)return;
  index=clamp(n,0,steps.length-1);
+ document.documentElement.dataset.pmTourStep=String(index+1);
+ mobilePositionAttempts=0;
  const serial=++stepSerial,step=steps[index];
  prep(step);
  requestAnimationFrame(()=>requestAnimationFrame(()=>{
@@ -313,6 +390,7 @@ function close(){
  active=false;++stepSerial;
  clearTimeout(fadeTimer);shell.hidden=true;
  document.documentElement.classList.remove('pm-tour-running');
+ delete document.documentElement.dataset.pmTourStep;
  document.querySelectorAll('#nav .pm-tour-nav-current').forEach(el=>el.classList.remove('pm-tour-nav-current'));
  if(sidebarSpot)sidebarSpot.hidden=true;
  if(changedSemester&&originSemester)q('.semester-option[data-semester="'+originSemester+'"]')?.click();
