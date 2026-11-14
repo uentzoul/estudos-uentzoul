@@ -253,3 +253,28 @@ html.pm-tour-running .pm-spotlight-interaction-shield{overscroll-behavior:contai
   width:min(345px,calc(100vw - 32px));
  }
 }
+
+/* Identificação contextual da aula apresentada no passo 8. A marca desaparece
+   automaticamente assim que o tutorial muda de etapa. */
+html.pm-tour-running[data-pm-tour-step="8"] .agenda-classrow.pm-tour-day-lesson{
+ position:relative;
+}
+html.pm-tour-running[data-pm-tour-step="8"] .agenda-classrow.pm-tour-day-lesson::before{
+ content:"Segunda-feira, 16 de novembro · Matéria do dia";
+ grid-column:1/-1;display:block;
+ font-weight:800;font-size:12px;line-height:1.4;
+ background:var(--soft,#f5f1fd);color:var(--ink,#272438);
+ padding:8px 10px;border-radius:9px;
+}
+@media(max-width:760px){
+ html.pm-tour-running[data-pm-tour-step="8"] .agenda-classrow.pm-tour-day-lesson{
+  grid-template-columns:minmax(0,1fr)!important;
+  gap:6px!important;
+ }
+ html.pm-tour-running[data-pm-tour-step="8"] .agenda-classrow.pm-tour-day-lesson::before{
+  font-size:11px;padding:6px 8px
+ }
+ html.pm-tour-running[data-pm-tour-step="8"] .agenda-classrow.pm-tour-day-lesson .agenda-readcolumn{
+  min-width:0;max-width:100%
+ }
+}
