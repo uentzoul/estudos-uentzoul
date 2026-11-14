@@ -7331,6 +7331,9 @@ function reset() {
   state.lastLoad=0;state.lastMissingRefresh=0;
 }
 function avatarUrl(path) {
+  // Pacotes Sticker.ly: permitir somente URLs de imagens do CDN oficial,
+  // sem abrir acesso a domínios arbitrários ou links fornecidos por usuários.
+  if(/^https:\/\/stickerly[.]pstatic[.]net\/sticker_pack\/[A-Za-z0-9_-]+\/[A-Za-z0-9_-]{6}\/[0-9]+\/[A-Za-z0-9._-]+[.](?:webp|png|gif)$/i.test(path||''))return path;
   if(!/^[a-zA-Z0-9._/-]+$/.test(path||'') || !path.startsWith('packs/')) return '';
   try {
     return client.storage.from(BUCKET).getPublicUrl(path).data?.publicUrl || '';
