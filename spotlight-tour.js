@@ -16,7 +16,7 @@ const steps=[
  {page:'exams',tab:'ai',find:'.ge-generator',fallback:'[data-ge-tab="ai"]',title:'Crie seu próprio simulado',body:'Na aba Criar simulado, escolha a disciplina, a dificuldade normal ou difícil, a quantidade de questões e se deseja incluir dissertativas. Depois, acesse a correção e o histórico das suas provas.',tip:'A criação e o compartilhamento de simulados personalizados exigem uma conta conectada.'},
  {page:'messages',tab:'private',find:'#dmUserSearch',fallback:'.dm-channel-tabs [data-dm-tab="private"]',title:'Converse em particular',body:'Na aba Privadas, procure um colega pelo nome e inicie uma conversa direta para tirar dúvidas, combinar estudos e trocar materiais.',login:'Entre na sua conta para acessar as conversas privadas e as demais funções de Mensagens.'},
  {page:'messages',tab:'groups',find:'[data-dm-new-group]',fallback:'.dm-channel-tabs [data-dm-tab="groups"]',title:'Crie um grupo de estudos',body:'Na aba Grupos, selecione Criar grupo, escolha um nome e convide os colegas. É um espaço para organizar trabalhos, discutir questões e estudar em conjunto.',login:'Com a conta conectada, abra Grupos e crie uma conversa com seus colegas.'},
- {page:'messages',tab:'global',find:'.dm-channel-tabs [data-dm-tab="global"]',fallback:'.dm-global-info',title:'Participe do chat global',body:'A aba Global é um espaço de conversa aberto aos estudantes cadastrados. Use-o para trocar ideias com a turma, pedir ajuda e compartilhar informações relevantes.',login:'O chat global fica disponível para estudantes conectados à conta.'},
+ {page:'messages',tab:'global',find:'#dmContacts [data-dmw-global]',fallback:'#dmContacts .dm-global',title:'Participe do chat global',body:'A aba Global é um espaço de conversa aberto aos estudantes cadastrados. Use-o para trocar ideias com a turma, pedir ajuda e compartilhar informações relevantes.',login:'O chat global fica disponível para estudantes conectados à conta.'},
  {page:'messages',tab:'global',find:'[data-dmv-share-open]',fallback:'.dm-composer, .dm-channel-tabs',title:'Compartilhe conteúdos sem sair do chat',body:'Dentro de uma conversa, use o recurso de compartilhamento para encontrar materiais, simulados, podcasts e tópicos já listados no PsicoMoodle. Também é possível enviar mensagens, imagens e stickers.',tip:'Simulados personalizados são enviados por conversa privada, com convite para o colega acessar.',login:'Depois de entrar na conta e abrir uma conversa, você poderá compartilhar materiais do catálogo diretamente pelo chat.'},
  {page:'home',find:'#semesterCurrent',title:'Escolha o semestre',body:'Use este seletor para alternar entre os períodos de Psicologia. Cada semestre tem sua própria organização, e os conteúdos aparecem conforme são cadastrados. O modo claro ou escuro também pode ser alterado no menu.',tip:'O tutorial terminou. Você poderá iniciá-lo novamente pelo botão Tutorial.'}
 ];
@@ -96,6 +96,11 @@ function selectTab(step){
 function prep(step){
  if(step.page==='subject')chooseSubject();
  else navigate(step.page);
+ // "Chat Global" é um contato fixo logo abaixo da busca, não uma aba no cabeçalho.
+ if(step.page==='messages' && step.tab==='global'){
+  const search=q('#dmUserSearch');
+  if(search?.value){search.value='';search.dispatchEvent(new Event('input',{bubbles:true}));}
+ }
  if(step.tab)selectTab(step);
 }
 function findNode(step){
@@ -133,24 +138,23 @@ function positionPopover(r){
  const pop=balloon.getBoundingClientRect();
  const pw=pop.width,ph=pop.height,gap=17;
  const spaceBottom=h-r.bottom,spaceTop=r.top,spaceRight=w-r.right,spaceLeft=r.left;
- // Na visão de disciplina, a explicação fica sob os perfis da barra direita:
- // não esconde os cartões das ferramentas de estudo.
- if(index===2 && w>=980){
-  const sidebar=available('#profileSidebar');
-  if(sidebar){
-   const sb=sidebar.getBoundingClientRect();
-   const people=available('#profileSidebar .rank-list')||available('#profileSidebar .rank-entry')||sidebar;
-   const peopleRect=people.getBoundingClientRect();
-   const desiredWidth=Math.max(190,Math.min(248,sb.width-16));
-   balloon.style.width=desiredWidth+'px';
-   const compact=balloon.getBoundingClientRect();
-   const x=clamp(sb.left+(sb.width-compact.width)/2,8,w-compact.width-8);
-   const y=clamp(peopleRect.bottom+20,Math.max(12,sb.top+65),Math.max(12,h-compact.height-12));
-   balloon.dataset.side='sidebar';
-   balloon.style.left=Math.round(x)+'px';
-   balloon.style.top=Math.round(y)+'px';
-   return;
+ // Uma caixa normal, à direita e próxima da disciplina, sem esmagá-la na barra de perfis.
+ if(index===2 && w>=800){
+  balloon.style.width=Math.min(370,Math.max(310,w*.26))+'px';
+  const box=balloon.getBoundingClientRect();
+  const menu=available('#main .subject-hub-menu');
+  const menuRect=menu?.getBoundingClientRect();
+  const rightEdge=menuRect?.right||r.right;
+  const x=clamp(rightEdge+18,12,w-box.width-12);
+  let y=clamp(r.top+24,12,Math.max(12,h-box.height-12));
+  // Se a faixa lateral for estreita, priorize o espaço livre acima dos cartões.
+  if(x<rightEdge-4 && menuRect){
+   y=clamp(menuRect.top-box.height-18,12,Math.max(12,h-box.height-12));
   }
+  balloon.dataset.side='floating';
+  balloon.style.left=Math.round(x)+'px';
+  balloon.style.top=Math.round(y)+'px';
+  return;
  }
  balloon.style.width='';
  let x,y,side='bottom';
