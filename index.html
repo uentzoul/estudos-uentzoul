@@ -2820,8 +2820,11 @@ function renderSubject(k){
  const top='<div class="subject-hub" style="--subject-accent:'+color(k)+'">'+
  '<div class="subject-hub-crumb"><button type="button" data-action="page:home">Início</button><span aria-hidden="true">/</span><span>'+esc(subj.name)+'</span></div>'+
  '<header class="subject-hub-hero"><span class="subject-hub-emblem" aria-hidden="true">Ψ</span>'+
- '<div class="subject-hub-heading"><span class="subject-hub-kicker">'+esc(semesterLabel(semester))+' · '+esc(subj.exam)+'</span>'+
- '<h1>'+esc(subj.name)+'</h1><p class="subject-hub-date">Avaliação · '+dformat(subj.date)+'</p></div></header>';
+ '<div class="subject-hub-heading"><span class="subject-hub-kicker">'+esc(semesterLabel(semester))+
+ (semester==='2026/1'?' · Revisão para relembrar':subj.exam?' · '+esc(subj.exam):'')+'</span>'+
+ '<h1>'+esc(subj.name)+'</h1><p class="subject-hub-date">'+
+ (semester==='2026/1'?'Pratique os conteúdos do primeiro semestre, sem data de prova':subj.date?'Avaliação · '+dformat(subj.date):'Simulados e materiais da disciplina')+
+ '</p></div></header>';
  const metaTrail=k==='meta'&&semester==='2026/2'?
  '<a class="subject-hub-meta" href="metapsicologia-p2.html">'+
  '<span class="subject-hub-meta-icon" aria-hidden="true">▶</span>'+
@@ -3720,6 +3723,8 @@ function geExamCard(exam){
   '</article>';
 }
 function geRenderList(){
+ // Mesmo layout para todos os semestres, com disciplinas do período ativo.
+ if(!DB.subjects[ge.subject])ge.subject=Object.keys(DB.subjects)[0]||'';
  const logged=!!geUser();
  if(logged&&!ge.loaded&&!ge.loading)queueMicrotask(geLoad);
  if(!logged)return head('Simulados','Criar simulados personalizados','A IA gera uma prova nova para cada solicitação, baseada no conteúdo da disciplina e no estilo do professor.')+
@@ -3732,7 +3737,7 @@ function geRenderList(){
   '<label class="ge-essay-choice"><input type="checkbox" id="geIncludeEssays" '+(ge.subject==='grupos'?'checked disabled':ge.includeEssays?'checked':'')+'> '+(ge.subject==='grupos'?'Todas as cinco questões serão dissertativas':'Incluir 2 questões dissertativas finais (dentro do total)')+'</label>'+
   '<button type="button" class="btn ge-primary" data-ge-create '+(ge.busy?'disabled':'')+'>'+(ge.busy?'Preparando o simulado…':'Gerar novo simulado')+'</button></div></div>':
   '<div class="ge-generator"><h2>Sem disciplinas cadastradas em '+esc(semester)+'</h2><p>Volte ao semestre 2026/2 para gerar provas com os materiais disponíveis.</p></div>';
- const visible=ge.exams.filter(e=>!ge.hidden.some(h=>h.exam_id===e.id));
+ const visible=ge.exams.filter(e=>e.semester===semester&&!ge.hidden.some(h=>h.exam_id===e.id));
  const owned=visible.filter(e=>e.creator_id===geUser().id);
  const received=visible.filter(e=>e.creator_id!==geUser().id&&ge.shares.some(x=>x.exam_id===e.id&&x.recipient_id===geUser().id));
  const section=(title,rows,empty)=>'<section class="section ge-section"><div class="sectiontop"><h2>'+title+'</h2><small>'+rows.length+' provas</small></div>'+
@@ -3747,7 +3752,7 @@ function geRenderList(){
   '<p class="small">As questões são geradas com base nos materiais cadastrados. O formato se aproxima das provas dos professores quando há exemplos disponíveis; não é uma prova oficial. Os simulados gerados servem para praticar.</p>';
 }
 function geRenderExam(){
- const exam=ge.exams.find(e=>e.id===ge.selected);if(!exam){ge.selected=null;return geRenderList()}
+ const exam=ge.exams.find(e=>e.id===ge.selected&&e.semester===semester);if(!exam){ge.selected=null;return geRenderList()}
  const submission=geSubmission(exam.id),review=!!submission,answers=review?submission.answers:geDraft(exam.id);
  const objectiveCount=exam.questions.filter(q=>q.type==='choice').length,essayCount=exam.questions.length-objectiveCount;
  const details=review?(submission.feedback?.details||[]):[];
@@ -3946,10 +3951,13 @@ renderSubject=function(k){
   (user?'<button type="button" class="subject-sim-create" data-action="subjectCreateExam">+ Criar simulado</button>':'')+
   '</div>'+created+'</div>';
  const section='<section class="section" id="tests"><div class="sectiontop"><h2>Simulados</h2></div>'+geOriginDetails()+
-  '<div class="subject-sim-groups">'+readyGroup+'</div></section>';
+  '<div class="subject-sim-groups">'+readyGroup+createdGroup+'</div></section>';
  return html.slice(0,start)+section+html.slice(end+'</section>'.length);
 };
 function geOriginDetails(){
+ if(semester==='2026/1')return '<details class="ge-origin-explain"><summary><span class="ge-origin-icon" aria-hidden="true">?</span> Como foram feitos os simulados?</summary>'+
+ '<div class="ge-origin-copy"><p>Os cinco simulados de cada disciplina foram criados como exercícios de retomada do primeiro semestre a partir dos conceitos, exemplos e referências do acervo cadastrado. A dificuldade é equivalente entre os modelos, sem aumentar artificialmente a cada prova.</p>'+
+ '<p>São exercícios autorais para relembrar, e não avaliações oficiais nem reprodução de provas aplicadas. Os simulados personalizados usam a mesma tela e as mesmas opções do segundo semestre, mas consultam apenas a base temática do primeiro.</p></div></details>';
  return '<details class="ge-origin-explain"><summary><span class="ge-origin-icon" aria-hidden="true">?</span> Como foram feitos os simulados?</summary>'+
  '<div class="ge-origin-copy"><p>Estudantes compartilharam provas e exemplos de avaliações anteriores. Eles foram analisados para entender o estilo de cobrança de cada professor, como a forma dos enunciados, os conceitos mais explorados, a aplicação de casos e o nível de justificativa pedido. Com essas referências e os conteúdos previstos para a avaliação final, foram criadas questões inéditas que procuram se aproximar desse estilo.</p>'+
  '<p>Nem todas as disciplinas tiveram a mesma quantidade de provas como referência. <strong>Os simulados não são provas oficiais nem uma previsão do que será cobrado.</strong> São ferramentas de treino e revisão.</p>'+
@@ -3958,7 +3966,7 @@ function geOriginDetails(){
 function geReadyLibrary(){
  const subjects=Object.keys(DB.subjects);
  return '<header class="ge-ready-intro"><h1 class="h1">Provas para praticar</h1>'+
-  '<p>Escolha um simulado para começar. Atividades de estudo, não avaliações oficiais.</p></header>'+geOriginDetails()+
+  '<p>'+(semester==='2026/1'?'Retome os assuntos estudados no primeiro semestre. Escolha um simulado pronto de cada matéria.':'Escolha um simulado para começar. Atividades de estudo, não avaliações oficiais.')+'</p></header>'+geOriginDetails()+
  subjects.map(id=>{
   const all=readyExamsFor(id),completed=all.filter(e=>!!store.results[e.id]).length;
   const archived=DB.exams.filter(e=>e.subject===id&&!all.some(item=>item.id===e.id)&&store.results[e.id]);
@@ -4023,7 +4031,7 @@ renderHome=function(){
 const geLegacySubjectCard=subjectCard;
 subjectCard=function(id){
  let html=geLegacySubjectCard(id);
- const count=ge.submissions.filter(x=>ge.exams.some(e=>e.id===x.exam_id&&e.subject===id)).length;
+ const count=ge.submissions.filter(x=>ge.exams.some(e=>e.id===x.exam_id&&e.subject===id&&e.semester===semester)).length;
  html=html.replace(/\d+ de \d+ simulados/,count+' simulados feitos');
  return html;
 };
@@ -4088,7 +4096,11 @@ window.addEventListener('uentzoul:auth',()=>{
  geSetupLive();
  if(geUser())queueMicrotask(geLoad);
 });
-window.addEventListener('uentzoul:semester',()=>{ge.selected=null;if(current.page==='exams')render()});
+window.addEventListener('uentzoul:semester',()=>{
+ ge.selected=null;ge.shareExamId=null;ge.error='';ge.notice='';
+ if(!DB.subjects[ge.subject])ge.subject=Object.keys(DB.subjects)[0]||'';
+ if(current.page==='exams')render();
+});
 window.addEventListener('uentzoul:exam-invite-updated',()=>geLoad());
 
 const UENTZOUL_BASE_TOPICS=Object.fromEntries(Object.entries(SEMESTER_DB).map(([sem,db])=>[sem,Object.fromEntries(Object.entries(db.topics||{}).map(([k,v])=>[k,v.slice()]))]));
@@ -4152,6 +4164,9 @@ function renderThirdSemester(){
    '<section class="section home-course-section" id="homeCourses">'+courseCards()+'</section>';
  }
  if(current.page==='subject'&&subj){
+  // A tela de simulados dentro da matéria compartilha o mesmo componente
+  // em todos os períodos; as outras áreas mantêm os materiais do semestre.
+  if(current.subjectArea==='tests')return renderSubject(subjectId);
   if(firstSemester&&window.PSICO_FIRST_SEMESTER){
    const docs=DB.materials.filter(m=>m.subject===subjectId&&m.available&&m._libraryUpload?.exam_scope!==false);
    return window.PSICO_FIRST_SEMESTER.renderSubject({id:subjectId,subject:subj,area:current.subjectArea,
@@ -4211,7 +4226,7 @@ function renderThirdSemester(){
 }
 function render(){
  renderNav();
- if((semester==='2027/1'||semester==='2026/1')&&!['ai','messages','admin'].includes(current.page)&&!(semester==='2026/1'&&current.page==='test')){
+ if((semester==='2027/1'||semester==='2026/1')&&!['ai','messages','admin','exams','test'].includes(current.page)){
   $('main').innerHTML=renderThirdSemester();return;
  }
  if(!Object.keys(DB.subjects).length&&current.page!=='ai'&&current.page!=='messages'&&current.page!=='admin'){
