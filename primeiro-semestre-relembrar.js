@@ -209,7 +209,7 @@ function top(id,subj){
 }
 const back='<button type="button" class="subject-hub-back" data-action="subjectArea:home">← Voltar às opções</button>';
 function docsView(ctx){
- const available=(ctx.docs||[]).filter(m=>m.available);
+ const available=(ctx.docs||[]).filter(m=>m.available),sources=SOURCES[ctx.id]||[];
  const manager=window.PSICO_COURSE_MANAGER;
  const organizer=manager?.weeklyView?.('2026/1',ctx.id,available,ctx.docCard);
  const weekly=!!organizer?.weekly;
@@ -222,7 +222,8 @@ function docsView(ctx){
  const content='<div class="s1-library-organized">'+(organizer?.tabs||'')+
   (weekly?organizer.body:
    '<div class="s1-library-general">'+(editor?.editButton?.(ctx.id)||'')+
-   (available.length?general:'<p class="s1-help">Nenhum documento desta disciplina está publicado.</p>')+'</div>')+
+   (available.length?general:'<p class="s1-help">Nenhum documento desta disciplina está publicado.</p>')+
+   (sources.length?'<details class="s1-ref-list"><summary>Fontes para conferência ('+sources.length+' referências)</summary><ul>'+sources.map(x=>'<li>'+esc(x)+'</li>').join('')+'</ul></details>':'')+'</div>')+
   '</div>';
  return panel('Materiais e textos',content,
   'Acervo geral: arquivos por tipo. Por semanas: os nomes e a sequência aparecem como no Moodle de 2026/1.');
