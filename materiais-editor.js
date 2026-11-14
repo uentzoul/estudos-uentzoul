@@ -2,11 +2,14 @@
 (()=>{
 'use strict';
 const TABLE='uentzoul_material_placements';
-const SEMESTER='2026/2';
+const currentSemester=()=>window.uentzoulLibraryApp?.semester?.()||'2026/2';
 const CATEGORIES=[
  {id:'plans',title:'Planos de ensino e cronogramas',core:true},
  {id:'classes',title:'Aulas e apresentações',core:true},
- {id:'texts',title:'Textos-base e bibliografia',core:true},
+ {id:'texts',title:'Artigos e textos-base',core:true},
+ {id:'books',title:'Livros, capítulos e obras de referência',core:true},
+ {id:'activities',title:'Atividades e estudos dirigidos',core:false},
+ {id:'regulations',title:'Normas e documentos profissionais',core:false},
  {id:'review',title:'Guias e materiais de revisão',core:false},
  {id:'videos',title:'Vídeos e referências online',core:false},
  {id:'extras',title:'Materiais complementares',core:false}
@@ -20,7 +23,7 @@ const client=()=>auth()?.client?.();
 const user=()=>auth()?.user?.();
 const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const key=m=>String(m._libraryKey||(m.subject+'::'+m.title));
-const placementKey=(s,k)=>SEMESTER+'|'+s+'|'+k;
+const placementKey=(s,k,sem=currentSemester())=>sem+'|'+s+'|'+k;
 function titleFor(m){
  const row=placements.get(placementKey(m.subject,key(m)));
  return typeof row?.display_title==='string'&&row.display_title.trim()?row.display_title:m.title;
@@ -60,7 +63,7 @@ function copyForEditing(materials,subject,classify){
 }
 function renderGroups(materials,opts){
  const subject=opts?.subject||materials[0]?.subject||'';
- const isEditing=allowed()&&editing?.subject===subject&&!opts.libraryView;
+ const isEditing=allowed()&&editing?.subject===subject&&editing?.semester===currentSemester()&&!opts.libraryView;
  const base=currentGroups(materials,subject,opts.classify),active=isEditing?editing:null;
  const groups=isEditing?Object.fromEntries([
   ...CATEGORIES.map(c=>[c.id,(active.groups[c.id]||[]).map(k=>({key:k,material:active.materials.get(k)})).filter(x=>x.material)]),
@@ -112,7 +115,7 @@ function renderGroups(materials,opts){
 function editButton(subject){
  if(editing&&editing.owner!==user()?.id)editing=null;
  if(!allowed()||!subject)return '';
- if(editing?.subject===subject){
+ if(editing?.subject===subject&&editing?.semester===currentSemester()){
   return '<div class="pm-edit-toolbar">'+
    '<button type="button" class="pm-cancel" data-pm-cancel'+(editing.busy?' disabled':'')+'>Cancelar</button>'+
    '<button type="button" class="pm-save" data-pm-save'+(editing.busy?' disabled':'')+'>'+(editing.busy?'Salvando…':'Salvar organização')+'</button></div>';
@@ -158,7 +161,7 @@ async function save(){
   const check=await c.rpc('uentzoul_is_admin');
   if(check.error||check.data!==true||user()?.id!==u.id)throw Error('Sua conta não possui permissão de administrador.');
   const makeRow=(k,cat,pos,hidden)=>({
-   semester:SEMESTER,subject:state.subject,resource_key:k,category:cat,position:pos,is_hidden:hidden,
+   semester:state.semester,subject:state.subject,resource_key:k,category:cat,position:pos,is_hidden:hidden,
    display_title:String(state.titles.get(k)||'').trim()===String(state.materials.get(k)?.title||'').trim()?null:String(state.titles.get(k)||'').trim(),
    updated_at:new Date().toISOString()
   });
@@ -167,14 +170,14 @@ async function save(){
   if(rows.length){
    const result=await c.from(TABLE).upsert(rows,{onConflict:'semester,subject,resource_key'});
    if(result.error)throw result.error;
-   const query=await c.from(TABLE).select('resource_key,category,position,display_title,is_hidden').eq('semester',SEMESTER).eq('subject',state.subject);
+   const query=await c.from(TABLE).select('resource_key,category,position,display_title,is_hidden').eq('semester',state.semester).eq('subject',state.subject);
    if(query.error)throw query.error;
    const verified=new Map((query.data||[]).map(x=>[x.resource_key,x]));
    if(rows.some(r=>verified.get(r.resource_key)?.category!==r.category||verified.get(r.resource_key)?.position!==r.position||
     verified.get(r.resource_key)?.is_hidden!==r.is_hidden||(verified.get(r.resource_key)?.display_title||null)!==(r.display_title||null))){
     throw Error('Não foi possível confirmar a gravação de todas as alterações. Atualize a página e confira a organização.');
    }
-   for(const row of rows)placements.set(placementKey(row.subject,row.resource_key),row);
+   for(const row of rows)placements.set(placementKey(row.subject,row.resource_key,row.semester),row);
   }
   notice='Alterações de materiais salvas para todos os usuários.';
   editing=null;lastFetch=Date.now();repaint();
@@ -186,9 +189,9 @@ async function refresh(force=false){
  if(!c||(!force&&Date.now()-lastFetch<12000))return;
  fetching=true;
  try{
-  const r=await c.from(TABLE).select('semester,subject,resource_key,category,position,display_title,is_hidden').eq('semester',SEMESTER).limit(2000);
+  const r=await c.from(TABLE).select('semester,subject,resource_key,category,position,display_title,is_hidden').in('semester',['2026/1','2026/2']).limit(3000);
   if(r.error)throw r.error;
-  const next=new Map((r.data||[]).map(x=>[placementKey(x.subject,x.resource_key),x]));
+  const next=new Map((r.data||[]).map(x=>[placementKey(x.subject,x.resource_key,x.semester),x]));
   const changed=JSON.stringify([...placements])!==JSON.stringify([...next]);
   placements=next;lastFetch=Date.now();
   if(changed&&!editing)repaint();
@@ -202,7 +205,7 @@ document.addEventListener('click',event=>{
   const materials=window.PSICO_MATERIAL_EDITOR?.getMaterials?.(subject)||[];
   const classify=window.PSICO_MATERIAL_EDITOR?.classify;
   if(!classify)return;
-  editing=copyForEditing(materials,subject,classify);editing.owner=user()?.id;notice='';repaint();return;
+  editing=copyForEditing(materials,subject,classify);editing.owner=user()?.id;editing.semester=currentSemester();notice='';repaint();return;
  }
  if(event.target.closest('[data-pm-cancel]')){event.preventDefault();if(editing&&!editing.busy){editing=null;notice='';repaint();}return;}
  if(event.target.closest('[data-pm-save]')){event.preventDefault();save();return;}
@@ -264,6 +267,7 @@ document.addEventListener('dragend',()=>{draggedKey='';clearHighlight();document
 window.addEventListener('focus',()=>refresh());
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)refresh();});
 window.addEventListener('uentzoul:library-updated',()=>refresh());
+window.addEventListener('uentzoul:semester',()=>{if(editing?.semester!==currentSemester())editing=null;notice='';refresh(true);});
 setInterval(()=>refresh(),45000);
 let attempts=0;
 function start(){if(client())refresh(true);else if(attempts++<60)setTimeout(start,900);}
