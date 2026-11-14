@@ -112,3 +112,79 @@ html[data-theme="dark"] .admin-log-avatar{background:#4a3a66;color:#e7d8ff}
  .admin-log-row time{margin-left:42px;width:100%}
  .admin-log-test-toggle{margin-left:42px;max-width:calc(100% - 42px)}
 }
+
+
+/* Admin Log: totais de presença com foco visual em visitantes anônimos.
+   Mantém o resumo visível em todas as abas, sem criar lista individual. */
+.admin-config-page .admin-online-overview{
+ display:grid;grid-template-columns:minmax(0,1.4fr) repeat(2,minmax(0,1fr));
+ align-items:stretch;gap:10px;margin:17px 0 16px;
+}
+.admin-config-page .admin-online-stat{
+ min-width:0;display:flex;flex-direction:column;
+ padding:17px 17px 14px;border:1px solid var(--line);
+ border-radius:15px;background:var(--soft);color:var(--ink);
+}
+.admin-config-page .admin-online-guests{
+ position:relative;isolation:isolate;overflow:hidden;
+ background:linear-gradient(132deg,#e3f6f2,#e9f5f9);
+ border:1px solid #a6dfd2;box-shadow:0 5px 17px #16796218;
+}
+.admin-config-page .admin-online-guests::after{
+ content:"";position:absolute;z-index:-1;right:-39px;top:-67px;
+ width:162px;height:162px;border-radius:50%;
+ border:1px solid #39a69335;box-shadow:0 0 0 26px #2fac9710,0 0 0 49px #2fac9708;pointer-events:none;
+}
+.admin-config-page .admin-online-label{
+ display:flex;gap:8px;align-items:center;min-width:0;
+ color:var(--muted);font-size:10px;letter-spacing:.085em;
+ font-weight:800;line-height:1.5;
+}
+.admin-config-page .admin-online-guests .admin-online-label{color:#12695e}
+.admin-config-page .admin-online-pulse{
+ width:8px;height:8px;flex:none;border-radius:50%;background:#1d9a77;
+ box-shadow:0 0 0 4px #239f7b19;
+ animation:adminGuestPulse 3s ease-in-out infinite;
+}
+.admin-config-page .admin-online-big{
+ font-size:clamp(44px,4.9vw,68px);font-weight:850;
+ line-height:1.04;letter-spacing:-.065em;tabular-nums:true;
+ color:#147969;margin-top:12px;
+ font-variant-numeric:tabular-nums;
+}
+.admin-config-page .admin-online-number{
+ font-size:clamp(33px,3.8vw,47px);font-weight:830;line-height:1.12;
+ letter-spacing:-.06em;margin-top:15px;font-variant-numeric:tabular-nums;
+ color:var(--ink);
+}
+.admin-config-page .admin-online-stat p{font-size:11px;line-height:1.55;color:var(--muted);margin:8px 0 0}
+.admin-config-page .admin-online-guests p{color:#276e63}
+.admin-config-page .admin-online-guests small{
+ display:block;color:#50847c;font-size:10px;line-height:1.4;margin-top:auto;padding-top:10px;
+}
+@keyframes adminGuestPulse{
+ 50%{box-shadow:0 0 0 8px #239f7b12;}
+}
+html[data-theme="dark"] .admin-config-page .admin-online-guests{
+ background:linear-gradient(130deg,#203c40,#243b48);
+ border-color:#467a7a;box-shadow:0 8px 22px #060c111f;
+}
+html[data-theme="dark"] .admin-config-page .admin-online-guests .admin-online-label,
+html[data-theme="dark"] .admin-config-page .admin-online-big{color:#9bedd7}
+html[data-theme="dark"] .admin-config-page .admin-online-guests p{color:#b4dad4}
+html[data-theme="dark"] .admin-config-page .admin-online-guests small{color:#98c2bd}
+html[data-theme="dark"] .admin-config-page .admin-online-pulse{background:#85e7bd}
+@media(max-width:750px){
+ .admin-config-page .admin-online-overview{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+ .admin-config-page .admin-online-guests{grid-column:1/-1}
+ .admin-config-page .admin-online-stat{padding:14px 13px}
+ .admin-config-page .admin-online-big{font-size:55px}
+ .admin-config-page .admin-online-number{font-size:38px}
+}
+@media(max-width:390px){
+ .admin-config-page .admin-online-overview{grid-template-columns:1fr}
+ .admin-config-page .admin-online-guests{grid-column:auto}
+}
+@media(prefers-reduced-motion:reduce){
+ .admin-config-page .admin-online-pulse{animation:none}
+}
