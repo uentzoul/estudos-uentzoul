@@ -75,9 +75,8 @@
   closeButton.addEventListener('click',()=>setOpen(false,true));
   backdrop.addEventListener('click',()=>setOpen(false,true));
 
-  // Gaveta que acompanha o dedo — sem disputar rolagem, controles ou gesto
-  // de voltar do navegador. O estado aberto só muda ao soltar o dedo.
-  const EDGE_MIN=24,EDGE_MAX=96;
+  // Gaveta acompanha o dedo em qualquer região da tela. Só um arraste
+  // horizontal deliberado aciona o menu; rolamentos verticais seguem nativos.
   const START_SLOP=13,FINISH_RATIO=.48,FLICK_VELOCITY=.48;
   let gesture=null;
   const clamp=(v,min,max)=>Math.max(min,Math.min(max,v));
@@ -129,14 +128,9 @@
    if(horizontalScroller(target))return;
    if(target?.closest?.('input,textarea,select,[contenteditable="true"],[role="slider"]'))return;
    const start=opened?1:0;
-   if(!opened){
-    // Deixa a borda extrema para a navegação nativa do iOS/Android.
-    if(t.clientX<EDGE_MIN||t.clientX>EDGE_MAX)return;
-    const control=target?.closest?.('button,a,[role="button"]');
-    if(control&&!control.matches('#pmMobileMenuToggle'))return;
-   }
-   // Com a gaveta aberta, o gesto de fechar pode começar na própria
-   // gaveta OU em qualquer ponto do fundo escurecido.
+   // Abre arrastando da esquerda para a direita a partir de qualquer
+   // coordenada horizontal, inclusive cartões e área central da página.
+   // Com o menu aberto, o movimento inverso também funciona em toda a tela.
    gesture={start,progress:start,x:t.clientX,y:t.clientY,
     time:Date.now(),width:Math.max(side.getBoundingClientRect().width,1),
     claimed:false};
