@@ -3730,14 +3730,17 @@ function geRenderList(){
  if(!logged)return head('Simulados','Criar simulados personalizados','A IA gera uma prova nova para cada solicitação, baseada no conteúdo da disciplina e no estilo do professor.')+
   '<section class="panel ge-panel"><h2>Entre na sua conta</h2><p>Para gerar, guardar e compartilhar provas, é necessário entrar na conta do site.</p><button class="btn" data-action="tz-login">Entrar / Cadastrar</button></section>';
  const subjects=Object.entries(DB.subjects);
+ const supportedGenerator=['2026/1','2026/2'].includes(semester);
  const form=subjects.length?'<div class="ge-generator"><div><span class="eyebrow">NOVO SIMULADO</span><h2>Uma prova inédita para estudar</h2><p>'+(ge.subject==='grupos'?'Para Psicologia de Grupos, os simulados gerados têm cinco questões dissertativas sobre cenas de Escritores da Liberdade, relacionadas a Moreno e Carl Rogers. As respostas orientativas ficam disponíveis após a entrega.':'Escolha a disciplina, a dificuldade e a quantidade total de questões. Se desejar, inclua duas questões dissertativas dentro da quantidade escolhida. O gabarito e os critérios ficam disponíveis após a entrega.')+'</p></div>'+
   '<div class="ge-fields"><label>Disciplina<select id="geSubject">'+subjects.map(([id,v])=>'<option value="'+esc(id)+'" '+(ge.subject===id?'selected':'')+'>'+esc(v.name)+'</option>').join('')+'</select></label>'+
   '<label>Dificuldade<select id="geDifficulty"><option value="normal" '+(ge.difficulty==='normal'?'selected':'')+'>Normal</option><option value="dificil" '+(ge.difficulty==='dificil'?'selected':'')+'>Difícil</option></select></label>'+
   '<label>Quantidade total de questões<select id="geQuestionCount">'+(ge.subject==='grupos'?[5]:[5,10,15,20]).map(n=>'<option value="'+n+'" '+(ge.questionCount===n?'selected':'')+'>'+n+' questões</option>').join('')+'</select></label>'+
   '<label class="ge-essay-choice"><input type="checkbox" id="geIncludeEssays" '+(ge.subject==='grupos'?'checked disabled':ge.includeEssays?'checked':'')+'> '+(ge.subject==='grupos'?'Todas as cinco questões serão dissertativas':'Incluir 2 questões dissertativas finais (dentro do total)')+'</label>'+
-  '<button type="button" class="btn ge-primary" data-ge-create '+(ge.busy?'disabled':'')+'>'+(ge.busy?'Preparando o simulado…':'Gerar novo simulado')+'</button></div></div>':
-  '<div class="ge-generator"><h2>Sem disciplinas cadastradas em '+esc(semester)+'</h2><p>Volte ao semestre 2026/2 para gerar provas com os materiais disponíveis.</p></div>';
+  '<button type="button" class="btn ge-primary" data-ge-create '+(ge.busy||!supportedGenerator?'disabled':'')+'>'+(ge.busy?'Preparando o simulado…':supportedGenerator?'Gerar novo simulado':'Aguardando os conteúdos deste semestre')+'</button>'+
+ (!supportedGenerator?'<p class="ge-muted">A interface já está preparada. A criação de questões será liberada quando os conteúdos deste semestre forem cadastrados.</p>':'')+'</div></div>':
+  '<div class="ge-generator"><h2>Sem disciplinas cadastradas em '+esc(semester)+'</h2><p>Assim que as matérias e os respectivos materiais forem publicados, esta mesma tela poderá ser usada para criar provas.</p></div>';
  const visible=ge.exams.filter(e=>e.semester===semester&&!ge.hidden.some(h=>h.exam_id===e.id));
+ const semesterHidden=ge.hidden.filter(h=>ge.exams.some(exam=>exam.id===h.exam_id&&exam.semester===semester));
  const owned=visible.filter(e=>e.creator_id===geUser().id);
  const received=visible.filter(e=>e.creator_id!==geUser().id&&ge.shares.some(x=>x.exam_id===e.id&&x.recipient_id===geUser().id));
  const section=(title,rows,empty)=>'<section class="section ge-section"><div class="sectiontop"><h2>'+title+'</h2><small>'+rows.length+' provas</small></div>'+
@@ -3745,7 +3748,7 @@ function geRenderList(){
  return head('Simulados','Simulados sob medida','Uma prova nova a cada solicitação, guardada na sua conta. Depois de entregar, só é possível rever.')+
   form+(ge.error?'<div class="tz-notice" role="alert">'+esc(ge.error)+'</div>':'')+
   (ge.notice?'<p class="small muted" role="status">'+esc(ge.notice)+'</p>':'')+
-  '<div class="ge-toolbar"><span>Histórico salvo na sua conta</span><div class="ge-toolbar-actions">'+(ge.hidden.length?'<button type="button" class="btn sm light" data-ge-restore>Restaurar ocultados ('+ge.hidden.length+')</button>':'')+'<button type="button" class="btn sm light" data-ge-refresh '+(ge.loading?'disabled':'')+'>Atualizar histórico</button></div></div>'+
+  '<div class="ge-toolbar"><span>Histórico salvo na sua conta</span><div class="ge-toolbar-actions">'+(semesterHidden.length?'<button type="button" class="btn sm light" data-ge-restore>Restaurar ocultados ('+semesterHidden.length+')</button>':'')+'<button type="button" class="btn sm light" data-ge-refresh '+(ge.loading?'disabled':'')+'>Atualizar histórico</button></div></div>'+
   (ge.loading?'<div class="panel ge-panel">Carregando simulados salvos…</div>':
   section('Meus simulados',owned,'Nenhum simulado criado até agora.')+
   section('Compartilhados comigo',received,'Quando um colega compartilhar uma prova contigo, ela aparecerá aqui.'))+
@@ -3813,7 +3816,7 @@ async function geLoad(){
  finally{ge.loading=false;ge.lastFetch=Date.now();if(geUser()?.id===userId&&(current.page==='exams'||current.page==='subject')&&!document.activeElement?.matches('.ge-essay,.ge-option input'))render();if(ge.pending&&geUser()?.id===userId){ge.pending=false;queueMicrotask(geLoad)}}
 }
 async function geCreate(){
- if(ge.busy||!geUser()||!DB.subjects[ge.subject])return;
+ if(ge.busy||!geUser()||!DB.subjects[ge.subject]||!['2026/1','2026/2'].includes(semester))return;
  const userId=geUser().id,requestedSubject=ge.subject,requestedSemester=semester,requestedDifficulty=ge.difficulty,requestedCount=ge.subject==='grupos'?5:ge.questionCount,requestedEssays=ge.subject==='grupos'?true:ge.includeEssays;
  const startedAt=new Date().toISOString();
  ge.busy=true;ge.error='';ge.notice='A IA está montando a prova a partir dos materiais da disciplina.';
@@ -3827,9 +3830,13 @@ async function geCreate(){
   if(geUser()?.id!==userId){ge.busy=false;return;}
   if(exam){
    if(!ge.exams.some(e=>e.id===exam.id))ge.exams.unshift(exam);
-   ge.selected=exam.id;
-   if(!ge.answers[exam.id])ge.answers[exam.id]=Array(exam.questions?.length||15).fill('');
-   ge.error='';ge.notice='';
+   if(semester===requestedSemester&&exam.semester===requestedSemester){
+    ge.selected=exam.id;
+    if(!ge.answers[exam.id])ge.answers[exam.id]=Array(exam.questions?.length||15).fill('');
+    ge.error='';ge.notice='';
+   }else{
+    ge.selected=null;ge.notice='O simulado foi salvo no semestre em que a criação começou.';
+   }
   }else{
    ge.error=error||'Não foi possível confirmar a criação do simulado. Verifique o histórico antes de tentar novamente.';
    ge.notice='';
@@ -3896,7 +3903,7 @@ async function geSubmit(){
 async function geShare(){
  if(ge.busy||!(ge.shareExamId||ge.selected)||!ge.shareTarget.length||!geUser())return;
  const examId=ge.shareExamId||ge.selected,exam=ge.exams.find(x=>x.id===examId);
- if(!exam||exam.creator_id!==geUser().id)return;
+ if(!exam||exam.creator_id!==geUser().id||exam.semester!==semester)return;
  ge.busy=true;ge.error='';
  const recipients=[...new Set(ge.shareTarget)],failed=[];
  try{
@@ -3992,7 +3999,7 @@ renderExams=function(){
 async function geHideExam(id){
  if(!geUser()||ge.busy||ge.hidden.some(h=>h.exam_id===id))return;
  const exam=ge.exams.find(e=>e.id===id);
- if(!exam)return;
+ if(!exam||exam.semester!==semester)return;
  const warning=exam.creator_id===geUser().id
   ?'Retirar este simulado da sua lista? Ele continuará disponível para colegas com quem já foi compartilhado. Poderá restaurá-lo depois.'
   :'Retirar este simulado compartilhado da sua lista? Isso não afeta o dono nem outras pessoas.';
@@ -4010,12 +4017,16 @@ async function geHideExam(id){
 }
 async function geRestoreHidden(){
  if(!geUser()||ge.busy)return;
+ const ids=ge.hidden.filter(h=>ge.exams.some(e=>e.id===h.exam_id&&e.semester===semester)).map(h=>h.exam_id);
+ if(!ids.length)return;
  ge.busy=true;
  try{
-  const {error}=await geClient().from('uentzoul_generated_exam_hidden').delete().eq('user_id',geUser().id);
+  const {error}=await geClient().from('uentzoul_generated_exam_hidden').delete()
+   .eq('user_id',geUser().id).in('exam_id',ids);
   if(error)throw error;
-  ge.hidden=[];
-  toast('Simulados restaurados à sua lista.');
+  const restored=new Set(ids);
+  ge.hidden=ge.hidden.filter(h=>!restored.has(h.exam_id));
+  toast('Simulados deste semestre restaurados à sua lista.');
  }catch(e){ge.error=e?.message||'Falha ao restaurar simulados.';}
  finally{ge.busy=false;if(current.page==='exams'||current.page==='subject')render();}
 }
