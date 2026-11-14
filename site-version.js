@@ -193,7 +193,7 @@ setTimeout(check,15000);
   if(!document.getElementById('pm-vacation-timeline-js')){
    const js=document.createElement('script');
    js.id='pm-vacation-timeline-js';
-   js.src='revisao-ferias.js?v=20261114-month-accordion-v2';
+   js.src='revisao-ferias.js?v=20261114-month-accordion-v3';
    js.async=true;document.head.appendChild(js);
   }
  };
