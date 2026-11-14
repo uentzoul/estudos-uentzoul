@@ -8,6 +8,22 @@ const rules={
  avaliacao:[['devolução e documentos',['entrevista de devolução','devolutiva','laudo psicológico','parecer psicológico','elaboração de documentos','resolução cfp 06/2019']],['ética e normas',['ética na avaliação psicológica','resolução cfp 31/2022','resolução cfp 31','sigilo profissional','satepsi','código de ética']],['contexto organizacional',['contexto organizacional','avaliação organizacional','recrutamento e seleção','saúde do trabalhador']],['contexto hospitalar',['contexto hospitalar','psicologia hospitalar','hospitalização']],['contexto forense',['contexto forense','avaliação forense','perícia psicológica','psicologia jurídica','contexto judicial']],['atendimento a pessoas trans',['pessoas trans','população trans','identidade de gênero','transexualidade']],['instrumentos de avaliação',['avaliação psicológica','testes psicológicos','psicometria','validade de testes','precisão de testes','padronização','adaptação de instrumentos','bateria de testes','anamnese']]],
  grupos:[['Psicodrama',['psicodrama','jacob levy moreno','sociometria','protagonista','dramatização']],['Carl Rogers',['carl rogers','grupos de encontro','abordagem centrada na pessoa','consideração positiva incondicional']],['Escritores da Liberdade',['escritores da liberdade','freedom writers','erin gruwell']],['processos grupais',['psicologia dos grupos','dinâmica de grupos','cohesão grupal','coesão grupal']]]
 };
+
+const firstSemesterRules={
+ profissao:[['Atuação e regulamentação profissional',['psicologia como profissão','atuação profissional do psicólogo','campos de atuação da psicologia','regulamentação da profissão','conselho regional de psicologia','conselho federal de psicologia','código de ética profissional']],['Identidade profissional',['identidade profissional do psicólogo','formação em psicologia','prática profissional','história da profissão']]],
+ processos:[['Atenção e percepção',['processos psicológicos básicos','atenção seletiva','atenção dividida','percepção visual','processamento perceptivo','sensação e percepção']],['Memória e aprendizagem',['memória operacional','memória de trabalho','memória episódica','memória de longo prazo','aprendizagem associativa']],['Motivação e emoção',['motivação humana','processos motivacionais','regulação emocional','teorias da emoção']]],
+ direitos:[['Psicologia e direitos humanos',['psicologia e direitos humanos','declaração universal dos direitos humanos','direitos fundamentais','dignidade humana','direitos humanos e psicologia']],['Proteção e cidadania',['racismo estrutural','violação de direitos','vulnerabilidade social','políticas públicas de direitos','discriminação e preconceito']]],
+ epistemologia:[['Epistemologia da Psicologia',['fundamentos epistemológicos','epistemologia da psicologia','teoria do conhecimento','conhecimento científico','método científico']],['Paradigmas e ciência',['paradigmas científicos','falseabilidade','filosofia da ciência','positivismo lógico','thomas kuhn','karl popper','racionalismo e empirismo']]],
+ historia:[['História da Psicologia',['história da psicologia','origens da psicologia','wilhelm wundt','laboratório de psicologia','historiografia da psicologia']],['Escolas psicológicas',['psicologia estruturalista','funcionalismo americano','psicologia da gestalt','behaviorismo clássico','escolas psicológicas']]],
+ sociocognitivas:[['Aprendizagem social',['teoria social cognitiva','teorias sociocognitivas','aprendizagem observacional','aprendizagem vicária','modelagem comportamental']],['Bandura e autoeficácia',['albert bandura','autoeficácia','determinismo recíproco','reciprocidade triádica','agência humana']]],
+ desenvolvimento:[['Desenvolvimento ao longo da vida',['psicologia do desenvolvimento','desenvolvimento humano','ciclo vital','desenvolvimento infantil','desenvolvimento na adolescência','envelhecimento humano']],['Teorias do desenvolvimento',['jean piaget','lev vygotsky','erik erikson','teoria do apego','desenvolvimento cognitivo','desenvolvimento socioemocional']]]
+};
+const firstSemesterNames={
+ geral:'Cadernos integrados',profissao:'Psicologia como Profissão',processos:'Processos Psicológicos Básicos',
+ direitos:'Psicologia e Direitos Humanos',epistemologia:'Fundamentos Epistemológicos em Psicologia',
+ historia:'História da Psicologia',sociocognitivas:'Teorias Sociocognitivas',
+ desenvolvimento:'Psicologia do Desenvolvimento (Ciclo Vital)'
+};
 const filenames={geral:'Cadernos integrados',meta:'Metapsicologia',familia:'Psicologia da Família',tcc:'TCC',social:'Psicologia Social',avaliacao:'Avaliação Psicológica',grupos:'Psicologia dos Grupos'};
 const normalize=s=>String(s||'').toLocaleLowerCase('pt-BR').normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[\u00ad]/g,'').replace(/\s+/g,' ').trim();
 function load(src,check){if(check())return Promise.resolve();return new Promise((res,rej)=>{const el=document.createElement('script');el.src=src;el.onload=()=>check()?res():rej(Error('Biblioteca de leitura indisponível'));el.onerror=()=>rej(Error('Sem conexão com o leitor de documentos'));document.head.append(el)})}
@@ -36,25 +52,29 @@ const finalExamFocus={
 };
 const finalExamSupport={avaliacao:['devolução e documentos','instrumentos de avaliação']};
 const weakTokens=['psicologia social','psicanálise','freud','avaliação psicológica','psicologia dos grupos','terapia cognitiva de beck','modelo abc'];
-function score(text){
- const flat=normalize(text);const ranked=Object.entries(rules).map(([subject,topics])=>{
+function score(text,semester='2026/2'){
+ const activeRules=semester==='2026/1'?firstSemesterRules:rules;
+ const names=semester==='2026/1'?firstSemesterNames:filenames;
+ const flat=normalize(text);const ranked=Object.entries(activeRules).map(([subject,topics])=>{
   const findings=topics.map(([topic,aliases])=>{
    const hits=aliases.filter(x=>flat.includes(normalize(x)));return hits.length?{topic,hits:hits.slice(0,3)}:null
   }).filter(Boolean);
   const evidence=findings.reduce((n,x)=>n+x.hits.reduce((z,h)=>z+(weakTokens.some(w=>normalize(w)===normalize(h))?1:3),0),0);
-  return {subject,label:filenames[subject],score:evidence,topics:findings.map(x=>x.topic),hits:findings.flatMap(x=>x.hits).slice(0,12)};
+  return {subject,label:names[subject],score:evidence,topics:findings.map(x=>x.topic),hits:findings.flatMap(x=>x.hits).slice(0,12)};
  }).sort((a,b)=>b.score-a.score);
  return ranked
 }
 async function analyze(file){
  const ext=String(file?.name||'').split('.').pop().toLowerCase();let text='',error='';
  try{if(ext==='pdf')text=await pdf(file);else if(ext==='docx')text=await docx(file);else if(ext==='pptx')text=await pptx(file);else error='Formato não suportado';}catch(err){error=err?.message||'Não foi possível analisar o texto'}
- const meaningful=normalize(text).length>=80;const ranked=meaningful?score(text):[];
+ const semester=window.uentzoulLibraryApp?.semester?.()||'2026/2';
+ const meaningful=normalize(text).length>=80;const ranked=meaningful?score(text,semester):[];
  const best=ranked[0]||null;const runner=ranked[1]||null;
  const confident=!!(best&&best.score>=6&&best.score>=((runner?.score||0)+3));
  let examMatch='incerto';
  if(confident&&best){
-  if((finalExamFocus[best.subject]||[]).some(t=>best.topics.includes(t)))examMatch='principal';
+  if(semester==='2026/1')examMatch='principal';
+  else if((finalExamFocus[best.subject]||[]).some(t=>best.topics.includes(t)))examMatch='principal';
   else if((finalExamSupport[best.subject]||[]).some(t=>best.topics.includes(t)))examMatch='complementar';
   else examMatch='fora';
  }
