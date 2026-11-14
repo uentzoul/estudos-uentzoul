@@ -12,7 +12,7 @@ const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const BODY = /^\[Figurinha:([0-9a-f-]{36})\]$/i;
 const state = { owner:null, loaded:false, loading:false, open:false, tab:'recent',
   packs:[], stickers:[], byId:new Map(), favorites:new Set(), recents:[],
-  pending:[], error:'', lastLoad:0 };
+  pending:[], error:'', lastLoad:0, lastMissingRefresh:0 };
 const clean = value => esc(String(value == null ? '' : value));
 const session = () => onlineUser && client && onlineUser.id;
 const selected = () => dm.tab === 'private' ? dm.peerId :
@@ -21,7 +21,7 @@ function reset() {
   state.loaded=false;state.loading=false;state.open=false;state.tab='recent';
   state.packs=[];state.stickers=[];state.byId.clear();
   state.favorites.clear();state.recents=[];state.pending=[];state.error='';
-  state.lastLoad=0;
+  state.lastLoad=0;state.lastMissingRefresh=0;
 }
 function avatarUrl(path) {
   if(!/^[a-zA-Z0-9._/-]+$/.test(path||'') || !path.startsWith('packs/')) return '';
@@ -81,11 +81,11 @@ function drawer() {
   const nav='<nav class="pm-sticker-tabs" aria-label="Pacotes de figurinhas">'+tabs.map(row=>
     '<button type="button" data-pm-sticker-tab="'+clean(row[0])+'" aria-pressed="'+(state.tab===row[0])+'" title="'+clean(row[1])+'">'+
     '<span aria-hidden="true">'+clean(row[2])+'</span><span>'+clean(row[1])+'</span></button>').join('')+'</nav>';
-  const items=selectedItems.map(item=>{
+  const items=selectedItems.map((item,index)=>{
     const favorite=state.favorites.has(item.id);
     return '<div class="pm-sticker-tile">'+
       '<button type="button" class="pm-sticker-tap" data-pm-sticker-send="'+clean(item.id)+'" title="Enviar '+clean(item.title)+'" aria-label="Enviar '+clean(item.title)+'">'+
-      '<img alt="'+clean(item.title)+'" src="'+clean(item.url)+'" loading="lazy" decoding="async"></button>'+
+      '<img alt="'+clean(item.title)+'" src="'+clean(item.url)+'" loading="'+(index<12?'eager':'lazy')+'" decoding="async"></button>'+ 
       '<button type="button" class="pm-sticker-star '+(favorite?'is-favorite':'')+'" data-pm-sticker-favorite="'+clean(item.id)+'" aria-label="'+(favorite?'Remover das favoritas':'Adicionar às favoritas')+'" aria-pressed="'+favorite+'">'+(favorite?'★':'☆')+'</button></div>';
   }).join('');
   let body;
@@ -112,7 +112,13 @@ dmWMedia=function(message){
   const id=String(message.body||'').match(BODY)?.[1];
   if(!id)return originalMedia(message);
   const item=state.byId.get(id);
-  if(!item)return '<div class="pm-sticker-missing" role="img" aria-label="Figurinha">Figurinha indisponível</div>';
+  if(!item){
+    // New packs may be published while this chat is open. Refresh once, not per bubble.
+    if(state.loaded&&!state.loading&&Date.now()-state.lastMissingRefresh>30000){
+      state.lastMissingRefresh=Date.now();queueMicrotask(()=>retrieve(true));
+    }
+    return '<div class="pm-sticker-missing" role="img" aria-label="Figurinha">Figurinha indisponível</div>';
+  }
   const favorite=state.favorites.has(item.id);
   return '<div class="pm-sticker-message"><img class="pm-sticker-displayed" src="'+clean(item.url)+'" alt="'+clean(item.title)+'" loading="lazy" decoding="async">'+
     '<button type="button" class="pm-sticker-message-fav" data-pm-sticker-favorite="'+clean(item.id)+'" title="'+(favorite?'Remover das favoritas':'Salvar nas favoritas')+'" aria-label="'+(favorite?'Remover figurinha das favoritas':'Salvar figurinha nas favoritas')+'">'+(favorite?'★':'☆')+'</button></div>';
@@ -225,7 +231,7 @@ document.addEventListener('click',function(event){
   if(trigger){event.preventDefault();event.stopImmediatePropagation();
     if(!session())return;
     state.open=!state.open;
-    retrieve(false);
+    retrieve(state.open&&state.loaded&&Date.now()-state.lastLoad>60000);
     if(state.open&&state.tab==='recent'&&!state.recents.length)
       state.tab=state.packs.find(p=>p.enabled)?.id||'favorites';
     dmShow();return;
