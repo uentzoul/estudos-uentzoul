@@ -22,28 +22,35 @@ const steps=[
  {page:'home',find:'#semesterCurrent',title:'Escolha o semestre',body:'Use este seletor para alternar entre os períodos de Psicologia. Cada semestre tem sua própria organização, e os conteúdos aparecem conforme são cadastrados. O modo claro ou escuro também pode ser alterado no menu.',tip:'O tutorial terminou. Você poderá iniciá-lo novamente pelo botão Tutorial.'}
 ];
 
-/* O desktop conserva suas etapas; o celular usa uma ordem adaptada ao menu compacto. */
+/* Mobile: explicações breves; desktop permanece como estava. */
+const mobileCopy=[
+ {title:'Progresso do semestre',body:'Aqui você vê o que já concluiu e o que falta estudar.'},
+ {title:'Escolha uma matéria',body:'Toque numa disciplina para abrir os materiais e atividades dela.'},
+ {title:'Trilha para a prova',body:'Dentro da matéria, siga a trilha para saber por onde começar a revisão.'},
+ {title:'Materiais e textos',body:'Depois de estudar, toque em “Marcar como visto”. A marcação é manual.'},
+ {title:'Agenda e Horários',body:'Alterne entre provas, horários de aula e conteúdos de cada dia.'},
+ {title:'Provas e avaliações',body:'Confira as datas das provas. Se houver mudanças, consulte o Moodle oficial.'},
+ {title:'Horários das aulas',body:'Veja os dias da semana, as matérias e os horários das aulas.'},
+ {title:'Conteúdo de cada dia',body:'Consulte os temas e as leituras previstos para cada aula.'},
+ {title:'Simulados prontos',body:'Cada prova tem cinco simulados. Responda e confira a correção.'},
+ {title:'Criar simulado',body:'Escolha a matéria e a dificuldade para criar questões e treinar.'},
+ {title:'Conversas privadas',body:'Pesquise um colega e converse com ele. É preciso entrar na conta.'},
+ {title:'Grupos de estudos',body:'Crie um grupo para estudar e organizar trabalhos com colegas.'},
+ {title:'Chat Global',body:'Converse e tire dúvidas com os estudantes cadastrados.'},
+ {title:'Compartilhar no chat',body:'Envie materiais, simulados, podcasts, imagens e stickers nas conversas.'}
+];
 const mobileSteps=[
- {page:'home',find:'#pmMobileMenuToggle',tourScene:'menu-button',title:'Onde ficam as opções do site?',
-  body:'O botão de três linhas (☰), ao lado do símbolo do PsicoMoodle, abre o menu lateral. Também dá para começar um pouco para dentro da borda esquerda e arrastar para a direita: o menu vai aparecendo aos poucos, acompanhando seu dedo. Quando você soltar, ele termina de abrir ou volta a se esconder. Assim, a navegação não ocupa o topo enquanto você estuda.',
-  tip:'Toque em Próximo para ver as opções que ficam dentro dele.'},
- {page:'home',find:'#siteSidebar',tourScene:'menu-list',title:'Tudo ao seu alcance',
-  body:'No menu estão Início, para acompanhar os estudos; Agenda e Horários, com aulas e provas; Simulados, para praticar; IA Tzoul, para tirar dúvidas; e Mensagens, para falar com a turma. Há também as disciplinas, participantes e opção de relatar erros. Trabalhos e Revisão de Férias são recursos anunciados para depois.',
-  tip:'No uso normal, role a lista para encontrar mais opções. Para fechar, arraste o próprio menu da direita para a esquerda: ele acompanha seu dedo e desaparece aos poucos. Você também pode tocar fora do menu.'},
- ...steps.slice(0,-1).map((s,i)=>({...s,baseIndex:i,
-  ...(i===2?{tourScene:'trail',find:'.subject-hub-menu [data-action="subjectArea:trail"]',
-   title:'Trilha de estudos para a prova',
-   body:'Ao entrar em uma matéria, você encontra a Trilha de estudos para a prova, que orienta por onde começar e como revisar. Na mesma disciplina também estão materiais, estudos dirigidos, simulados, flashcards, casos, podcasts e conteúdos para revisar.',
-   tip:'Para chegar aqui, escolha primeiro uma disciplina na página Início.'}:{})
+ {page:'home',find:'#pmMobileMenuToggle',tourScene:'menu-button',
+  title:'Abra o menu',body:'Toque em ☰ ou arraste da esquerda para a direita. O menu acompanha seu dedo.'},
+ {page:'home',find:'#siteSidebar',tourScene:'menu-list',
+  title:'Explore o PsicoMoodle',body:'Aqui estão as páginas, matérias e outras opções. Para fechar, arraste para a esquerda em qualquer lugar da tela ou toque fora.'},
+ ...steps.slice(0,-1).map((s,i)=>({...s,...mobileCopy[i],baseIndex:i,
+  ...(i===2?{tourScene:'trail',find:'.subject-hub-menu [data-action="subjectArea:trail"]'}:{})
  })),
  {page:'home',find:'#pmMobileTopbar .mobile-brand-actions',tourScene:'preferences',
-  title:'Preferências e perfil',
-  body:'No canto superior direito estão os botões para alternar entre modo claro e escuro e acessar a sua foto de perfil. Pela foto, você pode entrar na conta e atualizar seus dados.',
-  tip:'Esses controles continuam no topo mesmo quando o menu lateral está fechado.'},
+  title:'Tema e perfil',body:'Aqui você muda entre claro e escuro e acessa seu perfil.'},
  {...steps[steps.length-1],baseIndex:steps.length-1,tourScene:'semester',
-  title:'Escolha o semestre',
-  body:'Para trocar de período, abra o menu ☰ e escolha o semestre logo abaixo do nome PsicoMoodle. Cada período organiza as disciplinas e os materiais correspondentes.',
-  tip:'O passeio terminou. Você pode repeti-lo pelo botão Tutorial, na página Início.'}
+  title:'Escolha o semestre',body:'Abra ☰ e escolha o semestre. Você pode repetir o tutorial quando quiser.'}
 ];
 const byId=id=>document.getElementById(id);
 const q=s=>document.querySelector(s);
@@ -424,14 +431,13 @@ function layout(scrollTarget=false){
 function renderCopy(step){
  const found=findNode(step);
  shell.querySelector('#pmSpotlightTitle').textContent=step.title;
- const extra=found.login?(step.login||'Entre na sua conta para usar este recurso.'):(step.tip||'');
  const mobile=runSteps===mobileSteps;
- const content=mobile?[step.body,extra].filter(Boolean).join(' '):step.body;
- shell.querySelector('.pm-spotlight-body').textContent=content;
- // No celular a explicação ocupa um único campo, sem notas separadas.
+ const extra=mobile?'':(found.login?(step.login||'Entre na sua conta para usar este recurso.'):(step.tip||''));
+ shell.querySelector('.pm-spotlight-body').textContent=step.body;
+ // No celular há um único texto curto; no desktop mantemos as dicas.
  const hint=shell.querySelector('.pm-spotlight-tip');
- hint.textContent=mobile?'':extra;
- hint.hidden=mobile||!hint.textContent;
+ hint.textContent=extra;
+ hint.hidden=!extra;
  shell.querySelector('.pm-spotlight-counter').textContent=(index+1)+' / '+runSteps.length;
  shell.querySelector('.pm-spotlight-track span').style.width=100*(index+1)/runSteps.length+'%';
  shell.querySelector('.pm-spotlight-back').disabled=index===0;
