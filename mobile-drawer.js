@@ -14,10 +14,6 @@
   header.id='pmMobileTopbar';
   header.className='pm-mobile-topbar';
   header.setAttribute('aria-label','Cabeçalho do PsicoMoodle');
-  header.appendChild(brand);
-
-  const row=document.createElement('div');
-  row.className='pm-mobile-menu-row';
   const toggle=document.createElement('button');
   toggle.type='button';
   toggle.id='pmMobileMenuToggle';
@@ -26,11 +22,9 @@
   toggle.setAttribute('aria-expanded','false');
   toggle.setAttribute('aria-label','Abrir menu de navegação');
   toggle.innerHTML='<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M4 6h16M4 12h16M4 18h16"/></svg>';
-  const hint=document.createElement('span');
-  hint.className='pm-mobile-menu-hint';
-  hint.textContent='Menu';
-  row.append(toggle,hint);
-  header.appendChild(row);
+  // Uma só linha: ☰ + identidade + tema + perfil.
+  brand.insertBefore(toggle,brand.firstElementChild);
+  header.appendChild(brand);
 
   const backdrop=document.createElement('div');
   backdrop.id='pmMobileBackdrop';
