@@ -206,3 +206,24 @@
 @media(prefers-reduced-motion:reduce){
  #siteSidebar,.pm-mobile-backdrop{transition:none!important}
 }
+
+/* Início do celular: tutorial antes das disciplinas, sem controles de organização.
+   Esconde somente a faixa com semestre/busca/ordenação/visualização
+   dentro da vitrine inicial. O resumo do semestre e os títulos são mantidos. */
+@media(max-width:760px){
+ #homeCourses .library-page > .course-toolbar{display:none!important}
+ #homeCourses .library-page > .pm-tour-entry{
+  display:flex!important;align-items:center;justify-content:flex-start;
+  width:100%;min-width:0;margin:0 0 13px!important;padding:0 0 4px!important
+ }
+ #homeCourses .library-page > .pm-tour-entry .pm-tour-launch{
+  min-height:41px;padding:9px 17px;font-size:12.5px;
+  box-shadow:0 3px 12px rgba(67,44,143,.15)
+ }
+ #homeCourses .library-page > .course-intro{
+  margin:0 0 13px!important;padding:0;gap:7px
+ }
+ #homeCourses .library-page > .course-grid{
+  margin-top:0!important
+ }
+}
