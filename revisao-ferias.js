@@ -70,7 +70,7 @@ function navButton(){
  for(const item of el.querySelectorAll('.nav-upcoming')){
   if(item.querySelector('.nav-upcoming-name')?.textContent?.trim()==='Revisão de Férias')item.remove();
  }
- if(document.getElementById('navVacationReview'))return;
+ if(document.getElementById('navVacationReview')){updateNavStatus();return;}
  const button=document.createElement('button');
  button.type='button';button.id='navVacationReview';button.className='sidebtn';
  button.setAttribute('aria-label','Revisão de Férias');
@@ -84,10 +84,21 @@ function navButton(){
 }
 function updateNavStatus(){
  const b=document.getElementById('navVacationReview');if(!b)return;
+ const current=currSemester();
+ // 1º semestre: botão comum, sem aviso de lançamento.
+ // 2º semestre: mantém "Em breve" para alunos até a liberação prevista.
+ const pending=current===2&&!canView(2);
+ b.classList.toggle('vr-pending',pending);
  const old=b.querySelector('.vr-soon');
- if(canView(currSemester())){old?.remove();b.title='Abrir Revisão de Férias';}
- else{if(!old){const tag=document.createElement('span');tag.className='vr-soon';tag.textContent='Em breve';b.appendChild(tag);}
-  b.title='Revisão de Férias do 2º semestre — disponível em 27/11';}
+ if(!pending){
+  old?.remove();
+  b.title='Abrir Revisão de Férias';
+  b.setAttribute('aria-label','Revisão de Férias');
+ }else{
+  if(!old){const tag=document.createElement('span');tag.className='vr-soon';tag.textContent='Em breve';b.appendChild(tag);}
+  b.title='Revisão de Férias do 2º semestre — em breve';
+  b.setAttribute('aria-label','Revisão de Férias — em breve');
+ }
 }
 function rootElement(){
  const container=main();if(!container)return null;
@@ -368,6 +379,12 @@ function setup(){
   const el=event.target.closest('#nav [data-page],#subjectNav .sidebtn,#semesterDropdown [data-semester],#semesterCurrent');
   if(el&&!event.target.closest('#navVacationReview'))deactivate();
  },true);
+ window.addEventListener('uentzoul:semester',()=>{
+  // A seleção de semestre acontece no núcleo do site; atualiza o menu imediatamente,
+  // inclusive se a revisão não estiver aberta.
+  updateNavStatus();
+  if(visible&&semester!==currSemester())deactivate();
+ });
  window.addEventListener('uentzoul:auth',()=>{
   updateNavStatus();
   if(visible){if(!canView()){events=[];loading=false;openedMonth=null;selectedEvent=null;render();}else if(!events.length&&!loading)load();}
