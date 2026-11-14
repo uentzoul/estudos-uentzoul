@@ -3099,29 +3099,13 @@ function renderLibrary(embedded=false){
   '<div class="course-card-footer"><span>'+p.total+' '+(p.total===1?'material':'materiais')+'</span><span>Abrir disciplina →</span></div></div></button></article>';
  }).join('');
  return '<div class="library-page"><div class="course-intro"><div>'+(embedded?head('Psicologia PUCRS · '+semester,'Disciplinas','Selecione uma matéria para acessar conteúdos, materiais, simulados e podcasts.'):head('Biblioteca · '+semester,'Resumo das disciplinas','Todos os materiais liberados por disciplina. Os arquivos que caem nas últimas provas estão identificados.'))+'</div></div>'+
- '<div class="course-toolbar"><span class="course-semester">2026/2</span><input id="libraryCourseSearch" type="search" placeholder="Buscar disciplina..." aria-label="Buscar disciplina" value="'+esc(current.libraryQuery||'')+'">'+
- 
- '<select id="libraryCourseOrder" aria-label="Ordenar cursos"><option value="name" selected>Ordenar por nome</option></select>'+
- '<select id="libraryCourseMode" aria-label="Visualização"><option value="cards" selected>Cartões</option></select></div>'+
- (ids.length?'<div class="course-grid '+(mode==='list'?'is-list':'')+'">'+courses+'</div>':'<div class="course-empty">Nenhuma disciplina corresponde ao filtro selecionado.</div>')+
- '<div class="course-empty" id="libraryCourseNoResults" hidden>Nenhuma disciplina corresponde à busca.</div>'+
+(ids.length?'<div class="course-grid '+(mode==='list'?'is-list':'')+'">'+courses+'</div>':'<div class="course-empty">Nenhuma disciplina corresponde ao filtro selecionado.</div>')+
+
  '<p class="course-library-note">O progresso é calculado pelos materiais publicados e marcados como vistos no seu perfil. Materiais que ainda não foram enviados não aparecem como referências vazias.</p></div>';
 }
 document.addEventListener('change',event=>{
  const el=event.target;
- if(el.id==='libraryCourseOrder'){current.libraryOrder=el.value;render();return}
- if(el.id==='libraryCourseMode'){current.libraryMode=el.value;render();return}
- if(el.matches('.library-page [data-complete]'))requestAnimationFrame(()=>{if(current.page==='home'||current.page==='library')render()});
-});
-document.addEventListener('input',event=>{
- if(event.target.id!=='libraryCourseSearch')return;
- current.libraryQuery=event.target.value;
- const q=current.libraryQuery.trim().toLocaleLowerCase('pt-BR');
- let found=0;
- document.querySelectorAll('.library-page [data-course-search]').forEach(card=>{
-  const matches=card.dataset.courseSearch.includes(q);card.hidden=!matches;if(matches)found++;
- });
- const empty=document.getElementById('libraryCourseNoResults');if(empty)empty.hidden=!!found;
+if(el.matches('.library-page [data-complete]'))requestAnimationFrame(()=>{if(current.page==='home'||current.page==='library')render()});
 });
 function audioSelectionIndex(){return current.audioSubject==='tcc'?currentChapter:currentEpisode;}
 function audioKey(k,i){return k+':'+i;}
@@ -4259,10 +4243,7 @@ function renderThirdSemester(){
  const activities=overallKeys(),completed=doneCount(activities),pct=fmtPct(completed,activities.length);
  const courseCards=()=>'<div class="library-page"><div class="course-intro"><div>'+
   head('Psicologia PUCRS · '+period,'Disciplinas do '+ordinal+' semestre',countLabel+' disciplinas cadastradas. '+(firstSemester?'Trilhas de revisão, flashcards, estudos de caso e simulados para relembrar.':'Os conteúdos e materiais poderão ser adicionados posteriormente.'))+
-  '</div></div><div class="course-toolbar"><span class="course-semester">'+period+' · '+count+' disciplinas'+(totalHours?' · '+totalHours+'h':'')+'</span>'+
-  '<input id="libraryCourseSearch" type="search" placeholder="Buscar disciplina..." aria-label="Buscar disciplina" value="'+esc(current.libraryQuery||'')+'">'+
-  '<select id="libraryCourseOrder" aria-label="Ordenar cursos"><option value="name" selected>Ordenar por nome</option></select></div>'+
-  '<div class="course-grid">'+ids.slice().sort((a,b)=>DB.subjects[a].name.localeCompare(DB.subjects[b].name,'pt-BR')).map(k=>{
+  '</div></div>'+ '<div class="course-grid">'+ids.slice().sort((a,b)=>DB.subjects[a].name.localeCompare(DB.subjects[b].name,'pt-BR')).map(k=>{
     const s=DB.subjects[k];
     return '<article class="course-card" style="--course-accent:'+color(k)+'" data-course-search="'+esc((s.name+' '+(s.code||'')).toLocaleLowerCase('pt-BR'))+'">'+
      '<button class="course-card-button" type="button" data-action="subject:'+k+'" aria-label="Abrir disciplina '+esc(s.name)+'">'+
@@ -4271,7 +4252,7 @@ function renderThirdSemester(){
      '<div class="course-card-desc">'+(s.code?esc(s.code)+(s.hours?' · '+s.hours+'h':''):'Disciplina do '+ordinal+' semestre')+'</div>'+
      '<div class="course-card-footer"><span>'+(firstSemester?'Revisão disponível':'Conteúdos ainda não cadastrados')+'</span><span>Abrir disciplina →</span></div></div></button></article>';
    }).join('')+'</div>'+
-   '<div class="course-empty" id="libraryCourseNoResults" hidden>Nenhuma disciplina corresponde à busca.</div></div>';
+   '</div>';
  if(current.page==='home'||current.page==='library'){
   return '<header class="dashboard-hero slogan-hero" aria-label="'+ordinal+' semestre"><div class="hero-copy"><div class="slogan-lockup"><span class="slogan-logo" aria-hidden="true">Ψ</span><div class="slogan-identity"><span class="hero-kicker">Psicologia PUCRS · '+period+'</span><h1 class="slogan-title"><span>Psico</span><span class="slogan-title-accent">Moodle</span></h1></div></div></div>'+
    '<div class="hero-status"><span>Progresso do semestre</span><strong>'+pct+'%</strong><div class="hero-bar"><b style="width:'+pct+'%"></b></div><span class="hero-label">'+completed+' de '+activities.length+' atividades</span></div></header>'+
