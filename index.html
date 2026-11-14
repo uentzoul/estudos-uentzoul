@@ -2136,8 +2136,10 @@ html[data-theme="dark"] .tz-library-download{background:#26374c;border-color:#45
 <link rel="stylesheet" href="trilha-integrada.css?v=20261113-1">
 <script src="trilha-curadoria.js?v=20261113-final-2"></script>
 <script src="trilha-integrada.js?v=20261113-1"></script>
-<link rel="stylesheet" href="materiais-editor.css?v=20261113-2">
-<script src="materiais-editor.js?v=20261113-2"></script>
+<link rel="stylesheet" href="materiais-editor.css?v=20261114-all-courses-v1">
+<link rel="stylesheet" href="course-week-manager.css?v=20261114-all-courses-v1">
+<script src="materiais-editor.js?v=20261114-all-courses-v1"></script>
+<script src="course-week-manager.js?v=20261114-all-courses-v1"></script>
 <link rel="stylesheet" href="members-drawer-tab.css?v=20261113-1">
 <link rel="stylesheet" href="sidebar-actions.css?v=20261113-1">
 <link rel="stylesheet" href="mobile-polish.css?v=20261113-1">
@@ -4338,7 +4340,7 @@ if(window.PSICO_MATERIAL_EDITOR){
  window.PSICO_MATERIAL_EDITOR.classify=materialGroup;
  window.PSICO_MATERIAL_EDITOR.getMaterials=subject=>DB.materials.filter(x=>x.subject===subject&&x.available&&x._libraryUpload?.exam_scope!==false);
  window.PSICO_MATERIAL_EDITOR.setRerender(()=>{
-  if(semester==='2026/2'&&current.page==='subject'&&current.subjectArea==='docs')render();
+  if(['2026/1','2026/2'].includes(semester)&&current.page==='subject'&&current.subjectArea==='docs')render();
  });
 }
 /* Armazenamento local de podcasts. A URL de cada episódio é publicada como
@@ -7955,7 +7957,7 @@ document.addEventListener("click",e=>{if(!e.target.closest("[data-theme-toggle]"
 })();
 </script>
 <script src="library-content-analyzer.js?v=20261111-2"></script>
-<script src="library-manager.js?v=20261114-batch-recovery-v1"></script>
+<script src="library-manager.js?v=20261114-acervo-completo-v1"></script>
 <script src="admin-config.js?v=20261114-guest-online-v1"></script>
 <script id="pm-mobile-drawer-js" src="mobile-drawer.js?v=20261114-smooth-locked-v18" defer></script>
 <script id="pm-chat-mobile-js" src="chat-mobile-viewport.js?v=20261114-chat-mobile-v21" defer></script>
