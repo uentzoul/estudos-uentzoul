@@ -1956,6 +1956,9 @@ html[data-theme="dark"] .tz-pending-icon{background:#40375e;color:#d6c4ff}
 <script src="estudos-dirigidos.js?v=20261113-revisao-global-1"></script>
 <script src="estudos-casos-data.js?v=20261113-revisao-global-1"></script>
 <script src="estudo-ativo.js?v=20261114-flash-tour-v2"></script>
+<link rel="stylesheet" href="primeiro-semestre-relembrar.css?v=20261114-r1">
+<script src="primeiro-semestre-dados.js?v=20261114-r1"></script>
+<script src="primeiro-semestre-relembrar.js?v=20261114-r1"></script>
 <script src="psicomoodle-new-content.js?v=20261113-social-family-2"></script>
 <script src="simulados-finais-2026.js?v=20261113-provas-equivalentes-1"></script>
 <script src="simulados-grupos-filme-2026.js?v=20261114-grupos-filme-v1"></script>
@@ -2227,6 +2230,7 @@ const SEMESTER_DB={
 }
 };
 window.PSICOMOODLE_NEW_CONTENT?.apply(SEMESTER_DB['2026/2']);
+window.PSICO_FIRST_SEMESTER?.apply(SEMESTER_DB['2026/1']);
 window.PSICO_FINAL_EXAMS?.apply(SEMESTER_DB['2026/2']);
 window.PSICO_FINAL_GUIDES?.apply(SEMESTER_DB['2026/2']);
 let semester='2026/2';
@@ -4108,7 +4112,7 @@ function renderThirdSemester(){
  const countLabel=String(count);
  const activities=overallKeys(),completed=doneCount(activities),pct=fmtPct(completed,activities.length);
  const courseCards=()=>'<div class="library-page"><div class="course-intro"><div>'+
-  head('Psicologia PUCRS · '+period,'Disciplinas do '+ordinal+' semestre',countLabel+' disciplinas cadastradas. Os conteúdos e materiais poderão ser adicionados posteriormente.')+
+  head('Psicologia PUCRS · '+period,'Disciplinas do '+ordinal+' semestre',countLabel+' disciplinas cadastradas. '+(firstSemester?'Trilhas de revisão, flashcards, estudos de caso e simulados para relembrar.':'Os conteúdos e materiais poderão ser adicionados posteriormente.'))+
   '</div></div><div class="course-toolbar"><span class="course-semester">'+period+' · '+count+' disciplinas'+(totalHours?' · '+totalHours+'h':'')+'</span>'+
   '<input id="libraryCourseSearch" type="search" placeholder="Buscar disciplina..." aria-label="Buscar disciplina" value="'+esc(current.libraryQuery||'')+'">'+
   '<select id="libraryCourseOrder" aria-label="Ordenar cursos"><option value="name" selected>Ordenar por nome</option></select></div>'+
@@ -4119,7 +4123,7 @@ function renderThirdSemester(){
      '<div class="course-cover"><span class="course-index">'+period+' · '+ordinal+' SEMESTRE</span><span class="course-symbol" aria-hidden="true">Ψ</span></div>'+
      '<div class="course-card-content"><div class="course-card-title">'+esc(s.name)+'</div>'+
      '<div class="course-card-desc">'+(s.code?esc(s.code)+(s.hours?' · '+s.hours+'h':''):'Disciplina do '+ordinal+' semestre')+'</div>'+
-     '<div class="course-card-footer"><span>Conteúdos ainda não cadastrados</span><span>Abrir disciplina →</span></div></div></button></article>';
+     '<div class="course-card-footer"><span>'+(firstSemester?'Revisão disponível':'Conteúdos ainda não cadastrados')+'</span><span>Abrir disciplina →</span></div></div></button></article>';
    }).join('')+'</div>'+
    '<div class="course-empty" id="libraryCourseNoResults" hidden>Nenhuma disciplina corresponde à busca.</div></div>';
  if(current.page==='home'||current.page==='library'){
@@ -4128,6 +4132,11 @@ function renderThirdSemester(){
    '<section class="section home-course-section" id="homeCourses">'+courseCards()+'</section>';
  }
  if(current.page==='subject'&&subj){
+  if(firstSemester&&window.PSICO_FIRST_SEMESTER){
+   const docs=DB.materials.filter(m=>m.subject===subjectId&&m.available&&m._libraryUpload?.exam_scope!==false);
+   return window.PSICO_FIRST_SEMESTER.renderSubject({id:subjectId,subject:subj,area:current.subjectArea,
+    topics:DB.topics[subjectId]||[],docs,exams:DB.exams.filter(e=>e.subject===subjectId),doneBox,topicProgressKey,docCard});
+  }
   const titles={trail:'Trilha de Estudos para a Prova',guided:'Estudos dirigidos',tests:'Simulados',flash:'Flashcards',cases:'Estudos de casos',podcasts:'Podcasts',topics:'Conteúdos para revisar',docs:'Materiais e textos'};
   const area=current.subjectArea;
   const top='<div class="subject-hub" style="--subject-accent:'+color(subjectId)+'">'+
@@ -4173,6 +4182,7 @@ function renderThirdSemester(){
   return head(period+' · '+ordinal+' semestre','Agenda e Horários','As informações serão preenchidas conforme os cronogramas forem publicados.')+
     tabs+'<div role="tabpanel">'+body+'</div>';
  }
+ if(firstSemester&&current.page==='exams')return window.PSICO_FIRST_SEMESTER?.renderExams(DB)||'<p>Simulados indisponíveis.</p>';
  if(current.page==='exams')return head(period,'Simulados',countLabel+' disciplinas cadastradas.')+
   '<section class="section"><div class="subject-hub-empty">Ainda não há simulados disponíveis para '+period+'.</div></section>';
  if(current.page==='audio')return head(period,'Podcasts',countText+' disciplinas cadastradas.')+
@@ -4181,7 +4191,7 @@ function renderThirdSemester(){
 }
 function render(){
  renderNav();
- if((semester==='2027/1'||semester==='2026/1')&&!['ai','messages','admin'].includes(current.page)){
+ if((semester==='2027/1'||semester==='2026/1')&&!['ai','messages','admin'].includes(current.page)&&!(semester==='2026/1'&&current.page==='test')){
   $('main').innerHTML=renderThirdSemester();return;
  }
  if(!Object.keys(DB.subjects).length&&current.page!=='ai'&&current.page!=='messages'&&current.page!=='admin'){
