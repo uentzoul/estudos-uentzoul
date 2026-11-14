@@ -252,3 +252,26 @@
  outline-offset:4px;
  border-radius:10px
 }
+
+/* Assentamento contínuo: do pixel onde o dedo parou até a posição final. */
+@media(max-width:760px){
+ body.pm-mobile-menu-settling{overflow:hidden}
+ body.pm-mobile-menu-settling #siteSidebar{
+  transform:translate3d(var(--pm-drawer-offset,0%),0,0)!important;
+  visibility:visible!important;pointer-events:none!important;
+  transition:transform var(--pm-drawer-duration,240ms) cubic-bezier(.18,.82,.25,1)!important;
+  will-change:transform
+ }
+ body.pm-mobile-menu-settling .pm-mobile-backdrop{
+  opacity:var(--pm-drawer-opacity,1)!important;
+  visibility:visible!important;pointer-events:none!important;
+  transition:opacity var(--pm-drawer-duration,240ms) cubic-bezier(.18,.82,.25,1)!important;
+  will-change:opacity
+ }
+ body.pm-mobile-menu-dragging #siteSidebar{backface-visibility:hidden}
+ body.pm-mobile-menu-dragging .pm-mobile-backdrop{will-change:opacity}
+}
+@media(prefers-reduced-motion:reduce){
+ body.pm-mobile-menu-settling #siteSidebar,
+ body.pm-mobile-menu-settling .pm-mobile-backdrop{transition:none!important}
+}
