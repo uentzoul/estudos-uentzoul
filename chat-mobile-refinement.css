@@ -255,3 +255,58 @@ html[data-theme="dark"] .dm-shell .dm-global-avatar {
   .dm-shell .dm-composer-wrap .dm-composer button{width:36px!important;height:37px!important;min-height:37px!important}
   .dm-shell .dm-composer-wrap .dm-composer .dm-send-button{width:39px!important;height:39px!important;min-height:39px!important}
 }
+
+
+/* 14/11/2026 — acabamento consistente do mensageiro: desktop e mobile. */
+.dm-shell, .dm-shell * { box-sizing:border-box; }
+.dm-shell { min-width:0; }
+.dm-shell .dm-list,
+.dm-shell .dm-main,
+.dm-shell .dm-chat-head,
+.dm-shell .dm-chat-head-main,
+.dm-shell .dm-list-head,
+.dm-shell .dm-list-actions { min-width:0; }
+.dm-shell .dm-list-head { display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px; }
+.dm-shell .dm-list-head > div:first-child { min-width:0; flex:1 1 125px; }
+.dm-shell .dm-list-actions { display:flex; flex:0 1 auto; flex-wrap:wrap; justify-content:flex-end; gap:6px; }
+.dm-shell .dm-soft-button,
+.dm-shell .dm-head-action {
+  display:inline-flex!important; align-items:center!important; justify-content:center!important;
+  flex:0 0 auto; min-width:36px; min-height:36px; height:auto!important;
+  padding:7px 10px!important; border-radius:10px!important; font-size:12px!important;
+  line-height:1.2!important; font-weight:650; white-space:nowrap;
+}
+.dm-shell .dm-chat-actions { min-width:0; display:flex; align-items:center; gap:5px; flex-wrap:wrap;justify-content:flex-end; }
+.dm-shell .dm-chat-head-main { overflow:hidden; }
+.dm-shell .dm-search-label, .dm-shell .dm-search-label input { min-width:0; }
+.dm-shell .dm-contact-open { min-width:0; }
+.dm-shell .dm-contact-text { min-width:0; flex:1 1 auto; overflow:hidden; }
+.dm-shell .dm-contact-text strong, .dm-shell .dm-contact-text small {
+  display:block; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+}
+.dm-shell .dm-composer-wrap { min-width:0; }
+.dm-shell .dm-composer-wrap .dm-composer textarea { min-width:0; flex:1 1 auto; }
+.dm-shell button:focus-visible, .dm-shell textarea:focus-visible, .dm-shell input:focus-visible {
+  outline:2px solid #7965ce; outline-offset:2px;
+}
+@media(max-width:760px) {
+  .dm-shell .dm-list-head { align-items:flex-start; }
+  .dm-shell .dm-list-actions { max-width:100%; }
+  .dm-shell .dm-chat-head { gap:7px!important; }
+  .dm-shell .dm-chat-actions { flex:0 1 auto; max-width:55%; }
+  .dm-shell .dm-head-action { padding:6px 8px!important; min-width:34px; min-height:34px; }
+  .dm-shell .dm-composer-wrap .dm-composer { overflow:visible; }
+  .dm-shell .dm-composer-wrap .dm-composer > button { overflow:hidden; }
+  .dm-shell .dm-composer-wrap .dm-composer > button svg { max-width:22px; max-height:22px; }
+  .dm-shell .dm-tools-menu, .dm-shell .dm-emoji-panel, .dm-shell .dm-message-popup {
+    z-index:90;
+  }
+}
+@media(max-width:390px) {
+  .dm-shell .dm-list-head { padding:10px!important; }
+  .dm-shell .dm-list-actions { gap:4px; }
+  .dm-shell .dm-soft-button { min-width:34px; padding:6px 8px!important; }
+  .dm-shell .pm-group-label { display:none; }
+  .dm-shell .dm-chat-actions { gap:3px; }
+  .dm-shell .dm-head-action { min-width:32px; padding:5px 6px!important; }
+}
