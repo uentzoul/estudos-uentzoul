@@ -10,6 +10,27 @@ function setup(){
    if(node)nav.insertBefore(node,anchor);
   }
  }
+ // Marca e nome: atalhos discretos para Início, sem atualizar toda a página.
+ // Funciona tanto no cabeçalho compacto quanto na barra lateral desktop.
+ for(const identity of document.querySelectorAll('.mobile-brand > .mobile-identity, #siteSidebar > .logo')){
+  identity.classList.add('pm-home-brand-link');
+  identity.setAttribute('role','link');
+  identity.setAttribute('tabindex','0');
+  identity.setAttribute('aria-label','Ir para o Início do PsicoMoodle');
+  const goHome=()=>{
+   const home=document.querySelector('#nav [data-page="home"]');
+   if(!home)return;
+   home.click();
+   window.pmMobileDrawer?.close?.();
+   window.scrollTo({top:0,behavior:'instant'});
+  };
+  identity.addEventListener('click',goHome);
+  identity.addEventListener('keydown',event=>{
+   if(event.key!=='Enter'&&event.key!==' ')return;
+   event.preventDefault();
+   goHome();
+  });
+ }
  if(!document.getElementById('pm-tutorial-styles')){
   const style=document.createElement('link');
   style.id='pm-tutorial-styles';
