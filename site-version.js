@@ -50,7 +50,7 @@ function setup(){
  if(!document.getElementById('pm-tutorial-script')){
   const script=document.createElement('script');
   script.id='pm-tutorial-script';
-  script.src='spotlight-tour.js?v=20261114-tour-text-home-v11';
+  script.src='spotlight-tour.js?v=20261114-tour-persistent-button-v12';
   script.async=true;
   document.head.appendChild(script);
  }
