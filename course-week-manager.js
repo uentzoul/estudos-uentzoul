@@ -115,78 +115,1024 @@ function moodleSections(subject){return (COURSE_SECTIONS[subject]||[]).map(([num
 /* No 1º semestre não foram fornecidos vídeos com datas/semanas oficiais.
    Estas são SEÇÕES TEMÁTICAS DE REVISÃO, não semanas afirmadas como Moodle. */
 const FIRST_SECTIONS={
- profissao:[
- [1,'Introdução à Psicologia e à profissão',['o que e psicologia','psicologia como profissao','psicologias ana bock']],
- [2,'Formação e áreas de atuação',['areas psicologia','areas de atuacao','formar psicologos','formacao em psicologia']],
- [3,'Psicologia no Brasil e Censo',['censo','psicologia no brasil','apresentacao dados']],
- [4,'Ética e compromisso profissional',['etica','compromisso social']],
- [5,'Leituras e referências complementares',['texto','leitura','livro']]
+ "profissao": [
+  [
+   1,
+   "Plano de Ensino",
+   [
+    "plano de ensino",
+    "cronograma"
+   ]
+  ],
+  [
+   2,
+   "Acesso aos Direitos Humanos",
+   [
+    "direitos humanos"
+   ]
+  ],
+  [
+   3,
+   "Materiais",
+   [
+    "material geral"
+   ]
+  ],
+  [
+   4,
+   "Slides das aulas",
+   [
+    "slides",
+    "apresentacao dados",
+    "areas psicologia",
+    "psicologia como profissao",
+    "o que e psicologia"
+   ]
+  ],
+  [
+   5,
+   "Trabalho Final",
+   [
+    "trabalho final"
+   ]
+  ],
+  [
+   6,
+   "TDE — Trabalho Discente Efetivo",
+   [
+    "tde",
+    "trabalho discente efetivo"
+   ]
+  ],
+  [
+   7,
+   "Textos",
+   [
+    "texto",
+    "censo",
+    "amendola",
+    "formacao em psicologia"
+   ]
+  ]
  ],
- processos:[
- [1,'Introdução aos Processos Psicológicos Básicos',['introducao aos processos','processos psicologicos basicos']],
- [2,'Neurociência e estudos de caso',['gage','hm','h m','neurociencia','phineas','legado']],
- [3,'Sensação e percepção',['sensacao','percepcao','sensopercepcao','alucinacao']],
- [4,'Atenção',['atencao']],
- [5,'Memória',['memoria','amnesia','hipertmesia']],
- [6,'Representação mental e linguagem',['representacao mental','linguagem']],
- [7,'Funções executivas, decisões e resolução de problemas',['funcoes executivas','resolucao de problemas','tomada de decisao','julgamento']],
- [8,'Outros temas e materiais de apoio',['conformidade social','magazine']]
+ "processos": [
+  [
+   1,
+   "Plano de Ensino",
+   [
+    "plano de ensino",
+    "cronograma"
+   ]
+  ],
+  [
+   2,
+   "TDE — Trabalho Discente Efetivo",
+   [
+    "tde"
+   ]
+  ],
+  [
+   3,
+   "Introdução aos PPB",
+   [
+    "introducao aos processos psicologicos",
+    "introducao aos ppb"
+   ]
+  ],
+  [
+   4,
+   "Sensação e percepção",
+   [
+    "sensacao e percepcao",
+    "gazzaniga"
+   ]
+  ],
+  [
+   5,
+   "Alterações da sensopercepção e curiosidades",
+   [
+    "alteracoes da sensopercepcao",
+    "alucinacoes",
+    "sensopercepcao e suas alteracoes"
+   ]
+  ],
+  [
+   6,
+   "Representação mental",
+   [
+    "representacao mental"
+   ]
+  ],
+  [
+   7,
+   "Atenção",
+   [
+    "atencao"
+   ]
+  ],
+  [
+   8,
+   "Funções executivas",
+   [
+    "funcoes executivas",
+    "gage",
+    "phineas gage"
+   ]
+  ],
+  [
+   9,
+   "Resolução de problemas",
+   [
+    "resolucao de problemas",
+    "julgamento",
+    "tomada de decisao"
+   ]
+  ],
+  [
+   10,
+   "Memória",
+   [
+    "memoria",
+    "paciente h m"
+   ]
+  ],
+  [
+   11,
+   "Amnésia infantil e hipermnésia — tópicos para discussão",
+   [
+    "amnesia",
+    "hipertmesia",
+    "hipermnesia"
+   ]
+  ],
+  [
+   12,
+   "Entrega de apresentações — slides e vídeos",
+   [
+    "entrega de apresentacoes",
+    "conformidade social"
+   ]
+  ],
+  [
+   13,
+   "Semana 11 — Atividades e retomada",
+   [
+    "semana 11"
+   ]
+  ],
+  [
+   14,
+   "Semana 12 — Atividades e retomada",
+   [
+    "semana 12"
+   ]
+  ],
+  [
+   15,
+   "Semana 13 — Atividades e retomada",
+   [
+    "semana 13"
+   ]
+  ],
+  [
+   16,
+   "Semana 14 — Atividades e retomada",
+   [
+    "semana 14"
+   ]
+  ],
+  [
+   17,
+   "Semana 15 — Atividades e retomada",
+   [
+    "semana 15"
+   ]
+  ],
+  [
+   18,
+   "Semana 16 — Atividades e retomada",
+   [
+    "semana 16"
+   ]
+  ],
+  [
+   19,
+   "Semana 17 — Atividades e retomada",
+   [
+    "semana 17"
+   ]
+  ],
+  [
+   20,
+   "Semana 18 — Atividades e retomada",
+   [
+    "semana 18"
+   ]
+  ]
  ],
- direitos:[
- [1,'Introdução e história dos direitos humanos',['introducao aos direitos','breve historia dos direitos','linha historica','direitos humanos professor']],
- [2,'Declaração e Constituição',['declaracao universal','constituicao','resolucao alianca']],
- [3,'Psicologia e compromisso com os direitos',['psicologia e direitos humanos','compromisso social','politica de direitos','psicologos','pacto universitario']],
- [4,'Ditadura, memória e reparação',['ditadura','clinica do testemunho','verdade e revolucionaria']],
- [5,'Políticas públicas, ODS e Agenda 2030',['agenda2030','ods','politicas publicas']],
- [6,'Interseccionalidade e vulnerabilização',['interseccionalidade','vulnerabilizacao','iniquidades','universalidade','diferenca']],
- [7,'Leituras, estudos e materiais complementares',['relato','infografico','leitura']]
+ "direitos": [
+  [
+   1,
+   "Plano de Ensino",
+   [
+    "plano de ensino",
+    "cronograma"
+   ]
+  ],
+  [
+   2,
+   "Textos",
+   [
+    "texto base",
+    "leitura complementar",
+    "leitura basica"
+   ]
+  ],
+  [
+   3,
+   "Acesso aos Direitos Humanos",
+   [
+    "direitos humanos",
+    "acesso"
+   ]
+  ],
+  [
+   4,
+   "TDE — Trabalho Discente Efetivo",
+   [
+    "tde",
+    "trabalho discente"
+   ]
+  ],
+  [
+   5,
+   "Apresentação da disciplina — O que a Psicologia tem a ver com direitos humanos?",
+   [
+    "introducao aos direitos humanos",
+    "apresentacao disciplina",
+    "o que a psicologia tem a ver"
+   ]
+  ],
+  [
+   6,
+   "Evolução histórica dos direitos humanos — conceitos e princípios fundamentais",
+   [
+    "breve historia",
+    "declaracao universal",
+    "historia dos direitos humanos",
+    "linha historica"
+   ]
+  ],
+  [
+   7,
+   "Ditadura militar, constitucionalização dos direitos humanos e regulamentação da Psicologia",
+   [
+    "ditadura",
+    "clinica do testemunho",
+    "constituicao",
+    "verdade e revolucionaria"
+   ]
+  ],
+  [
+   8,
+   "Direitos humanos e o compromisso social da Psicologia",
+   [
+    "compromisso social",
+    "politica de direitos",
+    "os dh na pratica",
+    "psicologos"
+   ]
+  ],
+  [
+   9,
+   "Direitos humanos são universais?",
+   [
+    "universalidade",
+    "diferenca",
+    "declaracao universal"
+   ]
+  ],
+  [
+   10,
+   "Processos de vulnerabilização, iniquidades sociais e leitura interseccional",
+   [
+    "vulnerabilizacao",
+    "iniquidades",
+    "interseccionalidade",
+    "collins",
+    "sirma bilge"
+   ]
+  ],
+  [
+   11,
+   "Estudo dirigido para a prova",
+   [
+    "estudo dirigido prova",
+    "estudo dirigido"
+   ]
+  ],
+  [
+   12,
+   "Direitos humanos e Objetivos de Desenvolvimento Sustentável (ODS 2030)",
+   [
+    "ods",
+    "agenda2030",
+    "politicas publicas"
+   ]
+  ],
+  [
+   13,
+   "Entregas de trabalhos avaliativos",
+   [
+    "entrega",
+    "trabalho avaliativo"
+   ]
+  ]
  ],
- epistemologia:[
- [1,'Epistemologia, conhecimento e introdução',['epistemologia','conhecimento','historia e epistemologia']],
- [2,'Antiguidade e filosofia clássica',['pre socratico','socrates','sofistas','platao','aristoteles','filosof','passagem do pensamento mitico']],
- [3,'Medievo e pensamento cristão',['medievo','cristao']],
- [4,'Idade Moderna e formação da ciência',['idade moderna','condicoes historicas','reconhecimento institucional']],
- [5,'Positivismo e ciência',['positivismo','positiva','tipos de conhecimento']],
- [6,'Popper, Kuhn e Lakatos',['popper','kuhn','lakatos','revolucoes cientificas','logica da pesquisa']],
- [7,'Métodos, pesquisa e lógica científica',['metodo','qualitativa','quantitativa','pesquisa','laville','protocolo']],
- [8,'Psicologia, ciência e perspectivas críticas',['revisitando as psicologias','loucura','sete teses','7 teses']],
- [9,'Estudos dirigidos e apresentações',['estudo dirigido','apresentacao','slides']]
+ "epistemologia": [
+  [
+   1,
+   "Plano de Ensino",
+   [
+    "plano de ensino",
+    "cronograma"
+   ]
+  ],
+  [
+   2,
+   "Textos",
+   [
+    "texto",
+    "livro",
+    "capitulo",
+    "bibliografia"
+   ]
+  ],
+  [
+   3,
+   "Acesso aos Direitos Humanos",
+   [
+    "direitos humanos"
+   ]
+  ],
+  [
+   4,
+   "TDE — Trabalho Discente Efetivo",
+   [
+    "tde",
+    "trabalho discente"
+   ]
+  ],
+  [
+   5,
+   "03/03 — Apresentação da disciplina",
+   [
+    "apresentacao da disciplina",
+    "introducao"
+   ]
+  ],
+  [
+   6,
+   "10 e 17/03 — Epistemologia e tipos de conhecimento",
+   [
+    "epistemologia",
+    "tipos de conhecimento"
+   ]
+  ],
+  [
+   7,
+   "24 e 31/03 — Ciência e conhecimento científico",
+   [
+    "nocao de ciencia",
+    "metodo cientifico",
+    "pesquisa cientifica"
+   ]
+  ],
+  [
+   8,
+   "07/04 — Atividade avaliativa",
+   [
+    "atividade avaliativa"
+   ]
+  ],
+  [
+   9,
+   "14/04 — Preparação T2",
+   [
+    "preparacao t2"
+   ]
+  ],
+  [
+   10,
+   "28/04 — Do pensamento mítico ao filosófico-científico",
+   [
+    "pensamento mitico",
+    "so fistas",
+    "sofistas",
+    "aristoteles",
+    "socrates",
+    "platao",
+    "pre socraticos"
+   ]
+  ],
+  [
+   11,
+   "TDE — O pensamento na Idade Média",
+   [
+    "medievo",
+    "filosofia medieval",
+    "medieval"
+   ]
+  ],
+  [
+   12,
+   "12/05 — Pensamento na Modernidade",
+   [
+    "idade moderna",
+    "pensamento na modernidade",
+    "condicoes historicas"
+   ]
+  ],
+  [
+   13,
+   "19/05 — Positivismo e Psicologia",
+   [
+    "positivismo",
+    "epistemologia positiva"
+   ]
+  ],
+  [
+   14,
+   "Estudo dirigido para a prova",
+   [
+    "estudo dirigido"
+   ]
+  ],
+  [
+   15,
+   "26/05 — Popper",
+   [
+    "popper",
+    "logica da pesquisa cientifica"
+   ]
+  ],
+  [
+   16,
+   "TDE — Os paradigmas de Kuhn",
+   [
+    "kuhn",
+    "revolucoes cientificas"
+   ]
+  ],
+  [
+   17,
+   "09 e 16/06 — Produção de conhecimento em Psicologia e métodos de pesquisa",
+   [
+    "pesquisa qualitativa",
+    "pesquisa quantitativa",
+    "metodologia",
+    "laville",
+    "lakatos"
+   ]
+  ],
+  [
+   18,
+   "23/06 — Sete teses sobre conhecimento científico",
+   [
+    "sete teses",
+    "7 teses"
+   ]
+  ],
+  [
+   19,
+   "30/06 — Apresentação dos trabalhos (T2)",
+   [
+    "apresentacao trabalhos"
+   ]
+  ],
+  [
+   20,
+   "07/07 — Apreciação crítica e autoavaliação (T3)",
+   [
+    "apreciacao critica",
+    "autoavaliacao"
+   ]
+  ],
+  [
+   21,
+   "Semana 17 — Encerramento da disciplina",
+   [
+    "semana 17"
+   ]
+  ]
  ],
- historia:[
- [1,'Historiografia e introdução à Psicologia',['historiografia','introducao a psicologia','historia psicologia moderna']],
- [2,'Grécia Antiga',['grecia','grecia 2','estudos picasso']],
- [3,'Medievo, Agostinho e Tomás de Aquino',['medievo','filosofia medieval','santo agostinho','tomas de aquino']],
- [4,'Renascimento e modernidade',['renascimento','renascenca']],
- [5,'Psicologia como ciência e áreas de atuação',['nocao de ciencia','areas de atuacao']],
- [6,'Psicanálise',['psicanalise']],
- [7,'Behaviorismo',['behaviorismo']],
- [8,'Gestalt',['gestalt']],
- [9,'Cognitivismo',['cognitivismo']],
- [10,'Humanismo',['humanismo']],
- [11,'Psicologia no Brasil e Rio Grande do Sul',['brasil','rio grande do sul','psico rs','cfp 60 anos','entrel inhas','entrelinhas']],
- [12,'Livros e referências gerais',['livro','rumos e percursos','historia da psicologia moderna']]
+ "historia": [
+  [
+   1,
+   "Plano de Ensino",
+   [
+    "plano de ensino",
+    "cronograma"
+   ]
+  ],
+  [
+   2,
+   "Textos",
+   [
+    "livro",
+    "texto base",
+    "bibliografia"
+   ]
+  ],
+  [
+   3,
+   "Acesso aos Direitos Humanos",
+   [
+    "direitos humanos"
+   ]
+  ],
+  [
+   4,
+   "TDE — Trabalho Discente Efetivo",
+   [
+    "tde",
+    "trabalho discente"
+   ]
+  ],
+  [
+   5,
+   "03/03 — Apresentação da disciplina",
+   [
+    "apresentacao da disciplina",
+    "introducao"
+   ]
+  ],
+  [
+   6,
+   "04/03 — O que é a Psicologia?",
+   [
+    "o que e a psicologia"
+   ]
+  ],
+  [
+   7,
+   "10 e 11/03 — Historiografia e estudo da Psicologia",
+   [
+    "historiografia"
+   ]
+  ],
+  [
+   8,
+   "17 e 18/03 — Pensamento na Grécia Antiga I",
+   [
+    "grecia 1",
+    "grecia antiga i",
+    "texto base grecia"
+   ]
+  ],
+  [
+   9,
+   "24 e 25/03 — Pensamento na Grécia Antiga II",
+   [
+    "grecia 2",
+    "grecia antiga ii"
+   ]
+  ],
+  [
+   10,
+   "31/03 e 01/04 — Pensamento no Medievo Cristão",
+   [
+    "medievo",
+    "agostinho",
+    "sao tomas",
+    "filosofia medieval"
+   ]
+  ],
+  [
+   11,
+   "07 e 08/04 — Renascimento e Iluminismo",
+   [
+    "renascimento",
+    "renascenca"
+   ]
+  ],
+  [
+   12,
+   "14/04 — Atividade avaliativa 1",
+   [
+    "atividade avaliativa 1"
+   ]
+  ],
+  [
+   13,
+   "15 e 22/04 — Reconhecimento institucional da Psicologia como ciência",
+   [
+    "reconhecimento institucional",
+    "nocao de ciencia"
+   ]
+  ],
+  [
+   14,
+   "28/04 — Primeiros modelos de estudo: estruturalismo e funcionalismo",
+   [
+    "estruturalismo",
+    "funcionalismo"
+   ]
+  ],
+  [
+   15,
+   "29/04 e 05/05 — Psicologia e doença mental: métodos terapêuticos",
+   [
+    "loucura",
+    "psicologia e doenca mental"
+   ]
+  ],
+  [
+   16,
+   "06/05 — Contribuições da Psicanálise",
+   [
+    "psicanalise"
+   ]
+  ],
+  [
+   17,
+   "12/05 — Contribuições do Behaviorismo",
+   [
+    "behaviorismo"
+   ]
+  ],
+  [
+   18,
+   "13/05 — Contribuições da Gestalt",
+   [
+    "gestalt"
+   ]
+  ],
+  [
+   19,
+   "20/05 — Contribuições do Humanismo",
+   [
+    "humanismo"
+   ]
+  ],
+  [
+   20,
+   "26/05 — Contribuições do Cognitivismo",
+   [
+    "cognitivismo"
+   ]
+  ],
+  [
+   21,
+   "27/05 — Contribuições da Psicologia Social",
+   [
+    "psicologia social",
+    "o que e o social"
+   ]
+  ],
+  [
+   22,
+   "02/06 — Dinâmica de revisão",
+   [
+    "revisao"
+   ]
+  ],
+  [
+   23,
+   "09/06 — História da Psicologia no Brasil",
+   [
+    "brasil",
+    "rs",
+    "cfp",
+    "historia psico",
+    "entrelinhas"
+   ]
+  ],
+  [
+   24,
+   "10/06 — Reflexões contemporâneas: Psicologia do Desenvolvimento",
+   [
+    "psicologia do desenvolvimento"
+   ]
+  ]
  ],
- sociocognitivas:[
- [1,'Introdução e paradigmas do desenvolvimento cognitivo',['paradigmas','introducao dongo','dongo montoya']],
- [2,'Piaget e epistemologia genética',['piaget','epistemologia genetica','seis estudos','conceitos centrais']],
- [3,'Vygotsky e desenvolvimento sociocultural',['vygotsky','vigotski','mediacao','formacao social da mente','fps','funcoes psicologicas superiores','zdi','zona de desenvolvimento']],
- [4,'Linguagem, mediação e aprendizagem',['evolucao da linguagem','santana roazzi','linguagem']],
- [5,'Outros textos e referências',['desenvolvimento cognitivo','slides','texto']]
+ "sociocognitivas": [
+  [
+   1,
+   "Estudo dirigido — Piaget",
+   [
+    "estudo dirigido piaget"
+   ]
+  ],
+  [
+   2,
+   "Entrega do trabalho — Piaget",
+   [
+    "trabalho piaget"
+   ]
+  ],
+  [
+   3,
+   "Entrega do trabalho — Vygotsky",
+   [
+    "trabalho vygotsky"
+   ]
+  ],
+  [
+   4,
+   "Estudo dirigido — Vygotsky",
+   [
+    "estudo dirigido vygotsky"
+   ]
+  ],
+  [
+   5,
+   "Plano de Ensino",
+   [
+    "plano de ensino",
+    "cronograma"
+   ]
+  ],
+  [
+   6,
+   "TDE — Trabalho Discente Efetivo",
+   [
+    "tde"
+   ]
+  ],
+  [
+   7,
+   "Semana 1 — Introdução às teorias sociocognitivas",
+   [
+    "paradigmas",
+    "introducao dongo"
+   ]
+  ],
+  [
+   8,
+   "Semana 2 — Epistemologia genética e Piaget",
+   [
+    "piaget",
+    "epistemologia genetica"
+   ]
+  ],
+  [
+   9,
+   "Semana 3 — Desenvolvimento cognitivo em Piaget",
+   [
+    "piaget conceitos centrais"
+   ]
+  ],
+  [
+   10,
+   "Semana 4 — Estudos e conceitos de Piaget",
+   [
+    "seis estudos",
+    "piaget"
+   ]
+  ],
+  [
+   11,
+   "Semana 5 — Discussão das teorias de Piaget",
+   [
+    "semana 5"
+   ]
+  ],
+  [
+   12,
+   "Semana 6 — Atividades sobre Piaget",
+   [
+    "semana 6"
+   ]
+  ],
+  [
+   13,
+   "Semana 7 — Introdução a Vygotsky",
+   [
+    "semana 7"
+   ]
+  ],
+  [
+   14,
+   "Semana 8 — Bases filosóficas de Vygotsky",
+   [
+    "vygotsky bases filosoficas"
+   ]
+  ],
+  [
+   15,
+   "Semana 9 — Mediação e aprendizagem",
+   [
+    "mediacao"
+   ]
+  ],
+  [
+   16,
+   "Semana 10 — Desenvolvimento sociocultural",
+   [
+    "semana 10"
+   ]
+  ],
+  [
+   17,
+   "Semana 11 — Funções psicológicas superiores",
+   [
+    "fps",
+    "funcoes psicologicas superiores"
+   ]
+  ],
+  [
+   18,
+   "Semana 12 — Zona de desenvolvimento",
+   [
+    "zdi",
+    "zona de desenvolvimento"
+   ]
+  ],
+  [
+   19,
+   "Semana 13 — Linguagem e pensamento",
+   [
+    "linguagem"
+   ]
+  ],
+  [
+   20,
+   "Semana 14 — Revisão e atividades",
+   [
+    "semana 14"
+   ]
+  ],
+  [
+   21,
+   "Semana 15 — Revisão e atividades",
+   [
+    "semana 15"
+   ]
+  ],
+  [
+   22,
+   "Semana 16 — Revisão e atividades",
+   [
+    "semana 16"
+   ]
+  ],
+  [
+   23,
+   "Semana 17 — Fechamento do semestre",
+   [
+    "semana 17"
+   ]
+  ]
  ],
- desenvolvimento:[
- [1,'Introdução e teorias do desenvolvimento',['introducao a psicologia do desenvolvimento','concepcoes do desenvolvimento','teoria do desenvolvimento','erikson','aprendizagem de skinner','perspectiva evolucionista']],
- [2,'Concepção, gestação, parto e puerpério',['concepcao e gravidez','gravidez','parto','puerperio','obstetricia','carta do bebe']],
- [3,'Primeira infância',['primeira infancia','sono','psicopatologias infantis']],
- [4,'Segunda infância',['segunda infancia','autoconceito']],
- [5,'Terceira infância',['terceira infancia','piaget do egocentrismo']],
- [6,'Adolescência',['adolescencia']],
- [7,'Adultez emergente e adulto jovem',['adultez emergente','adulto jovem']],
- [8,'Adultez intermediária',['adultez intermediaria']],
- [9,'Adultez tardia e envelhecimento',['adultez tardia','envelhecimento']],
- [10,'Perdas, morte e luto',['perdas e lutos','processo de luto','luto']],
- [11,'Estudos e leituras complementares',['violencia','comparacao','artigo']]
+ "desenvolvimento": [
+  [
+   1,
+   "Plano de Ensino e Cronograma",
+   [
+    "plano de ensino",
+    "cronograma"
+   ]
+  ],
+  [
+   2,
+   "Orientações para trabalho e tutoria",
+   [
+    "orientacoes",
+    "tutoria"
+   ]
+  ],
+  [
+   3,
+   "TDE — Trabalho Discente Efetivo",
+   [
+    "tde"
+   ]
+  ],
+  [
+   4,
+   "Livros em PDF",
+   [
+    "livro"
+   ]
+  ],
+  [
+   5,
+   "Caracterização da Psicologia do Desenvolvimento",
+   [
+    "caracterizacao",
+    "introducao"
+   ]
+  ],
+  [
+   6,
+   "Perspectivas teóricas do desenvolvimento",
+   [
+    "perspectivas teoricas",
+    "erikson",
+    "teorias da aprendizagem",
+    "concepcoes do desenvolvimento",
+    "evolucionista"
+   ]
+  ],
+  [
+   7,
+   "Concepção, gravidez, parto e puerpério",
+   [
+    "concepcao",
+    "gravidez",
+    "parto",
+    "puerperio",
+    "obstetricia"
+   ]
+  ],
+  [
+   8,
+   "Primeira infância",
+   [
+    "primeira infancia",
+    "sono",
+    "psicopatologia infantil"
+   ]
+  ],
+  [
+   9,
+   "Segunda infância",
+   [
+    "segunda infancia",
+    "autoconceito"
+   ]
+  ],
+  [
+   10,
+   "Terceira infância",
+   [
+    "terceira infancia",
+    "egocentrismo"
+   ]
+  ],
+  [
+   11,
+   "Adolescência",
+   [
+    "adolescencia"
+   ]
+  ],
+  [
+   12,
+   "Adultez emergente",
+   [
+    "adultez emergente"
+   ]
+  ],
+  [
+   13,
+   "Adultez jovem",
+   [
+    "adulto jovem"
+   ]
+  ],
+  [
+   14,
+   "Adultez intermediária",
+   [
+    "adultez intermediaria"
+   ]
+  ],
+  [
+   15,
+   "Adultez tardia",
+   [
+    "adultez tardia",
+    "envelhecimento"
+   ]
+  ],
+  [
+   16,
+   "Processo de luto e morte",
+   [
+    "luto",
+    "morte",
+    "perdas"
+   ]
+  ],
+  [
+   17,
+   "Semana 17 — Revisão do ciclo vital",
+   [
+    "semana 17"
+   ]
+  ],
+  [
+   18,
+   "Semana 18 — Encerramento",
+   [
+    "semana 18"
+   ]
+  ]
  ]
 };
+
 function firstSections(subject){return (FIRST_SECTIONS[subject]||[]).map(([number,label,aliases])=>({number,label,aliases}));}
 function sectionCatalog(semester,subject){return semester==='2026/1'?firstSections(subject):moodleSections(subject);}
 
@@ -296,7 +1242,7 @@ function weeklyView(semester,subject,materials,card){
   // Se o Moodle identificou a semana mas não lhe atribuiu assunto, exibir título simples.
   // Disciplinas organizadas por temas, sem semanas originais, conservam seus próprios títulos.
   const label=sectionMap.get(n)?.label||(semester==='2026/1'?'Tema '+n:'Semana '+n+' - Materiais da semana');
-  const shortLabel=semester==='2026/1'?'TEMA':named?'MOODLE':'SEMANA '+String(n).padStart(2,'0');
+  const shortLabel=semester==='2026/1'?(label.startsWith('Semana ')?'SEMANA':label.includes('/')?'DATA':'MOODLE'):named?'MOODLE':'SEMANA '+String(n).padStart(2,'0');
   return '<details class="pm-week-group" '+(i===0?'open':'')+'><summary><span class="pm-week-number">'+shortLabel+'</span><strong>'+esc(label)+'</strong><small>'+records.length+' '+(records.length===1?'material':'materiais')+'</small><span class="pm-week-chevron" aria-hidden="true">⌄</span></summary><div class="pm-week-content">'+
   (records.length?records.map(r=>{
    const m=map.get(r.resource_key);
@@ -321,7 +1267,7 @@ function weeklyView(semester,subject,materials,card){
   (editing?'<span class="pm-week-edit-message">Modo de edição · escolha os arquivos e suas semanas. Ao salvar, os materiais agendados continuarão privados até a data definida.</span>'+
    '<div class="pm-week-toolbar-actions"><button type="button" class="pm-cancel" data-pm-week-cancel>Cancelar</button><button type="button" class="pm-save" data-pm-week-save '+(saving?'disabled':'')+'>Salvar organização</button></div>':
    '<button type="button" class="pm-edit-button" data-pm-week-edit="'+esc(context)+'">✎ Editar</button>')+'</div>':'';
- return {tabs:base,weekly:true,body:'<div class="pm-weeks-intro"><strong>Organização por semana</strong><p>Os materiais aparecem na semana correspondente, como no Moodle. É possível consultar os mesmos arquivos também no Acervo geral.</p></div>'+toolbar+
+ return {tabs:base,weekly:true,body:'<div class="pm-weeks-intro"><strong>Organização conforme o Moodle</strong><p>Seções por semana, data ou assunto, com os títulos mostrados no Moodle. Os mesmos arquivos também podem ser consultados no Acervo geral.</p></div>'+toolbar+
  (weekNotice?'<p class="pm-save-notice" role="status">'+esc(weekNotice)+'</p>':'')+add+
  '<div class="pm-week-list">'+(groups+pendingBlock||'<p class="pm-week-empty">Nenhum material organizado nesta visualização. Novos arquivos podem ser classificados ao serem enviados pelo Admin Config.</p>')+'</div>'};
 }
