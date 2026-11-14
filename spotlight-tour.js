@@ -481,6 +481,8 @@ function open(){
  changedSemester=!!(originSemester&&originSemester!=='2026/2');
  if(changedSemester)q('.semester-option[data-semester="2026/2"]')?.click();
  runSteps=innerWidth<=760?mobileSteps:steps;
+ // Qualquer gesto já iniciado deve terminar antes do bloqueio total da tela.
+ window.pmMobileDrawer?.cancelGesture?.();
  window.pmMobileDrawer?.close?.();
  active=true;shell.hidden=false;document.documentElement.classList.add('pm-tour-running');
  show(0);
@@ -532,12 +534,15 @@ function keepTutorialFocus(event){
 }
 function blockManualScroll(event){
  if(!active)return;
- // O texto do tutorial pode rolar dentro do próprio balão, sem mover a página.
- if(event.target?.closest?.('.pm-spotlight-popover'))return;
+ // Mobile: o usuário não pode deslizar NADA durante o tutorial, nem o balão.
+ // Somente os movimentos programáticos entre etapas ficam liberados.
+ if(runSteps!==mobileSteps&&event.target?.closest?.('.pm-spotlight-popover'))return;
  if(event.cancelable)event.preventDefault();
+ if(runSteps===mobileSteps)event.stopImmediatePropagation();
 }
 function blockScrollKeys(event){
- if(!active||event.target?.closest?.('.pm-spotlight-popover'))return;
+ if(!active)return;
+ if(runSteps!==mobileSteps&&event.target?.closest?.('.pm-spotlight-popover'))return;
  if([' ','Spacebar','PageUp','PageDown','Home','End','ArrowUp','ArrowDown'].includes(event.key)){
   event.preventDefault();
  }
