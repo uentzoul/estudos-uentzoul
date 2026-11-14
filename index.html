@@ -5047,8 +5047,8 @@ async function dmDelete(type,id){
  if(!row||row.sender_id!==onlineUser.id||row.deleted_at)return;
  if(!confirm('Apagar esta mensagem para todas as pessoas da conversa?'))return;
  const table=type==='private'?'uentzoul_messages':'uentzoul_room_messages';
- const {error}=await client.from(table).update({deleted_at:new Date().toISOString()}).eq('id',id).eq('sender_id',onlineUser.id);
- if(error){toast('Não foi possível apagar: '+error.message);return}
+ const {data,error}=await client.from(table).delete().eq('id',id).eq('sender_id',onlineUser.id).select('id');
+ if(error||!data?.length){toast('Não foi possível apagar a mensagem para todos.'+(error?' '+error.message:''));return}
  if(row.media_path)try{await client.storage.from('uentzoul-chat-media').remove([row.media_path]);dm.mediaCache.delete(row.media_path)}catch(_){}
  await dmLoad();dmShow();
 }
