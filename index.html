@@ -2105,6 +2105,7 @@ html[data-theme="dark"] .tz-library-download{background:#26374c;border-color:#45
 <link rel="stylesheet" href="mobile-header.css?v=20261113-1">
 <link id="pm-mobile-drawer-css" rel="stylesheet" href="mobile-drawer.css?v=20261114-smooth-locked-v18">
 <link id="pm-tutorial-styles" rel="stylesheet" href="spotlight-tour.css?v=20261114-smooth-locked-v18">
+<link id="pm-podcast-mini-styles" rel="stylesheet" href="podcast-mini.css?v=20261114-podcast-mini-v1">
 </head>
 <body>
 <section id="staticFallback" class="static-fallback" aria-label="Central de Estudos — modo de leitura compatível com celular">
@@ -2597,6 +2598,14 @@ const go=(page,extra={})=>{
  try{window.scrollTo({top:0,behavior:'instant'})}catch(e){try{window.scrollTo(0,0)}catch(_){}}
 };
 window.uentzoulOpenMessages=(peerId)=>go('messages',{peerId:peerId||null});
+// Miniplayer: retorna à página de podcasts sem criar ou reiniciar outro áudio.
+window.pmOpenPodcastFromMini=(subject,index)=>{
+ if(!DB.subjects[subject]||!audioEpisodes(subject)?.length)return;
+ const i=Math.min(Math.max(Number(index)||0,0),audioEpisodes(subject).length-1);
+ current.audioSubject=subject;
+ if(subject==='tcc')currentChapter=i;else currentEpisode=i;
+ go('subject',{subject,subjectArea:'podcasts'});
+};
 const button=(label,act,cl='btn light')=>`<button class="${cl}" data-action="${act}">${label}</button>`;
 function subjectCard(id){
  const subj=getSubject(id), exams=readyExamsFor(id), sims=doneCount(exams.map(e=>'sim:'+e.id)), keys=subjectKeys(id),n=doneCount(keys);
@@ -4309,6 +4318,10 @@ async function preparePodcast(k,i,autoplay=false){
  if(!ep||!autoplay)return;
  const p=psAudioElement||document.getElementById('audioPlayer'),url=episodeUri(k,i);
  if(!p||!url){psStatus('Este episódio não tem um arquivo de áudio publicado.');return;}
+ // A janelinha utiliza este mesmo player e recebe o título do episódio real.
+ window.dispatchEvent(new CustomEvent('pm:podcast-selected',{
+  detail:{title:ep.title,subject:k,index:i,subjectName:getSubject(k)?.name||k}
+ }));
  const shell=document.getElementById('psAudioShell');if(shell)shell.hidden=false;
  const same=podcastPlayerKey===key&&!!p.src;
  if(same){if(p.paused)p.play().catch(()=>psStatus('Use o botão Reproduzir para iniciar.'));else p.pause();psSync();return;}
@@ -7262,7 +7275,8 @@ document.addEventListener("click",e=>{if(!e.target.closest("[data-theme-toggle]"
 <script src="admin-config.js?v=20261113-formal-1"></script>
 <script id="pm-mobile-drawer-js" src="mobile-drawer.js?v=20261114-smooth-locked-v18" defer></script>
 <script id="pm-tutorial-script" src="spotlight-tour.js?v=20261114-smooth-locked-v18" defer></script>
-<script src="site-version.js?v=20261114-smooth-locked-v18"></script>
+<script id="pm-podcast-mini-script" src="podcast-mini.js?v=20261114-podcast-mini-v1" defer></script>
+<script src="site-version.js?v=20261114-podcast-mini-v1"></script>
 
 <script>
 /* Aviso desacoplado do scroll da sidebar. Nenhuma alteração em navegação. */
