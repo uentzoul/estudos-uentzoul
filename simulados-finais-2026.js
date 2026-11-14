@@ -227,13 +227,14 @@ function apply(db){
  if(!db?.subjects||!db?.topics||!Array.isArray(db.exams))return;
  for(const id of ['tcc','familia','meta','grupos','social','avaliacao']){
   if(!db.subjects[id])continue;
+  const oldTopics=curated(db,id);
   const topics=equalTopics(db,id);
   if(id==='familia')for(const x of familyExtra)if(!db.topics.familia.some(t=>t.title===x.title))db.topics.familia.push({...x});
   if(topics.length<3)continue;
   for(let level=1;level<=5;level++){
    // Preservar provas antigas sem alterar questões/gabaritos de tentativas anteriores.
    for(const legacy of [PREVIOUS_VERSION,LEGACY_CURRENT]){
-     const oldExam=generate(id,level,topics,legacy);
+     const oldExam=generate(id,level,oldTopics,legacy);
      if(!db.exams.some(e=>e.id===oldExam.id))db.exams.push(oldExam);
    }
    const exam=generateEqual(id,level,topics);
