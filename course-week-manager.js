@@ -240,7 +240,7 @@ function adminPanel(){
  (notice?'<p class="pm-manager-notice" role="status">'+esc(notice)+'</p>':'')+
  '<h3>Disciplinas adicionadas pelo Admin</h3>'+
  (additional.length?'<div class="pm-admin-subject-list">'+additional.map(r=>'<div><span><strong>'+esc(r.name)+'</strong><small>'+esc(r.semester)+(r.code?' · '+esc(r.code):'')+'</small></span><button type="button" data-pm-remove-subject="'+esc(r.id)+'" '+(saving?'disabled':'')+'>Excluir</button></div>').join('')+'</div>':'<p class="admin-muted">Nenhuma disciplina extra cadastrada até agora.</p>')+
- '<p class="admin-muted">No 2º semestre, o envio no Admin Config sugere a seção do Moodle automaticamente. Confira em <strong>Por semanas</strong>.</p></div></details>';
+ '<p class="admin-muted">O envio no Admin Config sugere os temas do 1º semestre e as seções do Moodle no 2º. Confira em <strong>Por semanas</strong>.</p></div></details>';
 }
 function hashName(s){return String(s).normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'').slice(0,54);}
 async function addSubject(form){
@@ -316,7 +316,7 @@ function weeklyView(semester,subject,materials,card){
   '<label>Semana<input type="number" name="week_number" min="1" max="30" value="1" required></label>')+
  '<button type="submit" '+(!items.length?'disabled':'')+'>Adicionar à semana</button></form>':'';
  const toolbar=admin()?'<div class="pm-week-toolbar">'+
-  (editing?'<span class="pm-week-edit-message">Modo de edição · escolha os arquivos e suas semanas. As alterações serão publicadas ao salvar.</span>'+
+  (editing?'<span class="pm-week-edit-message">Modo de edição · escolha os arquivos e suas semanas. Ao salvar, os materiais agendados continuarão privados até a data definida.</span>'+
    '<div class="pm-week-toolbar-actions"><button type="button" class="pm-cancel" data-pm-week-cancel>Cancelar</button><button type="button" class="pm-save" data-pm-week-save '+(saving?'disabled':'')+'>Salvar organização</button></div>':
    '<button type="button" class="pm-edit-button" data-pm-week-edit="'+esc(context)+'">✎ Editar</button>')+'</div>':'';
  return {tabs:base,weekly:true,body:'<div class="pm-weeks-intro"><strong>Organização por semana</strong><p>Os materiais aparecem na semana correspondente, como no Moodle. É possível consultar os mesmos arquivos também no Acervo geral.</p></div>'+toolbar+
@@ -388,7 +388,7 @@ async function saveWeekEdit(){
   if(verify.error)throw verify.error;
   const actual=new Set((verify.data||[]).map(key));
   if(actual.size!==desired.size||[...desired].some(k=>!actual.has(k)))throw Error('Nem todos os vínculos foram confirmados. Confira e salve novamente.');
-  weekEditState=null;weekNotice='Organização por semanas salva com sucesso.';
+  weekEditState=null;weekNotice='Organização por seções salva. Arquivos agendados continuam ocultos para alunos até 27/11.';
   await reload();
  }catch(e){weekNotice='Não foi possível salvar: '+(e.message||e);}
  finally{saving=false;bridge()?.refreshNav?.();}
