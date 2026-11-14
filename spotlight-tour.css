@@ -236,3 +236,20 @@ html.pm-tour-running .pm-spotlight-popover button{touch-action:manipulation}
   grid-template-columns:minmax(0,1fr)!important;gap:8px!important
  }
 }
+
+/* Interação exclusiva com os controles do tutorial, inclusive sobre os recortes. */
+.pm-spotlight-svg{z-index:0!important;pointer-events:none!important}
+.pm-spotlight-path{pointer-events:none!important}
+.pm-spotlight-interaction-shield{
+ position:fixed;inset:0;width:100vw;height:100dvh;
+ z-index:1;pointer-events:auto;touch-action:none;
+ background:transparent;cursor:default;user-select:none;-webkit-user-select:none;
+}
+.pm-spotlight-ring,.pm-spotlight-sidebar-ring{z-index:2;pointer-events:none!important}
+.pm-spotlight-popover{z-index:3;pointer-events:auto}
+html.pm-tour-running .pm-spotlight-interaction-shield{overscroll-behavior:contain}
+@media(min-width:1050px){
+ html.pm-tour-running[data-pm-tour-step="8"] .pm-spotlight-popover{
+  width:min(345px,calc(100vw - 32px));
+ }
+}
