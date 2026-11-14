@@ -5534,7 +5534,7 @@ dmComposer=function(){
  if(!dmWSelected())return '';
  const reply=dmW.reply?'<div class="dm-reply-preview"><div><strong>Respondendo a '+esc(dmW.reply.sender_id===dm.owner?'você':dmPrettyPerson(dmW.reply.sender_id).display_name)+'</strong><small>'+esc(dmWPreview(dmW.reply))+'</small></div><button type="button" data-dmw-clear-reply aria-label="Cancelar">×</button></div>':'';
  const recording=dmW.recording?'<div class="dm-record-status"><span>🔴 Gravando áudio… <b id="dmWTimer">00:00</b></span><span><button data-dmw-record-cancel type="button">Cancelar</button><button data-dmw-record-stop type="button">Parar</button></span></div>':'';
- const tools=dmW.panel==='tools'?'<div class="dm-tools-menu">'+[['image','Foto / GIF do computador'],['video','Vídeo'],['audio','Arquivo de áudio'],['sticker','Criar figurinha (PNG ou WebP)']].map(x=>'<button type="button" data-dmw-attach="'+x[0]+'">'+x[1]+'</button>').join('')+'<button type="button" data-dmw-gif>GIF do GIPHY</button></div>':
+ const tools=dmW.panel==='tools'?'<div class="dm-tools-menu">'+[['image','Foto / GIF do computador'],['video','Vídeo'],['audio','Arquivo de áudio']].map(x=>'<button type="button" data-dmw-attach="'+x[0]+'">'+x[1]+'</button>').join('')+'<button type="button" data-dmw-gif>GIF do GIPHY</button></div>':
   dmW.panel==='emoji'?'<div class="dm-emoji-panel"><emoji-picker id="dmWPicker" locale="pt"></emoji-picker></div>':'';
  return '<form id="dmSendForm" class="dm-composer-wrap">'+reply+recording+
  '<div class="dm-mention-suggestions" id="dmMentionSuggestions" role="listbox" aria-label="Selecionar participante" hidden></div><div class="dm-composer">'+
@@ -7278,7 +7278,7 @@ document.addEventListener("click",e=>{if(!e.target.closest("[data-theme-toggle]"
 <script id="pm-mobile-drawer-js" src="mobile-drawer.js?v=20261114-smooth-locked-v18" defer></script>
 <script id="pm-chat-mobile-js" src="chat-mobile-viewport.js?v=20261114-chat-mobile-v21" defer></script>
 <script id="pm-chat-maintenance-js" src="chat-admin-maintenance.js?v=20261114-maintenance-1" defer></script>
-<script id="pm-chat-stickers-js" src="chat-stickers.js?v=20261114-stickers-v1" defer></script>
+<script id="pm-chat-stickers-js" src="chat-stickers.js?v=20261114-stickers-v2" defer></script>
 <script id="pm-tutorial-script" src="spotlight-tour.js?v=20261114-chat-mobile-v20" defer></script>
 <script id="pm-podcast-mini-script" src="podcast-mini.js?v=20261114-podcast-mini-v2" defer></script>
 <script src="site-version.js?v=20261114-chat-mobile-v21"></script>
