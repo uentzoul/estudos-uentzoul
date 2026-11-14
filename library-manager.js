@@ -12,7 +12,7 @@ const FORMATS={
 };
 let client=null,user=null,isAdmin=false,isBusy=false,chosenFiles=[],logEntries=[],refreshing=false,adminCheckedFor=null,initialized=false;
 let lastRowsSignature='',lastAdmin=false,refreshPending=false;
-let reviewed=[],isAnalyzing=false,scanToken=0;
+let reviewed=[],isAnalyzing=false,scanToken=0,reviewSemester='';
 const api=()=>window.uentzoulLibraryApp;
 const auth=()=>window.uentzoulAIAuth;
 function clean(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;','\'':'&#39;'}[c]));}
@@ -31,7 +31,7 @@ function show(message){
  const el=document.getElementById('libraryUploadFeedback');
  if(el)el.textContent=message||'';
 }
-const subjects=()=>window.UentzoulLibraryAnalyzer?.subjects||{geral:'Cadernos integrados',meta:'Metapsicologia',tcc:'TCC',familia:'Psicologia da Família',social:'Psicologia Social',avaliacao:'Avaliação Psicológica',grupos:'Psicologia dos Grupos'};
+const subjects=()=>api()?.subjects?.()||window.UentzoulLibraryAnalyzer?.subjects||{geral:'Cadernos integrados',meta:'Metapsicologia',tcc:'TCC'};
 function titleFromFile(file,analysis){
  const original=String(file.name||'').replace(/\.(pdf|docx|pptx)$/i,'').replace(/[_]+/g,' ').trim();
  if(/^doc\s*\d+$/i.test(original)&&analysis?.topics?.length)return analysis.topics.slice(0,2).join(' e ');
@@ -75,6 +75,10 @@ function reviewCard(r,i){
   ' O destino pode ser alterado antes da publicação.</p></div>';
 }
 function paint(){
+ const activeSemester=api()?.semester?.()||'2026/2';
+ if(!isBusy&&reviewSemester&&reviewSemester!==activeSemester){
+  ++scanToken;reviewed=[];chosenFiles=[];logEntries=[];isAnalyzing=false;reviewSemester=activeSemester;
+ }
  const el=document.getElementById('libraryUploadFeedback'),btn=document.getElementById('libraryUploadSend');
  updateCounter();
  if(!el)return;
@@ -119,6 +123,7 @@ async function refresh(){
 }
 async function select(files){
  if(isBusy)return;
+ reviewSemester=api()?.semester?.()||'2026/2';
  const list=Array.from(files||[]).filter(f=>f&&typeof f.name==='string');
  // ZIPs enviados pelo carregador comum são encaminhados ao importador próprio.
  const zipFiles=list.filter(f=>/\.zip$/i.test(f.name));
@@ -143,7 +148,7 @@ async function select(files){
     {quality:'indisponivel',error:'O leitor de documentos não carregou',topics:[],hits:[]};
    const suggested=r.analysis?.subject||'',known=r.suggestion;
    // Cadernos multidisciplinares não devem ser tratados como material de uma disciplina única.
-   r.subject=known?.subject==='geral'?'geral':(suggested||known?.subject||'');
+   r.subject=known?.subject==='geral'?'geral':(subjects()[suggested]?suggested:(subjects()[known?.subject]?known.subject:''));
    r.title=known?.title||titleFromFile(r.file,r.analysis);
    r.conflict=!!(suggested&&known?.subject&&known.subject!=='geral'&&suggested!==known.subject);
    r.targetKey=known&&!r.conflict?known.key:'__new__';
@@ -170,6 +175,7 @@ function packageBytesHex(buffer){
 }
 async function importLibraryPackage(archive,append=false){
  if(isBusy||isAnalyzing||!archive)return;
+ if(!append)reviewSemester=api()?.semester?.()||'2026/2';
  if(!isAdmin){show('Somente o administrador pode importar materiais para o acervo.');return;}
  const lower=String(archive.name||'').toLowerCase();
  if(!lower.endsWith('.zip')){show('Escolha um dos arquivos ZIP do pacote PsicoMoodle.');return;}
@@ -273,12 +279,14 @@ async function submit(event){
  if(isBusy||isAnalyzing||!reviewed.length)return;
  const a=auth(),c=a?.client?.(),u=a?.user?.();
  if(!c||!u||!isAdmin){show('Somente o administrador pode enviar arquivos.');return;}
+ const sem=api()?.semester?.()||'2026/2';
+ if(reviewSemester!==sem){show('O semestre mudou. Selecione novamente os arquivos para evitar misturar os acervos.');return;}
  const catalog=entries();
  const queue=reviewed.map(r=>{
   const existing=catalog.find(x=>x.key===r.targetKey);
   const subject=existing?.subject||r.subject;
   const title=(existing?.title||r.title||'').trim().slice(0,160);
-  const key=existing?.key||(subject&&title?subject+'::'+title:'');
+  const key=existing?.key||(subject&&title?(sem==='2026/1'?'2026/1::':'')+subject+'::'+title:'');
   return {file:r.file,r,key,subject,title,scope:r.scope==='in'};
  });
  let passed=0,failed=0;const used=new Set();
@@ -301,7 +309,7 @@ async function submit(event){
    const {error}=await c.from(TABLE).upsert({
     resource_key:key,storage_path:path,filename:file.name.slice(0,255),mime_type:fmt.mime,
     size_bytes:file.size,updated_by:u.id,updated_at:new Date().toISOString(),
-    file_subject:subject,display_title:title,content_summary:String(r.analysis?.summary||'').slice(0,600),
+    file_subject:sem==='2026/1'?'2026/1::'+subject:subject,display_title:title,content_summary:String(r.analysis?.summary||'').slice(0,600),
     content_tags:(r.analysis?.topics||[]).slice(0,15),exam_scope:scope,scan_quality:r.analysis?.quality||'manual'
    },{onConflict:'resource_key'});
    if(error)throw Error('Arquivo salvo, mas falhou ao associar ao acervo: '+error.message);
