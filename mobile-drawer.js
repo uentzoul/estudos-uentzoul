@@ -57,6 +57,11 @@
    document.body.style.removeProperty('--pm-drawer-opacity');
   }
   function setOpen(value,restoreFocus=false,focusClose=true){
+   // Botão, tutorial e redimensionamento interrompem assentamentos antigos.
+   if(document.body.classList.contains('pm-mobile-menu-settling')){
+    clearSettle();
+    document.body.style.removeProperty('--pm-drawer-duration');
+   }
    opened=Boolean(value&&media.matches);
    document.body.classList.toggle('pm-mobile-menu-open',opened);
    toggle.setAttribute('aria-expanded',String(opened));
@@ -77,6 +82,7 @@
    open:()=>setOpen(true,false,false),
    close:()=>setOpen(false,false,false),
    isOpen:()=>opened,
+   cancelGesture:()=>cancelDrag(),
    scrollToTop:()=>{side.scrollTop=0;}
   };
   toggle.addEventListener('click',()=>setOpen(!opened,true));
