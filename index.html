@@ -2106,6 +2106,7 @@ html[data-theme="dark"] .tz-library-download{background:#26374c;border-color:#45
 <link id="pm-mobile-drawer-css" rel="stylesheet" href="mobile-drawer.css?v=20261114-smooth-locked-v18">
 <link id="pm-tutorial-styles" rel="stylesheet" href="spotlight-tour.css?v=20261114-podcast-monday-v19">
 <link id="pm-podcast-mini-styles" rel="stylesheet" href="podcast-mini.css?v=20261114-podcast-mini-v2">
+<link id="pm-chat-mobile-css" rel="stylesheet" href="chat-mobile-refinement.css?v=20261114-chat-mobile-v20">
 </head>
 <body>
 <section id="staticFallback" class="static-fallback" aria-label="Central de Estudos — modo de leitura compatível com celular">
@@ -4973,7 +4974,7 @@ function dmMessageHtml(m,channel='private'){
 }
 function dmThreadHtml(){
  const selected=dm.tab==='private'?dm.peerId:dm.tab==='global'?DM_GLOBAL_ROOM:dm.roomId;
- if(!selected)return '<div class="dm-chat-empty"><span>✉</span><h2>'+(dm.tab==='groups'?'Escolham um grupo':'Escolha uma conversa')+'</h2><p>'+(dm.tab==='groups'?'Selecionem um grupo para conversar.':'Selecione uma pessoa, um grupo ou o chat global.')+'</p></div>';
+ if(!selected)return '<div class="dm-chat-empty"><span>✉</span><h2>'+(dm.tab==='groups'?'Escolham um grupo':'Escolha uma conversa')+'</h2><p>'+(dm.tab==='groups'?'Selecionem um grupo para conversar.':'Selecione uma pessoa, um grupo ou o chat geral.')+'</p></div>';
  const rows=(dm.tab==='private'?dm.messages.filter(m=>(m.sender_id===dm.owner&&m.recipient_id===selected)||(m.sender_id===selected&&m.recipient_id===dm.owner)):dm.roomMessages.filter(m=>m.room_id===selected)).slice().reverse();
  if(!rows.length)return '<div class="dm-chat-empty"><span>✉</span><h3>'+(dm.tab==='private'?'Comece a conversa':'Comecem a conversa')+'</h3><p>Ainda não há mensagens por aqui.</p></div>';
  let day='',output='';
@@ -5074,19 +5075,19 @@ function dmReportList(){
 function dmRender(){
  if(!onlineUser)return '<section class="dm-login-panel"><h1>Mensagens</h1><p>Entre na sua conta para conversar com outros estudantes do site.</p><button type="button" data-account-action="open" class="profile-action">Entrar / Cadastrar</button></section>';
  if(dm.tab==='reports'&&dm.isAdmin){
-  const tabs=[['private','Privadas'],['groups','Grupos'],['global','Global'],['reports','Report de Erros']];
+  const tabs=[['private','Privadas'],['groups','Grupos'],['global','Geral'],['reports','Report de Erros']];
   return '<section class="dm-shell"><div class="dm-list"><header class="dm-list-head"><div><h1>Mensagens</h1><p>Central de mensagens</p></div></header><nav class="dm-channel-tabs has-admin">'+tabs.map(t=>'<button type="button" data-dm-tab="'+t[0]+'" class="'+(dm.tab===t[0]?'selected':'')+'">'+t[1]+'</button>').join('')+'</nav><p class="report-menu-note">Caixa exclusiva da administração</p></div><div class="dm-main"><header class="dm-chat-head"><span class="dm-room-heading"><strong>Report de Erros</strong><small>Relatos anônimos · '+dm.reports.length+'</small></span></header><div class="dm-messages report-thread" id="dmMessages">'+dmReportList()+'</div></div></section>';
  }
  const selected=dm.tab==='private'?dm.peerId:dm.tab==='global'?DM_GLOBAL_ROOM:dm.roomId;
  const peer=dm.tab==='private'&&selected?dmPrettyPerson(selected):null;
- const room=dm.tab==='global'?{name:'Chat global',kind:'global'}:dm.tab==='groups'?dmRoom(selected):null;
+ const room=dm.tab==='global'?{name:'Chat geral',kind:'global'}:dm.tab==='groups'?dmRoom(selected):null;
  const heading=peer?'<button type="button" class="dm-chat-person" data-dm-profile="'+esc(peer.user_id)+'">'+avatar(peer.display_name,peer.avatar_url,true)+'<span><strong>'+esc(peer.display_name)+'</strong><small>Ver perfil e bio</small></span></button>':room?'<span class="dm-room-heading"><strong>'+esc(room.name)+'</strong><small>'+(room.kind==='global'?'Aberto a todos os estudantes cadastrados':'Conversa privada do grupo')+'</small></span>':'<strong>Escolha uma conversa</strong>';
  const list=dm.tab==='private'?'<label class="dm-search-label"><span>Encontrar pessoas</span><input id="dmUserSearch" type="search" placeholder="Buscar estudante pelo nome" value="'+esc(dm.search)+'" autocomplete="off"></label><div class="dm-contacts" id="dmContacts">'+dmContactRows()+'</div>':
-  dm.tab==='groups'?'<div class="dm-contacts dm-room-contacts">'+dmRoomList()+'</div>':'<div class="dm-global-info"><span>🌍</span><h3>Chat global do app</h3><p>Um espaço de conversa para todas as pessoas do site. Respeitem os colegas e evitem compartilhar dados pessoais.</p></div>';
+  dm.tab==='groups'?'<div class="dm-contacts dm-room-contacts">'+dmRoomList()+'</div>':'<div class="dm-global-info"><span>🌍</span><h3>Chat geral do app</h3><p>Um espaço de conversa para todas as pessoas do site. Respeitem os colegas e evitem compartilhar dados pessoais.</p></div>';
  return '<section class="dm-shell"><div class="dm-list">'+
  '<header class="dm-list-head"><div><h1>Mensagens</h1><p>Conversas entre estudantes</p></div><span class="dm-online-dot"></span></header>'+
  '<nav class="dm-channel-tabs '+(dm.isAdmin?'has-admin':'')+'" aria-label="Tipos de conversa">'+
- [['private','Privadas'],['groups','Grupos'],['global','Global'],].map(t=>'<button type="button" data-dm-tab="'+t[0]+'" class="'+(dm.tab===t[0]?'selected':'')+'" aria-pressed="'+(dm.tab===t[0])+'">'+t[1]+'</button>').join('')+'</nav>'+
+ [['private','Privadas'],['groups','Grupos'],['global','Geral'],].map(t=>'<button type="button" data-dm-tab="'+t[0]+'" class="'+(dm.tab===t[0]?'selected':'')+'" aria-pressed="'+(dm.tab===t[0])+'">'+t[1]+'</button>').join('')+'</nav>'+
  list+'</div><div class="dm-main"><header class="dm-chat-head">'+heading+'<button type="button" class="dm-back" data-dm-back>Conversas</button></header>'+
  (dm.error?'<div class="dm-error" role="alert">'+esc(dm.error)+'</div>':'')+
  '<div class="dm-messages" id="dmMessages" aria-live="polite">'+dmThreadHtml()+'</div>'+
@@ -5361,8 +5362,8 @@ dmContactRows=function(){
   const name=x.type==='group'?x.room.name:dmPrettyPerson(x.id).display_name;
   return !term||name.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().includes(term);
  });
- const global=(!term||'chat global'.includes(term))?
-  '<div class="dm-contact dm-global '+(dm.tab==='global'?'selected':'')+'"><button type="button" class="dm-contact-open" data-dmw-global><span class="dm-global-avatar">✦</span><span class="dm-contact-text"><strong>Chat Global</strong><small>Espaço de todos os usuários</small></span></button></div>':'';
+ const global=(!term||'chat geral chat global'.includes(term))?
+  '<div class="dm-contact dm-global '+(dm.tab==='global'?'selected':'')+'"><button type="button" class="dm-contact-open" data-dmw-global><span class="dm-global-avatar" aria-hidden="true">🌍</span><span class="dm-contact-text"><strong>Chat Geral</strong><small>Espaço de todos os usuários</small></span></button></div>':'';
  return global+(groups.length?groups.map(x=>{
   const isGroup=x.type==='group',p=isGroup?null:dmPrettyPerson(x.id),name=isGroup?x.room.name:p.display_name;
   const icon=isGroup?dmWGroupAvatar(x.room,false):avatar(p.display_name,p.avatar_url,true);
@@ -5521,7 +5522,7 @@ dmMessageHtml=function(m,channel='private'){
 };
 dmThreadHtml=function(){
  const selected=dmWSelected();
- if(!selected)return '<div class="dm-chat-empty"><span>✉</span><h2>Selecione uma conversa</h2><p>Converse individualmente, em grupos ou no Chat Global.</p></div>';
+ if(!selected)return '<div class="dm-chat-empty"><span>✉</span><h2>Selecione uma conversa</h2><p>Converse individualmente, em grupos ou no Chat Geral.</p></div>';
  const rows=(dm.tab==='private'?dm.messages.filter(x=>(x.sender_id===dm.owner&&x.recipient_id===selected)||(x.sender_id===selected&&x.recipient_id===dm.owner)):dm.roomMessages.filter(x=>x.room_id===selected)).filter(x=>!x.expires_at||new Date(x.expires_at)>new Date()||x.deleted_at).slice().reverse();
  if(!rows.length)return '<div class="dm-chat-empty"><span>✉</span><h3>Comece a conversa</h3><p>Ainda não há mensagens por aqui.</p></div>';
  let prev='',out='';
@@ -5548,7 +5549,7 @@ dmRender=function(){
  if(dm.tab==='reports'&&dm.isAdmin)return '<section class="dm-shell has-conversation"><div class="dm-list"><header class="dm-list-head"><h1>Mensagens</h1><button type="button" class="dm-soft-button" data-dmw-reports-back>← Voltar</button></header></div><div class="dm-main"><header class="dm-chat-head"><button type="button" class="dm-back" data-dmw-reports-back>‹ Voltar</button><strong>Report de Erros</strong></header><div class="dm-messages" id="dmMessages">'+dmReportList()+'</div></div></section>';
  const selected=dmWSelected(),group=dm.tab==='groups',room=group?dmWRoom():null,peer=dm.tab==='private'&&selected?dmPrettyPerson(selected):null;
  const heading=peer?avatar(peer.display_name,peer.avatar_url,true)+'<span><strong>'+esc(peer.display_name)+'</strong><small>Ver perfil</small></span>':
-  dm.tab==='global'?'<span class="dm-global-avatar small">✦</span><span><strong>Chat Global</strong><small>Todos os usuários</small></span>':
+  dm.tab==='global'?'<span class="dm-global-avatar small" aria-hidden="true">🌍</span><span><strong>Chat Geral</strong><small>Todos os usuários</small></span>':
   room?dmWGroupAvatar(room,true)+'<span><strong>'+esc(room.name)+'</strong><small>'+dmWMembers(room.id).length+' participantes</small></span>':
   '<span><strong>Suas mensagens</strong><small>Escolha uma conversa</small></span>';
  const wallpapers=dmW.wallpaper?'<div class="dm-wallpaper-picker">'+[['default','Padrão'],['plain','Sem textura'],['lilac','Lilás'],['mint','Verde suave'],['rose','Rosado'],['slate','Azulado']].map(x=>'<button type="button" data-dmw-bg="'+x[0]+'" aria-pressed="'+(dmWWallpaper()===x[0])+'">'+x[1]+'</button>').join('')+'</div>':'';
@@ -5898,7 +5899,7 @@ function dmWPopupHtml(){
  if(dmW.popup==='forward'){
   const rows=dmWRows().filter(x=>x.type==='private'||x.type==='group');
   return start+'<div class="dm-dialog-head"><h2>Encaminhar mensagem</h2>'+close+'</div><p>Escolha a conversa de destino.</p>'+
-   '<div class="dm-dialog-list"><button type="button" class="dm-dialog-user" data-dmw-forward-target="global" style="background:var(--soft);cursor:pointer;text-align:left"><span class="dm-global-avatar small">✦</span><strong>Chat Global</strong></button>'+
+   '<div class="dm-dialog-list"><button type="button" class="dm-dialog-user" data-dmw-forward-target="global" style="background:var(--soft);cursor:pointer;text-align:left"><span class="dm-global-avatar small" aria-hidden="true">🌍</span><strong>Chat Geral</strong></button>'+
    rows.map(x=>{
     const group=x.type==='group',p=group?null:dmPrettyPerson(x.id),name=group?x.room.name:p.display_name;
     return '<button type="button" class="dm-dialog-user" style="background:var(--paper);cursor:pointer;text-align:left" data-dmw-forward-target="'+(group?'group:':'private:')+esc(x.id)+'">'+
@@ -5919,7 +5920,7 @@ function dmWPopupHtml(){
     const status=r?.read_at&&r.read_at>=m.created_at?'Visualizada':r?.delivered_at&&r.delivered_at>=m.created_at?'Entregue':'Enviada';
     return '<div class="dm-dialog-user">'+avatar(p.display_name,p.avatar_url,true)+'<strong>'+esc(p.display_name)+'</strong><small>'+status+'</small></div>';
    }).join('');
-  }else list='<p>O Chat Global não registra visualizações individuais.</p>';
+  }else list='<p>O Chat Geral não registra visualizações individuais.</p>';
   return start+'<div class="dm-dialog-head"><h2>Informações da mensagem</h2>'+close+'</div>'+
    '<p>Enviada em '+esc(new Date(m.created_at).toLocaleString('pt-BR'))+'</p><div class="dm-dialog-list">'+list+'</div>'+end;
  }
@@ -7274,9 +7275,10 @@ document.addEventListener("click",e=>{if(!e.target.closest("[data-theme-toggle]"
 <script src="library-manager.js?v=20261113-revisao-global-1"></script>
 <script src="admin-config.js?v=20261113-formal-1"></script>
 <script id="pm-mobile-drawer-js" src="mobile-drawer.js?v=20261114-smooth-locked-v18" defer></script>
+<script id="pm-chat-mobile-js" src="chat-mobile-viewport.js?v=20261114-chat-mobile-v20" defer></script>
 <script id="pm-tutorial-script" src="spotlight-tour.js?v=20261114-podcast-monday-v19" defer></script>
 <script id="pm-podcast-mini-script" src="podcast-mini.js?v=20261114-podcast-mini-v2" defer></script>
-<script src="site-version.js?v=20261114-podcast-monday-v19"></script>
+<script src="site-version.js?v=20261114-chat-mobile-v20"></script>
 
 <script>
 /* Aviso desacoplado do scroll da sidebar. Nenhuma alteração em navegação. */
