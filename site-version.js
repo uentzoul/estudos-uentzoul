@@ -61,6 +61,20 @@ function setup(){
   css.href='flashcards-tour.css?v=20261114-flash-tour-v1';
   document.head.appendChild(css);
  }
+ if(!document.getElementById('pm-mobile-drawer-css')){
+  const link=document.createElement('link');
+  link.id='pm-mobile-drawer-css';
+  link.rel='stylesheet';
+  link.href='mobile-drawer.css?v=20261114-hamburger-v1';
+  document.head.appendChild(link);
+ }
+ if(!document.getElementById('pm-mobile-drawer-js')){
+  const script=document.createElement('script');
+  script.id='pm-mobile-drawer-js';
+  script.src='mobile-drawer.js?v=20261114-hamburger-v1';
+  script.async=true;
+  document.head.appendChild(script);
+ }
  if(!document.getElementById('pm-flashcards-tour-script')){
   const script=document.createElement('script');
   script.id='pm-flashcards-tour-script';
