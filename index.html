@@ -2925,7 +2925,13 @@ function libraryAdminPanel(){
  '<div class="library-manager-head"><div><span class="library-manager-kicker">EXCLUSIVO DO ADMINISTRADOR · GESTÃO DOS MATERIAIS</span><h2 id="libraryUploadTitle">Adicionar e analisar materiais · '+semesterLabel(semester)+'</h2>'+
  '<p>Selecione arquivos para analisar o texto interno, conferir os assuntos e decidir onde cada material ficará. Os arquivos são enviados somente após sua confirmação.</p></div>'+
  '<div class="library-upload-counter" id="libraryUploadCounter" role="status"><strong>'+sent+' de '+available.length+'</strong><span>materiais enviados</span><em>'+missing+' faltando</em><div class="library-count-track"><i style="width:'+(available.length?Math.round(sent/available.length*100):100)+'%"></i></div></div></div>'+
- '<form id="libraryUploadForm" class="library-upload-form library-smart-form"><div class="library-file-entry">'+
+ '<form id="libraryUploadForm" class="library-upload-form library-smart-form">'+
+ '<div class="library-batch-subject"><label for="libraryBatchSubject">Disciplina deste lote de arquivos</label>'+
+ '<select id="libraryBatchSubject" aria-label="Escolher a disciplina para todos os arquivos">'+
+ '<option value="">Identificar disciplina automaticamente</option>'+
+ Object.entries(DB.subjects).map(([id,subj])=>'<option value="'+esc(id)+'"'+(window.uentzoulLibraryManager?.batchSubject?.()===id?' selected':'')+'>'+esc(subj.name)+'</option>').join('')+
+ '</select><small>Se todos os arquivos forem da mesma disciplina, selecione-a uma vez. A análise organizará cada documento em sua seção do Moodle e categoria no Acervo geral.</small></div>'+
+ '<div class="library-file-entry">'+
  '<input id="libraryFileInput" type="file" accept=".pdf,.docx,.pptx,application/pdf" multiple hidden>'+
  '<input id="libraryPackageInput" type="file" accept=".zip,application/zip" hidden>'+
  '<button type="button" class="library-upload-drop" data-library-upload-drop aria-label="Selecionar ou arrastar arquivos para análise">'+
