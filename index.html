@@ -2251,6 +2251,15 @@ function activeAgendaSemester(){
  return active;
 }
 const agendaAvailable=()=>semester===activeAgendaSemester();
+let lastActiveAgendaSemester=activeAgendaSemester();
+function refreshAgendaAvailability(){
+ const now=activeAgendaSemester();
+ if(now===lastActiveAgendaSemester)return;
+ lastActiveAgendaSemester=now;
+ // Atualiza automaticamente até quando o site ficar aberto durante a virada.
+ if(current.page==='calendar'&&!agendaAvailable())go('home');
+ else renderNav();
+}
 function agendaLockedMessage(){
  const semesterNow=activeAgendaSemester();
  const ordinal={'2026/1':'primeiro','2026/2':'segundo','2027/1':'terceiro'}[semesterNow]||semesterNow;
@@ -2654,6 +2663,10 @@ window.uentzoulNavigationSync=()=>{
  pmNavSave(window.scrollY||0);
 };
 window.addEventListener('popstate',event=>pmNavRestore(event.state));
+// Não depende de recarregar a página para mudar a vigência no horário de Brasília.
+setInterval(refreshAgendaAvailability,60000);
+window.addEventListener('focus',refreshAgendaAvailability);
+document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')refreshAgendaAvailability()});
 const go=(page,extra={})=>{
  if(page==='personal')page='home'; // Funcionalidade suspensa, sem apagar dados
  if(page==='library')page='home';
