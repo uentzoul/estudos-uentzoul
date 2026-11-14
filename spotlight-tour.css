@@ -178,36 +178,6 @@ html.pm-tour-running .pm-spotlight-popover button{touch-action:manipulation}
  html.pm-tour-running[data-pm-tour-step="13"] .pm-spotlight-popover,
  html.pm-tour-running[data-pm-tour-step="14"] .pm-spotlight-popover{max-height:min(35dvh,255px)!important}
 
- /* 2/15: o cartão da matéria precisa caber por inteiro no espaço de demonstração. */
- html.pm-tour-running[data-pm-tour-step="2"] #homeCourses .course-card:first-child .course-cover{
-  min-height:64px!important;height:70px!important;max-height:70px!important;
- }
- html.pm-tour-running[data-pm-tour-step="2"] #homeCourses .course-card:first-child .course-card-content{
-  padding-top:10px!important;padding-bottom:10px!important
- }
- html.pm-tour-running[data-pm-tour-step="2"] #homeCourses .course-card:first-child .course-card-desc{
-  display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;
-  overflow:hidden
- }
-
- /* 7/15: mostra o dia, seus horários e todas as aulas sem recortar o quadro. */
- html.pm-tour-running[data-pm-tour-step="7"] .schedule-day:first-of-type .schedule-day-heading{
-  min-height:48px!important;padding:8px 12px!important
- }
- html.pm-tour-running[data-pm-tour-step="7"] .schedule-day:first-of-type .schedule-day-content.is-period-grid{
-  min-height:210px!important;grid-template-rows:repeat(3,minmax(54px,1fr))!important;
-  padding:7px!important;gap:5px!important
- }
- html.pm-tour-running[data-pm-tour-step="7"] .schedule-day:first-of-type .schedule-lesson{
-  min-height:0!important;padding:7px 9px!important;
- }
- html.pm-tour-running[data-pm-tour-step="7"] .schedule-day:first-of-type .schedule-lesson-text strong{
-  font-size:11px!important;line-height:1.22!important;
- }
- html.pm-tour-running[data-pm-tour-step="7"] .schedule-day:first-of-type .schedule-lesson-text time{
-  font-size:10px!important
- }
-
  /* 8/15: exibe data, tema de Metapsicologia e as leituras no mesmo enquadramento. */
  html.pm-tour-running[data-pm-tour-step="8"] .agenda-daygroup[data-agenda-date="2026-11-16"] .agenda-daytitle{
   padding:7px 10px!important
@@ -276,5 +246,40 @@ html.pm-tour-running[data-pm-tour-step="8"] .agenda-classrow.pm-tour-day-lesson:
  }
  html.pm-tour-running[data-pm-tour-step="8"] .agenda-classrow.pm-tour-day-lesson .agenda-readcolumn{
   min-width:0;max-width:100%
+ }
+}
+
+/* Tour do telefone: mesma família visual dos cartões e recortes, com cenas próprias.
+   O painel fica no rodapé e não invade o menu apresentado nas primeiras etapas. */
+@media(max-width:760px){
+ html.pm-tour-running[data-pm-tour-scene="menu-button"] .pm-spotlight-popover{
+  max-height:min(35dvh,275px)!important
+ }
+ html.pm-tour-running[data-pm-tour-scene="menu-list"] .pm-spotlight-popover{
+  max-height:min(37dvh,300px)!important;
+  bottom:max(9px,env(safe-area-inset-bottom))!important
+ }
+ html.pm-tour-running[data-pm-tour-scene="menu-list"] .pm-spotlight-ring{
+  border-radius:13px;box-shadow:0 0 0 2px rgba(255,255,255,.25),0 0 26px rgba(139,111,230,.4)
+ }
+ html.pm-tour-running[data-pm-tour-scene="trail"] .pm-spotlight-popover,
+ html.pm-tour-running[data-pm-tour-scene="preferences"] .pm-spotlight-popover,
+ html.pm-tour-running[data-pm-tour-scene="semester"] .pm-spotlight-popover{
+  max-height:min(35dvh,275px)!important
+ }
+ html.pm-tour-running[data-pm-tour-scene="preferences"] .mobile-brand-actions,
+ html.pm-tour-running[data-pm-tour-scene="semester"] #semesterCurrent{
+  border-radius:12px
+ }
+ /* Altura natural do cartão de Avaliação Psicológica e da grade de aulas:
+    só a área disponível guia o recorte, sem cortar descrições ou esconder horários. */
+ html.pm-tour-running[data-pm-tour-step="2"] #homeCourses .course-card:first-child,
+ html.pm-tour-running[data-pm-tour-step="7"] .schedule-day:first-of-type{
+  height:auto;max-height:none
+ }
+}
+@media(max-width:380px){
+ html.pm-tour-running[data-pm-tour-scene="menu-list"] .pm-spotlight-popover{
+  max-height:min(40dvh,280px)!important
  }
 }
