@@ -15,7 +15,14 @@ const SUBJECTS={
  epistemologia:['Fundamentos Epistemológicos em Psicologia','#9e81cc','Epistemologia'],
  historia:['História da Psicologia','#d39e54','História'],
  sociocognitivas:['Teorias Sociocognitivas','#55a58d','Sociocognitivas'],
- desenvolvimento:['Psicologia do Desenvolvimento (Ciclo Vital)','#c078a8','Desenvolvimento']
+ desenvolvimento:['Psicologia do Desenvolvimento (Ciclo Vital)','#c078a8','Desenvolvimento'],
+ // Segundo semestre: mesma identificação cromática usada nas disciplinas do site.
+ tcc:['Teorias e Modelos Comportamentais e Cognitivos','#3963c7','TCC'],
+ familia:['Psicologia da Família','#b46e3d','Família'],
+ meta:['Metapsicologia e Epistemologia Psicanalítica','#8463b1','Metapsicologia'],
+ grupos:['Psicologia dos Grupos','#2a967d','Grupos'],
+ social:['Psicologia Social','#ac597f','Social'],
+ avaliacao:['Fundamentos e Técnicas em Avaliação Psicológica','#27869e','Avaliação']
 };
 const MONTHS={1:[3,4,5,6],2:[8,9,10,11]};
 const MONTH_NAME={3:'Março',4:'Abril',5:'Maio',6:'Junho',8:'Agosto',9:'Setembro',10:'Outubro',11:'Novembro'};
