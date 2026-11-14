@@ -193,7 +193,7 @@ setTimeout(check,15000);
   if(!document.getElementById('pm-vacation-timeline-js')){
    const js=document.createElement('script');
    js.id='pm-vacation-timeline-js';
-   js.src='revisao-ferias.js?v=20261114-direct-documents-v1';
+   js.src='revisao-ferias.js?v=20261114-semester-menu-v2';
    js.async=true;document.head.appendChild(js);
   }
  };
