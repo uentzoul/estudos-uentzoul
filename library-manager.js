@@ -69,7 +69,7 @@ function reviewCard(r,i){
   '<div class="library-review-fields"><label>Disciplina <select data-review-subject="'+i+'">'+choices+'</select></label>'+
   '<label>Vincular a material existente ou criar novo <select data-review-target="'+i+'">'+destinationOptions(r)+'</select></label>'+
   (r.targetKey==='__new__'?'<label>Nome exibido na Biblioteca <input data-review-title="'+i+'" maxlength="160" type="text" value="'+clean(r.title)+'" placeholder="Título do material"></label>':'')+
-  '<label>Visibilidade <select data-review-scope="'+i+'"><option value="in" '+(r.scope==='in'?'selected':'')+'>Biblioteca das provas finais</option>'+
+  '<label>Visibilidade <select data-review-scope="'+i+'"><option value="in" '+(r.scope==='in'?'selected':'')+'>'+(api()?.semester?.()==='2026/1'?'Biblioteca do 1º semestre':'Biblioteca das provas finais')+'</option>'+
   '<option value="archive" '+(r.scope==='archive'?'selected':'')+'>Guardar para outro momento (fora da revisão)</option></select></label></div>'+
   '<p class="library-review-foot">'+(r.targetKey==='__new__'?'O arquivo será cadastrado como material novo.':'Este arquivo será associado ao material selecionado.')+
   ' O destino pode ser alterado antes da publicação.</p></div>';
@@ -152,8 +152,8 @@ async function select(files){
    r.title=known?.title||titleFromFile(r.file,r.analysis);
    r.conflict=!!(suggested&&known?.subject&&known.subject!=='geral'&&suggested!==known.subject);
    r.targetKey=known&&!r.conflict?known.key:'__new__';
-   r.scope=known?.inExam||['principal','complementar'].includes(r.analysis?.examMatch)?'in':'archive';
-  }catch(err){r.analysis={quality:'indisponivel',error:err?.message||'Leitura indisponível'};r.subject=r.suggestion?.subject||'';r.targetKey=r.suggestion?.key||'__new__';r.scope=r.suggestion?.inExam?'in':'archive'}
+   r.scope=api()?.semester?.()==='2026/1'?'in':(known?.inExam||['principal','complementar'].includes(r.analysis?.examMatch)?'in':'archive');
+  }catch(err){r.analysis={quality:'indisponivel',error:err?.message||'Leitura indisponível'};r.subject=r.suggestion?.subject||'';r.targetKey=r.suggestion?.key||'__new__';r.scope=api()?.semester?.()==='2026/1'||r.suggestion?.inExam?'in':'archive'}
   paint();
  }
  if(scanToken!==mine)return;isAnalyzing=false;paint();
