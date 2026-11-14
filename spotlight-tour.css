@@ -431,3 +431,13 @@ html.pm-tour-running[data-pm-tour-step="8"] .agenda-classrow.pm-tour-day-lesson:
     max-height:min(44dvh,310px)!important;
   }
 }
+
+/* Etapa 15/18 (conta conectada): mostrar o cabeçalho real do Chat Geral acima da explicação. */
+@media(max-width:760px){
+ html.pm-tour-running[data-pm-tour-scene="global-chat"] .pm-spotlight-popover{
+  max-height:min(31dvh,220px)!important;
+ }
+ html.pm-tour-running[data-pm-tour-scene="global-chat"] .pm-spotlight-ring{
+  border-radius:12px;
+ }
+}

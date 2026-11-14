@@ -36,7 +36,7 @@ const mobileCopy=[
  {title:'Criar simulado',body:'Escolha a matéria e a dificuldade para criar questões e treinar.'},
  {title:'Conversas privadas',body:'Pesquise o nome de um colega e abra uma conversa privada.'},
  {title:'Grupos de estudos',body:'Use o botão de criar grupo para reunir colegas e combinar trabalhos.'},
- {title:'Chat Geral',body:'Selecione Chat Geral para conversar com a turma.'},
+ {title:'Chat Geral',body:'Este é o Chat Geral, onde todos podem trocar mensagens e tirar dúvidas.'},
  {title:'Compartilhar no chat',body:'Em uma conversa, use Compartilhar para enviar materiais do PsicoMoodle.'}
 ];
 const mobileSteps=[
@@ -45,7 +45,8 @@ const mobileSteps=[
  {page:'home',find:'#siteSidebar',tourScene:'menu-list',
   title:'Explore o PsicoMoodle',body:'Aqui estão as páginas, matérias e outras opções. Para fechar, arraste para a esquerda em qualquer lugar da tela ou toque fora.'},
  ...steps.slice(0,-1).map((s,i)=>({...s,...mobileCopy[i],baseIndex:i,
-  ...(i===2?{tourScene:'trail',find:'.subject-hub-menu [data-action="subjectArea:trail"]'}:{})
+  ...(i===2?{tourScene:'trail',find:'.subject-hub-menu [data-action="subjectArea:trail"]'}:{}),
+  ...(i===12?{tourScene:'global-chat',find:'#main .dm-shell.has-conversation .dm-chat-head'}:{})
  })),
  {page:'home',find:'#pmMobileTopbar .mobile-brand-actions',tourScene:'preferences',
   title:'Tema e perfil',body:'Aqui você muda entre claro e escuro e acessa seu perfil.'},
@@ -187,6 +188,10 @@ function prep(step){
   if(search?.value){search.value='';search.dispatchEvent(new Event('input',{bubbles:true}));}
  }
  if(step.tab&&step.page!=='subject')selectTab(step);
+ if(tourMobile&&tourLoggedIn&&step.tourScene==='global-chat'&&!q('#main .dm-shell.has-conversation .dm-chat-head .dm-global-avatar')){
+  // No celular, o chat aberto ocupa outra tela: mostre a conversa, não o item oculto da lista.
+  q('#main #dmContacts [data-dmw-global]')?.click();
+ }
  if(step.page==='messages'&&step.tab==='global'&&originalIndex()===13&&tourLoggedIn){
   // O compartilhamento só é mostrado dentro de uma conversa aberta.
   const general=q('#main #dmContacts [data-dmw-global]');
@@ -225,7 +230,7 @@ function findNode(step){
    7:()=>mondayClassRow(),
    10:()=>tourLoggedIn?targetNode('#main .dm-list .dm-search-label')||targetNode('#main .dm-list-head'):null,
    11:()=>tourLoggedIn?targetNode('#main [data-dm-new-group]'):null,
-   12:()=>tourLoggedIn?targetNode('#main #dmContacts [data-dmw-global]'):null,
+   12:()=>tourLoggedIn?targetNode('#main .dm-shell.has-conversation .dm-chat-head:has(.dm-global-avatar)')||targetNode('#main #dmContacts [data-dmw-global]'):null,
    13:()=>tourLoggedIn?targetNode('#main [data-dmv-share-open]')||targetNode('#main .dm-composer'):null
   }[originalIndex()]?.();
   if(focused)return {node:focused,login:false};
