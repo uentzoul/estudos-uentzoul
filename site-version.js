@@ -35,7 +35,7 @@ function setup(){
   const style=document.createElement('link');
   style.id='pm-tutorial-styles';
   style.rel='stylesheet';
-  style.href='spotlight-tour.css?v=20261114-four-variants-v26';
+  style.href='spotlight-tour.css?v=20261114-ai-vacation-tour-v27';
   document.head.appendChild(style);
  }
  if(!document.getElementById('pm-ai-sidebar-polish')){
@@ -71,7 +71,7 @@ function setup(){
  if(!document.getElementById('pm-tutorial-script')){
   const script=document.createElement('script');
   script.id='pm-tutorial-script';
-  script.src='spotlight-tour.js?v=20261114-four-variants-v26';
+  script.src='spotlight-tour.js?v=20261114-ai-vacation-tour-v27';
   script.async=true;
   document.head.appendChild(script);
  }
