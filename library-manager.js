@@ -58,19 +58,19 @@ function suggestCategory(r){
  return r.analysis?.quality==='texto'?'texts':'extras';
 }
 function suggestOrganization(r){
- const d=window.PSICO_COURSE_MANAGER?.suggestSection?.(r.subject,r.file,r.analysis,r.title);
+ const d=window.PSICO_COURSE_MANAGER?.suggestSection?.(r.subject,r.file,r.analysis,r.title,reviewSemester||api()?.semester?.()||'2026/2');
  r.sectionNumber=d?.number||0;r.sectionHint=d?.label||'';r.category=suggestCategory(r);
 }
 function sectionOptions(r){
- const defs=window.PSICO_COURSE_MANAGER?.moodleSections?.(r.subject)||[];
+ const defs=window.PSICO_COURSE_MANAGER?.sectionCatalog?.(reviewSemester||api()?.semester?.()||'2026/2',r.subject)||[];
  return '<option value="0" '+(!r.sectionNumber?'selected':'')+'>Sem seção definida — revisar depois</option>'+
  defs.map(d=>'<option value="'+d.number+'" '+(d.number===r.sectionNumber?'selected':'')+'>'+clean(d.label)+'</option>').join('');
 }
 function categoryOptions(r){return LIBRARY_CATEGORIES.map(([id,label])=>'<option value="'+id+'" '+(id===r.category?'selected':'')+'>'+clean(label)+'</option>').join('');}
 async function saveOrganization(c,semester,entry){
- if(semester!=='2026/2')return [];
+ if(!['2026/1','2026/2'].includes(semester))return [];
  const warnings=[];
- if(entry.sectionNumber&&window.PSICO_COURSE_MANAGER?.moodleSections?.(entry.subject)?.some(x=>x.number===entry.sectionNumber)){
+ if(entry.sectionNumber&&window.PSICO_COURSE_MANAGER?.sectionCatalog?.(semester,entry.subject)?.some(x=>x.number===entry.sectionNumber)){
   try{
    const old=await c.from(WEEK_TABLE).select('week_number').eq('semester',semester).eq('subject',entry.subject).eq('resource_key',entry.key).limit(1);
    if(old.error)throw old.error;
@@ -131,7 +131,7 @@ function reviewCard(r,i){
   '<div class="library-review-fields"><label>Disciplina <select data-review-subject="'+i+'">'+choices+'</select></label>'+
   '<label>Vincular a material existente ou criar novo <select data-review-target="'+i+'">'+destinationOptions(r)+'</select></label>'+
   (r.targetKey==='__new__'?'<label>Nome exibido na Biblioteca <input data-review-title="'+i+'" maxlength="160" type="text" value="'+clean(r.title)+'" placeholder="Título do material"></label>':'')+
-  (api()?.semester?.()==='2026/2'?'<label>Seção no Moodle <select data-review-section="'+i+'">'+sectionOptions(r)+'</select></label>'+
+  (['2026/1','2026/2'].includes(api()?.semester?.())?'<label>'+(api()?.semester?.()==='2026/1'?'Tema de revisão (semana não confirmada)':'Seção no Moodle')+' <select data-review-section="'+i+'">'+sectionOptions(r)+'</select></label>'+
    '<label>Categoria no Acervo geral <select data-review-category="'+i+'">'+categoryOptions(r)+'</select></label>':'')+
   '<label>Visibilidade <select data-review-scope="'+i+'">'+
   (mustSchedule(api()?.semester?.())?
@@ -143,7 +143,7 @@ function reviewCard(r,i){
   'Novo arquivo separado dos conteúdos das provas. Visível apenas para administração até 26/11; liberação automática em 27/11/2026 às 00h (Brasília). Não substitui documentos atuais.':
   (r.targetKey==='__new__'?'O arquivo será cadastrado como material novo.':'Este arquivo será associado ao material selecionado.')+
    ' O destino pode ser alterado antes da publicação.')+
-   (api()?.semester?.()==='2026/2'?(r.sectionNumber?' Seção sugerida: '+clean(r.sectionHint)+'.':' Seção não identificada com segurança; confira o destino.'):'')+'</p></div>';
+   (['2026/1','2026/2'].includes(api()?.semester?.())?(r.sectionNumber?' Seção sugerida: '+clean(r.sectionHint)+'.':' Seção não identificada com segurança; confira o destino.'):'')+'</p></div>';
 }
 function paint(){
  const activeSemester=api()?.semester?.()||'2026/2';
@@ -509,7 +509,7 @@ document.addEventListener('change',e=>{
  const section=e.target.closest('[data-review-section]');
  if(section){const r=reviewed[Number(section.dataset.reviewSection)];if(r){
   r.sectionNumber=Number(section.value)||0;
-  r.sectionHint=(window.PSICO_COURSE_MANAGER?.moodleSections?.(r.subject)||[]).find(x=>x.number===r.sectionNumber)?.label||'';
+  r.sectionHint=(window.PSICO_COURSE_MANAGER?.sectionCatalog?.(reviewSemester,r.subject)||[]).find(x=>x.number===r.sectionNumber)?.label||'';
  }return;}
  const category=e.target.closest('[data-review-category]');
  if(category){const r=reviewed[Number(category.dataset.reviewCategory)];if(r)r.category=category.value;return;}
