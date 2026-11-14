@@ -94,6 +94,7 @@ function updateCounter(){
  '<div class="library-count-track"><i style="width:'+(st.total?Math.round(st.sent/st.total*100):100)+'%"></i></div>';
 }
 function destinationOptions(r){
+ if(mustSchedule(api()?.semester?.()))return '<option value="__new__" selected>Novo material · agendado para 27/11</option>';
  const list=entries().filter(x=>!r.subject||x.subject===r.subject).sort((a,b)=>
   Number(b.key===r.suggestion?.key)-Number(a.key===r.suggestion?.key)||a.title.localeCompare(b.title,'pt-BR'));
  return '<option value="__new__" '+(r.targetKey==='__new__'?'selected':'')+'>+ Adicionar como novo material</option>'+
@@ -212,7 +213,7 @@ async function select(files){
    r.conflict=!!(suggested&&known?.subject&&known.subject!=='geral'&&suggested!==known.subject);
    r.targetKey=mustSchedule(reviewSemester)?'__new__':(known&&!r.conflict?known.key:'__new__');
    r.scope=mustSchedule(reviewSemester)?'scheduled':(api()?.semester?.()==='2026/1'?'in':(known?.inExam||['principal','complementar'].includes(r.analysis?.examMatch)?'in':'archive'));
-  }catch(err){r.analysis={quality:'indisponivel',error:err?.message||'Leitura indisponível'};r.subject=r.suggestion?.subject||'';r.targetKey=r.suggestion?.key||'__new__';r.scope=api()?.semester?.()==='2026/1'||r.suggestion?.inExam?'in':'archive'}
+  }catch(err){r.analysis={quality:'indisponivel',error:err?.message||'Leitura indisponível'};r.subject=r.suggestion?.subject||'';r.targetKey=mustSchedule(reviewSemester)?'__new__':(r.suggestion?.key||'__new__');r.scope=mustSchedule(reviewSemester)?'scheduled':(api()?.semester?.()==='2026/1'||r.suggestion?.inExam?'in':'archive')}
   suggestOrganization(r);
   paint();
  }
@@ -275,8 +276,8 @@ async function importLibraryPackage(archive,append=false){
    const key=item.subject+'::'+item.title.trim();
    const exact=entries().find(x=>x.key===key);
    next.push({file,analysis:{quality:'pacote',confidence:'alta',topics:[],summary:String(item.summary||'Material original do semestre.').slice(0,600),examMatch:'principal'},
-    subject:item.subject,title:item.title.trim(),suggestion:exact||null,targetKey:exact?.key||'__new__',
-    scope:item.scope==='archive'?'archive':'in',conflict:false});
+    subject:item.subject,title:item.title.trim(),suggestion:exact||null,targetKey:mustSchedule(reviewSemester)?'__new__':(exact?.key||'__new__'),
+    scope:mustSchedule(reviewSemester)?'scheduled':(item.scope==='archive'?'archive':'in'),conflict:false});
    suggestOrganization(next[next.length-1]);
   }
   if(scanToken!==mine)return;
@@ -380,7 +381,9 @@ async function submit(event){
    if(error)throw Error('Arquivo salvo, mas falhou ao associar ao acervo: '+error.message);
    const proof=await c.storage.from(BUCKET).createSignedUrl(path,120);
    if(proof.error)throw Error('Arquivo enviado, mas a abertura falhou: '+proof.error.message);
-   const organizationWarnings=await saveOrganization(c,sem,{key,subject,sectionNumber,category});
+   // Sem os registros públicos de semanas e categorias antes de 27/11:
+   // eles exporiam o nome dos arquivos agendados mesmo com o arquivo privado.
+   const organizationWarnings=scheduled?[]:await saveOrganization(c,sem,{key,subject,sectionNumber,category});
    logEntries.push({ok:true,message:(scheduled?'Agendado em área privada até 27/11 00h: ':(scope?'Publicado na revisão: ':'Guardado fora da revisão: '))+title+' ('+file.name+')'+(sectionNumber?' · seção '+sectionNumber:'')});
    if(organizationWarnings.length)logEntries.push({ok:false,message:'Arquivo salvo, mas é necessário revisar a organização: '+organizationWarnings.join('; ')});
    passed++;
@@ -432,6 +435,7 @@ document.addEventListener('change',e=>{
   r.subject=subj.value;r.targetKey='__new__';if(!r.title)r.title=titleFromFile(r.file,r.analysis);suggestOrganization(r);paint();return;}
  const dest=e.target.closest('[data-review-target]');
  if(dest){const i=Number(dest.dataset.reviewTarget),r=reviewed[i];if(!r)return;
+  if(mustSchedule(reviewSemester)){r.targetKey='__new__';paint();return;}
   r.targetKey=dest.value;const match=entries().find(x=>x.key===dest.value);
   if(match){r.subject=match.subject;r.title=match.title;r.scope=match.inExam?'in':r.scope;}suggestOrganization(r);paint();return;}
  const section=e.target.closest('[data-review-section]');
