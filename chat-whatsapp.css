@@ -1154,3 +1154,17 @@ html[data-theme="dark"] .dm-shell .dm-messages .dm-message .dm-message-bubble.dm
  .dm-shell .dm-messages .dm-photo-only .dm-attachment img,
  .dm-shell .dm-messages .dm-photo-only .dm-image-preview{max-height:310px}
 }
+
+
+/* Balões contínuos: evita a ponta triangular serrilhada no canto superior.
+   Mantém o alinhamento das mensagens, os horários e os menus existentes. */
+.dm-shell .dm-messages .dm-message .dm-message-bubble:not(.dm-photo-only)::before{
+  content:none!important;
+  display:none!important;
+}
+.dm-shell .dm-messages .dm-message.theirs .dm-message-bubble:not(.dm-photo-only){
+  border-radius:15px 15px 15px 5px;
+}
+.dm-shell .dm-messages .dm-message.mine .dm-message-bubble:not(.dm-photo-only){
+  border-radius:15px 15px 5px 15px;
+}
