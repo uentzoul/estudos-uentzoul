@@ -1977,7 +1977,7 @@ html[data-theme="dark"] .tz-pending-icon{background:#40375e;color:#d6c4ff}
 <script src="estudos-casos-data.js?v=20261113-revisao-global-1"></script>
 <script src="estudo-ativo.js?v=20261113-final-3"></script>
 <script src="psicomoodle-new-content.js?v=20261113-social-family-2"></script>
-<script src="simulados-finais-2026.js?v=20261113-revisao-global-1"></script>
+<script src="simulados-finais-2026.js?v=20261113-provas-equivalentes-1"></script>
 <script src="estudos-dirigidos-finais-2026.js?v=20261113-revisao-global-1"></script>
 <link rel="stylesheet" href="simulados-finais-2026.css?v=20261113-2">
 <script src="casos-act-social.js?v=20261113-revisao-global-1"></script>
@@ -2593,11 +2593,13 @@ const DIFFICULTY_STEPS=[
  {label:'Muito difícil',summary:'Análise aprofundada e integração crítica dos temas.'}
 ];
 function difficultyStep(exam){
+ if(exam&&exam.sameDifficulty)return 3;
  const model=Number(exam.model)||1;
  return Math.max(1,Math.min(5,exam.subject==='social'&&model>=6&&model<=10?model-5:model));
 }
 function difficultyStars(level){return '<span class="stars" aria-hidden="true">'+Array.from({length:5},(_,i)=>'<span class="star'+(i<level?' filled':'')+'">'+(i<level?'★':'☆')+'</span>').join('')+'</span>'}
-function examDifficulty(exam){const level=difficultyStep(exam),data=DIFFICULTY_STEPS[level-1];
+function examDifficulty(exam){if(exam?.sameDifficulty)return '<div class="exam-difficulty" aria-label="Dificuldade padrão da prova"><span class="difficulty-caption">Padrão da prova</span></div>';
+ const level=difficultyStep(exam),data=DIFFICULTY_STEPS[level-1];
  return '<div class="exam-difficulty" aria-label="Dificuldade '+level+' de 5 estrelas: '+data.label+'">'+difficultyStars(level)+'<span class="difficulty-caption">'+esc(data.label)+'</span></div>';
 }
 function examCard(e){
@@ -2605,7 +2607,7 @@ function examCard(e){
  return '<article class="examcard" style="--accent:'+color(e.subject)+'">'+
  '<div class="topline" style="align-items:center"><span class="pill '+(r?'ok':'')+'">'+(r?'Entregue':'Não entregue')+'</span>'+doneBox('sim:'+e.id)+'</div>'+
  '<h3>'+esc(e.title)+'</h3>'+examDifficulty(e)+
- '<div class="exammeta">'+esc(meta.summary)+'</div>'+
+ '<div class="exammeta">'+esc(e.sameDifficulty?'Cinco simulados equivalentes à avaliação da disciplina.':meta.summary)+'</div>'+
  '<div class="exammeta" style="margin-top:6px">'+e.questions.length+' questões · '+e.questions.filter(q=>q.type==='essay').length+' dissertativas</div>'+
  (r?'<div class="exammeta" style="margin-top:5px">Objetivas e V/F: '+r.correct+'/'+r.total+' acertos</div>':'')+
  '<button class="btn light wide" data-action="test:'+e.id+'">'+(r?'Rever correção':'Iniciar simulado')+'</button></article>';
@@ -2804,7 +2806,7 @@ function renderSubject(k){
 function renderExams(){return `${head('Simulados','Provas para praticar','Simulados das disciplinas com questões comentadas e conteúdos correspondentes à revisão atual de cada matéria.')}
 <p class="small muted" style="margin-top:19px">Responda aos simulados e consulte a correção depois da entrega.</p>${Object.keys(DB.subjects).sort((a,b)=>DB.subjects[a].date.localeCompare(DB.subjects[b].date)).map(k=>`<section class="section"><div class="sectiontop"><h2 style="border-left:4px solid ${color(k)};padding-left:10px">${esc(getSubject(k).name)}</h2><button class="plainlink" data-action="subject:${k}">Ver matéria</button></div><div class="examgrid exam-grid-5">${DB.exams.filter(e=>e.subject===k).map(examCard).join('')}</div></section>`).join('')}`}
 function getAnswers(id){return store.answers[id]||{};}
-function renderTest(id){const exam=DB.exams.find(e=>e.id===id);if(!exam)return renderHome();const subj=getSubject(exam.subject),ans=getAnswers(id),r=store.results[id];const answered=exam.questions.filter(q=>String(ans[q.id]??'').trim()!=='').length;return `<button class="back" data-action="subjectTests:${exam.subject}">← Voltar para ${esc(subj.name)}</button><div class="panel" style="border-top:3px solid ${color(exam.subject)}"><div class="eyebrow">${esc(subj.name)} · ${esc(exam.title)}</div><h1 class="h1">Simulado ${exam.model}</h1><div class="exam-test-difficulty" aria-label="Dificuldade ${difficultyStep(exam)} de 5 estrelas">${difficultyStars(difficultyStep(exam))}<span>${esc(DIFFICULTY_STEPS[difficultyStep(exam)-1].label)}</span></div><div style="margin:10px 0 14px">${doneBox(`sim:${id}`)}</div><p class="lead">${esc(subj.style)}</p><div class="statline"><span>${answered} de ${exam.questions.length} respondidas</span><span>${r?'Correção liberada':'Em andamento'}</span></div><div class="progressline"><div style="width:${answered/exam.questions.length*100}%"></div></div></div>
+function renderTest(id){const exam=DB.exams.find(e=>e.id===id);if(!exam)return renderHome();const subj=getSubject(exam.subject),ans=getAnswers(id),r=store.results[id];const answered=exam.questions.filter(q=>String(ans[q.id]??'').trim()!=='').length;return `<button class="back" data-action="subjectTests:${exam.subject}">← Voltar para ${esc(subj.name)}</button><div class="panel" style="border-top:3px solid ${color(exam.subject)}"><div class="eyebrow">${esc(subj.name)} · ${esc(exam.title)}</div><h1 class="h1">Simulado ${exam.model}</h1><div class="exam-test-difficulty">${exam.sameDifficulty?'Padrão de dificuldade equivalente à prova':difficultyStars(difficultyStep(exam))+' <span>'+esc(DIFFICULTY_STEPS[difficultyStep(exam)-1].label)+'</span>'}</div><div style="margin:10px 0 14px">${doneBox(`sim:${id}`)}</div><p class="lead">${esc(subj.style)}</p><div class="statline"><span>${answered} de ${exam.questions.length} respondidas</span><span>${r?'Correção liberada':'Em andamento'}</span></div><div class="progressline"><div style="width:${answered/exam.questions.length*100}%"></div></div></div>
 ${r?`<section class="section"><div class="panel"><h2 style="margin:0 0 12px">Resultado da tentativa</h2><div class="resultstats"><div class="resultstat"><strong>${r.correct}/${r.total}</strong><span class="small">Objetivas / V-F</span></div><div class="resultstat"><strong>${Math.round(100*r.correct/(r.total||1))}%</strong><span class="small">Aproveitamento objetivo</span></div><div class="resultstat"><strong>${exam.questions.filter(q=>q.type==='essay').length}</strong><span class="small">Dissertativas para revisar</span></div></div><p class="small muted" style="margin-top:12px">Dissertativas: consulte os critérios e a resposta orientativa para revisar.</p><div class="actions" style="margin-top:14px">${button('Imprimir correção','print','btn ghost')}</div></div></section>`:''}
 <section class="section">${exam.questions.map((q,i)=>questionHTML(q,i,ans[q.id],!!r)).join('')}</section>
 <div class="panel" style="display:flex;align-items:center;gap:12px;justify-content:space-between;flex-wrap:wrap"><span class="small">${answered}/${exam.questions.length} questões respondidas · ${exam.questions.filter(q=>q.type==='essay').length} dissertativas</span><div class="actions">${button('Salvar andamento','save','btn ghost')}${button(r?'Voltar aos simulados':'Entregar e corrigir',r?'page:exams':`submit:${id}`,'btn')}</div></div><div class="footer">As correções objetivas explicam todas as opções. As respostas dissertativas exigem julgamento contextual, por isso disponibilizamos critérios e avaliação via ChatGPT em etapa manual.</div>`}
@@ -3832,7 +3834,7 @@ renderSubject=function(k){
 };
 function geReadyLibrary(){
  const subjects=Object.keys(DB.subjects);
- return head('Simulados prontos','Provas para praticar','Cinco simulados iguais para toda a turma por disciplina, um por nível de dificuldade.')+
+ return head('Simulados prontos','Provas para praticar','Cinco simulados por disciplina, todos com o mesmo padrão de dificuldade das avaliações de referência.')+
  '<p class="small muted">Simulados de estudo, não avaliações oficiais.</p>'+
  subjects.map(id=>{
   const all=readyExamsFor(id);
