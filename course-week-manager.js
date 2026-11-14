@@ -64,7 +64,7 @@ const COURSE_SECTIONS={
   [10,'Estudo dirigido para a atividade avaliativa 2',['estudo dirigido tcc','roteiro de estudos para a a2','atividade avaliativa 2']],
   [11,'Terapia do Esquema',['terapia do esquema','esquemas iniciais desadaptativos','jeffrey young']],
   [12,'Terceira onda',['terceira onda','terapias de terceira onda']],
-  [13,'Terapia de Aceitação e Compromisso (ACT)',['aceitacao e compromisso','terapia act','flexibilidade psicologica','desfusao cognitiva']]
+  [13,'Terapia de Aceitação e Compromisso (ACT)',['aceitacao e compromisso','terapia act','act na clinica','flexibilidade psicologica','desfusao cognitiva']]
  ],
  familia:[
   [1,'Plano de Ensino',['plano de ensino','cronograma']],
@@ -82,7 +82,7 @@ const COURSE_SECTIONS={
   [13,'FILME: Como os Nossos Pais - Trabalho do dia 14/10',['filme como nossos pais','como nossos pais']],
   [14,'Família em situações de Violência Conjugal',['violencia conjugal','violencia entre conjuges']],
   [15,'Famílias e população LGBTQIAPN+ PALESTRA Alexandre',['lgbtqiapn','palestra alexandre']],
-  [16,'Família em situações de Violência contra a Criança',['violencia contra a crianca','abuso infantil','violencia intrafamiliar']],
+  [16,'Família em situações de Violência contra a Criança',['violencia contra a crianca','abuso infantil','violencia infantil']],
   [17,'Famílias em situação de Morte e Luto na Família',['morte e luto','luto na familia','perdas e lutos']],
   [18,'Família em situações de dependência química - Caso',['dependencia quimica','uso de substancias']],
   [19,'Aula Rituais, mitos, e ritos de passagem',['rituais mitos','ritos de passagem']]
@@ -97,7 +97,7 @@ const COURSE_SECTIONS={
   [7,'Wilfred Bion e os Pressupostos Básicos',['wilfred bion','pressupostos basicos']],
   [8,'Pichón-Rivière e os Grupos Operativos',['pichon riviere','grupos operativos']],
   [9,'Jacob Moreno e o Psicodrama',['jacob moreno','psicodrama','sociodrama']],
-  [10,'Carl Rogers e os Grupos de Encontro',['carl rogers','grupos de encontro']],
+  [10,'Carl Rogers e os Grupos de Encontro',['carl rogers','carlrogers','grupos de encontro']],
   [11,'Grupos Virtuais',['grupos virtuais']],
   [12,'Normas ABNT - Biblioteca PUCRS',['normas abnt','biblioteca pucrs']],
   [13,'Livros em pdf',['livros em pdf']]
