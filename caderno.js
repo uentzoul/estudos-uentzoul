@@ -859,6 +859,52 @@ function fitCoverTitles(){
   title.style.hyphens='none';
  }
 }
+
+/* A miniatura usa a geometria real da folha, nunca uma transcrição resumida. */
+function snapshotSvg(p){
+ const fmt=v=>clamp(Number(v)||0,-5000,5000).toFixed(2);
+ const shapes=(p.strokes||[]).map(st=>{
+  const pts=st.points||[];if(!pts.length)return '';
+  let d='M '+fmt(pts[0].x)+' '+fmt(pts[0].y);
+  if(pts.length===1)d+=' L '+fmt(pts[0].x+.05)+' '+fmt(pts[0].y+.05);
+  else if(st.corrected&&pts.length>2){
+   for(let i=1;i<pts.length-1;i++){
+    const mid={x:(pts[i].x+pts[i+1].x)/2,y:(pts[i].y+pts[i+1].y)/2};
+    d+=' Q '+fmt(pts[i].x)+' '+fmt(pts[i].y)+' '+fmt(mid.x)+' '+fmt(mid.y);
+   }
+   d+=' L '+fmt(pts[pts.length-1].x)+' '+fmt(pts[pts.length-1].y);
+  }else for(let i=1;i<pts.length;i++)d+=' L '+fmt(pts[i].x)+' '+fmt(pts[i].y);
+  return '<path d="'+d+'" stroke="'+(COLORS[st.ink]||COLORS.blue)+'" stroke-width="'+
+   clamp(Number(st.width)||2.6,.5,24)+'" stroke-linecap="round" stroke-linejoin="round" fill="none"/>';
+ }).join('');
+ return '<svg class="nb-snapshot-drawing" viewBox="0 0 780 1240" aria-hidden="true">'+shapes+'</svg>';
+}
+function snapshotStickyMarkup(st){
+ const x=clamp(Number(st.x)||0,90,W-50),y=clamp(Number(st.y)||0,95,H-50);
+ const w=clamp(Number(st.w)||170,65,460),h=clamp(Number(st.h)||146,65,460);
+ return '<span class="nb-sticky" data-tone="'+esc(st.tone||'yellow')+
+  '" style="left:'+x+'px;top:'+y+'px;width:'+w+'px;height:'+h+'px;">'+
+  '<span class="nb-sticky-head"><span>✦ Nota adesiva</span></span>'+
+  '<span class="nb-sticky-text-preview">'+esc(st.text||'')+'</span></span>';
+}
+function snapshotSheetMarkup(p,index){
+ const date=p.date?new Date(p.date+'T12:00:00').toLocaleDateString('pt-BR'):'';
+ return '<span class="nb-sheet nb-snapshot-sheet" aria-hidden="true">'+
+  '<span class="nb-holes">'+Array.from({length:8},()=>'<span></span>').join('')+'</span>'+
+  '<span class="nb-paper-date-group"><span class="nb-paper-date-label">Data</span>'+
+  '<span class="nb-paper-date nb-snapshot-date">'+esc(date)+'</span></span>'+
+  snapshotSvg(p)+
+  '<span class="nb-text-layer">'+(p.notes||[]).map(n=>noteMarkup(n,false)).join('')+'</span>'+
+  '<span class="nb-sticky-layer">'+(p.stickies||[]).map(snapshotStickyMarkup).join('')+'</span>'+
+  '<span class="nb-page-num">'+String(index+1).padStart(2,'0')+'</span></span>';
+}
+function updateSnapshotScales(){
+ for(const holder of root.querySelectorAll('.nb-rail-paper,.nb-gallery-paper')){
+  if(holder.clientWidth)holder.style.setProperty('--nb-snapshot-scale',String(holder.clientWidth/W));
+ }
+}
+function scheduleSnapshotScales(){requestAnimationFrame(updateSnapshotScales)}
+
 function renderPageRail(){
  const host=$('nbPageRail');if(!host)return;
  const pages=data.pages;
