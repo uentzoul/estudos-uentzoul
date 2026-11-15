@@ -244,11 +244,15 @@ function zoomAt(value,clientX,clientY){
  view.scrollTop+=newer.top+py*data.zoom-clientY;
 }
 function focusLine(line){
+ // Na folha única, aproximar facilita escrever. No caderno aberto,
+ // preservar o zoom escolhido pelo usuário para não perder a visão das duas páginas.
  const target=isMobile()?.98:1.12;
- if(data.zoom<target)setZoom(target);
+ if(data.layout!=='book'&&data.zoom<target)setZoom(target);
  const y=(START+(line+2)*L)*data.zoom;
  view.scrollTop=clamp(y-view.clientHeight*.38,0,view.scrollHeight-view.clientHeight);
- view.scrollLeft=clamp(110*data.zoom-view.clientWidth*.17,0,view.scrollWidth-view.clientWidth);
+ const pageLeft=data.layout==='book'&&data.page%2===1?W*data.zoom:0;
+ view.scrollLeft=clamp(pageLeft+110*data.zoom-view.clientWidth*.17,0,
+  Math.max(0,view.scrollWidth-view.clientWidth));
 }
 function refreshTools(){
  for(const a of MODES){const b=root.querySelector('[data-nb-action="'+a+'"]');b?.setAttribute('aria-pressed',String(data.mode===a));}
