@@ -1,5 +1,5 @@
 /* Caderno experimental — isolado em caderno.html; sem efeitos nas demais páginas */
-@import url('https://fonts.googleapis.com/css2?family=Caveat:wght@400;500;600;700&family=Patrick+Hand&family=DM+Sans:wght@400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Caveat:wght@400;500;600;700&family=Dancing+Script:wght@400;500;600;700&family=Patrick+Hand&family=DM+Sans:wght@400;500;600;700;800&display=swap');
 :root{--nb-bg:#f3f1f9;--nb-ink:#262333;--nb-muted:#756d84;--nb-line:#d9d1e7;--nb-violet:#7360b2;--nb-lilac:#eee8f8;--nb-paper:#fffdf8}
 *{box-sizing:border-box}html,body{margin:0;height:100%;overflow:hidden}body{font:14px/1.4 'DM Sans',system-ui,Arial,sans-serif;background:var(--nb-bg);color:var(--nb-ink)}
 button,input,textarea,select{font:inherit}button{cursor:pointer}button:disabled{cursor:not-allowed;opacity:.4}button:focus-visible,input:focus-visible,textarea:focus-visible{outline:3px solid #a08bdf;outline-offset:2px}
@@ -439,3 +439,24 @@ html[data-theme="dark"] .nb-back-books{background:#263752;color:#e4dafa;border-c
 @media(max-width:760px){
  .nb-rail-paper,.nb-gallery-paper{aspect-ratio:780/1240!important}
 }
+
+
+/* v7 — pauta calibrada: cada letra termina imediatamente acima do risco horizontal. */
+.nb-note .nb-note-content{position:relative;top:8px;line-height:1.04}
+.nb-note .nb-uppercase{font-size:var(--nb-cap-size,var(--nb-small))!important}
+.nb-note .nb-lowercase{font-size:var(--nb-small)!important}
+.nb-inline-edit{padding:3px 2px 0!important;box-shadow:none!important;background:transparent!important;border:0!important;outline:none!important}
+.nb-inline-edit:focus{border:0!important;outline:none!important}
+.nb-note.nb-correcting .nb-note-content{background:transparent!important;animation:none!important}
+.nb-sheet[data-mode="none"] :is(.nb-sticky,.nb-note,.nb-line-hover,.nb-transform-layer){pointer-events:none!important}
+.nb-sheet[data-mode="none"] .nb-drawing{pointer-events:none!important}
+.nb-sheet[data-mode="none"],.nb-sheet[data-mode="none"] .nb-text-layer{cursor:grab}
+.nb-sheet[data-mode="none"]:active{cursor:grabbing}
+.nb-note.joined,.nb-inline-edit.joined{
+ font-family:'Dancing Script','Brush Script MT','Segoe Script',cursive!important;
+ font-weight:600;font-variant-ligatures:common-ligatures;
+}
+.nb-note.cursive,.nb-inline-edit.cursive{font-family:'Caveat','Segoe Print',cursive}
+.nb-note.print,.nb-inline-edit.print{font-family:'Patrick Hand','Segoe Print',cursive}
+.nb-note.joined .nb-note-content{top:9px}
+.nb-note.cursive .nb-note-content{top:7px}
