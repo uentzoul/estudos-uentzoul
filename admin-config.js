@@ -4,6 +4,7 @@
 const TABLE='uentzoul_admin_topics',PRESENCE='uentzoul_presence';
 let admin=false,owner=null,checking=false,topics=[],topicsSignature='',presence=[],reports=[],busy=false,notice='',editing=null,lastPresence=0,lastReports=0;
 let accessLog=[],logOpen=false,logTab='online',lastLog=0,logError='',markingTest=false;
+let botRuns=[],lastBotRuns=0,botRunsError='',botRunsLoading=false;
 let selectedVisitId=null,selectedPresenceId=null,visitSteps=[],visitLoading=false,visitError='',logLimit=200,hasMoreEntries=false;
 let guestOnlineCount=null,lastGuestCount=0,guestCountError='';
 let guestPingBusy=false,lastGuestPing=0;
@@ -72,6 +73,8 @@ function guestSessionKey(create=false){
  }catch(_){return null;}
 }
 async function guestPresenceHeartbeat(){
+ // Navegadores do robô de revisão não são visitantes anônimos.
+ if(window.__uentzoulSiteHealthAudit===true)return;
  const c=client();
  if(!c||document.visibilityState!=='visible'||guestPingBusy)return;
  if(user()?.id){await guestPresenceLeave();return;}
@@ -170,6 +173,44 @@ async function loadAccess(){
   lastLog=Date.now();logError='';updateLogPanel();
  }catch(e){logError='Não foi possível carregar o histórico de entradas.';updateLogPanel();console.warn('Log indisponível:',e)}
 }
+// Histórico do robô oficial obtido de execuções do GitHub Actions.
+ // Sem heurísticas de user-agent nem rótulos inventados para acessos antigos.
+async function loadBotRuns(force=false){
+ if(!isAdmin()||!document.getElementById('adminConfigPage')||botRunsLoading)return;
+ if(!force&&Date.now()-lastBotRuns<120000){updateLogPanel();return}
+ botRunsLoading=true;botRunsError='';updateLogPanel();
+ try{
+  const response=await fetch('https://api.github.com/repos/uentzoul/estudos-uentzoul/actions/workflows/site-health.yml/runs?per_page=15',{
+   headers:{Accept:'application/vnd.github+json'}
+  });
+  if(!response.ok)throw Error('GitHub HTTP '+response.status);
+  const data=await response.json();
+  botRuns=(data.workflow_runs||[]).filter(r=>Number.isSafeInteger(Number(r.id))).map(r=>({
+   id:Number(r.id),started:r.run_started_at||r.created_at,trigger:r.event,
+   status:r.status,conclusion:r.conclusion
+  }));
+  lastBotRuns=Date.now();
+ }catch(error){botRunsError='Não foi possível consultar o GitHub agora. '+String(error?.message||'');}
+ finally{botRunsLoading=false;updateLogPanel()}
+}
+function botLogMarkup(){
+ const url='https://github.com/uentzoul/estudos-uentzoul/actions/workflows/site-health.yml';
+ if(botRunsLoading&&!botRuns.length)return '<p class="admin-muted" role="status">Carregando as verificações automáticas…</p>';
+ if(botRunsError&&!botRuns.length)return '<p class="admin-muted" role="status">'+esc(botRunsError)+'</p><p><a href="'+url+'" target="_blank" rel="noopener noreferrer">Consultar no GitHub</a></p>';
+ const explanation='<p class="admin-log-explain">Registros confirmados pelo GitHub Actions do nosso monitor de layout. Cada execução testa até quatro dispositivos e não entra na contagem de visitantes. Outros robôs não são identificados automaticamente.</p>';
+ if(!botRuns.length)return explanation+'<p class="admin-muted">Ainda não há verificações registradas.</p><p><a href="'+url+'" target="_blank" rel="noopener noreferrer">Abrir monitoramento</a></p>';
+ const trigger=event=>event==='schedule'?'Revisão programada · a cada 2 horas':event==='push'?'Revisão após atualização':event==='workflow_dispatch'?'Revisão manual':'Revisão automática';
+ const status=r=>r.status!=='completed'?'Em execução':r.conclusion==='success'?'Concluída · sem falha crítica':r.conclusion==='failure'?'Falha detectada · consultar relatório':r.conclusion==='cancelled'?'Cancelada':'Concluída · '+String(r.conclusion||'resultado indefinido');
+ return explanation+(botRunsError?'<p class="admin-muted">'+esc(botRunsError)+'</p>':'')+
+ '<div class="admin-log-rows">'+botRuns.map(r=>
+  '<div class="admin-log-row"><a class="admin-log-row-target" href="https://github.com/uentzoul/estudos-uentzoul/actions/runs/'+r.id+'" target="_blank" rel="noopener noreferrer">'+
+  '<span class="admin-log-avatar" aria-hidden="true">B</span>'+
+  '<span class="admin-log-person"><strong>Bot · Saúde do Site</strong><small>'+esc(trigger(r.trigger))+' · '+esc(status(r))+'</small></span>'+
+  '<time datetime="'+esc(r.started||'')+'">'+esc(logDate(r.started))+'</time>'+
+  '<span class="admin-log-expand" aria-hidden="true">↗</span></a></div>'
+ ).join('')+'</div>'+
+ '<p class="admin-log-foot">Exibindo as 15 execuções mais recentes. Abra uma entrada para ver erros, capturas e detalhes da auditoria.</p>';
+}
 function logDate(date){
  if(!date)return '—';
  try{return new Date(date).toLocaleString('pt-BR',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'})}
@@ -237,6 +278,7 @@ async function openVisit(id){
  }}
 }
 function logMarkup(){
+ if(logTab==='bots')return botLogMarkup();
  if(logError)return '<p class="admin-muted" role="status">'+esc(logError)+'</p>';
  const rows=logTab==='online'?presence.filter(loggedOnline):logTab==='last'?presence:accessLog;
  if(!rows.length)return '<p class="admin-muted">'+(logTab==='online'?'Nenhuma conta identificada como ativa nos últimos dois minutos.':logTab==='last'?'Nenhum último acesso registrado.':'Ainda não há entradas registradas.')+'</p>';
@@ -290,11 +332,11 @@ function adminLogMarkup(){
   '<div class="admin-log-content"><p class="admin-log-explain">O status online é uma estimativa de atividade nos últimos dois minutos. Clique em uma entrada para consultar o percurso resumido da visita. O registro não guarda mensagens, respostas ou textos digitados. Entradas antigas exibem somente o que já foi registrado.</p>'+ 
   guestOnlineMarkup()+
   '<div class="admin-log-toolbar" role="tablist" aria-label="Visualização dos acessos">'+
-  [['online','Online','adminLogOnlineCount'],['last','Último acesso',''],['entries','Entradas','']].map(([tab,label,id])=>
+  [['online','Online','adminLogOnlineCount'],['last','Último acesso',''],['entries','Entradas',''],['bots','Robôs','']].map(([tab,label,id])=>
    '<button type="button" role="tab" data-admin-log-tab="'+tab+'" aria-selected="'+(logTab===tab)+'">'+label+(id?' <span id="'+id+'">'+(onlineTotalCount()===null?'—':onlineTotalCount())+'</span>':'')+'</button>').join('')+
   '<button type="button" class="admin-log-refresh" data-admin-log-refresh title="Atualizar registros" aria-label="Atualizar registros">↻</button></div>'+
   '<div id="adminLogData">'+logMarkup()+'</div>'+
-  '<p class="admin-log-foot">Os registros de entrada são mantidos por até 60 dias. A contagem anônima é aproximada, não identifica visitantes e não corresponde necessariamente a pessoas únicas; abas em segundo plano deixam de contar após dois minutos sem atividade.</p></div></details>';
+  '<p class="admin-log-foot">Os registros de entrada são mantidos por até 60 dias. As verificações do nosso robô são exibidas na aba Robôs e não contam como visitantes. A contagem anônima é aproximada, não identifica visitantes e não corresponde necessariamente a pessoas únicas; abas em segundo plano deixam de contar após dois minutos sem atividade.</p></div></details>';
 }
 function refreshAdminPage(){
  if(document.getElementById('adminConfigPage')&&isAdmin())bridge()?.rerenderAdmin?.();
@@ -412,15 +454,15 @@ document.addEventListener('click',e=>{
  const test=e.target.closest('[data-admin-test-access]');
  if(test&&isAdmin()){toggleTestAccess(test.dataset.adminTestAccess);return;}
  const log=e.target.closest('[data-admin-log-tab]');
- if(log&&isAdmin()){logTab=log.dataset.adminLogTab;selectedVisitId=null;selectedPresenceId=null;visitSteps=[];updateLogPanel();return}
- if(e.target.closest('[data-admin-log-refresh]')&&isAdmin()){loadPresence();loadAccess();loadGuestOnline();return}
+ if(log&&isAdmin()){logTab=log.dataset.adminLogTab;selectedVisitId=null;selectedPresenceId=null;visitSteps=[];updateLogPanel();if(logTab==='bots')void loadBotRuns();return}
+ if(e.target.closest('[data-admin-log-refresh]')&&isAdmin()){loadPresence();loadAccess();loadGuestOnline();if(logTab==='bots')void loadBotRuns(true);return}
 });
 
 document.addEventListener('toggle',e=>{
  if(e.target.id!=='adminLogDisclosure'||!isAdmin())return;
  logOpen=e.target.open;
  if(logOpen&&(Date.now()-lastPresence>5000||Date.now()-lastLog>5000||Date.now()-lastGuestCount>5000)){
-  loadPresence();loadAccess();loadGuestOnline();
+  loadPresence();loadAccess();loadGuestOnline();if(logTab==='bots')void loadBotRuns();
  }
 },true);
 /* As navegações são registradas no visit-path.js; presença online permanece independente. */
