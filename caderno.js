@@ -15,31 +15,40 @@ if(!userId){
  root.innerHTML='<section><strong>Acesso restrito.</strong><p>Esta prévia só pode ser aberta por uma conta administrativa autenticada no site.</p></section>';
  return;
 }
-const W=780,H=1240,L=34,START=97,ROWS=30;
-const STORE='uentzoul:caderno:alpha1:'+userId;
+const W=780,H=1240,L=34,START=97,ROWS=30,FIRST_LINE=3;
+const STORE='uentzoul:caderno:alpha2:'+userId;
+const LEGACY_STORE='uentzoul:caderno:alpha1:'+userId;
 const COLORS={black:'#24242e',blue:'#2559a4',red:'#bb3d43'};
-const MODES=['text','draw','sticky','warp'];
+const MODES=['text','select','draw','sticky','warp'];
 const ACTIONS=[
- ['text','Escrever'],['draw','Desenhar'],['sticky','Post-it'],['warp','Deformar'],
+ ['text','Escrever'],['select','Selecionar'],['draw','Desenhar'],['sticky','Post-it'],['warp','Deformar'],
  ['black','Caneta preta'],['blue','Caneta azul'],['red','Caneta vermelha'],
  ['print','Letra de forma'],['cursive','Letra cursiva'],
  ['prev','Página anterior'],['next','Próxima página'],['zoomIn','Aproximar'],['zoomOut','Afastar'],
  ['smooth','Alternar ajuste do traço']
 ];
-const emptyPage=()=>({title:'',notes:[],strokes:[],stickies:[]});
-const defaults=()=>({pages:[emptyPage()],page:0,mode:'text',font:'print',ink:'blue',size:1,smooth:false,zoom:.88,shortcuts:{}});
-let data=defaults();
-try{
- const stored=JSON.parse(localStorage.getItem(STORE)||'null');
- if(stored&&Array.isArray(stored.pages)&&stored.pages.length&&stored.pages.length<=250){
-  data={...defaults(),...stored};
-  data.pages=data.pages.map(p=>({
-   title:String(p.title||'').slice(0,100),
-   notes:Array.isArray(p.notes)?p.notes.slice(0,140):[],
-   strokes:Array.isArray(p.strokes)?p.strokes.slice(0,500):[],
-   stickies:Array.isArray(p.stickies)?p.stickies.slice(0,40):[]
-  }));
-  data.page=Math.min(data.pages.length-1,Math.max(0,Number(data.page)||0));
+const emptyPage=()=>({title:'',date:'',notes:[],strokes:[],stickies:[]});
+const newBook=(name='Meu caderno')=>({id:'book-'+Date.now()+'-'+Math.random().toString(36).slice(2,8),name,pages:[]});
+const defaults=()=>({books:[{id:'book-original',name:'Meu caderno',pages:[]}],bookId:'book-original',page:0,mode:'text',font:'print',ink:'blue',size:1,smooth:false,zoom:.88,shortcuts:{},stickyTone:'yellow'});
+const hasPageContent=p=>!!(p?.notes?.some(n=>String(n.text||'').trim())||p?.strokes?.some(s=>s.points?.length)||p?.stickies?.some(st=>String(st.text||'').trim()));
+const cleanPage=p=>({title:String(p?.title||'').slice(0,100),date:String(p?.date||'').slice(0,16),
+ notes:Array.isArray(p?.notes)?p.notes.slice(0,140):[],strokes:Array.isArray(p?.strokes)?p.strokes.slice(0,500):[],
+ stickies:Array.isArray(p?.stickies)?p.stickies.slice(0,40):[]});
+let data=defaults(),stored=null;
+try{stored=JSON.parse(localStorage.getItem(STORE)||'null');}catch(_){}
+if(!stored)try{
+ const legacy=JSON.parse(localStorage.getItem(LEGACY_STORE)||'null');
+ if(legacy&&Array.isArray(legacy.pages))stored={...legacy,books:[{id:'book-original',name:'Meu caderno',pages:legacy.pages}],bookId:'book-original'};
+}catch(_){}
+if(stored&&typeof stored==='object'){
+ const books=(Array.isArray(stored.books)?stored.books.slice(0,50):[])
+ .filter(b=>b&&typeof b==='object').map(b=>({id:String(b.id||newBook().id),name:String(b.name||'Sem título').slice(0,70),
+ pages:(Array.isArray(b.pages)?b.pages.slice(0,250):[]).map(cleanPage)}));
+ if(books.length){
+  data={...defaults(),...stored,books};
+  for(const b of data.books)while(b.pages.length&&!hasPageContent(b.pages[b.pages.length-1]))b.pages.pop();
+  if(!data.books.some(b=>b.id===data.bookId))data.bookId=data.books[0].id;
+  data.page=Math.min(data.books.find(b=>b.id===data.bookId).pages.length,Math.max(0,Number(data.page)||0));
   data.zoom=Math.min(2.3,Math.max(.42,Number(data.zoom)||.88));
   data.size=Math.min(3,Math.max(1,Number(data.size)||1));
   if(!MODES.includes(data.mode))data.mode='text';
@@ -47,17 +56,33 @@ try{
   if(!['print','cursive'].includes(data.font))data.font='print';
   if(!data.shortcuts||typeof data.shortcuts!=='object')data.shortcuts={};
  }
-}catch(e){console.warn('Não foi possível restaurar o rascunho do caderno.',e)}
+}
+const activeBook=()=>data.books.find(b=>b.id===data.bookId)||data.books[0];
+data.pages=activeBook().pages;
+let pendingPage=emptyPage(),galleryOpen=false,drawerOpen=false,galleryOffset=0;
+let selected=null,contextTarget=null,panDrag=null,lastPointer=null,toolPaletteOpen=false;
+function materializePage(){
+ if(data.page!==data.pages.length||!hasPageContent(pendingPage))return;
+ if(data.pages.length>=250)return;
+ data.pages.push(pendingPage);pendingPage=emptyPage();
+}
+function serializable(){materializePage();return {...data,pages:undefined};}
+function restoreState(serialized){
+ data={...defaults(),...JSON.parse(serialized)};
+ if(!Array.isArray(data.books)||!data.books.length)data.books=defaults().books;
+ if(!data.books.some(b=>b.id===data.bookId))data.bookId=data.books[0].id;
+ data.pages=activeBook().pages;pendingPage=emptyPage();
+}
 let editing=null, previewText='',drawPoints=null,warpDrag=null,stickyDrag=null,selectedStroke=-1,tapCandidate=null;
 let undoStack=[],redoStack=[],listening='',pinch=null,saveTimer=null,flipping=false;
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const clamp=(v,min,max)=>Math.max(min,Math.min(max,v));
-const page=()=>data.pages[data.page];
+const page=()=>data.pages[data.page]||pendingPage;
 const id=()=>typeof crypto.randomUUID==='function'?crypto.randomUUID():'nb-'+Date.now()+'-'+Math.random().toString(36).slice(2);
 const isMobile=()=>window.matchMedia('(max-width:760px)').matches;
 function persistNow(){
  clearTimeout(saveTimer);
- try{localStorage.setItem(STORE,JSON.stringify(data));return true}
+ try{localStorage.setItem(STORE,JSON.stringify(serializable()));return true}
  catch(e){status('Armazenamento cheio. Exporte uma cópia do caderno.','error');return false}
 }
 function save(){
@@ -70,21 +95,22 @@ function status(message,kind){
  const e=document.getElementById('nbStatus');if(!e)return;
  e.textContent=message;e.dataset.state=kind||'';
 }
-function checkpoint(){undoStack.push(JSON.stringify(data));if(undoStack.length>45)undoStack.shift();redoStack=[];}
+function checkpoint(){undoStack.push(JSON.stringify(serializable()));if(undoStack.length>45)undoStack.shift();redoStack=[];}
 function undo(){
  if(!undoStack.length)return;
- redoStack.push(JSON.stringify(data));data=JSON.parse(undoStack.pop());editing=null;renderAll();save();
+ redoStack.push(JSON.stringify(serializable()));restoreState(undoStack.pop());editing=null;renderAll();save();
 }
 function redo(){
  if(!redoStack.length)return;
- undoStack.push(JSON.stringify(data));data=JSON.parse(redoStack.pop());editing=null;renderAll();save();
+ undoStack.push(JSON.stringify(serializable()));restoreState(redoStack.pop());editing=null;renderAll();save();
 }
 root.className='nb-app';
 root.innerHTML=
- '<header class="nb-top"><div class="nb-brand"><span class="nb-mark" aria-hidden="true">✎</span><div><h1>Caderno de aula</h1><p>Prévia exclusiva da administração</p></div></div>'+
+ '<header class="nb-top"><div class="nb-brand"><button type="button" class="nb-mark nb-hamburger" data-nb-action="drawer" aria-label="Abrir lista de cadernos" title="Cadernos">☰</button><div><h1 id="nbBookHeading">Caderno de aula</h1><p>Prévia exclusiva da administração</p></div></div>'+
  '<div class="nb-top-right"><span class="nb-status" id="nbStatus" role="status">Rascunho local · salvo automaticamente</span><button class="nb-quiet" data-nb-action="export">Exportar</button></div></header>'+
  '<div class="nb-tools" id="nbTools" role="toolbar" aria-label="Ferramentas do caderno">'+
  '<div class="nb-toolgroup"><button class="nb-tool" data-nb-action="text" title="Escrever nas linhas">✎ Escrever</button>'+
+ '<button class="nb-tool" data-nb-action="select" title="Selecionar anotações, post-its e desenhos">⌖ Selecionar</button>'+
  '<button class="nb-tool" data-nb-action="draw" title="Desenhar diretamente na folha">〰 Desenhar</button>'+
  '<button class="nb-tool" data-nb-action="sticky" title="Colocar um post-it">▤ Post-it</button>'+
  '<button class="nb-tool" data-nb-action="warp" title="Deformar somente traços corrigidos">⌁ Deformar</button></div>'+
@@ -100,23 +126,35 @@ root.innerHTML=
  '<div class="nb-view" id="nbViewport" aria-label="Folha do caderno, com zoom e rolagem">'+
  '<div class="nb-stage" id="nbStage"><div class="nb-sheet-wrap" id="nbWrap">'+
  '<div class="nb-sheet" id="nbSheet"><div class="nb-holes" aria-hidden="true"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div>'+
- '<input id="nbPaperTitle" class="nb-paper-title" placeholder="Título desta página (opcional)" maxlength="100" aria-label="Título da página">'+
+ '<input id="nbPaperTitle" class="nb-paper-title" placeholder="Título da aula (opcional)" maxlength="100" aria-label="Título da aula">'+
+ '<label class="nb-paper-date-label" for="nbPaperDate">Data</label><input id="nbPaperDate" class="nb-paper-date" type="date" aria-label="Data da aula">'+
+ '<button class="nb-corner-back" data-nb-action="prev" aria-label="Voltar à página anterior" title="Página anterior">‹</button>'+
  '<div class="nb-line-hover" id="nbLineHover" hidden></div>'+
  '<canvas id="nbDrawing" class="nb-drawing" width="780" height="1240" aria-label="Área de desenho"></canvas>'+
  '<div class="nb-text-layer" id="nbTextLayer"></div><div class="nb-sticky-layer" id="nbStickyLayer"></div>'+
  '<div id="nbEditorHost"></div><button class="nb-fold" data-nb-action="next" title="Virar a página" aria-label="Virar a página"></button><span class="nb-fold-label" aria-hidden="true">›</span>'+
  '<div class="nb-page-num" id="nbPageNum"></div></div></div></div></div>'+
- '<footer class="nb-page-control"><button class="nb-page-btn" data-nb-action="prev">‹ Anterior</button>'+
+ '<footer class="nb-page-control"><button class="nb-page-btn" data-nb-action="gallery">▦ Folhas</button><button class="nb-page-btn" data-nb-action="prev">‹ Anterior</button>'+
  '<span class="nb-page-indicator" id="nbPageCount">Página 1 de 1</span>'+
  '<button class="nb-page-btn" data-nb-action="next">Próxima ›</button>'+
  '<span class="nb-zoom"><button class="nb-icon-btn" data-nb-action="zoomOut" aria-label="Reduzir zoom">−</button>'+
  '<input type="range" id="nbZoomSlider" min="42" max="230" step="1" aria-label="Zoom do caderno">'+
  '<button class="nb-icon-btn" data-nb-action="zoomIn" aria-label="Ampliar zoom">+</button><span id="nbZoomText">88%</span></span></footer>'+
+ '<aside id="nbDrawer" class="nb-drawer" hidden aria-label="Seus cadernos"></aside>'+
+ '<section id="nbGallery" class="nb-gallery" hidden aria-label="Todas as folhas do caderno"></section>'+
+ '<div id="nbStickyPalette" class="nb-sticky-palette" hidden role="group" aria-label="Cores de post-it"></div>'+
+ '<div id="nbContextMenu" class="nb-context-menu" hidden role="menu" aria-label="Ações do item selecionado"></div>'+
+ '<div id="nbToolCursor" class="nb-tool-cursor" hidden aria-hidden="true"></div>'+
  '<div class="nb-help" id="nbShortcutsDialog" hidden><div class="nb-dialog" role="dialog" aria-modal="true" aria-labelledby="nbShortcutsHeading">'+
  '<h2 id="nbShortcutsHeading">Seus atalhos</h2><p>Escolha uma ação e pressione a tecla ou o botão do mouse que deseja associar. Os atalhos funcionam quando você não está digitando em um campo.</p>'+
  '<div class="nb-shortcuts" id="nbShortcutsList"></div>'+
  '<div class="nb-dialog-footer"><span class="nb-hint" id="nbShortcutHint">Os atalhos são salvos neste aparelho.</span><button class="nb-quiet" data-nb-action="closeShortcuts">Fechar</button></div></div></div>';
 const $=name=>document.getElementById(name);
+function pageCountLabel(){
+ const count=data.pages.length;
+ return data.page>=count?'Nova página · '+count+' '+(count===1?'salva':'salvas'):'Página '+(data.page+1)+' de '+count;
+}
+function updateBookHeading(){$('nbBookHeading').textContent=activeBook().name||'Caderno de aula';}
 const view=$('nbViewport'),sheet=$('nbSheet'),canvas=$('nbDrawing'),ctx=canvas.getContext('2d'),wrap=$('nbWrap');
 function currentRect(){return sheet.getBoundingClientRect()}
 function point(event){
@@ -150,9 +188,9 @@ function refreshTools(){
  for(const a of Object.keys(COLORS)){const b=root.querySelector('[data-nb-action="'+a+'"]');b?.setAttribute('aria-pressed',String(data.ink===a));}
  $('nbFont').value=data.font;$('nbSize').value=String(data.size);$('nbSmooth').checked=!!data.smooth;
  sheet.dataset.mode=data.mode;
- $('nbPageCount').textContent='Página '+(data.page+1)+' de '+data.pages.length;
+ $('nbPageCount').textContent=pageCountLabel();updateBookHeading();
  $('nbPageNum').textContent=String(data.page+1).padStart(2,'0');
- $('nbPaperTitle').value=page().title||'';
+ $('nbPaperTitle').value=page().title||'';$('nbPaperDate').value=page().date||'';
 }
 function letterMarkup(text){
  return Array.from(String(text||'')).map(ch=>{
@@ -170,23 +208,29 @@ function noteMarkup(n,preview){
 }
 function renderNotes(){
  const notes=page().notes;
- $('nbTextLayer').innerHTML=notes.map(n=>noteMarkup(n,false)).join('')+
-  (editing&&previewText?noteMarkup({line:editing.line,text:previewText,font:data.font,ink:data.ink,size:data.size,id:'_preview'},true):'');
+ $('nbTextLayer').innerHTML=notes.filter(n=>!(editing&&n.id===editing.id)).map(n=>noteMarkup(n,false)).join('');
 }
 function editorMarkup(){
  const host=$('nbEditorHost');
  if(!editing){host.innerHTML='';return;}
- const pos=START+(editing.line+Math.max(2,data.size+1))*L+8;
- host.innerHTML='<section class="nb-editor" style="top:'+clamp(pos,150,H-193)+'px" aria-label="Editor da linha">'+
-  '<div class="nb-editor-head"><span>Escrevendo na linha '+(editing.line+1)+'</span><span>Enter para inserir e revisar</span></div>'+
-  '<textarea id="nbEditorText" rows="2" maxlength="2500" placeholder="Digite rapidamente suas anotações…" aria-label="Texto da linha"></textarea>'+
-  '<div class="nb-editor-foot"><span>Shift + Enter: nova linha</span><button class="nb-editor-cancel" data-nb-action="cancelEditor">Cancelar</button>'+
-  '<button data-nb-action="saveEditor">Inserir ↵</button></div></section>';
+ const line=editing.line,top=START+line*L-6,fsize=clamp(Number(data.size)||1,1,3)*26;
+ const lineHeight=Math.max(34,Math.round(fsize*1.22));
+ host.innerHTML='<textarea class="nb-inline-edit '+(data.font==='cursive'?'cursive':'print')+
+  '" id="nbEditorText" style="top:'+top+'px;--nb-small:'+fsize+'px;line-height:'+lineHeight+'px;color:'+
+  (COLORS[data.ink]||COLORS.blue)+';" rows="1" maxlength="2500" spellcheck="true"'+
+  ' aria-label="Escrever diretamente na linha '+(line+1)+'"></textarea>';
  const input=$('nbEditorText');input.value=editing.draft||'';
+ input.style.height=Math.max(38,input.scrollHeight)+'px';
  requestAnimationFrame(()=>{input.focus({preventScroll:true});input.setSelectionRange(input.value.length,input.value.length)});
 }
 function beginEdit(line){
- if(data.mode!=='text')return;
+ if(data.mode!=='text'||line<FIRST_LINE)return;
+ line=clamp(line,FIRST_LINE,ROWS-1);
+ if(editing&&editing.line!==line){
+  const current=String($('nbEditorText')?.value||'');
+  if(current.trim())saveEditor(false);else closeEditor();
+ }
+ if(line===FIRST_LINE&&data.size>2)data.size=2;
  const existing=page().notes.find(n=>line>=Number(n.line)&&line<Number(n.line)+Number(n.span||Number(n.size)+1));
  editing={line:existing?Number(existing.line):line,id:existing?.id||null,draft:existing?.original||existing?.text||''};
  if(existing){data.font=existing.font;data.ink=existing.ink;data.size=existing.size;}
@@ -223,15 +267,15 @@ async function correctNote(noteId,raw){
   if(error||typeof result?.text!=='string')throw error||Error('Sem resposta da revisão.');
   const revised=result.text.trim();
   if(!revised||revised.length<raw.length*.5||revised.length>raw.length*1.75)throw Error('Revisão não confiável.');
-  const n=data.pages.flatMap(p=>p.notes).find(n=>n.id===noteId);
+  const n=data.books.flatMap(b=>b.pages).flatMap(p=>p.notes).find(n=>n.id===noteId);
   if(!n||n.original!==raw)return;
   n.text=revised;n.pending=false;n.reviewed=result.reviewed===true;n.span=occupiedSpan(n);
   if(page().notes.includes(n))makeRoom(n);
-  if(!editing)renderNotes();else renderNotes();
+  if(page().notes.includes(n))renderNotes();
   save();
   status(result.reviewed===false?'Texto original preservado: a revisão automática não foi confirmada.':revised===raw?'Anotação conferida, sem mudanças.':'Gramática corrigida sem reescrever a anotação.',result.reviewed===false?'error':'success');
  }catch(err){
-  const n=data.pages.flatMap(p=>p.notes).find(n=>n.id===noteId);
+  const n=data.books.flatMap(b=>b.pages).flatMap(p=>p.notes).find(n=>n.id===noteId);
   if(!n||n.original!==raw)return;
   n.pending=false;n.reviewed=false;
   n.text=raw;
@@ -239,18 +283,20 @@ async function correctNote(noteId,raw){
   save();status('Anotação salva. Revisão de IA indisponível; texto original preservado.','error');
  }
 }
-function saveEditor(){
+function saveEditor(advance=true){
  if(!editing)return;
+ const priorLine=editing.line;
  const typed=String($('nbEditorText')?.value||'').trim();
- if(!typed){closeEditor();return}
+ if(!typed){closeEditor();if(advance)advanceLine(priorLine+1);return}
  checkpoint();
  let n=editing.id?page().notes.find(n=>n.id===editing.id):null;
  if(!n){n={id:id(),line:editing.line,text:typed};page().notes.push(n)}
  Object.assign(n,{text:typed,original:typed,font:data.font,size:data.size,ink:data.ink,pending:true,reviewed:false});
- n.span=occupiedSpan(n);makeRoom(n);
+ n.span=occupiedSpan(n);makeRoom(n);materializePage();
  const nid=n.id;closeEditor();renderNotes();save();
- status('Inserido. Corrigindo a gramática…','');
+ status('Linha registrada; revisão gramatical em andamento…','');
  void correctNote(nid,typed);
+ if(advance)advanceLine(priorLine+1);
 }
 function renderStickies(){
  $('nbStickyLayer').innerHTML=page().stickies.map(s=>
