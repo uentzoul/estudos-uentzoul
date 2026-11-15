@@ -1149,8 +1149,10 @@ function act(action){
  if(action==='sticky'){toolPaletteOpen=!toolPaletteOpen;renderStickyPalette();return;}
  if(MODES.includes(action)){
   if(editing)saveEditor(false);
-  data.mode=action;toolPaletteOpen=false;selected=null;selectedStroke=-1;
-  refreshTools();renderNotes();renderStickies();drawCanvas();renderStickyPalette();save();
+  // Em Deformar, preservar a seleção e as alças do traço corrigido.
+  const keepSelection=action==='warp'&&selected?.type==='stroke'&&selectedItem()?.corrected;
+  data.mode=action;toolPaletteOpen=false;if(!keepSelection)selected=null;selectedStroke=-1;
+  refreshTools();renderNotes();renderStickies();drawCanvas();renderSelectionHandles();renderStickyPalette();save();
   if(action==='select')status('Clique para selecionar e arrastar textos, desenhos ou post-its.','');
   if(action==='erase')status('Arraste a borracha sobre o desenho para apagar trechos ou traços inteiros.','');
   if(action==='warp')status('Selecione e arraste um traço corrigido.','');
