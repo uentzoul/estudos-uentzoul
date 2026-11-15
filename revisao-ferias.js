@@ -310,6 +310,7 @@ async function load(){
 async function show(){
  visible=true;semester=currSemester();openedMonth=null;selectedEvent=null;loading=true;
  rootElement();setActive(true);render();
+ window.dispatchEvent(new CustomEvent('uentzoul:route',{detail:{page:'vacation',semester:'2026/'+semester}}));
  window.pmMobileDrawer?.close?.();
  try{await window.uentzoulAdminConfig?.refresh?.();}catch(_){}
  if(!visible)return;
