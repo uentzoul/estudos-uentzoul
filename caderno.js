@@ -30,7 +30,7 @@ const ACTIONS=[
 const emptyPage=()=>({title:'',date:'',notes:[],strokes:[],stickies:[]});
 const newBook=(name='Meu caderno')=>({id:'book-'+Date.now()+'-'+Math.random().toString(36).slice(2,8),name,pages:[]});
 const defaults=()=>({books:[{id:'book-original',name:'Meu caderno',pages:[]}],bookId:'book-original',page:0,mode:'text',font:'print',ink:'blue',size:1,smooth:false,zoom:.88,shortcuts:{},stickyTone:'yellow'});
-const hasPageContent=p=>!!(p?.notes?.some(n=>String(n.text||'').trim())||p?.strokes?.some(s=>s.points?.length)||p?.stickies?.some(st=>String(st.text||'').trim()));
+const hasPageContent=p=>!!(p?.notes?.some(n=>String(n.text||'').trim())||p?.strokes?.some(s=>s.points?.length)||p?.stickies?.length);
 const cleanPage=p=>({title:String(p?.title||'').slice(0,100),date:String(p?.date||'').slice(0,16),
  notes:Array.isArray(p?.notes)?p.notes.slice(0,140):[],strokes:Array.isArray(p?.strokes)?p.strokes.slice(0,500):[],
  stickies:Array.isArray(p?.stickies)?p.stickies.slice(0,40):[]});
@@ -212,6 +212,7 @@ function refreshTools(){
  $('nbPageCount').textContent=pageCountLabel();updateBookHeading();
  $('nbPageNum').textContent=String(data.page+1).padStart(2,'0');
  $('nbPaperTitle').value=page().title||'';$('nbPaperDate').value=page().date||'';
+ const back=$('nbSheet').querySelector('.nb-corner-back');if(back)back.disabled=data.page===0;
 }
 function letterMarkup(text){
  return Array.from(String(text||'')).map(ch=>{
@@ -671,7 +672,7 @@ function contextAction(action){
   else if(selected.type==='sticky'){root.querySelector('[data-nb-sticky-text="'+item.id+'"]')?.focus();}
   return;
  }
- if(action==='copy'&&selected.type==='note'){navigator.clipboard?.writeText(item.text||'').then(()=>status('Texto copiado.','success'));return}
+ if(action==='copy'&&selected.type==='note'){navigator.clipboard?.writeText?.(item.text||'')?.then?.(()=>status('Texto copiado.','success'));return}
  if(action==='correct'&&selected.type==='note'){item.pending=true;renderNotes();void correctNote(item.id,item.original||item.text||'');return}
  if(action==='warp'&&selected.type==='stroke'&&item.corrected){data.mode='warp';refreshTools();drawCanvas();status('Arraste o traço para deformá-lo.','');return}
  if(action==='fix'&&selected.type==='stroke'&&!item.corrected){
