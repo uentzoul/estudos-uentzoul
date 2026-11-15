@@ -186,7 +186,7 @@ setTimeout(check,15000);
  const setup=()=>{
   if(document.getElementById('pm-visit-path-js'))return;
   const script=document.createElement('script');
-  script.id='pm-visit-path-js';script.src='visit-path.js?v=20261114-percurso-v1';
+  script.id='pm-visit-path-js';script.src='visit-path.js?v=20261114-percurso-v2';
   script.async=true;document.head.appendChild(script);
  };
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',setup,{once:true});
@@ -206,7 +206,7 @@ setTimeout(check,15000);
   if(!document.getElementById('pm-vacation-timeline-js')){
    const js=document.createElement('script');
    js.id='pm-vacation-timeline-js';
-   js.src='revisao-ferias.js?v=20261114-publico-2026-2-v3';
+   js.src='revisao-ferias.js?v=20261114-visitpath-v4';
    js.async=true;document.head.appendChild(js);
   }
  };
