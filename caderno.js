@@ -32,7 +32,7 @@ const newBook=(name='Meu caderno')=>({id:'book-'+Date.now()+'-'+Math.random().to
 const defaults=()=>({books:[{id:'book-original',name:'Meu caderno',pages:[]}],bookId:'book-original',page:0,mode:'select',font:'print',ink:'blue',size:1,smooth:false,zoom:.88,shortcuts:{},stickyTone:'yellow',eraserMode:'parts',eraserRadius:14});
 const hasPageContent=p=>!!(p?.notes?.some(n=>String(n.text||'').trim())||p?.strokes?.some(s=>s.points?.length)||p?.stickies?.length);
 const cleanPage=p=>({title:String(p?.title||'').slice(0,100),date:String(p?.date||'').slice(0,16),
- notes:Array.isArray(p?.notes)?p.notes.slice(0,140):[],strokes:Array.isArray(p?.strokes)?p.strokes.slice(0,500):[],
+ notes:Array.isArray(p?.notes)?p.notes.slice(0,140).map(n=>{const {original,...corrected}=n;return corrected;}):[],strokes:Array.isArray(p?.strokes)?p.strokes.slice(0,500):[],
  stickies:Array.isArray(p?.stickies)?p.stickies.slice(0,40):[]});
 let data=defaults(),stored=null;
 try{stored=JSON.parse(localStorage.getItem(STORE)||'null');}catch(_){}
@@ -269,7 +269,7 @@ function beginEdit(line){
  }
  if(line===FIRST_LINE&&data.size>2)data.size=2;
  const existing=page().notes.find(n=>line>=Number(n.line)&&line<Number(n.line)+Number(n.span||Number(n.size)||1));
- editing={line:existing?Number(existing.line):line,id:existing?.id||null,draft:existing?.original||existing?.text||''};
+ editing={line:existing?Number(existing.line):line,id:existing?.id||null,draft:existing?.text||''};
  if(existing){data.font=existing.font;data.ink=existing.ink;data.size=existing.size;}
  if(editing.line===FIRST_LINE&&data.size>2)data.size=2;
  previewText=editing.draft;
@@ -318,6 +318,7 @@ async function correctNote(noteId,raw){
   if(!n||n.original!==raw)return;
   n.text=fallbackBasic(result.reviewed===true?revised:raw);
   n.pending=false;n.reviewed=result.reviewed===true;n.span=occupiedSpan(n);
+  delete n.original; // Descartar o rascunho bruto: a versão corrigida é definitiva.
   if(page().notes.includes(n))makeRoom(n);
   if(page().notes.includes(n))renderNotes();
   save();
@@ -327,6 +328,7 @@ async function correctNote(noteId,raw){
   if(!n||n.original!==raw)return;
   n.pending=false;n.reviewed=false;
   n.text=fallbackBasic(raw);
+  delete n.original; // O fallback também substitui definitivamente o texto original.
   if(page().notes.includes(n))renderNotes();
   save();status('Pontuação e maiúsculas corrigidas. Revisão adicional de IA indisponível.','');
  }
@@ -824,7 +826,7 @@ function renderDrawer(){
   '<div class="nb-book-list">'+data.books.map((book,i)=>
     '<button class="nb-book-row '+(book.id===data.bookId?'active':'')+'" data-nb-book="'+esc(book.id)+'" aria-label="Abrir caderno '+esc(book.name)+'">'+
      '<span class="nb-book-cover" data-cover="'+(i%6)+'"><span class="nb-cover-spine" aria-hidden="true"></span>'+
-     '<span class="nb-cover-title">'+esc(book.name)+'</span><span class="nb-cover-foot">ESTUDOS UENTZOUL</span></span>'+
+     '<span class="nb-cover-title">'+esc(book.name)+'</span><span class="nb-cover-foot">PSICOMOODLE</span></span>'+
      '<span class="nb-book-details"><strong>'+esc(book.name)+'</strong><small>'+book.pages.length+' '+
      (book.pages.length===1?'folha salva':'folhas salvas')+'</small></span></button>'
    ).join('')+'</div>'+
@@ -1187,7 +1189,7 @@ function flip(direction){
 function downloadJSON(){
  const blob=new Blob([JSON.stringify({version:2,exportedAt:new Date().toISOString(),books:data.books,activeBookId:data.bookId},null,2)],{type:'application/json'});
  const a=document.createElement('a');a.href=URL.createObjectURL(blob);
- a.download='cadernos-estudos-uentzoul-'+new Date().toISOString().slice(0,10)+'.json';
+ a.download='cadernos-psicomoodle-'+new Date().toISOString().slice(0,10)+'.json';
  document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),1200);
  status('Cópia dos cadernos exportada.','success');
 }
@@ -1587,6 +1589,7 @@ syncTheme();window.matchMedia('(prefers-color-scheme:dark)').addEventListener?.(
 setInterval(syncTheme,1100);
 renderAll();
 setZoom(data.zoom,false);
+window.addEventListener('resize',scheduleSnapshotScales,{passive:true});
 status('Rascunho salvo apenas neste dispositivo.','');
 if(isMobile()&&!localStorage.getItem(STORE))setZoom(.5,false);
 })();
