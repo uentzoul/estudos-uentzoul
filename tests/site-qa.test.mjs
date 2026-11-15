@@ -341,3 +341,29 @@ test('Caderno experimental permanece isolado e reservado aos administradores',()
  assert.match(styles,/\.nb-sticky\{/);
  assert.doesNotMatch(notebook,/\.from\(['"]uentzoul_(?:messages|progress|profiles|exams)/);
 });
+
+
+test('Caderno ajusta círculo, retângulo e linhas sem confundir as formas',()=>{
+ const source=read('caderno.js');
+ const start=source.indexOf('function dist(a,b)');
+ const end=source.indexOf('function paintStroke(points,color,width)');
+ assert.ok(start>=0&&end>start,'implementação de formas extraída para teste');
+ const perfectShape=vm.runInNewContext('(()=>{'+source.slice(start,end)+';return perfectShape;})()');
+ const circle=Array.from({length:70},(_,i)=>{
+  const angle=i/69*2*Math.PI;
+  return {x:300+62*Math.cos(angle)+Math.sin(angle*7)*2.1,
+          y:400+60*Math.sin(angle)+Math.sin(angle*5)*1.8};
+ });
+ const rect=[
+  ...Array.from({length:25},(_,i)=>({x:300+i*4,y:330})),
+  ...Array.from({length:23},(_,i)=>({x:396,y:330+i*4})),
+  ...Array.from({length:25},(_,i)=>({x:396-i*4,y:418})),
+  ...Array.from({length:23},(_,i)=>({x:300,y:418-i*4}))
+ ];
+ const line=Array.from({length:45},(_,i)=>({x:100+i*5,y:230+i*.6+Math.sin(i*2)*1.8}));
+ const curve=Array.from({length:45},(_,i)=>({x:100+i*5,y:230+Math.sin(i/12)*35+Math.sin(i*2)*1.8}));
+ assert.equal(perfectShape(circle).kind,'circle');
+ assert.equal(perfectShape(rect).kind,'rectangle');
+ assert.equal(perfectShape(line).kind,'line');
+ assert.equal(perfectShape(curve).kind,'curve');
+});
