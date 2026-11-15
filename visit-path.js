@@ -80,7 +80,7 @@ window.addEventListener('popstate',()=>requestAnimationFrame(()=>{void navigate(
 window.addEventListener('focus',refocus);
 document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')refocus();});
 window.addEventListener('online',refocus);
-setInterval(()=>{if(document.visibilityState==='visible'&&!ending)void rpc('heartbeat');},45000);
+setInterval(()=>{if(document.visibilityState==='visible'&&!ending)void sync().then(ok=>{if(ok)void rpc('heartbeat');});},45000);
 
 // pagehide é o melhor esforço disponível no navegador; ausência deste evento
 // significa "encerramento não confirmado", nunca uma saída inventada.
