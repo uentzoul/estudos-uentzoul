@@ -334,7 +334,7 @@ test('Caderno experimental permanece isolado e reservado aos administradores',()
  assert.match(notebook,/window\.parent\.uentzoulAdminConfig\?\.isAdmin\?\.\(\)===true/);
  assert.match(notebook,/uentzoul:caderno:alpha1:/);
  assert.match(notebook,/functions\.invoke\('caderno-revisao'/);
- assert.match(notebook,/if\(!stroke\.corrected\)return/);
+ assert.match(notebook,/const hit=findStrokeNear\(p,false\)/);
  assert.match(notebook,/tapCandidate/);
  assert.match(notebook,/const defaults=\(\)=>\(\{books:\[/);
  assert.match(styles,/\.nb-sheet\{/);

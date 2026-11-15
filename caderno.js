@@ -15,13 +15,13 @@ if(!userId){
  root.innerHTML='<section><strong>Acesso restrito.</strong><p>Esta prévia só pode ser aberta por uma conta administrativa autenticada no site.</p></section>';
  return;
 }
-const W=780,H=1240,L=34,START=97,ROWS=30,FIRST_LINE=3;
+const W=780,H=1240,L=34,START=28,ROWS=30,FIRST_LINE=3;
 const STORE='uentzoul:caderno:alpha2:'+userId;
 const LEGACY_STORE='uentzoul:caderno:alpha1:'+userId;
 const COLORS={black:'#24242e',blue:'#2559a4',red:'#bb3d43'};
 const MODES=['text','select','draw','erase','sticky','warp'];
 const ACTIONS=[
- ['text','Escrever'],['select','Selecionar'],['draw','Desenhar'],['erase','Borracha'],['sticky','Post-it'],['warp','Deformar'],
+ ['text','Escrever'],['select','Selecionar'],['draw','Desenhar'],['erase','Borracha'],['sticky','Post-it'],['warp','Moldar'],
  ['black','Caneta preta'],['blue','Caneta azul'],['red','Caneta vermelha'],
  ['print','Letra de forma'],['cursive','Letra cursiva'],
  ['prev','Página anterior'],['next','Próxima página'],['zoomIn','Aproximar'],['zoomOut','Afastar'],
@@ -137,7 +137,7 @@ root.innerHTML=
  '<button class="nb-tool" data-nb-action="erase" title="Apagar partes ou traços inteiros de desenhos">⌫ Borracha</button>'+
  '<button class="nb-tool" data-nb-action="draw" title="Desenhar diretamente na folha">〰 Desenhar</button>'+
  '<button class="nb-tool" data-nb-action="sticky" title="Colocar um post-it">▤ Post-it</button>'+
- '<button class="nb-tool" data-nb-action="warp" title="Deformar somente traços corrigidos">⌁ Deformar</button>'+
+ '<button class="nb-tool" data-nb-action="warp" title="Moldar somente traços corrigidos">⌁ Moldar</button>'+
  '<span id="nbEraserControls" class="nb-eraser-controls" hidden><label for="nbEraseBehavior">Apagar</label>'+
  '<select id="nbEraseBehavior" aria-label="Tipo de borracha"><option value="parts">Trechos</option><option value="whole">Traço inteiro</option></select>'+
  '<label for="nbEraseSize">Raio</label><input id="nbEraseSize" type="range" min="6" max="32" step="2" value="14" aria-label="Tamanho da borracha"></span></div>'+
@@ -154,7 +154,6 @@ root.innerHTML=
  '<div class="nb-view" id="nbViewport" aria-label="Folha do caderno, com zoom e rolagem">'+
  '<div class="nb-stage" id="nbStage"><div class="nb-sheet-wrap" id="nbWrap">'+
  '<div class="nb-sheet" id="nbSheet"><div class="nb-holes" aria-hidden="true"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div>'+
- '<input id="nbPaperTitle" class="nb-paper-title" placeholder="Título da aula (opcional)" maxlength="100" aria-label="Título da aula">'+
  '<div class="nb-paper-date-group"><label class="nb-paper-date-label" for="nbPaperDate">Data</label><input id="nbPaperDate" class="nb-paper-date" type="date" aria-label="Data da aula"></div>'+
  '<button class="nb-corner-back" data-nb-action="prev" aria-label="Voltar à página anterior" title="Página anterior">‹</button>'+
  '<div class="nb-line-hover" id="nbLineHover" hidden></div>'+
@@ -221,8 +220,8 @@ function refreshTools(){
  sheet.dataset.mode=data.mode;
  $('nbPageCount').textContent=pageCountLabel();updateBookHeading();
  $('nbPageNum').textContent=String(data.page+1).padStart(2,'0');
- $('nbPaperTitle').value=page().title||'';$('nbPaperDate').value=page().date||'';
- const back=$('nbSheet').querySelector('.nb-corner-back');if(back)back.disabled=data.page===0;
+ $('nbPaperDate').value=page().date||'';
+ const back=$('nbSheet').querySelector('.nb-corner-back');if(back){back.disabled=false;back.setAttribute('aria-label',data.page===0?'Voltar aos cadernos':'Voltar à folha anterior');}
 }
 function letterMarkup(text){
  return Array.from(String(text||'')).map(ch=>{
@@ -251,7 +250,7 @@ function renderNotes(){
 function editorMarkup(){
  const host=$('nbEditorHost');
  if(!editing){host.innerHTML='';return;}
- const line=editing.line,top=START+line*L-6,fsize=clamp(Number(data.size)||1,1,3)*26;
+ const line=editing.line,top=START+line*L-1,fsize=clamp(Number(data.size)||1,1,3)*26;
  const lineHeight=Math.max(34,Math.round(fsize*1.22));
  host.innerHTML='<textarea class="nb-inline-edit '+(data.font==='cursive'?'cursive':'print')+
   '" id="nbEditorText" style="top:'+top+'px;--nb-small:'+fsize+'px;line-height:'+lineHeight+'px;color:'+
@@ -292,8 +291,17 @@ function makeRoom(saved){
   end=note.line+Math.max(1,Number(note.span)||1);
  }
 }
-function fallbackBasic(text){
- return text.replace(/ {2,}/g,' ').replace(/\s+([,.;!?])/g,'$1').replace(/([,;!?])(?=[^\s])/g,'$1 ').trim();
+function fallbackBasic(input){
+ let text=String(input||'').replace(/[\t ]+/g,' ').replace(/\s+([,.;!?])/g,'$1')
+  .replace(/([,;!?])(?=\S)/g,'$1 ').trim();
+ if(!text)return '';
+ text=text.replace(/\bnao\b/gi,word=>word[0]==='N'?'Não':'não');
+ // Vírgula do vocativo quando uma saudação é dirigida a alguém.
+ text=text.replace(/^(bom dia|boa tarde|boa noite)\s+(rapaziada|pessoal|gente|galera|turma|professor(?:a)?|amigos)\b/iu,
+  (_,saudacao,vocativo)=>saudacao+', '+vocativo);
+ text=text.replace(/^([\p{L}])/u,first=>first.toLocaleUpperCase('pt-BR'));
+ if(!/[.!?…]$/.test(text))text+='.';
+ return text;
 }
 async function correctNote(noteId,raw){
  const currentOwner=userId;
@@ -308,7 +316,8 @@ async function correctNote(noteId,raw){
   if(!revised||revised.length<raw.length*.5||revised.length>raw.length*1.75)throw Error('Revisão não confiável.');
   const n=data.books.flatMap(b=>b.pages).flatMap(p=>p.notes).find(n=>n.id===noteId);
   if(!n||n.original!==raw)return;
-  n.text=revised;n.pending=false;n.reviewed=result.reviewed===true;n.span=occupiedSpan(n);
+  n.text=fallbackBasic(result.reviewed===true?revised:raw);
+  n.pending=false;n.reviewed=result.reviewed===true;n.span=occupiedSpan(n);
   if(page().notes.includes(n))makeRoom(n);
   if(page().notes.includes(n))renderNotes();
   save();
@@ -317,9 +326,9 @@ async function correctNote(noteId,raw){
   const n=data.books.flatMap(b=>b.pages).flatMap(p=>p.notes).find(n=>n.id===noteId);
   if(!n||n.original!==raw)return;
   n.pending=false;n.reviewed=false;
-  n.text=raw;
+  n.text=fallbackBasic(raw);
   if(page().notes.includes(n))renderNotes();
-  save();status('Anotação salva. Revisão de IA indisponível; texto original preservado.','error');
+  save();status('Pontuação e maiúsculas corrigidas. Revisão adicional de IA indisponível.','');
  }
 }
 function saveEditor(advance=true){
@@ -330,7 +339,7 @@ function saveEditor(advance=true){
  checkpoint();
  let n=editing.id?page().notes.find(n=>n.id===editing.id):null;
  if(!n){n={id:id(),line:editing.line,text:typed};page().notes.push(n)}
- Object.assign(n,{text:typed,original:typed,font:data.font,size:data.size,ink:data.ink,pending:true,reviewed:false});
+ Object.assign(n,{text:fallbackBasic(typed),original:typed,font:data.font,size:data.size,ink:data.ink,pending:true,reviewed:false});
  n.span=occupiedSpan(n);makeRoom(n);materializePage();
  const nid=n.id;closeEditor();renderNotes();save();
  status('Linha registrada; revisão gramatical em andamento…','');
@@ -343,7 +352,8 @@ function renderStickies(){
   '" style="left:'+clamp(Number(s.x)||0,90,W-50)+'px;top:'+clamp(Number(s.y)||0,95,H-50)+
   'px;width:'+clamp(Number(s.w)||170,65,460)+'px;height:'+clamp(Number(s.h)||146,65,460)+'px;">'+
   '<div class="nb-sticky-head" data-nb-drag="'+esc(s.id)+'" title="Arraste para mover"><span>✦ Nota adesiva</span>'+
-  '<button type="button" data-nb-delete-sticky="'+esc(s.id)+'" title="Remover post-it" aria-label="Remover post-it"'+(selected?.type==='sticky'&&selected.id===s.id?'':' hidden')+'>×</button></div>'+
+  '<button type="button" data-nb-delete-sticky="'+esc(s.id)+'" title="Remover post-it" aria-label="Remover post-it"'+
+  (selected?.type==='sticky'&&selected.id===s.id?'':' hidden')+'>×</button></div>'+
   '<textarea aria-label="Escreva no post-it" data-nb-sticky-text="'+esc(s.id)+'" maxlength="700" placeholder="Sua observação…">'+esc(s.text||'')+'</textarea></div>'
  ).join('');
 }
@@ -575,10 +585,14 @@ function renderSelectionHandles(){
  const minW=selected.type==='stroke'?12:42,minH=selected.type==='stroke'?12:35;
  const x=clamp(rect.x,0,W-minW),y=clamp(rect.y,0,H-minH);
  const width=clamp(rect.w,minW,W-x),height=clamp(rect.h,minH,H-y);
- host.innerHTML='<div class="nb-transform-box" style="left:'+x+'px;top:'+y+'px;width:'+width+
-  'px;height:'+height+'px;" role="group" aria-label="Redimensionar item selecionado">'+
-  TRANSFORM_HANDLES.map(dir=>'<button type="button" class="nb-transform-handle nb-handle-'+dir+
-   '" data-nb-handle="'+dir+'" aria-label="Redimensionar '+dir+'" title="Arraste para redimensionar"></button>').join('')+
+ const molding=data.mode==='warp'&&selected.type==='stroke';
+ host.innerHTML='<div class="nb-transform-box'+(molding?' nb-transform-mold':'')+'" style="left:'+x+'px;top:'+y+'px;width:'+width+
+  'px;height:'+height+'px;" role="group" aria-label="'+(molding?'Mover ou moldar desenho':'Redimensionar item selecionado')+'">'+
+  (molding?
+   '<button class="nb-transform-move" data-nb-move-handle="1" type="button" title="Arraste para mover desenho" aria-label="Mover desenho sem deformar">▣</button>'+
+   '<button class="nb-transform-mold-handle" data-nb-mold-handle="1" type="button" title="Arraste para moldar curva" aria-label="Moldar curva">●</button>'
+   :TRANSFORM_HANDLES.map(dir=>'<button type="button" class="nb-transform-handle nb-handle-'+dir+
+   '" data-nb-handle="'+dir+'" aria-label="Redimensionar '+dir+'" title="Arraste para redimensionar"></button>').join(''))+
   '</div>';
 }
 function startResize(event,dir){
@@ -699,13 +713,13 @@ function finishMoveDrag(event){
  if(drag.type==='note'){
   const delta=Math.round(((drag.last||drag.start).y-drag.start.y)/L);
   const span=Math.max(1,Number(item.span)||1);
-  const maxLine=Math.max(FIRST_LINE,ROWS-span);
-  const intended=clamp(drag.originLine+delta,FIRST_LINE,maxLine);
+  const maxLine=Math.max(0,ROWS-span);
+  const intended=clamp(drag.originLine+delta,0,maxLine);
   const collides=line=>page().notes.some(n=>n.id!==item.id&&
     line<(Number(n.line)||0)+Math.max(1,Number(n.span)||1)&&line+span>Number(n.line));
   let chosen=intended;
   if(collides(chosen)){
-   const available=Array.from({length:maxLine-FIRST_LINE+1},(_,i)=>i+FIRST_LINE)
+   const available=Array.from({length:maxLine+1},(_,i)=>i)
     .filter(line=>!collides(line))
     .sort((a,b)=>Math.abs(a-intended)-Math.abs(b-intended));
    chosen=available.length?available[0]:drag.originLine;
@@ -713,6 +727,7 @@ function finishMoveDrag(event){
   item.line=chosen;
   item.x=clamp(drag.originX+((drag.last||drag.start).x-drag.start.x),85,W-70);
  }
+ selected=null;selectedStroke=-1;
  serializable();renderNotes();renderStickies();drawCanvas();refreshTools();renderSelectionHandles();save();
  status('Item movido. Use Ctrl+Z para desfazer.','success');
 }
@@ -735,23 +750,21 @@ function pointerDownCanvas(event){
   checkpoint();drawPoints=[p];canvas.setPointerCapture?.(event.pointerId);
   event.preventDefault();
  }else if(data.mode==='warp'){
-  let best={score:18,index:-1,point:0};
-  page().strokes.forEach((stroke,i)=>{
-   if(!stroke.corrected)return;
-   (stroke.points||[]).forEach((q,j)=>{const d=dist(p,q);if(d<best.score)best={score:d,index:i,point:j}});
-  });
-  if(best.index<0){status('A deformação só funciona em traços ajustados.','error');return}
-  checkpoint();selectedStroke=best.index;
-  const stroke=page().strokes[best.index];
-  warpDrag={index:best.index,at:best.point,from:p,original:stroke.points.map(q=>({...q}))};
-  canvas.setPointerCapture?.(event.pointerId);event.preventDefault();drawCanvas();
+  const hit=findStrokeNear(p,false);
+  if(hit.stroke){
+   selectItem('stroke',hit.stroke.id);selectedStroke=hit.index;
+   drawCanvas();renderSelectionHandles();status('Quadradinho move; ponto redondo molda.','');
+  }else{
+   selected=null;selectedStroke=-1;drawCanvas();renderSelectionHandles();
+  }
+  event.preventDefault();
  }
 }
 function pointerMoveCanvas(event){
  if(eraseDrag&&eraseDrag.pointerId===event.pointerId){applyEraser(point(event));event.preventDefault();return;}
  if(moveDrag&&moveDrag.pointerId===event.pointerId&&moveDrag.type==='stroke'){updateMoveDrag(event);event.preventDefault();return;}
  if(drawPoints){drawPoints.push(point(event));drawCanvas();event.preventDefault();}
- if(warpDrag){
+ if(warpDrag&&warpDrag.pointerId===event.pointerId){
   const p=point(event),dx=p.x-warpDrag.from.x,dy=p.y-warpDrag.from.y;
   const reference=warpDrag.original[warpDrag.at];
   page().strokes[warpDrag.index].points=warpDrag.original.map(q=>{
@@ -772,7 +785,7 @@ function pointerUpCanvas(event){
    save();status(data.smooth?'Desenho ajustado. Pode usar Deformar.':'Traço livre inserido.','success');
   }
  }
- if(warpDrag){warpDrag=null;save();status('Traço deformado.','success');}
+ if(warpDrag&&(!event||event.pointerId===warpDrag.pointerId)){warpDrag=null;renderSelectionHandles();save();status('Curva moldada. Ctrl+Z desfaz.','success');}
  drawCanvas();
 }
 
@@ -822,6 +835,29 @@ function renderDrawer(){
   '<input id="nbRenameBook" maxlength="70" value="'+esc(activeBook().name)+'">'+
   '<button type="button" data-nb-action="renameBook">Salvar</button></div></div>'+
   '<p class="nb-drawer-note">Cada capa corresponde a um caderno diferente. As folhas são salvas neste navegador.</p>';
+ requestAnimationFrame(()=>fitCoverTitles());
+}
+function fitCoverTitles(){
+ const canvas=document.createElement('canvas'),ctx=canvas.getContext('2d');
+ if(!ctx)return;
+ for(const title of document.querySelectorAll('.nb-cover-title')){
+  const source=String(title.textContent||'').trim();
+  const words=source.split(/\s+/).filter(Boolean),available=Math.max(65,title.clientWidth-3);
+  let chosen=14;
+  // A palavra inteira precisa caber; o navegador nunca fica autorizado a dividi-la.
+  for(let px=14;px>=8.5;px-=.5){
+   ctx.font='850 '+px+'px system-ui';
+   const widest=Math.max(0,...words.map(word=>ctx.measureText(word).width));
+   const total=ctx.measureText(source).width;
+   const estimatedLines=Math.max(1,Math.ceil(total/available));
+   if(widest<=available-2&&estimatedLines*px*1.23<=100){chosen=px;break}
+   chosen=px;
+  }
+  title.style.fontSize=chosen+'px';
+  title.style.overflowWrap='normal';
+  title.style.wordBreak='keep-all';
+  title.style.hyphens='none';
+ }
 }
 function renderPageRail(){
  const host=$('nbPageRail');if(!host)return;
@@ -1003,12 +1039,13 @@ function deleteSelected(){
  checkpoint();
  const prop=selected.type==='note'?'notes':selected.type==='stroke'?'strokes':'stickies';
  page()[prop]=page()[prop].filter(x=>x.id!==selected.id);
- selected=null;$('nbContextMenu').hidden=true;
- serializable();refreshTools();renderNotes();renderStickies();drawCanvas();save();
+ selected=null;selectedStroke=-1;resizeDrag=null;moveDrag=null;
+ $('nbContextMenu').hidden=true;
+ serializable();refreshTools();renderNotes();renderStickies();drawCanvas();renderSelectionHandles();save();
  status('Item removido. Use Ctrl+Z para desfazer.','success');
 }
 function contextMenu(event){
- if(event.target.closest('#nbEditorText,#nbPaperTitle,#nbPaperDate,.nb-drawer,.nb-gallery'))return;
+ if(event.target.closest('#nbEditorText,#nbPaperDate,.nb-drawer,.nb-gallery'))return;
  const note=event.target.closest('[data-nb-note]'),sticky=event.target.closest('[data-nb-sticky]');
  if(note)selectItem('note',note.dataset.nbNote);
  else if(sticky)selectItem('sticky',sticky.dataset.nbSticky);
@@ -1024,7 +1061,7 @@ function contextMenu(event){
   [['edit','✎ Editar texto'],['move','⌖ Selecionar e mover'],['correct','✧ Revisar gramática'],['copy','▣ Copiar texto'],
    ['blue','● Caneta azul'],['black','● Caneta preta'],['red','● Caneta vermelha'],['delete','⌫ Excluir']]:
   type==='stroke'?
-  [['move','⌖ Selecionar e mover'],...(item.corrected?[['warp','⌁ Deformar desenho']]:[['fix','✧ Corrigir traço']]),
+  [['move','⌖ Selecionar e mover'],...(item.corrected?[['warp','⌁ Moldar desenho']]:[['fix','✧ Corrigir traço']]),
    ['blue','● Caneta azul'],['black','● Caneta preta'],['red','● Caneta vermelha'],['delete','⌫ Excluir']]:
   [['edit','✎ Editar post-it'],['move','⌖ Selecionar e mover'],['tone:yellow','▤ Amarelo'],['tone:pink','▤ Rosa'],
    ['tone:violet','▤ Lilás'],['delete','⌫ Excluir']];
@@ -1046,7 +1083,7 @@ function contextAction(action){
  }
  if(action==='copy'&&selected.type==='note'){navigator.clipboard?.writeText?.(item.text||'')?.then?.(()=>status('Texto copiado.','success'));return}
  if(action==='correct'&&selected.type==='note'){item.pending=true;renderNotes();void correctNote(item.id,item.original||item.text||'');return}
- if(action==='warp'&&selected.type==='stroke'&&item.corrected){data.mode='warp';refreshTools();drawCanvas();status('Arraste o traço para deformá-lo.','');return}
+ if(action==='warp'&&selected.type==='stroke'&&item.corrected){data.mode='warp';refreshTools();drawCanvas();renderSelectionHandles();status('Quadradinho move; ponto redondo molda.','');return}
  if(action==='fix'&&selected.type==='stroke'&&!item.corrected){
   checkpoint();const r=fluidStroke(item.points);item.points=r.points;item.kind=r.kind;item.corrected=true;
   drawCanvas();save();return;
@@ -1155,7 +1192,7 @@ function act(action){
   refreshTools();renderNotes();renderStickies();drawCanvas();renderSelectionHandles();renderStickyPalette();save();
   if(action==='select')status('Clique para selecionar e arrastar textos, desenhos ou post-its.','');
   if(action==='erase')status('Arraste a borracha sobre o desenho para apagar trechos ou traços inteiros.','');
-  if(action==='warp')status('Selecione e arraste um traço corrigido.','');
+  if(action==='warp')status('Selecione o desenho e use o quadradinho para mover ou o ponto redondo para moldar.','');
   return;
  }
  if(COLORS[action]){data.ink=action;refreshTools();renderNotes();save();return}
@@ -1164,7 +1201,7 @@ function act(action){
   data.font=action;refreshTools();renderNotes();
   if(editing){editing.draft=$('nbEditorText')?.value||'';editorMarkup()}
   save();break;
- case 'prev':flip(-1);break;case 'next':flip(1);break;
+ case 'prev':if(data.page===0)backToBooks();else flip(-1);break;case 'next':flip(1);break;
  case 'drawer':toggleDrawer();break;case 'closeDrawer':closeDrawer();break;
  case 'backToBooks':backToBooks();break;
  case 'toggleRail':togglePageRail();break;
@@ -1200,8 +1237,10 @@ root.addEventListener('click',event=>{
  }
  const d=event.target.closest('[data-nb-delete-sticky]');
  if(d){
+  event.preventDefault();event.stopPropagation();
   checkpoint();page().stickies=page().stickies.filter(s=>s.id!==d.dataset.nbDeleteSticky);
-  renderStickies();save();return;
+  selected=null;renderStickies();renderSelectionHandles();save();
+  status('Post-it removido. Ctrl+Z desfaz.','success');return;
  }
  const bind=event.target.closest('[data-nb-bind]');
  if(bind){listening=bind.dataset.nbBind;$('nbShortcutHint').textContent='Pressione uma tecla ou botão extra do mouse.';updateShortcutsList();return;}
@@ -1238,7 +1277,6 @@ root.addEventListener('input',event=>{
   t.style.height=Math.max(38,t.scrollHeight)+'px';
   return;
  }
- if(t.id==='nbPaperTitle'){page().title=t.value;save();return;}
  if(t.id==='nbZoomSlider'){
   zoomAt(Number(t.value)/100,view.getBoundingClientRect().left+view.clientWidth/2,view.getBoundingClientRect().top+view.clientHeight/2);return;
  }
@@ -1251,6 +1289,14 @@ root.addEventListener('keydown',event=>{
  if(event.target.id==='nbEditorText'){
   if(event.key==='Enter'&&!event.shiftKey&&!event.isComposing){
    event.preventDefault();event.stopPropagation();saveEditor(true);return;
+  }
+  // Dois espaços seguidos no fim da linha confirmam a anotação.
+  // Um espaço sozinho continua separando palavras normalmente.
+  if(event.key===' '&&!event.isComposing&&!event.repeat){
+   const input=event.target,atEnd=input.selectionStart===input.value.length&&input.selectionEnd===input.value.length;
+   if(atEnd&&input.value.endsWith(' ')){
+    event.preventDefault();event.stopPropagation();saveEditor(true);return;
+   }
   }
   if(event.key==='Escape'){event.preventDefault();closeEditor();act('select');}
  }
@@ -1297,9 +1343,24 @@ root.addEventListener('pointerdown',event=>{
   return;
  }
  if(event.target.closest('#nbContextMenu,#nbStickyPalette,#nbGallery,#nbDrawer,#nbPageRail'))return;
+ const moveHandle=event.target.closest('[data-nb-move-handle]');
+ if(moveHandle&&event.button===0&&data.mode==='warp'&&selected?.type==='stroke'){
+  startMoveDrag(event,'stroke',selectedItem());return;
+ }
+ const moldHandle=event.target.closest('[data-nb-mold-handle]');
+ if(moldHandle&&event.button===0&&data.mode==='warp'&&selected?.type==='stroke'){
+  const stroke=selectedItem(),index=page().strokes.findIndex(x=>x.id===stroke?.id);
+  if(index>=0&&stroke?.corrected&&stroke.points?.length){
+   checkpoint();selectedStroke=index;
+   warpDrag={pointerId:event.pointerId,index,at:Math.floor(stroke.points.length/2),
+    from:point(event),original:stroke.points.map(p=>({...p}))};
+   sheet.setPointerCapture?.(event.pointerId);event.preventDefault();return;
+  }
+ }
  const handleButton=event.target.closest('[data-nb-handle]');
  if(handleButton&&event.button===0){startResize(event,handleButton.dataset.nbHandle);return;}
  const note=event.target.closest('[data-nb-note]'),sticky=event.target.closest('[data-nb-sticky]');
+ if(event.button===0&&event.target.closest('[data-nb-delete-sticky]'))return;
  if(data.mode==='select'&&event.button===0){
   if(note){
    selectItem('note',note.dataset.nbNote);
@@ -1317,6 +1378,17 @@ root.addEventListener('pointerdown',event=>{
   if(!st)return;
   checkpoint();stickyDrag={id:st.id,from:{x:event.clientX,y:event.clientY},start:{x:st.x,y:st.y}};
   handle.setPointerCapture?.(event.pointerId);event.preventDefault();return;
+ }
+ if(event.button===0&&sticky&&event.target.closest('textarea')){
+  if(selected?.type!=='sticky'||selected?.id!==sticky.dataset.nbSticky){
+   selected={type:'sticky',id:sticky.dataset.nbSticky};
+   // Não recriar o textarea enquanto o usuário está digitando.
+   const holder=root.querySelector('[data-nb-sticky="'+sticky.dataset.nbSticky+'"]');
+   holder?.classList.add('nb-selected');
+   holder?.querySelector('[data-nb-delete-sticky]')?.removeAttribute('hidden');
+   renderSelectionHandles();
+  }
+  return;
  }
  const inSheet=!!event.target.closest('#nbSheet');
  if(inSheet&&(event.button===1 ||
@@ -1341,6 +1413,7 @@ root.addEventListener('pointermove',event=>{
  toolCursor(event);
  if(resizeDrag&&resizeDrag.pointerId===event.pointerId){updateResize(event);return;}
  if(moveDrag&&moveDrag.pointerId===event.pointerId){updateMoveDrag(event);return;}
+ if(warpDrag&&warpDrag.pointerId===event.pointerId){pointerMoveCanvas(event);return;}
  if(panDrag&&event.pointerId===panDrag.pointerId){
   const dx=event.clientX-panDrag.startX,dy=event.clientY-panDrag.startY;
   if(Math.hypot(dx,dy)>6)panDrag.moved=true;
@@ -1371,6 +1444,7 @@ root.addEventListener('pointermove',event=>{
 root.addEventListener('pointerup',event=>{
  if(resizeDrag&&resizeDrag.pointerId===event.pointerId){finishResize(event);return;}
  if(moveDrag&&moveDrag.pointerId===event.pointerId){finishMoveDrag(event);return;}
+ if(warpDrag&&warpDrag.pointerId===event.pointerId){pointerUpCanvas(event);return;}
  if(panDrag&&event.pointerId===panDrag.pointerId){
   const drag=panDrag;panDrag=null;
   if(drag.button===0&&!drag.moved){
@@ -1398,6 +1472,7 @@ root.addEventListener('pointerup',event=>{
 root.addEventListener('pointercancel',event=>{
  if(resizeDrag&&resizeDrag.pointerId===event.pointerId)finishResize(event);
  if(moveDrag&&moveDrag.pointerId===event.pointerId)finishMoveDrag(event);
+ if(warpDrag&&warpDrag.pointerId===event.pointerId)pointerUpCanvas(event);
  tapCandidate=null;panDrag=null;if(stickyDrag){stickyDrag=null;save();}
 });
 root.addEventListener('pointerleave',()=>{$('nbToolCursor').hidden=true});
