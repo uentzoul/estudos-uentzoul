@@ -442,7 +442,7 @@ html[data-theme="dark"] .nb-back-books{background:#263752;color:#e4dafa;border-c
 
 
 /* v7 — pauta calibrada: cada letra termina imediatamente acima do risco horizontal. */
-.nb-note .nb-note-content{position:relative;top:-6px;line-height:1.04}
+.nb-note .nb-note-content{position:relative;top:-10px;line-height:1.04}
 .nb-note .nb-uppercase{font-size:var(--nb-cap-size,var(--nb-small))!important}
 .nb-note .nb-lowercase{font-size:var(--nb-small)!important}
 .nb-inline-edit{padding:3px 2px 0!important;box-shadow:none!important;background:transparent!important;border:0!important;outline:none!important}
@@ -458,7 +458,7 @@ html[data-theme="dark"] .nb-back-books{background:#263752;color:#e4dafa;border-c
 }
 .nb-note.cursive,.nb-inline-edit.cursive{font-family:'Caveat','Segoe Print',cursive}
 .nb-note.print,.nb-inline-edit.print{font-family:'Patrick Hand','Segoe Print',cursive}
-.nb-note.joined .nb-note-content,.nb-note.cursive .nb-note-content{top:-6px}
+.nb-note.joined .nb-note-content,.nb-note.cursive .nb-note-content{top:-10px}
 
 
 /* v7 — uma folha ou caderno aberto: páginas de tamanho igual em uma encadernação. */
