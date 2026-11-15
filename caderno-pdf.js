@@ -45,29 +45,37 @@
   ctx.fillStyle='#403758';pfont(ctx,24,false);
   ctx.fillText(String(pg.title||'').slice(0,60),111,137,570);
   ctx.fillStyle='#6a607c';ctx.font='600 13px Arial,sans-serif';
-  ctx.fillText('Data:',487,162);
+  ctx.fillText('Data',510,132);
   if(pg.date){
    const m=String(pg.date).match(/^(\d{4})-(\d{2})-(\d{2})$/);
-   ctx.fillText(m?m[3]+'/'+m[2]+'/'+m[1]:String(pg.date),530,162);
+   ctx.font='600 16px Arial,sans-serif';
+   ctx.fillText(m?m[3]+'/'+m[2]+'/'+m[1]:String(pg.date),557,132);
   }
   // A gramática é reproduzida tal como está na folha no momento da exportação.
   for(const note of pg.notes||[]){
    const scale=Math.min(3,Math.max(1,Number(note.size)||1));
    const small=scale*26;
-   let x=110,y=LINETOP+(Number(note.line)||0)*LINEROW+27;
+   const left=Math.min(720,Math.max(85,Number(note.x)||110));
+   const top=LINETOP+(Number(note.line)||0)*LINEROW+(Number(note.offsetY)||0);
+   const scaleX=Math.min(3.8,Math.max(.35,Number(note.scaleX)||1));
+   const scaleY=Math.min(3.8,Math.max(.35,Number(note.scaleY)||1));
+   const width=Math.max(70,Number(note.frameW)||620);
+   ctx.save();ctx.translate(left,top+27);ctx.scale(scaleX,scaleY);
+   let x=0,y=0;
    const cursive=note.font==='cursive';
    ctx.fillStyle=colorOf(note.ink);
    const chars=Array.from(String(note.text||''));
    for(const ch of chars){
-    if(ch==='\n'){x=110;y+=small*1.13;continue;}
+    if(ch==='\n'){x=0;y+=small*1.13;continue;}
     const upper=ch.toUpperCase()===ch&&ch.toLowerCase()!==ch;
     pfont(ctx,small+(upper?34:0),cursive);
-    const width=ctx.measureText(ch).width;
-    if(x+width>WIDTH-32){x=110;y+=small*1.13;}
-    if(y>HEIGHT-35)break;
+    const size=ctx.measureText(ch).width;
+    if(x+size>width){x=0;y+=small*1.13;}
+    if(top+y>HEIGHT-35)break;
     ctx.fillText(ch,x,y);
-    x+=width;
+    x+=size;
    }
+   ctx.restore();
   }
   for(const stroke of pg.strokes||[]){
    const points=stroke.points||[];if(!points.length)continue;
@@ -86,14 +94,16 @@
    ctx.stroke();
   }
   for(const sticky of pg.stickies||[]){
-   const x=Number(sticky.x)||110,y=Number(sticky.y)||200;
-   ctx.save();ctx.translate(x+83,y+72);ctx.rotate(-1.4*Math.PI/180);
+   const x=Number(sticky.x)||110,y=Number(sticky.y)||200,
+    w=Math.min(460,Math.max(65,Number(sticky.w)||170)),
+    h=Math.min(460,Math.max(65,Number(sticky.h)||146));
+   ctx.save();ctx.translate(x+w/2,y+h/2);ctx.rotate(-1.4*Math.PI/180);
    ctx.shadowColor='#3d2f4340';ctx.shadowBlur=11;ctx.shadowOffsetX=5;ctx.shadowOffsetY=6;
    ctx.fillStyle={pink:'#ffc1d5',violet:'#dfcafa',yellow:'#faeb93'}[sticky.tone]||'#faeb93';
-   rounded(ctx,-83,-72,170,145,6);ctx.fill();
+   rounded(ctx,-w/2,-h/2,w,h,6);ctx.fill();
    ctx.shadowColor='transparent';ctx.shadowBlur=0;ctx.shadowOffsetX=0;ctx.shadowOffsetY=0;
    ctx.fillStyle='#4d4254';pfont(ctx,19,false);
-   drawWrapped(ctx,String(sticky.text||'').slice(0,650),-71,-44,145,21,6);
+   drawWrapped(ctx,String(sticky.text||'').slice(0,650),-w/2+12,-h/2+28,w-24,21,Math.floor((h-20)/21));
    ctx.restore();
   }
   ctx.font='600 15px "Patrick Hand",cursive';

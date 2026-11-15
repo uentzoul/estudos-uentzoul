@@ -152,3 +152,73 @@ test('Exportar PDF usa canvas local, gera páginas A4, e não expõe dados fora 
  assert.match(bytes.toString('latin1'),/xref\n0 6\n/);
  assert.match(bytes.toString('latin1'),/%%EOF/);
 });
+
+
+test('Traços ajustados preservam percurso original e reduzem tremores em curvas fluidas',()=>{
+ const start=script.indexOf('function fluidStroke('),end=script.indexOf('function paintStroke(',start);
+ assert.ok(start>0&&end>start);
+ const factory=vm.runInNewContext('(()=>{const W=780,H=1240;'+script.slice(start,end)+';return fluidStroke})()',
+  {clamp:(v,a,b)=>Math.max(a,Math.min(b,v)),dist:(a,b)=>Math.hypot(a.x-b.x,a.y-b.y)});
+ const raw=Array.from({length:120},(_,i)=>({x:120+i*3,
+  y:380+50*Math.sin(i/14)+(i%2===0?4:-4)}));
+ const corrected=factory(raw);
+ assert.equal(corrected.kind,'fluid');
+ assert.ok(corrected.points.length>raw.length);
+ assert.ok(Math.abs(corrected.points[0].x-raw[0].x)<.01);
+ assert.ok(Math.abs(corrected.points.at(-1).y-raw.at(-1).y)<.01);
+ const roughness=points=>{
+  let total=0;
+  for(let i=1;i<points.length-1;i++)total+=Math.abs(points[i-1].y-2*points[i].y+points[i+1].y);
+  return total/Math.max(1,points.length-2);
+ };
+ assert.ok(roughness(corrected.points)<roughness(raw)/3,
+  'A curva ajustada precisa ser muito menos tremida do que a original');
+ assert.ok(Math.max(...corrected.points.map(p=>p.y))-Math.min(...corrected.points.map(p=>p.y))>70,
+  'Não pode achatar o desenho em uma reta');
+ assert.match(script,/data\.smooth\?fluidStroke\(raw\)/);
+});
+test('Selecionar é padrão, ESC volta ao seletor e papel pode ser arrastado sem selecionar item',()=>{
+ assert.match(script,/bookId:'book-original',page:0,mode:'select'/);
+ assert.match(script,/data\.mode='select'; \/\/ Ferramenta inicial segura/);
+ assert.match(script,/if\(event\.key==='Escape'\)\{/);
+ assert.match(script,/selected=null;act\('select'\)/);
+ assert.match(script,/function startPan\(event\)/);
+ assert.match(script,/startPan\(event\);\}/);
+ assert.match(script,/view\.scrollLeft=panDrag\.left-dx;view\.scrollTop=panDrag\.top-dy/);
+});
+test('Oito alças redimensionam cantos e lados com limites para texto, desenho e post-it',()=>{
+ const start=script.indexOf('function transformRect('),end=script.indexOf('function updateResize(',start);
+ const transform=vm.runInNewContext('(()=>{'+script.slice(start,end)+'return transformRect})()',
+  {W:780,H:1240,clamp:(v,a,b)=>Math.max(a,Math.min(b,v))});
+ const box={x:100,y:100,w:200,h:100};
+ const right=transform(box,'e',60,0);
+ assert.equal(right.x,100);assert.equal(right.w,260);assert.equal(right.h,100);
+ const bottomRight=transform(box,'se',40,30);
+ assert.equal(bottomRight.w,240);assert.equal(bottomRight.h,130);
+ const topLeft=transform(box,'nw',-20,-30);
+ assert.equal(topLeft.x,80);assert.equal(topLeft.y,70);
+ assert.equal(topLeft.w,220);assert.equal(topLeft.h,130);
+ assert.match(script,/data-nb-handle/);
+ assert.match(script,/resizeDrag&&resizeDrag\.pointerId/);
+ assert.match(script,/item\.points=drag\.points\.map/);
+});
+test('A data sobe, os cadernos têm capas e as folhas têm uma aba lateral própria',()=>{
+ assert.match(script,/class="nb-paper-date-group"/);
+ assert.match(style,/\.nb-paper-date-group\{position:absolute;top:100px/);
+ assert.match(style,/font:650 16px/);
+ assert.match(script,/id="nbPageRail"/);
+ assert.match(script,/class="nb-rail-tab"/);
+ assert.match(style,/\.nb-page-rail\{position:absolute/);
+ assert.match(script,/class="nb-book-cover"/);
+ assert.match(style,/\.nb-book-cover\[data-cover="5"\]/);
+ assert.match(script,/window\.addEventListener\('popstate'/);
+ assert.match(style,/html\[data-theme="dark"\] \.nb-sheet\{background-color:#fffdf8/);
+});
+test('Borracha exibe mira realmente centrada no ponto e remover post-it exige seleção',()=>{
+ assert.match(script,/marker\.style\.left=event\.clientX\+'px'/);
+ assert.match(script,/marker\.style\.top=event\.clientY\+'px'/);
+ assert.match(style,/\.nb-tool-cursor\.nb-eraser-target\{/);
+ assert.match(style,/transform:translate\(-50%,-50%\)/);
+ assert.match(script,/selected\?\.type==='sticky'&&selected\.id===s\.id/);
+ assert.match(style,/\.nb-sticky-head button\[hidden\]\{display:none!important\}/);
+});
