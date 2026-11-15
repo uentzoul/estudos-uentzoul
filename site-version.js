@@ -83,7 +83,7 @@ function setup(){
  if(!document.getElementById('pm-tutorial-script')){
   const script=document.createElement('script');
   script.id='pm-tutorial-script';
-  script.src='spotlight-tour.js?v=20261115-stable-mobile-v31';
+  script.src='spotlight-tour.js?v=20261115-flicker-fixed-v32';
   script.async=true;
   document.head.appendChild(script);
  }
@@ -218,7 +218,7 @@ setTimeout(check,15000);
   if(!document.getElementById('pm-vacation-timeline-js')){
    const js=document.createElement('script');
    js.id='pm-vacation-timeline-js';
-   js.src='revisao-ferias.js?v=20261114-visitpath-v4';
+   js.src='revisao-ferias.js?v=20261115-flicker-fixed-v5';
    js.async=true;document.head.appendChild(js);
   }
  };
