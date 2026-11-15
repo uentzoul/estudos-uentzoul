@@ -7,6 +7,8 @@ out=Path('qa-artifacts');out.mkdir(exist_ok=True)
 with sync_playwright() as p:
     browser=p.chromium.launch(headless=True)
     page=browser.new_page(viewport={"width":1200,"height":850},locale='pt-BR')
+    # Teste com dados fictícios: não gerar sessão de visita real.
+    page.add_init_script("window.PSICO_VISIT_PATH={status:()=>({qa:true,ready:false})};")
     page.goto('http://127.0.0.1:8765/index.html',wait_until='domcontentloaded')
     page.wait_for_function("Boolean(window.uentzoulAdminConfig?.render && document.getElementById('main'))",timeout=25000)
     result=page.evaluate("""async () => {
