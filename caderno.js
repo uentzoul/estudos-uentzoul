@@ -128,7 +128,7 @@ function redo(){
 root.className='nb-app';
 root.innerHTML=
  '<header class="nb-top"><div class="nb-brand"><button type="button" class="nb-mark nb-hamburger" data-nb-action="drawer" aria-label="Abrir lista de cadernos" title="Cadernos">☰</button><div><h1 id="nbBookHeading">Caderno de aula</h1><p>Prévia exclusiva da administração</p></div></div>'+
- '<div class="nb-top-right"><span class="nb-status" id="nbStatus" role="status">Rascunho local · salvo automaticamente</span><button class="nb-quiet" data-nb-action="export">Exportar</button></div></header>'+
+ '<div class="nb-top-right"><span class="nb-status" id="nbStatus" role="status">Rascunho local · salvo automaticamente</span><button class="nb-quiet" data-nb-action="export">Exportar PDF</button></div></header>'+
  '<div class="nb-tools" id="nbTools" role="toolbar" aria-label="Ferramentas do caderno">'+
  '<div class="nb-toolgroup"><button class="nb-tool" data-nb-action="text" title="Escrever nas linhas">✎ Escrever</button>'+
  '<button class="nb-tool" data-nb-action="select" title="Selecionar anotações, post-its e desenhos">⌖ Selecionar</button>'+
@@ -923,7 +923,8 @@ function act(action){
  case 'zoomIn':zoomAt(data.zoom+.1,view.getBoundingClientRect().left+view.clientWidth/2,view.getBoundingClientRect().top+view.clientHeight/2);break;
  case 'zoomOut':zoomAt(data.zoom-.1,view.getBoundingClientRect().left+view.clientWidth/2,view.getBoundingClientRect().top+view.clientHeight/2);break;
  case 'smooth':data.smooth=!data.smooth;refreshTools();save();break;
- case 'undo':undo();break;case 'redo':redo();break;case 'export':downloadJSON();break;
+ case 'undo':undo();break;case 'redo':redo();break;
+ case 'export':if(editing)saveEditor(false);window.uentzoulCadernoPDF?.exportBook?.(activeBook(),status);break;
  case 'shortcuts':$('nbShortcutsDialog').hidden=false;updateShortcutsList();break;
  case 'closeShortcuts':$('nbShortcutsDialog').hidden=true;listening='';break;
  case 'cancelEditor':closeEditor();break;case 'saveEditor':saveEditor();break;
