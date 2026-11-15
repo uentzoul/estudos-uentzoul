@@ -130,7 +130,7 @@ function redo(){
 root.className='nb-app';
 root.innerHTML=
  '<header class="nb-top"><div class="nb-brand"><button type="button" class="nb-mark nb-hamburger" data-nb-action="drawer" aria-label="Abrir lista de cadernos" title="Cadernos">☰</button><div><h1 id="nbBookHeading">Caderno de aula</h1><p>Prévia exclusiva da administração</p></div></div>'+
- '<div class="nb-top-right"><span class="nb-status" id="nbStatus" role="status">Rascunho local · salvo automaticamente</span><button class="nb-quiet" data-nb-action="export">Exportar PDF</button></div></header>'+
+ '<div class="nb-top-right"><button class="nb-quiet nb-back-books" data-nb-action="backToBooks" title="Voltar aos cadernos">‹ Cadernos</button><span class="nb-status" id="nbStatus" role="status">Rascunho local · salvo automaticamente</span><button class="nb-quiet" data-nb-action="export">Exportar PDF</button></div></header>'+
  '<div class="nb-tools" id="nbTools" role="toolbar" aria-label="Ferramentas do caderno">'+
  '<div class="nb-toolgroup"><button class="nb-tool" data-nb-action="text" title="Escrever nas linhas">✎ Escrever</button>'+
  '<button class="nb-tool" data-nb-action="select" title="Selecionar anotações, post-its e desenhos">⌖ Selecionar</button>'+
@@ -792,13 +792,16 @@ function advanceLine(to){
  }
  beginEdit(line);
 }
-function switchBook(bookId){
+function switchBook(bookId,fromHistory=false){
  if(!data.books.some(b=>b.id===bookId))return;
  if(editing)saveEditor(false);
  checkpoint();data.bookId=bookId;data.pages=activeBook().pages;data.page=0;
  pendingPage=emptyPage();selected=null;galleryOffset=0;
  renderPage();renderDrawer();renderPageRail();if(galleryOpen)renderGallery();
  save();closeDrawer();
+ if(!fromHistory){
+  try{history.pushState({uentzoulNotebook:'book',bookId},'', '#caderno='+encodeURIComponent(bookId));}catch(_){}
+ }
 }
 function renderDrawer(){
  const host=$('nbDrawer');if(!host)return;
@@ -856,6 +859,24 @@ function goRailPage(index){
 function closePageRail(){railOpen=false;renderPageRail();}
 function togglePageRail(){railOpen=!railOpen;renderPageRail();}
 function closeDrawer(){drawerOpen=false;$('nbDrawer').hidden=true;root.classList.remove('nb-drawer-open');}
+function backToBooks(){
+ if(galleryOpen)hideGallery();
+ if(!drawerOpen)toggleDrawer();
+}
+function restoreNotebookRoute(state){
+ if(!state||state.uentzoulNotebook==='shelf'){
+  if(galleryOpen)hideGallery();
+  if(!drawerOpen)toggleDrawer();
+  return;
+ }
+ if(state.uentzoulNotebook==='book'&&data.books.some(b=>b.id===state.bookId)){
+  if(data.bookId!==state.bookId)switchBook(state.bookId,true);
+  if(galleryOpen)hideGallery();
+  closeDrawer();
+ }
+}
+window.addEventListener('popstate',event=>restoreNotebookRoute(event.state));
+try{history.replaceState({uentzoulNotebook:'shelf'},'',location.href)}catch(_){}
 function toggleDrawer(){
  drawerOpen=!drawerOpen;
  if(drawerOpen){toolPaletteOpen=false;renderStickyPalette();renderDrawer()}
@@ -1143,6 +1164,7 @@ function act(action){
   save();break;
  case 'prev':flip(-1);break;case 'next':flip(1);break;
  case 'drawer':toggleDrawer();break;case 'closeDrawer':closeDrawer();break;
+ case 'backToBooks':backToBooks();break;
  case 'toggleRail':togglePageRail();break;
  case 'gallery':showGallery();break;case 'closeGallery':hideGallery();break;
  case 'galleryPrev':galleryOffset=Math.max(0,galleryOffset-1);renderGallery();break;
@@ -1259,6 +1281,9 @@ document.addEventListener('keydown',event=>{
  if(action){event.preventDefault();act(action);}
 });
 root.addEventListener('pointerdown',event=>{
+ if(event.button===3&&!listening&&!Object.values(data.shortcuts).includes('mouse:3')){
+  event.preventDefault();backToBooks();return;
+ }
  if(listening&&event.button!==0){
   event.preventDefault();
   if([1,2,3,4].includes(event.button)){
