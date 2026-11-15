@@ -4,6 +4,8 @@
 const TABLE='uentzoul_admin_topics',PRESENCE='uentzoul_presence';
 let admin=false,owner=null,checking=false,topics=[],topicsSignature='',presence=[],reports=[],busy=false,notice='',editing=null,lastPresence=0,lastReports=0;
 let accessLog=[],logOpen=false,logTab='online',lastLog=0,logError='',markingTest=false;
+let visitActivity=new Map(),visitActivityLoading=false,visitActivityError='',lastVisitActivity=0;
+const ACTIVITY_TABS=new Set(['explored','entryOnly','unclassified']);
 let lastLogGesture=0,logRenderTimer=null,lastLogRenderKey='';
 let botRuns=[],lastBotRuns=0,botRunsError='',botRunsLoading=false;
 let selectedVisitId=null,selectedPresenceId=null,visitSteps=[],visitLoading=false,visitError='',logLimit=200,hasMoreEntries=false;
@@ -153,6 +155,51 @@ async function loadPresence(){
   lastPresence=Date.now();updateLogPanel();
  }catch(e){logError='Não foi possível consultar os acessos.';updateLogPanel();console.warn('Presença indisponível:',e)}
 }
+
+/* Classificação por visita, não por pessoa. Registros antigos sem percurso
+   são mantidos como desconhecidos: nunca presumimos que só entraram e saíram. */
+function classifyVisitActivity(steps){
+ if(!steps.length)return 'unknown';
+ const homeRoutes=new Set();
+ for(const step of steps){
+  if(step.kind!=='navigate')continue;
+  const section=step.section||'home';
+  if(section!=='home')return 'explored';
+  homeRoutes.add([section,step.detail||'',step.semester||''].join('|'));
+ }
+ return homeRoutes.size>1?'explored':'entryOnly';
+}
+async function loadVisitActivity(force=false){
+ if(!isAdmin()||!client()||!ACTIVITY_TABS.has(logTab)||visitActivityLoading)return;
+ const idStrings=accessLog.map(r=>String(r.id));
+ if(!idStrings.length)return;
+ const hasMissing=idStrings.some(id=>!visitActivity.has(id));
+ if(!force&&!hasMissing&&Date.now()-lastVisitActivity<120000){updateLogPanel();return}
+ visitActivityLoading=true;visitActivityError='';updateLogPanel();
+ try{
+  const collected=new Map(idStrings.map(id=>[id,[]]));
+  // Lotes pequenos e paginação para não truncar trajetos de visitas longas.
+  for(let i=0;i<accessLog.length;i+=60){
+   const ids=accessLog.slice(i,i+60).map(r=>r.id);
+   for(let offset=0;;offset+=1000){
+    const {data,error}=await client().from('uentzoul_visit_steps')
+     .select('access_id,kind,section,detail,semester')
+     .in('access_id',ids).order('id',{ascending:true}).range(offset,offset+999);
+    if(error)throw error;
+    for(const step of data||[]){
+     const list=collected.get(String(step.access_id));
+     if(list)list.push(step);
+    }
+    if((data||[]).length<1000)break;
+   }
+  }
+  for(const [id,steps] of collected)visitActivity.set(id,classifyVisitActivity(steps));
+  lastVisitActivity=Date.now();
+ }catch(error){
+  visitActivityError='Não foi possível classificar as visitas. Tente atualizar novamente.';
+  console.warn('Classificação de visitas indisponível:',error?.message||error);
+ }finally{visitActivityLoading=false;updateLogPanel()}
+}
 async function loadAccess(){
  if(!isAdmin()||!client())return;
  try{
@@ -171,7 +218,7 @@ async function loadAccess(){
    const isTest=r.actor==='anonymous'&&marked.has(String(r.id));
    return {...r,isTest,name:r.actor==='anonymous'?(isTest?'Meu teste anônimo':'Visitante anônimo'):names.get(r.user_id)||'Usuário cadastrado'};
   });
-  lastLog=Date.now();logError='';updateLogPanel();
+  lastLog=Date.now();logError='';updateLogPanel();if(ACTIVITY_TABS.has(logTab))void loadVisitActivity();
  }catch(e){logError='Não foi possível carregar o histórico de entradas.';updateLogPanel();console.warn('Log indisponível:',e)}
 }
 // Histórico do robô oficial obtido de execuções do GitHub Actions.
@@ -281,17 +328,34 @@ async function openVisit(id){
 function logMarkup(){
  if(logTab==='bots')return botLogMarkup();
  if(logError)return '<p class="admin-muted" role="status">'+esc(logError)+'</p>';
- const rows=logTab==='online'?presence.filter(loggedOnline):logTab==='last'?presence:accessLog;
- if(!rows.length)return '<p class="admin-muted">'+(logTab==='online'?'Nenhuma conta identificada como ativa nos últimos dois minutos.':logTab==='last'?'Nenhum último acesso registrado.':'Ainda não há entradas registradas.')+'</p>';
- return '<div class="admin-log-rows">'+rows.slice(0,logTab==='online'?100:logLimit).map(row=>{
+ const grouping=ACTIVITY_TABS.has(logTab);
+ if(grouping&&visitActivityError)return '<p class="admin-muted" role="alert">'+esc(visitActivityError)+'</p>';
+ if(grouping&&visitActivityLoading&&!lastVisitActivity)return '<p class="admin-muted" role="status">Classificando os percursos registrados…</p>';
+ const rows=grouping?accessLog.filter(row=>{
+  const kind=visitActivity.get(String(row.id));
+  return kind===({explored:'explored',entryOnly:'entryOnly',unclassified:'unknown'}[logTab]);
+ }):logTab==='online'?presence.filter(loggedOnline):logTab==='last'?presence:accessLog;
+ const title=logTab==='explored'?'Nenhuma visita com navegação adicional registrada.':
+  logTab==='entryOnly'?'Nenhuma visita limitada à entrada registrada.':
+  logTab==='unclassified'?'Nenhuma visita antiga sem percurso registrado.':
+  logTab==='online'?'Nenhuma conta identificada como ativa nos últimos dois minutos.':
+  logTab==='last'?'Nenhum último acesso registrado.':'Ainda não há entradas registradas.';
+ const intro=grouping?'<p class="admin-log-explain">'+(logTab==='explored'?
+  'Visitas que acessaram outras áreas ou navegaram entre semestres. Inclui contas e anônimos.':
+  logTab==='entryOnly'?'Visitas com registro, mas sem navegação adicional observada. Rolar a mesma página não é registrado.':
+  'Registros antigos ou incompletos sem histórico de percurso. Não é possível dizer se navegaram.')+
+  ' Cada linha representa uma visita, não uma pessoa única.'+
+  (visitActivityLoading?' Atualizando classificação…':'')+'</p>':'';
+ if(!rows.length)return intro+'<p class="admin-muted">'+title+'</p>';
+ return intro+'<div class="admin-log-rows">'+rows.slice(0,logTab==='online'?100:logLimit).map(row=>{
   const active=logTab==='online'?true:logTab==='last'&&loggedOnline(row);
   const name=esc(row.name||'Usuário cadastrado');
-  const when=logTab==='entries'?row.entered_at:row.last_seen;
+  const when=logTab==='entries'||grouping?row.entered_at:row.last_seen;
   const status=logTab==='online'?'Online agora':logTab==='last'?(active?'Online agora':'Última atividade registrada'):
    row.actor==='anonymous'?(row.isTest?'Identificado manualmente como teste do administrador':'Visita anônima · sem conta'):'Entrou na conta';
-  const match=logTab==='entries'?row:accessLog.find(entry=>entry.user_id&&entry.user_id===row.user_id);
+  const match=logTab==='entries'||grouping?row:accessLog.find(entry=>entry.user_id&&entry.user_id===row.user_id);
   const selected=match?selectedVisitId===String(match.id):selectedPresenceId===String(row.user_id);
-  const markButton=logTab==='entries'&&row.actor==='anonymous'?
+  const markButton=(logTab==='entries'||grouping)&&row.actor==='anonymous'?
    '<button type="button" class="admin-log-test-toggle" data-admin-test-access="'+esc(row.id)+'" '+(markingTest?'disabled':'')+
    ' aria-label="'+(row.isTest?'Desfazer identificação deste acesso como meu teste':'Identificar este acesso como meu teste')+'">'+
    (row.isTest?'Desfazer marcação':'Marcar como meu teste')+'</button>':'';
@@ -305,7 +369,7 @@ function logMarkup(){
   return '<div class="admin-log-row'+(selected?' is-selected':'')+'">'+button+markButton+'</div>'+
    (selected?(match?visitDetail(match):'<section class="admin-visit-detail"><strong>Histórico desta presença</strong><p class="admin-visit-note">A conta está no painel de presença, mas não há uma entrada individual associada entre os registros carregados. Não é possível reconstruir páginas ou ações a partir de um status online.</p><button type="button" data-admin-close-visit>Fechar ×</button></section>'):'');
  }).join('')+'</div>'+
- (logTab==='entries'&&hasMoreEntries?'<button type="button" class="admin-log-more" data-admin-log-more>Carregar mais 200 entradas anteriores</button>':'');
+ ((logTab==='entries'||grouping)&&hasMoreEntries?'<button type="button" class="admin-log-more" data-admin-log-more>Carregar mais 200 entradas anteriores</button>':'');
 }
 
 // Não reconstrói a lista enquanto alguém está rolando: no iOS, trocar
@@ -365,7 +429,7 @@ function adminLogMarkup(){
   '<div class="admin-log-content"><p class="admin-log-explain">O status online é uma estimativa de atividade nos últimos dois minutos. Clique em uma entrada para consultar o percurso resumido da visita. O registro não guarda mensagens, respostas ou textos digitados. Entradas antigas exibem somente o que já foi registrado.</p>'+ 
   guestOnlineMarkup()+
   '<div class="admin-log-toolbar" role="tablist" aria-label="Visualização dos acessos">'+
-  [['online','Online','adminLogOnlineCount'],['last','Último acesso',''],['entries','Entradas',''],['bots','Robôs','']].map(([tab,label,id])=>
+  [['online','Online','adminLogOnlineCount'],['last','Último acesso',''],['entries','Entradas',''],['explored','Navegaram',''],['entryOnly','Só entraram',''],['unclassified','Sem dados',''],['bots','Robôs','']].map(([tab,label,id])=>
    '<button type="button" role="tab" data-admin-log-tab="'+tab+'" aria-selected="'+(logTab===tab)+'">'+label+(id?' <span id="'+id+'">'+(onlineTotalCount()===null?'—':onlineTotalCount())+'</span>':'')+'</button>').join('')+
   '<button type="button" class="admin-log-refresh" data-admin-log-refresh title="Atualizar registros" aria-label="Atualizar registros">↻</button></div>'+
   '<div id="adminLogData">'+logMarkup()+'</div>'+
@@ -428,7 +492,7 @@ function render(){
 function afterRender(){
  if(!isAdmin())return;
  if(logOpen&&(Date.now()-lastPresence>12000||Date.now()-lastLog>12000||Date.now()-lastGuestCount>12000)){
-  loadPresence();loadAccess();loadGuestOnline();
+  loadPresence();loadAccess();loadGuestOnline();if(ACTIVITY_TABS.has(logTab))void loadVisitActivity();
  }
  if(Date.now()-lastReports>25000)loadReports();
 }
@@ -487,15 +551,15 @@ document.addEventListener('click',e=>{
  const test=e.target.closest('[data-admin-test-access]');
  if(test&&isAdmin()){toggleTestAccess(test.dataset.adminTestAccess);return;}
  const log=e.target.closest('[data-admin-log-tab]');
- if(log&&isAdmin()){logTab=log.dataset.adminLogTab;selectedVisitId=null;selectedPresenceId=null;visitSteps=[];updateLogPanel();if(logTab==='bots')void loadBotRuns();return}
- if(e.target.closest('[data-admin-log-refresh]')&&isAdmin()){loadPresence();loadAccess();loadGuestOnline();if(logTab==='bots')void loadBotRuns(true);return}
+ if(log&&isAdmin()){logTab=log.dataset.adminLogTab;selectedVisitId=null;selectedPresenceId=null;visitSteps=[];updateLogPanel();if(logTab==='bots')void loadBotRuns();if(ACTIVITY_TABS.has(logTab))void loadVisitActivity();return}
+ if(e.target.closest('[data-admin-log-refresh]')&&isAdmin()){loadPresence();loadAccess();loadGuestOnline();if(logTab==='bots')void loadBotRuns(true);if(ACTIVITY_TABS.has(logTab))void loadVisitActivity(true);return}
 });
 
 document.addEventListener('toggle',e=>{
  if(e.target.id!=='adminLogDisclosure'||!isAdmin())return;
  logOpen=e.target.open;
  if(logOpen&&(Date.now()-lastPresence>5000||Date.now()-lastLog>5000||Date.now()-lastGuestCount>5000)){
-  loadPresence();loadAccess();loadGuestOnline();if(logTab==='bots')void loadBotRuns();
+  loadPresence();loadAccess();loadGuestOnline();if(logTab==='bots')void loadBotRuns();if(ACTIVITY_TABS.has(logTab))void loadVisitActivity();
  }
 },true);
 /* As navegações são registradas no visit-path.js; presença online permanece independente. */
