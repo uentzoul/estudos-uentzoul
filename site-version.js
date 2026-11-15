@@ -227,3 +227,78 @@ setTimeout(check,15000);
 })();
 /* Carrega painel de Saúde do Site somente na interface administrativa. */
 (()=>{const load=()=>{if(document.getElementById('pm-site-health-panel-script'))return;const s=document.createElement('script');s.id='pm-site-health-panel-script';s.src='site-health-panel.js?v=20261114-v1';s.async=true;document.head.appendChild(s)};if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',load,{once:true});else load()})();
+
+
+/* Caderno: acesso visual exclusivo ao administrador; página de teste isolada. */
+(()=>{
+ 'use strict';
+ const STYLE_ID='uentzoul-notebook-preview-style',NAV_ID='navCadernoPreview',FRAME_ID='uentzoulCadernoFrame';
+ let previewOpen=false;
+ const admin=()=>window.uentzoulAdminConfig?.isAdmin?.()===true&&!!window.uentzoulAIAuth?.user?.()?.id;
+ const nav=()=>document.getElementById('nav');
+ const main=()=>document.getElementById('main');
+ function addStyles(){
+  if(document.getElementById(STYLE_ID))return;
+  const css=document.createElement('style');css.id=STYLE_ID;
+  css.textContent=
+   '#nav #navCadernoPreview{display:flex;align-items:center;gap:9px;min-width:0;position:relative;cursor:pointer;}'+
+   '#nav #navCadernoPreview .nb-preview-label{margin-left:auto;font-size:9px;font-weight:800;letter-spacing:.2px;white-space:nowrap;padding:3px 6px;border-radius:6px;color:#8067b6;background:#ece5f8;}'+
+   '#nav #navCadernoPreview.active{background:color-mix(in srgb,#7964b9 14%,var(--paper));border-color:color-mix(in srgb,#7964b9 36%,transparent)}'+
+   '#nav #navCadernoPreview[hidden]{display:none!important}'+
+   '#main.nb-shell-active{max-width:none!important;width:100%!important;padding:8px 10px!important;overflow:hidden;}'+
+   '#main #uentzoulCadernoFrame{display:block;width:100%;height:calc(100dvh - 62px);min-height:490px;border:1px solid #e3ddeb;border-radius:16px;background:#f3f1f9;box-shadow:0 10px 32px #342c4715;}'+
+   '@media(max-width:760px){#main.nb-shell-active{padding:4px!important;}#main #uentzoulCadernoFrame{height:calc(100dvh - 88px);min-height:430px;border-radius:12px}#nav #navCadernoPreview .nb-preview-label{font-size:9px;padding:2px 5px}}';
+  document.head.appendChild(css);
+ }
+ function deactivate(){
+  previewOpen=false;main()?.classList.remove('nb-shell-active');
+  document.getElementById(NAV_ID)?.classList.remove('active');
+ }
+ function openPreview(){
+  if(!admin())return;
+  const target=main();if(!target)return;
+  previewOpen=true;addStyles();
+  target.classList.add('nb-shell-active');
+  target.innerHTML='<iframe id="'+FRAME_ID+'" title="Caderno de aula — prévia administrativa" src="./caderno.html?v=20261115-alpha1" loading="eager" referrerpolicy="same-origin"></iframe>';
+  document.querySelectorAll('#nav [data-page].active').forEach(n=>n.classList.remove('active'));
+  document.getElementById(NAV_ID)?.classList.add('active');
+  window.pmMobileDrawer?.close?.();
+  try{window.scrollTo({top:0,behavior:'instant'})}catch(_){}
+ }
+ function sync(){
+  const el=nav();if(!el)return;
+  addStyles();
+  let button=document.getElementById(NAV_ID);
+  if(!button){
+   button=document.createElement('button');button.type='button';button.id=NAV_ID;
+   button.className='sidebtn nav-caderno';button.title='Caderno · prévia administrativa';
+   button.setAttribute('aria-label','Caderno de aula, prévia disponível para administrador');
+   button.innerHTML='<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M5 3h14v18H5zM9 3v18M12 8h4M12 12h4M12 16h4"/></svg>'+
+    '<span class="nav-label">Caderno</span><span class="nb-preview-label">Em breve</span>';
+   button.addEventListener('click',openPreview);
+  }
+  const exam=el.querySelector('[data-page="exams"]');
+  if(button.parentNode!==el||exam?.nextElementSibling!==button){
+   if(exam)exam.after(button);else el.appendChild(button);
+  }
+  const allowed=admin();
+  button.hidden=!allowed;button.style.display=allowed?'':'none';
+  if(previewOpen&&!allowed){
+   deactivate();
+   window.uentzoulAdminBridge?.refreshCurrent?.();
+  }
+ }
+ function setup(){
+  if(!nav()||!main())return;
+  sync();
+  const observer=new MutationObserver(()=>{
+   if(previewOpen&&!document.getElementById(FRAME_ID))deactivate();
+  });
+  observer.observe(main(),{childList:true});
+  window.addEventListener('uentzoul:auth',()=>{sync();setTimeout(sync,420)});
+  window.addEventListener('focus',sync);
+  setInterval(sync,2300);
+ }
+ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',setup,{once:true});
+ else setup();
+})();
