@@ -309,7 +309,7 @@ function renderStickies(){
 }
 function addSticky(p){
  checkpoint();const tones=['yellow','pink','violet'],list=page().stickies;
- const n={id:id(),x:clamp(p.x-75,95,W-185),y:clamp(p.y-30,102,H-172),text:'',tone:tones[list.length%3]};
+ const n={id:id(),x:clamp(p.x-75,95,W-185),y:clamp(p.y-30,102,H-172),text:'',tone:data.stickyTone||tones[list.length%3]};
  list.push(n);renderStickies();save();
  const field=root.querySelector('[data-nb-sticky-text="'+n.id+'"]');field?.focus({preventScroll:true});
  status('Post-it inserido. Arraste pela parte superior para movê-lo.','success');
@@ -356,15 +356,23 @@ function perfectShape(raw){
   const numerator=Math.abs((b.y-a.y)*p.x-(b.x-a.x)*p.y+b.x*a.y-b.y*a.x);
   maxDistance=Math.max(maxDistance,numerator/Math.max(1,dist(a,b)));
  }
- if(dist(a,b)>38&&maxDistance<7)return {points:[a,b],kind:'line'};
+ if(dist(a,b)>38&&maxDistance<7){
+  return {points:Array.from({length:51},(_,i)=>({x:a.x+(b.x-a.x)*i/50,y:a.y+(b.y-a.y)*i/50})),kind:'line'};
+ }
  return {points:smoothPoints(points),kind:'curve'};
 }
-function paintStroke(points,color,width){
+function paintStroke(points,color,width,curved=false){
  if(!points?.length)return;
  ctx.beginPath();ctx.lineWidth=width||2.5;ctx.lineCap='round';ctx.lineJoin='round';ctx.strokeStyle=COLORS[color]||COLORS.blue;
  ctx.moveTo(points[0].x,points[0].y);
  if(points.length===1)ctx.lineTo(points[0].x+.05,points[0].y+.05);
- for(let i=1;i<points.length;i++)ctx.lineTo(points[i].x,points[i].y);
+ if(curved&&points.length>2){
+  for(let i=1;i<points.length-1;i++){
+   const mid={x:(points[i].x+points[i+1].x)/2,y:(points[i].y+points[i+1].y)/2};
+   ctx.quadraticCurveTo(points[i].x,points[i].y,mid.x,mid.y);
+  }
+  ctx.lineTo(points[points.length-1].x,points[points.length-1].y);
+ }else for(let i=1;i<points.length;i++)ctx.lineTo(points[i].x,points[i].y);
  ctx.stroke();
 }
 function drawCanvas(){
@@ -374,8 +382,8 @@ function drawCanvas(){
  }
  ctx.setTransform(dpr,0,0,dpr,0,0);ctx.clearRect(0,0,W,H);
  page().strokes.forEach((s,i)=>{
-  paintStroke(s.points,s.ink,Number(s.width)||2.6);
-  if(data.mode==='warp'&&selectedStroke===i){
+  paintStroke(s.points,s.ink,Number(s.width)||2.6,!!s.corrected);
+  if((data.mode==='warp'&&selectedStroke===i)||(selected?.type==='stroke'&&selected.id===s.id)){
    ctx.lineWidth=1;ctx.strokeStyle='#8065b7';ctx.setLineDash([5,4]);
    const p=s.points;
    if(p.length){ctx.strokeRect(p.reduce((n,x)=>Math.min(n,x.x),W)-5,p.reduce((n,x)=>Math.min(n,x.y),H)-5,
@@ -389,6 +397,12 @@ function drawCanvas(){
 function pointerDownCanvas(event){
  if(event.button!==0||event.pointerType==='touch'&&pinch)return;
  const p=point(event);
+ if(data.mode==='select'){
+  const hit=findStrokeNear(p);
+  if(hit.stroke){selectItem('stroke',hit.stroke.id);event.preventDefault();}
+  else {selected=null;renderNotes();renderStickies();drawCanvas();}
+  return;
+ }
  if(data.mode==='draw'){
   checkpoint();drawPoints=[p];canvas.setPointerCapture?.(event.pointerId);
   event.preventDefault();
@@ -852,73 +866,117 @@ document.addEventListener('keydown',event=>{
 root.addEventListener('pointerdown',event=>{
  if(listening&&event.button!==0){
   event.preventDefault();
-  if(event.button===1||event.button===2||event.button===3||event.button===4){
+  if([1,2,3,4].includes(event.button)){
    const code='mouse:'+event.button;
-   checkpoint();Object.keys(data.shortcuts).forEach(k=>{if(data.shortcuts[k]===code)delete data.shortcuts[k]});
+   checkpoint();
+   Object.keys(data.shortcuts).forEach(k=>{if(data.shortcuts[k]===code)delete data.shortcuts[k]});
    data.shortcuts[listening]=code;listening='';updateShortcutsList();save();
   }
   return;
  }
+ if(event.target.closest('#nbContextMenu,#nbStickyPalette,#nbGallery,#nbDrawer'))return;
+ const note=event.target.closest('[data-nb-note]'),sticky=event.target.closest('[data-nb-sticky]');
+ if(data.mode==='select'&&event.button===0){
+  if(note){event.preventDefault();selectItem('note',note.dataset.nbNote);return}
+  if(sticky){event.preventDefault();selectItem('sticky',sticky.dataset.nbSticky);return}
+  if(event.target===canvas)return;
+ }
  const handle=event.target.closest('[data-nb-drag]');
- if(handle&&!event.target.closest('button')){
-  const s=page().stickies.find(s=>s.id===handle.dataset.nbDrag);
-  if(!s)return;
-  checkpoint();stickyDrag={id:s.id,from:{x:event.clientX,y:event.clientY},start:{x:s.x,y:s.y}};
+ if(handle&&!event.target.closest('button')&&data.mode!=='select'){
+  const st=page().stickies.find(st=>st.id===handle.dataset.nbDrag);
+  if(!st)return;
+  checkpoint();stickyDrag={id:st.id,from:{x:event.clientX,y:event.clientY},start:{x:st.x,y:st.y}};
   handle.setPointerCapture?.(event.pointerId);event.preventDefault();return;
  }
- if(data.mode!=='text'&&data.mode!=='sticky')return;
- if(event.target.closest('button,input,textarea,.nb-sticky,.nb-editor'))return;
+ const inSheet=!!event.target.closest('#nbSheet');
+ if(event.pointerType==='mouse'&&inSheet&&(
+     event.button===1 || event.button===0&&['text','select','sticky'].includes(data.mode))&&
+     !event.target.closest('button,input,textarea,.nb-sticky,.nb-editor')){
+  panDrag={pointerId:event.pointerId,startX:event.clientX,startY:event.clientY,
+   left:view.scrollLeft,top:view.scrollTop,moved:false,mode:data.mode,button:event.button};
+  sheet.setPointerCapture?.(event.pointerId);event.preventDefault();return;
+ }
+ if(event.button!==0||!inSheet||!['text','sticky','select'].includes(data.mode))return;
+ if(event.target.closest('button,input,textarea,.nb-sticky'))return;
  const pos=point(event);
- // Em telas touch, só seleciona depois de um toque sem arrasto: não interrompe a rolagem.
  if(event.pointerType==='touch'){
   tapCandidate={pointerId:event.pointerId,x:event.clientX,y:event.clientY,pos,mode:data.mode};
   return;
  }
- if(data.mode==='sticky'){addSticky(pos);return;}
- if(pos.x<88||pos.y<START-10||pos.y>START+ROWS*L)return;
- const line=clamp(Math.floor((pos.y-START)/L),0,ROWS-1);
- beginEdit(line);
+ if(data.mode==='sticky'){addSticky(pos);return}
+ if(data.mode==='text'&&pos.x>=88&&pos.y>=START+FIRST_LINE*L&&pos.y<START+ROWS*L){
+  beginEdit(Math.floor((pos.y-START)/L));
+ }
 });
 root.addEventListener('pointermove',event=>{
+ toolCursor(event);
+ if(panDrag&&event.pointerId===panDrag.pointerId){
+  const dx=event.clientX-panDrag.startX,dy=event.clientY-panDrag.startY;
+  if(Math.hypot(dx,dy)>6)panDrag.moved=true;
+  if(panDrag.moved){
+   view.scrollLeft=panDrag.left-dx;view.scrollTop=panDrag.top-dy;
+   event.preventDefault();
+  }
+  return;
+ }
  if(tapCandidate&&event.pointerId===tapCandidate.pointerId&&
     Math.hypot(event.clientX-tapCandidate.x,event.clientY-tapCandidate.y)>10)tapCandidate=null;
  if(stickyDrag){
-  const note=page().stickies.find(s=>s.id===stickyDrag.id);
-  if(note){
-   note.x=clamp(stickyDrag.start.x+(event.clientX-stickyDrag.from.x)/data.zoom,90,W-185);
-   note.y=clamp(stickyDrag.start.y+(event.clientY-stickyDrag.from.y)/data.zoom,100,H-170);
-   const el=root.querySelector('[data-nb-sticky="'+note.id+'"]');
-   if(el){el.style.left=note.x+'px';el.style.top=note.y+'px';}
+  const st=page().stickies.find(st=>st.id===stickyDrag.id);
+  if(st){
+   st.x=clamp(stickyDrag.start.x+(event.clientX-stickyDrag.from.x)/data.zoom,90,W-185);
+   st.y=clamp(stickyDrag.start.y+(event.clientY-stickyDrag.from.y)/data.zoom,100,H-170);
+   const el=root.querySelector('[data-nb-sticky="'+st.id+'"]');
+   if(el){el.style.left=st.x+'px';el.style.top=st.y+'px';}
   }return;
  }
  if(data.mode==='text'&&event.pointerType==='mouse'&&!editing){
   const pos=point(event),el=$('nbLineHover');
-  if(pos.x>=90&&pos.y>=START&&pos.y<START+ROWS*L){el.style.top=(START+Math.floor((pos.y-START)/L)*L)+'px';el.hidden=false;}
-  else el.hidden=true;
+  if(pos.x>=90&&pos.y>=START+FIRST_LINE*L&&pos.y<START+ROWS*L){
+   el.style.top=(START+Math.floor((pos.y-START)/L)*L)+'px';el.hidden=false;
+  }else el.hidden=true;
  }
 });
 root.addEventListener('pointerup',event=>{
+ if(panDrag&&event.pointerId===panDrag.pointerId){
+  const drag=panDrag;panDrag=null;
+  if(drag.button===0&&!drag.moved){
+   const pos=point(event);
+   if(drag.mode==='text'&&pos.x>=88&&pos.y>=START+FIRST_LINE*L&&pos.y<START+ROWS*L)
+    beginEdit(Math.floor((pos.y-START)/L));
+   else if(drag.mode==='sticky')addSticky(pos);
+   else if(drag.mode==='select'){selected=null;renderNotes();renderStickies();drawCanvas();}
+  }
+  return;
+ }
  if(tapCandidate&&event.pointerId===tapCandidate.pointerId){
   const tap=tapCandidate;tapCandidate=null;
   if(!pinch&&tap.mode===data.mode){
    if(data.mode==='sticky')addSticky(tap.pos);
-   else if(data.mode==='text'&&tap.pos.x>=88&&tap.pos.y>=START-10&&tap.pos.y<=START+ROWS*L){
-    const line=clamp(Math.floor((tap.pos.y-START)/L),0,ROWS-1);beginEdit(line);
+   else if(data.mode==='text'&&tap.pos.x>=88&&tap.pos.y>=START+FIRST_LINE*L&&tap.pos.y<START+ROWS*L)
+    beginEdit(Math.floor((tap.pos.y-START)/L));
+   else if(data.mode==='select'&&event.target===canvas){
+    const hit=findStrokeNear(tap.pos);if(hit.stroke)selectItem('stroke',hit.stroke.id);
    }
   }
  }
  if(stickyDrag){stickyDrag=null;save();}
 });
+root.addEventListener('pointercancel',()=>{tapCandidate=null;panDrag=null;if(stickyDrag){stickyDrag=null;save();}});
+root.addEventListener('pointerleave',()=>{$('nbToolCursor').hidden=true});
 canvas.addEventListener('pointerdown',pointerDownCanvas);
 canvas.addEventListener('pointermove',pointerMoveCanvas);
 canvas.addEventListener('pointerup',pointerUpCanvas);
 canvas.addEventListener('pointercancel',pointerUpCanvas);
 canvas.addEventListener('lostpointercapture',()=>{if(drawPoints||warpDrag)pointerUpCanvas();});
 root.addEventListener('contextmenu',event=>{
- if(listening||Object.values(data.shortcuts).includes('mouse:2'))event.preventDefault();
+ if(listening)return event.preventDefault();
+ if(event.target.closest('#nbSheet'))contextMenu(event);
+ if(Object.values(data.shortcuts).includes('mouse:2')&&event.target.closest('#nbSheet'))event.preventDefault();
 });
 root.addEventListener('pointerdown',event=>{
  if(listening||event.button===0||event.target.closest('input,textarea,button,select'))return;
+ if(event.button===2&&event.target.closest('#nbSheet')&&(selectedItem()||event.target.closest('[data-nb-note],[data-nb-sticky]')))return;
  const action=Object.keys(data.shortcuts).find(k=>data.shortcuts[k]==='mouse:'+event.button);
  if(action){event.preventDefault();act(action)}
 },true);
