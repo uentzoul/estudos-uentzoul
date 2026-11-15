@@ -6,9 +6,11 @@
  const palette={black:'#24242e',blue:'#2559a4',red:'#bb3d43'};
  const enc=new TextEncoder();
  function colorOf(key){return palette[key]||palette.blue}
- function pfont(ctx,size,cursive){
-  ctx.font=(cursive?'600 ':'500 ')+Math.round(size)+'px '+
-   (cursive?'"Caveat","Segoe Print",cursive':'"Patrick Hand","Segoe Print",cursive');
+ function pfont(ctx,size,font){
+  const family=font==='joined'?'"Dancing Script","Brush Script MT",cursive':
+   font===true||font==='cursive'?'"Caveat","Segoe Print",cursive':
+   '"Patrick Hand","Segoe Print",cursive';
+  ctx.font=(font?'600 ':'500 ')+Math.round(size)+'px '+family;
  }
  function rounded(ctx,x,y,w,h,r){
   ctx.beginPath();ctx.roundRect(x,y,w,h,r);
@@ -52,7 +54,7 @@
   // A gramática é reproduzida tal como está na folha no momento da exportação.
   for(const note of pg.notes||[]){
    const scale=Math.min(3,Math.max(1,Number(note.size)||1));
-   const small=scale*26;
+   const small=26;
    const left=Math.min(720,Math.max(85,Number(note.x)||110));
    const top=LINETOP+(Number(note.line)||0)*LINEROW+(Number(note.offsetY)||0);
    const scaleX=Math.min(3.8,Math.max(.35,Number(note.scaleX)||1));
@@ -60,13 +62,13 @@
    const width=Math.max(70,Number(note.frameW)||620);
    ctx.save();ctx.translate(left,top+27);ctx.scale(scaleX,scaleY);
    let x=0,y=0;
-   const cursive=note.font==='cursive';
+   const font=note.font||'print';
    ctx.fillStyle=colorOf(note.ink);
    const chars=Array.from(String(note.text||''));
    for(const ch of chars){
     if(ch==='\n'){x=0;y+=small*1.13;continue;}
     const upper=ch.toUpperCase()===ch&&ch.toLowerCase()!==ch;
-    pfont(ctx,small+(upper?34:0),cursive);
+    pfont(ctx,small+(upper?(scale-1)*34:0),font);
     const size=ctx.measureText(ch).width;
     if(x+size>width){x=0;y+=small*1.13;}
     if(top+y>HEIGHT-35)break;
