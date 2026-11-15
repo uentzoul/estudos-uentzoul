@@ -60,6 +60,7 @@ if(stored&&typeof stored==='object'){
 const activeBook=()=>data.books.find(b=>b.id===data.bookId)||data.books[0];
 data.pages=activeBook().pages;
 data.mode='select'; // Ferramenta inicial segura, mesmo depois de restaurar sessão.
+if(!stored?.smoothingV3){data.smooth=true;data.smoothingV3=true;}
 let pendingPage=emptyPage(),galleryOpen=false,drawerOpen=false,galleryOffset=0,railOpen=!window.matchMedia('(max-width:760px)').matches;
 let selected=null,contextTarget=null,panDrag=null,lastPointer=null,toolPaletteOpen=false,eraseDrag=null,moveDrag=null,resizeDrag=null;
 function materializePage(){
@@ -400,6 +401,64 @@ function perfectShape(raw){
  }
  return {points:smoothPoints(points),kind:'curve'};
 }
+
+/* Vector-quality freehand reconstruction. Retains the user's drawn contour:
+   resample -> remove sub-pixel noise -> smoothly fitted cubic Bézier curve. */
+function fluidStroke(raw){
+ const input=(raw||[]).filter(p=>Number.isFinite(p?.x)&&Number.isFinite(p?.y));
+ if(input.length<2)return {points:input.slice(),kind:'curve'};
+ const first={...input[0]},last={...input[input.length-1]};
+ const spaced=[first];
+ // Uniform distance sampling avoids different smoothing on fast and slow mouse motions.
+ for(let i=1;i<input.length;i++){
+  const a=input[i-1],b=input[i],d=dist(a,b),steps=Math.ceil(d/3);
+  if(d<.35)continue;
+  for(let j=1;j<=steps;j++)spaced.push({x:a.x+(b.x-a.x)*j/steps,y:a.y+(b.y-a.y)*j/steps});
+ }
+ if(spaced.length<4)return {points:[first,last],kind:'curve'};
+ if(spaced.length>1500){
+  const step=Math.ceil(spaced.length/1500);
+  const reduced=spaced.filter((_,i)=>i%step===0);
+  reduced.push(last);spaced.splice(0,spaced.length,...reduced);
+ }
+ let filtered=spaced;
+ const weights=[1,3,6,3,1],sum=14;
+ for(let round=0;round<4;round++){
+  filtered=filtered.map((p,i,arr)=>{
+   if(i===0)return first;
+   if(i===arr.length-1)return last;
+   let x=0,y=0;
+   for(let k=-2;k<=2;k++){
+    const v=arr[clamp(i+k,0,arr.length-1)],weight=weights[k+2];
+    x+=v.x*weight;y+=v.y*weight;
+   }
+   return {x:x/sum,y:y/sum};
+  });
+ }
+ // Preserve the silhouette: anchors are never snapped to a predefined shape.
+ const anchors=[filtered[0]];
+ for(let i=4;i<filtered.length-1;i+=4)anchors.push(filtered[i]);
+ anchors.push(last);
+ if(anchors.length<3)return {points:anchors,kind:'curve'};
+ const finished=[anchors[0]];
+ for(let i=0;i<anchors.length-1;i++){
+  const p0=anchors[Math.max(0,i-1)],p1=anchors[i],
+   p2=anchors[i+1],p3=anchors[Math.min(anchors.length-1,i+2)];
+  const c1={x:p1.x+(p2.x-p0.x)/6,y:p1.y+(p2.y-p0.y)/6};
+  const c2={x:p2.x-(p3.x-p1.x)/6,y:p2.y-(p3.y-p1.y)/6};
+  const samples=clamp(Math.ceil(dist(p1,p2)/1.9),3,16);
+  for(let j=1;j<=samples;j++){
+   const t=j/samples,u=1-t;
+   finished.push({
+    x:clamp(u*u*u*p1.x+3*u*u*t*c1.x+3*u*t*t*c2.x+t*t*t*p2.x,0,W),
+    y:clamp(u*u*u*p1.y+3*u*u*t*c1.y+3*u*t*t*c2.y+t*t*t*p2.y,0,H)
+   });
+  }
+ }
+ finished[0]=first;finished[finished.length-1]=last;
+ return {points:finished.slice(0,2400),kind:'fluid'};
+}
+
 function paintStroke(points,color,width,curved=false){
  if(!points?.length)return;
  ctx.beginPath();ctx.lineWidth=width||2.5;ctx.lineCap='round';ctx.lineJoin='round';ctx.strokeStyle=COLORS[color]||COLORS.blue;
@@ -600,7 +659,7 @@ function startMoveDrag(event,type,item){
   pointerId:event.pointerId,type,id:item.id,
   start:p,startClient:{x:event.clientX,y:event.clientY},moved:false,
   originLine:Number(item.line)||FIRST_LINE,
-  originX:Number(item.x)||0,originY:Number(item.y)||0,
+  originX:Number(item.x)||(type==='note'?110:0),originY:Number(item.y)||0,
   originalPoints:type==='stroke'?(item.points||[]).map(x=>({...x})):null
  };
  sheet.setPointerCapture?.(event.pointerId);
@@ -620,8 +679,8 @@ function updateMoveDrag(event){
   }));
   drawCanvas();
  }else if(drag.type==='sticky'){
-  item.x=clamp(drag.originX+dx,90,W-185);
-  item.y=clamp(drag.originY+dy,100,H-170);
+  item.x=clamp(drag.originX+dx,88,W-(Number(item.w)||170));
+  item.y=clamp(drag.originY+dy,95,H-(Number(item.h)||146));
   const el=root.querySelector('[data-nb-sticky="'+item.id+'"]');
   if(el){el.style.left=item.x+'px';el.style.top=item.y+'px';}
   renderSelectionHandles();
@@ -708,7 +767,7 @@ function pointerUpCanvas(event){
  if(drawPoints){
   const raw=drawPoints;drawPoints=null;
   if(raw.length){
-   const result=data.smooth?perfectShape(raw):{points:raw,kind:'free'};
+   const result=data.smooth?fluidStroke(raw):{points:raw,kind:'free'};
    page().strokes.push({id:id(),points:result.points,corrected:!!data.smooth,kind:result.kind,ink:data.ink,width:2.6});
    save();status(data.smooth?'Desenho ajustado. Pode usar Deformar.':'Traço livre inserido.','success');
   }
@@ -968,7 +1027,7 @@ function contextAction(action){
  if(action==='correct'&&selected.type==='note'){item.pending=true;renderNotes();void correctNote(item.id,item.original||item.text||'');return}
  if(action==='warp'&&selected.type==='stroke'&&item.corrected){data.mode='warp';refreshTools();drawCanvas();status('Arraste o traço para deformá-lo.','');return}
  if(action==='fix'&&selected.type==='stroke'&&!item.corrected){
-  checkpoint();const r=perfectShape(item.points);item.points=r.points;item.kind=r.kind;item.corrected=true;
+  checkpoint();const r=fluidStroke(item.points);item.points=r.points;item.kind=r.kind;item.corrected=true;
   drawCanvas();save();return;
  }
  if(action.startsWith('tone:')&&selected.type==='sticky'){
@@ -985,9 +1044,19 @@ function toolCursor(event){
     !event.target.closest('#nbViewport')||event.target.closest('textarea,input,button')){
   marker.hidden=true;return;
  }
- const icons={text:'✎',select:'⌖',draw:'〰',erase:'⌫',sticky:'▤',warp:'⌁'};
- marker.textContent=icons[data.mode]||'✎';
- marker.style.left=(event.clientX+13)+'px';marker.style.top=(event.clientY+12)+'px';
+ const erase=data.mode==='erase'&&!!event.target.closest('#nbSheet');
+ marker.classList.toggle('nb-eraser-target',erase);
+ if(erase){
+  marker.textContent='';
+  const size=clamp(Number(data.eraserRadius)||14,6,32)*data.zoom*2;
+  marker.style.width=size+'px';marker.style.height=size+'px';
+  marker.style.left=event.clientX+'px';marker.style.top=event.clientY+'px';
+ }else{
+  marker.style.width='25px';marker.style.height='25px';
+  const icons={text:'✎',select:'⌖',draw:'〰',sticky:'▤',warp:'⌁'};
+  marker.textContent=icons[data.mode]||'⌖';
+  marker.style.left=(event.clientX+13)+'px';marker.style.top=(event.clientY+12)+'px';
+ }
  marker.hidden=false;
 }
 
