@@ -204,7 +204,7 @@ async function loadAccess(){
  if(!isAdmin()||!client())return;
  try{
   const [events,profiles,labels]=await Promise.all([
-   client().from('uentzoul_access_log').select('id,user_id,actor,entered_at,last_seen_at,ended_at').order('entered_at',{ascending:false}).limit(logLimit+1),
+   client().from('uentzoul_access_log').select('id,user_id,actor,entered_at,last_seen_at,ended_at,device_info').order('entered_at',{ascending:false}).limit(logLimit+1),
    client().from('uentzoul_profiles').select('user_id,display_name').limit(500),
    client().from(TEST_LABELS).select('access_id').limit(1000)
   ]);
@@ -279,6 +279,31 @@ function visitTitle(step){
  if(step.section==='test')return 'Abriu um simulado';
  return 'Acessou '+(VISIT_SECTION[step.section]||'uma seção do site');
 }
+const DEVICE_KIND={phone:'Celular',tablet:'Tablet',desktop:'Computador',unknown:'Dispositivo'};
+function deviceSummary(row){
+ const d=row?.device_info;
+ if(!d||typeof d!=='object')return 'Dispositivo não registrado';
+ const family=d.family&&d.family!=='Other'?d.family:DEVICE_KIND[d.kind]||'Dispositivo';
+ const browser=d.browser&&d.browser!=='Other'?d.browser:'Navegador não identificado';
+ const os=d.os&&d.os!=='Other'?d.os:'';
+ return [family,browser,os].filter(Boolean).join(' · ');
+}
+function deviceDetails(row){
+ const d=row?.device_info;
+ if(!d||typeof d!=='object')return '<section class="admin-visit-device"><strong>Informações do dispositivo</strong>'+
+  '<p>Dispositivo não registrado. Essas informações não podem ser reconstruídas para visitas antigas.</p></section>';
+ const pairs=[
+  ['Categoria',DEVICE_KIND[d.kind]||'Não identificada'],
+  ['Aparelho',d.family&&d.family!=='Other'?d.family:'Não identificado'],
+  ['Navegador',d.browser&&d.browser!=='Other'?d.browser+(d.browser_major?' '+d.browser_major:''):'Não identificado'],
+  ['Sistema operacional',d.os&&d.os!=='Other'?d.os+(d.os_version?' '+d.os_version:''):'Não identificado'],
+  ['Tela informada',Number.isInteger(d.width)&&Number.isInteger(d.height)?d.width+' × '+d.height+' pixels CSS':'Não informada'],
+  ['Modo de acesso',d.mode==='standalone'?'Tela inicial / aplicativo':d.mode==='fullscreen'?'Tela cheia':'Navegador']
+ ];
+ return '<section class="admin-visit-device"><strong>Informações do dispositivo</strong>'+
+  '<dl>'+pairs.map(([name,value])=>'<div><dt>'+esc(name)+'</dt><dd>'+esc(value)+'</dd></div>').join('')+'</dl>'+
+  '<p>Informações aproximadas fornecidas pelo navegador; não comprovam o modelo exato nem identificam a pessoa. Não são armazenados IP, localização ou agente de usuário completo.</p></section>';
+}
 function visitDetail(row){
  if(!row)return '';
  if(visitLoading)return '<div class="admin-visit-detail" role="status">Carregando percurso desta visita…</div>';
@@ -304,7 +329,7 @@ function visitDetail(row){
  return '<section class="admin-visit-detail" aria-label="Percurso desta visita">'+
   '<div class="admin-visit-head"><div><strong>Histórico desta visita</strong><small>'+esc(row.name||'Visitante')+' · Entrada '+esc(logDate(row.entered_at))+'</small></div>'+
   '<button type="button" data-admin-close-visit aria-label="Fechar histórico">Fechar ×</button></div>'+
-  '<p class="admin-visit-note">'+esc(message)+'</p>'+
+  '<p class="admin-visit-note">'+esc(message)+'</p>'+deviceDetails(row)+
   '<ol class="admin-visit-timeline">'+timeline+ending+'</ol></section>';
 }
 // Abre/fecha o percurso sem substituir a lista nem destruir o botão tocado.
@@ -394,7 +419,7 @@ function logMarkup(){
    (!match?' data-admin-open-presence="'+esc(row.user_id||'')+'"':'')+
    ' aria-expanded="'+selected+'"'+(selected?' data-admin-visit-selected':'')+'>'+
    '<span class="admin-log-avatar '+(active?'is-online':'')+'" aria-hidden="true">'+(row.actor==='anonymous'?'?':name.trim().charAt(0).toUpperCase()||'U')+'</span>'+
-   '<span class="admin-log-person"><strong>'+name+'</strong><small>'+esc(status)+'</small></span>'+
+   '<span class="admin-log-person"><strong>'+name+'</strong><small>'+esc(status)+'</small>'+((logTab==='entries'||grouping)?'<small class="admin-log-device">'+esc(deviceSummary(row))+'</small>':'')+'</span>'+
    '<time datetime="'+esc(when||'')+'">'+esc(logDate(when))+'</time>'+
    '<span class="admin-log-expand" aria-hidden="true">'+(selected?'⌃':'⌄')+'</span></button>';
   return '<div class="admin-log-row'+(selected?' is-selected':'')+'">'+button+markButton+'</div>'+
