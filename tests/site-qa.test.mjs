@@ -106,3 +106,16 @@ test('Histórico por visita: linhas clicáveis, percursos reais e registros anti
  assert.match(read('site-version.js'),/visit-path\.js/);
  assert.match(html,/uentzoulCurrentRoute/);
 });
+
+test('Auditoria oficial não infla visitantes e aparece separadamente no LOG',()=>{
+ const monitor=read('scripts/site-health.mjs');
+ const visits=read('visit-path.js');
+ const admin=read('admin-config.js');
+ assert.match(monitor,/page\.addInitScript/);
+ assert.match(monitor,/__uentzoulSiteHealthAudit/);
+ assert.match(visits,/if\(window\.__uentzoulSiteHealthAudit===true\)/);
+ assert.match(admin,/async function guestPresenceHeartbeat\(\)\{\s*\/\/[^\n]*\n if\(window\.__uentzoulSiteHealthAudit===true\)return/);
+ assert.match(admin,/\['bots','Robôs',''\]/);
+ assert.match(admin,/function botLogMarkup\(/);
+ assert.match(admin,/actions\/workflows\/site-health\.yml\/runs/);
+});
