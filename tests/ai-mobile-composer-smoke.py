@@ -36,9 +36,9 @@ with sync_playwright() as pw:
                     }""")
                     assert info['hints']==0, f"Frases animadas ainda renderizadas: {name} {width}"
                     assert info['placeholder']=='Escreva aqui…',f"Placeholder incorreto: {info}"
-                    assert info['input']['width']>=100,f"Campo estreito: {name} {width}: {info}"
-                    assert info['input']['left']>info['buttons'][1]['right']-2,f"Sobreposição com foto: {info}"
-                    assert info['input']['right']<info['buttons'][2]['left']+2,f"Sobreposição com enviar: {info}"
+                    assert info['input']['width']>=190,f"Campo estreito: {name} {width}: {info}"
+                    assert info['input']['bottom']<=info['buttons'][0]['top']+3,f"Sobreposição com anexos: {info}"
+                    assert info['input']['bottom']<=info['buttons'][2]['top']+3,f"Sobreposição com enviar: {info}"
                     assert info['overflow']<=4,f"Rolagem horizontal indevida: {info}"
                     page.locator('.tz-shell #tzPrompt').evaluate("(el)=>el.disabled=false")
                     page.locator('.tz-shell #tzPrompt').fill('Mensagem de teste no celular')
