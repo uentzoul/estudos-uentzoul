@@ -28,6 +28,8 @@ const MONTH_NAME={3:'Março',4:'Abril',5:'Maio',6:'Junho',8:'Agosto',9:'Setembro
 const MONTH_SHORT={3:'MAR',4:'ABR',5:'MAI',6:'JUN',8:'AGO',9:'SET',10:'OUT',11:'NOV'};
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 let visible=false,semester=1,events=[],openedMonth=null,selectedEvent=null,loading=false,seq=0;
+// Apenas durante o tutorial, reutiliza a revisão consultada recentemente.
+let tourCache=null;
 let uploadedFiles=[],fileIndex=new Map(),fileLoadError='';
 let navObserver=null,mainObserver=null,monthSequence=0;
 const nav=()=>document.getElementById('nav');
@@ -281,7 +283,7 @@ function render(){
  const root=rootElement();if(!root)return;
  setActive(true);
  if(!canView()){root.innerHTML=privateHTML();return;}
- if(loading){root.innerHTML='<div class="vr-private"><h2>Preparando a linha do tempo…</h2><p>Conferindo os marcos selecionados.</p></div>';return;}
+ if(loading){root.innerHTML=document.documentElement.classList.contains('pm-tour-running')?'':'<div class="vr-private"><h2>Preparando a linha do tempo…</h2><p>Conferindo os marcos selecionados.</p></div>';return;}
  root.innerHTML=hero()+monthsHTML();
 }
 async function load(){
@@ -302,7 +304,11 @@ async function load(){
   // Inicia com março ou agosto aberto em qualquer tamanho de tela.
   openedMonth=MONTHS[semester][0];
   selectedEvent=null;
-  loading=false;render();
+  loading=false;
+  if(document.documentElement.classList.contains('pm-tour-running')){
+   tourCache={semester,events:events.slice(),materials:materials.data||[],fileLoadError,savedAt:Date.now()};
+  }
+  render();
  }catch(error){
   if(request!==seq||!visible)return;
   loading=false;
@@ -311,10 +317,19 @@ async function load(){
  }
 }
 async function show(){
- visible=true;semester=currSemester();openedMonth=null;selectedEvent=null;loading=true;
+ const selectedSemester=currSemester();
+ const snapshot=document.documentElement.classList.contains('pm-tour-running')&&
+  tourCache?.semester===selectedSemester&&Date.now()-tourCache.savedAt<120000?tourCache:null;
+ visible=true;semester=selectedSemester;
+ openedMonth=snapshot?MONTHS[semester][0]:null;selectedEvent=null;loading=!snapshot;
+ if(snapshot){
+  events=snapshot.events.slice();indexMaterials(snapshot.materials);
+  fileLoadError=snapshot.fileLoadError;
+ }
  rootElement();setActive(true);render();
  window.dispatchEvent(new CustomEvent('uentzoul:route',{detail:{page:'vacation',semester:'2026/'+semester}}));
  window.pmMobileDrawer?.close?.();
+ if(snapshot){updateNavStatus();return;}
  try{await window.uentzoulAdminConfig?.refresh?.();}catch(_){}
  if(!visible)return;
  updateNavStatus();
