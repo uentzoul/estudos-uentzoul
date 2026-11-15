@@ -3,7 +3,7 @@
 (function(){
  'use strict';
  const WIDTH=780,HEIGHT=1240,LINEROW=34,LINETOP=28;
- const palette={black:'#24242e',blue:'#2559a4',red:'#bb3d43'};
+ const palette={black:'#24242e',blue:'#213f72',red:'#bb3d43'};
  const enc=new TextEncoder();
  function colorOf(key){return palette[key]||palette.blue}
  function pfont(ctx,size,font){
