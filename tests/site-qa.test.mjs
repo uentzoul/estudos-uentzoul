@@ -191,8 +191,18 @@ test('Tutorial de férias cobre os dois semestres e não muda à força para o p
  assert.match(tour,/A revisão do 1º e do 2º semestres está liberada/);
  assert.doesNotMatch(tour,/27\/11|segundo ainda está em preparação|temporaryVacationSemester/);
  assert.match(tour,/currentSemester\?\.\(\)===1\?3:8/);
- assert.match(loader,/spotlight-tour\.js\?v=20261115-semesters-tour-v28/);
+ assert.match(loader,/spotlight-tour\.js\?v=20261115-smooth-mobile-v29/);
  assert.match(vacation,/const MONTHS=\{1:\[3,4,5,6\],2:\[8,9,10,11\]\}/);
+});
+
+test('Tutorial móvel usa uma rolagem suave por etapa sem reposicionamento tardio',()=>{
+ const tour=read('spotlight-tour.js');
+ assert.match(tour,/mobilePositionAttempts>0/);
+ assert.match(tour,/mobilePositionAttempts=1/);
+ assert.match(tour,/behavior:reduced\?'instant':'smooth'/);
+ assert.match(tour,/mobileScrollFrame=requestAnimationFrame\(settle\)/);
+ assert.match(tour,/if\(tourMobile&&pendingScroll\)window\.scrollTo/);
+ assert.doesNotMatch(tour,/requestAnimationFrame\(\(\)=>requestAnimationFrame\(\(\)=>\{\s*pendingScroll=false/);
 });
 
 test('LOG não exibe a própria conta e abre visitas sem reconstruir a lista',()=>{
