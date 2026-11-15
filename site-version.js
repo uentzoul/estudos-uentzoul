@@ -242,8 +242,8 @@ setTimeout(check,15000);
   const css=document.createElement('style');css.id=STYLE_ID;
   css.textContent=
    '#nav #navCadernoPreview{display:flex;align-items:center;gap:9px;min-width:0;position:relative;cursor:pointer;}'+
-   '#nav #navCadernoPreview .nb-preview-label{margin-left:auto;font-size:9px;font-weight:800;letter-spacing:.2px;white-space:nowrap;padding:3px 6px;border-radius:6px;color:#8067b6;background:#ece5f8;}'+
-   '#nav #navCadernoPreview.active{background:color-mix(in srgb,#7964b9 14%,var(--paper));border-color:color-mix(in srgb,#7964b9 36%,transparent)}'+
+   '#nav .nb-preview-label{margin-left:auto;font-size:9px;font-weight:800;letter-spacing:.2px;white-space:nowrap;padding:3px 6px;border-radius:6px;color:#8067b6;background:#ece5f8;}'+
+   '#navUpcomingFloatingTip{display:none!important}#nav #navCadernoPreview.active{background:color-mix(in srgb,#7964b9 14%,var(--paper));border-color:color-mix(in srgb,#7964b9 36%,transparent)}'+
    '#nav #navCadernoPreview[hidden]{display:none!important}'+
    '#main.nb-shell-active{max-width:none!important;width:100%!important;padding:8px 10px!important;overflow:hidden;}'+
    '#main #uentzoulCadernoFrame{display:block;width:100%;height:calc(100dvh - 62px);min-height:490px;border:1px solid #e3ddeb;border-radius:16px;background:#f3f1f9;box-shadow:0 10px 32px #342c4715;}'+
@@ -259,15 +259,26 @@ setTimeout(check,15000);
   const target=main();if(!target)return;
   previewOpen=true;addStyles();
   target.classList.add('nb-shell-active');
-  target.innerHTML='<iframe id="'+FRAME_ID+'" title="Caderno de aula — prévia administrativa" src="./caderno.html?v=20261115-alpha1" loading="eager" referrerpolicy="same-origin"></iframe>';
+  target.innerHTML='<iframe id="'+FRAME_ID+'" title="Caderno de aula — prévia administrativa" src="./caderno.html?v=20261115-caderno-v2" loading="eager" referrerpolicy="same-origin"></iframe>';
   document.querySelectorAll('#nav [data-page].active').forEach(n=>n.classList.remove('active'));
   document.getElementById(NAV_ID)?.classList.add('active');
   window.pmMobileDrawer?.close?.();
   try{window.scrollTo({top:0,behavior:'instant'})}catch(_){}
  }
+ function harmonizeUpcoming(){
+  const jobs=document.querySelector('#nav .nav-upcoming');
+  if(!jobs)return;
+  jobs.querySelector('.nav-upcoming-tip')?.remove();
+  jobs.removeAttribute('title');
+  if(!jobs.querySelector('.nb-preview-label')){
+   const badge=document.createElement('span');
+   badge.className='nb-preview-label';badge.textContent='Em breve';
+   badge.setAttribute('aria-hidden','true');jobs.appendChild(badge);
+  }
+ }
  function sync(){
   const el=nav();if(!el)return;
-  addStyles();
+  addStyles();harmonizeUpcoming();
   let button=document.getElementById(NAV_ID);
   if(!button){
    button=document.createElement('button');button.type='button';button.id=NAV_ID;
