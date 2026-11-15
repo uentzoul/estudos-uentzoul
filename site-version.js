@@ -213,3 +213,5 @@ setTimeout(check,15000);
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',setup,{once:true});
  else setup();
 })();
+/* Carrega painel de Saúde do Site somente na interface administrativa. */
+(()=>{const load=()=>{if(document.getElementById('pm-site-health-panel-script'))return;const s=document.createElement('script');s.id='pm-site-health-panel-script';s.src='site-health-panel.js?v=20261114-v1';s.async=true;document.head.appendChild(s)};if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',load,{once:true});else load()})();
