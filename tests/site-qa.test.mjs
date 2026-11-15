@@ -143,3 +143,18 @@ test('Safari deve usar WebKit na auditoria de saúde',()=>{
  assert.match(monitor,/engine==='webkit'\?webkitBrowser:chromiumBrowser/);
  assert.match(workflow,/playwright install --with-deps chromium webkit/);
 });
+
+test('LOG separa navegação real, entrada simples e registros sem percurso',()=>{
+ const admin=read('admin-config.js');
+ const match=admin.match(/function classifyVisitActivity\(steps\)\{[\s\S]*?\n\}/);
+ assert.ok(match,'classificação compartilhada com o painel administrativo');
+ const classify=vm.runInNewContext('('+match[0]+')');
+ assert.equal(classify([]),'unknown','registros antigos não podem ser rotulados como saída simples');
+ assert.equal(classify([{kind:'entry',section:'home'},{kind:'exit',section:'home'}]),'entryOnly');
+ assert.equal(classify([{kind:'entry',section:'home'},{kind:'navigate',section:'home',semester:'2026/2'}]),'entryOnly');
+ assert.equal(classify([{kind:'entry',section:'home'},{kind:'navigate',section:'subject',detail:'tcc:docs'}]),'explored');
+ assert.equal(classify([{kind:'navigate',section:'home',semester:'2026/1'},{kind:'navigate',section:'home',semester:'2026/2'}]),'explored');
+ for(const key of ['explored','entryOnly','unclassified'])assert.match(admin,new RegExp("\\['"+key+"'"));
+ assert.match(admin,/\.in\('access_id',ids\)/);
+ assert.match(admin,/if\(!isAdmin\(\)\|\|!client\(\)\|\|!ACTIVITY_TABS\.has\(logTab\)/);
+});
