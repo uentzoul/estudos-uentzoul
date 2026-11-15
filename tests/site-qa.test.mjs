@@ -179,3 +179,18 @@ test('Site só exibe celular na vertical, sem restringir tablets',()=>{
  assert.match(version,/phone-portrait-only\.js/);
  assert.match(version,/phone-portrait-only\.css/);
 });
+
+test('Tutorial de férias cobre os dois semestres e não muda à força para o primeiro',()=>{
+ const tour=read('spotlight-tour.js');
+ const loader=read('site-version.js');
+ const vacation=read('revisao-ferias.js');
+ assert.match(tour,/Revisão de Férias: os dois semestres/);
+ assert.match(tour,/Março a Junho/);
+ assert.match(tour,/Agosto a Novembro/);
+ assert.match(tour,/O primeiro mês já começa aberto/);
+ assert.match(tour,/A revisão do 1º e do 2º semestres está liberada/);
+ assert.doesNotMatch(tour,/27\/11|segundo ainda está em preparação|temporaryVacationSemester/);
+ assert.match(tour,/currentSemester\?\.\(\)===1\?3:8/);
+ assert.match(loader,/spotlight-tour\.js\?v=20261115-semesters-tour-v28/);
+ assert.match(vacation,/const MONTHS=\{1:\[3,4,5,6\],2:\[8,9,10,11\]\}/);
+});
