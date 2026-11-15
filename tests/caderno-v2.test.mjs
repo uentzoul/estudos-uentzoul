@@ -294,7 +294,7 @@ test('Uma linha tem maiúsculas e minúsculas do mesmo tamanho; duas linhas aume
  assert.match(script,/--nb-small:26px;--nb-cap-size:/);
  assert.match(script,/\(26\+\(size-1\)\*34\)/);
  assert.match(style,/\.nb-note \.nb-uppercase\{font-size:var\(--nb-cap-size/);
- assert.match(style,/\.nb-note \.nb-note-content\{position:relative;top:8px/);
+ assert.match(style,/\.nb-note \.nb-note-content\{position:relative;top:-6px/);
  const pdf=read('caderno-pdf.js');
  assert.match(pdf,/const small=26/);
  assert.match(pdf,/upper\?\(scale-1\)\*34:0/);
