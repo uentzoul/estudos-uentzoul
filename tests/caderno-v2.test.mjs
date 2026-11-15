@@ -99,3 +99,56 @@ test('O marcador Em breve de Trabalhos é igual ao do Caderno e não usa tooltip
  assert.match(nav,/badge\.className='nb-preview-label'/);
  assert.match(nav,/#navUpcomingFloatingTip\{display:none!important\}/);
 });
+
+
+test('Borracha remove trechos sem apagar os demais fragmentos e aceita traço inteiro',()=>{
+ const start=script.indexOf('function pointSegmentDistance('),end=script.indexOf('function startMoveDrag(',start);
+ assert.ok(start>=0&&end>start);
+ const code=script.slice(start,end);
+ const {pointNearStroke,cutStrokeAt}=vm.runInNewContext(
+  '(()=>{'+code+';return {pointNearStroke,cutStrokeAt};})()',
+  {clamp:(v,a,b)=>Math.max(a,Math.min(b,v)),dist:(a,b)=>Math.hypot(a.x-b.x,a.y-b.y),
+   id:(()=>{let n=1;return()=>String(n++);})()}
+ );
+ const stroke={id:'original',points:[{x:0,y:40},{x:120,y:40}],width:2.6,ink:'blue',corrected:true};
+ assert.equal(pointNearStroke({x:61,y:40},stroke,10),true);
+ assert.equal(pointNearStroke({x:61,y:90},stroke,10),false);
+ const chunks=cutStrokeAt(stroke,{x:60,y:40},10);
+ assert.equal(chunks.length,2);
+ assert.ok(chunks[0].points.at(-1).x<60);
+ assert.ok(chunks[1].points[0].x>60);
+ assert.equal(chunks[0].corrected,false,'cortes não devem continuar sendo formas geométricas perfeitas');
+ assert.match(script,/data\.eraserMode==='whole'/);
+ assert.match(script,/checkpoint\(\);eraseDrag=/);
+ assert.match(script,/case 'undo':undo\(\)/);
+});
+test('Selecionar move desenhos com coordenadas e texto entre linhas, mantendo Ctrl+Z',()=>{
+ for(const part of ['startMoveDrag(','updateMoveDrag(','finishMoveDrag(','originLine','originX','originY',
+  "drag.type==='note'","drag.type==='stroke'","drag.type==='sticky'"])
+  assert.ok(script.includes(part),'seleção movível: '+part);
+ assert.match(script,/Math\.round\(\(\(drag\.last\|\|drag\.start\)\.y-drag\.start\.y\)\/L\)/);
+ assert.match(script,/item\.line=chosen/);
+ assert.match(script,/page\(\)\.notes\.some\(n=>n\.id!==item\.id/);
+ assert.match(script,/item\.points=drag\.originalPoints\.map/);
+ assert.match(script,/if\(!drag\.moved\)\{checkpoint\(\)/);
+ assert.match(style,/\.nb-sheet\[data-mode="select"\] \.nb-sticky\{touch-action:none/);
+});
+test('Exportar PDF usa canvas local, gera páginas A4, e não expõe dados fora do navegador',async()=>{
+ const pdf=read('caderno-pdf.js');
+ assert.match(html,/src="caderno-pdf\.js\?v=/);
+ assert.match(script,/window\.uentzoulCadernoPDF\?\.exportBook\?\.\(activeBook\(\),status\)/);
+ assert.doesNotMatch(script,/case 'export':downloadJSON\(\)/);
+ assert.match(pdf,/canvas\.toDataURL\('image\/jpeg'/);
+ assert.doesNotMatch(pdf,/\bfetch\(/);
+ const start=pdf.indexOf('function assemblePdf(images){'),end=pdf.indexOf('async function exportBook(',start);
+ assert.ok(start>=0&&end>start);
+ const create=vm.runInNewContext('(()=>{const WIDTH=780,HEIGHT=1240,enc=new TextEncoder();'+
+  pdf.slice(start,end)+';return assemblePdf;})()',{Blob,TextEncoder});
+ const pdfBlob=create([new Uint8Array([0xff,0xd8,0xff,0xd9])]);
+ assert.equal(pdfBlob.type,'application/pdf');
+ const bytes=Buffer.from(await pdfBlob.arrayBuffer());
+ assert.ok(bytes.subarray(0,8).toString('latin1').startsWith('%PDF-1.4'));
+ assert.match(bytes.toString('latin1'),/\/Count 1/);
+ assert.match(bytes.toString('latin1'),/xref\n0 6\n/);
+ assert.match(bytes.toString('latin1'),/%%EOF/);
+});
