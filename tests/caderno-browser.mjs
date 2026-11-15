@@ -97,8 +97,11 @@ try{
  strokes=await readStrokes();assert.equal(strokes.length,1,'Ctrl+Z restaura o desenho apagado');
  // Galeria de folhas apresenta apenas as páginas com conteúdo.
  await f.locator('[data-nb-action="gallery"]').click();
+ await f.locator('#nbGallery').waitFor({state:'visible'});
+ await f.locator('[data-nb-open-page="0"]').waitFor({state:'visible'});
  assert.equal(await f.locator('[data-nb-open-page]').count(),1);
  await f.locator('[data-nb-open-page="0"]').click();
+ await f.locator('#nbGallery').waitFor({state:'hidden'});
  // PDF local contém uma página do caderno.
  const [download]=await Promise.all([
   page.waitForEvent('download',{timeout:30000}),
