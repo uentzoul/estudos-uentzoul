@@ -128,7 +128,7 @@ function redo(){
 root.className='nb-app';
 root.innerHTML=
  '<header class="nb-top"><div class="nb-brand"><button type="button" class="nb-mark nb-hamburger" data-nb-action="drawer" aria-label="Abrir lista de cadernos" title="Cadernos">☰</button><div><h1 id="nbBookHeading">Caderno de aula</h1><p>Prévia exclusiva da administração</p></div></div>'+
- '<div class="nb-top-right"><span class="nb-status" id="nbStatus" role="status">Rascunho local · salvo automaticamente</span><button class="nb-quiet" data-nb-action="export">Exportar</button></div></header>'+
+ '<div class="nb-top-right"><span class="nb-status" id="nbStatus" role="status">Rascunho local · salvo automaticamente</span><button class="nb-quiet" data-nb-action="export">Exportar PDF</button></div></header>'+
  '<div class="nb-tools" id="nbTools" role="toolbar" aria-label="Ferramentas do caderno">'+
  '<div class="nb-toolgroup"><button class="nb-tool" data-nb-action="text" title="Escrever nas linhas">✎ Escrever</button>'+
  '<button class="nb-tool" data-nb-action="select" title="Selecionar anotações, post-its e desenhos">⌖ Selecionar</button>'+
@@ -230,7 +230,7 @@ function letterMarkup(text){
 }
 function noteMarkup(n,preview){
  const size=clamp(Number(n.size)||1,1,3),top=START+(Number(n.line)||0)*L;
- const css='top:'+top+'px;min-height:'+((size+1)*L)+'px;--nb-small:'+(size*26)+'px;color:'+(COLORS[n.ink]||COLORS.blue)+';';
+ const css='top:'+top+'px;min-height:'+(size*L)+'px;--nb-small:'+(size*26)+'px;color:'+(COLORS[n.ink]||COLORS.blue)+';';
  return '<div class="nb-note '+(n.font==='cursive'?'cursive':'print')+(preview?' nb-preview':'')+
   (editing&&editing.id===n.id?' nb-selected':'')+(n.pending?' nb-correcting':'')+
   '" style="'+css+'"'+(!preview?' data-nb-note="'+esc(n.id)+'"':'')+'><span class="nb-note-content">'+letterMarkup(n.text)+'</span></div>';
@@ -260,7 +260,7 @@ function beginEdit(line){
   if(current.trim())saveEditor(false);else closeEditor();
  }
  if(line===FIRST_LINE&&data.size>2)data.size=2;
- const existing=page().notes.find(n=>line>=Number(n.line)&&line<Number(n.line)+Number(n.span||Number(n.size)+1));
+ const existing=page().notes.find(n=>line>=Number(n.line)&&line<Number(n.line)+Number(n.span||Number(n.size)||1));
  editing={line:existing?Number(existing.line):line,id:existing?.id||null,draft:existing?.original||existing?.text||''};
  if(existing){data.font=existing.font;data.ink=existing.ink;data.size=existing.size;}
  if(editing.line===FIRST_LINE&&data.size>2)data.size=2;
@@ -272,7 +272,7 @@ function occupiedSpan(note){
  const size=clamp(Number(note.size)||1,1,3);
  const maxLineChars=Math.max(12,Math.floor(53/size));
  const visualRows=Math.max(1,String(note.text||'').split('\n').reduce((n,line)=>n+Math.max(1,Math.ceil(line.length/maxLineChars)),0));
- return clamp(size+1+(visualRows-1)*size,2,ROWS);
+ return clamp(size*visualRows,1,ROWS);
 }
 function makeRoom(saved){
  const list=page().notes.filter(n=>n.id!==saved.id).sort((a,b)=>a.line-b.line);
@@ -280,7 +280,7 @@ function makeRoom(saved){
  for(const note of list){
   if(note.line<saved.line)continue;
   if(note.line<end){note.line=end;}
-  end=note.line+Math.max(2,Number(note.span)||2);
+  end=note.line+Math.max(1,Number(note.span)||1);
  }
 }
 function fallbackBasic(text){
@@ -493,6 +493,7 @@ function startMoveDrag(event,type,item){
 function updateMoveDrag(event){
  const drag=moveDrag;if(!drag||drag.pointerId!==event.pointerId)return;
  const p=point(event),dx=p.x-drag.start.x,dy=p.y-drag.start.y;
+ drag.last=p;
  if(!drag.moved&&Math.hypot(dx,dy)<5)return;
  if(!drag.moved){checkpoint();drag.moved=true;}
  const item=selectedItem();
@@ -520,12 +521,12 @@ function finishMoveDrag(event){
  const item=selectedItem();
  if(!item)return;
  if(drag.type==='note'){
-  const delta=Math.round((point(event).y-drag.start.y)/L);
-  const span=Math.max(2,Number(item.span)||2);
+  const delta=Math.round(((drag.last||drag.start).y-drag.start.y)/L);
+  const span=Math.max(1,Number(item.span)||1);
   const maxLine=Math.max(FIRST_LINE,ROWS-span);
   const intended=clamp(drag.originLine+delta,FIRST_LINE,maxLine);
   const collides=line=>page().notes.some(n=>n.id!==item.id&&
-    line<(Number(n.line)||0)+Math.max(2,Number(n.span)||2)&&line+span>Number(n.line));
+    line<(Number(n.line)||0)+Math.max(1,Number(n.span)||1)&&line+span>Number(n.line));
   let chosen=intended;
   if(collides(chosen)){
    const available=Array.from({length:maxLine-FIRST_LINE+1},(_,i)=>i+FIRST_LINE)
@@ -608,7 +609,7 @@ function advanceLine(to){
  }
  let line=Math.max(FIRST_LINE,to);
  for(let i=0;i<ROWS;i++){
-  const occupied=page().notes.find(n=>line>=Number(n.line)&&line<Number(n.line)+Number(n.span||Number(n.size)+1));
+  const occupied=page().notes.find(n=>line>=Number(n.line)&&line<Number(n.line)+Number(n.span||Number(n.size)||1));
   if(!occupied)break;
   line=Math.max(line+1,Number(occupied.line)+Number(occupied.span||2));
   if(line>=ROWS)return advanceLine(ROWS);
@@ -922,7 +923,8 @@ function act(action){
  case 'zoomIn':zoomAt(data.zoom+.1,view.getBoundingClientRect().left+view.clientWidth/2,view.getBoundingClientRect().top+view.clientHeight/2);break;
  case 'zoomOut':zoomAt(data.zoom-.1,view.getBoundingClientRect().left+view.clientWidth/2,view.getBoundingClientRect().top+view.clientHeight/2);break;
  case 'smooth':data.smooth=!data.smooth;refreshTools();save();break;
- case 'undo':undo();break;case 'redo':redo();break;case 'export':downloadJSON();break;
+ case 'undo':undo();break;case 'redo':redo();break;
+ case 'export':if(editing)saveEditor(false);window.uentzoulCadernoPDF?.exportBook?.(activeBook(),status);break;
  case 'shortcuts':$('nbShortcutsDialog').hidden=false;updateShortcutsList();break;
  case 'closeShortcuts':$('nbShortcutsDialog').hidden=true;listening='';break;
  case 'cancelEditor':closeEditor();break;case 'saveEditor':saveEditor();break;
