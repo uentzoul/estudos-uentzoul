@@ -317,3 +317,27 @@ test('Tour mobile não pisca ao avançar e voltar nas etapas 6, 9 e 19',()=>{
  assert.match(vacation,/if\(snapshot\)\{updateNavStatus\(\);return;\}/);
  assert.match(vacation,/classList\.contains\('pm-tour-running'\)\?'':'<div class="vr-private"/);
 });
+
+
+test('Caderno experimental permanece isolado e reservado aos administradores',()=>{
+ const loader=read('site-version.js');
+ const notebook=read('caderno.js');
+ const markup=read('caderno.html');
+ const styles=read('caderno.css');
+ assert.match(loader,/navCadernoPreview/);
+ assert.match(loader,/const admin=\(\)=>window\.uentzoulAdminConfig\?\.isAdmin\?\.\(\)===true/);
+ assert.match(loader,/button\.hidden=!allowed/);
+ assert.match(loader,/data-page="exams"/);
+ assert.match(loader,/caderno\.html\?v=/);
+ assert.match(markup,/name="robots" content="noindex, nofollow"/);
+ assert.match(markup,/src="caderno\.js\?v=/);
+ assert.match(notebook,/window\.parent\.uentzoulAdminConfig\?\.isAdmin\?\.\(\)===true/);
+ assert.match(notebook,/uentzoul:caderno:alpha1:/);
+ assert.match(notebook,/functions\.invoke\('caderno-revisao'/);
+ assert.match(notebook,/if\(!stroke\.corrected\)return/);
+ assert.match(notebook,/tapCandidate/);
+ assert.match(notebook,/const defaults=\(\)=>\(\{pages:\[emptyPage\(\)\]/);
+ assert.match(styles,/\.nb-sheet\{/);
+ assert.match(styles,/\.nb-sticky\{/);
+ assert.doesNotMatch(notebook,/\.from\(['"]uentzoul_(?:messages|progress|profiles|exams)/);
+});
