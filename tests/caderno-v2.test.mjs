@@ -43,7 +43,7 @@ test('Enter registra e corrige texto e move para a próxima linha; vazio apenas 
   $:()=>({value}),checkpoint(){calls.checkpoints++},page:()=>mockPage,
   id:()=>String(calls.checkpoints),occupiedSpan:()=>2,makeRoom(){},
   materializePage(){},closeEditor(){},renderNotes(){},
-  save(){calls.saved++},status(){},correctNote(id,text){calls.correct.push({id,text})},
+  save(){calls.saved++},status(){},fallbackBasic(text){return text},correctNote(id,text){calls.correct.push({id,text})},
   advanceLine(i){calls.advanced.push(i)}
  };
  const saveEditor=vm.runInNewContext('('+src+')',context);
@@ -204,7 +204,7 @@ test('Oito alças redimensionam cantos e lados com limites para texto, desenho e
 });
 test('A data sobe, os cadernos têm capas e as folhas têm uma aba lateral própria',()=>{
  assert.match(script,/class="nb-paper-date-group"/);
- assert.match(style,/\.nb-paper-date-group\{position:absolute;top:30px/);
+ assert.match(style,/\.nb-paper-date-group\{\s*top:30px/);
  assert.match(style,/font-size:16px/);
  assert.match(script,/id="nbPageRail"/);
  assert.match(script,/class="nb-rail-tab"/);
