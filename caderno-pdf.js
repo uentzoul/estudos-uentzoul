@@ -2,7 +2,7 @@
    Sem serviços externos: o PDF é criado no próprio navegador. */
 (function(){
  'use strict';
- const WIDTH=780,HEIGHT=1240,LINEROW=34,LINETOP=97;
+ const WIDTH=780,HEIGHT=1240,LINEROW=34,LINETOP=28;
  const palette={black:'#24242e',blue:'#2559a4',red:'#bb3d43'};
  const enc=new TextEncoder();
  function colorOf(key){return palette[key]||palette.blue}
@@ -31,7 +31,7 @@
   ctx.clearRect(0,0,WIDTH,HEIGHT);
   ctx.fillStyle='#fffdf8';ctx.fillRect(0,0,WIDTH,HEIGHT);
   ctx.fillStyle='#f9f3e8';ctx.fillRect(0,0,9,HEIGHT);
-  for(let y=LINETOP+33;y<HEIGHT-35;y+=LINEROW){
+  for(let y=LINETOP;y<HEIGHT-35;y+=LINEROW){
    ctx.beginPath();ctx.moveTo(0,y+.5);ctx.lineTo(WIDTH,y+.5);
    ctx.strokeStyle='#bad3e3';ctx.lineWidth=.7;ctx.stroke();
   }
@@ -42,14 +42,12 @@
    ctx.beginPath();ctx.arc(28,y,4.2,0,Math.PI*2);ctx.fillStyle='#f7f6f0';ctx.fill();
   }
   ctx.textBaseline='alphabetic';ctx.textAlign='left';
-  ctx.fillStyle='#403758';pfont(ctx,24,false);
-  ctx.fillText(String(pg.title||'').slice(0,60),111,137,570);
   ctx.fillStyle='#6a607c';ctx.font='600 13px Arial,sans-serif';
-  ctx.fillText('Data',510,132);
+  ctx.fillText('Data',510,57);
   if(pg.date){
    const m=String(pg.date).match(/^(\d{4})-(\d{2})-(\d{2})$/);
    ctx.font='600 16px Arial,sans-serif';
-   ctx.fillText(m?m[3]+'/'+m[2]+'/'+m[1]:String(pg.date),557,132);
+   ctx.fillText(m?m[3]+'/'+m[2]+'/'+m[1]:String(pg.date),557,57);
   }
   // A gramática é reproduzida tal como está na folha no momento da exportação.
   for(const note of pg.notes||[]){
