@@ -178,10 +178,10 @@ test('Traços ajustados preservam percurso original e reduzem tremores em curvas
  assert.match(script,/data\.smooth\?fluidStroke\(raw\)/);
 });
 test('Selecionar é padrão, ESC volta ao seletor e papel pode ser arrastado sem selecionar item',()=>{
- assert.match(script,/bookId:'book-original',page:0,mode:'select'/);
- assert.match(script,/data\.mode='select'; \/\/ Ferramenta inicial segura/);
+ assert.match(script,/bookId:'book-original',page:0,mode:'none'/);
+ assert.match(script,/data\.mode='none'; \/\/ Ao abrir, nenhuma ferramenta atua/);
  assert.match(script,/if\(event\.key==='Escape'\)\{/);
- assert.match(script,/selected=null;act\('select'\)/);
+ assert.match(script,/selected=null;selectedStroke=-1;act\('none'\)/);
  assert.match(script,/function startPan\(event\)/);
  assert.match(script,/startPan\(event\);\}/);
  assert.match(script,/view\.scrollLeft=panDrag\.left-dx;view\.scrollTop=panDrag\.top-dy/);
@@ -229,7 +229,7 @@ test('Título da aula desaparece e a data ocupa a segunda linha física',()=>{
  assert.match(script,/START=28,ROWS=30,FIRST_LINE=3/);
  assert.match(style,/\.nb-paper-date-group\{[\s\S]*?top:30px/);
  assert.match(style,/\.nb-corner-back\{[\s\S]*?top:12px/);
- assert.match(script,/if\(data\.page===0\)backToBooks\(\)/);
+ assert.doesNotMatch(script,/case 'prev':if\(data\.page===0\)backToBooks\(\)/);
 });
 test('Correção local protege o usuário mesmo sem resposta da IA',()=>{
  const i=script.indexOf('function fallbackBasic('),j=script.indexOf('async function correctNote(',i);
@@ -287,4 +287,47 @@ test('Marca exibida é PsicoMoodle e texto corrigido jamais reabre como rascunho
  assert.doesNotMatch(script,/draft:existing\?\.original/);
  assert.match(script,/delete n\.original/);
  assert.match(script,/const \{original,\.\.\.corrected\}=n/);
+});
+
+
+test('Uma linha tem maiúsculas e minúsculas do mesmo tamanho; duas linhas aumentam só a maiúscula',()=>{
+ assert.match(script,/--nb-small:26px;--nb-cap-size:/);
+ assert.match(script,/\(26\+\(size-1\)\*34\)/);
+ assert.match(style,/\.nb-note \.nb-uppercase\{font-size:var\(--nb-cap-size/);
+ assert.match(style,/\.nb-note \.nb-note-content\{position:relative;top:-10px/);
+ const pdf=read('caderno-pdf.js');
+ assert.match(pdf,/const small=26/);
+ assert.match(pdf,/upper\?\(scale-1\)\*34:0/);
+});
+test('Três fontes com duas letras de forma e cursiva conectada',()=>{
+ assert.match(script,/value="print">Letra de forma 1/);
+ assert.match(script,/value="cursive">Letra de forma 2/);
+ assert.match(script,/value="joined">Letra cursiva/);
+ assert.match(style,/family=Dancing\+Script/);
+ assert.match(style,/\.nb-note\.joined/);
+ assert.match(script,/if\(!\['print','cursive','joined'\]\.includes/);
+});
+test('Esc deixa a folha neutra e voltar na primeira não abre o menu de cadernos',()=>{
+ assert.match(script,/data\.mode='none'/);
+ assert.match(script,/data-nb-action="none"/);
+ assert.match(script,/act\('none'\)/);
+ assert.match(script,/if\(inSheet&&\(event\.button===1 \|\|[\s\S]*?data\.mode\)\)/);
+ assert.match(script,/case 'prev':if\(data\.page>0\)flip\(-1\)/);
+ assert.match(style,/\.nb-sheet\[data-mode="none"\]/);
+});
+test('Livro aberto com duas folhas, zoom, clique para ativar e animação de virada',()=>{
+ assert.match(script,/id="nbCompanionWrap"/);
+ assert.match(script,/function activateCompanion\(event\)/);
+ assert.match(script,/data\.layout==='book'/);
+ assert.match(script,/function renderBookSpread\(\)/);
+ assert.match(script,/case 'prev':if\(data\.page>0\)flip\(-1\)/);
+ assert.match(script,/renderPage\(\);renderPageRail\(\);save\(\)/);
+ assert.match(style,/\.nb-stage\.nb-double\{/);
+ assert.match(style,/@keyframes nb-open-book-next/);
+ assert.match(script,/id="nbLayout"/);
+});
+test('Galeria de folhas mantém proporção física vertical, não um quadrado',()=>{
+ assert.match(style,/\.nb-gallery-paper\{aspect-ratio:780\/1240!important/);
+ assert.match(style,/max-height:none!important/);
+ assert.match(script,/snapshotSheetMarkup\(p,index\)/);
 });
