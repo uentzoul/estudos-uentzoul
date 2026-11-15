@@ -1,4 +1,4 @@
-/* PsicoMoodle — tour guiado por destaque dos elementos reais (14/11/2026). */
+/* PsicoMoodle — tour guiado com Revisão de Férias dos dois semestres (15/11/2026). */
 (()=>{
 'use strict';
 if(window.__psicoSpotlightTour)return;
@@ -7,7 +7,7 @@ window.__psicoSpotlightTour=true;
 const steps=[
  {page:'home',find:'.dashboard-hero .hero-status',title:'Seu espaço de estudos',body:'Esta é a página inicial do PsicoMoodle. Aqui você acompanha o progresso do semestre: a porcentagem indica quanto das atividades cadastradas já foi concluído.'},
  {page:'home',find:'#homeCourses [data-action="subject:avaliacao"]',title:'Escolha uma disciplina',body:'Cada cartão abre uma disciplina com seus materiais e atividades. Durante o tutorial, apenas observe o cartão destacado. Clique em Próximo para conhecer a disciplina de Avaliação Psicológica.',tip:'Depois de concluir o tutorial, você poderá abrir qualquer disciplina livremente.'},
- {page:'subject',find:'.subject-hub-menu',title:'Tudo de uma matéria em um só lugar',body:'A disciplina reúne trilha de estudos para a prova, materiais e textos, estudos dirigidos, simulados, flashcards, casos, podcasts e conteúdos para revisar.',tip:'Uma boa sequência é começar pela trilha e praticar com questões depois.'},
+ {page:'subject',find:'.subject-hub-menu',title:'Tudo de uma matéria em um só lugar',body:'A disciplina reúne trilha de estudos, materiais e textos, estudos dirigidos, simulados, flashcards, casos, podcasts e conteúdos para revisar. No primeiro semestre, a trilha é voltada a relembrar o que foi estudado; no segundo, ela também ajuda na preparação para as provas.',tip:'Uma boa sequência é começar pela trilha e praticar com questões depois.'},
  {page:'subject',tab:'docs',find:'#docs .doc-compact .donecontrol',fallback:'#docs .doclist .doc-compact, #docs .sectiontop',title:'Materiais e textos',body:'Nesta seção, você encontra os conteúdos disponíveis para cada disciplina, como textos-base, artigos, slides, capítulos, roteiros de estudo e outros arquivos ou links. Depois de consultar ou estudar um material, utilize “Marcar como visto” no próprio item. Assim, você acompanha o que já foi lido ou revisado e identifica facilmente o que ainda falta, mesmo quando a lista é extensa.',tip:'A marcação é pessoal e manual: abrir um arquivo ou link externo não o marca automaticamente como visto.'},
  {page:'calendar',tab:'provas',find:'.agenda-switch',title:'Agenda e horários',body:'A agenda reúne três consultas: datas das avaliações, grade semanal de aulas e conteúdos previstos para cada encontro. Vamos conhecer cada uma.'},
  {page:'calendar',tab:'provas',find:'.agenda-calendar-layout',fallback:'[data-action="agenda-tab:provas"]',title:'Provas e avaliações',body:'Veja as datas das provas no calendário, confira a disciplina correspondente e consulte informações sobre avaliações e substitutivas.',tip:'As datas podem mudar. Confirme eventuais alterações no Moodle oficial.'},
@@ -21,8 +21,8 @@ const steps=[
  {page:'messages',tab:'global',find:'[data-dmv-share-open]',fallback:'.dm-composer, .dm-channel-tabs',title:'Compartilhe conteúdos sem sair do chat',body:'Dentro de uma conversa, use o recurso de compartilhamento para encontrar materiais, simulados, podcasts e tópicos já listados no PsicoMoodle. Também é possível enviar mensagens, imagens e figurinhas.',tip:'Simulados personalizados são enviados por conversa privada, com convite para o colega acessar.',login:'Depois de entrar na conta e abrir uma conversa, você poderá compartilhar materiais do catálogo diretamente pelo chat.'},
  {page:'ai',find:'.tz-shell .tz-composer',fallback:'.tz-shell .tz-form, .tz-shell .tz-chat',tourScene:'ai-chat',title:'Conheça a IA Tzoul',body:'A IA Tzoul é a assistente de estudos do PsicoMoodle. Faça perguntas sobre as disciplinas, peça explicações, resumos, questões, roteiros ou ajuda para interpretar os conteúdos. Você também pode anexar PDFs, documentos e imagens à conversa.',tip:'É preciso estar conectado à conta para enviar mensagens. Confira as informações importantes nos materiais originais e com os professores.'},
  {page:'ai',find:'.tz-context summary',fallback:'.tz-shell .tz-form, .tz-shell .tz-chat',tourScene:'ai-filters',title:'Personalize sua resposta',body:'Antes de perguntar, abra “Filtrar matérias”. É possível selecionar uma disciplina ou material disponível, escolher entre Conversa e Documento e definir a profundidade Padrão ou Aprofundada. As conversas anteriores ficam no histórico.',tip:'A consulta integral a um documento depende de o arquivo estar acessível; caso contrário, a IA pode usar o conteúdo indexado no site.'},
- {page:'vacation',find:'#vr-root .vr-months',fallback:'#vr-root .vr-months-wrap, #navVacationReview',tourScene:'vacation-months',title:'Revisão de Férias: reviva o semestre',body:'Esta é a linha do tempo do primeiro semestre: os meses são capítulos. Clique em Março, Abril, Maio ou Junho para expandir os assuntos; abrir um mês fecha o anterior. Bolinhas maiores destacam conceitos essenciais e as cores identificam as disciplinas.',tip:'O primeiro semestre está disponível para todos. O segundo ainda está em preparação e permanece “Em breve” para os alunos até a liberação prevista para 27/11.'},
- {page:'vacation',find:'#vr-root .vr-material-button',fallback:'#vr-root .vr-materials, #vr-root .vr-month-detail',tourScene:'vacation-materials',title:'Explore os marcos e abra os materiais',body:'Ao escolher um marco da linha do tempo, surge um painel com o que foi aprendido, por que isso importa e as conexões com outras matérias. Em Materiais relacionados, cada botão abre o arquivo original completo, sem passar pela Biblioteca.',tip:'É possível explorar a linha do tempo sem login. Para abrir os PDFs e outros arquivos originais, entre na sua conta.'},
+ {page:'vacation',find:'#vr-root .vr-months',fallback:'#vr-root .vr-months-wrap, #navVacationReview',tourScene:'vacation-months',title:'Revisão de Férias: os dois semestres',body:'A Revisão de Férias já está disponível no primeiro e no segundo semestres, inclusive para visitantes. No primeiro, a linha do tempo vai de Março a Junho; no segundo, de Agosto a Novembro. O primeiro mês já começa aberto: toque em outro mês para ver os assuntos, um de cada vez. As cores identificam as disciplinas e os marcos maiores destacam conceitos essenciais.',tip:'Use o seletor de semestres para escolher o período e depois abra Revisão de Férias no menu para consultar a linha do tempo correspondente.'},
+ {page:'vacation',find:'#vr-root .vr-material-button',fallback:'#vr-root .vr-materials, #vr-root .vr-month-detail',tourScene:'vacation-materials',title:'Explore os marcos e os materiais',body:'No primeiro e no segundo semestres, toque em um marco da linha do tempo para ver o que foi estudado, sua importância e conexões com outras matérias. Em Materiais relacionados, os botões levam aos arquivos originais disponíveis.',tip:'A linha do tempo pode ser consultada sem login; para abrir PDFs e outros arquivos completos, entre na sua conta.'},
  {page:'home',find:'#semesterCurrent',title:'Escolha o semestre',body:'Use este seletor para alternar entre os períodos de Psicologia. Cada semestre tem sua própria organização, e os conteúdos aparecem conforme são cadastrados. O modo claro ou escuro também pode ser alterado no menu.',tip:'O tutorial terminou. Você poderá iniciá-lo novamente pelo botão Tutorial.'}
 ];
 
@@ -30,7 +30,7 @@ const steps=[
 const mobileCopy=[
  {title:'Progresso do semestre',body:'Aqui você vê o que já concluiu e o que falta estudar.'},
  {title:'Escolha uma matéria',body:'Toque numa disciplina para abrir os materiais e atividades dela.'},
- {title:'Trilha para a prova',body:'Dentro da matéria, siga a trilha para saber por onde começar a revisão.'},
+ {title:'Trilha de estudos',body:'Siga a trilha da matéria para relembrar os conteúdos ou se preparar para a prova, conforme o semestre.'},
  {title:'Materiais e textos',body:'Depois de estudar, toque em “Marcar como visto”. A marcação é manual.'},
  {title:'Agenda e horários',body:'Alterne entre provas, horários de aula e conteúdos de cada dia.'},
  {title:'Provas e avaliações',body:'Confira as datas das provas. Se houver mudanças, consulte o Moodle oficial.'},
@@ -44,7 +44,7 @@ const mobileCopy=[
  {title:'Compartilhar no chat',body:'Em uma conversa, use Compartilhar para enviar materiais do PsicoMoodle.'},
  {title:'Converse com a IA Tzoul',body:'Peça explicações, resumos ou questões. Com a conta conectada, dá para anexar PDFs, documentos e fotos.'},
  {title:'Filtre as respostas da IA',body:'Toque em “Filtrar matérias” para escolher disciplina, material, tipo de resposta e profundidade.'},
- {title:'Revisão de Férias',body:'A linha do tempo do 1º semestre é aberta a todos. Toque em um mês para ver seus principais assuntos.'},
+ {title:'Revisão de Férias',body:'A revisão do 1º e do 2º semestres está liberada para todos. No 1º: Março a Junho; no 2º: Agosto a Novembro. O primeiro mês abre automaticamente; toque nos outros para explorar.'},
  {title:'Conteúdos e materiais originais',body:'Toque num marco para ver a explicação e os arquivos relacionados. Para abrir os PDFs, entre na conta.'}
 ];
 const mobileSteps=[
@@ -104,7 +104,7 @@ const mobileGuestSteps=[
 ];
 const byId=id=>document.getElementById(id);
 const q=s=>document.querySelector(s);
-let active=false,index=0,chosen='avaliacao',lastFocus=null,originSemester=null,changedSemester=false,temporaryVacationSemester=false;
+let active=false,index=0,chosen='avaliacao',lastFocus=null,originSemester=null,changedSemester=false;
 let runSteps=steps,tourMobile=false,tourLoggedIn=false;
 const isLoggedIn=()=>!!window.uentzoulAIAuth?.user?.();
 const originalIndex=()=>Number.isInteger(runSteps[index]?.baseIndex)?runSteps[index].baseIndex:(!tourMobile&&runSteps===steps?index:-1);
@@ -199,9 +199,7 @@ function selectTab(step){
 function prep(step){
  document.querySelectorAll('.pm-tour-day-lesson').forEach(n=>n.classList.remove('pm-tour-day-lesson'));
  if(step.page==='vacation'){
-  // Demonstra o primeiro semestre real sem publicar nem alterar conteúdos.
-  const first=q('#semesterDropdown [data-semester="2026/1"]');
-  if(first&&!first.classList.contains('active')){first.click();temporaryVacationSemester=true;}
+  // Mostra a revisão do semestre em uso, sem mudar o seletor do usuário.
   const alreadyOpen=!!q('#main.vr-active #vr-root .vr-months');
   const ready=alreadyOpen?Promise.resolve():new Promise((resolve,reject)=>{
    let attempts=0;
@@ -216,16 +214,13 @@ function prep(step){
   return ready.then(()=>{
    if(!active||runSteps[index]!==step)return;
    if(step.tourScene==='vacation-materials'){
-    const month=q('#vr-root [data-vr-month="3"]');
+    const firstMonth=window.PSICO_VACATION_REVIEW?.currentSemester?.()===1?3:8;
+    const month=q('#vr-root [data-vr-month="'+firstMonth+'"]');
     if(month&&month.getAttribute('aria-expanded')!=='true')month.click();
-    const firstEvent=q('#vr-panel-3 .vr-event');
+    const firstEvent=q('#vr-panel-'+firstMonth+' .vr-event');
     if(firstEvent&&firstEvent.getAttribute('aria-expanded')!=='true')firstEvent.click();
    }
   });
- }
- if(temporaryVacationSemester){
-  q('#semesterDropdown [data-semester="2026/2"]')?.click();
-  temporaryVacationSemester=false;
  }
  if(step.page==='subject'){
   if(step.tab==='docs'){
@@ -579,7 +574,6 @@ function move(dir){
 }
 function open(){
  if(active)return;
- temporaryVacationSemester=false;
  build();lastFocus=document.activeElement;
  originSemester=q('.semester-option[aria-current="true"]')?.dataset.semester||null;
  changedSemester=!!(originSemester&&originSemester!=='2026/2');
@@ -605,10 +599,6 @@ function close(){
   delete document.documentElement.dataset.pmTourAuth;
  document.querySelectorAll('#nav .pm-tour-nav-current').forEach(el=>el.classList.remove('pm-tour-nav-current'));
  if(sidebarSpot)sidebarSpot.hidden=true;
- if(temporaryVacationSemester){
-  q('#semesterDropdown [data-semester="2026/2"]')?.click();
-  temporaryVacationSemester=false;
- }
  if(changedSemester&&originSemester)q('.semester-option[data-semester="'+originSemester+'"]')?.click();
  changedSemester=false;
  // Ao concluir ou fechar, a navegação pode ter recriado a página Início:
