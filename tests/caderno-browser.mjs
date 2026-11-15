@@ -37,6 +37,11 @@ try{
  await page.goto(address,{waitUntil:'domcontentloaded'});
  const f=page.frameLocator('#nbQaFrame');
  await f.locator('#nbSheet').waitFor({state:'visible',timeout:15000});
+ // Data deve ficar no alto, alinhada à faixa do título.
+ const datePos=await f.locator('.nb-paper-date-group').evaluate(el=>({top:parseFloat(getComputedStyle(el).top),height:el.offsetHeight}));
+ assert.equal(datePos.top,100);
+ assert.ok(datePos.height>=38);
+
  assert.equal(await f.locator('[data-nb-action="select"]').getAttribute('aria-pressed'),'true','Selecionar precisa ser o padrão');
  assert.equal(await f.locator('#nbPageRail').count(),1);
  assert.ok(await f.locator('#nbPageRail').evaluate(el=>el.classList.contains('is-open')),'Miniaturas laterais devem estar abertas no desktop');
@@ -45,6 +50,16 @@ try{
   const box=await f.locator('#nbSheet').boundingBox();
   return{x:box.x+x*box.width/780,y:box.y+y*box.height/1240};
  };
+ // Com Selecionar, arrastar o espaço vazio desloca a folha (não desenha).
+ await f.locator('[data-nb-action="select"]').click();
+ const blank=await point(550,540);
+ const beforePan=await f.locator('#nbViewport').evaluate(el=>el.scrollTop);
+ await page.mouse.move(blank.x,blank.y);await page.mouse.down();
+ await page.mouse.move(blank.x,blank.y-132,{steps:9});await page.mouse.up();
+ const afterPan=await f.locator('#nbViewport').evaluate(el=>el.scrollTop);
+ assert.ok(afterPan>beforePan+20,'Selecionar deve arrastar a página para cima e para baixo');
+ await f.locator('#nbViewport').evaluate(el=>{el.scrollTop=0;el.scrollLeft=0});
+ await f.locator('[data-nb-action="text"]').click();
  const first=await point(250,97+3*34+8);
  await page.mouse.click(first.x,first.y);
  const inline=f.locator('#nbEditorText');
@@ -146,5 +161,17 @@ try{
  assert.equal(await f.locator('#nbSheet').evaluate(el=>getComputedStyle(el).backgroundColor),'rgb(255, 253, 248)');
  assert.deepEqual(errors,[],'Nenhum erro JavaScript de execução');
  await ctx.close();
- console.log('Caderno browser QA OK: Enter, IA, post-it, seleção, borracha, Ctrl+Z, galeria, PDF');
+ // Também verifica o trilho de folhas recolhido no celular e a abertura pelo puxador.
+ const mobile=await browser.newContext({viewport:{width:390,height:844},isMobile:true,hasTouch:true,acceptDownloads:true});
+ const mobilePage=await mobile.newPage();
+ await mobilePage.goto(address,{waitUntil:'domcontentloaded'});
+ const mf=mobilePage.frameLocator('#nbQaFrame');
+ await mf.locator('#nbSheet').waitFor({state:'visible'});
+ assert.equal(await mf.locator('#nbPageRail').evaluate(el=>el.classList.contains('is-open')),false,
+   'No celular, a lista de páginas começa recolhida');
+ await mf.locator('[data-nb-action="toggleRail"]').click();
+ assert.equal(await mf.locator('#nbPageRail').evaluate(el=>el.classList.contains('is-open')),true,
+   'O puxador deve abrir o painel móvel');
+ await mobile.close();
+ console.log('Caderno browser QA OK: Enter, IA, post-it, seleção, borracha, Ctrl+Z, galeria, PDF, pan e celular');
 }finally{await browser.close();await new Promise(resolve=>server.close(resolve))}
