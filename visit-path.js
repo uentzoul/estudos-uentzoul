@@ -2,6 +2,12 @@
 (()=>{
 'use strict';
 if(window.PSICO_VISIT_PATH)return;
+// A auditoria oficial do GitHub Actions sinaliza o navegador ANTES de carregar o site.
+// Não gera visitas humanas falsas nem altera o histórico salvo.
+if(window.__uentzoulSiteHealthAudit===true){
+ window.PSICO_VISIT_PATH={status:()=>({ready:false,anonymous:false,automated:true})};
+ return;
+}
 const STORAGE_KEY='psicomoodle_visit_path_v1';
 let key=null,identity=null,authToken=null,queue=Promise.resolve(),ready=false,lastRoute='',ending=false;
 const app=()=>window.uentzoulAIAuth;
