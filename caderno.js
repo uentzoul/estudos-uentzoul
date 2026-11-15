@@ -98,6 +98,7 @@ data.pages=activeBook().pages;
 data.mode='none'; // Ao abrir, nenhuma ferramenta atua na folha até o usuário escolher.
 if(!stored?.smoothingV3){data.smooth=true;data.smoothingV3=true;}
 let pendingPage=emptyPage(),galleryOpen=false,drawerOpen=false,galleryOffset=0,railOpen=!window.matchMedia('(max-width:760px)').matches;
+let shelfOpen=true,editEnabled=false;
 let selected=null,contextTarget=null,panDrag=null,lastPointer=null,toolPaletteOpen=false,eraseDrag=null,moveDrag=null,resizeDrag=null;
 function materializePage(){
  if(data.page!==data.pages.length||!hasPageContent(pendingPage))return;
@@ -139,6 +140,69 @@ const clamp=(v,min,max)=>Math.max(min,Math.min(max,v));
 const page=()=>data.pages[data.page]||pendingPage;
 const id=()=>typeof crypto.randomUUID==='function'?crypto.randomUUID():'nb-'+Date.now()+'-'+Math.random().toString(36).slice(2);
 const isMobile=()=>window.matchMedia('(max-width:760px)').matches;
+function renderShelf(){
+ const host=$('nbShelf');if(!host)return;
+ host.innerHTML='<div class="nb-shelf-heading"><span class="nb-shelf-eyebrow">PSICOMOODLE · PSICOLOGIA</span>'+
+  '<h2>Meus cadernos</h2><p>Escolhe uma matéria para abrir o caderno e folhear suas páginas.</p></div>'+
+  '<div class="nb-shelf-grid">'+data.books.map((book,i)=>
+   '<button class="nb-shelf-book" data-nb-shelf-book="'+esc(book.id)+'" aria-label="Abrir '+esc(book.name)+'">'+
+    '<span class="nb-shelf-cover" style="--nb-book-cover:'+bookColor(book)+'" data-cover="'+i%6+'">'+
+     '<span class="nb-shelf-spine" aria-hidden="true"></span><span class="nb-shelf-cover-border" aria-hidden="true"></span>'+
+     '<span class="nb-shelf-title">'+esc(book.name)+'</span>'+
+     '<span class="nb-shelf-mark">PSICOMOODLE</span></span>'+
+    '<span class="nb-shelf-book-meta"><strong>'+esc(book.name)+'</strong><small>'+book.pages.length+
+     (book.pages.length===1?' folha salva':' folhas salvas')+'</small></span></button>'
+  ).join('')+'</div>';
+ requestAnimationFrame(fitCoverTitles);
+}
+function syncNotebookUI(){
+ root.classList.toggle('nb-shelf-active',shelfOpen);
+ root.classList.toggle('nb-reading',!shelfOpen&&!editEnabled);
+ root.classList.toggle('nb-editing',!shelfOpen&&editEnabled);
+ $('nbShelf').hidden=!shelfOpen;
+ $('nbWorkspace').hidden=shelfOpen;
+ $('nbTools').hidden=shelfOpen||!editEnabled;
+ root.querySelector('.nb-page-control').hidden=shelfOpen||galleryOpen;
+ $('nbEditToggle').hidden=shelfOpen;
+ $('nbEditToggle').textContent=editEnabled?'✓ Concluir edição':'✎ Editar';
+ $('nbEditToggle').setAttribute('aria-pressed',String(editEnabled));
+ $('nbPaperDate').disabled=!editEnabled;
+ sheet.dataset.mode=editEnabled?data.mode:'none';
+ for(const el of root.querySelectorAll('#nbStickyLayer textarea'))el.readOnly=!editEnabled;
+}
+function setEditEnabled(value){
+ if(shelfOpen)return;
+ if(!value&&editing)saveEditor(false);
+ editEnabled=!!value;
+ data.mode='none';selected=null;selectedStroke=-1;toolPaletteOpen=false;
+ $('nbLineHover').hidden=true;$('nbContextMenu').hidden=true;
+ refreshTools();renderNotes();renderStickies();drawCanvas();renderSelectionHandles();
+ renderStickyPalette();syncNotebookUI();
+ if(!editEnabled)save();
+}
+function showShelf(animate=true){
+ if(editing)saveEditor(false);
+ editEnabled=false;data.mode='none';selected=null;selectedStroke=-1;
+ if(galleryOpen){galleryOpen=false;$('nbGallery').hidden=true;view.hidden=false;root.classList.remove('nb-gallery-open');}
+ if(drawerOpen)closeDrawer();
+ const source=!shelfOpen?wrap:null;
+ const update=()=>{shelfOpen=true;renderShelf();syncNotebookUI();save();};
+ if(animate&&source)transitionView(update,source,()=>root.querySelector('.nb-shelf-book[data-nb-shelf-book="'+data.bookId+'"] .nb-shelf-cover'));
+ else update();
+}
+function openShelfBook(bookId,button){
+ if(!data.books.some(b=>b.id===bookId))return;
+ const from=button?.querySelector('.nb-shelf-cover');
+ const update=()=>{
+  shelfOpen=false;editEnabled=false;data.mode='none';
+  switchBook(bookId);
+  syncNotebookUI();
+  view.scrollTop=0;view.scrollLeft=0;
+ };
+ if(from)transitionView(update,from,()=>wrap);
+ else update();
+}
+
 function persistNow(){
  clearTimeout(saveTimer);
  try{localStorage.setItem(STORE,JSON.stringify(serializable()));refreshCurrentRailSnapshot();return true}
@@ -166,7 +230,8 @@ function redo(){
 root.className='nb-app';
 root.innerHTML=
  '<header class="nb-top"><div class="nb-brand"><button type="button" class="nb-mark nb-hamburger" data-nb-action="drawer" aria-label="Abrir lista de cadernos" title="Cadernos">☰</button><div><h1 id="nbBookHeading">Caderno de aula</h1><p>Prévia exclusiva da administração</p></div></div>'+
- '<div class="nb-top-right"><button class="nb-quiet nb-back-books" data-nb-action="backToBooks" title="Voltar aos cadernos">‹ Cadernos</button><span class="nb-status" id="nbStatus" role="status">Rascunho local · salvo automaticamente</span><button class="nb-quiet" data-nb-action="export">Exportar PDF</button></div></header>'+
+ '<div class="nb-top-right"><button class="nb-quiet nb-back-books" data-nb-action="backToBooks" title="Voltar à estante de cadernos">‹ Cadernos</button><button class="nb-edit-toggle" id="nbEditToggle" data-nb-action="toggleEdit" aria-pressed="false">✎ Editar</button><span class="nb-status" id="nbStatus" role="status">Rascunho local · salvo automaticamente</span><button class="nb-quiet" data-nb-action="export">Exportar PDF</button></div></header>'+
+ '<section class="nb-shelf" id="nbShelf" aria-label="Escolher caderno" hidden></section>'+ 
  '<div class="nb-tools" id="nbTools" role="toolbar" aria-label="Ferramentas do caderno">'+
  '<div class="nb-toolgroup"><button class="nb-tool" data-nb-action="none" title="Mover a folha sem selecionar nem editar">✋ Navegar</button><button class="nb-tool" data-nb-action="text" title="Escrever nas linhas">✎ Escrever</button>'+
  '<button class="nb-tool" data-nb-action="select" title="Selecionar anotações, post-its e desenhos">⌖ Selecionar</button>'+
@@ -893,6 +958,7 @@ function switchBook(bookId,fromHistory=false){
  checkpoint();data.bookId=bookId;data.pages=activeBook().pages;data.page=0;
  pendingPage=emptyPage();selected=null;galleryOffset=0;
  renderPage();renderDrawer();renderPageRail();if(galleryOpen)renderGallery();
+ if(!shelfOpen){editEnabled=false;data.mode='none';syncNotebookUI();}
  save();closeDrawer();
  if(!fromHistory){
   try{history.pushState({uentzoulNotebook:'book',bookId},'', '#caderno='+encodeURIComponent(bookId));}catch(_){}
@@ -1034,10 +1100,7 @@ function goRailPage(index){
 function closePageRail(){railOpen=false;renderPageRail();}
 function togglePageRail(){railOpen=!railOpen;renderPageRail();}
 function closeDrawer(){drawerOpen=false;$('nbDrawer').hidden=true;root.classList.remove('nb-drawer-open');}
-function backToBooks(){
- if(galleryOpen)hideGallery();
- if(!drawerOpen)toggleDrawer();
-}
+function backToBooks(){showShelf();}
 function restoreNotebookRoute(state){
  if(!state||state.uentzoulNotebook==='shelf'){
   if(galleryOpen)hideGallery();
@@ -1248,7 +1311,7 @@ function renderPage(){
  refreshTools();renderNotes();renderStickies();drawCanvas();setZoom(data.zoom,false);renderBookSpread();
 }
 function renderAll(){
- renderPage();renderPageRail();updateShortcutsList();
+ renderPage();renderPageRail();renderShelf();syncNotebookUI();updateShortcutsList();
  if(drawerOpen)renderDrawer();
  if(galleryOpen)renderGallery();
  renderStickyPalette();
