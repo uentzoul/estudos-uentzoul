@@ -98,6 +98,19 @@ try{
  assert.ok(await second.isVisible(),'Enter deve abrir nova linha diretamente no papel');
  const y2=Number((await second.getAttribute('style')).match(/top:\s*([\d.]+)px/)?.[1]);
  assert.equal(y2-y1,34,'Tamanho 1 deve avançar uma linha física');
+ const oneLineSizing=await f.locator('#nbTextLayer .nb-note').first().evaluate(el=>{
+  const cap=el.querySelector('.nb-uppercase'),lower=el.querySelector('.nb-lowercase');
+  const paper=document.querySelector('#nbSheet'),scale=paper.getBoundingClientRect().width/780;
+  const bounds=el.querySelector('.nb-note-content').getBoundingClientRect();
+  const positionTop=parseFloat(el.style.top);
+  const target=paper.getBoundingClientRect().top+(positionTop+34)*scale;
+  return {capital:parseFloat(getComputedStyle(cap).fontSize),
+   lower:parseFloat(getComputedStyle(lower).fontSize),lineGap:(target-bounds.bottom)/scale,
+   top:positionTop,cssHeight:bounds.height/scale};
+ });
+ console.log('LINE BASELINE QA '+JSON.stringify(oneLineSizing));
+ assert.equal(oneLineSizing.capital,oneLineSizing.lower,'Em 1 linha a maiúscula NÃO deve ocupar a linha de cima');
+ assert.equal(oneLineSizing.capital,26,'Letra tamanho 1 deve ter altura normal de escrita');
  await second.press('Enter');
  assert.equal(await f.locator('[data-nb-note]').count(),1,'Enter sem conteúdo não cria nota');
  // Posicionar um post-it rosa pela paleta.
@@ -184,6 +197,9 @@ try{
  await f.locator('[data-nb-action="gallery"]').click();
  await f.locator('#nbGallery').waitFor({state:'visible'});
  await f.locator('[data-nb-open-page="0"]').waitFor({state:'visible'});
+ const galleryRect=await f.locator('.nb-gallery-paper').first().boundingBox();
+ assert.ok(galleryRect.height/galleryRect.width>1.51,
+  'A galeria de Folhas deve mostrar uma folha vertical, não um quadrado');
  assert.equal(await f.locator('[data-nb-open-page]').count(),1);
  await f.locator('[data-nb-open-page="0"]').click();
  await f.locator('#nbGallery').waitFor({state:'hidden'});
@@ -288,5 +304,69 @@ try{
  assert.equal(await mf.locator('#nbPageRail').evaluate(el=>el.classList.contains('is-open')),true,
    'O puxador deve abrir o painel móvel');
  await mobile.close();
+ // Teste isolado: modo neutro, fontes, dupla folha e editor em ambos os lados.
+ const bookContext=await browser.newContext({viewport:{width:1440,height:940},acceptDownloads:true});
+ const bookPage=await bookContext.newPage(),bookErrors=[];
+ bookPage.on('pageerror',error=>bookErrors.push(error.message));
+ await bookPage.goto(address,{waitUntil:'domcontentloaded'});
+ const bf=bookPage.frameLocator('#nbQaFrame');
+ await bf.locator('#nbSheet').waitFor({state:'visible'});
+ assert.equal(await bf.locator('[data-nb-action="none"]').getAttribute('aria-pressed'),'true');
+ const fontOptions=await bf.locator('#nbFont option').allTextContents();
+ assert.deepEqual(fontOptions,['Letra de forma 1','Letra de forma 2','Letra cursiva']);
+ // A seta anterior não pode abrir a biblioteca quando já se está na primeira folha.
+ await bf.locator('.nb-page-control [data-nb-action="prev"]').click();
+ await bf.locator('.nb-page-control [data-nb-action="prev"]').click();
+ assert.equal(await bf.locator('#nbDrawer').isVisible(),false);
+ // Verifica ESC sem marca roxa e sem seleção persistente.
+ await bf.locator('[data-nb-action="text"]').click();
+ const begin=await bf.locator('#nbSheet').boundingBox();
+ const firstX=begin.x+250*begin.width/780,firstY=begin.y+(28+3*34+8)*begin.height/1240;
+ await bookPage.mouse.click(firstX,firstY);
+ await bf.locator('#nbEditorText').fill('Anotação da folha esquerda');
+ await bf.locator('#nbEditorText').press('Escape');
+ assert.equal(await bf.locator('[data-nb-action="none"]').getAttribute('aria-pressed'),'true');
+ assert.equal(await bf.locator('#nbEditorText').count(),0);
+ assert.equal(await bf.locator('.nb-transform-box').count(),0);
+ assert.equal(await bf.locator('#nbLineHover').isVisible(),false);
+ await bf.locator('#nbLayout').selectOption('book');
+ await bf.locator('#nbCompanionWrap').waitFor({state:'visible'});
+ assert.equal(await bf.locator('#nbStage').evaluate(el=>el.classList.contains('nb-double')),true);
+ const one=await bf.locator('#nbWrap').boundingBox(),two=await bf.locator('#nbCompanionWrap').boundingBox();
+ assert.ok(one.width>200&&two.width>200,'Cada folha do caderno aberto deve ocupar espaço real');
+ assert.ok(Math.abs(one.y-two.y)<3,'Páginas abertas devem estar alinhadas verticalmente');
+ assert.ok(two.x>=one.x+one.width-3,'Primeira folha à esquerda, segunda à direita');
+ // A segunda folha é clicável e abre editor naquela mesma posição.
+ await bf.locator('[data-nb-action="text"]').click();
+ const z=await bf.locator('#nbRoot').evaluate(()=>Number(document.querySelector('#nbZoomText').textContent.replace('%',''))/100);
+ const secondLeft=bf.locator('#nbCompanionWrap');
+ await secondLeft.click({position:{x:140*z,y:(28+3*34+8)*z}});
+ await bf.locator('#nbEditorText').waitFor({state:'visible'});
+ await bf.locator('#nbEditorText').fill('Anotação da folha direita');
+ await bf.locator('#nbEditorText').press('Enter');
+ await bookPage.waitForTimeout(260);
+ assert.equal(await bf.locator('#nbPageNum').textContent(),'02');
+ assert.match(await bf.locator('#nbCompanionPaper .nb-note').first().textContent(),/Anotação da folha esquerda/);
+ assert.match(await bf.locator('#nbTextLayer .nb-note').first().textContent(),/Anotação da folha direita/);
+ // Cursiva conectada é a 3ª opção e fica disponível ao escrever na folha direita.
+ await bf.locator('#nbFont').selectOption('joined');
+ const third=await bf.locator('#nbSheet').boundingBox();
+ await bookPage.mouse.click(third.x+250*third.width/780,third.y+(28+8*34)*third.height/1240);
+ await bf.locator('#nbEditorText').fill('Escrita cursiva conectada');
+ await bf.locator('#nbEditorText').press('Enter');
+ await bf.locator('#nbTextLayer .nb-note.joined').waitFor({state:'visible'});
+ assert.match(await bf.locator('#nbTextLayer .nb-note.joined').first().evaluate(el=>getComputedStyle(el).fontFamily),/Dancing Script/);
+ // Ao avançar no caderno, passa-se para o próximo par de páginas.
+ await bf.locator('.nb-page-control [data-nb-action="next"]').click();
+ await bookPage.waitForTimeout(590);
+ assert.equal(await bf.locator('#nbPageNum').textContent(),'03');
+ assert.equal(await bf.locator('#nbCompanionWrap').isVisible(),true);
+ // ESC deve retornar a Navegar, com possibilidade de pan e zoom livres.
+ await bf.locator('#nbRoot').press('Escape');
+ assert.equal(await bf.locator('[data-nb-action="none"]').getAttribute('aria-pressed'),'true');
+ await bf.locator('#nbZoomSlider').fill('76');
+ assert.equal(await bf.locator('#nbZoomText').textContent(),'76%');
+ assert.deepEqual(bookErrors,[],'Nenhum erro de execução no caderno de duas páginas');
+ await bookContext.close();
  console.log('Caderno browser QA OK: Enter, IA, post-it, seleção, borracha, Ctrl+Z, galeria, PDF, pan e celular');
 }finally{await browser.close();await new Promise(resolve=>server.close(resolve))}
