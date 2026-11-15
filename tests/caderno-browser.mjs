@@ -45,7 +45,7 @@ try{
  await page.mouse.click(first.x,first.y);
  const inline=f.locator('#nbEditorText');
  await inline.waitFor({state:'visible'});
- const y1=Number((await inline.getAttribute('style')).match(/top:([\d.]+)px/)?.[1]);
+ const y1=Number((await inline.getAttribute('style')).match(/top:\s*([\d.]+)px/)?.[1]);
  await inline.fill('A psicologia nao e simples');
  await inline.press('Enter');
  await f.locator('[data-nb-note]').first().waitFor({state:'visible'});
@@ -55,7 +55,7 @@ try{
  },{timeout:5000});
  const second=f.locator('#nbEditorText');
  assert.ok(await second.isVisible(),'Enter deve abrir nova linha diretamente no papel');
- const y2=Number((await second.getAttribute('style')).match(/top:([\d.]+)px/)?.[1]);
+ const y2=Number((await second.getAttribute('style')).match(/top:\s*([\d.]+)px/)?.[1]);
  assert.equal(y2-y1,34,'Tamanho 1 deve avançar uma linha física');
  await second.press('Enter');
  assert.equal(await f.locator('[data-nb-note]').count(),1,'Enter sem conteúdo não cria nota');
@@ -68,13 +68,13 @@ try{
  // Selecionar e deslocar o texto de uma linha para outra.
  await f.locator('[data-nb-action="select"]').click();
  const note=f.locator('[data-nb-note]').first();
- const beforeTop=Number((await note.getAttribute('style')).match(/top:([\d.]+)px/)?.[1]);
+ const beforeTop=Number((await note.getAttribute('style')).match(/top:\s*([\d.]+)px/)?.[1]);
  const noteBox=await note.boundingBox();
  await page.mouse.move(noteBox.x+30,noteBox.y+9);
  await page.mouse.down();
  await page.mouse.move(noteBox.x+30,noteBox.y+88,{steps:7});
  await page.mouse.up();
- const afterTop=Number((await note.getAttribute('style')).match(/top:([\d.]+)px/)?.[1]);
+ const afterTop=Number((await note.getAttribute('style')).match(/top:\s*([\d.]+)px/)?.[1]);
  assert.ok(afterTop>beforeTop,'Selecionar deve permitir arrastar texto para outra linha');
  // Desenhar um risco, apagar parcialmente e desfazer.
  await f.locator('[data-nb-action="draw"]').click();
