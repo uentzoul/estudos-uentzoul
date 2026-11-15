@@ -424,13 +424,129 @@ function drawCanvas(){
  });
  if(drawPoints?.length)paintStroke(drawPoints,data.ink,2.6);
 }
+
+/* A borracha altera somente as linhas do desenho. A cada trecho cortado,
+   preserva os fragmentos remanescentes como traços editáveis e desfazíveis. */
+function pointSegmentDistance(p,a,b){
+ const dx=b.x-a.x,dy=b.y-a.y,t=clamp(
+  ((p.x-a.x)*dx+(p.y-a.y)*dy)/Math.max(.00001,dx*dx+dy*dy),0,1);
+ return Math.hypot(p.x-a.x-t*dx,p.y-a.y-t*dy);
+}
+function pointNearStroke(pos,stroke,radius){
+ const points=stroke.points||[],width=(Number(stroke.width)||2.6)/2;
+ if(!points.length)return false;
+ if(points.length===1)return dist(pos,points[0])<=radius+width;
+ for(let i=1;i<points.length;i++)
+  if(pointSegmentDistance(pos,points[i-1],points[i])<=radius+width)return true;
+ return false;
+}
+function cutStrokeAt(stroke,pos,radius){
+ const points=stroke.points||[];
+ if(points.length<2)return [];
+ const samples=[{...points[0]}];
+ const interval=Math.max(2,Math.min(5,radius/3));
+ for(let i=1;i<points.length;i++){
+  const a=points[i-1],b=points[i],steps=Math.ceil(dist(a,b)/interval);
+  for(let j=1;j<=steps;j++)samples.push({
+   x:a.x+(b.x-a.x)*j/steps,y:a.y+(b.y-a.y)*j/steps
+  });
+ }
+ const chunks=[];let run=[];
+ const flush=()=>{if(run.length>=2)chunks.push(run);run=[];};
+ const threshold=radius+(Number(stroke.width)||2.6)/2;
+ for(const p of samples){
+  if(dist(p,pos)<=threshold)flush();else run.push(p);
+ }
+ flush();
+ return chunks.map((points,i)=>({
+  ...stroke,id:i===0?stroke.id:id(),points,corrected:false,kind:'free'
+ }));
+}
+function applyEraser(pos){
+ const radius=clamp(Number(data.eraserRadius)||14,6,32);
+ const original=page().strokes||[];
+ const updated=[];let touched=false;
+ for(const stroke of original){
+  if(!pointNearStroke(pos,stroke,radius)){updated.push(stroke);continue;}
+  touched=true;
+  if(data.eraserMode==='whole')continue;
+  updated.push(...cutStrokeAt(stroke,pos,radius));
+ }
+ if(!touched)return;
+ page().strokes=updated.slice(0,700);
+ selected=null;selectedStroke=-1;
+ drawCanvas();
+}
+function startMoveDrag(event,type,item){
+ if(!item)return;
+ const p=point(event);
+ moveDrag={
+  pointerId:event.pointerId,type,id:item.id,
+  start:p,startClient:{x:event.clientX,y:event.clientY},moved:false,
+  originLine:Number(item.line)||FIRST_LINE,
+  originX:Number(item.x)||0,originY:Number(item.y)||0,
+  originalPoints:type==='stroke'?(item.points||[]).map(x=>({...x})):null
+ };
+ sheet.setPointerCapture?.(event.pointerId);
+ event.preventDefault();
+}
+function updateMoveDrag(event){
+ const drag=moveDrag;if(!drag||drag.pointerId!==event.pointerId)return;
+ const p=point(event),dx=p.x-drag.start.x,dy=p.y-drag.start.y;
+ if(!drag.moved&&Math.hypot(dx,dy)<5)return;
+ if(!drag.moved){checkpoint();drag.moved=true;}
+ const item=selectedItem();
+ if(!item||item.id!==drag.id)return;
+ if(drag.type==='stroke'){
+  item.points=drag.originalPoints.map(q=>({
+   x:clamp(q.x+dx,0,W),y:clamp(q.y+dy,0,H)
+  }));
+  drawCanvas();
+ }else if(drag.type==='sticky'){
+  item.x=clamp(drag.originX+dx,90,W-185);
+  item.y=clamp(drag.originY+dy,100,H-170);
+  const el=root.querySelector('[data-nb-sticky="'+item.id+'"]');
+  if(el){el.style.left=item.x+'px';el.style.top=item.y+'px';}
+ }else if(drag.type==='note'){
+  const el=root.querySelector('[data-nb-note="'+item.id+'"]');
+  if(el)el.style.transform='translate('+dx+'px,'+dy+'px)';
+ }
+ event.preventDefault();
+}
+function finishMoveDrag(event){
+ if(!moveDrag||(event&&moveDrag.pointerId!==event.pointerId))return;
+ const drag=moveDrag;moveDrag=null;
+ if(!drag.moved)return;
+ const item=selectedItem();
+ if(!item)return;
+ if(drag.type==='note'){
+  const delta=Math.round((point(event).y-drag.start.y)/L);
+  const span=Math.max(2,Number(item.span)||2);
+  const maxLine=Math.max(FIRST_LINE,ROWS-span);
+  const intended=clamp(drag.originLine+delta,FIRST_LINE,maxLine);
+  const collides=line=>page().notes.some(n=>n.id!==item.id&&
+    line<(Number(n.line)||0)+Math.max(2,Number(n.span)||2)&&line+span>Number(n.line));
+  let chosen=intended;
+  if(collides(chosen)){
+   const available=Array.from({length:maxLine-FIRST_LINE+1},(_,i)=>i+FIRST_LINE)
+    .filter(line=>!collides(line))
+    .sort((a,b)=>Math.abs(a-intended)-Math.abs(b-intended));
+   chosen=available.length?available[0]:drag.originLine;
+  }
+  item.line=chosen;
+ }
+ serializable();renderNotes();renderStickies();drawCanvas();refreshTools();save();
+ status('Item movido. Use Ctrl+Z para desfazer.','success');
+}
+
 function pointerDownCanvas(event){
  if(event.button!==0||event.pointerType==='touch'&&pinch)return;
  const p=point(event);
  if(data.mode==='select'){
   const hit=findStrokeNear(p);
-  if(hit.stroke){selectItem('stroke',hit.stroke.id);event.preventDefault();}
-  else {selected=null;renderNotes();renderStickies();drawCanvas();}
+  if(hit.stroke){
+   selectItem('stroke',hit.stroke.id);startMoveDrag(event,'stroke',hit.stroke);
+  }else {selected=null;renderNotes();renderStickies();drawCanvas();}
   return;
  }
  if(data.mode==='erase'){
@@ -470,7 +586,7 @@ function pointerMoveCanvas(event){
 }
 function pointerUpCanvas(event){
  if(eraseDrag){eraseDrag=null;serializable();renderNotes();save();status('Desenho apagado. Use Ctrl+Z para desfazer.','success');}
- if(moveDrag&&moveDrag.type==='stroke'){finishMoveDrag();}
+ if(moveDrag&&moveDrag.type==='stroke'){finishMoveDrag(event);}
  if(drawPoints){
   const raw=drawPoints;drawPoints=null;
   if(raw.length){
@@ -666,12 +782,12 @@ function contextMenu(event){
  event.preventDefault();
  const item=selectedItem(),type=selected.type;
  const actions=type==='note'?
-  [['edit','✎ Editar texto'],['correct','✧ Revisar gramática'],['copy','▣ Copiar texto'],
+  [['edit','✎ Editar texto'],['move','⌖ Selecionar e mover'],['correct','✧ Revisar gramática'],['copy','▣ Copiar texto'],
    ['blue','● Caneta azul'],['black','● Caneta preta'],['red','● Caneta vermelha'],['delete','⌫ Excluir']]:
   type==='stroke'?
-  [...(item.corrected?[['warp','⌁ Deformar desenho']]:[['fix','✧ Corrigir traço']]),
+  [['move','⌖ Selecionar e mover'],...(item.corrected?[['warp','⌁ Deformar desenho']]:[['fix','✧ Corrigir traço']]),
    ['blue','● Caneta azul'],['black','● Caneta preta'],['red','● Caneta vermelha'],['delete','⌫ Excluir']]:
-  [['edit','✎ Editar post-it'],['tone:yellow','▤ Amarelo'],['tone:pink','▤ Rosa'],
+  [['edit','✎ Editar post-it'],['move','⌖ Selecionar e mover'],['tone:yellow','▤ Amarelo'],['tone:pink','▤ Rosa'],
    ['tone:violet','▤ Lilás'],['delete','⌫ Excluir']];
  const menu=$('nbContextMenu');
  menu.innerHTML=actions.map(([a,label])=>'<button role="menuitem" data-nb-context="'+a+'">'+label+'</button>').join('');
@@ -683,6 +799,7 @@ function contextAction(action){
  const item=selectedItem();if(!item)return;
  $('nbContextMenu').hidden=true;
  if(action==='delete'){deleteSelected();return}
+ if(action==='move'){data.mode='select';refreshTools();status('Clique e arraste o item para movê-lo.','');return}
  if(action==='edit'){
   if(selected.type==='note'){const line=Number(item.line)||FIRST_LINE;data.mode='text';selected=null;beginEdit(line);}
   else if(selected.type==='sticky'){root.querySelector('[data-nb-sticky-text="'+item.id+'"]')?.focus();}
@@ -921,8 +1038,14 @@ root.addEventListener('pointerdown',event=>{
  if(event.target.closest('#nbContextMenu,#nbStickyPalette,#nbGallery,#nbDrawer'))return;
  const note=event.target.closest('[data-nb-note]'),sticky=event.target.closest('[data-nb-sticky]');
  if(data.mode==='select'&&event.button===0){
-  if(note){event.preventDefault();selectItem('note',note.dataset.nbNote);return}
-  if(sticky){event.preventDefault();selectItem('sticky',sticky.dataset.nbSticky);return}
+  if(note){
+   selectItem('note',note.dataset.nbNote);
+   startMoveDrag(event,'note',selectedItem());return;
+  }
+  if(sticky){
+   selectItem('sticky',sticky.dataset.nbSticky);
+   startMoveDrag(event,'sticky',selectedItem());return;
+  }
   if(event.target===canvas)return;
  }
  const handle=event.target.closest('[data-nb-drag]');
@@ -954,6 +1077,7 @@ root.addEventListener('pointerdown',event=>{
 });
 root.addEventListener('pointermove',event=>{
  toolCursor(event);
+ if(moveDrag&&moveDrag.pointerId===event.pointerId){updateMoveDrag(event);return;}
  if(panDrag&&event.pointerId===panDrag.pointerId){
   const dx=event.clientX-panDrag.startX,dy=event.clientY-panDrag.startY;
   if(Math.hypot(dx,dy)>6)panDrag.moved=true;
@@ -982,6 +1106,7 @@ root.addEventListener('pointermove',event=>{
  }
 });
 root.addEventListener('pointerup',event=>{
+ if(moveDrag&&moveDrag.pointerId===event.pointerId){finishMoveDrag(event);return;}
  if(panDrag&&event.pointerId===panDrag.pointerId){
   const drag=panDrag;panDrag=null;
   if(drag.button===0&&!drag.moved){
@@ -1006,7 +1131,10 @@ root.addEventListener('pointerup',event=>{
  }
  if(stickyDrag){stickyDrag=null;save();}
 });
-root.addEventListener('pointercancel',()=>{tapCandidate=null;panDrag=null;if(stickyDrag){stickyDrag=null;save();}});
+root.addEventListener('pointercancel',event=>{
+ if(moveDrag&&moveDrag.pointerId===event.pointerId)finishMoveDrag(event);
+ tapCandidate=null;panDrag=null;if(stickyDrag){stickyDrag=null;save();}
+});
 root.addEventListener('pointerleave',()=>{$('nbToolCursor').hidden=true});
 canvas.addEventListener('pointerdown',pointerDownCanvas);
 canvas.addEventListener('pointermove',pointerMoveCanvas);
