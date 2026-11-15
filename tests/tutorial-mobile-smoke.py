@@ -57,7 +57,10 @@ def run(browser, name, settings):
                     actions:ab?{top:ab.top,bottom:ab.bottom}:null,
                     vw:innerWidth,vh:innerHeight,
                     scrollWidth:document.documentElement.scrollWidth,
-                    smoothCalls:window.__pmTourScrollCalls||[]
+                    smoothCalls:window.__pmTourScrollCalls||[],
+                    vacationLoading:document.documentElement.dataset.pmTourScene?.startsWith('vacation') &&
+                        !document.querySelector('#main #vr-root .vr-months'),
+                    ringVisible:getComputedStyle(document.querySelector('.pm-spotlight-ring')).display!=='none'
                 };
             }""")
             if not state["title"]:
@@ -68,6 +71,8 @@ def run(browser, name, settings):
                 issues.append(f"Etapa {step+1}: painel fora da área visível: {panel}")
             if not actions or actions["top"] < (panel or {}).get("top",0)-3 or actions["bottom"] > (panel or {}).get("bottom",0)+3:
                 issues.append(f"Etapa {step+1}: ações fora do painel: {actions}")
+            if state["vacationLoading"] and state["ringVisible"]:
+                issues.append(f"Etapa {step+1}: recorte falso sobre o carregamento da revisão")
             if state["scrollWidth"] > state["vw"]+5:
                 issues.append(f"Etapa {step+1}: rolagem horizontal inesperada")
             calls = [c for c in state["smoothCalls"] if c["stage"] == state["counter"]]
