@@ -151,7 +151,7 @@ async function loadPresence(){
   if(seen.error)throw seen.error;
   if(profiles.error)throw profiles.error;
   const names=new Map((profiles.data||[]).map(p=>[p.user_id,p.display_name]));
-  presence=(seen.data||[]).map(p=>({...p,name:names.get(p.user_id)||'Usuário cadastrado'}));
+  presence=(seen.data||[]).filter(p=>p.user_id!==user()?.id).map(p=>({...p,name:names.get(p.user_id)||'Usuário cadastrado'}));
   lastPresence=Date.now();updateLogPanel();
  }catch(e){logError='Não foi possível consultar os acessos.';updateLogPanel();console.warn('Presença indisponível:',e)}
 }
@@ -214,7 +214,7 @@ async function loadAccess(){
   const names=new Map((profiles.data||[]).map(p=>[p.user_id,p.display_name]));
   const marked=new Set((labels.data||[]).map(x=>String(x.access_id)));
   hasMoreEntries=(events.data||[]).length>logLimit;
-  accessLog=(events.data||[]).slice(0,logLimit).map(r=>{
+  accessLog=(events.data||[]).filter(r=>r.user_id!==user()?.id).slice(0,logLimit).map(r=>{
    const isTest=r.actor==='anonymous'&&marked.has(String(r.id));
    return {...r,isTest,name:r.actor==='anonymous'?(isTest?'Meu teste anônimo':'Visitante anônimo'):names.get(r.user_id)||'Usuário cadastrado'};
   });
@@ -307,12 +307,43 @@ function visitDetail(row){
   '<p class="admin-visit-note">'+esc(message)+'</p>'+
   '<ol class="admin-visit-timeline">'+timeline+ending+'</ol></section>';
 }
-async function openVisit(id){
+// Abre/fecha o percurso sem substituir a lista nem destruir o botão tocado.
+ // Evita que o Safari reinicie o scroll ou tente focar um elemento removido.
+ function updateVisitExpansion(){
+  if(logRenderTimer){clearTimeout(logRenderTimer);logRenderTimer=null;}
+  const list=document.getElementById('adminLogData')?.querySelector('.admin-log-rows');
+  if(!list){updateLogPanel();return;}
+  const y=list.scrollTop,x=list.scrollLeft;
+  for(const button of list.querySelectorAll('[data-admin-open-visit]')){
+   const row=button.closest('.admin-log-row');
+   if(!row)continue;
+   const visitId=button.dataset.adminOpenVisit||'';
+   const presenceId=button.dataset.adminOpenPresence||'';
+   const match=visitId?accessLog.find(entry=>String(entry.id)===visitId):null;
+   const selected=match?selectedVisitId===visitId:!!presenceId&&selectedPresenceId===presenceId;
+   const previous=row.nextElementSibling;
+   if(previous?.classList.contains('admin-visit-detail'))previous.remove();
+   row.classList.toggle('is-selected',selected);
+   button.setAttribute('aria-expanded',String(selected));
+   if(selected)button.setAttribute('data-admin-visit-selected','');
+   else button.removeAttribute('data-admin-visit-selected');
+   const arrow=button.querySelector('.admin-log-expand');
+   if(arrow)arrow.textContent=selected?'⌃':'⌄';
+   if(!selected)continue;
+   const html=match?visitDetail(match):
+    '<section class="admin-visit-detail"><strong>Histórico desta presença</strong>'+
+    '<p class="admin-visit-note">A conta está no painel de presença, mas não há uma entrada individual associada entre os registros carregados. Não é possível reconstruir páginas ou ações a partir de um status online.</p>'+
+    '<button type="button" data-admin-close-visit>Fechar ×</button></section>';
+   row.insertAdjacentHTML('afterend',html);
+  }
+  list.scrollTop=y;list.scrollLeft=x;
+ }
+ async function openVisit(id){
  if(!isAdmin())return;
- if(selectedVisitId===String(id)){selectedVisitId=null;selectedPresenceId=null;visitSteps=[];updateLogPanel();return;}
+ if(selectedVisitId===String(id)){selectedVisitId=null;selectedPresenceId=null;visitSteps=[];updateVisitExpansion();return;}
  const record=accessLog.find(row=>String(row.id)===String(id));
  if(!record)return;
- selectedVisitId=String(id);selectedPresenceId=null;visitSteps=[];visitError='';visitLoading=true;updateLogPanel();
+ selectedVisitId=String(id);selectedPresenceId=null;visitSteps=[];visitError='';visitLoading=true;updateVisitExpansion();
  try{
   const {data,error}=await client().from('uentzoul_visit_steps')
    .select('id,kind,section,detail,semester,happened_at')
@@ -321,7 +352,7 @@ async function openVisit(id){
   if(selectedVisitId!==String(id))return;
   visitSteps=data||[];
  }catch(error){visitError='Não foi possível consultar o percurso. '+(error?.message||'Verifique a conexão.');}
- finally{if(selectedVisitId===String(id)){visitLoading=false;updateLogPanel();
+ finally{if(selectedVisitId===String(id)){visitLoading=false;updateVisitExpansion();
   // Sem scrollIntoView: no iPhone ele pode deslocar também a página inteira.
  }}
 }
@@ -374,7 +405,7 @@ function logMarkup(){
 
 // Não reconstrói a lista enquanto alguém está rolando: no iOS, trocar
 // innerHTML durante o gesto faz o contêiner interno voltar ao início.
-function logViewKey(){return [logTab,selectedVisitId||'',selectedPresenceId||'',logLimit].join('|');}
+function logViewKey(){return [logTab,logLimit].join('|');}
 function markLogGesture(event){
  const list=event.target?.closest?.('.admin-log-rows');
  if(list&&document.getElementById('adminLogData')?.contains(list))lastLogGesture=Date.now();
@@ -545,8 +576,8 @@ document.addEventListener('click',e=>{
  if(e.target.closest('[data-admin-refresh]')&&isAdmin()){heartbeat().then(loadPresence);loadAccess();loadGuestOnline();loadReports();}
  const open=e.target.closest('[data-admin-open-visit]');
  if(open&&isAdmin()&&open.dataset.adminOpenVisit){void openVisit(open.dataset.adminOpenVisit);return;}
- if(open&&isAdmin()&&open.dataset.adminOpenPresence){const uid=open.dataset.adminOpenPresence;selectedPresenceId=selectedPresenceId===uid?null:uid;selectedVisitId=null;visitSteps=[];updateLogPanel();return;}
- if(e.target.closest('[data-admin-close-visit]')&&isAdmin()){selectedVisitId=null;selectedPresenceId=null;visitSteps=[];updateLogPanel();return;}
+ if(open&&isAdmin()&&open.dataset.adminOpenPresence){const uid=open.dataset.adminOpenPresence;selectedPresenceId=selectedPresenceId===uid?null:uid;selectedVisitId=null;visitSteps=[];updateVisitExpansion();return;}
+ if(e.target.closest('[data-admin-close-visit]')&&isAdmin()){selectedVisitId=null;selectedPresenceId=null;visitSteps=[];updateVisitExpansion();return;}
  if(e.target.closest('[data-admin-log-more]')&&isAdmin()){logLimit+=200;void loadAccess();return;}
  const test=e.target.closest('[data-admin-test-access]');
  if(test&&isAdmin()){toggleTestAccess(test.dataset.adminTestAccess);return;}
