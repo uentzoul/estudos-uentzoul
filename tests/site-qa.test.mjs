@@ -119,3 +119,17 @@ test('Auditoria oficial não infla visitantes e aparece separadamente no LOG',()
  assert.match(admin,/function botLogMarkup\(/);
  assert.match(admin,/actions\/workflows\/site-health\.yml\/runs/);
 });
+
+test('LOG mantém rolagem estável em atualizações automáticas e gestos touch',()=>{
+ const admin=read('admin-config.js');
+ const css=read('admin-config.css');
+ assert.match(admin,/function markLogGesture\(/);
+ assert.match(admin,/touchmove',markLogGesture/);
+ assert.match(admin,/recentlyScrolled/);
+ assert.match(admin,/contents\.innerHTML!==markup/);
+ assert.match(admin,/list\.scrollTop/);
+ assert.match(admin,/updated\.scrollTop=y/);
+ assert.doesNotMatch(admin,/scrollIntoView\(/);
+ assert.match(css,/\.admin-log-rows\{[^}]*overscroll-behavior-y:contain/);
+ assert.match(css,/\.admin-log-rows\{[^}]*-webkit-overflow-scrolling:touch/);
+});
