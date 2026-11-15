@@ -262,7 +262,7 @@ function refreshTools(){
  $('nbPageCount').textContent=pageCountLabel();updateBookHeading();
  $('nbPageNum').textContent=String(data.page+1).padStart(2,'0');
  $('nbPaperDate').value=page().date||'';
- const back=$('nbSheet').querySelector('.nb-corner-back');if(back){back.disabled=false;back.setAttribute('aria-label',data.page===0?'Voltar aos cadernos':'Voltar à folha anterior');}
+ const back=$('nbSheet').querySelector('.nb-corner-back');if(back){back.disabled=false;back.setAttribute('aria-label',data.page===0?'Primeira folha do caderno':'Voltar à folha anterior');back.title=data.page===0?'Primeira folha do caderno':'Voltar à folha anterior';}
 }
 function letterMarkup(text){
  return Array.from(String(text||'')).map(ch=>{
@@ -1218,7 +1218,7 @@ function flip(direction){
  if(flipping)return;
  if(editing)saveEditor(false);
  const target=data.layout==='book'?(Math.floor(data.page/2)*2+(direction>0?2:-2)):data.page+direction;
- if(target<0||target>data.pages.length)return;
+ if(target<0||target>data.pages.length){status(direction<0?'Esta já é a primeira folha.':'Escreva nas folhas atuais antes de avançar.','');return;}
  if(target===data.page)return;
  if(target===data.pages.length&&data.pages.length>=250){status('Limite de páginas atingido nesta prévia.','error');return}
  flipping=true;sheet.classList.add('nb-folding');
