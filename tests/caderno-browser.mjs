@@ -111,9 +111,9 @@ try{
  console.log('LINE BASELINE QA '+JSON.stringify(oneLineSizing));
  // Verificação visual por pixels: a cor da caneta não pode ficar "flutuando".
  // As linhas da pauta são azuis claras; pixels de tinta possuem R baixo e B>G.
- const visual=await f.locator('#nbSheet').boundingBox(),z=visual.width/780;
- const area={x:visual.x+105*z,y:visual.y+(oneLineSizing.top-20)*z,
-  width:520*z,height:80*z};
+ const visual=await f.locator('#nbSheet').boundingBox(),inkZoom=visual.width/780;
+ const area={x:visual.x+105*inkZoom,y:visual.y+(oneLineSizing.top-20)*inkZoom,
+  width:520*inkZoom,height:80*inkZoom};
  const sample=await page.screenshot({clip:area,animations:'disabled'});
  const ink=await page.evaluate(async b64=>{
   const img=new Image();img.src='data:image/png;base64,'+b64;await img.decode();
@@ -129,8 +129,8 @@ try{
   }
   return{minY,maxY,count};
  },sample.toString('base64'));
- const visualGap=(((28+4*34)-(oneLineSizing.top-20))*z-ink.maxY)/z;
- console.log('INK GAP QA '+JSON.stringify({visualGap,ink,zoom:z}));
+ const visualGap=(((28+4*34)-(oneLineSizing.top-20))*inkZoom-ink.maxY)/inkZoom;
+ console.log('INK GAP QA '+JSON.stringify({visualGap,ink,zoom:inkZoom}));
 
  assert.equal(oneLineSizing.capital,oneLineSizing.lower,'Em 1 linha a maiúscula NÃO deve ocupar a linha de cima');
  assert.equal(oneLineSizing.capital,26,'Letra tamanho 1 deve ter altura normal de escrita');
