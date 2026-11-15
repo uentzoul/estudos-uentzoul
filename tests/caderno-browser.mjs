@@ -45,7 +45,7 @@ try{
  assert.equal(await f.locator('#nbPaperTitle').count(),0);
  assert.ok(await f.locator('.nb-corner-back').evaluate(el=>parseFloat(getComputedStyle(el).top))<20);
 
- assert.equal(await f.locator('[data-nb-action="select"]').getAttribute('aria-pressed'),'true','Selecionar precisa ser o padrão');
+ assert.equal(await f.locator('[data-nb-action="none"]').getAttribute('aria-pressed'),'true','Navegar precisa ser o padrão neutro');
  assert.equal(await f.locator('#nbPageRail').count(),1);
  assert.ok(await f.locator('#nbPageRail').evaluate(el=>el.classList.contains('is-open')),'Miniaturas laterais devem estar abertas no desktop');
  await f.locator('[data-nb-action="text"]').click();
