@@ -90,7 +90,7 @@
 .admin-log-toolbar button[aria-selected="true"]{color:#634baa;background:#eee8fa;border-color:#d5c7f0}
 .admin-log-toolbar button span{border-radius:20px;background:#6852b7;color:white;padding:2px 6px;font-size:10px;margin-left:5px}
 .admin-log-toolbar .admin-log-refresh{margin-left:auto;min-width:35px;font-size:19px;padding:4px 10px}
-.admin-log-rows{display:grid;gap:5px;max-height:435px;overflow:auto;scrollbar-width:thin}
+.admin-log-rows{display:grid;gap:5px;max-height:435px;overflow:auto;scrollbar-width:thin;overscroll-behavior-y:contain;-webkit-overflow-scrolling:touch;touch-action:pan-y}
 .admin-log-row{display:flex;align-items:center;gap:12px;padding:10px 11px;border:1px solid var(--line);border-radius:10px;background:var(--soft)}
 .admin-log-avatar{width:34px;height:34px;flex:none;display:grid;place-items:center;border-radius:50%;background:#ebe5f7;color:#6c559e;font-weight:800}
 .admin-log-avatar.is-online{box-shadow:0 0 0 2px #64bc9a;border:2px solid var(--paper)}
