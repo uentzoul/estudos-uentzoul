@@ -180,6 +180,19 @@ setTimeout(check,15000);
 })();
 
 
+/* Navegação resumida por visita, carregada para estudantes e visitantes. */
+(()=>{
+ 'use strict';
+ const setup=()=>{
+  if(document.getElementById('pm-visit-path-js'))return;
+  const script=document.createElement('script');
+  script.id='pm-visit-path-js';script.src='visit-path.js?v=20261114-percurso-v1';
+  script.async=true;document.head.appendChild(script);
+ };
+ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',setup,{once:true});
+ else setup();
+})();
+
 /* Revisão de Férias: entrada única; segue o semestre selecionado no menu existente. */
 (()=>{
  'use strict';
