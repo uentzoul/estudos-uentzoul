@@ -188,3 +188,41 @@ html[data-theme="dark"] .admin-config-page .admin-online-pulse{background:#85e7b
 @media(prefers-reduced-motion:reduce){
  .admin-config-page .admin-online-pulse{animation:none}
 }
+
+
+/* LOG: cada registro pode abrir seu próprio percurso, inclusive no celular. */
+.admin-log-row{padding:0;gap:0;overflow:hidden}
+.admin-log-row.is-selected{border-color:color-mix(in srgb,var(--accent,#7967be) 55%,var(--line))}
+.admin-log-row-target{display:flex;align-items:center;gap:12px;flex:1;min-width:0;min-height:57px;padding:10px 11px;text-align:left;background:transparent;border:0;color:var(--ink);cursor:pointer;font-family:inherit}
+.admin-log-row-target:hover{background:color-mix(in srgb,var(--accent,#7967be) 7%,transparent)}
+.admin-log-row-target:focus-visible,.admin-visit-head button:focus-visible{outline:2px solid var(--accent,#7967be);outline-offset:-3px}
+.admin-log-row-target:disabled{cursor:default;opacity:.72}
+.admin-log-row-target time{margin-left:auto;font-variant-numeric:tabular-nums}
+.admin-log-expand{font-size:15px;color:var(--muted);flex:none;margin-left:3px}
+.admin-log-row .admin-log-test-toggle{margin:8px;align-self:center}
+.admin-log-more{width:100%;margin-top:8px;border:1px solid var(--line);border-radius:10px;padding:12px;background:var(--soft);color:var(--ink);font-size:12px;cursor:pointer;font-weight:700}
+.admin-visit-detail{margin:0 0 8px 0;padding:16px;border:1px solid color-mix(in srgb,var(--accent,#7967be) 34%,var(--line));border-radius:11px;background:var(--paper);color:var(--ink);overflow-wrap:anywhere}
+.admin-visit-head{display:flex;justify-content:space-between;align-items:start;gap:12px}
+.admin-visit-head strong{display:block;font-size:14px;color:var(--ink)}
+.admin-visit-head small{display:block;color:var(--muted);font-size:10px;margin-top:5px}
+.admin-visit-head button{flex:none;background:var(--soft);border:1px solid var(--line);border-radius:8px;color:var(--ink);padding:7px 10px;cursor:pointer;font-size:11px}
+.admin-visit-note{font-size:11px;line-height:1.65;color:var(--muted);margin:12px 0}
+.admin-visit-timeline{list-style:none;padding:0 0 0 11px;margin:17px 0 2px 5px;border-left:2px solid var(--line)}
+.admin-visit-step{position:relative;display:grid;grid-template-columns:minmax(116px,max-content) minmax(0,1fr);gap:3px 13px;padding:0 0 20px 15px;color:var(--ink)}
+.admin-visit-step:last-child{padding-bottom:0}
+.admin-visit-step:before{content:'';position:absolute;left:-18px;top:5px;width:11px;height:11px;background:var(--accent,#7967be);border:2px solid var(--paper);border-radius:50%;box-shadow:0 0 0 1px var(--accent,#7967be)}
+.admin-visit-step time{font-size:10px;color:var(--muted);font-variant-numeric:tabular-nums}
+.admin-visit-step strong{font-size:12px;font-weight:740;line-height:1.45}
+.admin-visit-step small{grid-column:2;font-size:10px;color:var(--muted)}
+.admin-visit-step[data-kind="exit"]:before{background:#4d987d;box-shadow:0 0 0 1px #4d987d}
+.admin-visit-uncertain:before{background:var(--muted);box-shadow:0 0 0 1px var(--muted)}
+html[data-theme="dark"] .admin-log-row-target:hover{background:#ffffff0b}
+@media(max-width:600px){
+ .admin-log-row-target{gap:9px;flex-wrap:wrap}
+ .admin-log-row-target .admin-log-person{flex:1 1 calc(100% - 70px)}
+ .admin-log-row-target time{margin-left:42px;width:calc(100% - 50px)}
+ .admin-log-row .admin-log-test-toggle{margin:4px 10px 9px 42px}
+ .admin-visit-detail{padding:13px}
+ .admin-visit-step{grid-template-columns:1fr;gap:4px 0;padding-left:14px}
+ .admin-visit-step small{grid-column:1}
+}
