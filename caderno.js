@@ -19,17 +19,17 @@ const W=780,H=1240,L=34,START=28,ROWS=30,FIRST_LINE=3;
 const STORE='uentzoul:caderno:alpha2:'+userId;
 const LEGACY_STORE='uentzoul:caderno:alpha1:'+userId;
 const COLORS={black:'#24242e',blue:'#2559a4',red:'#bb3d43'};
-const MODES=['text','select','draw','erase','sticky','warp'];
+const MODES=['none','text','select','draw','erase','sticky','warp'];
 const ACTIONS=[
- ['text','Escrever'],['select','Selecionar'],['draw','Desenhar'],['erase','Borracha'],['sticky','Post-it'],['warp','Moldar'],
+ ['none','Mover folha / nenhuma seleção'],['text','Escrever'],['select','Selecionar'],['draw','Desenhar'],['erase','Borracha'],['sticky','Post-it'],['warp','Moldar'],
  ['black','Caneta preta'],['blue','Caneta azul'],['red','Caneta vermelha'],
- ['print','Letra de forma'],['cursive','Letra cursiva'],
+ ['print','Letra de forma 1'],['cursive','Letra de forma 2'],['joined','Letra cursiva conectada'],
  ['prev','Página anterior'],['next','Próxima página'],['zoomIn','Aproximar'],['zoomOut','Afastar'],
  ['smooth','Alternar ajuste do traço']
 ];
 const emptyPage=()=>({title:'',date:'',notes:[],strokes:[],stickies:[]});
 const newBook=(name='Meu caderno')=>({id:'book-'+Date.now()+'-'+Math.random().toString(36).slice(2,8),name,pages:[]});
-const defaults=()=>({books:[{id:'book-original',name:'Meu caderno',pages:[]}],bookId:'book-original',page:0,mode:'select',font:'print',ink:'blue',size:1,smooth:false,zoom:.88,shortcuts:{},stickyTone:'yellow',eraserMode:'parts',eraserRadius:14});
+const defaults=()=>({books:[{id:'book-original',name:'Meu caderno',pages:[]}],bookId:'book-original',page:0,mode:'none',font:'print',ink:'blue',size:1,smooth:false,zoom:.88,shortcuts:{},stickyTone:'yellow',eraserMode:'parts',eraserRadius:14});
 const hasPageContent=p=>!!(p?.notes?.some(n=>String(n.text||'').trim())||p?.strokes?.some(s=>s.points?.length)||p?.stickies?.length);
 const cleanPage=p=>({title:String(p?.title||'').slice(0,100),date:String(p?.date||'').slice(0,16),
  notes:Array.isArray(p?.notes)?p.notes.slice(0,140).map(n=>{const {original,...corrected}=n;corrected.pending=false;return corrected;}):[],strokes:Array.isArray(p?.strokes)?p.strokes.slice(0,500):[],
@@ -51,15 +51,15 @@ if(stored&&typeof stored==='object'){
   data.page=Math.min(data.books.find(b=>b.id===data.bookId).pages.length,Math.max(0,Number(data.page)||0));
   data.zoom=Math.min(2.3,Math.max(.42,Number(data.zoom)||.88));
   data.size=Math.min(3,Math.max(1,Number(data.size)||1));
-  if(!MODES.includes(data.mode))data.mode='text';
+  if(!MODES.includes(data.mode))data.mode='none';
   if(!COLORS[data.ink])data.ink='blue';
-  if(!['print','cursive'].includes(data.font))data.font='print';
+  if(!['print','cursive','joined'].includes(data.font))data.font='print';
   if(!data.shortcuts||typeof data.shortcuts!=='object')data.shortcuts={};
  }
 }
 const activeBook=()=>data.books.find(b=>b.id===data.bookId)||data.books[0];
 data.pages=activeBook().pages;
-data.mode='select'; // Ferramenta inicial segura, mesmo depois de restaurar sessão.
+data.mode='none'; // Ao abrir, nenhuma ferramenta atua na folha até o usuário escolher.
 if(!stored?.smoothingV3){data.smooth=true;data.smoothingV3=true;}
 let pendingPage=emptyPage(),galleryOpen=false,drawerOpen=false,galleryOffset=0,railOpen=!window.matchMedia('(max-width:760px)').matches;
 let selected=null,contextTarget=null,panDrag=null,lastPointer=null,toolPaletteOpen=false,eraseDrag=null,moveDrag=null,resizeDrag=null;
@@ -132,7 +132,7 @@ root.innerHTML=
  '<header class="nb-top"><div class="nb-brand"><button type="button" class="nb-mark nb-hamburger" data-nb-action="drawer" aria-label="Abrir lista de cadernos" title="Cadernos">☰</button><div><h1 id="nbBookHeading">Caderno de aula</h1><p>Prévia exclusiva da administração</p></div></div>'+
  '<div class="nb-top-right"><button class="nb-quiet nb-back-books" data-nb-action="backToBooks" title="Voltar aos cadernos">‹ Cadernos</button><span class="nb-status" id="nbStatus" role="status">Rascunho local · salvo automaticamente</span><button class="nb-quiet" data-nb-action="export">Exportar PDF</button></div></header>'+
  '<div class="nb-tools" id="nbTools" role="toolbar" aria-label="Ferramentas do caderno">'+
- '<div class="nb-toolgroup"><button class="nb-tool" data-nb-action="text" title="Escrever nas linhas">✎ Escrever</button>'+
+ '<div class="nb-toolgroup"><button class="nb-tool" data-nb-action="none" title="Mover a folha sem selecionar nem editar">✋ Navegar</button><button class="nb-tool" data-nb-action="text" title="Escrever nas linhas">✎ Escrever</button>'+
  '<button class="nb-tool" data-nb-action="select" title="Selecionar anotações, post-its e desenhos">⌖ Selecionar</button>'+
  '<button class="nb-tool" data-nb-action="erase" title="Apagar partes ou traços inteiros de desenhos">⌫ Borracha</button>'+
  '<button class="nb-tool" data-nb-action="draw" title="Desenhar diretamente na folha">〰 Desenhar</button>'+
@@ -145,7 +145,7 @@ root.innerHTML=
  '<button class="nb-color" data-nb-action="black" style="--swatch:#24242e" aria-label="Caneta preta"><span></span></button>'+
  '<button class="nb-color" data-nb-action="blue" style="--swatch:#2559a4" aria-label="Caneta azul"><span></span></button>'+
  '<button class="nb-color" data-nb-action="red" style="--swatch:#bb3d43" aria-label="Caneta vermelha"><span></span></button></span>'+
- '<select class="nb-font-select" id="nbFont" aria-label="Tipo de letra"><option value="print">Letra de forma</option><option value="cursive">Letra cursiva</option></select>'+
+ '<select class="nb-font-select" id="nbFont" aria-label="Tipo de letra"><option value="print">Letra de forma 1</option><option value="cursive">Letra de forma 2</option><option value="joined">Letra cursiva</option></select>'+
  '<select class="nb-size-select" id="nbSize" aria-label="Altura da letra"><option value="1">1 linha</option><option value="2">2 linhas</option><option value="3">3 linhas</option></select></div>'+
  '<div class="nb-toolgroup"><label class="nb-correct-toggle" title="Reconhecer formas simples e suavizar tremores"><input id="nbSmooth" type="checkbox">Ajustar traços</label>'+
  '<button class="nb-tool" data-nb-action="shortcuts" title="Personalizar teclas e botões do mouse">⌨ Atalhos</button>'+
@@ -237,9 +237,9 @@ function noteMarkup(n,preview){
   width=clamp(Number(n.frameW)||620,70,W-left-20),
   scaleX=clamp(Number(n.scaleX)||1,.35,3.8),scaleY=clamp(Number(n.scaleY)||1,.35,3.8);
  const css='left:'+left+'px;right:auto;width:'+width+'px;top:'+top+'px;min-height:'+
-  (size*L)+'px;transform:scale('+scaleX+','+scaleY+');transform-origin:top left;--nb-small:'+
-  (size*26)+'px;color:'+(COLORS[n.ink]||COLORS.blue)+';';
- return '<div class="nb-note '+(n.font==='cursive'?'cursive':'print')+(preview?' nb-preview':'')+
+  (size*L)+'px;transform:scale('+scaleX+','+scaleY+');transform-origin:top left;--nb-small:26px;--nb-cap-size:'+
+  (26+(size-1)*34)+'px;color:'+(COLORS[n.ink]||COLORS.blue)+';';
+ return '<div class="nb-note '+(n.font==='joined'?'joined':n.font==='cursive'?'cursive':'print')+(preview?' nb-preview':'')+
   (editing&&editing.id===n.id?' nb-selected':'')+(n.pending?' nb-correcting':'')+
   '" style="'+css+'"'+(!preview?' data-nb-note="'+esc(n.id)+'"':'')+'><span class="nb-note-content">'+letterMarkup(n.text)+'</span></div>';
 }
@@ -250,9 +250,9 @@ function renderNotes(){
 function editorMarkup(){
  const host=$('nbEditorHost');
  if(!editing){host.innerHTML='';return;}
- const line=editing.line,top=START+line*L-1,fsize=clamp(Number(data.size)||1,1,3)*26;
+ const line=editing.line,top=START+line*L+7,fsize=26;
  const lineHeight=Math.max(34,Math.round(fsize*1.22));
- host.innerHTML='<textarea class="nb-inline-edit '+(data.font==='cursive'?'cursive':'print')+
+ host.innerHTML='<textarea class="nb-inline-edit '+(data.font==='joined'?'joined':data.font==='cursive'?'cursive':'print')+
   '" id="nbEditorText" style="top:'+top+'px;--nb-small:'+fsize+'px;line-height:'+lineHeight+'px;color:'+
   (COLORS[data.ink]||COLORS.blue)+';" rows="1" maxlength="2500" spellcheck="true"'+
   ' aria-label="Escrever diretamente na linha '+(line+1)+'"></textarea>';
@@ -1156,7 +1156,7 @@ function toolCursor(event){
   marker.style.left=event.clientX+'px';marker.style.top=event.clientY+'px';
  }else{
   marker.style.width='25px';marker.style.height='25px';
-  const icons={text:'✎',select:'⌖',draw:'〰',sticky:'▤',warp:'⌁'};
+  const icons={none:'✋',text:'✎',select:'⌖',draw:'〰',sticky:'▤',warp:'⌁'};
   marker.textContent=icons[data.mode]||'⌖';
   marker.style.left=(event.clientX+13)+'px';marker.style.top=(event.clientY+12)+'px';
  }
@@ -1234,7 +1234,9 @@ function act(action){
   // Em Deformar, preservar a seleção e as alças do traço corrigido.
   const keepSelection=action==='warp'&&selected?.type==='stroke'&&selectedItem()?.corrected;
   data.mode=action;toolPaletteOpen=false;if(!keepSelection)selected=null;selectedStroke=-1;
+  $('nbLineHover').hidden=true;$('nbContextMenu').hidden=true;
   refreshTools();renderNotes();renderStickies();drawCanvas();renderSelectionHandles();renderStickyPalette();save();
+  if(action==='none')status('Modo navegar: arraste a página, use zoom ou selecione outra ferramenta.','');
   if(action==='select')status('Clique para selecionar e arrastar textos, desenhos ou post-its.','');
   if(action==='erase')status('Arraste a borracha sobre o desenho para apagar trechos ou traços inteiros.','');
   if(action==='warp')status('Selecione o desenho e use o quadradinho para mover ou o ponto redondo para moldar.','');
@@ -1242,11 +1244,11 @@ function act(action){
  }
  if(COLORS[action]){data.ink=action;refreshTools();renderNotes();save();return}
  switch(action){
- case 'print':case 'cursive':
+ case 'print':case 'cursive':case 'joined':
   data.font=action;refreshTools();renderNotes();
   if(editing){editing.draft=$('nbEditorText')?.value||'';editorMarkup()}
   save();break;
- case 'prev':if(data.page===0)backToBooks();else flip(-1);break;case 'next':flip(1);break;
+ case 'prev':if(data.page>0)flip(-1);else status('Esta já é a primeira folha. Use Cadernos para ver as capas.','');break;case 'next':flip(1);break;
  case 'drawer':toggleDrawer();break;case 'closeDrawer':closeDrawer();break;
  case 'backToBooks':backToBooks();break;
  case 'toggleRail':togglePageRail();break;
@@ -1343,7 +1345,7 @@ root.addEventListener('keydown',event=>{
     event.preventDefault();event.stopPropagation();saveEditor(true);return;
    }
   }
-  if(event.key==='Escape'){event.preventDefault();closeEditor();act('select');}
+  if(event.key==='Escape'){event.preventDefault();event.stopPropagation();act('none');}
  }
  if(event.target.id==='nbNewBook'&&event.key==='Enter'){event.preventDefault();addBook();}
  if(event.target.id==='nbRenameBook'&&event.key==='Enter'){event.preventDefault();renameBook();}
@@ -1366,7 +1368,7 @@ document.addEventListener('keydown',event=>{
   if(drawerOpen)closeDrawer();
   if(galleryOpen)hideGallery();
   if(!$('nbShortcutsDialog').hidden)$('nbShortcutsDialog').hidden=true;
-  selected=null;act('select');event.preventDefault();return;
+  selected=null;selectedStroke=-1;act('none');event.preventDefault();return;
  }
  if(inInput||event.repeat)return;
  const code=shortcutEventString(event);
@@ -1437,7 +1439,7 @@ root.addEventListener('pointerdown',event=>{
  }
  const inSheet=!!event.target.closest('#nbSheet');
  if(inSheet&&(event.button===1 ||
-      event.button===0&&data.mode==='select' ||
+      event.button===0&&['select','none'].includes(data.mode) ||
       event.pointerType==='mouse'&&event.button===0&&['text','sticky'].includes(data.mode))&&
      !event.target.closest('button,input,textarea,.nb-sticky,.nb-editor')){
   startPan(event);return;
