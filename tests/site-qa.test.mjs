@@ -191,7 +191,7 @@ test('Tutorial de férias cobre os dois semestres e não muda à força para o p
  assert.match(tour,/A revisão do 1º e do 2º semestres está liberada/);
  assert.doesNotMatch(tour,/27\/11|segundo ainda está em preparação|temporaryVacationSemester/);
  assert.match(tour,/currentSemester\?\.\(\)===1\?3:8/);
- assert.match(loader,/spotlight-tour\.js\?v=20261115-stable-mobile-v31/);
+ assert.match(loader,/spotlight-tour\.js\?v=20261115-flicker-fixed-v32/);
  assert.match(vacation,/const MONTHS=\{1:\[3,4,5,6\],2:\[8,9,10,11\]\}/);
 });
 
