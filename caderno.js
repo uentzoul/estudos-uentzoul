@@ -55,11 +55,15 @@ const clamp=(v,min,max)=>Math.max(min,Math.min(max,v));
 const page=()=>data.pages[data.page];
 const id=()=>typeof crypto.randomUUID==='function'?crypto.randomUUID():'nb-'+Date.now()+'-'+Math.random().toString(36).slice(2);
 const isMobile=()=>window.matchMedia('(max-width:760px)').matches;
+function persistNow(){
+ clearTimeout(saveTimer);
+ try{localStorage.setItem(STORE,JSON.stringify(data));return true}
+ catch(e){status('Armazenamento cheio. Exporte uma cópia do caderno.','error');return false}
+}
 function save(){
  clearTimeout(saveTimer);
  saveTimer=setTimeout(()=>{
-  try{localStorage.setItem(STORE,JSON.stringify(data));status('Salvo neste dispositivo','success')}
-  catch(e){status('Armazenamento cheio. Exporte uma cópia do caderno.','error')}
+  if(persistNow())status('Salvo neste dispositivo','success');
  },180);
 }
 function status(message,kind){
@@ -595,6 +599,19 @@ view.addEventListener('touchmove',event=>{
 },{passive:false});
 view.addEventListener('touchend',event=>{if(event.touches.length<2)pinch=null},{passive:true});
 window.addEventListener('blur',()=>{if(drawPoints||warpDrag)pointerUpCanvas();if(stickyDrag){stickyDrag=null;save();}});
+window.addEventListener('pagehide',()=>{
+ // O iframe pode ser desmontado ao navegar: conserva inclusive a anotação ainda em edição.
+ if(editing){
+  const typed=String($('nbEditorText')?.value||'').trim();
+  if(typed){
+   let note=editing.id?page().notes.find(n=>n.id===editing.id):null;
+   if(!note){note={id:id(),line:editing.line,text:typed};page().notes.push(note)}
+   Object.assign(note,{text:typed,original:typed,font:data.font,size:data.size,ink:data.ink,pending:false,reviewed:false});
+   note.span=occupiedSpan(note);makeRoom(note);
+  }
+ }
+ persistNow();
+});
 setInterval(()=>{
  try{
   if(!window.parent.uentzoulAdminConfig?.isAdmin?.()||window.parent.uentzoulAIAuth?.user?.()?.id!==userId){
