@@ -153,6 +153,12 @@ try{
  // Capas acessíveis pelo botão de voltar e ambiente externo escuro, papel claro.
  await f.locator('[data-nb-action="backToBooks"]').click();
  assert.equal(await f.locator('.nb-book-cover').count(),1);
+ // O botão Voltar do navegador/mouse deve retornar à biblioteca de cadernos.
+ await f.locator('[data-nb-book]').first().click();
+ assert.equal(await f.locator('#nbDrawer').isVisible(),false);
+ await page.goBack({waitUntil:'domcontentloaded'});
+ await f.locator('#nbDrawer').waitFor({state:'visible'});
+ assert.ok(await f.locator('.nb-book-cover').count()>=1,'Voltar deve mostrar os cadernos');
  await f.locator('[data-nb-action="closeDrawer"]').click();
  await page.evaluate(()=>{document.documentElement.dataset.theme='dark'});
  await page.waitForFunction(()=>{
