@@ -573,6 +573,8 @@ root.addEventListener('pointerdown',event=>{
  if(action){event.preventDefault();act(action)}
 },true);
 view.addEventListener('wheel',event=>{
+ // Campos editáveis mantêm a rolagem nativa; na folha, a roda controla o zoom.
+ if(event.target.closest('textarea,input,select'))return;
  event.preventDefault();
  const speed=event.deltaMode===1?13:1;
  zoomAt(data.zoom*Math.exp(-event.deltaY*speed*.0015),event.clientX,event.clientY);
