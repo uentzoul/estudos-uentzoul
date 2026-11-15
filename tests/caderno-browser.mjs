@@ -125,14 +125,14 @@ try{
   let minY=Infinity,maxY=-1,count=0;
   for(let y=0;y<img.height;y++)for(let x=0;x<img.width;x++){
    const i=(y*img.width+x)*4,r=raw[i],g=raw[i+1],b=raw[i+2];
-   if(r<120&&g<170&&b<215&&b>g+14){
+   if(r<95&&g<150&&b<210&&b>g+22){
     minY=Math.min(minY,y);maxY=Math.max(maxY,y);count++;
    }
   }
   const suspects=[];
   for(let x=0;x<img.width;x++){
    const y=maxY,i=(y*img.width+x)*4,r=raw[i],g=raw[i+1],b=raw[i+2];
-   if(r<120&&g<170&&b<215&&b>g+14&&suspects.length<15)suspects.push({x,r,g,b});
+   if(r<95&&g<150&&b<210&&b>g+22&&suspects.length<15)suspects.push({x,r,g,b});
   }
   return{minY,maxY,count,suspects};
  },sample.toString('base64'));
