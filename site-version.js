@@ -83,7 +83,7 @@ function setup(){
  if(!document.getElementById('pm-tutorial-script')){
   const script=document.createElement('script');
   script.id='pm-tutorial-script';
-  script.src='spotlight-tour.js?v=20261115-smooth-mobile-v30';
+  script.src='spotlight-tour.js?v=20261115-stable-mobile-v31';
   script.async=true;
   document.head.appendChild(script);
  }
