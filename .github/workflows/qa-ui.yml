@@ -33,6 +33,8 @@ jobs:
           sleep 3
       - name: Auditar três semestres em Chromium desktop, Android e WebKit iPhone
         run: python tests/ui-smoke.py
+      - name: Verificar cliques do Admin Config com registros fictícios
+        run: python tests/admin-log-smoke.py
       - name: Publicar evidências da auditoria
         if: always()
         uses: actions/upload-artifact@v4
