@@ -86,3 +86,23 @@ test('Estilos mobile e tema escuro permanecem incluídos',()=>{
  }
  assert.match(read('revisao-ferias.css'),/data-theme="dark"/);
 });
+
+
+test('Histórico por visita: linhas clicáveis, percursos reais e registros antigos honestos',()=>{
+ const admin=read('admin-config.js');
+ const tracker=read('visit-path.js');
+ assert.match(admin,/data-admin-open-visit/);
+ assert.match(admin,/data-admin-open-presence/);
+ assert.match(admin,/data-admin-close-visit/);
+ assert.match(admin,/uentzoul_visit_steps/);
+ assert.match(admin,/Registro anterior a este recurso/);
+ assert.match(admin,/Saída não confirmada/);
+ assert.match(admin,/Meu teste anônimo/);
+ assert.match(tracker,/uentzoul_track_visit/);
+ assert.match(tracker,/uentzoul:route/);
+ assert.match(tracker,/pagehide/);
+ assert.match(tracker,/keepalive:true/);
+ assert.doesNotMatch(tracker,/document\.querySelector\(.*message.*textContent/);
+ assert.match(read('site-version.js'),/visit-path\.js/);
+ assert.match(html,/uentzoulCurrentRoute/);
+});
