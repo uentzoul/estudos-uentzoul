@@ -112,8 +112,8 @@ try{
  // Verificação visual por pixels: a cor da caneta não pode ficar "flutuando".
  // As linhas da pauta são azuis claras; pixels de tinta possuem R baixo e B>G.
  const visual=await f.locator('#nbSheet').boundingBox(),inkZoom=visual.width/780;
- const area={x:visual.x+105*inkZoom,y:visual.y+(oneLineSizing.top-20)*inkZoom,
-  width:520*inkZoom,height:80*inkZoom};
+ const area={x:visual.x+135*inkZoom,y:visual.y+(oneLineSizing.top-20)*inkZoom,
+  width:470*inkZoom,height:80*inkZoom};
  const sample=await page.screenshot({clip:area,animations:'disabled'});
  const ink=await page.evaluate(async b64=>{
   const img=new Image();img.src='data:image/png;base64,'+b64;await img.decode();
