@@ -15,6 +15,11 @@ for(const profile of profiles){
  const {name,...settings}=profile;
  const ctx=await browser.newContext({...settings,serviceWorkers:'block'});
  const page=await ctx.newPage();
+ // Marca exclusivamente os navegadores desta auditoria antes dos scripts do site.
+ // O LOG consulta a execução confirmada pelo GitHub, em vez de contar um visitante.
+ await page.addInitScript(() => {
+  Object.defineProperty(window,'__uentzoulSiteHealthAudit',{value:true,configurable:false});
+ });
  const row={device:name,url,status:'unknown',checks:[],warnings:[],errors:[]};
  page.on('pageerror',err=>row.errors.push('JavaScript: '+String(err.message).slice(0,250)));
  page.on('console',msg=>{if(msg.type()==='error')row.warnings.push('Console: '+msg.text().slice(0,220))});
