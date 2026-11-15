@@ -276,3 +276,44 @@ test('LOG identifica tipo de dispositivo, navegador e sistema sem inventar model
  assert.match(admin,/Dispositivo não registrado/);
  assert.match(read('site-version.js'),/visit-path\.js\?v=20261115-dispositivos-v4/);
 });
+
+test('Tour mobile não pisca ao avançar e voltar nas etapas 6, 9 e 19',()=>{
+ const tour=read('spotlight-tour.js');
+ const vacation=read('revisao-ferias.js');
+ const loader=read('site-version.js');
+ const currentScript='spotlight-tour.js?v=20261115-flicker-fixed-v32';
+ const currentCSS='spotlight-tour.css?v=20261115-smooth-mobile-v29';
+ assert.ok(html.includes(currentScript),'HTML precisa carregar o tutorial corrigido');
+ assert.ok(html.includes(currentCSS),'HTML deve usar a mesma versão dos estilos');
+ assert.ok(loader.includes(currentScript),'Carregador não pode depender de uma versão antiga');
+ assert.ok(loader.includes(currentCSS),'Estilos do carregador devem ser iguais aos do HTML');
+ assert.ok(loader.includes('revisao-ferias.js?v=20261115-flicker-fixed-v5'));
+ assert.match(tour,/dataset\.pmTourPreparing='true'/);
+ assert.match(tour,/dataset\.pmTourPreparing='false'/);
+ assert.match(tour,/delete document\.documentElement\.dataset\.pmTourPreparing/);
+ assert.match(tour,/layout\(scrollTarget=false\)\{\s*if\(!active\|\|!shell\|\|shell\.hidden\|\|document\.documentElement\.dataset\.pmTourPreparing==='true'\)return/);
+ assert.match(tour,/setTimeout\(\(\)=>\{if\(active&&serial===stepSerial\)layout\(false\)\},270\)/);
+ assert.doesNotMatch(tour,/window\.scrollTo\(\{top:next,behavior:reduced\?'instant':'smooth'\}\)/);
+ const match=tour.match(/function positionMobileTarget\(node\)\{[\s\S]*?\n\}/);
+ assert.ok(match,'posicionamento de celular');
+ const ctx={
+  tourScene:()=>'',mobilePositionAttempts:0,mobileScrollSerial:0,
+  mobileShowcase:()=>({top:50,bottom:520}),
+  targetVisualBounds:()=>({top:620,height:100}),
+  originalIndex:()=>8,
+  clamp:(n,min,max)=>Math.max(min,Math.min(max,n)),
+  document:{documentElement:{scrollHeight:3000}},
+  innerHeight:844,
+  window:{scrollY:100,scrollTo(args){ctx.lastScroll=args;ctx.scrollCalls=(ctx.scrollCalls||0)+1;ctx.window.scrollY=args.top;}}
+ };
+ const position=vm.runInNewContext('('+match[0]+')',ctx);
+ position({});
+ assert.equal(ctx.scrollCalls,1,'apenas um ajuste de posição por etapa');
+ assert.equal(ctx.lastScroll.behavior,'instant','sem animação que faz a tela oscilar');
+ position({});
+ assert.equal(ctx.scrollCalls,1,'nenhuma correção tardia ao atualizar o destaque');
+ assert.match(vacation,/tourCache\?\.semester===selectedSemester/);
+ assert.match(vacation,/Date\.now\(\)-tourCache\.savedAt<120000/);
+ assert.match(vacation,/if\(snapshot\)\{updateNavStatus\(\);return;\}/);
+ assert.match(vacation,/classList\.contains\('pm-tour-running'\)\?'':'<div class="vr-private"/);
+});
