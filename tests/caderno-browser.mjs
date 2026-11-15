@@ -131,6 +131,7 @@ try{
  },sample.toString('base64'));
  const visualGap=(((28+4*34)-(oneLineSizing.top-20))*inkZoom-ink.maxY)/inkZoom;
  console.log('INK GAP QA '+JSON.stringify({visualGap,ink,zoom:inkZoom}));
+ assert.ok(ink.count>100&&visualGap>=0&&visualGap<=7,'A tinta da anotação deve ficar 0–7px acima da pauta horizontal, sem flutuar nem atravessá-la');
 
  assert.equal(oneLineSizing.capital,oneLineSizing.lower,'Em 1 linha a maiúscula NÃO deve ocupar a linha de cima');
  assert.equal(oneLineSizing.capital,26,'Letra tamanho 1 deve ter altura normal de escrita');
