@@ -7,7 +7,14 @@ let key=null,identity=null,authToken=null,queue=Promise.resolve(),ready=false,la
 const app=()=>window.uentzoulAIAuth;
 const client=()=>app()?.client?.();
 const allowed=new Set(['home','subject','exams','test','calendar','messages','ai','audio','library','admin','vacation']);
-const uuid=()=>globalThis.crypto?.randomUUID?.()||null;
+function uuid(){
+ if(globalThis.crypto?.randomUUID)return globalThis.crypto.randomUUID();
+ if(!globalThis.crypto?.getRandomValues)return null;
+ const bytes=new Uint8Array(16);globalThis.crypto.getRandomValues(bytes);
+ bytes[6]=(bytes[6]&15)|64;bytes[8]=(bytes[8]&63)|128;
+ const hex=Array.from(bytes,x=>x.toString(16).padStart(2,'0')).join('');
+ return hex.slice(0,8)+'-'+hex.slice(8,12)+'-'+hex.slice(12,16)+'-'+hex.slice(16,20)+'-'+hex.slice(20);
+}
 const stored=()=>{try{return sessionStorage.getItem(STORAGE_KEY)}catch(_){return null}};
 const save=v=>{try{if(v)sessionStorage.setItem(STORAGE_KEY,v);else sessionStorage.removeItem(STORAGE_KEY)}catch(_){}};
 const current=()=>window.uentzoulCurrentRoute?.()||{page:'home',semester:'2026/2'};
