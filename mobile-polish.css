@@ -445,3 +445,78 @@
     text-align:center;
   }
 }
+
+/* IA Tzoul: nenhum exemplo rotativo ou sugestão sobreposta ao texto no mobile.
+   Campo real, único e legível; preserva anexos, microfone e envio. */
+@media(max-width:760px){
+  html body .tz-shell .tz-hints,
+  html body .tz-shell .tz-composer .tz-hints{
+    display:none!important;
+    visibility:hidden!important;
+    animation:none!important;
+  }
+  html body .tz-shell .tz-form{
+    min-width:0!important;
+    max-width:100%!important;
+    box-sizing:border-box!important;
+  }
+  html body .tz-shell .tz-composer{
+    box-sizing:border-box!important;
+    display:flex!important;
+    flex-wrap:nowrap!important;
+    align-items:center!important;
+    width:100%!important;
+    min-width:0!important;
+    max-width:100%!important;
+    min-height:52px!important;
+    gap:7px!important;
+    padding:6px 8px!important;
+    overflow:visible!important;
+  }
+  html body .tz-shell .tz-composer .tz-upload-btn{
+    flex:0 0 32px!important;
+    min-width:32px!important;
+    width:32px!important;
+    height:40px!important;
+    min-height:40px!important;
+    align-self:center!important;
+    padding:0!important;
+  }
+  html body .tz-shell .tz-composer #tzPrompt{
+    box-sizing:border-box!important;
+    display:block!important;
+    position:relative;
+    flex:1 1 0!important;
+    min-width:0!important;
+    width:0!important;
+    height:auto;
+    min-height:40px!important;
+    max-height:135px!important;
+    margin:0!important;
+    padding:8px 2px!important;
+    font-size:16px!important;
+    line-height:1.4!important;
+    text-align:left!important;
+    white-space:pre-wrap!important;
+    word-break:normal!important;
+    overflow-wrap:break-word!important;
+    overflow-y:auto!important;
+    resize:none!important;
+  }
+  html body .tz-shell .tz-composer #tzPrompt::placeholder{
+    color:var(--muted,#aaa5b7)!important;
+    opacity:1!important;
+    font-size:14px!important;
+    white-space:normal;
+  }
+  html body .tz-shell .tz-composer .tz-send{
+    flex:0 0 40px!important;
+    width:40px!important;
+    min-width:40px!important;
+    height:40px!important;
+    min-height:40px!important;
+    align-self:center!important;
+    margin:0!important;
+    padding:0!important;
+  }
+}
