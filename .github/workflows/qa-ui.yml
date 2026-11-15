@@ -39,6 +39,8 @@ jobs:
         run: python tests/ui-smoke.py
       - name: Verificar cartões de PDF em iPhone e Android (320px e 390px)
         run: python tests/material-card-smoke.py
+      - name: Verificar entrada limpa da IA Tzoul em iPhone e Android
+        run: python tests/ai-mobile-composer-smoke.py
       - name: Verificar cliques do Admin Config com registros fictícios
         run: python tests/admin-log-smoke.py
       - name: Publicar evidências da auditoria
