@@ -18,6 +18,22 @@ if(!userId){
 const W=780,H=1240,L=34,START=28,ROWS=30,FIRST_LINE=3;
 const STORE='uentzoul:caderno:alpha2:'+userId;
 const LEGACY_STORE='uentzoul:caderno:alpha1:'+userId;
+const BACKUP_STORE='psicomoodle:caderno:backup-antes-das-seis-materias:'+userId;
+const SUBJECT_BOOKS=[
+ {id:'materia-familia',name:'Psicologia da Família',color:'#946b79'},
+ {id:'materia-avaliacao',name:'Avaliação Psicológica',color:'#567f88'},
+ {id:'materia-tcc',name:'Teorias e Modelos Comportamentais e Cognitivos',color:'#6876a0'},
+ {id:'materia-social',name:'Psicologia Social I',color:'#99815e'},
+ {id:'materia-metapsicologia',name:'Metapsicologia',color:'#79689b'},
+ {id:'materia-grupos',name:'Psicologia de Grupos',color:'#65856f'}
+];
+const initialBooks=()=>SUBJECT_BOOKS.map(b=>({...b,pages:[]}));
+const bookColor=b=>{
+ const predefined=SUBJECT_BOOKS.find(x=>x.id===b.id);
+ const color=predefined?.color||b?.color||'#79689b';
+ return /^#[0-9a-fA-F]{6}$/.test(color)?color:'#79689b';
+};
+
 const COLORS={black:'#24242e',blue:'#213f72',red:'#bb3d43'};
 const MODES=['none','text','select','draw','erase','sticky','warp'];
 const ACTIONS=[
@@ -29,7 +45,7 @@ const ACTIONS=[
 ];
 const emptyPage=()=>({title:'',date:'',notes:[],strokes:[],stickies:[]});
 const newBook=(name='Meu caderno')=>({id:'book-'+Date.now()+'-'+Math.random().toString(36).slice(2,8),name,pages:[]});
-const defaults=()=>({books:[{id:'book-original',name:'Meu caderno',pages:[]}],bookId:'book-original',page:0,mode:'none',font:'print',ink:'blue',size:1,layout:'single',smooth:false,zoom:.88,shortcuts:{},stickyTone:'yellow',eraserMode:'parts',eraserRadius:14});
+const defaults=()=>({books:initialBooks(),bookId:'materia-familia',page:0,mode:'none',font:'print',ink:'blue',size:1,layout:'single',smooth:false,zoom:.88,shortcuts:{},stickyTone:'yellow',eraserMode:'parts',eraserRadius:14});
 const hasPageContent=p=>!!(p?.notes?.some(n=>String(n.text||'').trim())||p?.strokes?.some(s=>s.points?.length)||p?.stickies?.length);
 const cleanPage=p=>({title:String(p?.title||'').slice(0,100),date:String(p?.date||'').slice(0,16),
  notes:Array.isArray(p?.notes)?p.notes.slice(0,140).map(n=>{const {original,...corrected}=n;corrected.pending=false;return corrected;}):[],strokes:Array.isArray(p?.strokes)?p.strokes.slice(0,500):[],
@@ -56,6 +72,25 @@ if(stored&&typeof stored==='object'){
   if(!['print','cursive','joined'].includes(data.font))data.font='print';
   if(!data.shortcuts||typeof data.shortcuts!=='object')data.shortcuts={};
   if(!['single','book'].includes(data.layout))data.layout='single';
+ }
+}
+// Migração ÚNICA: substitui os cadernos visíveis por seis matérias, com backup
+// do estado anterior. Em caso de falta de espaço, não descartar dados antigos.
+if(!stored?.curriculumSeeded){
+ let backedUp=true;
+ const hasOldContent=!!stored?.books?.some(b=>b.pages?.some(p=>hasPageContent(p))||
+  (b.name&&b.name!=='Meu caderno'));
+ if(hasOldContent){
+  try{
+   if(!localStorage.getItem(BACKUP_STORE))
+    localStorage.setItem(BACKUP_STORE,JSON.stringify(stored));
+  }catch(_){backedUp=false}
+ }
+ if(backedUp){
+  const settings={font:data.font,ink:data.ink,size:data.size,zoom:data.zoom,
+   layout:data.layout,shortcuts:data.shortcuts,smooth:data.smooth};
+  data={...defaults(),...settings,curriculumSeeded:true};
+  try{localStorage.setItem(STORE,JSON.stringify(data))}catch(_){}
  }
 }
 const activeBook=()=>data.books.find(b=>b.id===data.bookId)||data.books[0];
