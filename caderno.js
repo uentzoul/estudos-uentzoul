@@ -66,7 +66,28 @@ function materializePage(){
  if(data.pages.length>=250)return;
  data.pages.push(pendingPage);pendingPage=emptyPage();
 }
-function serializable(){materializePage();return {...data,pages:undefined};}
+function serializable(){
+ materializePage();
+ // Páginas sem conteúdo não contam nem permanecem salvas.
+ for(const book of data.books){
+  const original=book.pages||[];
+  let skipped=0;
+  const cleaned=[];
+  original.forEach((item,i)=>{
+   if(hasPageContent(item))cleaned.push(item);
+   else if(book.id===data.bookId){
+    if(i<data.page)skipped++;
+    if(i===data.page)pendingPage=cleanPage(item);
+   }
+  });
+  if(book.id===data.bookId){
+   data.page=Math.min(cleaned.length,Math.max(0,data.page-skipped));
+   data.pages=cleaned;
+  }
+  book.pages=cleaned;
+ }
+ return {...data,pages:undefined};
+}
 function restoreState(serialized){
  data={...defaults(),...JSON.parse(serialized)};
  if(!Array.isArray(data.books)||!data.books.length)data.books=defaults().books;
@@ -234,6 +255,7 @@ function beginEdit(line){
  const existing=page().notes.find(n=>line>=Number(n.line)&&line<Number(n.line)+Number(n.span||Number(n.size)+1));
  editing={line:existing?Number(existing.line):line,id:existing?.id||null,draft:existing?.original||existing?.text||''};
  if(existing){data.font=existing.font;data.ink=existing.ink;data.size=existing.size;}
+ if(editing.line===FIRST_LINE&&data.size>2)data.size=2;
  previewText=editing.draft;
  refreshTools();renderNotes();editorMarkup();focusLine(editing.line);
 }
@@ -610,16 +632,18 @@ function deleteSelected(){
  const prop=selected.type==='note'?'notes':selected.type==='stroke'?'strokes':'stickies';
  page()[prop]=page()[prop].filter(x=>x.id!==selected.id);
  selected=null;$('nbContextMenu').hidden=true;
- renderNotes();renderStickies();drawCanvas();save();status('Item removido. Use Ctrl+Z para desfazer.','success');
+ serializable();refreshTools();renderNotes();renderStickies();drawCanvas();save();
+ status('Item removido. Use Ctrl+Z para desfazer.','success');
 }
 function contextMenu(event){
- if(event.target.closest('input,textarea,.nb-drawer,.nb-gallery'))return;
+ if(event.target.closest('#nbEditorText,#nbPaperTitle,#nbPaperDate,.nb-drawer,.nb-gallery'))return;
  const note=event.target.closest('[data-nb-note]'),sticky=event.target.closest('[data-nb-sticky]');
  if(note)selectItem('note',note.dataset.nbNote);
  else if(sticky)selectItem('sticky',sticky.dataset.nbSticky);
  else if(event.target===canvas||event.target.closest('#nbSheet')){
   const hit=findStrokeNear(point(event));
   if(hit.stroke)selectItem('stroke',hit.stroke.id);
+  else {selected=null;$('nbContextMenu').hidden=true;return;}
  }
  if(!selected||!selectedItem())return;
  event.preventDefault();
