@@ -342,6 +342,8 @@ try{
  const secondLeft=bf.locator('#nbCompanionWrap');
  await secondLeft.click({position:{x:140*z,y:(28+3*34+8)*z}});
  await bf.locator('#nbEditorText').waitFor({state:'visible'});
+ assert.equal(await bf.locator('#nbZoomText').textContent(),'61%',
+  'Ao clicar para escrever na folha direita, o caderno aberto não deve dar zoom inesperado');
  await bf.locator('#nbEditorText').fill('Anotação da folha direita');
  await bf.locator('#nbEditorText').press('Enter');
  await bookPage.waitForTimeout(260);
