@@ -505,6 +505,17 @@ function positionMobileTarget(node){
 }
 function layout(scrollTarget=false){
  if(!active||!shell||shell.hidden)return;
+ // Ao abrir a Revisão de Férias, a API pode mostrar um carregador por alguns
+ // instantes. Nunca desenhar o recorte ao redor desse carregador transitório.
+ // O destaque real aparece depois que os meses terminarem de carregar.
+ if(runSteps[index]?.page==='vacation'&&!q('#main #vr-root .vr-months')){
+  spot.style.display='none';
+  const w=innerWidth,h=innerHeight;
+  shell.querySelector('.pm-spotlight-svg').setAttribute('viewBox','0 0 '+w+' '+h);
+  shell.querySelector('.pm-spotlight-path').setAttribute('d','M 0 0 H '+w+' V '+h+' H 0 Z');
+  if(sidebarSpot)sidebarSpot.hidden=true;
+  return;
+ }
  const found=findNode(runSteps[index]),node=found.node;
  if(!node)return;
  if(originalIndex()===7&&node.matches('.agenda-classrow'))node.classList.add('pm-tour-day-lesson');
