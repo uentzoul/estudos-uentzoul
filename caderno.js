@@ -15,7 +15,7 @@ if(!userId){
  root.innerHTML='<section><strong>Acesso restrito.</strong><p>Esta prévia só pode ser aberta por uma conta administrativa autenticada no site.</p></section>';
  return;
 }
-const W=780,H=1240,L=34,START=97,ROWS=30,FIRST_LINE=3;
+const W=780,H=1240,L=34,START=28,ROWS=30,FIRST_LINE=3;
 const STORE='uentzoul:caderno:alpha2:'+userId;
 const LEGACY_STORE='uentzoul:caderno:alpha1:'+userId;
 const COLORS={black:'#24242e',blue:'#2559a4',red:'#bb3d43'};
@@ -221,7 +221,7 @@ function refreshTools(){
  $('nbPageCount').textContent=pageCountLabel();updateBookHeading();
  $('nbPageNum').textContent=String(data.page+1).padStart(2,'0');
  $('nbPaperDate').value=page().date||'';
- const back=$('nbSheet').querySelector('.nb-corner-back');if(back)back.disabled=data.page===0;
+ const back=$('nbSheet').querySelector('.nb-corner-back');if(back){back.disabled=false;back.setAttribute('aria-label',data.page===0?'Voltar aos cadernos':'Voltar à folha anterior');}
 }
 function letterMarkup(text){
  return Array.from(String(text||'')).map(ch=>{
@@ -250,7 +250,7 @@ function renderNotes(){
 function editorMarkup(){
  const host=$('nbEditorHost');
  if(!editing){host.innerHTML='';return;}
- const line=editing.line,top=START+line*L-6,fsize=clamp(Number(data.size)||1,1,3)*26;
+ const line=editing.line,top=START+line*L-1,fsize=clamp(Number(data.size)||1,1,3)*26;
  const lineHeight=Math.max(34,Math.round(fsize*1.22));
  host.innerHTML='<textarea class="nb-inline-edit '+(data.font==='cursive'?'cursive':'print')+
   '" id="nbEditorText" style="top:'+top+'px;--nb-small:'+fsize+'px;line-height:'+lineHeight+'px;color:'+
@@ -291,8 +291,17 @@ function makeRoom(saved){
   end=note.line+Math.max(1,Number(note.span)||1);
  }
 }
-function fallbackBasic(text){
- return text.replace(/ {2,}/g,' ').replace(/\s+([,.;!?])/g,'$1').replace(/([,;!?])(?=[^\s])/g,'$1 ').trim();
+function fallbackBasic(input){
+ let text=String(input||'').replace(/[\t ]+/g,' ').replace(/\s+([,.;!?])/g,'$1')
+  .replace(/([,;!?])(?=\S)/g,'$1 ').trim();
+ if(!text)return '';
+ text=text.replace(/\bnao\b/gi,word=>word[0]==='N'?'Não':'não');
+ // Vírgula do vocativo quando uma saudação é dirigida a alguém.
+ text=text.replace(/^(bom dia|boa tarde|boa noite)\s+(rapaziada|pessoal|gente|galera|turma|professor(?:a)?|amigos)\b/iu,
+  (_,saudacao,vocativo)=>saudacao+', '+vocativo);
+ text=text.replace(/^([\p{L}])/u,first=>first.toLocaleUpperCase('pt-BR'));
+ if(!/[.!?…]$/.test(text))text+='.';
+ return text;
 }
 async function correctNote(noteId,raw){
  const currentOwner=userId;
@@ -307,7 +316,8 @@ async function correctNote(noteId,raw){
   if(!revised||revised.length<raw.length*.5||revised.length>raw.length*1.75)throw Error('Revisão não confiável.');
   const n=data.books.flatMap(b=>b.pages).flatMap(p=>p.notes).find(n=>n.id===noteId);
   if(!n||n.original!==raw)return;
-  n.text=revised;n.pending=false;n.reviewed=result.reviewed===true;n.span=occupiedSpan(n);
+  n.text=result.reviewed===true?revised:fallbackBasic(raw);
+  n.pending=false;n.reviewed=result.reviewed===true;n.span=occupiedSpan(n);
   if(page().notes.includes(n))makeRoom(n);
   if(page().notes.includes(n))renderNotes();
   save();
@@ -316,9 +326,9 @@ async function correctNote(noteId,raw){
   const n=data.books.flatMap(b=>b.pages).flatMap(p=>p.notes).find(n=>n.id===noteId);
   if(!n||n.original!==raw)return;
   n.pending=false;n.reviewed=false;
-  n.text=raw;
+  n.text=fallbackBasic(raw);
   if(page().notes.includes(n))renderNotes();
-  save();status('Anotação salva. Revisão de IA indisponível; texto original preservado.','error');
+  save();status('Pontuação e maiúsculas corrigidas. Revisão adicional de IA indisponível.','');
  }
 }
 function saveEditor(advance=true){
@@ -329,7 +339,7 @@ function saveEditor(advance=true){
  checkpoint();
  let n=editing.id?page().notes.find(n=>n.id===editing.id):null;
  if(!n){n={id:id(),line:editing.line,text:typed};page().notes.push(n)}
- Object.assign(n,{text:typed,original:typed,font:data.font,size:data.size,ink:data.ink,pending:true,reviewed:false});
+ Object.assign(n,{text:fallbackBasic(typed),original:typed,font:data.font,size:data.size,ink:data.ink,pending:true,reviewed:false});
  n.span=occupiedSpan(n);makeRoom(n);materializePage();
  const nid=n.id;closeEditor();renderNotes();save();
  status('Linha registrada; revisão gramatical em andamento…','');
@@ -1166,7 +1176,7 @@ function act(action){
   data.font=action;refreshTools();renderNotes();
   if(editing){editing.draft=$('nbEditorText')?.value||'';editorMarkup()}
   save();break;
- case 'prev':flip(-1);break;case 'next':flip(1);break;
+ case 'prev':if(data.page===0)backToBooks();else flip(-1);break;case 'next':flip(1);break;
  case 'drawer':toggleDrawer();break;case 'closeDrawer':closeDrawer();break;
  case 'backToBooks':backToBooks();break;
  case 'toggleRail':togglePageRail();break;
@@ -1254,6 +1264,14 @@ root.addEventListener('keydown',event=>{
  if(event.target.id==='nbEditorText'){
   if(event.key==='Enter'&&!event.shiftKey&&!event.isComposing){
    event.preventDefault();event.stopPropagation();saveEditor(true);return;
+  }
+  // Dois espaços seguidos no fim da linha confirmam a anotação.
+  // Um espaço sozinho continua separando palavras normalmente.
+  if(event.key===' '&&!event.isComposing&&!event.repeat){
+   const input=event.target,atEnd=input.selectionStart===input.value.length&&input.selectionEnd===input.value.length;
+   if(atEnd&&input.value.endsWith(' ')){
+    event.preventDefault();event.stopPropagation();saveEditor(true);return;
+   }
   }
   if(event.key==='Escape'){event.preventDefault();closeEditor();act('select');}
  }
