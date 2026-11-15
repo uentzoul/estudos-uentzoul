@@ -279,7 +279,7 @@ function smoothPoints(points){
  return pts;
 }
 function rectangleScore(points,minX,maxX,minY,maxY){
- const tol=15,near=points.filter(p=>Math.min(Math.abs(p.x-minX),Math.abs(p.x-maxX),Math.abs(p.y-minY),Math.abs(p.y-maxY))<tol).length;
+ const tol=Math.max(4,Math.min(maxX-minX,maxY-minY)*.07),near=points.filter(p=>Math.min(Math.abs(p.x-minX),Math.abs(p.x-maxX),Math.abs(p.y-minY),Math.abs(p.y-maxY))<tol).length;
  return near/Math.max(1,points.length);
 }
 function perfectShape(raw){
