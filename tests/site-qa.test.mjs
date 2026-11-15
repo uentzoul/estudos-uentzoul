@@ -235,3 +235,43 @@ test('LOG não exibe a própria conta e abre visitas sem reconstruir a lista',()
  assert.equal(expanded.removed,true);
  assert.match(row.html,/Percurso/);
 });
+
+test('LOG identifica tipo de dispositivo, navegador e sistema sem inventar modelo',()=>{
+ const tracker=read('visit-path.js'),admin=read('admin-config.js');
+ const f=tracker.match(/function deviceInfo\(\)\{[\s\S]*?\n\}\nfunction payload/);
+ assert.ok(f,'coletor de informações técnicas da visita');
+ const source='('+f[0].replace(/\nfunction payload$/,'')+')()';
+ const detect=(ua,platform='iPhone',touches=5,dimensions=[390,844])=>
+  vm.runInNewContext(source,{
+   navigator:{userAgent:ua,platform,maxTouchPoints:touches,standalone:false,userAgentData:undefined},
+   window:{matchMedia:()=>({matches:false})},
+   document:{fullscreenElement:null},
+   screen:{width:dimensions[0],height:dimensions[1]}
+  });
+ const iphone=detect('Mozilla/5.0 (iPhone; CPU iPhone OS 26_0 like Mac OS X) AppleWebKit/605.1.15 Version/26.0 Mobile/15E148 Safari/604.1');
+ assert.equal(iphone.kind,'phone');
+ assert.equal(iphone.family,'iPhone');
+ assert.equal(iphone.browser,'Safari');
+ assert.equal(iphone.os,'iOS');
+ assert.equal(iphone.os_version,'26.0');
+ assert.equal(iphone.width,390);
+ const android=detect('Mozilla/5.0 (Linux; Android 14; Pixel 7) AppleWebKit/537.36 Chrome/127.0.0.0 Mobile Safari/537.36','Linux armv8l');
+ assert.equal(android.kind,'phone');
+ assert.equal(android.family,'Android phone');
+ assert.equal(android.browser,'Chrome');
+ const ipad=detect('Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15) AppleWebKit/605.1.15 Version/18.0 Safari/605.1.15','MacIntel',5,[820,1180]);
+ assert.equal(ipad.kind,'tablet');
+ assert.equal(ipad.family,'iPad');
+ const pc=detect('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/127.0.0.0 Safari/537.36','Win32',0,[1920,1080]);
+ assert.equal(pc.kind,'desktop');
+ assert.equal(pc.family,'Windows PC');
+ assert.equal(pc.browser,'Chrome');
+ assert.equal(pc.width,1080);
+ assert.match(tracker,/p_device:kind==='navigate'\?deviceInfo\(\):null/);
+ assert.match(tracker,/rpc\('uentzoul_track_visit_device'/);
+ assert.match(admin,/ended_at,device_info/);
+ assert.match(admin,/deviceSummary\(row\)/);
+ assert.match(admin,/deviceDetails\(row\)/);
+ assert.match(admin,/Dispositivo não registrado/);
+ assert.match(read('site-version.js'),/visit-path\.js\?v=20261115-dispositivos-v4/);
+});
