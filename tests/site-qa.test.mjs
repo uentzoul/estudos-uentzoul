@@ -158,3 +158,24 @@ test('LOG separa navegação real, entrada simples e registros sem percurso',()=
  assert.match(admin,/\.in\('access_id',ids\)/);
  assert.match(admin,/if\(!isAdmin\(\)\|\|!client\(\)\|\|!ACTIVITY_TABS\.has\(logTab\)/);
 });
+
+test('Site só exibe celular na vertical, sem restringir tablets',()=>{
+ const js=read('phone-portrait-only.js');
+ const css=read('phone-portrait-only.css');
+ const version=read('site-version.js');
+ const match=js.match(/function isPhoneDevice\(info\)\{[\s\S]*?\n\}/);
+ assert.ok(match,'detector de celulares');
+ const phone=vm.runInNewContext('('+match[0]+')');
+ assert.equal(phone({ua:'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X)',platform:'iPhone',touches:5,shortSide:390}),true);
+ assert.equal(phone({ua:'Mozilla/5.0 (Linux; Android 14; Pixel 7) AppleWebKit/537.36 Chrome/120 Mobile Safari/537.36',platform:'Linux armv8l',touches:5,shortSide:412}),true);
+ assert.equal(phone({ua:'Mozilla/5.0 (iPad; CPU OS 17_0 like Mac OS X)',platform:'iPad',touches:5,shortSide:768}),false);
+ assert.equal(phone({ua:'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15) AppleWebKit/605.1.15 Safari/605.1.15',platform:'MacIntel',touches:5,shortSide:768}),false);
+ assert.equal(phone({ua:'Mozilla/5.0 (Linux; Android 14; SM-X710) AppleWebKit/537.36 Safari/537.36',platform:'Linux armv8l',touches:5,shortSide:800}),false);
+ assert.equal(phone({ua:'Mozilla/5.0 (Windows NT 10.0; Win64; x64)',platform:'Win32',touches:0,coarse:false,shortSide:480}),false);
+ assert.match(css,/data-pm-phone-portrait="true"/);
+ assert.match(css,/data-pm-phone-landscape="true"/);
+ assert.match(js,/orientationchange/);
+ assert.match(js,/screen\.orientation\.lock\('portrait'\)/);
+ assert.match(version,/phone-portrait-only\.js/);
+ assert.match(version,/phone-portrait-only\.css/);
+});
