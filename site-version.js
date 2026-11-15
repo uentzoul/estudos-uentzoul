@@ -2,6 +2,18 @@
 (()=>{
 'use strict';
 function setup(){
+ // Celulares ficam somente na vertical; tablets podem continuar na horizontal.
+ if(!document.getElementById('pm-phone-portrait-css')){
+  const link=document.createElement('link');
+  link.id='pm-phone-portrait-css';link.rel='stylesheet';
+  link.href='phone-portrait-only.css?v=20261115-1';
+  document.head.appendChild(link);
+ }
+ if(!document.getElementById('pm-phone-portrait-js')){
+  const script=document.createElement('script');
+  script.id='pm-phone-portrait-js';script.src='phone-portrait-only.js?v=20261115-1';
+  script.async=true;document.head.appendChild(script);
+ }
  const nav=document.getElementById('nav');
  if(nav){
   const anchor=nav.querySelector('.nav-upcoming')||nav.querySelector('[data-page="admin"]')||null;
