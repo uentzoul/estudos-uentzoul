@@ -105,7 +105,7 @@ const id=()=>typeof crypto.randomUUID==='function'?crypto.randomUUID():'nb-'+Dat
 const isMobile=()=>window.matchMedia('(max-width:760px)').matches;
 function persistNow(){
  clearTimeout(saveTimer);
- try{localStorage.setItem(STORE,JSON.stringify(serializable()));return true}
+ try{localStorage.setItem(STORE,JSON.stringify(serializable()));refreshCurrentRailSnapshot();return true}
  catch(e){status('Armazenamento cheio. Exporte uma cópia do caderno.','error');return false}
 }
 function save(){
@@ -987,25 +987,10 @@ function renameBook(){
  checkpoint();activeBook().name=name.slice(0,70);renderDrawer();updateBookHeading();save();
 }
 function miniSheet(p,index){
- const notes=(p.notes||[]).slice(0,16).map(n=>
-  '<span class="nb-thumb-text" style="top:'+clamp((START+(Number(n.line)||0)*L)/H*100,0,96)+'%;color:'+
-  (COLORS[n.ink]||COLORS.blue)+';font-family:'+(n.font==='cursive'?"'Caveat',cursive":"'Patrick Hand',cursive")+'">'+
-  esc(String(n.text||'').slice(0,105))+'</span>').join('');
- const postits=(p.stickies||[]).slice(0,7).map(n=>
-  '<span class="nb-thumb-postit" data-tone="'+esc(n.tone||'yellow')+'" style="left:'+
-  clamp((Number(n.x)||110)/W*100,5,80)+'%;top:'+clamp((Number(n.y)||180)/H*100,10,84)+'%"></span>').join('');
- const strokes=(p.strokes||[]).slice(0,60).map(st=>{
-  const points=(st.points||[]).filter((_,i)=>i%Math.max(1,Math.ceil(st.points.length/150))===0).map(pt=>
-   clamp(Number(pt.x)||0,0,W).toFixed(1)+','+clamp(Number(pt.y)||0,0,H).toFixed(1)).join(' ');
-  return '<polyline points="'+points+'" fill="none" stroke="'+(COLORS[st.ink]||COLORS.blue)+'" stroke-width="'+
-   clamp(Number(st.width)||2.6,1,8)*3.5+'" stroke-linejoin="round" stroke-linecap="round"/>';
- }).join('');
  return '<button class="nb-gallery-card" data-nb-open-page="'+index+'" aria-label="Abrir folha '+(index+1)+'">'+
-  '<span class="nb-gallery-paper"><span class="nb-thumb-rule"></span><span class="nb-thumb-head">'+esc(p.title||'')+'</span>'+
-  '<span class="nb-thumb-date">'+esc(p.date||'')+'</span>'+notes+postits+
-  '<svg viewBox="0 0 780 1240" preserveAspectRatio="none" aria-hidden="true">'+strokes+'</svg></span>'+
+  '<span class="nb-gallery-paper" aria-hidden="true">'+snapshotSheetMarkup(p,index)+'</span>'+
   '<span class="nb-gallery-caption"><strong>Folha '+(index+1)+'</strong><small>'+
-  esc(p.date?new Date(p.date+'T12:00:00').toLocaleDateString('pt-BR'):p.title||'Sem título')+
+  esc(p.date?new Date(p.date+'T12:00:00').toLocaleDateString('pt-BR'):'Sem data')+
   '</small></span></button>';
 }
 function renderGallery(){
@@ -1023,6 +1008,7 @@ function renderGallery(){
    (galleryOffset===0?'disabled':'')+'>‹ Anteriores</button><strong>'+
    (galleryOffset+1)+' de '+Math.ceil(total/limit)+'</strong><button class="nb-page-btn" data-nb-action="galleryNext" '+
    ((galleryOffset+1)*limit>=total?'disabled':'')+'>Próximas ›</button></footer>':'');
+ scheduleSnapshotScales();
 }
 function transitionView(change,fromEl=null,toEl=null){
  const reduced=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
