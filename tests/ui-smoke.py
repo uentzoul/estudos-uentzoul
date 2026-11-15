@@ -23,6 +23,8 @@ def run_case(browser,device,settings,semester):
     issues=[]
     errors=[]
     ctx=browser.new_context(locale="pt-BR",timezone_id="America/Sao_Paulo",**settings)
+    # QA: não registrar visitas automatizadas como pessoas reais no Supabase.
+    ctx.add_init_script("window.PSICO_VISIT_PATH={status:()=>({qa:true,ready:false})};")
     ctx.add_init_script("localStorage.setItem('uentzoul_semester_v1',"+json.dumps(semester)+")")
     page=ctx.new_page()
     page.on("pageerror",lambda error: errors.append(str(error)[:350]))
