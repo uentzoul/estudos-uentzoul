@@ -2680,6 +2680,7 @@ window.addEventListener('popstate',event=>pmNavRestore(event.state));
 setInterval(refreshAgendaAvailability,60000);
 window.addEventListener('focus',refreshAgendaAvailability);
 document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')refreshAgendaAvailability()});
+window.uentzoulCurrentRoute=()=>({page:current.page,semester,subject:current.subject,subjectArea:current.subjectArea});
 const go=(page,extra={})=>{
  if(page==='personal')page='home'; // Funcionalidade suspensa, sem apagar dados
  if(page==='library')page='home';
@@ -2690,6 +2691,7 @@ const go=(page,extra={})=>{
  if(page==='home')current.libraryCourse=null;
  current={...current,...extra,page};
  try{render()}catch(e){console.error('Erro ao abrir seção',e);toast('Não foi possível abrir esta seção. Tente novamente no Safari/Chrome.');return}
+ window.dispatchEvent(new CustomEvent('uentzoul:route',{detail:window.uentzoulCurrentRoute()}));
  pmNavSave(previousScroll);
  try{window.scrollTo({top:0,behavior:'instant'})}catch(e){try{window.scrollTo(0,0)}catch(_){}}
 };
