@@ -194,3 +194,34 @@ test('Tutorial de férias cobre os dois semestres e não muda à força para o p
  assert.match(loader,/spotlight-tour\.js\?v=20261115-semesters-tour-v28/);
  assert.match(vacation,/const MONTHS=\{1:\[3,4,5,6\],2:\[8,9,10,11\]\}/);
 });
+
+test('LOG não exibe a própria conta e abre visitas sem reconstruir a lista',()=>{
+ const admin=read('admin-config.js');
+ assert.match(admin,/presence=\(seen\.data\|\|\[\]\)\.filter\(p=>p\.user_id!==user\(\)\?\.id\)/);
+ assert.match(admin,/accessLog=\(events\.data\|\|\[\]\)\.filter\(r=>r\.user_id!==user\(\)\?\.id\)/);
+ assert.match(admin,/function logViewKey\(\)\{return \[logTab,logLimit\]/);
+ assert.match(admin,/function updateVisitExpansion\(\)/);
+ assert.match(admin,/visitLoading=true;updateVisitExpansion\(\)/);
+ assert.match(admin,/visitLoading=false;updateVisitExpansion\(\)/);
+ const match=admin.match(/function updateVisitExpansion\(\)\{[\s\S]*?\n \}/);
+ assert.ok(match,'atualização incremental do detalhe');
+ assert.doesNotMatch(match[0],/contents\.innerHTML|list\.innerHTML|scrollIntoView/);
+ const expanded={classList:{contains:()=>true},removed:false,remove(){this.removed=true}};
+ const row={nextElementSibling:expanded,selection:null,html:'',
+  classList:{toggle(_,value){row.selection=value}},
+  insertAdjacentHTML(_,markup){row.html=markup}};
+ const arrow={textContent:''};
+ const button={dataset:{adminOpenVisit:'123'},
+  closest:()=>row,setAttribute(){},removeAttribute(){},querySelector:()=>arrow};
+ const list={scrollTop:275,scrollLeft:0,querySelectorAll:()=>[button]};
+ const context={document:{getElementById:()=>({querySelector:()=>list})},
+   accessLog:[{id:123,name:'Visitante anônimo'}],selectedVisitId:'123',selectedPresenceId:null,
+   logRenderTimer:null,visitDetail:()=>'<section class="admin-visit-detail">Percurso</section>',
+   updateLogPanel(){throw Error('Não deve reconstruir o LOG')},clearTimeout};
+ vm.runInNewContext('('+match[0]+')',context)();
+ assert.equal(list.scrollTop,275,'a rolagem original não muda');
+ assert.equal(row.selection,true);
+ assert.equal(arrow.textContent,'⌃');
+ assert.equal(expanded.removed,true);
+ assert.match(row.html,/Percurso/);
+});
