@@ -907,19 +907,14 @@ function scheduleSnapshotScales(){requestAnimationFrame(updateSnapshotScales)}
 
 function renderPageRail(){
  const host=$('nbPageRail');if(!host)return;
+ const oldScroll=host.querySelector('.nb-rail-scroll')?.scrollTop||0;
  const pages=data.pages;
  host.innerHTML=
   '<div class="nb-rail-inner"><div class="nb-rail-head"><span>Folhas</span><span class="nb-rail-count">'+pages.length+'</span></div>'+
   '<div class="nb-rail-scroll">'+pages.map((p,i)=>
    '<button class="nb-rail-page '+(i===data.page?'active':'')+'" data-nb-rail-page="'+i+'" title="Ir para folha '+(i+1)+'">'+
-   '<span class="nb-rail-paper" aria-hidden="true"><span class="nb-rail-title">'+esc(p.title||'')+'</span>'+
-   (p.notes||[]).slice(0,10).map(n=>'<span class="nb-rail-text" style="top:'+
-    clamp((START+(Number(n.line)||0)*L)/H*100,4,90)+'%">'+
-    esc(String(n.text||'').slice(0,44))+'</span>').join('')+
-    (p.stickies||[]).slice(0,3).map(st=>'<span class="nb-rail-note" data-tone="'+esc(st.tone||'yellow')+
-     '" style="left:'+clamp((Number(st.x)||110)/W*100,10,70)+'%;top:'+
-     clamp((Number(st.y)||175)/H*100,8,83)+'%"></span>').join('')+
-    '</span><span class="nb-rail-caption">Folha '+(i+1)+'</span></button>'
+   '<span class="nb-rail-paper" aria-hidden="true">'+snapshotSheetMarkup(p,i)+'</span>'+
+   '<span class="nb-rail-caption">Folha '+(i+1)+'</span></button>'
   ).join('')+
   '<button class="nb-rail-new '+(data.page===pages.length?'active':'')+
   '" data-nb-rail-page="'+pages.length+'">＋<span>Nova folha</span></button></div></div>'+
@@ -928,6 +923,22 @@ function renderPageRail(){
    ' folhas">'+(railOpen?'‹':'›')+'</button>';
  host.classList.toggle('is-open',railOpen);
  $('nbWorkspace').classList.toggle('rail-open',railOpen);
+ const scroller=host.querySelector('.nb-rail-scroll');if(scroller)scroller.scrollTop=oldScroll;
+ scheduleSnapshotScales();
+}
+function refreshCurrentRailSnapshot(){
+ const rail=$('nbPageRail');
+ if(!rail||!root.isConnected)return;
+ if(rail.querySelectorAll('.nb-rail-page').length!==data.pages.length){
+  renderPageRail();return;
+ }
+ const button=Array.from(rail.querySelectorAll('.nb-rail-page'))
+  .find(el=>Number(el.dataset.nbRailPage)===data.page);
+ const preview=button?.querySelector('.nb-rail-paper');
+ if(preview&&data.page<data.pages.length){
+  preview.innerHTML=snapshotSheetMarkup(data.pages[data.page],data.page);
+  scheduleSnapshotScales();
+ }
 }
 function goRailPage(index){
  if(!Number.isInteger(index)||index<0||index>data.pages.length)return;
