@@ -295,3 +295,18 @@ html[data-theme="dark"] .nb-rail-count{background:#3c4164;color:#e0d5fb}
  .nb-book-row .nb-book-cover{width:88px;height:113px}
  .nb-drawer{width:min(368px,96vw);padding:17px}
 }
+
+
+/* Navigation back to notebook covers stays compact alongside export. */
+.nb-back-books{border-color:transparent;background:#eee9f7;color:#68568e;font-weight:800;padding:8px 12px}
+.nb-back-books:hover{border-color:#c5b4df}
+html[data-theme="dark"] .nb-back-books{background:#263752;color:#e4dafa;border-color:#3e5370}
+@media(max-width:760px){
+ .nb-back-books{font-size:11px;padding:7px 8px}
+ .nb-top-right{gap:4px}
+}
+@media(max-width:390px){
+ .nb-back-books{padding:7px 5px}
+ .nb-top-right .nb-quiet{font-size:10px}
+ .nb-brand h1{max-width:138px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+}
