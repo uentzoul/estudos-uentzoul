@@ -336,7 +336,7 @@ test('Caderno experimental permanece isolado e reservado aos administradores',()
  assert.match(notebook,/functions\.invoke\('caderno-revisao'/);
  assert.match(notebook,/if\(!stroke\.corrected\)return/);
  assert.match(notebook,/tapCandidate/);
- assert.match(notebook,/const defaults=\(\)=>\(\{pages:\[emptyPage\(\)\]/);
+ assert.match(notebook,/const defaults=\(\)=>\(\{books:\[/);
  assert.match(styles,/\.nb-sheet\{/);
  assert.match(styles,/\.nb-sticky\{/);
  assert.doesNotMatch(notebook,/\.from\(['"]uentzoul_(?:messages|progress|profiles|exams)/);
@@ -346,7 +346,7 @@ test('Caderno experimental permanece isolado e reservado aos administradores',()
 test('Caderno ajusta círculo, retângulo e linhas sem confundir as formas',()=>{
  const source=read('caderno.js');
  const start=source.indexOf('function dist(a,b)');
- const end=source.indexOf('function paintStroke(points,color,width)');
+ const end=source.indexOf('function paintStroke(');
  assert.ok(start>=0&&end>start,'implementação de formas extraída para teste');
  const perfectShape=vm.runInNewContext('(()=>{'+source.slice(start,end)+';return perfectShape;})()');
  const circle=Array.from({length:70},(_,i)=>{
