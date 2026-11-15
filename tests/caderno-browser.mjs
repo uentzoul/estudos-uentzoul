@@ -177,7 +177,7 @@ try{
  assert.ok(savedPdf.subarray(0,8).toString('latin1').startsWith('%PDF-1.4'));
  assert.match(savedPdf.toString('latin1'),/\/Count 1/);
  // Na segunda folha, Delete deve excluir um traço sem esticar o outro.
- await f.locator('[data-nb-action="next"]').click();
+ await f.locator('.nb-page-control [data-nb-action="next"]').click();
  await page.waitForTimeout(220);
  await f.locator('[data-nb-action="draw"]').click();
  const drawSegment=async(y)=>{
