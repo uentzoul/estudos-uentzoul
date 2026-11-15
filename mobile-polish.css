@@ -335,3 +335,113 @@
 @media (prefers-reduced-motion:reduce) {
   #nav.menu { scroll-behavior:auto; }
 }
+/* CORREÇÃO URGENTE: materiais com selo de prova não podem comprimir o título
+   no iPhone/Android. No mobile, o link e o controle "Marcar como visto"
+   ocupam linhas próprias, com espaço real para o nome do PDF. */
+@media (max-width:760px) {
+  .doclist .doc.doc-compact {
+    display:grid !important;
+    grid-template-columns:minmax(0,1fr) !important;
+    grid-template-rows:auto auto;
+    align-items:stretch;
+    gap:0 !important;
+    width:100%;
+    min-width:0;
+    box-sizing:border-box;
+    padding:0 !important;
+    height:auto !important;
+  }
+  .doclist .doc.doc-compact .doc-full-link {
+    display:grid !important;
+    grid-template-columns:48px minmax(0,1fr) 22px;
+    grid-auto-rows:minmax(0,auto);
+    column-gap:11px !important;
+    row-gap:7px !important;
+    align-items:center;
+    justify-items:stretch;
+    min-width:0 !important;
+    width:100% !important;
+    max-width:100%;
+    box-sizing:border-box;
+    padding:14px 13px 11px !important;
+  }
+  .doclist .doc.doc-compact .doc-full-link .docicon {
+    grid-column:1;
+    grid-row:1 / span 3;
+    justify-self:center;
+    align-self:start;
+    flex:none;
+    width:42px;
+    height:42px;
+    min-width:42px;
+  }
+  .doclist .doc.doc-compact .doc-full-link .docname {
+    display:block !important;
+    grid-column:2;
+    grid-row:1;
+    flex:none !important;
+    min-width:0 !important;
+    width:100%;
+    max-width:100%;
+    white-space:normal !important;
+    word-break:normal !important;
+    overflow-wrap:break-word !important;
+    line-height:1.45 !important;
+    text-align:left;
+    writing-mode:horizontal-tb !important;
+    hyphens:none;
+  }
+  .doclist .doc.doc-compact .doc-full-link .pm-exam-badge {
+    grid-column:2;
+    grid-row:2;
+    justify-self:start;
+    margin:0;
+    white-space:nowrap;
+    max-width:100%;
+  }
+  .doclist .doc.doc-compact .doc-full-link .pm-scheduled-file-label {
+    grid-column:2;
+    grid-row:3;
+    justify-self:start;
+    white-space:normal;
+    min-width:0;
+  }
+  .doclist .doc.doc-compact .doc-full-link .doc-open-arrow {
+    grid-column:3;
+    grid-row:1 / span 3;
+    justify-self:end;
+    align-self:center;
+    margin:0 !important;
+    flex:none;
+  }
+  .doclist .doc.doc-compact .doc-full-link .pill {
+    grid-column:2;
+    justify-self:start;
+  }
+  .doclist .doc.doc-compact > .doc-check {
+    display:flex !important;
+    grid-column:1;
+    grid-row:2;
+    width:100%;
+    min-width:0;
+    box-sizing:border-box;
+    padding:0 13px 13px !important;
+    justify-content:stretch;
+    position:relative;
+    z-index:2;
+  }
+  .doclist .doc.doc-compact > .doc-check > .donecontrol {
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:9px;
+    box-sizing:border-box;
+    width:100% !important;
+    min-width:0;
+    max-width:none !important;
+    min-height:44px !important;
+    margin:0 !important;
+    white-space:normal;
+    text-align:center;
+  }
+}
