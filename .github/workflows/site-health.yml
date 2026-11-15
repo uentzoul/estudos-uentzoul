@@ -27,7 +27,7 @@ jobs:
       - name: Instalar navegador de testes isolado
         run: |
           npm install --no-save --no-package-lock playwright@1.56.1
-          npx playwright install --with-deps chromium
+          npx playwright install --with-deps chromium webkit
       - name: Verificar layout publicado (desktop, tablet, iOS, Android)
         env:
           SITE_URL: https://uentzoul.github.io/estudos-uentzoul/
