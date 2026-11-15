@@ -835,6 +835,29 @@ function renderDrawer(){
   '<input id="nbRenameBook" maxlength="70" value="'+esc(activeBook().name)+'">'+
   '<button type="button" data-nb-action="renameBook">Salvar</button></div></div>'+
   '<p class="nb-drawer-note">Cada capa corresponde a um caderno diferente. As folhas são salvas neste navegador.</p>';
+ requestAnimationFrame(()=>fitCoverTitles());
+}
+function fitCoverTitles(){
+ const canvas=document.createElement('canvas'),ctx=canvas.getContext('2d');
+ if(!ctx)return;
+ for(const title of document.querySelectorAll('.nb-cover-title')){
+  const source=String(title.textContent||'').trim();
+  const words=source.split(/\s+/).filter(Boolean),available=Math.max(65,title.clientWidth-3);
+  let chosen=14;
+  // A palavra inteira precisa caber; o navegador nunca fica autorizado a dividi-la.
+  for(let px=14;px>=8.5;px-=.5){
+   ctx.font='850 '+px+'px system-ui';
+   const widest=Math.max(0,...words.map(word=>ctx.measureText(word).width));
+   const total=ctx.measureText(source).width;
+   const estimatedLines=Math.max(1,Math.ceil(total/available));
+   if(widest<=available-2&&estimatedLines*px*1.23<=100){chosen=px;break}
+   chosen=px;
+  }
+  title.style.fontSize=chosen+'px';
+  title.style.overflowWrap='normal';
+  title.style.wordBreak='keep-all';
+  title.style.hyphens='none';
+ }
 }
 function renderPageRail(){
  const host=$('nbPageRail');if(!host)return;
