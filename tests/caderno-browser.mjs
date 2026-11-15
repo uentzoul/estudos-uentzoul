@@ -109,6 +109,29 @@ try{
    top:positionTop,cssHeight:bounds.height/scale};
  });
  console.log('LINE BASELINE QA '+JSON.stringify(oneLineSizing));
+ // Verificação visual por pixels: a cor da caneta não pode ficar "flutuando".
+ // As linhas da pauta são azuis claras; pixels de tinta possuem R baixo e B>G.
+ const visual=await f.locator('#nbSheet').boundingBox(),z=visual.width/780;
+ const area={x:visual.x+105*z,y:visual.y+(oneLineSizing.top-20)*z,
+  width:520*z,height:80*z};
+ const sample=await page.screenshot({clip:area,animations:'disabled'});
+ const ink=await page.evaluate(async b64=>{
+  const img=new Image();img.src='data:image/png;base64,'+b64;await img.decode();
+  const cv=document.createElement('canvas');cv.width=img.width;cv.height=img.height;
+  const cx=cv.getContext('2d');cx.drawImage(img,0,0);
+  const raw=cx.getImageData(0,0,img.width,img.height).data;
+  let minY=Infinity,maxY=-1,count=0;
+  for(let y=0;y<img.height;y++)for(let x=0;x<img.width;x++){
+   const i=(y*img.width+x)*4,r=raw[i],g=raw[i+1],b=raw[i+2];
+   if(r<120&&g<170&&b<215&&b>g+14){
+    minY=Math.min(minY,y);maxY=Math.max(maxY,y);count++;
+   }
+  }
+  return{minY,maxY,count};
+ },sample.toString('base64'));
+ const visualGap=(((28+4*34)-(oneLineSizing.top-20))*z-ink.maxY)/z;
+ console.log('INK GAP QA '+JSON.stringify({visualGap,ink,zoom:z}));
+
  assert.equal(oneLineSizing.capital,oneLineSizing.lower,'Em 1 linha a maiúscula NÃO deve ocupar a linha de cima');
  assert.equal(oneLineSizing.capital,26,'Letra tamanho 1 deve ter altura normal de escrita');
  await second.press('Enter');
