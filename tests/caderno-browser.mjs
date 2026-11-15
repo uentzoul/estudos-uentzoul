@@ -184,7 +184,7 @@ try{
   const a=await point(300,y),b=await point(510,y);
   await page.mouse.move(a.x,a.y);await page.mouse.down();
   await page.mouse.move(b.x,b.y,{steps:12});await page.mouse.up();
-  await page.waitForTimeout(60);
+  await page.waitForTimeout(250);
  };
  await drawSegment(430);await drawSegment(560);
  const pageTwoStrokes=()=>f.locator('#nbRoot').evaluate(()=>{
@@ -196,6 +196,7 @@ try{
  const selectedPoint=await point(400,430);await page.mouse.click(selectedPoint.x,selectedPoint.y);
  await f.locator('.nb-transform-handle').first().focus();
  await f.locator('.nb-transform-handle').first().press('Delete');
+ await page.waitForTimeout(260);
  const remaining=await pageTwoStrokes();
  assert.equal(remaining.length,1,'Delete deve excluir só o traço selecionado');
  assert.deepEqual(remaining[0].points,originalSecond[1].points,'Delete não pode aumentar o outro desenho');
@@ -204,12 +205,14 @@ try{
  const moldPoint=await point(400,560);
  await page.mouse.move(moldPoint.x,moldPoint.y);await page.mouse.down();
  await page.mouse.move(moldPoint.x+35,moldPoint.y+12,{steps:6});await page.mouse.up();
+ await page.waitForTimeout(250);
  const noMold=await pageTwoStrokes();
  assert.deepEqual(noMold[0].points,remaining[0].points,'Arrastar diretamente o desenho em Moldar não o deforma');
  await f.locator('.nb-transform-move').waitFor({state:'visible'});
  const grab=await f.locator('.nb-transform-move').boundingBox();
  await page.mouse.move(grab.x+grab.width/2,grab.y+grab.height/2);await page.mouse.down();
  await page.mouse.move(grab.x+grab.width/2+25,grab.y+grab.height/2-20,{steps:6});await page.mouse.up();
+ await page.waitForTimeout(260);
  const translated=await pageTwoStrokes();
  assert.ok(Math.abs(translated[0].points[0].x-remaining[0].points[0].x)>10,
   'Quadradinho em Moldar precisa mover o desenho sem modificar sua forma');
