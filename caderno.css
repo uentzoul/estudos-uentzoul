@@ -27,7 +27,7 @@ button,input,textarea,select{font:inherit}button{cursor:pointer}button:disabled{
 .nb-text-layer{position:absolute;inset:0;pointer-events:none;z-index:4}.nb-line-hover{position:absolute;left:100px;right:32px;height:34px;border-radius:5px;background:#8f7bd512;border:1px dashed #a899d270;pointer-events:none;z-index:3}
 .nb-note{position:absolute;left:110px;right:30px;display:flex;align-items:flex-end;white-space:pre-wrap;overflow-wrap:anywhere;line-height:1.02;cursor:text;pointer-events:auto;z-index:2}
 .nb-note .nb-note-content{display:inline-block;max-width:100%;font-weight:500;line-height:1.07}.nb-note.print{font-family:'Patrick Hand','Segoe Print',cursive}.nb-note.cursive{font-family:'Caveat','Segoe Print',cursive;font-weight:600}
-.nb-note .nb-uppercase{font-size:calc(var(--nb-small) + 25px)}.nb-note .nb-lowercase{font-size:var(--nb-small)}
+.nb-note .nb-uppercase{font-size:calc(var(--nb-small) + 34px)}.nb-note .nb-lowercase{font-size:var(--nb-small)}
 .nb-note.nb-preview{opacity:.55;pointer-events:none;border-bottom:1px dashed #9883c4}
 .nb-note.nb-selected .nb-note-content{background:#d5c5f244;border-radius:4px}.nb-note.nb-correcting .nb-note-content{background:linear-gradient(90deg,transparent,#eee7ff,transparent);background-size:200% 100%;animation:nb-pulse 1.7s ease infinite}
 @keyframes nb-pulse{to{background-position:-200% 0}}
