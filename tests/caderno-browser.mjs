@@ -114,7 +114,9 @@ try{
  const visual=await f.locator('#nbSheet').boundingBox(),inkZoom=visual.width/780;
  const area={x:visual.x+135*inkZoom,y:visual.y+(oneLineSizing.top-20)*inkZoom,
   width:470*inkZoom,height:80*inkZoom};
+ await f.locator('#nbEditorText').evaluate(el=>{el.dataset.qaVisibility=el.style.visibility;el.style.visibility='hidden'});
  const sample=await page.screenshot({clip:area,animations:'disabled'});
+ await f.locator('#nbEditorText').evaluate(el=>{el.style.visibility=el.dataset.qaVisibility||''});
  const ink=await page.evaluate(async b64=>{
   const img=new Image();img.src='data:image/png;base64,'+b64;await img.decode();
   const cv=document.createElement('canvas');cv.width=img.width;cv.height=img.height;
@@ -127,7 +129,12 @@ try{
     minY=Math.min(minY,y);maxY=Math.max(maxY,y);count++;
    }
   }
-  return{minY,maxY,count};
+  const suspects=[];
+  for(let x=0;x<img.width;x++){
+   const y=maxY,i=(y*img.width+x)*4,r=raw[i],g=raw[i+1],b=raw[i+2];
+   if(r<120&&g<170&&b<215&&b>g+14&&suspects.length<15)suspects.push({x,r,g,b});
+  }
+  return{minY,maxY,count,suspects};
  },sample.toString('base64'));
  const visualGap=(((28+4*34)-(oneLineSizing.top-20))*inkZoom-ink.maxY)/inkZoom;
  console.log('INK GAP QA '+JSON.stringify({visualGap,ink,zoom:inkZoom}));
