@@ -144,7 +144,7 @@ function monthsHTML(){
  const months=MONTHS[semester],openedIndex=months.indexOf(openedMonth);
  return '<section class="vr-months-wrap"><div class="vr-months-intro">'+
  '<div><span class="vr-section-kicker">01 — EXPLORE O PERCURSO</span><h2>Uma história em quatro capítulos.</h2>'+
- '<p>Clique em um mês para expandir. Só um capítulo fica aberto por vez.</p></div>'+
+ '<p>O primeiro mês já está aberto. Selecione outro mês para continuar; só um capítulo fica aberto por vez.</p></div>'+
  '<span class="vr-timeline-year">2026</span></div>'+
  '<nav class="vr-months" style="--vr-progress:'+(openedIndex<0?0:(openedIndex/(months.length-1)*100))+'%" aria-label="Meses do '+(semester===1?'primeiro':'segundo')+' semestre">'+
  months.map((m,i)=>{
@@ -299,6 +299,9 @@ async function load(){
   else{indexMaterials(materials.data||[]);fileLoadError='';}
   if(!visible||request!==seq)return;
   events=res.data||[];
+  // Inicia com março ou agosto aberto em qualquer tamanho de tela.
+  openedMonth=MONTHS[semester][0];
+  selectedEvent=null;
   loading=false;render();
  }catch(error){
   if(request!==seq||!visible)return;
