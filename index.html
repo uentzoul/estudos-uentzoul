@@ -2763,7 +2763,7 @@ function renderHome(){
  '<div class="statline"><span>Simulados respondidos</span><strong>'+graded+'/'+publishedExams.length+'</strong></div>'+
  '<div class="actions" style="margin-top:13px">'+button('Exportar progresso','export','btn light')+button('Importar progresso','import','btn ghost')+'</div>'+
  '<input type="file" accept="application/json,.json" id="importProgress" style="display:none"></div></div></section>'+
- '<div class="footer">O progresso é marcado manualmente. Respostas dissertativas são avaliadas por critérios de estudo.</div>';
+ '<div class="footer">O progresso é marcado manualmente. Respostas dissertativas são avaliadas por critérios de estudo. Para diagnóstico do uso, registramos horários e seções acessadas, sem armazenar textos digitados, mensagens ou respostas.</div>';
 }
 const DIFFICULTY_STEPS=[
  {label:'Muito fácil',summary:'Primeiro contato com os conceitos e exemplos essenciais.'},
@@ -4258,7 +4258,8 @@ function renderThirdSemester(){
  if(current.page==='home'||current.page==='library'){
   return '<header class="dashboard-hero slogan-hero" aria-label="'+ordinal+' semestre"><div class="hero-copy"><div class="slogan-lockup"><span class="slogan-logo" aria-hidden="true">Ψ</span><div class="slogan-identity"><span class="hero-kicker">Psicologia PUCRS · '+period+'</span><h1 class="slogan-title"><span>Psico</span><span class="slogan-title-accent">Moodle</span></h1></div></div></div>'+
    '<div class="hero-status"><span>Progresso do semestre</span><strong>'+pct+'%</strong><div class="hero-bar"><b style="width:'+pct+'%"></b></div><span class="hero-label">'+completed+' de '+activities.length+' atividades</span></div></header>'+
-   '<section class="section home-course-section" id="homeCourses">'+courseCards()+'</section>';
+   '<section class="section home-course-section" id="homeCourses">'+courseCards()+'</section>'+
+   '<p class="footer">Para diagnóstico do uso, registramos horários e seções acessadas, sem armazenar textos digitados, mensagens ou respostas.</p>';
  }
  if(current.page==='subject'&&subj){
   // A tela de simulados dentro da matéria compartilha o mesmo componente
