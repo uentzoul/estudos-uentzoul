@@ -19,9 +19,9 @@ const W=780,H=1240,L=34,START=97,ROWS=30,FIRST_LINE=3;
 const STORE='uentzoul:caderno:alpha2:'+userId;
 const LEGACY_STORE='uentzoul:caderno:alpha1:'+userId;
 const COLORS={black:'#24242e',blue:'#2559a4',red:'#bb3d43'};
-const MODES=['text','select','draw','sticky','warp'];
+const MODES=['text','select','draw','erase','sticky','warp'];
 const ACTIONS=[
- ['text','Escrever'],['select','Selecionar'],['draw','Desenhar'],['sticky','Post-it'],['warp','Deformar'],
+ ['text','Escrever'],['select','Selecionar'],['draw','Desenhar'],['erase','Borracha'],['sticky','Post-it'],['warp','Deformar'],
  ['black','Caneta preta'],['blue','Caneta azul'],['red','Caneta vermelha'],
  ['print','Letra de forma'],['cursive','Letra cursiva'],
  ['prev','Página anterior'],['next','Próxima página'],['zoomIn','Aproximar'],['zoomOut','Afastar'],
@@ -29,7 +29,7 @@ const ACTIONS=[
 ];
 const emptyPage=()=>({title:'',date:'',notes:[],strokes:[],stickies:[]});
 const newBook=(name='Meu caderno')=>({id:'book-'+Date.now()+'-'+Math.random().toString(36).slice(2,8),name,pages:[]});
-const defaults=()=>({books:[{id:'book-original',name:'Meu caderno',pages:[]}],bookId:'book-original',page:0,mode:'text',font:'print',ink:'blue',size:1,smooth:false,zoom:.88,shortcuts:{},stickyTone:'yellow'});
+const defaults=()=>({books:[{id:'book-original',name:'Meu caderno',pages:[]}],bookId:'book-original',page:0,mode:'text',font:'print',ink:'blue',size:1,smooth:false,zoom:.88,shortcuts:{},stickyTone:'yellow',eraserMode:'parts',eraserRadius:14});
 const hasPageContent=p=>!!(p?.notes?.some(n=>String(n.text||'').trim())||p?.strokes?.some(s=>s.points?.length)||p?.stickies?.length);
 const cleanPage=p=>({title:String(p?.title||'').slice(0,100),date:String(p?.date||'').slice(0,16),
  notes:Array.isArray(p?.notes)?p.notes.slice(0,140):[],strokes:Array.isArray(p?.strokes)?p.strokes.slice(0,500):[],
@@ -60,7 +60,7 @@ if(stored&&typeof stored==='object'){
 const activeBook=()=>data.books.find(b=>b.id===data.bookId)||data.books[0];
 data.pages=activeBook().pages;
 let pendingPage=emptyPage(),galleryOpen=false,drawerOpen=false,galleryOffset=0;
-let selected=null,contextTarget=null,panDrag=null,lastPointer=null,toolPaletteOpen=false;
+let selected=null,contextTarget=null,panDrag=null,lastPointer=null,toolPaletteOpen=false,eraseDrag=null,moveDrag=null;
 function materializePage(){
  if(data.page!==data.pages.length||!hasPageContent(pendingPage))return;
  if(data.pages.length>=250)return;
@@ -132,9 +132,13 @@ root.innerHTML=
  '<div class="nb-tools" id="nbTools" role="toolbar" aria-label="Ferramentas do caderno">'+
  '<div class="nb-toolgroup"><button class="nb-tool" data-nb-action="text" title="Escrever nas linhas">✎ Escrever</button>'+
  '<button class="nb-tool" data-nb-action="select" title="Selecionar anotações, post-its e desenhos">⌖ Selecionar</button>'+
+ '<button class="nb-tool" data-nb-action="erase" title="Apagar partes ou traços inteiros de desenhos">⌫ Borracha</button>'+
  '<button class="nb-tool" data-nb-action="draw" title="Desenhar diretamente na folha">〰 Desenhar</button>'+
  '<button class="nb-tool" data-nb-action="sticky" title="Colocar um post-it">▤ Post-it</button>'+
- '<button class="nb-tool" data-nb-action="warp" title="Deformar somente traços corrigidos">⌁ Deformar</button></div>'+
+ '<button class="nb-tool" data-nb-action="warp" title="Deformar somente traços corrigidos">⌁ Deformar</button>'+
+ '<span id="nbEraserControls" class="nb-eraser-controls" hidden><label for="nbEraseBehavior">Apagar</label>'+
+ '<select id="nbEraseBehavior" aria-label="Tipo de borracha"><option value="parts">Trechos</option><option value="whole">Traço inteiro</option></select>'+
+ '<label for="nbEraseSize">Raio</label><input id="nbEraseSize" type="range" min="6" max="32" step="2" value="14" aria-label="Tamanho da borracha"></span></div>'+
  '<span class="nb-sep"></span><div class="nb-toolgroup"><span class="nb-colors" aria-label="Cor da caneta">'+
  '<button class="nb-color" data-nb-action="black" style="--swatch:#24242e" aria-label="Caneta preta"><span></span></button>'+
  '<button class="nb-color" data-nb-action="blue" style="--swatch:#2559a4" aria-label="Caneta azul"><span></span></button>'+
@@ -206,6 +210,9 @@ function focusLine(line){
 }
 function refreshTools(){
  for(const a of MODES){const b=root.querySelector('[data-nb-action="'+a+'"]');b?.setAttribute('aria-pressed',String(data.mode===a));}
+ $('nbEraserControls').hidden=data.mode!=='erase';
+ $('nbEraseBehavior').value=data.eraserMode==='whole'?'whole':'parts';
+ $('nbEraseSize').value=clamp(Number(data.eraserRadius)||14,6,32);
  for(const a of Object.keys(COLORS)){const b=root.querySelector('[data-nb-action="'+a+'"]');b?.setAttribute('aria-pressed',String(data.ink===a));}
  $('nbFont').value=data.font;$('nbSize').value=String(data.size);$('nbSmooth').checked=!!data.smooth;
  sheet.dataset.mode=data.mode;
@@ -426,6 +433,11 @@ function pointerDownCanvas(event){
   else {selected=null;renderNotes();renderStickies();drawCanvas();}
   return;
  }
+ if(data.mode==='erase'){
+  checkpoint();eraseDrag={pointerId:event.pointerId};
+  canvas.setPointerCapture?.(event.pointerId);applyEraser(p);
+  event.preventDefault();return;
+ }
  if(data.mode==='draw'){
   checkpoint();drawPoints=[p];canvas.setPointerCapture?.(event.pointerId);
   event.preventDefault();
@@ -443,6 +455,8 @@ function pointerDownCanvas(event){
  }
 }
 function pointerMoveCanvas(event){
+ if(eraseDrag&&eraseDrag.pointerId===event.pointerId){applyEraser(point(event));event.preventDefault();return;}
+ if(moveDrag&&moveDrag.pointerId===event.pointerId&&moveDrag.type==='stroke'){updateMoveDrag(event);event.preventDefault();return;}
  if(drawPoints){drawPoints.push(point(event));drawCanvas();event.preventDefault();}
  if(warpDrag){
   const p=point(event),dx=p.x-warpDrag.from.x,dy=p.y-warpDrag.from.y;
@@ -455,6 +469,8 @@ function pointerMoveCanvas(event){
  }
 }
 function pointerUpCanvas(event){
+ if(eraseDrag){eraseDrag=null;serializable();renderNotes();save();status('Desenho apagado. Use Ctrl+Z para desfazer.','success');}
+ if(moveDrag&&moveDrag.type==='stroke'){finishMoveDrag();}
  if(drawPoints){
   const raw=drawPoints;drawPoints=null;
   if(raw.length){
@@ -693,7 +709,7 @@ function toolCursor(event){
     !event.target.closest('#nbViewport')||event.target.closest('textarea,input,button')){
   marker.hidden=true;return;
  }
- const icons={text:'✎',select:'⌖',draw:'〰',sticky:'▤',warp:'⌁'};
+ const icons={text:'✎',select:'⌖',draw:'〰',erase:'⌫',sticky:'▤',warp:'⌁'};
  marker.textContent=icons[data.mode]||'✎';
  marker.style.left=(event.clientX+13)+'px';marker.style.top=(event.clientY+12)+'px';
  marker.hidden=false;
@@ -769,7 +785,8 @@ function act(action){
   if(editing)saveEditor(false);
   data.mode=action;toolPaletteOpen=false;selected=null;selectedStroke=-1;
   refreshTools();renderNotes();renderStickies();drawCanvas();renderStickyPalette();save();
-  if(action==='select')status('Clique para selecionar textos, post-its ou desenhos.','');
+  if(action==='select')status('Clique para selecionar e arrastar textos, desenhos ou post-its.','');
+  if(action==='erase')status('Arraste a borracha sobre o desenho para apagar trechos ou traços inteiros.','');
   if(action==='warp')status('Selecione e arraste um traço corrigido.','');
   return;
  }
@@ -836,10 +853,12 @@ root.addEventListener('change',event=>{
   save();
  }
  if(event.target.id==='nbSmooth'){data.smooth=event.target.checked;save();}
+ if(event.target.id==='nbEraseBehavior'){data.eraserMode=event.target.value==='whole'?'whole':'parts';save();}
  if(event.target.id==='nbPaperDate'){page().date=event.target.value;save();}
 });
 root.addEventListener('input',event=>{
  const t=event.target;
+ if(t.id==='nbEraseSize'){data.eraserRadius=clamp(Number(t.value)||14,6,32);save();return;}
  if(t.id==='nbEditorText'){
   if(!editing)return;
   editing.draft=t.value;previewText=t.value;
@@ -993,7 +1012,7 @@ canvas.addEventListener('pointerdown',pointerDownCanvas);
 canvas.addEventListener('pointermove',pointerMoveCanvas);
 canvas.addEventListener('pointerup',pointerUpCanvas);
 canvas.addEventListener('pointercancel',pointerUpCanvas);
-canvas.addEventListener('lostpointercapture',()=>{if(drawPoints||warpDrag)pointerUpCanvas();});
+canvas.addEventListener('lostpointercapture',()=>{if(drawPoints||warpDrag||eraseDrag||moveDrag?.type==='stroke')pointerUpCanvas();});
 root.addEventListener('contextmenu',event=>{
  if(listening)return event.preventDefault();
  if(event.target.closest('#nbSheet'))contextMenu(event);
