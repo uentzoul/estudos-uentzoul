@@ -32,7 +32,7 @@ const newBook=(name='Meu caderno')=>({id:'book-'+Date.now()+'-'+Math.random().to
 const defaults=()=>({books:[{id:'book-original',name:'Meu caderno',pages:[]}],bookId:'book-original',page:0,mode:'select',font:'print',ink:'blue',size:1,smooth:false,zoom:.88,shortcuts:{},stickyTone:'yellow',eraserMode:'parts',eraserRadius:14});
 const hasPageContent=p=>!!(p?.notes?.some(n=>String(n.text||'').trim())||p?.strokes?.some(s=>s.points?.length)||p?.stickies?.length);
 const cleanPage=p=>({title:String(p?.title||'').slice(0,100),date:String(p?.date||'').slice(0,16),
- notes:Array.isArray(p?.notes)?p.notes.slice(0,140).map(n=>{const {original,...corrected}=n;return corrected;}):[],strokes:Array.isArray(p?.strokes)?p.strokes.slice(0,500):[],
+ notes:Array.isArray(p?.notes)?p.notes.slice(0,140).map(n=>{const {original,...corrected}=n;corrected.pending=false;return corrected;}):[],strokes:Array.isArray(p?.strokes)?p.strokes.slice(0,500):[],
  stickies:Array.isArray(p?.stickies)?p.stickies.slice(0,40):[]});
 let data=defaults(),stored=null;
 try{stored=JSON.parse(localStorage.getItem(STORE)||'null');}catch(_){}
@@ -896,7 +896,7 @@ function snapshotSheetMarkup(p,index){
   '<span class="nb-paper-date-group"><span class="nb-paper-date-label">Data</span>'+
   '<span class="nb-paper-date nb-snapshot-date">'+esc(date)+'</span></span>'+
   snapshotSvg(p)+
-  '<span class="nb-text-layer">'+(p.notes||[]).map(n=>noteMarkup(n,false)).join('')+'</span>'+
+  '<span class="nb-text-layer">'+(p.notes||[]).map(n=>noteMarkup(n,false).replace(' data-nb-note="'+esc(n.id)+'"','')).join('')+'</span>'+
   '<span class="nb-sticky-layer">'+(p.stickies||[]).map(snapshotStickyMarkup).join('')+'</span>'+
   '<span class="nb-page-num">'+String(index+1).padStart(2,'0')+'</span></span>';
 }
