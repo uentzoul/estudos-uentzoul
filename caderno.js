@@ -661,29 +661,34 @@ function toolCursor(event){
 }
 
 function renderPage(){
- selectedStroke=-1;closeEditor();
+ selectedStroke=-1;selected=null;closeEditor();
  refreshTools();renderNotes();renderStickies();drawCanvas();setZoom(data.zoom,false);
 }
-function renderAll(){refreshTools();renderPage();updateShortcutsList();}
+function renderAll(){
+ renderPage();updateShortcutsList();
+ if(drawerOpen)renderDrawer();
+ if(galleryOpen)renderGallery();
+ renderStickyPalette();
+}
 function flip(direction){
  if(flipping)return;
- if(editing)saveEditor();
+ if(editing)saveEditor(false);
  const target=data.page+direction;
- if(target<0)return;
- checkpoint();
- if(target>=data.pages.length){if(data.pages.length>=250){status('Este caderno chegou ao limite de páginas do teste.','error');return}data.pages.push(emptyPage())}
+ if(target<0||target>data.pages.length)return;
+ if(target===data.page)return;
+ if(target===data.pages.length&&data.pages.length>=250){status('Limite de páginas atingido nesta prévia.','error');return}
  flipping=true;sheet.classList.add('nb-folding');
  setTimeout(()=>{
-  data.page=target;sheet.classList.remove('nb-folding');flipping=false;renderPage();
+  data.page=target;selected=null;sheet.classList.remove('nb-folding');flipping=false;renderPage();
   view.scrollTop=0;view.scrollLeft=0;save();
  },170);
 }
 function downloadJSON(){
- const blob=new Blob([JSON.stringify({version:1,exportedAt:new Date().toISOString(),pages:data.pages},null,2)],{type:'application/json'});
+ const blob=new Blob([JSON.stringify({version:2,exportedAt:new Date().toISOString(),books:data.books,activeBookId:data.bookId},null,2)],{type:'application/json'});
  const a=document.createElement('a');a.href=URL.createObjectURL(blob);
- a.download='caderno-estudos-uentzoul-'+new Date().toISOString().slice(0,10)+'.json';
+ a.download='cadernos-estudos-uentzoul-'+new Date().toISOString().slice(0,10)+'.json';
  document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),1200);
- status('Cópia de segurança exportada.','success');
+ status('Cópia dos cadernos exportada.','success');
 }
 function formatShortcut(v){
  if(!v)return 'Definir';
@@ -720,16 +725,27 @@ function bindShortcut(event){
  $('nbShortcutHint').textContent='Atalho registrado.';
 }
 function act(action){
+ if(action==='sticky'){toolPaletteOpen=!toolPaletteOpen;renderStickyPalette();return;}
  if(MODES.includes(action)){
-  data.mode=action;editing&&saveEditor();selectedStroke=-1;refreshTools();drawCanvas();save();
-  if(action==='sticky')status('Clique na folha para adicionar um post-it.','');
-  if(action==='warp')status('Arraste um traço ajustado para deformá-lo.','');
+  if(editing)saveEditor(false);
+  data.mode=action;toolPaletteOpen=false;selected=null;selectedStroke=-1;
+  refreshTools();renderNotes();renderStickies();drawCanvas();renderStickyPalette();save();
+  if(action==='select')status('Clique para selecionar textos, post-its ou desenhos.','');
+  if(action==='warp')status('Selecione e arraste um traço corrigido.','');
   return;
  }
  if(COLORS[action]){data.ink=action;refreshTools();renderNotes();save();return}
  switch(action){
- case 'print':case 'cursive':data.font=action;refreshTools();renderNotes();save();break;
+ case 'print':case 'cursive':
+  data.font=action;refreshTools();renderNotes();
+  if(editing){editing.draft=$('nbEditorText')?.value||'';editorMarkup()}
+  save();break;
  case 'prev':flip(-1);break;case 'next':flip(1);break;
+ case 'drawer':toggleDrawer();break;case 'closeDrawer':closeDrawer();break;
+ case 'gallery':showGallery();break;case 'closeGallery':hideGallery();break;
+ case 'galleryPrev':galleryOffset=Math.max(0,galleryOffset-1);renderGallery();break;
+ case 'galleryNext':galleryOffset=Math.min(Math.floor((data.pages.length-1)/15),galleryOffset+1);renderGallery();break;
+ case 'addBook':addBook();break;case 'renameBook':renameBook();break;
  case 'zoomIn':zoomAt(data.zoom+.1,view.getBoundingClientRect().left+view.clientWidth/2,view.getBoundingClientRect().top+view.clientHeight/2);break;
  case 'zoomOut':zoomAt(data.zoom-.1,view.getBoundingClientRect().left+view.clientWidth/2,view.getBoundingClientRect().top+view.clientHeight/2);break;
  case 'smooth':data.smooth=!data.smooth;refreshTools();save();break;
@@ -740,42 +756,95 @@ function act(action){
  }
 }
 root.addEventListener('click',event=>{
+ const ctx=event.target.closest('[data-nb-context]');
+ if(ctx){contextAction(ctx.dataset.nbContext);return}
+ const book=event.target.closest('[data-nb-book]');
+ if(book){switchBook(book.dataset.nbBook);return}
+ const paper=event.target.closest('[data-nb-open-page]');
+ if(paper){hideGallery(Number(paper.dataset.nbOpenPage));return}
+ const tone=event.target.closest('[data-nb-tone]');
+ if(tone){
+  data.stickyTone=tone.dataset.nbTone;data.mode='sticky';
+  toolPaletteOpen=false;renderStickyPalette();refreshTools();save();
+  status('Post-it '+({yellow:'amarelo',pink:'rosa',violet:'lilás'}[data.stickyTone]||'')+' selecionado. Toque na folha.','');
+  return;
+ }
  const d=event.target.closest('[data-nb-delete-sticky]');
  if(d){
-  checkpoint();page().stickies=page().stickies.filter(s=>s.id!==d.dataset.nbDeleteSticky);renderStickies();save();return;
+  checkpoint();page().stickies=page().stickies.filter(s=>s.id!==d.dataset.nbDeleteSticky);
+  renderStickies();save();return;
  }
  const bind=event.target.closest('[data-nb-bind]');
  if(bind){listening=bind.dataset.nbBind;$('nbShortcutHint').textContent='Pressione uma tecla ou botão extra do mouse.';updateShortcutsList();return;}
  const button=event.target.closest('[data-nb-action]');
- if(button){act(button.dataset.nbAction);return;}
+ if(button){act(button.dataset.nbAction);return}
  if(event.target.id==='nbShortcutsDialog')act('closeShortcuts');
+ if(!event.target.closest('#nbContextMenu'))$('nbContextMenu').hidden=true;
+ if(!event.target.closest('#nbStickyPalette')&&!event.target.closest('[data-nb-action="sticky"]')){
+  toolPaletteOpen=false;renderStickyPalette();
+ }
 });
 root.addEventListener('change',event=>{
- if(event.target.id==='nbFont'){data.font=event.target.value;renderNotes();save();}
- if(event.target.id==='nbSize'){data.size=clamp(Number(event.target.value),1,3);renderNotes();save();}
+ if(event.target.id==='nbFont'){
+  data.font=event.target.value;renderNotes();
+  if(editing){editing.draft=$('nbEditorText')?.value||'';editorMarkup()}
+  save();
+ }
+ if(event.target.id==='nbSize'){
+  data.size=clamp(Number(event.target.value),1,editing?.line===FIRST_LINE?2:3);
+  refreshTools();renderNotes();
+  if(editing){editing.draft=$('nbEditorText')?.value||'';editorMarkup()}
+  save();
+ }
  if(event.target.id==='nbSmooth'){data.smooth=event.target.checked;save();}
+ if(event.target.id==='nbPaperDate'){page().date=event.target.value;save();}
 });
 root.addEventListener('input',event=>{
  const t=event.target;
- if(t.id==='nbEditorText'){editing.draft=t.value;previewText=t.value;renderNotes();return;}
+ if(t.id==='nbEditorText'){
+  if(!editing)return;
+  editing.draft=t.value;previewText=t.value;
+  t.style.height=Math.max(38,t.scrollHeight)+'px';
+  return;
+ }
  if(t.id==='nbPaperTitle'){page().title=t.value;save();return;}
  if(t.id==='nbZoomSlider'){
   zoomAt(Number(t.value)/100,view.getBoundingClientRect().left+view.clientWidth/2,view.getBoundingClientRect().top+view.clientHeight/2);return;
  }
  if(t.matches('[data-nb-sticky-text]')){
-  const s=page().stickies.find(s=>s.id===t.dataset.nbStickyText);
-  if(s){s.text=t.value;save();}
+  const st=page().stickies.find(s=>s.id===t.dataset.nbStickyText);
+  if(st){st.text=t.value;save();}
  }
 });
 root.addEventListener('keydown',event=>{
  if(event.target.id==='nbEditorText'){
-  if(event.key==='Enter'&&!event.shiftKey&&!event.isComposing){event.preventDefault();saveEditor();}
+  if(event.key==='Enter'&&!event.shiftKey&&!event.isComposing){
+   event.preventDefault();event.stopPropagation();saveEditor(true);return;
+  }
   if(event.key==='Escape'){event.preventDefault();closeEditor();}
  }
+ if(event.target.id==='nbNewBook'&&event.key==='Enter'){event.preventDefault();addBook();}
+ if(event.target.id==='nbRenameBook'&&event.key==='Enter'){event.preventDefault();renameBook();}
 });
 document.addEventListener('keydown',event=>{
- if(listening){event.preventDefault();bindShortcut(event);return;}
- if(event.target.closest('textarea,input,select,[contenteditable="true"]')||event.isComposing||event.repeat)return;
+ if(listening){event.preventDefault();bindShortcut(event);return}
+ if(event.isComposing)return;
+ const inInput=!!event.target.closest('textarea,input,select,[contenteditable="true"]');
+ if((event.ctrlKey||event.metaKey)&&!inInput){
+  if(event.code==='KeyZ'){event.preventDefault();if(event.shiftKey)redo();else undo();return}
+  if(event.code==='KeyY'){event.preventDefault();redo();return}
+ }
+ if(!inInput&&!event.repeat&&(event.key==='Delete'||event.key==='Backspace')&&selected){
+  event.preventDefault();deleteSelected();return;
+ }
+ if(event.key==='Escape'){
+  if(!$('nbContextMenu').hidden){$('nbContextMenu').hidden=true;return}
+  if(toolPaletteOpen){toolPaletteOpen=false;renderStickyPalette();return}
+  if(drawerOpen){closeDrawer();return}
+  if(galleryOpen){hideGallery();return}
+  if(selected){selected=null;renderNotes();renderStickies();drawCanvas();return}
+ }
+ if(inInput||event.repeat)return;
  const code=shortcutEventString(event);
  const action=Object.keys(data.shortcuts).find(k=>data.shortcuts[k]===code);
  if(action){event.preventDefault();act(action);}
