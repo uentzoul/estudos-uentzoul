@@ -173,3 +173,15 @@ button,input,textarea,select{font:inherit}button{cursor:pointer}button:disabled{
  ::view-transition-group(*),::view-transition-old(*),::view-transition-new(*){animation:none!important}
  .nb-gallery-paper{transition:none}
 }
+
+
+/* Drag and eraser: precise pointer feedback and touch-friendly selection. */
+.nb-eraser-controls{display:inline-flex;align-items:center;gap:6px;flex-wrap:wrap;margin-left:4px;color:#6f6284;font-size:11px;font-weight:750}
+.nb-eraser-controls select{background:#fff;color:#55466d;border:1px solid #d6c7e7;border-radius:8px;padding:6px 8px;min-height:32px;font-size:11px}
+.nb-eraser-controls input[type="range"]{width:73px;accent-color:#745daf}
+.nb-sheet[data-mode="erase"] .nb-drawing{pointer-events:auto;touch-action:none;cursor:none}
+.nb-sheet[data-mode="select"] .nb-drawing{pointer-events:auto;touch-action:none;cursor:grab}
+.nb-sheet[data-mode="select"] .nb-note,.nb-sheet[data-mode="select"] .nb-sticky{touch-action:none;cursor:grab}
+.nb-sheet[data-mode="select"] .nb-note:active,.nb-sheet[data-mode="select"] .nb-sticky:active,.nb-sheet[data-mode="select"] .nb-drawing:active{cursor:grabbing}
+.nb-sheet[data-mode="erase"] .nb-note{pointer-events:none}
+@media(max-width:760px){.nb-eraser-controls{width:100%;justify-content:flex-start}.nb-eraser-controls input[type="range"]{width:94px}}
