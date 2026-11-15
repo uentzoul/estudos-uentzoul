@@ -186,7 +186,7 @@ setTimeout(check,15000);
  const setup=()=>{
   if(document.getElementById('pm-visit-path-js'))return;
   const script=document.createElement('script');
-  script.id='pm-visit-path-js';script.src='visit-path.js?v=20261114-percurso-v2';
+  script.id='pm-visit-path-js';script.src='visit-path.js?v=20261114-percurso-v3';
   script.async=true;document.head.appendChild(script);
  };
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',setup,{once:true});
