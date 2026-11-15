@@ -61,11 +61,12 @@ async function sync(){
 async function navigate(route){
  if(ending)return;
  if(!ready&&!(await sync()))return;
- const normalized=normalize(route||current());
+ const source=route||current();
+ const normalized=normalize(source);
  const signature=JSON.stringify(normalized);
  if(lastRoute===signature)return;
  lastRoute=signature;
- await rpc('navigate',normalized);
+ await rpc('navigate',source);
 }
 function routeEvent(e){void navigate(e.detail||current());}
 function refocus(){
