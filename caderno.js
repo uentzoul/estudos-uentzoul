@@ -48,7 +48,7 @@ try{
   if(!data.shortcuts||typeof data.shortcuts!=='object')data.shortcuts={};
  }
 }catch(e){console.warn('Não foi possível restaurar o rascunho do caderno.',e)}
-let editing=null, previewText='',drawPoints=null,warpDrag=null,stickyDrag=null,selectedStroke=-1;
+let editing=null, previewText='',drawPoints=null,warpDrag=null,stickyDrag=null,selectedStroke=-1,tapCandidate=null;
 let undoStack=[],redoStack=[],listening='',pinch=null,saveTimer=null,flipping=false;
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const clamp=(v,min,max)=>Math.max(min,Math.min(max,v));
@@ -221,11 +221,11 @@ async function correctNote(noteId,raw){
   if(!revised||revised.length<raw.length*.5||revised.length>raw.length*1.75)throw Error('Revisão não confiável.');
   const n=data.pages.flatMap(p=>p.notes).find(n=>n.id===noteId);
   if(!n||n.original!==raw)return;
-  n.text=revised;n.pending=false;n.reviewed=true;n.span=occupiedSpan(n);
+  n.text=revised;n.pending=false;n.reviewed=result.reviewed===true;n.span=occupiedSpan(n);
   if(page().notes.includes(n))makeRoom(n);
   if(!editing)renderNotes();else renderNotes();
   save();
-  status(revised===raw?'Anotação conferida, sem mudanças.':'Gramática corrigida sem reescrever a anotação.','success');
+  status(result.reviewed===false?'Texto original preservado: a revisão automática não foi confirmada.':revised===raw?'Anotação conferida, sem mudanças.':'Gramática corrigida sem reescrever a anotação.',result.reviewed===false?'error':'success');
  }catch(err){
   const n=data.pages.flatMap(p=>p.notes).find(n=>n.id===noteId);
   if(!n||n.original!==raw)return;
@@ -519,12 +519,19 @@ root.addEventListener('pointerdown',event=>{
  if(data.mode!=='text'&&data.mode!=='sticky')return;
  if(event.target.closest('button,input,textarea,.nb-sticky,.nb-editor'))return;
  const pos=point(event);
- if(data.mode==='sticky'){if(event.pointerType!=='touch'||event.isPrimary)addSticky(pos);return;}
+ // Em telas touch, só seleciona depois de um toque sem arrasto: não interrompe a rolagem.
+ if(event.pointerType==='touch'){
+  tapCandidate={pointerId:event.pointerId,x:event.clientX,y:event.clientY,pos,mode:data.mode};
+  return;
+ }
+ if(data.mode==='sticky'){addSticky(pos);return;}
  if(pos.x<88||pos.y<START-10||pos.y>START+ROWS*L)return;
  const line=clamp(Math.floor((pos.y-START)/L),0,ROWS-1);
  beginEdit(line);
 });
 root.addEventListener('pointermove',event=>{
+ if(tapCandidate&&event.pointerId===tapCandidate.pointerId&&
+    Math.hypot(event.clientX-tapCandidate.x,event.clientY-tapCandidate.y)>10)tapCandidate=null;
  if(stickyDrag){
   const note=page().stickies.find(s=>s.id===stickyDrag.id);
   if(note){
@@ -540,7 +547,16 @@ root.addEventListener('pointermove',event=>{
   else el.hidden=true;
  }
 });
-root.addEventListener('pointerup',()=>{
+root.addEventListener('pointerup',event=>{
+ if(tapCandidate&&event.pointerId===tapCandidate.pointerId){
+  const tap=tapCandidate;tapCandidate=null;
+  if(!pinch&&tap.mode===data.mode){
+   if(data.mode==='sticky')addSticky(tap.pos);
+   else if(data.mode==='text'&&tap.pos.x>=88&&tap.pos.y>=START-10&&tap.pos.y<=START+ROWS*L){
+    const line=clamp(Math.floor((tap.pos.y-START)/L),0,ROWS-1);beginEdit(line);
+   }
+  }
+ }
  if(stickyDrag){stickyDrag=null;save();}
 });
 canvas.addEventListener('pointerdown',pointerDownCanvas);
@@ -565,7 +581,7 @@ view.addEventListener('touchstart',event=>{
  if(event.touches.length===2){
   const a=event.touches[0],b=event.touches[1];
   pinch={distance:Math.hypot(a.clientX-b.clientX,a.clientY-b.clientY),zoom:data.zoom};
-  drawPoints=null;warpDrag=null;
+  tapCandidate=null;drawPoints=null;warpDrag=null;
  }
 },{passive:true});
 view.addEventListener('touchmove',event=>{
