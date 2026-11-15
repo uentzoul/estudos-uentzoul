@@ -200,8 +200,8 @@ test('Tutorial móvel usa uma rolagem suave por etapa sem reposicionamento tardi
  assert.match(tour,/mobilePositionAttempts>0/);
  assert.match(tour,/runSteps\[index\]\?\.page==='vacation'&&\!q\('#main #vr-root \.vr-months'\)/);
  assert.match(tour,/mobilePositionAttempts=1/);
- assert.match(tour,/behavior:reduced\?'instant':'smooth'/);
- assert.match(tour,/mobileScrollFrame=requestAnimationFrame\(settle\)/);
+ assert.match(tour,/window\.scrollTo\(\{top:next,behavior:'instant'\}\)/);
+ assert.match(tour,/dataset\.pmTourPreparing='true'/);
  assert.match(tour,/if\(tourMobile&&pendingScroll\)window\.scrollTo/);
  assert.doesNotMatch(tour,/requestAnimationFrame\(\(\)=>requestAnimationFrame\(\(\)=>\{\s*pendingScroll=false/);
 });
