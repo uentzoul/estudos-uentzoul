@@ -4,6 +4,7 @@
 const TABLE='uentzoul_admin_topics',PRESENCE='uentzoul_presence';
 let admin=false,owner=null,checking=false,topics=[],topicsSignature='',presence=[],reports=[],busy=false,notice='',editing=null,lastPresence=0,lastReports=0;
 let accessLog=[],logOpen=false,logTab='online',lastLog=0,logError='',markingTest=false;
+let selectedVisitId=null,visitSteps=[],visitLoading=false,visitError='',logLimit=200,hasMoreEntries=false;
 let guestOnlineCount=null,lastGuestCount=0,guestCountError='';
 let guestPingBusy=false,lastGuestPing=0;
 const GUEST_SESSION_KEY='pm_guest_online_session_v1';
@@ -152,7 +153,7 @@ async function loadAccess(){
  if(!isAdmin()||!client())return;
  try{
   const [events,profiles,labels]=await Promise.all([
-   client().from('uentzoul_access_log').select('id,user_id,actor,entered_at').order('entered_at',{ascending:false}).limit(200),
+   client().from('uentzoul_access_log').select('id,user_id,actor,entered_at,last_seen_at,ended_at').order('entered_at',{ascending:false}).limit(logLimit+1),
    client().from('uentzoul_profiles').select('user_id,display_name').limit(500),
    client().from(TEST_LABELS).select('access_id').limit(1000)
   ]);
@@ -161,7 +162,8 @@ async function loadAccess(){
   if(labels.error)throw labels.error;
   const names=new Map((profiles.data||[]).map(p=>[p.user_id,p.display_name]));
   const marked=new Set((labels.data||[]).map(x=>String(x.access_id)));
-  accessLog=(events.data||[]).map(r=>{
+  hasMoreEntries=(events.data||[]).length>logLimit;
+  accessLog=(events.data||[]).slice(0,logLimit).map(r=>{
    const isTest=r.actor==='anonymous'&&marked.has(String(r.id));
    return {...r,isTest,name:r.actor==='anonymous'?(isTest?'Meu teste anônimo':'Visitante anônimo'):names.get(r.user_id)||'Usuário cadastrado'};
   });
@@ -174,25 +176,95 @@ function logDate(date){
  catch(_){return '—'}
 }
 function loggedOnline(p){return !!p.last_seen&&Date.now()-new Date(p.last_seen).getTime()<120000}
+const VISIT_SECTION={home:'Página inicial',subject:'Disciplina',exams:'Simulados',test:'Simulado',calendar:'Agenda e Horários',messages:'Mensagens',ai:'IA Tzoul',audio:'Podcasts',library:'Biblioteca',admin:'Admin Config',vacation:'Revisão de Férias'};
+const VISIT_SUBJECTS={tcc:'TCC',familia:'Psicologia da Família',meta:'Metapsicologia',grupos:'Psicologia dos Grupos',social:'Psicologia Social',avaliacao:'Avaliação Psicológica',profissao:'Psicologia como Profissão',processos:'Processos Psicológicos Básicos',direitos:'Psicologia e Direitos Humanos',epistemologia:'Fundamentos Epistemológicos em Psicologia',historia:'História da Psicologia',sociocognitivas:'Teorias Sociocognitivas',desenvolvimento:'Psicologia do Desenvolvimento',inteligencia:'Avaliação Psicológica: Inteligência e Funções Cognitivas',basesbiologicas:'Bases Biológicas do Comportamento Humano',psicopatologia:'Concepções em Psicopatologia',observacao:'Observação e Entrevista',grupos2:'Psicologia dos Grupos II',psiquismo:'Psiquismo e Subjetividade em Psicanálise',escolar:'Psicologia Escolar e da Educação I',etica:'Ética e Legislação em Psicologia'};
+const VISIT_AREAS={trail:'Trilha de Estudos',topics:'Conteúdos',docs:'Materiais e textos',tests:'Simulados',podcasts:'Podcasts',guided:'Estudo dirigido',flash:'Flashcards',cases:'Estudos de caso'};
+function visitTitle(step){
+ if(step.kind==='entry')return 'Entrou no site';
+ if(step.kind==='exit')return 'Saiu do site';
+ if(step.section==='subject'){
+  const parts=String(step.detail||'').split(':');
+  const base=VISIT_SUBJECTS[parts[0]]||'uma disciplina';
+  return 'Acessou '+base+(parts[1]&&VISIT_AREAS[parts[1]]?' · '+VISIT_AREAS[parts[1]]:'');
+ }
+ if(step.section==='test')return 'Abriu um simulado';
+ return 'Acessou '+(VISIT_SECTION[step.section]||'uma seção do site');
+}
+function visitDetail(row){
+ if(!row)return '';
+ if(visitLoading)return '<div class="admin-visit-detail" role="status">Carregando percurso desta visita…</div>';
+ if(visitError)return '<div class="admin-visit-detail" role="alert">'+esc(visitError)+'</div>';
+ const steps=visitSteps.slice(0,100);
+ const items=steps.length?steps:[{kind:'entry',section:'home',happened_at:row.entered_at}];
+ const timeline=items.map(step=>'<li class="admin-visit-step" data-kind="'+esc(step.kind)+'">'+
+  '<time datetime="'+esc(step.happened_at)+'">'+esc(logDate(step.happened_at))+'</time>'+
+  '<strong>'+esc(visitTitle(step))+'</strong>'+
+  (step.semester?'<small>'+esc(step.semester)+'</small>':'')+'</li>').join('');
+ const last=steps[steps.length-1];
+ let ending='';
+ if(!last||last.kind!=='exit'){
+  const stamp=row.last_seen_at||row.entered_at;
+  const age=Date.now()-new Date(stamp).getTime();
+  const stillActive=steps.length>0&&age<150000;
+  ending='<li class="admin-visit-step admin-visit-uncertain"><time>'+esc(logDate(stamp))+'</time>'+
+   '<strong>'+(stillActive?'Sessão possivelmente ativa':'Saída não confirmada')+'</strong>'+
+   '<small>'+(stillActive?'A visita pode continuar em andamento.':'O encerramento não foi registrado; este horário é a última atividade conhecida.')+'</small></li>';
+ }
+ const message=steps.length?'Sequência observada nesta visita. Apenas as seções acessadas são registradas.':
+  'Registro anterior a este recurso. As páginas visitadas não eram armazenadas e não é possível reconstruir o percurso antigo.';
+ return '<section class="admin-visit-detail" aria-label="Percurso desta visita">'+
+  '<div class="admin-visit-head"><div><strong>Histórico desta visita</strong><small>'+esc(row.name||'Visitante')+' · Entrada '+esc(logDate(row.entered_at))+'</small></div>'+
+  '<button type="button" data-admin-close-visit aria-label="Fechar histórico">Fechar ×</button></div>'+
+  '<p class="admin-visit-note">'+esc(message)+'</p>'+
+  '<ol class="admin-visit-timeline">'+timeline+ending+'</ol></section>';
+}
+async function openVisit(id){
+ if(!isAdmin())return;
+ if(selectedVisitId===String(id)){selectedVisitId=null;visitSteps=[];updateLogPanel();return;}
+ const record=accessLog.find(row=>String(row.id)===String(id));
+ if(!record)return;
+ selectedVisitId=String(id);visitSteps=[];visitError='';visitLoading=true;updateLogPanel();
+ try{
+  const {data,error}=await client().from('uentzoul_visit_steps')
+   .select('id,kind,section,detail,semester,happened_at')
+   .eq('access_id',record.id).order('happened_at',{ascending:true}).order('id',{ascending:true}).limit(100);
+  if(error)throw error;
+  if(selectedVisitId!==String(id))return;
+  visitSteps=data||[];
+ }catch(error){visitError='Não foi possível consultar o percurso. '+(error?.message||'Verifique a conexão.');}
+ finally{if(selectedVisitId===String(id)){visitLoading=false;updateLogPanel();
+  document.querySelector('.admin-log-row.is-selected + .admin-visit-detail')?.scrollIntoView({block:'nearest',behavior:'smooth'});
+ }}
+}
 function logMarkup(){
  if(logError)return '<p class="admin-muted" role="status">'+esc(logError)+'</p>';
  const rows=logTab==='online'?presence.filter(loggedOnline):logTab==='last'?presence:accessLog;
  if(!rows.length)return '<p class="admin-muted">'+(logTab==='online'?'Nenhuma conta identificada como ativa nos últimos dois minutos.':logTab==='last'?'Nenhum último acesso registrado.':'Ainda não há entradas registradas.')+'</p>';
- return '<div class="admin-log-rows">'+rows.slice(0,logTab==='online'?100:200).map(row=>{
+ return '<div class="admin-log-rows">'+rows.slice(0,logTab==='online'?100:logLimit).map(row=>{
   const active=logTab==='online'?true:logTab==='last'&&loggedOnline(row);
   const name=esc(row.name||'Usuário cadastrado');
   const when=logTab==='entries'?row.entered_at:row.last_seen;
   const status=logTab==='online'?'Online agora':logTab==='last'?(active?'Online agora':'Última atividade registrada'):
-   row.actor==='anonymous'?(row.isTest?'Identificado manualmente como teste do administrador':'Origem não identificada · sem conta'):'Entrou na conta';
+   row.actor==='anonymous'?(row.isTest?'Identificado manualmente como teste do administrador':'Visita anônima · sem conta'):'Entrou na conta';
+  const match=logTab==='entries'?row:accessLog.find(entry=>entry.user_id&&entry.user_id===row.user_id);
+  const selected=!!match&&selectedVisitId===String(match.id);
   const markButton=logTab==='entries'&&row.actor==='anonymous'?
    '<button type="button" class="admin-log-test-toggle" data-admin-test-access="'+esc(row.id)+'" '+(markingTest?'disabled':'')+
    ' aria-label="'+(row.isTest?'Desfazer identificação deste acesso como meu teste':'Identificar este acesso como meu teste')+'">'+
    (row.isTest?'Desfazer marcação':'Marcar como meu teste')+'</button>':'';
-  return '<div class="admin-log-row"><span class="admin-log-avatar '+(active?'is-online':'')+'" aria-hidden="true">'+(row.actor==='anonymous'?'?':name.trim().charAt(0).toUpperCase()||'U')+'</span>'+
+  const button='<button type="button" class="admin-log-row-target" data-admin-open-visit="'+esc(match?.id||'')+'"'+
+   (match?'':' disabled title="Não há uma entrada individual disponível para este perfil."')+
+   ' aria-expanded="'+selected+'"'+(selected?' data-admin-visit-selected':'')+'>'+
+   '<span class="admin-log-avatar '+(active?'is-online':'')+'" aria-hidden="true">'+(row.actor==='anonymous'?'?':name.trim().charAt(0).toUpperCase()||'U')+'</span>'+
    '<span class="admin-log-person"><strong>'+name+'</strong><small>'+esc(status)+'</small></span>'+
-   '<time datetime="'+esc(when||'')+'">'+esc(logDate(when))+'</time>'+markButton+'</div>';
- }).join('')+'</div>';
+   '<time datetime="'+esc(when||'')+'">'+esc(logDate(when))+'</time>'+
+   (match?'<span class="admin-log-expand" aria-hidden="true">'+(selected?'⌃':'⌄')+'</span>':'')+'</button>';
+  return '<div class="admin-log-row'+(selected?' is-selected':'')+'">'+button+markButton+'</div>'+
+   (selected?visitDetail(match):'');
+ }).join('')+'</div>'+
+ (logTab==='entries'&&hasMoreEntries?'<button type="button" class="admin-log-more" data-admin-log-more>Carregar mais 200 entradas anteriores</button>':'');
 }
+
 function updateLogPanel(){
  const contents=document.getElementById('adminLogData');
  if(contents)contents.innerHTML=logMarkup();
@@ -215,7 +287,7 @@ function adminLogMarkup(){
   '<summary><div class="admin-log-title"><span class="admin-log-glyph" aria-hidden="true">⌁</span>'+
   '<div><strong>LOG</strong><small>Contas e visitantes online</small></div></div>'+
   '<span class="admin-log-summary-meta">Privado <span aria-hidden="true">⌄</span></span></summary>'+
-  '<div class="admin-log-content"><p class="admin-log-explain">O status online é uma estimativa de atividade nos últimos dois minutos. Para visitantes sem login, contamos apenas sessões anônimas ativas, sem identificar pessoas nem acompanhar páginas ou ações. Cada aba pode representar uma sessão diferente. No histórico de Entradas, você ainda pode identificar manualmente registros de teste sem alterar os dados originais.</p>'+ 
+  '<div class="admin-log-content"><p class="admin-log-explain">O status online é uma estimativa de atividade nos últimos dois minutos. Clique em uma entrada para consultar o percurso resumido da visita. O registro não guarda mensagens, respostas ou textos digitados. Entradas antigas exibem somente o que já foi registrado.</p>'+ 
   guestOnlineMarkup()+
   '<div class="admin-log-toolbar" role="tablist" aria-label="Visualização dos acessos">'+
   [['online','Online','adminLogOnlineCount'],['last','Último acesso',''],['entries','Entradas','']].map(([tab,label,id])=>
@@ -332,10 +404,14 @@ document.addEventListener('click',e=>{
  const del=e.target.closest('[data-admin-delete]');if(del&&isAdmin()){deleteTopic(del.dataset.adminDelete);return;}
  if(e.target.closest('[data-admin-cancel]')&&isAdmin()){editing=null;refreshAdminPage();return;}
  if(e.target.closest('[data-admin-refresh]')&&isAdmin()){heartbeat().then(loadPresence);loadAccess();loadGuestOnline();loadReports();}
+ const open=e.target.closest('[data-admin-open-visit]');
+ if(open&&isAdmin()&&open.dataset.adminOpenVisit){void openVisit(open.dataset.adminOpenVisit);return;}
+ if(e.target.closest('[data-admin-close-visit]')&&isAdmin()){selectedVisitId=null;visitSteps=[];updateLogPanel();return;}
+ if(e.target.closest('[data-admin-log-more]')&&isAdmin()){logLimit+=200;void loadAccess();return;}
  const test=e.target.closest('[data-admin-test-access]');
  if(test&&isAdmin()){toggleTestAccess(test.dataset.adminTestAccess);return;}
  const log=e.target.closest('[data-admin-log-tab]');
- if(log&&isAdmin()){logTab=log.dataset.adminLogTab;updateLogPanel();return}
+ if(log&&isAdmin()){logTab=log.dataset.adminLogTab;selectedVisitId=null;visitSteps=[];updateLogPanel();return}
  if(e.target.closest('[data-admin-log-refresh]')&&isAdmin()){loadPresence();loadAccess();loadGuestOnline();return}
 });
 
@@ -346,27 +422,10 @@ document.addEventListener('toggle',e=>{
   loadPresence();loadAccess();loadGuestOnline();
  }
 },true);
-/* Registro leve e não identificável de visitantes sem conta.
-   Uma entrada por sessão do navegador, não um log das páginas visualizadas. */
-let accessRecording=false;
-async function recordAccess(){
- const c=client();if(!c||accessRecording)return;
- accessRecording=true;
- try{
-  const session=await c.auth.getSession();
-  if(session.error)throw session.error;
-  const uid=session.data?.session?.user?.id||user()?.id||null;
-  const key='psicomoodle_access_logged_'+(uid||'anonymous');
-  try{if(sessionStorage.getItem(key))return}catch(_){}
-  const res=await c.rpc('uentzoul_record_access');
-  if(res.error)throw res.error;
-  try{sessionStorage.setItem(key,'1')}catch(_){}
- }catch(e){console.warn('Entrada não registrada',e)}
- finally{accessRecording=false}
-}
+/* As navegações são registradas no visit-path.js; presença online permanece independente. */
 
 window.addEventListener('uentzoul:auth',()=>{
- refresh();heartbeat();recordAccess();
+ refresh();heartbeat();
  if(user()?.id)void guestPresenceLeave();else void guestPresenceHeartbeat();
 });
 window.addEventListener('focus',()=>{refresh();heartbeat();guestPresenceHeartbeat();});
@@ -380,6 +439,6 @@ setInterval(()=>{
 },20000);
 window.uentzoulAdminConfig={isAdmin,render,afterRender,refresh,loadPresence,loadReports};
 let tries=0;
-const start=()=>{if(client()){refresh();heartbeat();recordAccess();guestPresenceHeartbeat()}else if(tries++<40)setTimeout(start,800)};
+const start=()=>{if(client()){refresh();heartbeat();guestPresenceHeartbeat()}else if(tries++<40)setTimeout(start,800)};
 start();
 })();
