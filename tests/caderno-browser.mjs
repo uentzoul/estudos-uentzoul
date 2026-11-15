@@ -8,6 +8,7 @@ import path from 'node:path';
 import assert from 'node:assert/strict';
 const base=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
 const html='<!doctype html><html lang="pt-BR"><meta charset="utf-8">'+
+ '<meta name="viewport" content="width=device-width, initial-scale=1">'+
  '<style>html,body{margin:0;height:100%;overflow:hidden}iframe{border:0;width:100%;height:100vh}</style>'+
  '<script>window.uentzoulAdminConfig={isAdmin:()=>true};'+
  'window.uentzoulAIAuth={user:()=>({id:"qa-browser-admin"}),'+
