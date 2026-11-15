@@ -21,7 +21,7 @@ const LEGACY_STORE='uentzoul:caderno:alpha1:'+userId;
 const COLORS={black:'#24242e',blue:'#2559a4',red:'#bb3d43'};
 const MODES=['text','select','draw','erase','sticky','warp'];
 const ACTIONS=[
- ['text','Escrever'],['select','Selecionar'],['draw','Desenhar'],['erase','Borracha'],['sticky','Post-it'],['warp','Deformar'],
+ ['text','Escrever'],['select','Selecionar'],['draw','Desenhar'],['erase','Borracha'],['sticky','Post-it'],['warp','Moldar'],
  ['black','Caneta preta'],['blue','Caneta azul'],['red','Caneta vermelha'],
  ['print','Letra de forma'],['cursive','Letra cursiva'],
  ['prev','Página anterior'],['next','Próxima página'],['zoomIn','Aproximar'],['zoomOut','Afastar'],
@@ -137,7 +137,7 @@ root.innerHTML=
  '<button class="nb-tool" data-nb-action="erase" title="Apagar partes ou traços inteiros de desenhos">⌫ Borracha</button>'+
  '<button class="nb-tool" data-nb-action="draw" title="Desenhar diretamente na folha">〰 Desenhar</button>'+
  '<button class="nb-tool" data-nb-action="sticky" title="Colocar um post-it">▤ Post-it</button>'+
- '<button class="nb-tool" data-nb-action="warp" title="Deformar somente traços corrigidos">⌁ Deformar</button>'+
+ '<button class="nb-tool" data-nb-action="warp" title="Moldar somente traços corrigidos">⌁ Moldar</button>'+
  '<span id="nbEraserControls" class="nb-eraser-controls" hidden><label for="nbEraseBehavior">Apagar</label>'+
  '<select id="nbEraseBehavior" aria-label="Tipo de borracha"><option value="parts">Trechos</option><option value="whole">Traço inteiro</option></select>'+
  '<label for="nbEraseSize">Raio</label><input id="nbEraseSize" type="range" min="6" max="32" step="2" value="14" aria-label="Tamanho da borracha"></span></div>'+
@@ -316,7 +316,7 @@ async function correctNote(noteId,raw){
   if(!revised||revised.length<raw.length*.5||revised.length>raw.length*1.75)throw Error('Revisão não confiável.');
   const n=data.books.flatMap(b=>b.pages).flatMap(p=>p.notes).find(n=>n.id===noteId);
   if(!n||n.original!==raw)return;
-  n.text=result.reviewed===true?revised:fallbackBasic(raw);
+  n.text=fallbackBasic(result.reviewed===true?revised:raw);
   n.pending=false;n.reviewed=result.reviewed===true;n.span=occupiedSpan(n);
   if(page().notes.includes(n))makeRoom(n);
   if(page().notes.includes(n))renderNotes();
@@ -585,10 +585,14 @@ function renderSelectionHandles(){
  const minW=selected.type==='stroke'?12:42,minH=selected.type==='stroke'?12:35;
  const x=clamp(rect.x,0,W-minW),y=clamp(rect.y,0,H-minH);
  const width=clamp(rect.w,minW,W-x),height=clamp(rect.h,minH,H-y);
- host.innerHTML='<div class="nb-transform-box" style="left:'+x+'px;top:'+y+'px;width:'+width+
-  'px;height:'+height+'px;" role="group" aria-label="Redimensionar item selecionado">'+
-  TRANSFORM_HANDLES.map(dir=>'<button type="button" class="nb-transform-handle nb-handle-'+dir+
-   '" data-nb-handle="'+dir+'" aria-label="Redimensionar '+dir+'" title="Arraste para redimensionar"></button>').join('')+
+ const molding=data.mode==='warp'&&selected.type==='stroke';
+ host.innerHTML='<div class="nb-transform-box'+(molding?' nb-transform-mold':'')+'" style="left:'+x+'px;top:'+y+'px;width:'+width+
+  'px;height:'+height+'px;" role="group" aria-label="'+(molding?'Mover ou moldar desenho':'Redimensionar item selecionado')+'">'+
+  (molding?
+   '<button class="nb-transform-move" data-nb-move-handle="1" type="button" title="Arraste para mover desenho" aria-label="Mover desenho sem deformar">▣</button>'+
+   '<button class="nb-transform-mold-handle" data-nb-mold-handle="1" type="button" title="Arraste para moldar curva" aria-label="Moldar curva">●</button>'
+   :TRANSFORM_HANDLES.map(dir=>'<button type="button" class="nb-transform-handle nb-handle-'+dir+
+   '" data-nb-handle="'+dir+'" aria-label="Redimensionar '+dir+'" title="Arraste para redimensionar"></button>').join(''))+
   '</div>';
 }
 function startResize(event,dir){
@@ -746,23 +750,21 @@ function pointerDownCanvas(event){
   checkpoint();drawPoints=[p];canvas.setPointerCapture?.(event.pointerId);
   event.preventDefault();
  }else if(data.mode==='warp'){
-  let best={score:18,index:-1,point:0};
-  page().strokes.forEach((stroke,i)=>{
-   if(!stroke.corrected)return;
-   (stroke.points||[]).forEach((q,j)=>{const d=dist(p,q);if(d<best.score)best={score:d,index:i,point:j}});
-  });
-  if(best.index<0){status('A deformação só funciona em traços ajustados.','error');return}
-  checkpoint();selectedStroke=best.index;
-  const stroke=page().strokes[best.index];
-  warpDrag={index:best.index,at:best.point,from:p,original:stroke.points.map(q=>({...q}))};
-  canvas.setPointerCapture?.(event.pointerId);event.preventDefault();drawCanvas();
+  const hit=findStrokeNear(p,false);
+  if(hit.stroke){
+   selectItem('stroke',hit.stroke.id);selectedStroke=hit.index;
+   drawCanvas();renderSelectionHandles();status('Quadradinho move; ponto redondo molda.','');
+  }else{
+   selected=null;selectedStroke=-1;drawCanvas();renderSelectionHandles();
+  }
+  event.preventDefault();
  }
 }
 function pointerMoveCanvas(event){
  if(eraseDrag&&eraseDrag.pointerId===event.pointerId){applyEraser(point(event));event.preventDefault();return;}
  if(moveDrag&&moveDrag.pointerId===event.pointerId&&moveDrag.type==='stroke'){updateMoveDrag(event);event.preventDefault();return;}
  if(drawPoints){drawPoints.push(point(event));drawCanvas();event.preventDefault();}
- if(warpDrag){
+ if(warpDrag&&warpDrag.pointerId===event.pointerId){
   const p=point(event),dx=p.x-warpDrag.from.x,dy=p.y-warpDrag.from.y;
   const reference=warpDrag.original[warpDrag.at];
   page().strokes[warpDrag.index].points=warpDrag.original.map(q=>{
@@ -783,7 +785,7 @@ function pointerUpCanvas(event){
    save();status(data.smooth?'Desenho ajustado. Pode usar Deformar.':'Traço livre inserido.','success');
   }
  }
- if(warpDrag){warpDrag=null;save();status('Traço deformado.','success');}
+ if(warpDrag&&(!event||event.pointerId===warpDrag.pointerId)){warpDrag=null;renderSelectionHandles();save();status('Curva moldada. Ctrl+Z desfaz.','success');}
  drawCanvas();
 }
 
@@ -1036,7 +1038,7 @@ function contextMenu(event){
   [['edit','✎ Editar texto'],['move','⌖ Selecionar e mover'],['correct','✧ Revisar gramática'],['copy','▣ Copiar texto'],
    ['blue','● Caneta azul'],['black','● Caneta preta'],['red','● Caneta vermelha'],['delete','⌫ Excluir']]:
   type==='stroke'?
-  [['move','⌖ Selecionar e mover'],...(item.corrected?[['warp','⌁ Deformar desenho']]:[['fix','✧ Corrigir traço']]),
+  [['move','⌖ Selecionar e mover'],...(item.corrected?[['warp','⌁ Moldar desenho']]:[['fix','✧ Corrigir traço']]),
    ['blue','● Caneta azul'],['black','● Caneta preta'],['red','● Caneta vermelha'],['delete','⌫ Excluir']]:
   [['edit','✎ Editar post-it'],['move','⌖ Selecionar e mover'],['tone:yellow','▤ Amarelo'],['tone:pink','▤ Rosa'],
    ['tone:violet','▤ Lilás'],['delete','⌫ Excluir']];
@@ -1058,7 +1060,7 @@ function contextAction(action){
  }
  if(action==='copy'&&selected.type==='note'){navigator.clipboard?.writeText?.(item.text||'')?.then?.(()=>status('Texto copiado.','success'));return}
  if(action==='correct'&&selected.type==='note'){item.pending=true;renderNotes();void correctNote(item.id,item.original||item.text||'');return}
- if(action==='warp'&&selected.type==='stroke'&&item.corrected){data.mode='warp';refreshTools();drawCanvas();status('Arraste o traço para deformá-lo.','');return}
+ if(action==='warp'&&selected.type==='stroke'&&item.corrected){data.mode='warp';refreshTools();drawCanvas();renderSelectionHandles();status('Quadradinho move; ponto redondo molda.','');return}
  if(action==='fix'&&selected.type==='stroke'&&!item.corrected){
   checkpoint();const r=fluidStroke(item.points);item.points=r.points;item.kind=r.kind;item.corrected=true;
   drawCanvas();save();return;
@@ -1167,7 +1169,7 @@ function act(action){
   refreshTools();renderNotes();renderStickies();drawCanvas();renderSelectionHandles();renderStickyPalette();save();
   if(action==='select')status('Clique para selecionar e arrastar textos, desenhos ou post-its.','');
   if(action==='erase')status('Arraste a borracha sobre o desenho para apagar trechos ou traços inteiros.','');
-  if(action==='warp')status('Selecione e arraste um traço corrigido.','');
+  if(action==='warp')status('Selecione o desenho e use o quadradinho para mover ou o ponto redondo para moldar.','');
   return;
  }
  if(COLORS[action]){data.ink=action;refreshTools();renderNotes();save();return}
@@ -1318,6 +1320,20 @@ root.addEventListener('pointerdown',event=>{
   return;
  }
  if(event.target.closest('#nbContextMenu,#nbStickyPalette,#nbGallery,#nbDrawer,#nbPageRail'))return;
+ const moveHandle=event.target.closest('[data-nb-move-handle]');
+ if(moveHandle&&event.button===0&&data.mode==='warp'&&selected?.type==='stroke'){
+  startMoveDrag(event,'stroke',selectedItem());return;
+ }
+ const moldHandle=event.target.closest('[data-nb-mold-handle]');
+ if(moldHandle&&event.button===0&&data.mode==='warp'&&selected?.type==='stroke'){
+  const stroke=selectedItem(),index=page().strokes.findIndex(x=>x.id===stroke?.id);
+  if(index>=0&&stroke?.corrected&&stroke.points?.length){
+   checkpoint();selectedStroke=index;
+   warpDrag={pointerId:event.pointerId,index,at:Math.floor(stroke.points.length/2),
+    from:point(event),original:stroke.points.map(p=>({...p}))};
+   sheet.setPointerCapture?.(event.pointerId);event.preventDefault();return;
+  }
+ }
  const handleButton=event.target.closest('[data-nb-handle]');
  if(handleButton&&event.button===0){startResize(event,handleButton.dataset.nbHandle);return;}
  const note=event.target.closest('[data-nb-note]'),sticky=event.target.closest('[data-nb-sticky]');
@@ -1374,6 +1390,7 @@ root.addEventListener('pointermove',event=>{
  toolCursor(event);
  if(resizeDrag&&resizeDrag.pointerId===event.pointerId){updateResize(event);return;}
  if(moveDrag&&moveDrag.pointerId===event.pointerId){updateMoveDrag(event);return;}
+ if(warpDrag&&warpDrag.pointerId===event.pointerId){pointerMoveCanvas(event);return;}
  if(panDrag&&event.pointerId===panDrag.pointerId){
   const dx=event.clientX-panDrag.startX,dy=event.clientY-panDrag.startY;
   if(Math.hypot(dx,dy)>6)panDrag.moved=true;
@@ -1404,6 +1421,7 @@ root.addEventListener('pointermove',event=>{
 root.addEventListener('pointerup',event=>{
  if(resizeDrag&&resizeDrag.pointerId===event.pointerId){finishResize(event);return;}
  if(moveDrag&&moveDrag.pointerId===event.pointerId){finishMoveDrag(event);return;}
+ if(warpDrag&&warpDrag.pointerId===event.pointerId){pointerUpCanvas(event);return;}
  if(panDrag&&event.pointerId===panDrag.pointerId){
   const drag=panDrag;panDrag=null;
   if(drag.button===0&&!drag.moved){
@@ -1431,6 +1449,7 @@ root.addEventListener('pointerup',event=>{
 root.addEventListener('pointercancel',event=>{
  if(resizeDrag&&resizeDrag.pointerId===event.pointerId)finishResize(event);
  if(moveDrag&&moveDrag.pointerId===event.pointerId)finishMoveDrag(event);
+ if(warpDrag&&warpDrag.pointerId===event.pointerId)pointerUpCanvas(event);
  tapCandidate=null;panDrag=null;if(stickyDrag){stickyDrag=null;save();}
 });
 root.addEventListener('pointerleave',()=>{$('nbToolCursor').hidden=true});
