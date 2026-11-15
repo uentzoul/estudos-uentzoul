@@ -493,6 +493,7 @@ function startMoveDrag(event,type,item){
 function updateMoveDrag(event){
  const drag=moveDrag;if(!drag||drag.pointerId!==event.pointerId)return;
  const p=point(event),dx=p.x-drag.start.x,dy=p.y-drag.start.y;
+ drag.last=p;
  if(!drag.moved&&Math.hypot(dx,dy)<5)return;
  if(!drag.moved){checkpoint();drag.moved=true;}
  const item=selectedItem();
@@ -520,7 +521,7 @@ function finishMoveDrag(event){
  const item=selectedItem();
  if(!item)return;
  if(drag.type==='note'){
-  const delta=Math.round((point(event).y-drag.start.y)/L);
+  const delta=Math.round(((drag.last||drag.start).y-drag.start.y)/L);
   const span=Math.max(2,Number(item.span)||2);
   const maxLine=Math.max(FIRST_LINE,ROWS-span);
   const intended=clamp(drag.originLine+delta,FIRST_LINE,maxLine);
