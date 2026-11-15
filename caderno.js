@@ -154,7 +154,6 @@ root.innerHTML=
  '<div class="nb-view" id="nbViewport" aria-label="Folha do caderno, com zoom e rolagem">'+
  '<div class="nb-stage" id="nbStage"><div class="nb-sheet-wrap" id="nbWrap">'+
  '<div class="nb-sheet" id="nbSheet"><div class="nb-holes" aria-hidden="true"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div>'+
- '<input id="nbPaperTitle" class="nb-paper-title" placeholder="Título da aula (opcional)" maxlength="100" aria-label="Título da aula">'+
  '<div class="nb-paper-date-group"><label class="nb-paper-date-label" for="nbPaperDate">Data</label><input id="nbPaperDate" class="nb-paper-date" type="date" aria-label="Data da aula"></div>'+
  '<button class="nb-corner-back" data-nb-action="prev" aria-label="Voltar à página anterior" title="Página anterior">‹</button>'+
  '<div class="nb-line-hover" id="nbLineHover" hidden></div>'+
@@ -221,7 +220,7 @@ function refreshTools(){
  sheet.dataset.mode=data.mode;
  $('nbPageCount').textContent=pageCountLabel();updateBookHeading();
  $('nbPageNum').textContent=String(data.page+1).padStart(2,'0');
- $('nbPaperTitle').value=page().title||'';$('nbPaperDate').value=page().date||'';
+ $('nbPaperDate').value=page().date||'';
  const back=$('nbSheet').querySelector('.nb-corner-back');if(back)back.disabled=data.page===0;
 }
 function letterMarkup(text){
@@ -343,7 +342,8 @@ function renderStickies(){
   '" style="left:'+clamp(Number(s.x)||0,90,W-50)+'px;top:'+clamp(Number(s.y)||0,95,H-50)+
   'px;width:'+clamp(Number(s.w)||170,65,460)+'px;height:'+clamp(Number(s.h)||146,65,460)+'px;">'+
   '<div class="nb-sticky-head" data-nb-drag="'+esc(s.id)+'" title="Arraste para mover"><span>✦ Nota adesiva</span>'+
-  '<button type="button" data-nb-delete-sticky="'+esc(s.id)+'" title="Remover post-it" aria-label="Remover post-it"'+(selected?.type==='sticky'&&selected.id===s.id?'':' hidden')+'>×</button></div>'+
+  '<button type="button" data-nb-delete-sticky="'+esc(s.id)+'" title="Remover post-it" aria-label="Remover post-it"'+
+  (selected?.type==='sticky'&&selected.id===s.id?'':' hidden')+'>×</button></div>'+
   '<textarea aria-label="Escreva no post-it" data-nb-sticky-text="'+esc(s.id)+'" maxlength="700" placeholder="Sua observação…">'+esc(s.text||'')+'</textarea></div>'
  ).join('');
 }
@@ -699,13 +699,13 @@ function finishMoveDrag(event){
  if(drag.type==='note'){
   const delta=Math.round(((drag.last||drag.start).y-drag.start.y)/L);
   const span=Math.max(1,Number(item.span)||1);
-  const maxLine=Math.max(FIRST_LINE,ROWS-span);
-  const intended=clamp(drag.originLine+delta,FIRST_LINE,maxLine);
+  const maxLine=Math.max(0,ROWS-span);
+  const intended=clamp(drag.originLine+delta,0,maxLine);
   const collides=line=>page().notes.some(n=>n.id!==item.id&&
     line<(Number(n.line)||0)+Math.max(1,Number(n.span)||1)&&line+span>Number(n.line));
   let chosen=intended;
   if(collides(chosen)){
-   const available=Array.from({length:maxLine-FIRST_LINE+1},(_,i)=>i+FIRST_LINE)
+   const available=Array.from({length:maxLine+1},(_,i)=>i)
     .filter(line=>!collides(line))
     .sort((a,b)=>Math.abs(a-intended)-Math.abs(b-intended));
    chosen=available.length?available[0]:drag.originLine;
@@ -713,6 +713,7 @@ function finishMoveDrag(event){
   item.line=chosen;
   item.x=clamp(drag.originX+((drag.last||drag.start).x-drag.start.x),85,W-70);
  }
+ selected=null;selectedStroke=-1;
  serializable();renderNotes();renderStickies();drawCanvas();refreshTools();renderSelectionHandles();save();
  status('Item movido. Use Ctrl+Z para desfazer.','success');
 }
@@ -1003,12 +1004,13 @@ function deleteSelected(){
  checkpoint();
  const prop=selected.type==='note'?'notes':selected.type==='stroke'?'strokes':'stickies';
  page()[prop]=page()[prop].filter(x=>x.id!==selected.id);
- selected=null;$('nbContextMenu').hidden=true;
- serializable();refreshTools();renderNotes();renderStickies();drawCanvas();save();
+ selected=null;selectedStroke=-1;resizeDrag=null;moveDrag=null;
+ $('nbContextMenu').hidden=true;
+ serializable();refreshTools();renderNotes();renderStickies();drawCanvas();renderSelectionHandles();save();
  status('Item removido. Use Ctrl+Z para desfazer.','success');
 }
 function contextMenu(event){
- if(event.target.closest('#nbEditorText,#nbPaperTitle,#nbPaperDate,.nb-drawer,.nb-gallery'))return;
+ if(event.target.closest('#nbEditorText,#nbPaperDate,.nb-drawer,.nb-gallery'))return;
  const note=event.target.closest('[data-nb-note]'),sticky=event.target.closest('[data-nb-sticky]');
  if(note)selectItem('note',note.dataset.nbNote);
  else if(sticky)selectItem('sticky',sticky.dataset.nbSticky);
@@ -1200,8 +1202,10 @@ root.addEventListener('click',event=>{
  }
  const d=event.target.closest('[data-nb-delete-sticky]');
  if(d){
+  event.preventDefault();event.stopPropagation();
   checkpoint();page().stickies=page().stickies.filter(s=>s.id!==d.dataset.nbDeleteSticky);
-  renderStickies();save();return;
+  selected=null;renderStickies();renderSelectionHandles();save();
+  status('Post-it removido. Ctrl+Z desfaz.','success');return;
  }
  const bind=event.target.closest('[data-nb-bind]');
  if(bind){listening=bind.dataset.nbBind;$('nbShortcutHint').textContent='Pressione uma tecla ou botão extra do mouse.';updateShortcutsList();return;}
@@ -1238,7 +1242,6 @@ root.addEventListener('input',event=>{
   t.style.height=Math.max(38,t.scrollHeight)+'px';
   return;
  }
- if(t.id==='nbPaperTitle'){page().title=t.value;save();return;}
  if(t.id==='nbZoomSlider'){
   zoomAt(Number(t.value)/100,view.getBoundingClientRect().left+view.clientWidth/2,view.getBoundingClientRect().top+view.clientHeight/2);return;
  }
@@ -1300,6 +1303,7 @@ root.addEventListener('pointerdown',event=>{
  const handleButton=event.target.closest('[data-nb-handle]');
  if(handleButton&&event.button===0){startResize(event,handleButton.dataset.nbHandle);return;}
  const note=event.target.closest('[data-nb-note]'),sticky=event.target.closest('[data-nb-sticky]');
+ if(event.button===0&&event.target.closest('[data-nb-delete-sticky]'))return;
  if(data.mode==='select'&&event.button===0){
   if(note){
    selectItem('note',note.dataset.nbNote);
@@ -1317,6 +1321,17 @@ root.addEventListener('pointerdown',event=>{
   if(!st)return;
   checkpoint();stickyDrag={id:st.id,from:{x:event.clientX,y:event.clientY},start:{x:st.x,y:st.y}};
   handle.setPointerCapture?.(event.pointerId);event.preventDefault();return;
+ }
+ if(event.button===0&&sticky&&event.target.closest('textarea')){
+  if(selected?.type!=='sticky'||selected?.id!==sticky.dataset.nbSticky){
+   selected={type:'sticky',id:sticky.dataset.nbSticky};
+   // Não recriar o textarea enquanto o usuário está digitando.
+   const holder=root.querySelector('[data-nb-sticky="'+sticky.dataset.nbSticky+'"]');
+   holder?.classList.add('nb-selected');
+   holder?.querySelector('[data-nb-delete-sticky]')?.removeAttribute('hidden');
+   renderSelectionHandles();
+  }
+  return;
  }
  const inSheet=!!event.target.closest('#nbSheet');
  if(inSheet&&(event.button===1 ||
