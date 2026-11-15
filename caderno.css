@@ -41,9 +41,11 @@ button,input,textarea,select{font:inherit}button{cursor:pointer}button:disabled{
 .nb-editor{position:absolute;left:110px;right:35px;z-index:8;background:#fffefa;border:1px solid #ab92da;border-radius:12px;padding:10px 11px;box-shadow:0 10px 27px #50436b35;max-width:605px}
 .nb-editor-head{display:flex;justify-content:space-between;gap:10px;font-size:11px;font-weight:750;color:#705d95;margin-bottom:5px}.nb-editor textarea{display:block;width:100%;min-height:54px;max-height:138px;resize:vertical;border:0;background:transparent;color:#373044;outline:0;font-size:15px;line-height:1.5}
 .nb-editor-foot{display:flex;gap:9px;align-items:center;justify-content:flex-end;font-size:11px;color:#847d91;margin-top:6px}.nb-editor-foot button{border:0;padding:6px 12px;border-radius:8px;background:#6d57ab;color:#fff;font-weight:750}.nb-editor-foot button.nb-editor-cancel{background:#f0eaf7;color:#69568f}
-.nb-fold{position:absolute;top:0;right:0;width:0;height:0;z-index:9;cursor:pointer;border:0;border-radius:0 15px 0 0;background:linear-gradient(225deg,#ede8dc 0 45%,#e2d9c6 46%,#fff 55%);box-shadow:-2px 2px 8px #0002;clip-path:polygon(0 0,100% 0,100% 100%);transition:width .22s ease,height .22s ease}
-.nb-sheet:hover .nb-fold,.nb-fold:focus-visible{width:56px;height:56px}.nb-fold:hover{width:84px!important;height:84px!important}
-.nb-fold-label{position:absolute;top:17px;right:20px;font-size:19px;font-weight:800;color:#665482;z-index:10;pointer-events:none;opacity:0;transition:opacity .15s}.nb-sheet:hover .nb-fold-label{opacity:1}
+.nb-fold{position:absolute;top:0;right:0;width:66px;height:66px;z-index:9;cursor:pointer;border:0;background:transparent;box-shadow:none;clip-path:none;border-radius:0 15px 0 0}
+.nb-fold:before{content:"";position:absolute;top:0;right:0;width:0;height:0;background:linear-gradient(225deg,#ece6d9 0 44%,#ded4c0 45%,#fff7e9 57%);box-shadow:-2px 2px 8px #0002;clip-path:polygon(0 0,100% 0,100% 100%);border-radius:0 15px 0 0;transition:width .22s ease,height .22s ease}
+.nb-fold:hover:before,.nb-fold:focus-visible:before{width:79px;height:79px}
+.nb-fold-label{position:absolute;top:15px;right:19px;font-size:19px;font-weight:800;color:#665482;z-index:10;pointer-events:none;opacity:0;transition:opacity .15s}
+.nb-fold:hover + .nb-fold-label,.nb-fold:focus-visible + .nb-fold-label{opacity:1}
 .nb-page-control{flex:none;background:#fcfaff;border-top:1px solid #e2dbea;display:flex;align-items:center;justify-content:center;gap:14px;padding:9px 13px;z-index:5}
 .nb-page-btn{padding:8px 13px;min-height:36px;font-weight:750;font-size:12px}.nb-page-indicator{font-size:12px;color:#645779;min-width:95px;text-align:center;font-weight:800}
 .nb-zoom{display:flex;gap:7px;align-items:center;margin-left:16px}.nb-zoom input{accent-color:#775db5;width:100px}.nb-zoom span{font-size:11px;color:#645779;min-width:38px;font-variant-numeric:tabular-nums;font-weight:700}
