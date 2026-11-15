@@ -1,18 +1,20 @@
 // Auditoria de layout na versão publicada. Somente leitura; nenhuma conta ou dado é alterado.
-import {chromium,devices} from 'playwright';
+import {chromium,webkit,devices} from 'playwright';
 import fs from 'node:fs/promises';
 const url=process.env.SITE_URL||'https://uentzoul.github.io/estudos-uentzoul/';
 const results=[]; const errors=[];
 await fs.mkdir('site-health-artifacts',{recursive:true});
-const browser=await chromium.launch({headless:true});
+const chromiumBrowser=await chromium.launch({headless:true});
+const webkitBrowser=await webkit.launch({headless:true});
 const profiles=[
   {name:'desktop',viewport:{width:1440,height:900}},
   {name:'tablet',viewport:{width:768,height:1024},isMobile:true,hasTouch:true},
-  {name:'iphone',...devices['iPhone 13']},
+  {name:'iphone',engine:'webkit',...devices['iPhone 13']},
   {name:'android',...devices['Pixel 7']}
 ];
 for(const profile of profiles){
- const {name,...settings}=profile;
+ const {name,engine,...settings}=profile;
+ const browser=engine==='webkit'?webkitBrowser:chromiumBrowser;
  const ctx=await browser.newContext({...settings,serviceWorkers:'block'});
  const page=await ctx.newPage();
  // Marca exclusivamente os navegadores desta auditoria antes dos scripts do site.
@@ -61,7 +63,8 @@ for(const profile of profiles){
  }catch(err){row.status='critical';row.errors.push(String(err.message).slice(0,400))}
  results.push(row); await ctx.close();
 }
-await browser.close();
+await chromiumBrowser.close();
+await webkitBrowser.close();
 const report={checkedAt:new Date().toISOString(),url,profiles:results,summary:{critical:results.filter(x=>x.status==='critical').length,warning:results.filter(x=>x.status==='warning').length,ok:results.filter(x=>x.status==='ok').length}};
 await fs.writeFile('site-health-artifacts/report.json',JSON.stringify(report,null,2));
 await fs.writeFile('site-health-artifacts/summary.md','# Saúde do Site\n\n'+results.map(r=>'- '+r.device+': '+r.status+' — '+[...r.errors,...r.warnings].slice(0,4).join(' | ')).join('\n')+'\n');
