@@ -111,7 +111,7 @@ const originalIndex=()=>Number.isInteger(runSteps[index]?.baseIndex)?runSteps[in
 const tourScene=()=>runSteps[index]?.tourScene||'';
 let shell=null,spot=null,sidebarSpot=null,balloon=null,fadeTimer=0,frame=0,stepSerial=0;
 let lastRect=null,pendingScroll=false;
-let mobilePositionAttempts=0;
+let mobilePositionAttempts=0, mobileScrollSerial=0, mobileScrollFrame=0;
 const margin=8;
 const clamp=(n,min,max)=>Math.max(min,Math.min(max,n));
 const esc=s=>String(s||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -450,27 +450,58 @@ function clipVisualBounds(r,zone){
  const bottom=clamp(r.bottom+5,top+12,zone.bottom);
  return {left,right,top,bottom,width:right-left,height:bottom-top};
 }
+function cancelMobileScroll(){
+ // Um passo novo nunca herda a animação ou o callback de rolagem anterior.
+ ++mobileScrollSerial;
+ if(mobileScrollFrame)cancelAnimationFrame(mobileScrollFrame);
+ mobileScrollFrame=0;
+ pendingScroll=false;
+}
 function positionMobileTarget(node){
- // Os botões da barra e da gaveta não dependem da rolagem do documento.
+ // Botões fixos e gaveta não precisam de rolagem da página.
  if(['menu-button','menu-list','preferences','semester'].includes(tourScene()))return;
+ // No máximo uma correção por etapa: o segundo layout (270 ms)
+ // não deve inverter ou repetir a rolagem enquanto o Safari está animando.
+ if(mobilePositionAttempts>0)return;
  const zone=mobileShowcase(),r=targetVisualBounds(node,true),room=zone.bottom-zone.top;
  if(room<50)return;
  const old=originalIndex();
  const marginTop=old===1||old===6||old===7?6:12;
  let desired=zone.top+marginTop;
  if(old!==1&&old!==6&&old!==7&&r.height<room-24)desired=zone.top+(room-r.height)/2;
- // Não recentrar blocos altos no meio, pois isso cortava o título do item.
  const delta=r.top-desired;
  if(Math.abs(delta)<4)return;
  const maxScroll=document.documentElement.scrollHeight-innerHeight;
  const next=clamp(window.scrollY+delta,0,Math.max(0,maxScroll));
  if(Math.abs(next-window.scrollY)<3)return;
+ mobilePositionAttempts=1;
  pendingScroll=true;
- window.scrollTo({top:next,behavior:'auto'});
- requestAnimationFrame(()=>requestAnimationFrame(()=>{
-  pendingScroll=false;
-  if(active)layout(false);
- }));
+ const serial=++mobileScrollSerial;
+ const started=performance.now();
+ let previous=NaN, settledFrames=0;
+ // Respeita a preferência por movimento reduzido. No celular normal,
+ // a página desliza até o alvo, sem um salto seguido de correção.
+ const reduced=window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches;
+ window.scrollTo({top:next,behavior:reduced?'instant':'smooth'});
+ const settle=()=>{
+  if(!active||serial!==mobileScrollSerial)return;
+  const now=window.scrollY;
+  if(Math.abs(now-next)<=2&&Math.abs(now-previous)<=1)settledFrames++;
+  else settledFrames=0;
+  const elapsed=performance.now()-started;
+  if(settledFrames>=2||elapsed>1100){
+   // Fallback apenas se o navegador bloquear a rolagem suave;
+   // nunca executa uma segunda animação de correção.
+   if(elapsed>1100&&Math.abs(now-next)>3)window.scrollTo({top:next,behavior:'instant'});
+   mobileScrollFrame=0;
+   pendingScroll=false;
+   layout(false);
+   return;
+  }
+  previous=now;
+  mobileScrollFrame=requestAnimationFrame(settle);
+ };
+ mobileScrollFrame=requestAnimationFrame(settle);
 }
 function layout(scrollTarget=false){
  if(!active||!shell||shell.hidden)return;
@@ -546,6 +577,9 @@ function syncMobileMenu(step){
 }
 function show(n){
  if(!active)return;
+ // Interrompe uma animação anterior somente se a pessoa avançar antes do fim.
+ if(tourMobile&&pendingScroll)window.scrollTo({top:window.scrollY,behavior:'instant'});
+ cancelMobileScroll();
  index=clamp(n,0,runSteps.length-1);
  document.documentElement.dataset.pmTourStep=String(originalIndex()+1);
  document.documentElement.dataset.pmTourScene=tourScene();
@@ -590,6 +624,8 @@ function open(){
 }
 function close(){
  if(!active)return;
+ if(tourMobile&&pendingScroll)window.scrollTo({top:window.scrollY,behavior:'instant'});
+ cancelMobileScroll();
  active=false;++stepSerial;
  clearTimeout(fadeTimer);shell.hidden=true;
  window.pmMobileDrawer?.close?.();
