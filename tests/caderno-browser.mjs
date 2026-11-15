@@ -156,7 +156,8 @@ try{
  // O botão Voltar do navegador/mouse deve retornar à biblioteca de cadernos.
  await f.locator('[data-nb-book]').first().click();
  assert.equal(await f.locator('#nbDrawer').isVisible(),false);
- await page.goBack({waitUntil:'domcontentloaded'});
+ // Navegação da história interna do iframe (sem aguardar reload da página principal).
+ await f.locator('#nbRoot').evaluate(()=>history.back());
  await f.locator('#nbDrawer').waitFor({state:'visible'});
  assert.ok(await f.locator('.nb-book-cover').count()>=1,'Voltar deve mostrar os cadernos');
  await f.locator('[data-nb-action="closeDrawer"]').click();
