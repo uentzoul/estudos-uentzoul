@@ -133,3 +133,13 @@ test('LOG mantém rolagem estável em atualizações automáticas e gestos touch
  assert.match(css,/\.admin-log-rows\{[^}]*overscroll-behavior-y:contain/);
  assert.match(css,/\.admin-log-rows\{[^}]*-webkit-overflow-scrolling:touch/);
 });
+
+test('Safari deve usar WebKit na auditoria de saúde',()=>{
+ const monitor=read('scripts/site-health.mjs');
+ const workflow=read('.github/workflows/site-health.yml');
+ assert.match(monitor,/import \{chromium,webkit,devices\} from 'playwright'/);
+ assert.match(monitor,/name:'iphone',engine:'webkit'/);
+ assert.match(monitor,/webkit\.launch\(/);
+ assert.match(monitor,/engine==='webkit'\?webkitBrowser:chromiumBrowser/);
+ assert.match(workflow,/playwright install --with-deps chromium webkit/);
+});
