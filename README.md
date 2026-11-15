@@ -77,6 +77,23 @@ As mensagens privadas, dos grupos e do chat global utilizam Supabase Realtime e 
 Os enunciados dos simulados usam separação de parágrafos, assertivas I/II/III em blocos próprios e destaque do comando final. Emojis decorativos são suprimidos apenas na exibição, sem alterar as questões já salvas; a IA foi orientada a não gerá-los em provas novas.
 
 
+## Prévia administrativa — Caderno (15/11/2026)
+
+O menu ganha uma entrada **Caderno · Em breve**, logo depois de **Simulados**. Essa entrada é criada exclusivamente para contas que o Supabase confirma como administradoras (função uentzoul_is_admin); não aparece para estudantes ou visitantes. O acesso leva à página caderno.html dentro de um iframe de mesma origem, e o próprio editor valida novamente a sessão administrativa. A função de IA do servidor também faz autorização no Supabase.
+
+**Primeiro protótipo:**
+- Caderno pautado com 30 linhas por página, título opcional, folha longa, até 250 páginas no teste, virada com canto animado e navegação anterior/próxima.
+- Digitação ao clicar em uma linha; prévia na própria folha e caixa editável; Enter insere, Shift+Enter acrescenta linha. Corrige gramática depois, preservando primeiro o texto original.
+- Fontes manuais Patrick Hand (letra de forma) e Caveat (cursiva), cores preto/azul/vermelho, alturas de 1/2/3 linhas e caixa alta com uma linha adicional.
+- Post-its editáveis e arrastáveis; desenho à mão livre; opção de ajustar círculos, elipses, retângulos, linhas e curvas; ferramenta de deformação somente para traços previamente ajustados.
+- Zoom com roda do mouse, controles dedicados e gesto de pinça no celular. O toque móvel aguarda confirmação para não abrir o editor durante a rolagem.
+- Atalhos configuráveis para ações, teclas e botões secundários do mouse. Atalhos reservados pelo navegador e clique principal não são substituíveis.
+- Exportação em JSON e desfazer/refazer.
+
+**Persistência e limites desta prévia:** o conteúdo é salvo **somente no armazenamento local do navegador, separado por ID da conta**; ainda não sincroniza dispositivos ou navegadores e pode ser perdido caso o armazenamento local seja limpo. Recomenda-se exportar cópias de segurança. O editor preserva a anotação original se a revisão falhar. A função caderno-revisao (Supabase Edge, JWT obrigatório e uentzoul_is_admin) recebe apenas o trecho a corrigir e usa a chave da OpenAI somente no servidor. Revisões podem depender de créditos e latência da IA; não há garantia semântica absoluta. Não foram alteradas ou limpas tabelas de dados do site. Testes de sintaxe e de reconhecimento geométrico foram adicionados; testes manuais com contas reais em Safari/Chrome ainda são necessários antes da liberação geral.
+
+Os arquivos caderno.html, caderno.css e caderno.js são separados das demais páginas. A integração do menu está no final de site-version.js.
+
 ## Funcionalidade prevista — Trabalhos
 
 A seção **Trabalhos** aparece no menu principal apenas como prévia. Não tem rota, botão de acesso nem funcionalidade liberada. Ao passar o mouse ou focar a entrada, aparece "Em breve"; no celular essa indicação fica visível.
