@@ -4,6 +4,7 @@
 const TABLE='uentzoul_admin_topics',PRESENCE='uentzoul_presence';
 let admin=false,owner=null,checking=false,topics=[],topicsSignature='',presence=[],reports=[],busy=false,notice='',editing=null,lastPresence=0,lastReports=0;
 let accessLog=[],logOpen=false,logTab='online',lastLog=0,logError='',markingTest=false;
+let lastLogGesture=0,logRenderTimer=null,lastLogRenderKey='';
 let botRuns=[],lastBotRuns=0,botRunsError='',botRunsLoading=false;
 let selectedVisitId=null,selectedPresenceId=null,visitSteps=[],visitLoading=false,visitError='',logLimit=200,hasMoreEntries=false;
 let guestOnlineCount=null,lastGuestCount=0,guestCountError='';
@@ -274,7 +275,7 @@ async function openVisit(id){
   visitSteps=data||[];
  }catch(error){visitError='Não foi possível consultar o percurso. '+(error?.message||'Verifique a conexão.');}
  finally{if(selectedVisitId===String(id)){visitLoading=false;updateLogPanel();
-  document.querySelector('.admin-log-row.is-selected + .admin-visit-detail')?.scrollIntoView({block:'nearest',behavior:'smooth'});
+  // Sem scrollIntoView: no iPhone ele pode deslocar também a página inteira.
  }}
 }
 function logMarkup(){
@@ -307,9 +308,40 @@ function logMarkup(){
  (logTab==='entries'&&hasMoreEntries?'<button type="button" class="admin-log-more" data-admin-log-more>Carregar mais 200 entradas anteriores</button>':'');
 }
 
+// Não reconstrói a lista enquanto alguém está rolando: no iOS, trocar
+// innerHTML durante o gesto faz o contêiner interno voltar ao início.
+function logViewKey(){return [logTab,selectedVisitId||'',selectedPresenceId||'',logLimit].join('|');}
+function markLogGesture(event){
+ const list=event.target?.closest?.('.admin-log-rows');
+ if(list&&document.getElementById('adminLogData')?.contains(list))lastLogGesture=Date.now();
+}
+document.addEventListener('touchstart',markLogGesture,{capture:true,passive:true});
+document.addEventListener('touchmove',markLogGesture,{capture:true,passive:true});
+document.addEventListener('wheel',markLogGesture,{capture:true,passive:true});
+document.addEventListener('scroll',markLogGesture,true);
 function updateLogPanel(){
  const contents=document.getElementById('adminLogData');
- if(contents)contents.innerHTML=logMarkup();
+ if(contents){
+  const key=logViewKey();
+  const sameView=key===lastLogRenderKey;
+  const list=contents.querySelector('.admin-log-rows');
+  const recentlyScrolled=sameView&&list&&Date.now()-lastLogGesture<1750;
+  if(recentlyScrolled){
+   if(logRenderTimer)clearTimeout(logRenderTimer);
+   logRenderTimer=setTimeout(()=>{logRenderTimer=null;updateLogPanel()},1850);
+  }else{
+   if(logRenderTimer){clearTimeout(logRenderTimer);logRenderTimer=null}
+   const markup=logMarkup();
+   if(contents.innerHTML!==markup){
+    const y=sameView&&list?list.scrollTop:0;
+    const x=sameView&&list?list.scrollLeft:0;
+    contents.innerHTML=markup;
+    const updated=contents.querySelector('.admin-log-rows');
+    if(updated&&sameView){updated.scrollTop=y;updated.scrollLeft=x}
+   }
+   lastLogRenderKey=key;
+  }
+ }
  const accounts=onlineAccountsCount(),total=onlineTotalCount();
  const counter=document.getElementById('adminLogOnlineCount');
  if(counter)counter.textContent=total===null?'—':String(total);
@@ -325,6 +357,7 @@ function updateLogPanel(){
  for(const button of tabs)button.setAttribute('aria-selected',String(button.dataset.adminLogTab===logTab));
 }
 function adminLogMarkup(){
+ lastLogRenderKey=logViewKey();
  return '<details id="adminLogDisclosure" class="admin-card admin-log-card" '+(logOpen?'open':'')+'>'+
   '<summary><div class="admin-log-title"><span class="admin-log-glyph" aria-hidden="true">⌁</span>'+
   '<div><strong>LOG</strong><small>Contas e visitantes online</small></div></div>'+
