@@ -1,4 +1,4 @@
-/* Estudos Uentzoul — exportação local do caderno em PDF/A4.
+/* PsicoMoodle — exportação local do caderno em PDF/A4.
    Sem serviços externos: o PDF é criado no próprio navegador. */
 (function(){
  'use strict';
@@ -169,7 +169,7 @@
    const pdf=assemblePdf(images),url=URL.createObjectURL(pdf),a=document.createElement('a');
    a.href=url;
    const cleanName=String(book.name||'Caderno').replace(/[^\p{L}\p{N}_ -]/gu,'').trim().slice(0,65)||'Caderno';
-   a.download=cleanName+' - Estudos Uentzoul.pdf';
+   a.download=cleanName+' - PsicoMoodle.pdf';
    document.body.appendChild(a);a.click();a.remove();
    setTimeout(()=>URL.revokeObjectURL(url),60000);
    notify?.('PDF criado com '+pages.length+' '+(pages.length===1?'folha.':'folhas.'),'success');

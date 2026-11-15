@@ -262,3 +262,29 @@ test('Capas dimensionam palavras inteiras e moldura ocupa altura do viewport',()
  assert.match(nav,/function fitNotebookHeight\(\)/);
  assert.match(nav,/window\.innerHeight-top-6/);
 });
+
+
+test('Miniatura reutiliza letra, geometria, desenho, data e post-it da folha',()=>{
+ assert.match(script,/function snapshotSheetMarkup\(p,index\)/);
+ assert.match(script,/function snapshotSvg\(p\)/);
+ assert.match(script,/snapshotSheetMarkup\(p,i\)/);
+ assert.match(script,/snapshotSheetMarkup\(p,index\)/);
+ assert.match(script,/noteMarkup\(n,false\)\.replace\(' data-nb-note="/);
+ assert.match(script,/snapshotStickyMarkup\)/);
+ assert.match(script,/refreshCurrentRailSnapshot\(\)/);
+ assert.doesNotMatch(script,/class="nb-rail-text"/);
+ assert.doesNotMatch(script,/class="nb-thumb-text"/);
+ assert.match(style,/\.nb-snapshot-sheet\{[\s\S]*?transform:scale\(var\(--nb-snapshot-scale/);
+ assert.match(style,/aspect-ratio:780 \/ 1240!important/);
+});
+test('Marca exibida é PsicoMoodle e texto corrigido jamais reabre como rascunho',()=>{
+ const pdf=read('caderno-pdf.js'),guide=read('README.md');
+ assert.match(script,/nb-cover-foot">PSICOMOODLE/);
+ assert.doesNotMatch(script,/>ESTUDOS UENTZOUL</);
+ assert.match(pdf,/PsicoMoodle\.pdf/);
+ assert.match(guide,/# PsicoMoodle/);
+ assert.match(script,/draft:existing\?\.text\|\|''/);
+ assert.doesNotMatch(script,/draft:existing\?\.original/);
+ assert.match(script,/delete n\.original/);
+ assert.match(script,/const \{original,\.\.\.corrected\}=n/);
+});

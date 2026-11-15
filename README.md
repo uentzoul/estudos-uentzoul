@@ -1,4 +1,4 @@
-# Estudos Uentzoul
+# PsicoMoodle
 Central de estudos de Psicologia 2026/2, responsiva para desktop, Android e iOS.
 
 ## Conteúdo do site
@@ -18,7 +18,7 @@ Workflow de publicação em `.github/workflows/pages.yml`. Em **Settings → Pag
 
 ## Acesso às contas
 
-O acesso ao site é feito por e-mail e senha usando o cadastro próprio do Estudos Uentzoul. As contas atuais continuam válidas.
+O acesso ao site é feito por e-mail e senha usando o cadastro próprio do PsicoMoodle. As contas atuais continuam válidas.
 
 ## IA Tzoul e simulados personalizados
 

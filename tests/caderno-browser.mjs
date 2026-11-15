@@ -73,8 +73,27 @@ try{
  await f.locator('[data-nb-note]').first().waitFor({state:'visible'});
  await page.waitForFunction(()=>{
   const doc=document.querySelector('#nbQaFrame')?.contentDocument;
-  return doc?.querySelector('.nb-note')?.textContent?.includes('não');
+  return doc?.querySelector('#nbTextLayer .nb-note')?.textContent?.includes('não');
  },{timeout:5000});
+ // A miniatura deve ter a mesma fonte, conteúdo e geometria real da folha.
+ await f.locator('.nb-rail-paper .nb-snapshot-sheet .nb-note').first().waitFor({state:'visible'});
+ const fullNote=f.locator('#nbTextLayer .nb-note').first();
+ const railNote=f.locator('.nb-rail-paper .nb-snapshot-sheet .nb-note').first();
+ assert.equal(await railNote.textContent(),await fullNote.textContent(),'Prévia deve mostrar o texto completo, não um resumo');
+ assert.equal(await railNote.getAttribute('style'),await fullNote.getAttribute('style'),'Fonte, tamanho e posição precisam ser idênticos antes da escala');
+ const thumb=f.locator('.nb-rail-paper').first();
+ const imageSize=await thumb.boundingBox(),scaledSheet=await f.locator('.nb-rail-paper .nb-snapshot-sheet').first().boundingBox();
+ assert.ok(Math.abs(imageSize.width-scaledSheet.width)<2,'A página deve caber exatamente na largura da miniatura');
+ const fullPage=await f.locator('#nbSheet').boundingBox(),fullBounds=await fullNote.boundingBox(),thumbBounds=await railNote.boundingBox();
+ assert.ok(Math.abs((fullBounds.x-fullPage.x)/fullPage.width-(thumbBounds.x-imageSize.x)/imageSize.width)<.02,
+  'Posição horizontal do texto deve ser proporcional à folha real');
+ assert.ok(Math.abs((fullBounds.y-fullPage.y)/fullPage.height-(thumbBounds.y-imageSize.y)/imageSize.height)<.02,
+  'Posição vertical do texto deve ser proporcional à folha real');
+ // Ao reabrir a anotação corrigida, não pode reaparecer o texto original com erro.
+ await fullNote.click();
+ assert.equal(await f.locator('#nbEditorText').inputValue(),'A psicologia não e simples.',
+  'Reedição precisa partir do texto corrigido e não do rascunho pré-revisão');
+ await f.locator('#nbEditorText').press('Enter');
  const second=f.locator('#nbEditorText');
  assert.ok(await second.isVisible(),'Enter deve abrir nova linha diretamente no papel');
  const y2=Number((await second.getAttribute('style')).match(/top:\s*([\d.]+)px/)?.[1]);
@@ -85,8 +104,15 @@ try{
  await f.locator('[data-nb-action="sticky"]').click();
  await f.locator('[data-nb-tone="pink"]').click();
  const pst=await point(520,420);await page.mouse.click(pst.x,pst.y);
- assert.equal(await f.locator('.nb-sticky[data-tone="pink"]').count(),1,'Paleta de post-its deve selecionar cor');
- await f.locator('.nb-sticky textarea').fill('Lembrete');
+ assert.equal(await f.locator('#nbStickyLayer .nb-sticky[data-tone="pink"]').count(),1,'Paleta de post-its deve selecionar cor');
+ await f.locator('#nbStickyLayer .nb-sticky textarea').fill('Lembrete');
+ await f.locator('.nb-rail-paper .nb-sticky-text-preview').first().waitFor({state:'attached'});
+ await page.waitForFunction(()=>{
+  const d=document.querySelector('#nbQaFrame')?.contentDocument;
+  return d?.querySelector('.nb-rail-paper .nb-sticky-text-preview')?.textContent==='Lembrete';
+ });
+ assert.equal(await f.locator('.nb-rail-paper .nb-sticky-text-preview').first().textContent(),'Lembrete',
+  'A miniatura precisa reproduzir também o texto completo do post-it');
  // A exclusão de um post-it só aparece quando ele é selecionado.
  assert.equal(await f.locator('[data-nb-delete-sticky]').isVisible(),false);
  // Selecionar e deslocar o texto de uma linha para outra.
@@ -110,11 +136,11 @@ try{
  const upperTop=Number((await note.getAttribute('style')).match(/top:\s*([\d.]+)px/)?.[1]);
  assert.ok(upperTop<100,'Texto deve poder ser arrastado para a região superior da folha');
  // Oito alças de esticar / achatar para post-its, textos e desenhos.
- await f.locator('.nb-sticky').first().click({position:{x:30,y:40}});
+ await f.locator('#nbStickyLayer .nb-sticky').first().click({position:{x:30,y:40}});
  await f.locator('.nb-transform-handle').first().waitFor({state:'visible'});
  assert.equal(await f.locator('.nb-transform-handle').count(),8);
  assert.equal(await f.locator('[data-nb-delete-sticky]').isVisible(),true);
- const st=f.locator('.nb-sticky').first();
+ const st=f.locator('#nbStickyLayer .nb-sticky').first();
  const oldWidth=await st.evaluate(el=>el.getBoundingClientRect().width);
  const handle=f.locator('.nb-handle-se');const hb=await handle.boundingBox();
  await page.mouse.move(hb.x+hb.width/2,hb.y+hb.height/2);await page.mouse.down();
@@ -123,9 +149,9 @@ try{
  assert.ok(newWidth>oldWidth+15,'Esticar pelo canto deve aumentar a largura do post-it');
  // Botão excluir permanece clicável, sem disparar o arraste do post-it.
  await f.locator('[data-nb-delete-sticky]').click();
- assert.equal(await f.locator('.nb-sticky').count(),0,'× remove post-it selecionado');
+ assert.equal(await f.locator('#nbStickyLayer .nb-sticky').count(),0,'× remove post-it selecionado');
  await f.locator('body').press('Control+z');
- assert.equal(await f.locator('.nb-sticky').count(),1,'Ctrl+Z recupera post-it');
+ assert.equal(await f.locator('#nbStickyLayer .nb-sticky').count(),1,'Ctrl+Z recupera post-it');
  // Desenhar um risco, apagar parcialmente e desfazer.
  await f.locator('[data-nb-action="draw"]').click();
  const start=await point(280,570),stop=await point(500,570);
@@ -137,6 +163,10 @@ try{
   return saved?.books[0]?.pages[0]?.strokes||[];
  });
  let strokes=await readStrokes();assert.equal(strokes.length,1,'Desenho precisa ser salvo');
+ const thumbDrawing=f.locator('.nb-rail-paper .nb-snapshot-drawing path');
+ await thumbDrawing.first().waitFor({state:'attached'});
+ assert.ok((await thumbDrawing.first().getAttribute('d')).length>15,'A miniatura precisa desenhar o traço real');
+ assert.equal(await thumbDrawing.count(),1,'A prévia acompanha o número de traços sem símbolos substitutos');
  await f.locator('[data-nb-action="erase"]').click();
  const mid=await point(390,570);await page.mouse.click(mid.x,mid.y);
  await page.waitForTimeout(250);
@@ -163,16 +193,17 @@ try{
  await page.mouse.click(greeting.x,greeting.y);
  await f.locator('#nbEditorText').fill('boa tarde rapaziada');
  await f.locator('#nbEditorText').press('Enter');
- await f.locator('.nb-note').filter({hasText:'Boa tarde, rapaziada.'}).waitFor();
+ await f.locator('#nbTextLayer .nb-note').filter({hasText:'Boa tarde, rapaziada.'}).first().waitFor();
  await f.locator('#nbEditorText').fill('boa tarde rapaziada ');
  await f.locator('#nbEditorText').press('Space');
- await f.locator('.nb-note').filter({hasText:'Boa tarde, rapaziada.'}).last().waitFor();
+ await f.locator('#nbTextLayer .nb-note').filter({hasText:'Boa tarde, rapaziada.'}).last().waitFor();
  // PDF local contém uma página do caderno.
  const [download]=await Promise.all([
   page.waitForEvent('download',{timeout:30000}),
   f.locator('[data-nb-action="export"]').click()
  ]);
  assert.match(download.suggestedFilename(),/\.pdf$/i);
+ assert.match(download.suggestedFilename(),/PsicoMoodle/);
  const savedPdf=await readFile(await download.path());
  assert.ok(savedPdf.subarray(0,8).toString('latin1').startsWith('%PDF-1.4'));
  assert.match(savedPdf.toString('latin1'),/\/Count 1/);
@@ -223,6 +254,7 @@ try{
  await f.locator('[data-nb-action="renameBook"]').click();
  const cover=f.locator('.nb-cover-title').first();
  assert.equal(await cover.textContent(),'Metapsicologia');
+ assert.equal(await f.locator('.nb-cover-foot').first().textContent(),'PSICOMOODLE');
  assert.ok(await cover.evaluate(el=>{
   const ctx=document.createElement('canvas').getContext('2d'),
    style=getComputedStyle(el);ctx.font=style.fontWeight+' '+style.fontSize+' '+style.fontFamily;

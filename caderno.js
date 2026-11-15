@@ -32,7 +32,7 @@ const newBook=(name='Meu caderno')=>({id:'book-'+Date.now()+'-'+Math.random().to
 const defaults=()=>({books:[{id:'book-original',name:'Meu caderno',pages:[]}],bookId:'book-original',page:0,mode:'select',font:'print',ink:'blue',size:1,smooth:false,zoom:.88,shortcuts:{},stickyTone:'yellow',eraserMode:'parts',eraserRadius:14});
 const hasPageContent=p=>!!(p?.notes?.some(n=>String(n.text||'').trim())||p?.strokes?.some(s=>s.points?.length)||p?.stickies?.length);
 const cleanPage=p=>({title:String(p?.title||'').slice(0,100),date:String(p?.date||'').slice(0,16),
- notes:Array.isArray(p?.notes)?p.notes.slice(0,140):[],strokes:Array.isArray(p?.strokes)?p.strokes.slice(0,500):[],
+ notes:Array.isArray(p?.notes)?p.notes.slice(0,140).map(n=>{const {original,...corrected}=n;corrected.pending=false;return corrected;}):[],strokes:Array.isArray(p?.strokes)?p.strokes.slice(0,500):[],
  stickies:Array.isArray(p?.stickies)?p.stickies.slice(0,40):[]});
 let data=defaults(),stored=null;
 try{stored=JSON.parse(localStorage.getItem(STORE)||'null');}catch(_){}
@@ -105,7 +105,7 @@ const id=()=>typeof crypto.randomUUID==='function'?crypto.randomUUID():'nb-'+Dat
 const isMobile=()=>window.matchMedia('(max-width:760px)').matches;
 function persistNow(){
  clearTimeout(saveTimer);
- try{localStorage.setItem(STORE,JSON.stringify(serializable()));return true}
+ try{localStorage.setItem(STORE,JSON.stringify(serializable()));refreshCurrentRailSnapshot();return true}
  catch(e){status('Armazenamento cheio. Exporte uma cópia do caderno.','error');return false}
 }
 function save(){
@@ -269,7 +269,7 @@ function beginEdit(line){
  }
  if(line===FIRST_LINE&&data.size>2)data.size=2;
  const existing=page().notes.find(n=>line>=Number(n.line)&&line<Number(n.line)+Number(n.span||Number(n.size)||1));
- editing={line:existing?Number(existing.line):line,id:existing?.id||null,draft:existing?.original||existing?.text||''};
+ editing={line:existing?Number(existing.line):line,id:existing?.id||null,draft:existing?.text||''};
  if(existing){data.font=existing.font;data.ink=existing.ink;data.size=existing.size;}
  if(editing.line===FIRST_LINE&&data.size>2)data.size=2;
  previewText=editing.draft;
@@ -318,6 +318,7 @@ async function correctNote(noteId,raw){
   if(!n||n.original!==raw)return;
   n.text=fallbackBasic(result.reviewed===true?revised:raw);
   n.pending=false;n.reviewed=result.reviewed===true;n.span=occupiedSpan(n);
+  delete n.original; // Descartar o rascunho bruto: a versão corrigida é definitiva.
   if(page().notes.includes(n))makeRoom(n);
   if(page().notes.includes(n))renderNotes();
   save();
@@ -327,6 +328,7 @@ async function correctNote(noteId,raw){
   if(!n||n.original!==raw)return;
   n.pending=false;n.reviewed=false;
   n.text=fallbackBasic(raw);
+  delete n.original; // O fallback também substitui definitivamente o texto original.
   if(page().notes.includes(n))renderNotes();
   save();status('Pontuação e maiúsculas corrigidas. Revisão adicional de IA indisponível.','');
  }
@@ -824,7 +826,7 @@ function renderDrawer(){
   '<div class="nb-book-list">'+data.books.map((book,i)=>
     '<button class="nb-book-row '+(book.id===data.bookId?'active':'')+'" data-nb-book="'+esc(book.id)+'" aria-label="Abrir caderno '+esc(book.name)+'">'+
      '<span class="nb-book-cover" data-cover="'+(i%6)+'"><span class="nb-cover-spine" aria-hidden="true"></span>'+
-     '<span class="nb-cover-title">'+esc(book.name)+'</span><span class="nb-cover-foot">ESTUDOS UENTZOUL</span></span>'+
+     '<span class="nb-cover-title">'+esc(book.name)+'</span><span class="nb-cover-foot">PSICOMOODLE</span></span>'+
      '<span class="nb-book-details"><strong>'+esc(book.name)+'</strong><small>'+book.pages.length+' '+
      (book.pages.length===1?'folha salva':'folhas salvas')+'</small></span></button>'
    ).join('')+'</div>'+
@@ -859,21 +861,62 @@ function fitCoverTitles(){
   title.style.hyphens='none';
  }
 }
+
+/* A miniatura usa a geometria real da folha, nunca uma transcrição resumida. */
+function snapshotSvg(p){
+ const fmt=v=>clamp(Number(v)||0,-5000,5000).toFixed(2);
+ const shapes=(p.strokes||[]).map(st=>{
+  const pts=st.points||[];if(!pts.length)return '';
+  let d='M '+fmt(pts[0].x)+' '+fmt(pts[0].y);
+  if(pts.length===1)d+=' L '+fmt(pts[0].x+.05)+' '+fmt(pts[0].y+.05);
+  else if(st.corrected&&pts.length>2){
+   for(let i=1;i<pts.length-1;i++){
+    const mid={x:(pts[i].x+pts[i+1].x)/2,y:(pts[i].y+pts[i+1].y)/2};
+    d+=' Q '+fmt(pts[i].x)+' '+fmt(pts[i].y)+' '+fmt(mid.x)+' '+fmt(mid.y);
+   }
+   d+=' L '+fmt(pts[pts.length-1].x)+' '+fmt(pts[pts.length-1].y);
+  }else for(let i=1;i<pts.length;i++)d+=' L '+fmt(pts[i].x)+' '+fmt(pts[i].y);
+  return '<path d="'+d+'" stroke="'+(COLORS[st.ink]||COLORS.blue)+'" stroke-width="'+
+   clamp(Number(st.width)||2.6,.5,24)+'" stroke-linecap="round" stroke-linejoin="round" fill="none"/>';
+ }).join('');
+ return '<svg class="nb-snapshot-drawing" viewBox="0 0 780 1240" aria-hidden="true">'+shapes+'</svg>';
+}
+function snapshotStickyMarkup(st){
+ const x=clamp(Number(st.x)||0,90,W-50),y=clamp(Number(st.y)||0,95,H-50);
+ const w=clamp(Number(st.w)||170,65,460),h=clamp(Number(st.h)||146,65,460);
+ return '<span class="nb-sticky" data-tone="'+esc(st.tone||'yellow')+
+  '" style="left:'+x+'px;top:'+y+'px;width:'+w+'px;height:'+h+'px;">'+
+  '<span class="nb-sticky-head"><span>✦ Nota adesiva</span></span>'+
+  '<span class="nb-sticky-text-preview">'+esc(st.text||'')+'</span></span>';
+}
+function snapshotSheetMarkup(p,index){
+ const date=p.date?new Date(p.date+'T12:00:00').toLocaleDateString('pt-BR'):'';
+ return '<span class="nb-sheet nb-snapshot-sheet" aria-hidden="true">'+
+  '<span class="nb-holes">'+Array.from({length:8},()=>'<span></span>').join('')+'</span>'+
+  '<span class="nb-paper-date-group"><span class="nb-paper-date-label">Data</span>'+
+  '<span class="nb-paper-date nb-snapshot-date">'+esc(date)+'</span></span>'+
+  snapshotSvg(p)+
+  '<span class="nb-text-layer">'+(p.notes||[]).map(n=>noteMarkup(n,false).replace(' data-nb-note="'+esc(n.id)+'"','')).join('')+'</span>'+
+  '<span class="nb-sticky-layer">'+(p.stickies||[]).map(snapshotStickyMarkup).join('')+'</span>'+
+  '<span class="nb-page-num">'+String(index+1).padStart(2,'0')+'</span></span>';
+}
+function updateSnapshotScales(){
+ for(const holder of root.querySelectorAll('.nb-rail-paper,.nb-gallery-paper')){
+  if(holder.clientWidth)holder.style.setProperty('--nb-snapshot-scale',String(holder.clientWidth/W));
+ }
+}
+function scheduleSnapshotScales(){requestAnimationFrame(updateSnapshotScales)}
+
 function renderPageRail(){
  const host=$('nbPageRail');if(!host)return;
+ const oldScroll=host.querySelector('.nb-rail-scroll')?.scrollTop||0;
  const pages=data.pages;
  host.innerHTML=
   '<div class="nb-rail-inner"><div class="nb-rail-head"><span>Folhas</span><span class="nb-rail-count">'+pages.length+'</span></div>'+
   '<div class="nb-rail-scroll">'+pages.map((p,i)=>
    '<button class="nb-rail-page '+(i===data.page?'active':'')+'" data-nb-rail-page="'+i+'" title="Ir para folha '+(i+1)+'">'+
-   '<span class="nb-rail-paper" aria-hidden="true"><span class="nb-rail-title">'+esc(p.title||'')+'</span>'+
-   (p.notes||[]).slice(0,10).map(n=>'<span class="nb-rail-text" style="top:'+
-    clamp((START+(Number(n.line)||0)*L)/H*100,4,90)+'%">'+
-    esc(String(n.text||'').slice(0,44))+'</span>').join('')+
-    (p.stickies||[]).slice(0,3).map(st=>'<span class="nb-rail-note" data-tone="'+esc(st.tone||'yellow')+
-     '" style="left:'+clamp((Number(st.x)||110)/W*100,10,70)+'%;top:'+
-     clamp((Number(st.y)||175)/H*100,8,83)+'%"></span>').join('')+
-    '</span><span class="nb-rail-caption">Folha '+(i+1)+'</span></button>'
+   '<span class="nb-rail-paper" aria-hidden="true">'+snapshotSheetMarkup(p,i)+'</span>'+
+   '<span class="nb-rail-caption">Folha '+(i+1)+'</span></button>'
   ).join('')+
   '<button class="nb-rail-new '+(data.page===pages.length?'active':'')+
   '" data-nb-rail-page="'+pages.length+'">＋<span>Nova folha</span></button></div></div>'+
@@ -882,6 +925,22 @@ function renderPageRail(){
    ' folhas">'+(railOpen?'‹':'›')+'</button>';
  host.classList.toggle('is-open',railOpen);
  $('nbWorkspace').classList.toggle('rail-open',railOpen);
+ const scroller=host.querySelector('.nb-rail-scroll');if(scroller)scroller.scrollTop=oldScroll;
+ scheduleSnapshotScales();
+}
+function refreshCurrentRailSnapshot(){
+ const rail=$('nbPageRail');
+ if(!rail||!root.isConnected)return;
+ if(rail.querySelectorAll('.nb-rail-page').length!==data.pages.length){
+  renderPageRail();return;
+ }
+ const button=Array.from(rail.querySelectorAll('.nb-rail-page'))
+  .find(el=>Number(el.dataset.nbRailPage)===data.page);
+ const preview=button?.querySelector('.nb-rail-paper');
+ if(preview&&data.page<data.pages.length){
+  preview.innerHTML=snapshotSheetMarkup(data.pages[data.page],data.page);
+  scheduleSnapshotScales();
+ }
 }
 function goRailPage(index){
  if(!Number.isInteger(index)||index<0||index>data.pages.length)return;
@@ -930,25 +989,10 @@ function renameBook(){
  checkpoint();activeBook().name=name.slice(0,70);renderDrawer();updateBookHeading();save();
 }
 function miniSheet(p,index){
- const notes=(p.notes||[]).slice(0,16).map(n=>
-  '<span class="nb-thumb-text" style="top:'+clamp((START+(Number(n.line)||0)*L)/H*100,0,96)+'%;color:'+
-  (COLORS[n.ink]||COLORS.blue)+';font-family:'+(n.font==='cursive'?"'Caveat',cursive":"'Patrick Hand',cursive")+'">'+
-  esc(String(n.text||'').slice(0,105))+'</span>').join('');
- const postits=(p.stickies||[]).slice(0,7).map(n=>
-  '<span class="nb-thumb-postit" data-tone="'+esc(n.tone||'yellow')+'" style="left:'+
-  clamp((Number(n.x)||110)/W*100,5,80)+'%;top:'+clamp((Number(n.y)||180)/H*100,10,84)+'%"></span>').join('');
- const strokes=(p.strokes||[]).slice(0,60).map(st=>{
-  const points=(st.points||[]).filter((_,i)=>i%Math.max(1,Math.ceil(st.points.length/150))===0).map(pt=>
-   clamp(Number(pt.x)||0,0,W).toFixed(1)+','+clamp(Number(pt.y)||0,0,H).toFixed(1)).join(' ');
-  return '<polyline points="'+points+'" fill="none" stroke="'+(COLORS[st.ink]||COLORS.blue)+'" stroke-width="'+
-   clamp(Number(st.width)||2.6,1,8)*3.5+'" stroke-linejoin="round" stroke-linecap="round"/>';
- }).join('');
  return '<button class="nb-gallery-card" data-nb-open-page="'+index+'" aria-label="Abrir folha '+(index+1)+'">'+
-  '<span class="nb-gallery-paper"><span class="nb-thumb-rule"></span><span class="nb-thumb-head">'+esc(p.title||'')+'</span>'+
-  '<span class="nb-thumb-date">'+esc(p.date||'')+'</span>'+notes+postits+
-  '<svg viewBox="0 0 780 1240" preserveAspectRatio="none" aria-hidden="true">'+strokes+'</svg></span>'+
+  '<span class="nb-gallery-paper" aria-hidden="true">'+snapshotSheetMarkup(p,index)+'</span>'+
   '<span class="nb-gallery-caption"><strong>Folha '+(index+1)+'</strong><small>'+
-  esc(p.date?new Date(p.date+'T12:00:00').toLocaleDateString('pt-BR'):p.title||'Sem título')+
+  esc(p.date?new Date(p.date+'T12:00:00').toLocaleDateString('pt-BR'):'Sem data')+
   '</small></span></button>';
 }
 function renderGallery(){
@@ -966,6 +1010,7 @@ function renderGallery(){
    (galleryOffset===0?'disabled':'')+'>‹ Anteriores</button><strong>'+
    (galleryOffset+1)+' de '+Math.ceil(total/limit)+'</strong><button class="nb-page-btn" data-nb-action="galleryNext" '+
    ((galleryOffset+1)*limit>=total?'disabled':'')+'>Próximas ›</button></footer>':'');
+ scheduleSnapshotScales();
 }
 function transitionView(change,fromEl=null,toEl=null){
  const reduced=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -1144,7 +1189,7 @@ function flip(direction){
 function downloadJSON(){
  const blob=new Blob([JSON.stringify({version:2,exportedAt:new Date().toISOString(),books:data.books,activeBookId:data.bookId},null,2)],{type:'application/json'});
  const a=document.createElement('a');a.href=URL.createObjectURL(blob);
- a.download='cadernos-estudos-uentzoul-'+new Date().toISOString().slice(0,10)+'.json';
+ a.download='cadernos-psicomoodle-'+new Date().toISOString().slice(0,10)+'.json';
  document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),1200);
  status('Cópia dos cadernos exportada.','success');
 }
@@ -1544,6 +1589,7 @@ syncTheme();window.matchMedia('(prefers-color-scheme:dark)').addEventListener?.(
 setInterval(syncTheme,1100);
 renderAll();
 setZoom(data.zoom,false);
+window.addEventListener('resize',scheduleSnapshotScales,{passive:true});
 status('Rascunho salvo apenas neste dispositivo.','');
 if(isMobile()&&!localStorage.getItem(STORE))setZoom(.5,false);
 })();
