@@ -29,7 +29,7 @@ test('Texto é editado diretamente no caderno sem caixa de envio flutuante',()=>
  assert.match(script,/class="nb-inline-edit /);
  assert.doesNotMatch(script,/Escrevendo na linha/);
  assert.doesNotMatch(script,/Digite rapidamente suas anotações/);
- assert.match(script,/const W=780,H=1240,L=34,START=97,ROWS=30,FIRST_LINE=3/);
+ assert.match(script,/const W=780,H=1240,L=34,START=28,ROWS=30,FIRST_LINE=3/);
  assert.match(script,/line<FIRST_LINE/);
  assert.match(script,/if\(editing\.line===FIRST_LINE&&data\.size>2\)data\.size=2/);
  assert.match(script,/if\(event\.key==='Enter'&&!event\.shiftKey&&!event\.isComposing\)/);
@@ -91,7 +91,7 @@ test('Post-its têm paleta e seleção, Ctrl+Z, Delete e menu contextual de acor
  assert.match(script,/selected\.type==='note'/);
  assert.match(script,/selected\.type==='stroke'/);
  assert.match(script,/selected\.type==='sticky'/);
- assert.match(script,/\[\['warp','⌁ Deformar desenho'\]\]/);
+ assert.match(script,/\[\['warp','⌁ Moldar desenho'\]\]/);
  assert.match(script,/\[\['fix','✧ Corrigir traço'\]\]/);
 });
 test('O marcador Em breve de Trabalhos é igual ao do Caderno e não usa tooltip externo',()=>{
@@ -204,8 +204,8 @@ test('Oito alças redimensionam cantos e lados com limites para texto, desenho e
 });
 test('A data sobe, os cadernos têm capas e as folhas têm uma aba lateral própria',()=>{
  assert.match(script,/class="nb-paper-date-group"/);
- assert.match(style,/\.nb-paper-date-group\{position:absolute;top:100px/);
- assert.match(style,/font:650 16px/);
+ assert.match(style,/\.nb-paper-date-group\{position:absolute;top:30px/);
+ assert.match(style,/font-size:16px/);
  assert.match(script,/id="nbPageRail"/);
  assert.match(script,/class="nb-rail-tab"/);
  assert.match(style,/\.nb-page-rail\{position:absolute/);
@@ -221,4 +221,44 @@ test('Borracha exibe mira realmente centrada no ponto e remover post-it exige se
  assert.match(style,/transform:translate\(-50%,-50%\)/);
  assert.match(script,/selected\?\.type==='sticky'&&selected\.id===s\.id/);
  assert.match(style,/\.nb-sticky-head button\[hidden\]\{display:none!important\}/);
+});
+
+
+test('Título da aula desaparece e a data ocupa a segunda linha física',()=>{
+ assert.doesNotMatch(script,/id="nbPaperTitle"/);
+ assert.match(script,/START=28,ROWS=30,FIRST_LINE=3/);
+ assert.match(style,/\.nb-paper-date-group\{[\s\S]*?top:30px/);
+ assert.match(style,/\.nb-corner-back\{[\s\S]*?top:12px/);
+ assert.match(script,/if\(data\.page===0\)backToBooks\(\)/);
+});
+test('Correção local protege o usuário mesmo sem resposta da IA',()=>{
+ const i=script.indexOf('function fallbackBasic('),j=script.indexOf('async function correctNote(',i);
+ assert.ok(i>=0&&j>i);
+ const basic=vm.runInNewContext('('+script.slice(i,j).trim()+')');
+ assert.equal(basic('boa tarde rapaziada'),'Boa tarde, rapaziada.');
+ assert.equal(basic('oi pessoal'),'Oi pessoal.');
+ assert.equal(basic('nao posso'),'Não posso.');
+ assert.match(script,/text:fallbackBasic\(typed\)/);
+ assert.match(script,/n\.text=fallbackBasic\(raw\)/);
+ assert.match(script,/input\.value\.endsWith\(' '\)/);
+});
+test('Ao apagar item, zera seleção e controles; não redimensiona outros desenhos',()=>{
+ assert.match(script,/selected=null;selectedStroke=-1;resizeDrag=null;moveDrag=null/);
+ assert.match(script,/renderStickies\(\);drawCanvas\(\);renderSelectionHandles\(\);save\(\)/);
+ assert.match(script,/if\(!inInput&&!event\.repeat&&\(event\.key==='Delete'/);
+});
+test('Moldar seleciona o traço sem deformar; quadrado para mover e ponto para moldar',()=>{
+ assert.match(script,/\['warp','Moldar'\]/);
+ assert.match(script,/data-nb-move-handle/);
+ assert.match(script,/data-nb-mold-handle/);
+ assert.match(script,/const hit=findStrokeNear\(p,false\)/);
+ assert.match(script,/warpDrag=\{pointerId:event\.pointerId/);
+ assert.match(script,/if\(warpDrag&&warpDrag\.pointerId===event\.pointerId\)/);
+});
+test('Capas dimensionam palavras inteiras e moldura ocupa altura do viewport',()=>{
+ assert.match(script,/function fitCoverTitles\(\)/);
+ assert.match(script,/ctx\.measureText\(word\)\.width/);
+ assert.match(style,/hyphens:none!important/);
+ assert.match(nav,/function fitNotebookHeight\(\)/);
+ assert.match(nav,/window\.innerHeight-top-6/);
 });
