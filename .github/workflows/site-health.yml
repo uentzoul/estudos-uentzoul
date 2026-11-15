@@ -1,0 +1,35 @@
+name: Saúde do Site — revisão a cada 2 horas
+on:
+  schedule:
+    - cron: '17 */2 * * *'
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: site-health
+  cancel-in-progress: false
+jobs:
+  verificar-layout:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Instalar navegador de testes isolado
+        run: |
+          npm install --no-save --no-package-lock playwright@1.56.1
+          npx playwright install --with-deps chromium
+      - name: Verificar layout publicado (desktop, tablet, iOS, Android)
+        env:
+          SITE_URL: https://uentzoul.github.io/estudos-uentzoul/
+        run: node scripts/site-health.mjs
+      - name: Guardar relatório e capturas para diagnóstico
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: site-health-${{ github.run_id }}
+          path: site-health-artifacts/
+          retention-days: 30
+          if-no-files-found: warn
