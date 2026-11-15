@@ -36,16 +36,62 @@ function normalize(info={}){
  }
  return {page,detail,semester};
 }
+/* Leitura técnica geral do navegador; não coleta IP, localização, UA completo,
+   impressão digital (fingerprint) ou identificador persistente de hardware. */
+function deviceInfo(){
+ const ua=String(navigator.userAgent||'');
+ const platform=String(navigator.platform||'');
+ const touches=Number(navigator.maxTouchPoints)||0;
+ const ipad=/iPad/i.test(ua)||(/Macintosh/i.test(ua)&&(/MacIntel/i.test(platform))&&touches>1);
+ const iphone=/iPhone|iPod/i.test(ua);
+ const android=/Android/i.test(ua);
+ const androidPhone=android&&(/Mobile/i.test(ua)||navigator.userAgentData?.mobile===true);
+ const windows=/Windows/i.test(ua);
+ const mac=/Macintosh|Mac OS X/i.test(ua);
+ const chromeOS=/CrOS/i.test(ua);
+ const linux=/Linux|X11/i.test(ua);
+ let kind='desktop',family='Other',os='Other',osVersion=null;
+ if(ipad){kind='tablet';family='iPad';os='iPadOS';}
+ else if(iphone){kind='phone';family='iPhone';os='iOS';}
+ else if(android){kind=androidPhone?'phone':'tablet';family=androidPhone?'Android phone':'Android tablet';os='Android';}
+ else if(windows){family='Windows PC';os='Windows';}
+ else if(chromeOS){family='ChromeOS PC';os='ChromeOS';}
+ else if(mac){family='Mac';os='macOS';}
+ else if(linux){family='Linux PC';os='Linux';}
+ else if(navigator.userAgentData?.mobile===true)kind='phone';
+ const iosMatch=ua.match(/(?:CPU (?:iPhone )?OS) ([0-9_]+) like Mac OS X/i);
+ const androidMatch=ua.match(/Android\s+([0-9.]+)/i);
+ const macMatch=ua.match(/Mac OS X\s+([0-9_.]+)/i);
+ const m=os==='iOS'||os==='iPadOS'?iosMatch:os==='Android'?androidMatch:os==='macOS'?macMatch:null;
+ if(m)osVersion=m[1].replace(/_/g,'.').slice(0,12);
+ let browser='Other',browserVersion=null;
+ const variants=[
+  ['Edge',/(?:EdgiOS|EdgA|Edg)\/([0-9]+)/i],
+  ['Opera',/(?:OPiOS|OPR)\/([0-9]+)/i],
+  ['Samsung Internet',/SamsungBrowser\/([0-9]+)/i],
+  ['Firefox',/(?:FxiOS|Firefox)\/([0-9]+)/i],
+  ['Chrome',/(?:CriOS|Chrome)\/([0-9]+)/i],
+  ['Chromium',/Chromium\/([0-9]+)/i],
+  ['Safari',/Version\/([0-9]+)[^ ]*.*Safari/i]
+ ];
+ for(const [name,pattern] of variants){const hit=ua.match(pattern);if(hit){browser=name;browserVersion=hit[1];break;}}
+ const sw=Number(screen?.width)||0,sh=Number(screen?.height)||0;
+ const dimensions=[sw,sh].every(n=>Number.isInteger(n)&&n>=150&&n<=10000)?
+  {width:Math.min(sw,sh),height:Math.max(sw,sh)}:{};
+ const mode=navigator.standalone===true||window.matchMedia?.('(display-mode: standalone)')?.matches?
+  'standalone':document.fullscreenElement?'fullscreen':'browser';
+ return {kind,family,os,os_version:osVersion,browser,browser_major:browserVersion,mode,...dimensions};
+}
 function payload(kind,route){
  const entry=normalize(route||current());
- return {p_visit_key:key,p_kind:kind,p_section:entry.page,p_detail:entry.detail,p_semester:entry.semester};
+ return {p_visit_key:key,p_kind:kind,p_section:entry.page,p_detail:entry.detail,p_semester:entry.semester,p_device:kind==='navigate'?deviceInfo():null};
 }
 function rpc(kind,route){
  if(!key||!client())return Promise.resolve();
  const params=payload(kind,route);
  queue=queue.catch(()=>{}).then(async()=>{
   try{
-   const {error}=await client().rpc('uentzoul_track_visit',params);
+   const {error}=await client().rpc('uentzoul_track_visit_device',params);
    if(error)console.warn('Registro resumido de navegação indisponível:',error.message);
   }catch(error){console.warn('Registro resumido de navegação indisponível:',error);}
  });
@@ -105,7 +151,7 @@ window.addEventListener('pagehide',()=>{
  if(config.url&&config.publishableKey){
   const params=payload('exit',current());
   try{
-   fetch(config.url.replace(/\/$/,'')+'/rest/v1/rpc/uentzoul_track_visit',{
+   fetch(config.url.replace(/\/$/,'')+'/rest/v1/rpc/uentzoul_track_visit_device',{
     method:'POST',mode:'cors',keepalive:true,
     headers:{'Content-Type':'application/json','apikey':config.publishableKey,'Authorization':'Bearer '+(authToken||config.publishableKey)},
     body:JSON.stringify(params)
