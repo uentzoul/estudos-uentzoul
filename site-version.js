@@ -47,7 +47,7 @@ function setup(){
   const style=document.createElement('link');
   style.id='pm-tutorial-styles';
   style.rel='stylesheet';
-  style.href='spotlight-tour.css?v=20261115-semesters-tour-v28';
+  style.href='spotlight-tour.css?v=20261115-smooth-mobile-v29';
   document.head.appendChild(style);
  }
  if(!document.getElementById('pm-ai-sidebar-polish')){
@@ -83,7 +83,7 @@ function setup(){
  if(!document.getElementById('pm-tutorial-script')){
   const script=document.createElement('script');
   script.id='pm-tutorial-script';
-  script.src='spotlight-tour.js?v=20261115-semesters-tour-v28';
+  script.src='spotlight-tour.js?v=20261115-smooth-mobile-v29';
   script.async=true;
   document.head.appendChild(script);
  }
