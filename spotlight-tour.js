@@ -458,10 +458,9 @@ function cancelMobileScroll(){
  pendingScroll=false;
 }
 function positionMobileTarget(node){
- // Botões fixos e gaveta não precisam de rolagem da página.
+ // O Safari oscilava ao usar scroll suave mais correção tardia, sobretudo
+ // nos passos 6/22 e 9/22. Reposiciona uma única vez antes de mostrar o recorte.
  if(['menu-button','menu-list','preferences','semester'].includes(tourScene()))return;
- // No máximo uma correção por etapa: o segundo layout (270 ms)
- // não deve inverter ou repetir a rolagem enquanto o Safari está animando.
  if(mobilePositionAttempts>0)return;
  const zone=mobileShowcase(),r=targetVisualBounds(node,true),room=zone.bottom-zone.top;
  if(room<50)return;
@@ -475,36 +474,11 @@ function positionMobileTarget(node){
  const next=clamp(window.scrollY+delta,0,Math.max(0,maxScroll));
  if(Math.abs(next-window.scrollY)<3)return;
  mobilePositionAttempts=1;
- pendingScroll=true;
- const serial=++mobileScrollSerial;
- const started=performance.now();
- let previous=NaN, settledFrames=0;
- // Respeita a preferência por movimento reduzido. No celular normal,
- // a página desliza até o alvo, sem um salto seguido de correção.
- const reduced=window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches;
- window.scrollTo({top:next,behavior:reduced?'instant':'smooth'});
- const settle=()=>{
-  if(!active||serial!==mobileScrollSerial)return;
-  const now=window.scrollY;
-  if(Math.abs(now-next)<=2&&Math.abs(now-previous)<=1)settledFrames++;
-  else settledFrames=0;
-  const elapsed=performance.now()-started;
-  if(settledFrames>=2||elapsed>1100){
-   // Fallback apenas se o navegador bloquear a rolagem suave;
-   // nunca executa uma segunda animação de correção.
-   if(elapsed>1100&&Math.abs(now-next)>3)window.scrollTo({top:next,behavior:'instant'});
-   mobileScrollFrame=0;
-   pendingScroll=false;
-   layout(false);
-   return;
-  }
-  previous=now;
-  mobileScrollFrame=requestAnimationFrame(settle);
- };
- mobileScrollFrame=requestAnimationFrame(settle);
+ ++mobileScrollSerial;
+ window.scrollTo({top:next,behavior:'instant'});
 }
 function layout(scrollTarget=false){
- if(!active||!shell||shell.hidden)return;
+ if(!active||!shell||shell.hidden||document.documentElement.dataset.pmTourPreparing==='true')return;
  // Ao abrir a Revisão de Férias, a API pode mostrar um carregador por alguns
  // instantes. Nunca desenhar o recorte ao redor desse carregador transitório.
  // O destaque real aparece depois que os meses terminarem de carregar.
@@ -596,6 +570,14 @@ function show(n){
  document.documentElement.dataset.pmTourScene=tourScene();
  mobilePositionAttempts=0;
  const serial=++stepSerial,step=runSteps[index];
+ // Antes de trocar a página, feche o recorte anterior para não mostrar
+ // um alvo antigo sobre a próxima tela (iPhone, inclusive ao voltar).
+ clearTimeout(fadeTimer);
+ document.documentElement.dataset.pmTourPreparing='true';
+ if(spot)spot.style.visibility='hidden';
+ if(sidebarSpot)sidebarSpot.hidden=true;
+ shell.querySelector('.pm-spotlight-svg').setAttribute('viewBox','0 0 '+innerWidth+' '+innerHeight);
+ shell.querySelector('.pm-spotlight-path').setAttribute('d','M 0 0 H '+innerWidth+' V '+innerHeight+' H 0 Z');
  const preparation=prep(step);
  syncMobileMenu(step);
  // Atualiza o texto imediatamente; para a linha do tempo, aguarda a abertura
@@ -605,10 +587,13 @@ function show(n){
   if(!active||serial!==stepSerial)return;
   requestAnimationFrame(()=>requestAnimationFrame(()=>{
    if(!active||serial!==stepSerial)return;
+   document.documentElement.dataset.pmTourPreparing='false';
    renderCopy(step);layout(true);
+   if(spot)spot.style.visibility='';
    balloon.querySelector('.pm-spotlight-next')?.focus({preventScroll:true});
+   // Conferência geométrica sem nova rolagem 270ms depois.
    clearTimeout(fadeTimer);
-   fadeTimer=setTimeout(()=>{if(active&&serial===stepSerial){renderCopy(step);layout(true)}},270);
+   fadeTimer=setTimeout(()=>{if(active&&serial===stepSerial)layout(false)},270);
   }));
  });
 }
@@ -638,6 +623,8 @@ function close(){
  if(tourMobile&&pendingScroll)window.scrollTo({top:window.scrollY,behavior:'instant'});
  cancelMobileScroll();
  active=false;++stepSerial;
+ delete document.documentElement.dataset.pmTourPreparing;
+ if(spot)spot.style.visibility='';
  clearTimeout(fadeTimer);shell.hidden=true;
  window.pmMobileDrawer?.close?.();
  document.documentElement.classList.remove('pm-tour-running');
