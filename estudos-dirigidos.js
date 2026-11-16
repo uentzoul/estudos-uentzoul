@@ -10,9 +10,9 @@
  const TARGETS=Object.freeze({familia:'P2',tcc:'P2',meta:'P2',grupos:'P2',social:'P3',avaliacao:'P3'});
  const FALLBACK_IDS=Object.freeze({
    familia:['familia-p2-revisao-conferida-2026'],tcc:['final-2026-2-tcc'],
-   meta:['final-2026-2-meta'],grupos:['final-2026-2-grupos'],
-   social:['final-2026-2-social','social-novos-textos-2026'],
-   avaliacao:['final-2026-2-avaliacao']
+   meta:['final-2026-2-meta'],grupos:['grupos-p2-revisao-conferida-2026'],
+   social:['social-p3-revisao-integrada-2026'],
+   avaliacao:['avaliacao-p3-revisao-conferida-2026']
  });
  let officialRows=[],publishedGuides=[],sourcesReady=false,sourcesLoading=false,lastSourcesAt=0;
  const preparation={running:null,attempts:Object.create(null),errors:Object.create(null)};
