@@ -49,7 +49,7 @@ test('Enter registra e corrige texto e move para a próxima linha; vazio apenas 
  const saveEditor=vm.runInNewContext('('+src+')',context);
  saveEditor(true);
  assert.equal(mockPage.notes.length,1);
- assert.equal(mockPage.notes[0].text,'Psicologia e uma ciencia');
+ assert.equal(mockPage.notes[0].text,'  Psicologia e uma ciencia','recuos digitados são mantidos');
  assert.equal(calls.correct.length,1);
  assert.equal(calls.advanced[0],4);
  assert.equal(calls.saved,1);
@@ -234,9 +234,7 @@ test('Título da aula desaparece e a data ocupa a segunda linha física',()=>{
  assert.doesNotMatch(script,/case 'prev':if\(data\.page===0\)backToBooks\(\)/);
 });
 test('Correção local protege o usuário mesmo sem resposta da IA',()=>{
- const i=script.indexOf('function fallbackBasic('),j=script.indexOf('async function correctNote(',i);
- assert.ok(i>=0&&j>i);
- const basic=vm.runInNewContext('('+script.slice(i,j).trim()+')');
+ const basic=vm.runInNewContext('('+fn('function fallbackBasic(', 'function restoreTextTabs(')+')');
  assert.equal(basic('boa tarde rapaziada'),'Boa tarde, rapaziada.');
  assert.equal(basic('oi pessoal'),'Oi pessoal.');
  assert.equal(basic('nao posso'),'Não posso.');
