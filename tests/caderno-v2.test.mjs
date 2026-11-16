@@ -260,6 +260,14 @@ test('Ao apagar item, zera seleção e controles; não redimensiona outros desen
  assert.match(script,/renderStickies\(\);drawCanvas\(\);renderSelectionHandles\(\);save\(\)/);
  assert.match(script,/if\(!inInput&&!event\.repeat&&\(event\.key==='Delete'/);
 });
+test('Canvas HiDPI mantém tamanho CSS e desenho exatamente sob a ponta do cursor',()=>{
+ assert.match(style,/\.nb-drawing\{[^}]*width:780px;height:1240px/);
+ assert.match(script,/const r=canvas\.getBoundingClientRect\(\)/);
+ assert.match(script,/\(event\.clientX-r\.left\)\*W\/Math\.max\(1,r\.width\)/);
+ assert.match(script,/\(event\.clientY-r\.top\)\*H\/Math\.max\(1,r\.height\)/);
+ assert.match(script,/ctx\.setTransform\(dpr,0,0,dpr,0,0\)/);
+ assert.match(script,/data\.mode==='draw'\|\|data\.mode==='warp'/);
+});
 test('Moldar diretamente a curva e os pontos intermediários, com botão de mover',()=>{
  assert.match(script,/\['warp','Moldar'\]/);
  assert.match(script,/data-nb-move-handle/);

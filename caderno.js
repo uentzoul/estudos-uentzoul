@@ -429,12 +429,14 @@ function pageCountLabel(){
 function updateBookHeading(){$('nbBookHeading').textContent=activeBook().name||'Caderno de aula';}
 const view=$('nbViewport'),sheet=$('nbSheet'),canvas=$('nbDrawing'),ctx=canvas.getContext('2d'),wrap=$('nbWrap'),companion=$('nbCompanionWrap'),stage=$('nbStage');
 function currentRect(){return sheet.getBoundingClientRect()}
+/* Converter o ponteiro pela geometria real do canvas.
+   A resolução HiDPI do bitmap não altera o tamanho da superfície visível. */
 function point(event){
- const r=currentRect();
- const rawX=clamp((event.clientX-r.left)/data.zoom,0,W);
+ const r=canvas.getBoundingClientRect();
+ const rawX=clamp((event.clientX-r.left)*W/Math.max(1,r.width),0,W);
  const x=data.layout==='book'&&editEnabled?
   (data.page%2===0?Math.min(rawX,W-BINDER_SAFE):Math.max(rawX,BINDER_SAFE)):rawX;
- return{x,y:clamp((event.clientY-r.top)/data.zoom,0,H)};
+ return{x,y:clamp((event.clientY-r.top)*H/Math.max(1,r.height),0,H)};
 }
 function syncLayoutGeometry(){
  const book=data.layout==='book';
@@ -1328,7 +1330,7 @@ function pointerDownCanvas(event){
  }
  if(data.mode==='draw'){
   checkpoint();drawPoints=[p];canvas.setPointerCapture?.(event.pointerId);
-  event.preventDefault();
+  drawCanvas();event.preventDefault();
  }else if(data.mode==='warp'){
   const hit=findStrokeNear(p);
   if(hit.stroke){
@@ -1811,7 +1813,9 @@ function contextAction(action){
 function toolCursor(event){
  const marker=$('nbToolCursor');
  if(event.pointerType==='touch'||!root.contains(event.target)||galleryOpen||
-    !event.target.closest('#nbViewport')||event.target.closest('textarea,input,button')){
+    !event.target.closest('#nbViewport')||event.target.closest('textarea,input,button')||
+     data.mode==='draw'||data.mode==='warp'){
+   // Usar a mira nativa, exatamente na ponta: sem ícone flutuante deslocado.
   marker.hidden=true;return;
  }
  const erase=data.mode==='erase'&&!!event.target.closest('#nbSheet');

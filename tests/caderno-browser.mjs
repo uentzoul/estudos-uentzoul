@@ -778,7 +778,82 @@ try{
   'Após recarregar, anotações apagadas não retornam');
  await eraseContext.close();
 
- const tourContext=await browser.newContext({viewport:{width:1280,height:900}});
+ // Tela HiDPI: o buffer tem 2× os pixels sem deslocar desenho ou moldura.
+  const hiContext=await browser.newContext({viewport:{width:1366,height:900},deviceScaleFactor:2});
+  const hiPage=await hiContext.newPage();
+  await hiPage.goto(address,{waitUntil:'domcontentloaded'});
+  const hiFrame=hiPage.frameLocator('#nbQaFrame');
+  await hiFrame.locator('#nbShelf').waitFor({state:'visible'});
+  await hiFrame.locator('[data-nb-shelf-book="materia-familia"]').click();
+  await hiFrame.locator('[data-nb-action="draw"]').click();
+  await hiFrame.locator('[data-nb-action="red"]').click();
+  const hiCanvas=hiFrame.locator('#nbDrawing');
+  const sheetSize=await hiFrame.locator('#nbSheet').boundingBox();
+  const canvasSize=await hiCanvas.boundingBox();
+  const measure=await hiCanvas.evaluate(c=>({
+   dpr:window.devicePixelRatio,pixelsX:c.width,pixelsY:c.height,
+   styleWidth:getComputedStyle(c).width,styleHeight:getComputedStyle(c).height,
+   cursor:getComputedStyle(c).cursor
+  }));
+  assert.equal(measure.dpr,2,'Testar tela com 200% de escala');
+  assert.equal(measure.pixelsX,1560);
+  assert.equal(measure.pixelsY,2480);
+  assert.equal(measure.styleWidth,'780px','Buffer HiDPI não pode aumentar a largura do desenho');
+  assert.equal(measure.styleHeight,'1240px','Buffer HiDPI não pode aumentar a altura do desenho');
+  assert.ok(Math.abs(sheetSize.width-canvasSize.width)<2&&
+   Math.abs(sheetSize.height-canvasSize.height)<2,
+   'Canvas visual e folha precisam ter as mesmas dimensões');
+  assert.equal(measure.cursor,'crosshair','Cursor deve marcar a ponta real da caneta');
+  const startPoint={x:canvasSize.x+260*canvasSize.width/780,y:canvasSize.y+460*canvasSize.height/1240};
+  const endPoint={x:canvasSize.x+420*canvasSize.width/780,y:startPoint.y};
+  await hiPage.mouse.move(startPoint.x,startPoint.y);
+  assert.equal(await hiFrame.locator('#nbToolCursor').isHidden(),true,
+   'Não pode haver ícone flutuante confundindo a ponta do desenho');
+  await hiPage.mouse.down();
+  await hiPage.mouse.move(endPoint.x,endPoint.y,{steps:14});await hiPage.mouse.up();
+  await hiPage.waitForTimeout(300);
+  const hiStroke=await hiFrame.locator('#nbRoot').evaluate(()=>{
+   const data=JSON.parse(localStorage.getItem('uentzoul:caderno:alpha2:qa-browser-admin')||'null');
+   return data?.books?.find(b=>b.id==='materia-familia')?.pages?.[0]?.strokes?.[0];
+  });
+  assert.ok(hiStroke?.points?.length>=2,'Traço HiDPI deve ser salvo');
+  assert.ok(Math.abs(hiStroke.points[0].x-260)<2&&Math.abs(hiStroke.points[0].y-460)<2,
+   'O traço precisa começar na ponta do cursor');
+  assert.ok(Math.abs(hiStroke.points.at(-1).x-420)<2,'O traço precisa acabar na ponta do cursor');
+  const inkClip=await hiPage.screenshot({clip:{x:startPoint.x-9,y:startPoint.y-9,width:18,height:18}});
+  const inkCount=await hiPage.evaluate(async base64=>{
+   const img=new Image();img.src='data:image/png;base64,'+base64;await img.decode();
+   const cv=document.createElement('canvas');cv.width=img.width;cv.height=img.height;
+   const cx=cv.getContext('2d');cx.drawImage(img,0,0);
+   const pixels=cx.getImageData(0,0,cv.width,cv.height).data;let count=0;
+   for(let i=0;i<pixels.length;i+=4){
+    const r=pixels[i],g=pixels[i+1],b=pixels[i+2];
+    if(r>125&&r>g+45&&r>b+35&&g<145)count++;
+   }
+   return count;
+  },inkClip.toString('base64'));
+  assert.ok(inkCount>5,'Tinta vermelha deve existir no próprio pixel do clique');
+  await hiFrame.locator('[data-nb-action="zoomIn"]').click();
+  await hiFrame.locator('[data-nb-action="warp"]').click();
+  const zoomRect=await hiCanvas.boundingBox();
+  const middle={x:zoomRect.x+335*zoomRect.width/780,y:zoomRect.y+460*zoomRect.height/1240};
+  await hiPage.mouse.move(middle.x,middle.y);await hiPage.mouse.down();
+  await hiPage.mouse.move(middle.x+13,middle.y+22,{steps:6});await hiPage.mouse.up();
+  await hiPage.waitForTimeout(260);
+  const geometry=await hiFrame.locator('.nb-transform-box.nb-transform-mold').evaluate(el=>{
+   const c=document.querySelector('#nbDrawing').getBoundingClientRect(),b=el.getBoundingClientRect();
+   const data=JSON.parse(localStorage.getItem('uentzoul:caderno:alpha2:qa-browser-admin')||'null');
+   const pts=data.books.find(book=>book.id==='materia-familia').pages[0].strokes[0].points;
+   const xs=pts.map(p=>p.x),ys=pts.map(p=>p.y);
+   return {actual:[b.left,b.top,b.right,b.bottom],
+    expected:[c.left+Math.min(...xs)*c.width/780,c.top+Math.min(...ys)*c.height/1240,
+     c.left+Math.max(...xs)*c.width/780,c.top+Math.max(...ys)*c.height/1240]};
+  });
+  geometry.actual.forEach((value,i)=>assert.ok(Math.abs(value-geometry.expected[i])<3,
+   'Enquadramento de Moldar fora do traço no DPR 2, lado '+i+': '+JSON.stringify(geometry)));
+  await hiContext.close();
+
+  const tourContext=await browser.newContext({viewport:{width:1280,height:900}});
  const tourPage=await tourContext.newPage();
  await tourPage.goto(address,{waitUntil:'domcontentloaded'});
  const tourFrame=tourPage.frameLocator('#nbQaFrame');

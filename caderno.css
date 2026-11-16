@@ -31,7 +31,7 @@ button,input,textarea,select{font:inherit}button{cursor:pointer}button:disabled{
 .nb-note.nb-preview{opacity:.55;pointer-events:none;border-bottom:1px dashed #9883c4}
 .nb-note.nb-selected .nb-note-content{background:#d5c5f244;border-radius:4px}.nb-note.nb-correcting .nb-note-content{background:linear-gradient(90deg,transparent,#eee7ff,transparent);background-size:200% 100%;animation:nb-pulse 1.7s ease infinite}
 @keyframes nb-pulse{to{background-position:-200% 0}}
-.nb-drawing{position:absolute;inset:0;z-index:3;touch-action:none}.nb-sheet[data-mode="text"] .nb-drawing,.nb-sheet[data-mode="sticky"] .nb-drawing{pointer-events:none}
+.nb-drawing{position:absolute;inset:0;width:780px;height:1240px;max-width:none;max-height:none;z-index:3;touch-action:none}.nb-sheet[data-mode="text"] .nb-drawing,.nb-sheet[data-mode="sticky"] .nb-drawing{pointer-events:none}
 .nb-sheet[data-mode="draw"] .nb-text-layer,.nb-sheet[data-mode="warp"] .nb-text-layer{pointer-events:none}
 .nb-sticky-layer{position:absolute;inset:0;pointer-events:none;z-index:6}.nb-sticky{position:absolute;display:flex;flex-direction:column;pointer-events:auto;width:170px;min-height:146px;padding:11px 12px 13px;transform:rotate(-1.4deg);border-radius:3px 3px 10px 3px;background:linear-gradient(165deg,#fff6a9,#f5e988);box-shadow:2px 4px 8px #6f614735,7px 13px 28px #5e56512c;touch-action:none}
 .nb-sticky[data-tone="pink"]{background:linear-gradient(165deg,#ffdce8,#ffb9cd)}.nb-sticky[data-tone="violet"]{background:linear-gradient(165deg,#eee4ff,#d9c5ff)}
