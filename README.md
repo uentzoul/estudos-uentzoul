@@ -2,11 +2,11 @@
 Central de estudos de Psicologia 2026/2, responsiva para desktop, Android e iOS.
 
 ## Conteúdo do site
-O `index.html` publicado contém as seis disciplinas e o catálogo de **41 podcasts**:
+O `index.html` publicado contém as seis disciplinas e o catálogo ativo de **40 podcasts**:
 - TCC: 10 episódios
 - Psicologia de Grupos: 6 episódios
 - Psicologia da Família: 7 episódios
-- Metapsicologia: 7 episódios
+- Metapsicologia: 6 episódios no catálogo da P2 (o episódio sobre o tema excluído foi retirado da revisão ativa, sem apagar o arquivo original)
 - Avaliação Psicológica: 5 episódios
 - Psicologia Social: 6 episódios (outros dois ainda não recebidos)
 
