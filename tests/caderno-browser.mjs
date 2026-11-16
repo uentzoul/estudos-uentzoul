@@ -418,6 +418,27 @@ try{
  assert.ok(one.width>200&&two.width>200,'Cada folha do caderno aberto deve ocupar espaço real');
  assert.ok(Math.abs(one.y-two.y)<3,'Páginas abertas devem estar alinhadas verticalmente');
  assert.ok(two.x>=one.x+one.width-3,'Primeira folha à esquerda, segunda à direita');
+ // Ler: a data vazia não aparece; arraste também funciona na folha direita.
+ await bf.locator('#nbEditToggle').click();
+ assert.equal(await bf.locator('.nb-paper-date-group').isVisible(),false,
+  'A visualização não exibe campos de data sem preenchimento');
+ const dragStart=await bf.locator('#nbCompanionWrap').boundingBox();
+ const beforeFreePan=await bf.locator('#nbWrap').boundingBox();
+ await bookPage.mouse.move(dragStart.x+dragStart.width*.50,dragStart.y+dragStart.height*.55);
+ await bookPage.mouse.down();
+ await bookPage.mouse.move(dragStart.x+dragStart.width*.50-124,dragStart.y+dragStart.height*.55-82,{steps:9});
+ await bookPage.mouse.up();
+ const afterFreePan=await bf.locator('#nbWrap').boundingBox();
+ assert.ok(afterFreePan.x<beforeFreePan.x-90&&afterFreePan.y<beforeFreePan.y-60,
+  'A folha direita também deve arrastar o caderno livremente em X e Y');
+ assert.equal(await bf.locator('#nbPageNum').textContent(),'01',
+  'Arrastar a folha direita não pode trocar de página por engano');
+ const movedCompanion=await bf.locator('#nbCompanionWrap').boundingBox();
+ await bookPage.mouse.move(movedCompanion.x+movedCompanion.width*.50,movedCompanion.y+movedCompanion.height*.55);
+ await bookPage.mouse.down();
+ await bookPage.mouse.move(movedCompanion.x+movedCompanion.width*.50+124,movedCompanion.y+movedCompanion.height*.55+82,{steps:9});
+ await bookPage.mouse.up();
+ await bf.locator('#nbEditToggle').click();
  // A segunda folha é clicável e abre editor naquela mesma posição.
  await bf.locator('[data-nb-action="text"]').click();
  const z=await bf.locator('#nbRoot').evaluate(()=>Number(document.querySelector('#nbZoomText').textContent.replace('%',''))/100);
