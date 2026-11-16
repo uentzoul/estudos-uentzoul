@@ -157,26 +157,22 @@ let shelfOpen=true,editEnabled=false;
 let panOffset={x:0,y:0},suppressLeafClickUntil=0;
 let selected=null,contextTarget=null,panDrag=null,lastPointer=null,toolPaletteOpen=false,eraseDrag=null,moveDrag=null,resizeDrag=null;
 function materializePage(){
- if(data.page!==data.pages.length||!hasPageContent(pendingPage))return;
- if(data.pages.length>=250)return;
+ if(data.page<data.pages.length||!hasPageContent(pendingPage))return;
+ if(data.page>=250)return;
+ // Permite escrever primeiro na direita sem renumerá-la como esquerda.
+ // Folhas vazias intermediárias fazem parte da sequência real do caderno.
+ while(data.pages.length<data.page)data.pages.push(emptyPage());
  data.pages.push(pendingPage);pendingPage=emptyPage();
 }
 function serializable(){
  materializePage();
- // Páginas sem conteúdo não contam nem permanecem salvas.
  for(const book of data.books){
-  const original=book.pages||[];
-  let skipped=0;
-  const cleaned=[];
-  original.forEach((item,i)=>{
-   if(hasPageContent(item))cleaned.push(item);
-   else if(book.id===data.bookId){
-    if(i<data.page)skipped++;
-    if(i===data.page)pendingPage=cleanPage(item);
-   }
-  });
+  const cleaned=(book.pages||[]).map(cleanPage);
+  // Não manter folhas vazias NO FIM, mas nunca apagar uma folha esquerda
+  // vazia caso a folha direita do mesmo par já tenha conteúdo.
+  while(cleaned.length&&!hasPageContent(cleaned[cleaned.length-1]))cleaned.pop();
   if(book.id===data.bookId){
-   data.page=Math.min(cleaned.length,Math.max(0,data.page-skipped));
+   data.page=Math.min(cleaned.length,Math.max(0,data.page));
    data.pages=cleaned;
   }
   book.pages=cleaned;
@@ -405,8 +401,8 @@ function isInBinderZone(event){
 function activateCompanion(event){
  if(data.layout!=='book'||flipping)return;
  const target=companionIndex();
- if(target>data.pages.length||!editEnabled&&target===data.pages.length){
-  status('Escreva primeiro na folha esquerda para continuar à direita.','');
+ if(target>data.pages.length+(editEnabled?1:0)||!editEnabled&&target===data.pages.length){
+  status('A folha oposta ainda não foi criada. Use Editar para começar.','');
   return;
  }
  const rect=companion.getBoundingClientRect(),localY=(event.clientY-rect.top)/data.zoom;
@@ -421,7 +417,7 @@ function activateCompanion(event){
 function beginOpposingLeafGesture(event){
  if(shelfOpen||!editEnabled||data.layout!=='book'||data.mode==='none'||flipping||isInBinderZone(event))return false;
  const target=companionIndex();
- if(target>data.pages.length)return false;
+ if(target>data.pages.length+1)return false;
  event.preventDefault();event.stopImmediatePropagation();
  if(editing)saveEditor(false);
  data.page=target;pendingPage=emptyPage();selected=null;selectedStroke=-1;
