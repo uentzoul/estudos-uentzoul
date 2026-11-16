@@ -3,6 +3,64 @@
  'use strict';
  const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
  const fmt=s=>esc(String(s??'').replace(/\s*\n\s*/g,' ').replace(/\s+/g,' ').trim());
+
+ const OFFICIAL_TAG='psicomoodle:estudo-dirigido:professor',UPLOAD_TABLE='uentzoul_library_uploads';
+ let officialRows=[],officialReady=false,officialLoading=false,lastOfficialCheck=0;
+ const semester=()=>window.uentzoulLibraryApp?.semester?.()||'2026/2';
+ function officialSubject(row){
+   const subj=String(row.file_subject||'');
+   if(semester()==='2026/1')return subj.startsWith('2026/1::')?subj.slice(8):'';
+   return subj.startsWith('2026/1::')?'':subj;
+ }
+ function officialExam(row){
+   const token=(row.content_tags||[]).find(t=>/^psicomoodle:prova:/i.test(t));
+   return token?token.split(':').pop():'';
+ }
+ function renderOfficial(subject,documents){
+   return '<section class="sd-root" data-sd-subject="'+esc(subject)+'" aria-label="Estudos dirigidos da disciplina">'+
+     '<header class="sd-header"><span class="sd-kicker">ROTEIRO DO PROFESSOR</span><h2>Estudos dirigidos</h2>'+
+     '<p>Os documentos oficiais do professor têm prioridade. Abra o roteiro original para consultar as questões da prova.</p></header>'+
+     documents.map((doc,i)=>'<details class="sd-guide" '+(i===0?'open':'')+'>'+
+       '<summary class="sd-guide-summary"><span class="sd-guide-icon" aria-hidden="true">▤</span><span class="sd-guide-label">'+
+       '<strong>'+fmt(doc.display_title||doc.filename||'Estudo dirigido')+'</strong>'+
+       '<small>Material oficial do professor'+(officialExam(doc)?' · '+fmt(officialExam(doc)):'')+'</small></span>'+
+       '<span class="sd-count">PDF oficial</span><span class="sd-arrow" aria-hidden="true">⌄</span></summary>'+
+       '<div class="sd-guide-body"><div class="sd-source"><strong>Estudo dirigido original do professor</strong>'+
+       '<p>O PDF é preservado na íntegra. Os roteiros produzidos por IA não substituem este documento.</p></div>'+
+       '<a class="sd-official-action" href="#" data-library-file="'+esc(doc.resource_key)+'">Abrir estudo dirigido (PDF) ↗</a>'+
+       '</div></details>').join('')+'</section>';
+ }
+ function refreshVisibleGuides(){
+   document.querySelectorAll('[data-sd-subject]').forEach(node=>{
+     const subj=node.getAttribute('data-sd-subject');
+     if(subj&&node.isConnected)node.outerHTML=window.renderStudyGuide(subj);
+   });
+ }
+ async function refreshOfficialGuides(force=false){
+   const client=window.uentzoulAIAuth?.client?.();
+   if(!client||officialLoading||(!force&&Date.now()-lastOfficialCheck<30000))return;
+   officialLoading=true;lastOfficialCheck=Date.now();
+   try{
+     const {data,error}=await client.from(UPLOAD_TABLE)
+       .select('resource_key,display_title,filename,file_subject,content_tags,publish_at,library_public')
+       .contains('content_tags',[OFFICIAL_TAG]).limit(500);
+     if(error)throw error;
+     const current=Date.now();
+     const next=(data||[]).filter(d=>d.library_public===true&&(!d.publish_at||Date.parse(d.publish_at)<=current))
+       .sort((a,b)=>String(a.display_title||a.filename||'').localeCompare(String(b.display_title||b.filename||''),'pt-BR'));
+     const changed=!officialReady||JSON.stringify(officialRows)!==JSON.stringify(next);
+     officialRows=next;officialReady=true;
+     if(changed)refreshVisibleGuides();
+   }catch(err){
+     console.warn('Não foi possível consultar os roteiros oficiais:',err);
+     if(!officialReady){officialReady=true;refreshVisibleGuides();}
+   }finally{officialLoading=false;}
+ }
+ window.addEventListener('uentzoul:library-updated',()=>{void refreshOfficialGuides(true);});
+ window.addEventListener('uentzoul:auth',()=>{officialReady=false;lastOfficialCheck=0;void refreshOfficialGuides(true);});
+ window.addEventListener('focus',()=>{void refreshOfficialGuides();});
+ setInterval(()=>{if(!document.hidden)void refreshOfficialGuides();},45000);
+ setTimeout(()=>{void refreshOfficialGuides(true);},1000);
  function paragraph(s){
   const text=String(s||'').trim();
   if(!text)return '';
@@ -33,6 +91,12 @@
   '</article>';
  }
  window.renderStudyGuide=function(subject){
+   if(!officialReady&&window.uentzoulAIAuth?.client?.()){
+    void refreshOfficialGuides();
+    return '<div class="sd-empty" data-sd-subject="'+esc(subject)+'">Consultando estudos dirigidos oficiais do professor…</div>';
+   }
+   const official=officialRows.filter(d=>officialSubject(d)===subject);
+   if(official.length)return renderOfficial(subject,official);
    const allGuides=window.PSICO_GUIDES?.[subject]||[];
    // Em 2026/2, mostre somente os roteiros relacionados à revisão atual.
    // A fonte dos estudos dirigidos anteriores permanece preservada no repositório.
@@ -46,8 +110,8 @@
    };
    const onlyCurrent=window.PSICO_FINAL_EXAMS?.version&&liveGuideIds[subject];
    const guides=onlyCurrent?allGuides.filter(g=>liveGuideIds[subject].has(g.id)):allGuides;
-   if(!guides.length)return '<div class="sd-empty">Ainda não há um estudo dirigido com enunciados suficientes para montar esta área.</div>';
-   return '<section class="sd-root" aria-label="Estudos dirigidos da disciplina">'+
+   if(!guides.length)return '<div class="sd-empty" data-sd-subject="'+esc(subject)+'">Ainda não há um estudo dirigido com enunciados suficientes para montar esta área.</div>';
+   return '<section class="sd-root" data-sd-subject="'+esc(subject)+'" aria-label="Estudos dirigidos da disciplina">'+
     '<header class="sd-header"><span class="sd-kicker">ESTUDO EXPLICADO</span><h2>Estudos dirigidos</h2>'+
     '<p>Encontre perguntas, respostas comentadas e explicações em um só lugar. Selecione um roteiro para consultar o conteúdo completo.</p></header>'+
     guides.map((g,i)=>'<details class="sd-guide" '+(i===0?'open':'')+'>'+
