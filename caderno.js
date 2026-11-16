@@ -100,6 +100,7 @@ data.mode='none'; // Ao abrir, nenhuma ferramenta atua na folha até o usuário 
 if(!stored?.smoothingV3){data.smooth=true;data.smoothingV3=true;}
 let pendingPage=emptyPage(),galleryOpen=false,drawerOpen=false,galleryOffset=0,railOpen=!window.matchMedia('(max-width:760px)').matches;
 let shelfOpen=true,editEnabled=false;
+let panOffset={x:0,y:0},suppressLeafClickUntil=0;
 let selected=null,contextTarget=null,panDrag=null,lastPointer=null,toolPaletteOpen=false,eraseDrag=null,moveDrag=null,resizeDrag=null;
 function materializePage(){
  if(data.page!==data.pages.length||!hasPageContent(pendingPage))return;
@@ -310,6 +311,8 @@ function syncLayoutGeometry(){
  const book=data.layout==='book';
  stage.classList.toggle('nb-double',book);
  companion.hidden=!book;
+ sheet.classList.toggle('nb-left-page',book&&data.page%2===0);
+ sheet.classList.toggle('nb-right-page',book&&data.page%2===1);
  const side=book&&data.page%2===1;
  wrap.style.order=side?'1':'0';
  companion.style.order=side?'0':'1';
@@ -823,9 +826,14 @@ function finishResize(event){
 }
 function startPan(event){
  panDrag={pointerId:event.pointerId,startX:event.clientX,startY:event.clientY,
-  left:view.scrollLeft,top:view.scrollTop,moved:false,mode:data.mode,button:event.button};
- sheet.setPointerCapture?.(event.pointerId);
+  x:panOffset.x,y:panOffset.y,moved:false,mode:data.mode,button:event.button};
+ const capture=event.target.closest?.('#nbCompanionWrap')||sheet;
+ capture.setPointerCapture?.(event.pointerId);
  event.preventDefault();
+}
+function setPan(x,y){
+ panOffset.x=x;panOffset.y=y;
+ stage.style.transform='translate('+x+'px,'+y+'px)';
 }
 
 function startMoveDrag(event,type,item){
@@ -972,6 +980,7 @@ function switchBook(bookId,fromHistory=false){
  if(!data.books.some(b=>b.id===bookId))return;
  if(editing)saveEditor(false);
  checkpoint();data.bookId=bookId;data.pages=activeBook().pages;data.page=0;
+ setPan(0,0);
  pendingPage=emptyPage();selected=null;galleryOffset=0;
  renderPage();renderDrawer();renderPageRail();if(galleryOpen)renderGallery();
  if(!shelfOpen){editEnabled=false;data.mode='none';syncNotebookUI();}
@@ -1488,7 +1497,10 @@ root.addEventListener('click',event=>{
  const bind=event.target.closest('[data-nb-bind]');
  if(bind){listening=bind.dataset.nbBind;$('nbShortcutHint').textContent='Pressione uma tecla ou botão extra do mouse.';updateShortcutsList();return;}
  const button=event.target.closest('[data-nb-action]');
- if(button?.dataset.nbAction==='switchLeaf'){activateCompanion(event);return}
+ if(button?.dataset.nbAction==='switchLeaf'){
+  if(Date.now()<suppressLeafClickUntil){event.preventDefault();return;}
+  activateCompanion(event);return;
+ }
  if(button){act(button.dataset.nbAction);return}
  if(event.target.id==='nbShortcutsDialog')act('closeShortcuts');
  if(!event.target.closest('#nbContextMenu'))$('nbContextMenu').hidden=true;
@@ -1596,11 +1608,12 @@ root.addEventListener('pointerdown',event=>{
  if(event.button===3){sideBack(event);return}
  if(shelfOpen)return;
  if(!editEnabled){
-  const onPaper=event.button===0&&event.target.closest('#nbSheet')&&
-   !event.target.closest('button,input,textarea');
-  if(onPaper)startPan(event);
-  return;
- }
+   const onCompanion=!!event.target.closest('#nbCompanionWrap');
+   const onPaper=event.button===0&&(onCompanion||
+    (event.target.closest('#nbSheet')&&!event.target.closest('button,input,textarea')));
+   if(onPaper)startPan(event);
+   return;
+  }
  if(listening&&event.button!==0){
   event.preventDefault();
   if([1,2,3,4].includes(event.button)){
@@ -1687,7 +1700,7 @@ root.addEventListener('pointermove',event=>{
   const dx=event.clientX-panDrag.startX,dy=event.clientY-panDrag.startY;
   if(Math.hypot(dx,dy)>6)panDrag.moved=true;
   if(panDrag.moved){
-   view.scrollLeft=panDrag.left-dx;view.scrollTop=panDrag.top-dy;
+   setPan(panDrag.x+dx,panDrag.y+dy);
    event.preventDefault();
   }
   return;
@@ -1716,6 +1729,7 @@ root.addEventListener('pointerup',event=>{
  if(warpDrag&&warpDrag.pointerId===event.pointerId){pointerUpCanvas(event);return;}
  if(panDrag&&event.pointerId===panDrag.pointerId){
   const drag=panDrag;panDrag=null;
+   if(drag.moved)suppressLeafClickUntil=Date.now()+320;
   if(drag.button===0&&!drag.moved){
    const pos=point(event);
    if(drag.mode==='text'&&pos.x>=88&&pos.y>=START+FIRST_LINE*L&&pos.y<START+ROWS*L)
