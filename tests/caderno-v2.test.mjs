@@ -178,7 +178,7 @@ test('Traços ajustados preservam percurso original e reduzem tremores em curvas
  assert.match(script,/data\.smooth\?fluidStroke\(raw\)/);
 });
 test('Selecionar é padrão, ESC volta ao seletor e papel pode ser arrastado sem selecionar item',()=>{
- assert.match(script,/bookId:'book-original',page:0,mode:'none'/);
+ assert.match(script,/bookId:'materia-familia',page:0,mode:'none'/);
  assert.match(script,/data\.mode='none'; \/\/ Ao abrir, nenhuma ferramenta atua/);
  assert.match(script,/if\(event\.key==='Escape'\)\{/);
  assert.match(script,/selected=null;selectedStroke=-1;act\('none'\)/);
@@ -330,4 +330,51 @@ test('Galeria de folhas mantém proporção física vertical, não um quadrado',
  assert.match(style,/\.nb-gallery-paper\{aspect-ratio:780\/1240!important/);
  assert.match(style,/max-height:none!important/);
  assert.match(script,/snapshotSheetMarkup\(p,index\)/);
+});
+
+
+test('Estante inicial tem exatamente seis capas com matérias e cores distintas',()=>{
+ assert.match(script,/const SUBJECT_BOOKS=\[/);
+ for(const id of ['materia-familia','materia-avaliacao','materia-tcc',
+  'materia-social','materia-metapsicologia','materia-grupos'])assert.match(script,new RegExp(id));
+ assert.match(script,/books:initialBooks\(\)/);
+ assert.match(script,/id="nbShelf"/);
+ assert.match(script,/function renderShelf\(\)/);
+ assert.match(script,/data-nb-shelf-book/);
+ assert.match(style,/\.nb-shelf-grid\{[^}]*grid-template-columns:repeat\(3/);
+ assert.match(style,/grid-template-columns:repeat\(2,minmax\(0,1fr\)\)/);
+ assert.match(script,/#213f72/);
+ assert.doesNotMatch(script,/#2559a4/);
+ const pdf=read('caderno-pdf.js');
+ assert.match(pdf,/#213f72/);
+});
+test('Migração guarda cópia de segurança local antes de substituir os antigos cadernos',()=>{
+ assert.match(script,/BACKUP_STORE='psicomoodle:caderno:backup-antes-das-seis-materias/);
+ assert.match(script,/if\(!stored\?\.curriculumSeeded\)/);
+ assert.match(script,/localStorage\.setItem\(BACKUP_STORE,JSON\.stringify\(stored\)\)/);
+ assert.match(script,/if\(backedUp\)/);
+ assert.match(script,/curriculumSeeded:true/);
+});
+test('Somente leitura exige Editar antes de qualquer alteração',()=>{
+ assert.match(script,/id="nbEditToggle"/);
+ assert.match(script,/let shelfOpen=true,editEnabled=false/);
+ assert.match(script,/function syncNotebookUI\(\)/);
+ assert.match(script,/function setEditEnabled\(value\)/);
+ assert.match(script,/if\(!editEnabled\|\|data\.mode!=='text'\|\|line<FIRST_LINE\)return/);
+ assert.match(script,/if\(!editEnabled\|\|!selected\)return/);
+ assert.match(script,/if\(!editEnabled\)return;\s+checkpoint\(\)/);
+ assert.match(script,/if\(!editEnabled\)return;\s+const item=/);
+ assert.match(script,/if\(shelfOpen\|\|!editEnabled&&!allowedReadOnly\.includes\(action\)\)/);
+ assert.match(script,/root\.classList\.toggle\('nb-reading'/);
+ assert.match(style,/\.nb-reading #nbTools/);
+});
+test('Voltar do mouse e navegador retorna dentro do Caderno e mantém a estante',()=>{
+ assert.match(script,/function navigateBackInside\(\)/);
+ assert.match(script,/function sideBack\(event\)/);
+ assert.match(script,/if\(event\.button!==3\)return false/);
+ assert.match(script,/window\.addEventListener\('popstate'/);
+ assert.match(script,/history\.pushState\(\{psicomoodleCaderno:'protected'\}/);
+ assert.match(script,/function animateShelfTransition\(kind,change,from,to\)/);
+ assert.match(style,/@keyframes nb-book-cover-open/);
+ assert.match(style,/prefers-reduced-motion:reduce/);
 });
