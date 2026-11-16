@@ -47,6 +47,9 @@
     '<a href="#" class="sd-official-action" data-sd-official="'+esc(doc.resource_key)+'">Abrir documento ('+esc(docFormat(doc))+') ↗</a></div>':'';
  }
  function prepareMissingGuides(){
+   // A confirmação da prova exige leitura do conteúdo e cruzamento com o cronograma.
+   // Nunca publica automaticamente um documento só porque tem "estudo dirigido" no nome.
+   return;
    if(!sourcesReady||!isAdmin()||preparation.running)return;
    const priority=['tcc','familia','meta','grupos','social','avaliacao'];
    for(const subject of priority){
@@ -61,7 +64,7 @@
    const running=preparation.running===subject;
    const title=doc?.display_title||doc?.filename||'Roteiro do professor';
    if(!doc)return '<div class="sd-empty" data-sd-subject="'+esc(subject)+'">Ainda não há estudo dirigido disponível para '+esc(exam)+'.</div>';
-   if(isAdmin()&&!running)setTimeout(()=>{void prepareGuide(subject)},900);
+   // Não iniciar correções sem validação documental explícita.
    return '<section class="sd-root" data-sd-subject="'+esc(subject)+'" aria-label="Estudos dirigidos da disciplina">'+
     '<header class="sd-header"><span class="sd-kicker">ESTUDO DIRIGIDO · '+esc(exam)+'</span><h2>Estudos dirigidos</h2>'+
     '<p>O documento oficial do professor já está cadastrado. A versão comentada utiliza as questões originais, com respostas-modelo e explicações no próprio site.</p></header>'+
