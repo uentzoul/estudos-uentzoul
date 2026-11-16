@@ -44,6 +44,28 @@ test('Três semestres continuam cadastrados com suas disciplinas',()=>{
  for(const name of ['tcc','familia','meta','grupos','social','avaliacao'])assert.ok(data.subjects[name],name);
 });
 
+test('Revisão de Férias já existe no HTML inicial e não pisca no refresh',()=>{
+ const elementIndex=html.indexOf('id="navVacationReview"'),upcomingIndex=html.indexOf('aria-label="Trabalhos — em breve"');
+ assert.ok(elementIndex>0&&upcomingIndex>elementIndex,'item na posição final antes do HTML ser exibido');
+ assert.match(html,/<script id="pm-vacation-timeline-js"[^>]+defer><\/script>/,'script carregado sem injeção tardia');
+ assert.match(html,/<link id="pm-vacation-timeline-css"[^>]+rel="stylesheet"/,'estilo carregado no head');
+ const css=read('revisao-ferias.css');
+ assert.doesNotMatch(css,/animation:vr-page-enter/,'sem fade de página inteira');
+ const section=review.match(/function navButton\(\)\{[\s\S]*?\n\}/);
+ assert.ok(section,'função para manter o botão funcional');
+ let registrations=0,creations=0,updates=0;
+ const button={dataset:{},addEventListener(){registrations++;}};
+ const navigation={querySelectorAll:()=>[]};
+ const document={getElementById:()=>button,createElement(){creations++;return {};}};
+ const initialize=vm.runInNewContext('('+section[0]+')',{
+  nav:()=>navigation,document,updateNavStatus:()=>{updates++}
+ });
+ initialize();initialize();
+ assert.equal(creations,0,'não deve recriar o botão existente');
+ assert.equal(registrations,1,'registra o clique uma única vez');
+ assert.equal(updates,2,'atualiza somente metadados sem inserir nós');
+});
+
 test('Linha do tempo colorida mantém todos os semestres e publicação programada',()=>{
  const pairs={tcc:'#3963c7',familia:'#b46e3d',meta:'#8463b1',grupos:'#2a967d',social:'#ac597f',avaliacao:'#27869e'};
  for(const [subject,color] of Object.entries(pairs))
@@ -288,7 +310,9 @@ test('Tour mobile não pisca ao avançar e voltar nas etapas 6, 9 e 19',()=>{
  assert.ok(html.includes(currentCSS),'HTML deve usar a mesma versão dos estilos');
  assert.ok(loader.includes(currentScript),'Carregador não pode depender de uma versão antiga');
  assert.ok(loader.includes(currentCSS),'Estilos do carregador devem ser iguais aos do HTML');
- assert.ok(loader.includes('revisao-ferias.js?v=20261115-flicker-fixed-v5'));
+ assert.ok(loader.includes('revisao-ferias.js?v=20261116-static-nav-no-flash-v6'));
+  assert.ok(html.includes('id="pm-vacation-timeline-js" src="revisao-ferias.js?v=20261116-static-nav-no-flash-v6" defer'));
+  assert.ok(html.includes('id="pm-vacation-timeline-css" rel="stylesheet" href="revisao-ferias.css?v=20261116-static-nav-no-flash-v6"'));
  assert.match(tour,/dataset\.pmTourPreparing='true'/);
  assert.match(tour,/dataset\.pmTourPreparing='false'/);
  assert.match(tour,/delete document\.documentElement\.dataset\.pmTourPreparing/);
