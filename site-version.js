@@ -16,10 +16,21 @@ function setup(){
  }
  const nav=document.getElementById('nav');
  if(nav){
+  // Navegação no mesmo alinhamento desde o primeiro quadro.
+  // Não remover e reinserir todos os botões ao carregar: isso causava o flick.
   const anchor=nav.querySelector('.nav-upcoming')||nav.querySelector('[data-page="admin"]')||null;
-  for(const page of ['home','calendar','exams','messages','ai']){
-   const node=nav.querySelector('[data-page="'+page+'"]');
-   if(node)nav.insertBefore(node,anchor);
+  const items=[
+   nav.querySelector('[data-page="home"]'),
+   nav.querySelector('[data-page="calendar"]'),
+   nav.querySelector('[data-page="exams"]'),
+   nav.querySelector('#navCadernoPreview'),
+   nav.querySelector('[data-page="messages"]'),
+   nav.querySelector('[data-page="ai"]')
+  ].filter(Boolean);
+  let next=anchor;
+  for(const node of items.reverse()){
+   if(node.nextElementSibling!==next)nav.insertBefore(node,next);
+   next=node;
   }
  }
  // Marca e nome: atalhos discretos para Início, sem atualizar toda a página.
@@ -180,7 +191,6 @@ async function check(){
   const latest=(await res.text()).trim();
   if(!/^[a-f0-9]{40}$/.test(latest)||latest===version)return;
   const current=document.querySelector('[data-page].active')?.dataset.page||'';
-  // O Caderno é uma prévia independente: a atualização de versão nunca deve fechar a edição.
   const safe=window.PSICO_NOTEBOOK_ACTIVE?.()!==true&&['home','library'].includes(current)&&!document.querySelector('input[type="file"]:focus');
   if(safe)reload(latest);else promptUpdate(latest);
  }catch(_){}
@@ -251,6 +261,19 @@ setTimeout(check,15000);
  }
  const nav=()=>document.getElementById('nav');
  const main=()=>document.getElementById('main');
+ const semesters=['2026/1','2026/2','2027/1'];
+ function selectedSemester(){
+  let value='';
+  try{value=window.uentzoulProfileBridge?.semester?.()||
+   window.uentzoulLibraryApp?.semester?.()||'';}catch(_){}
+  if(!semesters.includes(value)){
+   const choice=document.querySelector('#semesterDropdown [data-semester].active');
+   value=choice?.getAttribute('data-semester')||'2026/2';
+  }
+  return semesters.includes(value)?value:'2026/2';
+ }
+ const notebookUrl=()=>('./caderno.html?v=20261116-caderno-v12-semesters-two-leaves-tab&semester='+
+   encodeURIComponent(selectedSemester()));
  function addStyles(){
   if(document.getElementById(STYLE_ID))return;
   const css=document.createElement('style');css.id=STYLE_ID;
@@ -281,8 +304,7 @@ setTimeout(check,15000);
  function restoreNotebookIfStolen(){
   if(!previewOpen||document.getElementById(FRAME_ID))return;
   if(performance.now()-lastExplicitNav<1500){deactivate();return;}
-  // Uma atualização de outro painel não pode substituir o conteúdo do Caderno.
-  // Ao restaurar a rota preservamos as notas já persistidas no armazenamento local.
+  // Atualização de outro painel não pode substituir silenciosamente o Caderno.
   if(admin())openPreview();
   else if(main()){
    main().classList.add('nb-shell-active');
@@ -294,7 +316,7 @@ setTimeout(check,15000);
   const target=main();if(!target)return;
   previewOpen=true;permissionLostSince=0;addStyles();
   target.classList.add('nb-shell-active');
-  target.innerHTML='<iframe id="'+FRAME_ID+'" title="Caderno de aula — prévia administrativa" src="./caderno.html?v=20261116-caderno-v11-tab-no-white-flash" loading="eager" referrerpolicy="same-origin"></iframe>';
+  target.innerHTML='<iframe id="'+FRAME_ID+'" title="Caderno de aula — prévia administrativa" src="'+notebookUrl()+'" data-nb-semester="'+selectedSemester()+'" loading="eager" referrerpolicy="same-origin"></iframe>';
   document.querySelectorAll('#nav [data-page].active').forEach(n=>n.classList.remove('active'));
   document.getElementById(NAV_ID)?.classList.add('active');
   window.pmMobileDrawer?.close?.();
@@ -318,13 +340,19 @@ setTimeout(check,15000);
   addStyles();harmonizeUpcoming();
   let button=document.getElementById(NAV_ID);
   if(!button){
+   // Compatibilidade com versões de HTML em cache: na página atual o botão
+   // já existe na navegação desde o primeiro quadro renderizado.
    button=document.createElement('button');button.type='button';button.id=NAV_ID;
    button.className='sidebtn nav-caderno';button.title='Caderno · prévia administrativa';
-   button.setAttribute('aria-label','Caderno de aula, prévia disponível para administrador');
    button.innerHTML='<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M5 3h14v18H5zM9 3v18M12 8h4M12 12h4M12 16h4"/></svg>'+
     '<span class="nav-label">Caderno</span><span class="nb-preview-label">Em breve</span>';
-   button.addEventListener('click',openPreview);
   }
+  if(button.dataset.nbBound!=='true'){
+   button.addEventListener('click',openPreview);
+   button.dataset.nbBound='true';
+  }
+  button.title='Caderno · '+selectedSemester()+' · prévia administrativa';
+  button.setAttribute('aria-label','Caderno de '+selectedSemester()+', prévia disponível para administrador');
   const exam=el.querySelector('[data-page="exams"]');
   if(button.parentNode!==el||exam?.nextElementSibling!==button){
    if(exam)exam.after(button);else el.appendChild(button);
@@ -333,10 +361,14 @@ setTimeout(check,15000);
   document.documentElement.dataset.pmNotebookPhone=String(phone);
   const allowed=admin()&&!phone;
   if(previewOpen)fitNotebookHeight();
-  button.hidden=!allowed;button.style.display=allowed?'':'none';
+  // A posição é reservada no HTML, portanto autenticar não injeta uma nova
+  // linha no menu e não faz a barra lateral pular/ficar piscando.
+  button.hidden=phone;
+  button.style.display=phone?'none':'';
+  button.style.visibility=allowed?'visible':'hidden';
+  button.setAttribute('aria-hidden',String(!allowed));
   if(previewOpen&&!allowed){
-   // Estado de autorização pode oscilar enquanto Supabase atualiza a sessão.
-   // O antigo refreshCurrent() causava o salto espontâneo para a aba visitada antes do Caderno.
+   // Oscilações temporárias de sessão nunca provocam navegação involuntária.
    if(!permissionLostSince)permissionLostSince=Date.now();
    if(Date.now()-permissionLostSince>12000){
     const frame=document.getElementById(FRAME_ID);
@@ -365,6 +397,14 @@ setTimeout(check,15000);
   },true);
   window.addEventListener('popstate',()=>{if(previewOpen)lastExplicitNav=performance.now();});
   window.addEventListener('uentzoul:auth',()=>{sync();setTimeout(sync,420)});
+  window.addEventListener('uentzoul:semester',()=>{
+   const frame=document.getElementById(FRAME_ID),semester=selectedSemester();
+   if(frame&&previewOpen&&frame.dataset.nbSemester!==semester){
+    // A página anterior grava as anotações no pagehide antes da troca.
+    frame.dataset.nbSemester=semester;frame.src=notebookUrl();
+   }
+   sync();
+  });
   window.addEventListener('focus',sync);
   window.addEventListener('resize',()=>{sync();fitNotebookHeight();},{passive:true});
   setInterval(sync,2300);

@@ -32,18 +32,55 @@ if(!userId){
  root.innerHTML='<section><strong>Acesso restrito.</strong><p>Esta prévia só pode ser aberta por uma conta administrativa autenticada no site.</p></section>';
  return;
 }
-const W=780,H=1240,L=34,START=28,ROWS=30,FIRST_LINE=3;
-const STORE='uentzoul:caderno:alpha2:'+userId;
+const W=780,H=1240,L=34,START=28,ROWS=30,FIRST_LINE=3,BINDER_SAFE=58;
+// Cada semestre tem seu catálogo e seu armazenamento. O 2026/2 conserva a chave
+// original para manter intactas todas as anotações já existentes.
+const SEMESTERS={
+ '2026/1':[
+  {id:'materia-2026-1-profissao',name:'Psicologia como Profissão',color:'#6577b2'},
+  {id:'materia-2026-1-processos',name:'Processos Psicológicos Básicos',color:'#44877e'},
+  {id:'materia-2026-1-direitos',name:'Psicologia e Direitos Humanos',color:'#af7181'},
+  {id:'materia-2026-1-epistemologia',name:'Fundamentos Epistemológicos em Psicologia',color:'#a48755'},
+  {id:'materia-2026-1-historia',name:'História da Psicologia',color:'#786fba'},
+  {id:'materia-2026-1-sociocognitivas',name:'Teorias Sociocognitivas',color:'#9370a7'},
+  {id:'materia-2026-1-desenvolvimento',name:'Psicologia do Desenvolvimento (Ciclo Vital)',color:'#4c87aa'}
+ ],
+ '2026/2':[
+  {id:'materia-familia',name:'Psicologia da Família',color:'#946b79'},
+  {id:'materia-avaliacao',name:'Avaliação Psicológica',color:'#567f88'},
+  {id:'materia-tcc',name:'Teorias e Modelos Comportamentais e Cognitivos',color:'#6876a0'},
+  {id:'materia-social',name:'Psicologia Social I',color:'#99815e'},
+  {id:'materia-metapsicologia',name:'Metapsicologia',color:'#79689b'},
+  {id:'materia-grupos',name:'Psicologia de Grupos',color:'#65856f'}
+ ],
+ '2027/1':[
+  {id:'materia-2027-1-inteligencia',name:'Avaliação Psicológica: Inteligência e Funções Cognitivas',color:'#6577b2'},
+  {id:'materia-2027-1-basesbiologicas',name:'Bases Biológicas do Comportamento Humano',color:'#44877e'},
+  {id:'materia-2027-1-psicopatologia',name:'Concepções em Psicopatologia',color:'#af7181'},
+  {id:'materia-2027-1-observacao',name:'Fundamentos e Técnicas em Observação e Entrevista',color:'#a48755'},
+  {id:'materia-2027-1-grupos2',name:'Psicologia dos Grupos II',color:'#786fba'},
+  {id:'materia-2027-1-psiquismo',name:'Psiquismo e Subjetividade em Psicanálise',color:'#9370a7'},
+  {id:'materia-2027-1-escolar',name:'Psicologia Escolar e da Educação I',color:'#4c87aa'},
+  {id:'materia-2027-1-etica',name:'Ética e Legislação em Psicologia',color:'#569270'}
+ ]
+};
+function selectedSemester(){
+ let value=new URLSearchParams(location.search).get('semester');
+ if(!value)try{
+  value=window.parent.uentzoulProfileBridge?.semester?.()||
+   window.parent.uentzoulLibraryApp?.semester?.();
+ }catch(_){}
+ return Object.hasOwn(SEMESTERS,value)?value:'2026/2';
+}
+const SEMESTER=selectedSemester();
+const SEMESTER_LABEL={'2026/1':'1º semestre','2026/2':'2º semestre','2027/1':'3º semestre'}[SEMESTER];
+const STORE=SEMESTER==='2026/2'?'uentzoul:caderno:alpha2:'+userId:
+ 'psicomoodle:caderno:'+SEMESTER+':alpha1:'+userId;
 const LEGACY_STORE='uentzoul:caderno:alpha1:'+userId;
-const BACKUP_STORE='psicomoodle:caderno:backup-antes-das-seis-materias:'+userId;
-const SUBJECT_BOOKS=[
- {id:'materia-familia',name:'Psicologia da Família',color:'#946b79'},
- {id:'materia-avaliacao',name:'Avaliação Psicológica',color:'#567f88'},
- {id:'materia-tcc',name:'Teorias e Modelos Comportamentais e Cognitivos',color:'#6876a0'},
- {id:'materia-social',name:'Psicologia Social I',color:'#99815e'},
- {id:'materia-metapsicologia',name:'Metapsicologia',color:'#79689b'},
- {id:'materia-grupos',name:'Psicologia de Grupos',color:'#65856f'}
-];
+const BACKUP_STORE=SEMESTER==='2026/2'?
+ 'psicomoodle:caderno:backup-antes-das-seis-materias:'+userId:
+ 'psicomoodle:caderno:'+SEMESTER+':backup:'+userId;
+const SUBJECT_BOOKS=SEMESTERS[SEMESTER];
 const initialBooks=()=>SUBJECT_BOOKS.map(b=>({...b,pages:[]}));
 const bookColor=b=>{
  const predefined=SUBJECT_BOOKS.find(x=>x.id===b.id);
@@ -62,14 +99,14 @@ const ACTIONS=[
 ];
 const emptyPage=()=>({title:'',date:'',notes:[],strokes:[],stickies:[]});
 const newBook=(name='Meu caderno')=>({id:'book-'+Date.now()+'-'+Math.random().toString(36).slice(2,8),name,pages:[]});
-const defaults=()=>({books:initialBooks(),bookId:'materia-familia',page:0,mode:'none',font:'print',ink:'blue',size:1,align:'left',layout:'single',smooth:false,zoom:.88,shortcuts:{},stickyTone:'yellow',eraserMode:'parts',eraserRadius:14});
+const defaults=()=>({books:initialBooks(),bookId:SUBJECT_BOOKS[0].id,page:0,mode:'none',font:'print',ink:'blue',size:1,align:'left',layout:'single',smooth:false,zoom:.88,shortcuts:{},stickyTone:'yellow',eraserMode:'parts',eraserRadius:14});
 const hasPageContent=p=>!!(String(p?.date||'').trim()||p?.notes?.some(n=>String(n.text||'').trim())||p?.strokes?.some(s=>s.points?.length)||p?.stickies?.length);
 const cleanPage=p=>({title:String(p?.title||'').slice(0,100),date:String(p?.date||'').slice(0,16),
  notes:Array.isArray(p?.notes)?p.notes.slice(0,140).map(n=>{const {original,...corrected}=n;corrected.pending=false;return corrected;}):[],strokes:Array.isArray(p?.strokes)?p.strokes.slice(0,500):[],
  stickies:Array.isArray(p?.stickies)?p.stickies.slice(0,40):[]});
 let data=defaults(),stored=null;
 try{stored=JSON.parse(localStorage.getItem(STORE)||'null');}catch(_){}
-if(!stored)try{
+if(!stored&&SEMESTER==='2026/2')try{
  const legacy=JSON.parse(localStorage.getItem(LEGACY_STORE)||'null');
  if(legacy&&Array.isArray(legacy.pages))stored={...legacy,books:[{id:'book-original',name:'Meu caderno',pages:legacy.pages}],bookId:'book-original'};
 }catch(_){}
@@ -117,29 +154,28 @@ data.mode='none'; // Ao abrir, nenhuma ferramenta atua na folha até o usuário 
 if(!stored?.smoothingV3){data.smooth=true;data.smoothingV3=true;}
 let pendingPage=emptyPage(),galleryOpen=false,drawerOpen=false,galleryOffset=0,railOpen=!window.matchMedia('(max-width:760px)').matches;
 let shelfOpen=true,editEnabled=false;
-let panOffset={x:0,y:0},suppressLeafClickUntil=0;
+let panOffset={x:0,y:0},suppressLeafClickUntil=0,opposingStrokePointer=null;
 let selected=null,contextTarget=null,panDrag=null,lastPointer=null,toolPaletteOpen=false,eraseDrag=null,moveDrag=null,resizeDrag=null;
 function materializePage(){
- if(data.page!==data.pages.length||!hasPageContent(pendingPage))return;
- if(data.pages.length>=250)return;
+ if(data.page<data.pages.length||!hasPageContent(pendingPage))return;
+ if(data.page>=250)return;
+ // Permite escrever primeiro na direita sem renumerá-la como esquerda.
+ // Folhas vazias intermediárias fazem parte da sequência real do caderno.
+ while(data.pages.length<data.page)data.pages.push(emptyPage());
  data.pages.push(pendingPage);pendingPage=emptyPage();
 }
 function serializable(){
  materializePage();
- // Páginas sem conteúdo não contam nem permanecem salvas.
  for(const book of data.books){
-  const original=book.pages||[];
-  let skipped=0;
-  const cleaned=[];
-  original.forEach((item,i)=>{
-   if(hasPageContent(item))cleaned.push(item);
-   else if(book.id===data.bookId){
-    if(i<data.page)skipped++;
-    if(i===data.page)pendingPage=cleanPage(item);
-   }
-  });
+  const cleaned=(book.pages||[]).slice(); // Manter notas pendentes até a IA concluir a revisão.
+  // Não manter folhas vazias NO FIM, mas nunca apagar uma folha esquerda
+  // vazia caso a folha direita do mesmo par já tenha conteúdo.
+  while(cleaned.length&&!hasPageContent(cleaned[cleaned.length-1]))cleaned.pop();
   if(book.id===data.bookId){
-   data.page=Math.min(cleaned.length,Math.max(0,data.page-skipped));
+   // Em folha dupla, a direita pode estar selecionada, mas ainda não materializada.
+   // Checkpoint (Ctrl+Z) não pode renumerá-la como esquerda antes de desenhar.
+   const pendingRight=data.layout==='book'&&editEnabled?1:0;
+   data.page=Math.min(cleaned.length+pendingRight,Math.max(0,data.page));
    data.pages=cleaned;
   }
   book.pages=cleaned;
@@ -161,7 +197,7 @@ const id=()=>typeof crypto.randomUUID==='function'?crypto.randomUUID():'nb-'+Dat
 const isMobile=()=>window.matchMedia('(max-width:760px)').matches;
 function renderShelf(){
  const host=$('nbShelf');if(!host)return;
- host.innerHTML='<div class="nb-shelf-heading"><span class="nb-shelf-eyebrow">PSICOMOODLE · PSICOLOGIA</span>'+
+ host.innerHTML='<div class="nb-shelf-heading"><span class="nb-shelf-eyebrow">PSICOMOODLE · '+SEMESTER_LABEL.toUpperCase()+'</span>'+
   '<h2>Meus cadernos</h2><p>Escolhe uma matéria para abrir o caderno e folhear suas páginas.</p></div>'+
   '<div class="nb-shelf-grid">'+data.books.map((book,i)=>
    '<button class="nb-shelf-book" data-nb-shelf-book="'+esc(book.id)+'" aria-label="Abrir '+esc(book.name)+'">'+
@@ -291,7 +327,7 @@ root.innerHTML=
  '<div class="nb-workspace" id="nbWorkspace"><aside id="nbPageRail" class="nb-page-rail" aria-label="Folhas deste caderno"></aside>'+
  '<div class="nb-view" id="nbViewport" aria-label="Folha do caderno, com zoom e rolagem">'+
  '<div class="nb-stage" id="nbStage"><div class="nb-sheet-wrap" id="nbWrap">'+
- '<div class="nb-sheet" id="nbSheet"><div class="nb-holes" aria-hidden="true"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div>'+
+ '<div class="nb-sheet" id="nbSheet"><div class="nb-holes" aria-hidden="true"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div><span class="nb-binder-zone" aria-hidden="true"></span>'+
  '<div class="nb-paper-date-group"><label class="nb-paper-date-label" for="nbPaperDate">Data</label><input id="nbPaperDate" class="nb-paper-date" type="date" aria-label="Data da aula"><span id="nbPaperDateRead" class="nb-paper-date-read" hidden></span></div>'+
  '<button class="nb-corner-back" data-nb-action="prev" aria-label="Voltar à página anterior" title="Página anterior">‹</button>'+
  '<div class="nb-line-hover" id="nbLineHover" hidden></div>'+
@@ -325,7 +361,11 @@ function updateBookHeading(){$('nbBookHeading').textContent=activeBook().name||'
 const view=$('nbViewport'),sheet=$('nbSheet'),canvas=$('nbDrawing'),ctx=canvas.getContext('2d'),wrap=$('nbWrap'),companion=$('nbCompanionWrap'),stage=$('nbStage');
 function currentRect(){return sheet.getBoundingClientRect()}
 function point(event){
- const r=currentRect();return{x:clamp((event.clientX-r.left)/data.zoom,0,W),y:clamp((event.clientY-r.top)/data.zoom,0,H)};
+ const r=currentRect();
+ const rawX=clamp((event.clientX-r.left)/data.zoom,0,W);
+ const x=data.layout==='book'&&editEnabled?
+  (data.page%2===0?Math.min(rawX,W-BINDER_SAFE):Math.max(rawX,BINDER_SAFE)):rawX;
+ return{x,y:clamp((event.clientY-r.top)/data.zoom,0,H)};
 }
 function syncLayoutGeometry(){
  const book=data.layout==='book';
@@ -350,11 +390,22 @@ function renderBookSpread(){
  $('nbCompanionPaper').innerHTML=snapshotSheetMarkup(other,index);
  companion.setAttribute('aria-label','Abrir e editar folha '+(index+1));
 }
+function companionIndex(){return data.page%2===0?data.page+1:data.page-1}
+function isInBinderZone(event){
+ if(data.layout!=='book')return false;
+ const onLive=!!event.target.closest?.('#nbSheet');
+ const onOther=!!event.target.closest?.('#nbCompanionWrap');
+ if(!onLive&&!onOther)return false;
+ const rect=(onLive?sheet:companion).getBoundingClientRect();
+ const x=(event.clientX-rect.left)/Math.max(.01,data.zoom);
+ const index=onLive?data.page:companionIndex();
+ return index%2===0?x>=W-BINDER_SAFE:x<=BINDER_SAFE;
+}
 function activateCompanion(event){
  if(data.layout!=='book'||flipping)return;
- const target=data.page%2===0?data.page+1:data.page-1;
- if(target>data.pages.length||!editEnabled&&target===data.pages.length){
-  status('Escreva primeiro na folha esquerda para continuar à direita.','');
+ const target=companionIndex();
+ if(target>data.pages.length+(editEnabled?1:0)||!editEnabled&&target===data.pages.length){
+  status('A folha oposta ainda não foi criada. Use Editar para começar.','');
   return;
  }
  const rect=companion.getBoundingClientRect(),localY=(event.clientY-rect.top)/data.zoom;
@@ -363,6 +414,60 @@ function activateCompanion(event){
  renderPage();renderPageRail();save();
  if(data.mode==='text'&&localY>=START+FIRST_LINE*L&&localY<=START+ROWS*L)
   beginEdit(clamp(Math.floor((localY-START)/L),FIRST_LINE,ROWS-1));
+}
+// O papel oposto passa a usar imediatamente a ferramenta ativa.
+ // A troca preserva a posição visual das folhas: somente a folha viva muda de lado.
+function beginOpposingLeafGesture(event){
+ if(shelfOpen||!editEnabled||data.layout!=='book'||data.mode==='none'||flipping||isInBinderZone(event))return false;
+ const target=companionIndex();
+ if(target>data.pages.length+1)return false;
+ event.preventDefault();event.stopImmediatePropagation();
+ if(editing)saveEditor(false);
+ data.page=target;pendingPage=emptyPage();selected=null;selectedStroke=-1;
+ // Só a folha viva muda: ambas conservam a mesma posição visual.
+ // NÃO salvar antes de terminar o gesto na página direita nova.
+ renderPage();renderPageRail();
+ suppressLeafClickUntil=Date.now()+450;
+ const pos=point(event),mode=data.mode;
+ if(mode==='text'){
+  if(pos.x>=88&&pos.y>=START+FIRST_LINE*L&&pos.y<START+ROWS*L)
+   beginEdit(Math.floor((pos.y-START)/L));
+  return true;
+ }
+ if(mode==='sticky'){addSticky(pos);return true;}
+ if(mode==='draw'||mode==='erase'){
+  checkpoint();
+  if(mode==='draw')drawPoints=[pos];
+  else{eraseDrag={pointerId:event.pointerId};applyEraser(pos);}
+  opposingStrokePointer=event.pointerId;
+  // Captura o apontador físico no botão que recebeu o clique original;
+  // eventos sintéticos não têm captura garantida em todos os navegadores.
+  try{companion.setPointerCapture?.(event.pointerId)}catch(_){}
+  return true;
+ }
+ if(mode==='select'||mode==='warp'){
+  const element=document.elementFromPoint(event.clientX,event.clientY);
+  const note=element?.closest('#nbSheet [data-nb-note]');
+  const sticky=element?.closest('#nbSheet [data-nb-sticky]');
+  if(mode==='select'&&note){
+   selectItem('note',note.dataset.nbNote);
+   startMoveDrag(event,'note',selectedItem());return true;
+  }
+  if(mode==='select'&&sticky){
+   selectItem('sticky',sticky.dataset.nbSticky);
+   startMoveDrag(event,'sticky',selectedItem());return true;
+  }
+  const hit=findStrokeNear(pos,mode==='select');
+  if(hit.stroke){
+   selectItem('stroke',hit.stroke.id);selectedStroke=hit.index;
+   if(mode==='select')startMoveDrag(event,'stroke',hit.stroke);
+   return true;
+  }
+  selected=null;selectedStroke=-1;renderSelectionHandles();
+  if(mode==='select')startPan(event);
+  return true;
+ }
+ return true;
 }
 function setZoom(value,saveState=true){
  data.zoom=clamp(Number(value)||1,.42,2.3);
@@ -1112,7 +1217,7 @@ function snapshotStickyMarkup(st){
 function snapshotSheetMarkup(p,index){
  const date=p.date?new Date(p.date+'T12:00:00').toLocaleDateString('pt-BR'):'';
  return '<span class="nb-sheet nb-snapshot-sheet '+(index%2===0?'nb-left-page':'nb-right-page')+'" aria-hidden="true">'+
-  '<span class="nb-holes">'+Array.from({length:8},()=>'<span></span>').join('')+'</span>'+
+  '<span class="nb-holes">'+Array.from({length:8},()=>'<span></span>').join('')+'</span><span class="nb-binder-zone" aria-hidden="true"></span>'+
   (date?'<span class="nb-paper-date-group nb-has-date"><span class="nb-snapshot-date">'+esc(date)+'</span></span>':'')+
   snapshotSvg(p)+
   '<span class="nb-text-layer">'+(p.notes||[]).map(n=>noteMarkup(n,false).replace(' data-nb-note="'+esc(n.id)+'"','')).join('')+'</span>'+
@@ -1503,7 +1608,11 @@ function act(action){
   if(!shelfOpen)status('Somente leitura. Clique em Editar para modificar a folha.','');
   return;
  }
- if(action==='sticky'){toolPaletteOpen=!toolPaletteOpen;renderStickyPalette();return;}
+ if(action==='sticky'){
+  // Um clique em Post-it ativa a ferramenta; a paleta apenas muda a cor.
+  data.mode='sticky';toolPaletteOpen=!toolPaletteOpen;
+  refreshTools();renderStickyPalette();save();return;
+ }
  if(MODES.includes(action)){
   if(editing)saveEditor(false);
   // Em Deformar, preservar a seleção e as alças do traço corrigido.
@@ -1571,7 +1680,9 @@ root.addEventListener('click',event=>{
  if(bind){listening=bind.dataset.nbBind;$('nbShortcutHint').textContent='Pressione uma tecla ou botão extra do mouse.';updateShortcutsList();return;}
  const button=event.target.closest('[data-nb-action]');
  if(button?.dataset.nbAction==='switchLeaf'){
-  if(Date.now()<suppressLeafClickUntil){event.preventDefault();return;}
+  if(data.layout==='book'&&(data.mode==='none'||Date.now()<suppressLeafClickUntil)){
+   event.preventDefault();return;
+  }
   activateCompanion(event);return;
  }
  if(button){act(button.dataset.nbAction);return}
@@ -1695,6 +1806,25 @@ document.addEventListener('keydown',event=>{
  const action=Object.keys(data.shortcuts).find(k=>data.shortcuts[k]===code);
  if(action&&!shelfOpen){event.preventDefault();act(action);}
 });
+// Faixa de proteção junto à lombada: nenhum gesto, seleção ou ferramenta.
+root.addEventListener('pointerdown',event=>{
+ if(isInBinderZone(event)){event.preventDefault();event.stopImmediatePropagation();return;}
+ if(event.button===0&&event.target.closest('#nbCompanionWrap')&&
+    editEnabled&&data.mode!=='none'){
+  beginOpposingLeafGesture(event);
+ }
+},true);
+root.addEventListener('click',event=>{
+ if(isInBinderZone(event)){event.preventDefault();event.stopImmediatePropagation();}
+},true);
+root.addEventListener('contextmenu',event=>{
+ if(isInBinderZone(event)){event.preventDefault();event.stopImmediatePropagation();}
+},true);
+root.addEventListener('pointerup',event=>{
+ if(event.target.closest?.('#nbCompanionWrap')&&editEnabled&&data.mode!=='none')
+  suppressLeafClickUntil=Date.now()+250;
+},true);
+
 root.addEventListener('pointerdown',event=>{
  if(event.button===3){sideBack(event);return}
  if(shelfOpen)return;
@@ -1788,6 +1918,9 @@ root.addEventListener('pointerdown',event=>{
  }
 });
 root.addEventListener('pointermove',event=>{
+ if(opposingStrokePointer===event.pointerId){
+  pointerMoveCanvas(event);return;
+ }
  toolCursor(event);
  if(resizeDrag&&resizeDrag.pointerId===event.pointerId){updateResize(event);return;}
  if(moveDrag&&moveDrag.pointerId===event.pointerId){updateMoveDrag(event);return;}
@@ -1820,6 +1953,12 @@ root.addEventListener('pointermove',event=>{
  }
 });
 root.addEventListener('pointerup',event=>{
+ if(opposingStrokePointer===event.pointerId){
+  opposingStrokePointer=null;
+  pointerUpCanvas(event);
+  suppressLeafClickUntil=Date.now()+250;
+  return;
+ }
  if(resizeDrag&&resizeDrag.pointerId===event.pointerId){finishResize(event);return;}
  if(moveDrag&&moveDrag.pointerId===event.pointerId){finishMoveDrag(event);return;}
  if(warpDrag&&warpDrag.pointerId===event.pointerId){pointerUpCanvas(event);return;}
@@ -1849,6 +1988,9 @@ root.addEventListener('pointerup',event=>{
  if(stickyDrag){stickyDrag=null;save();}
 });
 root.addEventListener('pointercancel',event=>{
+ if(opposingStrokePointer===event.pointerId){
+  opposingStrokePointer=null;pointerUpCanvas(event);
+ }
  if(resizeDrag&&resizeDrag.pointerId===event.pointerId)finishResize(event);
  if(moveDrag&&moveDrag.pointerId===event.pointerId)finishMoveDrag(event);
  if(warpDrag&&warpDrag.pointerId===event.pointerId)pointerUpCanvas(event);

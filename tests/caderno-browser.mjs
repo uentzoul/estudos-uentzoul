@@ -519,6 +519,136 @@ try{
  assert.equal(await bf.locator('#nbZoomText').textContent(),'76%');
  assert.deepEqual(bookErrors,[],'Nenhum erro de execução no caderno de duas páginas');
  await bookContext.close();
+
+ // Em ambas as folhas, o primeiro gesto executa a mesma ferramenta selecionada:
+ // não é preciso clicar uma vez para ativar a folha oposta.
+ const twinContext=await browser.newContext({viewport:{width:1530,height:980}});
+ const twinPage=await twinContext.newPage();
+ await twinPage.goto(address,{waitUntil:'domcontentloaded'});
+ const tw=twinPage.frameLocator('#nbQaFrame');
+ await tw.locator('[data-nb-shelf-book="materia-familia"]').click();
+ await tw.locator('#nbLayout').selectOption('book');
+ const hitOnOpposite=async(x,y)=>{
+  const b=await tw.locator('#nbCompanionWrap').boundingBox();
+  return{x:b.x+x*b.width/780,y:b.y+y*b.height/1240};
+ };
+ const notebookData=()=>tw.locator('#nbRoot').evaluate(()=>{
+  const raw=localStorage.getItem('uentzoul:caderno:alpha2:qa-browser-admin');
+  return raw?JSON.parse(raw):{};
+ });
+ await tw.locator('[data-nb-action="draw"]').click();
+ const beginRight=await hitOnOpposite(350,490);
+ await twinPage.mouse.move(beginRight.x,beginRight.y);await twinPage.mouse.down();
+ await twinPage.mouse.move(beginRight.x+67,beginRight.y+14,{steps:11});await twinPage.mouse.up();
+ await twinPage.waitForTimeout(320);
+ assert.equal(await tw.locator('#nbPageNum').textContent(),'02',
+  'Desenhar na folha oposta seleciona automaticamente a página direita');
+ let dataTwin=await notebookData();
+ assert.ok(dataTwin.books[0].pages[1].strokes.length>=1,
+  'A primeira pressão na folha direita desenha, em vez de apenas selecionar a folha');
+ await tw.locator('[data-nb-action="text"]').click();
+ const leftWrite=await hitOnOpposite(265,158);
+ await twinPage.mouse.click(leftWrite.x,leftWrite.y);
+ await tw.locator('#nbEditorText').waitFor({state:'visible',timeout:6000});
+ assert.equal(await tw.locator('#nbPageNum').textContent(),'01',
+  'Escrever funciona imediatamente na folha esquerda quando ela está do lado oposto');
+ await tw.locator('#nbEditorText').fill('Texto da esquerda');
+ await tw.locator('#nbEditorText').press('Enter');
+ await tw.locator('[data-nb-action="text"]').click();
+ const rightWrite=await hitOnOpposite(260,210);
+ await twinPage.mouse.click(rightWrite.x,rightWrite.y);
+ await tw.locator('#nbEditorText').waitFor({state:'visible',timeout:6000});
+ assert.equal(await tw.locator('#nbPageNum').textContent(),'02');
+ await tw.locator('#nbEditorText').fill('Texto da direita');
+ await tw.locator('#nbEditorText').press('Enter');
+ await twinPage.waitForTimeout(250);
+ dataTwin=await notebookData();
+ assert.match(dataTwin.books[0].pages[0].notes.map(n=>n.text).join(' '),/Texto da esquerda/);
+ assert.match(dataTwin.books[0].pages[1].notes.map(n=>n.text).join(' '),/Texto da direita/);
+ await tw.locator('[data-nb-action="sticky"]').click();
+ const leftSticky=await hitOnOpposite(310,410);
+ await twinPage.mouse.click(leftSticky.x,leftSticky.y);
+ await twinPage.waitForTimeout(240);
+ dataTwin=await notebookData();
+ assert.equal(await tw.locator('#nbPageNum').textContent(),'01');
+ assert.equal(dataTwin.books[0].pages[0].stickies.length,1,
+  'Post-it na folha oposta é aplicado sem um segundo clique');
+ // Uma estreita faixa junto à lombada impede ferramentas de tocar nas argolas.
+ const beforeGuard=(await notebookData()).books[0].pages[0].stickies.length;
+ const binderZoneBox=await tw.locator('#nbSheet').boundingBox();
+ await twinPage.mouse.click(binderZoneBox.x+binderZoneBox.width-20,binderZoneBox.y+binderZoneBox.height*.4);
+ await twinPage.waitForTimeout(220);
+ assert.equal((await notebookData()).books[0].pages[0].stickies.length,beforeGuard,
+  'Faixa da encadernação não permite colocar post-its');
+ await tw.locator('[data-nb-action="none"]').click();
+ const opposite=await tw.locator('#nbCompanionWrap').boundingBox();
+ const beforeMove=await tw.locator('#nbWrap').boundingBox();
+ await twinPage.mouse.move(opposite.x+opposite.width*.50,opposite.y+opposite.height*.45);
+ await twinPage.mouse.down();
+ await twinPage.mouse.move(opposite.x+opposite.width*.50+91,opposite.y+opposite.height*.45+53,{steps:8});
+ await twinPage.mouse.up();
+ const afterMove=await tw.locator('#nbWrap').boundingBox();
+ assert.ok(afterMove.x>beforeMove.x+60&&afterMove.y>beforeMove.y+35,
+  'Modo Navegar move a dupla de folhas também pelo lado oposto');
+
+ // Borracha e Selecionar também devem operar na folha oposta já no primeiro gesto.
+ const beforeErase=(await notebookData()).books[0].pages[1].strokes;
+ assert.ok(beforeErase.length>0,'Há um desenho para apagar na direita');
+ await tw.locator('[data-nb-action="erase"]').click();
+ const eraseRight=await hitOnOpposite(370,494);
+ await twinPage.mouse.click(eraseRight.x,eraseRight.y);
+ await twinPage.waitForTimeout(270);
+ const erasedRight=(await notebookData()).books[0].pages[1].strokes;
+ assert.notDeepEqual(erasedRight,beforeErase,
+  'Borracha deve afetar imediatamente o desenho da folha direita oposta');
+ assert.equal(await tw.locator('#nbPageNum').textContent(),'02');
+ await tw.locator('[data-nb-action="select"]').click();
+ const selectLeft=await hitOnOpposite(265,145);
+ await twinPage.mouse.click(selectLeft.x,selectLeft.y);
+ assert.equal(await tw.locator('#nbPageNum').textContent(),'01');
+ await tw.locator('#nbTextLayer .nb-note.nb-selected').waitFor({state:'visible',timeout:6000});
+ assert.match(await tw.locator('#nbTextLayer .nb-note.nb-selected').textContent(),/Texto da esquerda/,
+  'Selecionar deve reconhecer anotações na folha oposta no primeiro clique');
+ await twinContext.close();
+
+ // Catálogos distintos do primeiro, segundo e terceiro semestres. Dados independentes.
+ const semesterContext=await browser.newContext({viewport:{width:1250,height:900}});
+ const semesterPage=await semesterContext.newPage();
+ await semesterPage.goto(address,{waitUntil:'domcontentloaded'});
+ const sc=semesterPage.frameLocator('#nbQaFrame');
+ const semesterCases=[
+  {semester:'2026/1',count:7,first:'Psicologia como Profissão',storage:'psicomoodle:caderno:2026/1:alpha1:qa-browser-admin'},
+  {semester:'2026/2',count:6,first:'Psicologia da Família',storage:'uentzoul:caderno:alpha2:qa-browser-admin'},
+  {semester:'2027/1',count:8,first:'Avaliação Psicológica: Inteligência e Funções Cognitivas',storage:'psicomoodle:caderno:2027/1:alpha1:qa-browser-admin'}
+ ];
+ for(const current of semesterCases){
+  await semesterPage.locator('#nbQaFrame').evaluate((el,sem)=>{
+   el.src='/caderno.html?semester='+encodeURIComponent(sem);
+  },current.semester);
+  await semesterPage.waitForFunction(sem=>{
+   const d=document.getElementById('nbQaFrame')?.contentDocument;
+   return d?.querySelector('.nb-shelf-eyebrow')?.textContent.includes(
+    sem==='2026/1'?'1º SEMESTRE':sem==='2026/2'?'2º SEMESTRE':'3º SEMESTRE');
+  },current.semester);
+  assert.equal(await sc.locator('.nb-shelf-book').count(),current.count,
+   'Cadernos por semestre '+current.semester);
+  assert.equal(await sc.locator('.nb-shelf-title').first().textContent(),current.first);
+  // Um caderno novo pode existir apenas em memória até a primeira anotação.
+  // Criar uma data real antes de exigir a persistência independente por semestre.
+  await sc.locator('.nb-shelf-book').first().click();
+  await sc.locator('#nbPaperDate').fill('2026-11-16');
+  await semesterPage.waitForFunction(key=>{
+   const raw=localStorage.getItem(key);
+   if(!raw)return false;
+   const state=JSON.parse(raw);
+   return state.books?.[0]?.pages?.[0]?.date==='2026-11-16';
+  },current.storage);
+  const ownData=await semesterPage.evaluate(key=>JSON.parse(localStorage.getItem(key)),current.storage);
+  assert.equal(ownData.books.length,current.count,'Catálogo do semestre é salvo na chave própria');
+  assert.equal(ownData.books[0].pages[0].date,'2026-11-16',
+   'Uma anotação deve ser preservada no armazenamento desse semestre');
+ }
+ await semesterContext.close();
  // Migração em um navegador limpo: exibe só as seis capas e arquiva o legado.
  const priorContext=await browser.newContext({viewport:{width:1150,height:800}});
  await priorContext.addInitScript(()=>{

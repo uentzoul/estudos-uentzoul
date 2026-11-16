@@ -17,12 +17,12 @@ const fn=(start,end)=>{
 };
 test('Prévia deve exigir administrador autenticado e nunca usar service role no browser',()=>{
  assert.match(script,/window\.parent\.uentzoulAdminConfig\?\.isAdmin\?\.\(\)===true/);
- assert.match(script,/const STORE='uentzoul:caderno:alpha2:'/);
+ assert.match(script,/const STORE=SEMESTER==='2026\/2'\?'uentzoul:caderno:alpha2:'/);
  assert.match(script,/const LEGACY_STORE='uentzoul:caderno:alpha1:'/);
  assert.match(script,/functions\.invoke\('caderno-revisao'/);
  assert.doesNotMatch(script,/\bservice[_-]?role\b/i);
  assert.match(html,/robots" content="noindex, nofollow"/);
- assert.match(nav,/button\.hidden=!allowed/);
+ assert.match(nav,/button\.style\.visibility=allowed\?'visible':'hidden'/);
  assert.match(nav,/navCadernoPreview/);
 });
 test('Texto é editado diretamente no caderno sem caixa de envio flutuante',()=>{
@@ -49,7 +49,7 @@ test('Enter registra e corrige texto e move para a próxima linha; vazio apenas 
  const saveEditor=vm.runInNewContext('('+src+')',context);
  saveEditor(true);
  assert.equal(mockPage.notes.length,1);
- assert.equal(mockPage.notes[0].text,'Psicologia e uma ciencia');
+ assert.equal(mockPage.notes[0].text,'  Psicologia e uma ciencia','recuos digitados são mantidos');
  assert.equal(calls.correct.length,1);
  assert.equal(calls.advanced[0],4);
  assert.equal(calls.saved,1);
@@ -61,7 +61,7 @@ test('Enter registra e corrige texto e move para a próxima linha; vazio apenas 
  context.editing={id:null,line:10};value='Teste';saveEditor(false);
  assert.equal(calls.advanced.length,2,'Salvar ao trocar de área não salta linha');
 });
-test('Páginas vazias não são preservadas ao virar ou serializar',()=>{
+test('Páginas vazias finais não são salvas, mas o lado esquerdo vazio é preservado quando há escrita à direita',()=>{
  const def=script.match(/const hasPageContent=p=>([^\n]+);/);
  assert.ok(def);
  const hasPageContent=vm.runInNewContext('(p=>'+def[1]+')');
@@ -71,7 +71,9 @@ test('Páginas vazias não são preservadas ao virar ou serializar',()=>{
  assert.equal(!!hasPageContent({notes:[],strokes:[{points:[{x:1,y:1}]}],stickies:[]}),true);
  assert.equal(!!hasPageContent({notes:[],strokes:[],stickies:[{text:'Observação'}]}),true);
  assert.match(script,/target>data\.pages\.length/);
- assert.match(script,/if\(hasPageContent\(item\)\)cleaned\.push\(item\)/);
+ assert.match(script,/while\(data\.pages\.length<data\.page\)data\.pages\.push\(emptyPage\(\)\)/);
+ assert.match(script,/while\(cleaned\.length&&!hasPageContent\(cleaned\[cleaned\.length-1\]\)\)cleaned\.pop\(\)/);
+ assert.match(script,/const cleaned=\(book\.pages\|\|\[\]\)\.slice\(\)/);
  assert.match(script,/Nova página ·/);
 });
 test('Galeria exibe 15 folhas em cinco colunas e transição respeita movimento reduzido',()=>{
@@ -178,7 +180,7 @@ test('Traços ajustados preservam percurso original e reduzem tremores em curvas
  assert.match(script,/data\.smooth\?fluidStroke\(raw\)/);
 });
 test('Selecionar é padrão, ESC volta ao seletor e papel pode ser arrastado sem selecionar item',()=>{
- assert.match(script,/bookId:'materia-familia',page:0,mode:'none'/);
+ assert.match(script,/bookId:SUBJECT_BOOKS\[0\]\.id,page:0,mode:'none'/);
  assert.match(script,/data\.mode='none'; \/\/ Ao abrir, nenhuma ferramenta atua/);
  assert.match(script,/if\(event\.key==='Escape'\)\{/);
  assert.match(script,/selected=null;selectedStroke=-1;act\('none'\)/);
@@ -232,9 +234,7 @@ test('Título da aula desaparece e a data ocupa a segunda linha física',()=>{
  assert.doesNotMatch(script,/case 'prev':if\(data\.page===0\)backToBooks\(\)/);
 });
 test('Correção local protege o usuário mesmo sem resposta da IA',()=>{
- const i=script.indexOf('function fallbackBasic('),j=script.indexOf('async function correctNote(',i);
- assert.ok(i>=0&&j>i);
- const basic=vm.runInNewContext('('+script.slice(i,j).trim()+')');
+ const basic=vm.runInNewContext('('+fn('function fallbackBasic(', 'function restoreTextTabs(')+')');
  assert.equal(basic('boa tarde rapaziada'),'Boa tarde, rapaziada.');
  assert.equal(basic('oi pessoal'),'Oi pessoal.');
  assert.equal(basic('nao posso'),'Não posso.');
@@ -336,7 +336,7 @@ test('Galeria de folhas mantém proporção física vertical, não um quadrado',
 
 
 test('Estante inicial tem exatamente seis capas com matérias e cores distintas',()=>{
- assert.match(script,/const SUBJECT_BOOKS=\[/);
+ assert.match(script,/const SUBJECT_BOOKS=SEMESTERS\[SEMESTER\]/);
  for(const id of ['materia-familia','materia-avaliacao','materia-tcc',
   'materia-social','materia-metapsicologia','materia-grupos'])assert.match(script,new RegExp(id));
  assert.match(script,/books:initialBooks\(\)/);
@@ -351,7 +351,7 @@ test('Estante inicial tem exatamente seis capas com matérias e cores distintas'
  assert.match(pdf,/#213f72/);
 });
 test('Migração guarda cópia de segurança local antes de substituir os antigos cadernos',()=>{
- assert.match(script,/BACKUP_STORE='psicomoodle:caderno:backup-antes-das-seis-materias/);
+ assert.match(script,/psicomoodle:caderno:backup-antes-das-seis-materias/);
  assert.match(script,/if\(!stored\?\.curriculumSeeded\)/);
  assert.match(script,/localStorage\.setItem\(BACKUP_STORE,JSON\.stringify\(stored\)\)/);
  assert.match(script,/if\(backedUp\)/);
@@ -410,7 +410,7 @@ test('Caderno é acessível em computador e tablet, mas não em telefone',()=>{
  }
  assert.match(nav,/const allowed=admin\(\)&&!phone/);
  assert.match(nav,/if\(!admin\(\)\|\|isNotebookPhone\(\)\)return/);
- assert.match(nav,/button\.hidden=!allowed/);
+ assert.match(nav,/button\.style\.visibility=allowed\?'visible':'hidden'/);
  assert.match(script,/if\(isNotebookPhone\(\)\)\{\s*root\.className='nb-phone-unavailable'/);
  assert.match(script,/return;\s*\}\s*let userId=/);
  assert.match(style,/\.nb-phone-unavailable\{/);
@@ -446,4 +446,54 @@ test('No caderno aberto linha vermelha e furos ficam juntos na lombada de cada f
  assert.match(script,/snapshotSheetMarkup\(other,index\)/);
  assert.match(script,/event\.button===0&&data\.layout==='book'&&event\.target\.closest\('#nbCompanionWrap'\)/,
   'folha oposta deve permitir arraste também em modo edição');
+});
+
+
+test('A estante segue o semestre do site, separando 7, 6 e 8 matérias e suas anotações',()=>{
+ const a=script.indexOf('const SEMESTERS='),b=script.indexOf(';\nfunction selectedSemester()',a);
+ assert.ok(a>=0&&b>a,'catálogos por semestre existem');
+ const catalogs=vm.runInNewContext('('+script.slice(a+'const SEMESTERS='.length,b)+')',{});
+ assert.deepEqual(Object.keys(catalogs),['2026/1','2026/2','2027/1']);
+ assert.deepEqual(Object.values(catalogs).map(subjects=>subjects.length),[7,6,8]);
+ for(const [semester,books] of Object.entries(catalogs)){
+  assert.equal(new Set(books.map(b=>b.id)).size,books.length,semester+' sem IDs repetidos');
+  assert.equal(new Set(books.map(b=>b.color)).size,books.length,semester+' com cores diferentes');
+ }
+ const allIds=Object.values(catalogs).flat().map(b=>b.id);
+ assert.equal(new Set(allIds).size,allIds.length,'cadernos não reaproveitam IDs em outros semestres');
+ assert.match(script,/const STORE=SEMESTER==='2026\/2'\?'uentzoul:caderno:alpha2:'/);
+ assert.match(script,/'psicomoodle:caderno:'\+SEMESTER\+':alpha1:'/);
+ assert.match(script,/if\(!stored&&SEMESTER==='2026\/2'\)/);
+ assert.match(nav,/window\.uentzoulProfileBridge\?\.semester\?\.\(\)/);
+ assert.match(nav,/encodeURIComponent\(selectedSemester\(\)\)/);
+ assert.match(nav,/window\.addEventListener\('uentzoul:semester'/);
+});
+
+test('Dupla folha tem a mesma ferramenta ativa imediatamente em qualquer lado com zona morta na lombada',()=>{
+ assert.match(script,/const W=780,H=1240,L=34,START=28,ROWS=30,FIRST_LINE=3,BINDER_SAFE=58/);
+ assert.match(script,/function isInBinderZone\(event\)/);
+ assert.match(script,/function beginOpposingLeafGesture\(event\)/);
+ assert.match(script,/opposingStrokePointer=event\.pointerId/);
+ assert.match(script,/if\(mode==='draw'\)drawPoints=\[pos\]/);
+ assert.match(script,/if\(mode==='sticky'\)\{addSticky\(pos\);return true;\}/);
+ assert.match(script,/if\(opposingStrokePointer===event\.pointerId\)/);
+ assert.doesNotMatch(script,/recipient\.dispatchEvent\(copy\)/,'as ferramentas não dependem de evento artificial');
+ assert.match(script,/event\.stopImmediatePropagation\(\)/);
+ assert.match(script,/if\(isInBinderZone\(event\)\)\{event\.preventDefault\(\);event\.stopImmediatePropagation\(\);return;\}/);
+ assert.match(script,/data\.mode==='none'/);
+ assert.match(script,/const x=data\.layout==='book'&&editEnabled/);
+ assert.match(script,/nb-binder-zone/);
+ assert.match(style,/\.nb-stage\.nb-double \.nb-binder-zone/);
+});
+
+test('Caderno já está no HTML da navegação antes da autenticação, sem inserir novo botão visível',()=>{
+ const index=read('index.html'),start=index.indexOf('<nav class="menu" id="nav">');
+ assert.ok(start>=0);
+ const exam=index.indexOf('data-page="exams"',start),notebook=index.indexOf('id="navCadernoPreview"',start),
+  calendar=index.indexOf('data-page="calendar"',start);
+ assert.ok(calendar<exam&&exam<notebook,'Caderno estático fica após Simulados no menu já ordenado');
+ assert.equal((index.match(/id="navCadernoPreview"/g)||[]).length,1);
+ assert.match(index,/id="navCadernoPreview"[\s\S]{0,180}visibility:hidden/);
+ assert.match(nav,/button\.dataset\.nbBound!=='true'/);
+ assert.match(nav,/button\.style\.visibility=allowed\?'visible':'hidden'/);
 });
