@@ -329,7 +329,6 @@ root.innerHTML=
  '<div class="nb-stage" id="nbStage"><div class="nb-sheet-wrap" id="nbWrap">'+
  '<div class="nb-sheet" id="nbSheet"><div class="nb-holes" aria-hidden="true"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div><span class="nb-binder-zone" aria-hidden="true"></span>'+
  '<div class="nb-paper-date-group"><input id="nbPaperDate" class="nb-paper-date" type="date" aria-label="Data da aula"><span id="nbPaperDateRead" class="nb-paper-date-read" hidden></span></div>'+
- '<button class="nb-corner-back" data-nb-action="prev" aria-label="Voltar à página anterior" title="Página anterior">‹</button>'+
  '<div class="nb-line-hover" id="nbLineHover" hidden></div>'+
  '<canvas id="nbDrawing" class="nb-drawing" width="780" height="1240" aria-label="Área de desenho"></canvas>'+
  '<div class="nb-text-layer" id="nbTextLayer"></div><div class="nb-sticky-layer" id="nbStickyLayer"></div><div class="nb-transform-layer" id="nbTransformLayer"></div>'+
@@ -510,7 +509,6 @@ function refreshTools(){
  $('nbPageCount').textContent=pageCountLabel();updateBookHeading();
  $('nbPageNum').textContent=String(data.page+1).padStart(2,'0');
  $('nbPaperDate').value=page().date||'';
- const back=$('nbSheet').querySelector('.nb-corner-back');if(back){back.disabled=false;back.setAttribute('aria-label',data.page===0?'Primeira folha do caderno':'Voltar à folha anterior');back.title=data.page===0?'Primeira folha do caderno':'Voltar à folha anterior';}
 }
 function letterMarkup(text){
  // Uma métrica tipográfica por linha; spans letra por letra deformavam a pauta.
