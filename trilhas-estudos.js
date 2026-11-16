@@ -57,12 +57,11 @@ meta:[
  ['audio',1,'Comece pelo narcisismo e sua função metapsicológica.'],
  ['audio',2,'Ouça o papel do Édipo na constituição psíquica.'],
  ['topics',0,'Compare os principais conceitos usando exemplos.']]},
- {title:'Organizar pulsão, angústia e conflito',goal:'Conecte mecanismos, instâncias e transformações teóricas.',steps:[
+ {title:'Organizar pulsão e defesas do ego',goal:'Relacione o funcionamento do ego aos conflitos e às transformações da teoria das pulsões.',steps:[
  ['material','pulsão','Leia a apresentação sobre pulsão e suas características.'],
  ['audio',5,'Distinga instinto, pulsão e pulsão de morte.'],
- ['material','angústia','Leia o material sobre angústia e identifique as duas formulações freudianas.'],
- ['audio',6,'Ouça a comparação entre as teorias freudianas da angústia.'],
- ['guided',0,'Responda ao estudo dirigido P2 para localizar lacunas.']]},
+ ['topics',0,'Revise os mecanismos de defesa e o papel do ego nos conflitos psíquicos.'],
+ ['guided',0,'Responda às questões de segunda tópica, Édipo e pulsão do estudo dirigido P2.']]},
  {title:'Revisão integradora e simulado',goal:'Teste articulações conceituais e identifique os pontos que ainda precisam de revisão.',steps:[
  ['audio',7,'Ouça a revisão geral da metapsicologia.'],
  ['flash',0,'Treine definições e diferenciações sem consultar anotações.'],
