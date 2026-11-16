@@ -367,7 +367,7 @@ test('Caderno abre para contas registradas e mantém anotações privadas',()=>{
  assert.match(notebook,/if\(user\?\.id&&user\.is_anonymous!==true\)userId=String\(user\.id\)/);
  assert.match(notebook,/uentzoul:caderno:alpha1:/);
  assert.match(notebook,/functions\.invoke\('caderno-revisao'/);
- assert.match(notebook,/const hit=findStrokeNear\(p,false\)/);
+ assert.match(notebook,/const hit=findStrokeNear\(p\)/);
  assert.match(notebook,/tapCandidate/);
  assert.match(notebook,/const defaults=\(\)=>\(\{books:initialBooks\(\)/);
  assert.match(styles,/\.nb-sheet\{/);
@@ -459,8 +459,8 @@ test('Ajuste inteligente do caderno reconhece meia-lua e não destrói desenhos 
  assert.match(source,/const r=smartStroke\(item\.points\)/);
  assert.ok(source.includes("!['line','polygon','rectangle'].includes(s.kind)"),'arestas retas no canvas');
  assert.ok(pdf.includes("!['line','polygon','rectangle'].includes(stroke.kind)"),'arestas retas no PDF');
- assert.match(read('caderno.html'),/20261116-caderno-v22-publico-tutorial-sync/);
- assert.match(read('site-version.js'),/caderno\.html\?v=20261116-caderno-v22-publico-tutorial-sync/);
+ assert.match(read('caderno.html'),/20261116-caderno-v23-moldar-direto/);
+ assert.match(read('site-version.js'),/caderno\.html\?v=20261116-caderno-v23-moldar-direto/);
 });
 
 test('Caderno remove a seta superior sem alterar a navegação restante',()=>{
