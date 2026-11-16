@@ -300,6 +300,8 @@ setTimeout(check,15000);
   document.getElementById(NAV_ID)?.classList.remove('active');
  }
  window.PSICO_NOTEBOOK_ACTIVE=()=>previewOpen;
+ // Chamado apenas por navegação real; atualizações em segundo plano não fecham o caderno.
+ window.PSICO_NOTEBOOK_CLOSE=deactivate;
  function restoreNotebookIfStolen(){
   if(!previewOpen||document.getElementById(FRAME_ID))return;
   if(performance.now()-lastExplicitNav<1500){deactivate();return;}
@@ -397,9 +399,15 @@ setTimeout(check,15000);
   });
   observer.observe(main(),{childList:true});
   nav().addEventListener('click',event=>{
-   if(event.target.closest('[data-page],#navAdminConfig,.nav-upcoming'))lastExplicitNav=performance.now();
+   if(event.target.closest('[data-page],#navAdminConfig,.nav-upcoming')){
+    lastExplicitNav=performance.now();
+    // Navegação expressa para outra aba: liberar o painel para a nova tela.
+    if(previewOpen)deactivate();
+   }
   },true);
-  window.addEventListener('popstate',()=>{if(previewOpen)lastExplicitNav=performance.now();});
+  window.addEventListener('popstate',()=>{
+   if(previewOpen){lastExplicitNav=performance.now();deactivate();}
+  });
   window.addEventListener('uentzoul:auth',()=>{sync();setTimeout(sync,420)});
   window.addEventListener('uentzoul:semester',()=>{
    const frame=document.getElementById(FRAME_ID),semester=selectedSemester();
