@@ -18,7 +18,23 @@ if(!userId){
 const W=780,H=1240,L=34,START=28,ROWS=30,FIRST_LINE=3;
 const STORE='uentzoul:caderno:alpha2:'+userId;
 const LEGACY_STORE='uentzoul:caderno:alpha1:'+userId;
-const COLORS={black:'#24242e',blue:'#2559a4',red:'#bb3d43'};
+const BACKUP_STORE='psicomoodle:caderno:backup-antes-das-seis-materias:'+userId;
+const SUBJECT_BOOKS=[
+ {id:'materia-familia',name:'Psicologia da Família',color:'#946b79'},
+ {id:'materia-avaliacao',name:'Avaliação Psicológica',color:'#567f88'},
+ {id:'materia-tcc',name:'Teorias e Modelos Comportamentais e Cognitivos',color:'#6876a0'},
+ {id:'materia-social',name:'Psicologia Social I',color:'#99815e'},
+ {id:'materia-metapsicologia',name:'Metapsicologia',color:'#79689b'},
+ {id:'materia-grupos',name:'Psicologia de Grupos',color:'#65856f'}
+];
+const initialBooks=()=>SUBJECT_BOOKS.map(b=>({...b,pages:[]}));
+const bookColor=b=>{
+ const predefined=SUBJECT_BOOKS.find(x=>x.id===b.id);
+ const color=predefined?.color||b?.color||'#79689b';
+ return /^#[0-9a-fA-F]{6}$/.test(color)?color:'#79689b';
+};
+
+const COLORS={black:'#24242e',blue:'#213f72',red:'#bb3d43'};
 const MODES=['none','text','select','draw','erase','sticky','warp'];
 const ACTIONS=[
  ['none','Mover folha / nenhuma seleção'],['text','Escrever'],['select','Selecionar'],['draw','Desenhar'],['erase','Borracha'],['sticky','Post-it'],['warp','Moldar'],
@@ -29,7 +45,7 @@ const ACTIONS=[
 ];
 const emptyPage=()=>({title:'',date:'',notes:[],strokes:[],stickies:[]});
 const newBook=(name='Meu caderno')=>({id:'book-'+Date.now()+'-'+Math.random().toString(36).slice(2,8),name,pages:[]});
-const defaults=()=>({books:[{id:'book-original',name:'Meu caderno',pages:[]}],bookId:'book-original',page:0,mode:'none',font:'print',ink:'blue',size:1,layout:'single',smooth:false,zoom:.88,shortcuts:{},stickyTone:'yellow',eraserMode:'parts',eraserRadius:14});
+const defaults=()=>({books:initialBooks(),bookId:'materia-familia',page:0,mode:'none',font:'print',ink:'blue',size:1,layout:'single',smooth:false,zoom:.88,shortcuts:{},stickyTone:'yellow',eraserMode:'parts',eraserRadius:14});
 const hasPageContent=p=>!!(p?.notes?.some(n=>String(n.text||'').trim())||p?.strokes?.some(s=>s.points?.length)||p?.stickies?.length);
 const cleanPage=p=>({title:String(p?.title||'').slice(0,100),date:String(p?.date||'').slice(0,16),
  notes:Array.isArray(p?.notes)?p.notes.slice(0,140).map(n=>{const {original,...corrected}=n;corrected.pending=false;return corrected;}):[],strokes:Array.isArray(p?.strokes)?p.strokes.slice(0,500):[],
@@ -58,11 +74,31 @@ if(stored&&typeof stored==='object'){
   if(!['single','book'].includes(data.layout))data.layout='single';
  }
 }
+// Migração ÚNICA: substitui os cadernos visíveis por seis matérias, com backup
+// do estado anterior. Em caso de falta de espaço, não descartar dados antigos.
+if(!stored?.curriculumSeeded){
+ let backedUp=true;
+ const hasOldContent=!!stored?.books?.some(b=>b.pages?.some(p=>hasPageContent(p))||
+  (b.name&&b.name!=='Meu caderno'));
+ if(hasOldContent){
+  try{
+   if(!localStorage.getItem(BACKUP_STORE))
+    localStorage.setItem(BACKUP_STORE,JSON.stringify(stored));
+  }catch(_){backedUp=false}
+ }
+ if(backedUp){
+  const settings={font:data.font,ink:data.ink,size:data.size,zoom:data.zoom,
+   layout:data.layout,shortcuts:data.shortcuts,smooth:data.smooth};
+  data={...defaults(),...settings,curriculumSeeded:true};
+  try{localStorage.setItem(STORE,JSON.stringify(data))}catch(_){}
+ }
+}
 const activeBook=()=>data.books.find(b=>b.id===data.bookId)||data.books[0];
 data.pages=activeBook().pages;
 data.mode='none'; // Ao abrir, nenhuma ferramenta atua na folha até o usuário escolher.
 if(!stored?.smoothingV3){data.smooth=true;data.smoothingV3=true;}
 let pendingPage=emptyPage(),galleryOpen=false,drawerOpen=false,galleryOffset=0,railOpen=!window.matchMedia('(max-width:760px)').matches;
+let shelfOpen=true,editEnabled=false;
 let selected=null,contextTarget=null,panDrag=null,lastPointer=null,toolPaletteOpen=false,eraseDrag=null,moveDrag=null,resizeDrag=null;
 function materializePage(){
  if(data.page!==data.pages.length||!hasPageContent(pendingPage))return;
@@ -104,6 +140,78 @@ const clamp=(v,min,max)=>Math.max(min,Math.min(max,v));
 const page=()=>data.pages[data.page]||pendingPage;
 const id=()=>typeof crypto.randomUUID==='function'?crypto.randomUUID():'nb-'+Date.now()+'-'+Math.random().toString(36).slice(2);
 const isMobile=()=>window.matchMedia('(max-width:760px)').matches;
+function renderShelf(){
+ const host=$('nbShelf');if(!host)return;
+ host.innerHTML='<div class="nb-shelf-heading"><span class="nb-shelf-eyebrow">PSICOMOODLE · PSICOLOGIA</span>'+
+  '<h2>Meus cadernos</h2><p>Escolhe uma matéria para abrir o caderno e folhear suas páginas.</p></div>'+
+  '<div class="nb-shelf-grid">'+data.books.map((book,i)=>
+   '<button class="nb-shelf-book" data-nb-shelf-book="'+esc(book.id)+'" aria-label="Abrir '+esc(book.name)+'">'+
+    '<span class="nb-shelf-cover" style="--nb-book-cover:'+bookColor(book)+'" data-cover="'+i%6+'">'+
+     '<span class="nb-shelf-spine" aria-hidden="true"></span><span class="nb-shelf-cover-border" aria-hidden="true"></span>'+
+     '<span class="nb-shelf-title">'+esc(book.name)+'</span>'+
+     '<span class="nb-shelf-mark">PSICOMOODLE</span></span>'+
+    '<span class="nb-shelf-book-meta"><strong>'+esc(book.name)+'</strong><small>'+book.pages.length+
+     (book.pages.length===1?' folha salva':' folhas salvas')+'</small></span></button>'
+  ).join('')+'</div>';
+ requestAnimationFrame(fitCoverTitles);
+}
+function syncNotebookUI(){
+ root.classList.toggle('nb-shelf-active',shelfOpen);
+ root.classList.toggle('nb-reading',!shelfOpen&&!editEnabled);
+ root.classList.toggle('nb-editing',!shelfOpen&&editEnabled);
+ $('nbShelf').hidden=!shelfOpen;
+ $('nbWorkspace').hidden=shelfOpen;
+ $('nbTools').hidden=shelfOpen||!editEnabled;
+ root.querySelector('.nb-page-control').hidden=shelfOpen||galleryOpen;
+ $('nbEditToggle').hidden=shelfOpen;
+ $('nbEditToggle').textContent=editEnabled?'✓ Concluir edição':'✎ Editar';
+ $('nbEditToggle').setAttribute('aria-pressed',String(editEnabled));
+ $('nbPaperDate').disabled=!editEnabled;
+ sheet.dataset.mode=editEnabled?data.mode:'none';
+ for(const el of root.querySelectorAll('#nbStickyLayer textarea'))el.readOnly=!editEnabled;
+}
+function setEditEnabled(value){
+ if(shelfOpen)return;
+ if(!value&&editing)saveEditor(false);
+ editEnabled=!!value;
+ data.mode='none';selected=null;selectedStroke=-1;toolPaletteOpen=false;
+ $('nbLineHover').hidden=true;$('nbContextMenu').hidden=true;
+ refreshTools();renderNotes();renderStickies();drawCanvas();renderSelectionHandles();
+ renderStickyPalette();syncNotebookUI();
+ if(!editEnabled)save();
+}
+function animateShelfTransition(kind,change,from,to){
+ const style=document.documentElement;
+ const flag=kind==='open'?'nb-opening-book':'nb-closing-book';
+ style.classList.remove('nb-opening-book','nb-closing-book');
+ style.classList.add(flag);
+ transitionView(change,from,to);
+ setTimeout(()=>style.classList.remove(flag),1150);
+}
+function showShelf(animate=true){
+ if(editing)saveEditor(false);
+ editEnabled=false;data.mode='none';selected=null;selectedStroke=-1;
+ if(galleryOpen){galleryOpen=false;$('nbGallery').hidden=true;view.hidden=false;root.classList.remove('nb-gallery-open');}
+ if(drawerOpen)closeDrawer();
+ const source=!shelfOpen?wrap:null;
+ const update=()=>{shelfOpen=true;renderShelf();syncNotebookUI();save();};
+ if(animate&&source)animateShelfTransition('close',update,source,
+  ()=>root.querySelector('.nb-shelf-book[data-nb-shelf-book="'+data.bookId+'"] .nb-shelf-cover'));
+ else update();
+}
+function openShelfBook(bookId,button){
+ if(!data.books.some(b=>b.id===bookId))return;
+ const from=button?.querySelector('.nb-shelf-cover');
+ const update=()=>{
+  shelfOpen=false;editEnabled=false;data.mode='none';
+  switchBook(bookId);
+  syncNotebookUI();
+  view.scrollTop=0;view.scrollLeft=0;
+ };
+ if(from)animateShelfTransition('open',update,from,()=>wrap);
+ else update();
+}
+
 function persistNow(){
  clearTimeout(saveTimer);
  try{localStorage.setItem(STORE,JSON.stringify(serializable()));refreshCurrentRailSnapshot();return true}
@@ -131,7 +239,8 @@ function redo(){
 root.className='nb-app';
 root.innerHTML=
  '<header class="nb-top"><div class="nb-brand"><button type="button" class="nb-mark nb-hamburger" data-nb-action="drawer" aria-label="Abrir lista de cadernos" title="Cadernos">☰</button><div><h1 id="nbBookHeading">Caderno de aula</h1><p>Prévia exclusiva da administração</p></div></div>'+
- '<div class="nb-top-right"><button class="nb-quiet nb-back-books" data-nb-action="backToBooks" title="Voltar aos cadernos">‹ Cadernos</button><span class="nb-status" id="nbStatus" role="status">Rascunho local · salvo automaticamente</span><button class="nb-quiet" data-nb-action="export">Exportar PDF</button></div></header>'+
+ '<div class="nb-top-right"><button class="nb-quiet nb-back-books" data-nb-action="backToBooks" title="Voltar à estante de cadernos">‹ Cadernos</button><button class="nb-edit-toggle" id="nbEditToggle" data-nb-action="toggleEdit" aria-pressed="false">✎ Editar</button><span class="nb-status" id="nbStatus" role="status">Rascunho local · salvo automaticamente</span><button class="nb-quiet" data-nb-action="export">Exportar PDF</button></div></header>'+
+ '<section class="nb-shelf" id="nbShelf" aria-label="Escolher caderno" hidden></section>'+ 
  '<div class="nb-tools" id="nbTools" role="toolbar" aria-label="Ferramentas do caderno">'+
  '<div class="nb-toolgroup"><button class="nb-tool" data-nb-action="none" title="Mover a folha sem selecionar nem editar">✋ Navegar</button><button class="nb-tool" data-nb-action="text" title="Escrever nas linhas">✎ Escrever</button>'+
  '<button class="nb-tool" data-nb-action="select" title="Selecionar anotações, post-its e desenhos">⌖ Selecionar</button>'+
@@ -144,7 +253,7 @@ root.innerHTML=
  '<label for="nbEraseSize">Raio</label><input id="nbEraseSize" type="range" min="6" max="32" step="2" value="14" aria-label="Tamanho da borracha"></span></div>'+
  '<span class="nb-sep"></span><div class="nb-toolgroup"><span class="nb-colors" aria-label="Cor da caneta">'+
  '<button class="nb-color" data-nb-action="black" style="--swatch:#24242e" aria-label="Caneta preta"><span></span></button>'+
- '<button class="nb-color" data-nb-action="blue" style="--swatch:#2559a4" aria-label="Caneta azul"><span></span></button>'+
+ '<button class="nb-color" data-nb-action="blue" style="--swatch:#213f72" aria-label="Caneta azul"><span></span></button>'+
  '<button class="nb-color" data-nb-action="red" style="--swatch:#bb3d43" aria-label="Caneta vermelha"><span></span></button></span>'+
  '<select class="nb-font-select" id="nbFont" aria-label="Tipo de letra"><option value="print">Letra de forma 1</option><option value="cursive">Letra de forma 2</option><option value="joined">Letra cursiva</option></select>'+
  '<select class="nb-size-select" id="nbSize" aria-label="Altura da letra"><option value="1">1 linha</option><option value="2">2 linhas</option><option value="3">3 linhas</option></select></div>'+
@@ -215,7 +324,7 @@ function renderBookSpread(){
 function activateCompanion(event){
  if(data.layout!=='book'||flipping)return;
  const target=data.page%2===0?data.page+1:data.page-1;
- if(target>data.pages.length){
+ if(target>data.pages.length||!editEnabled&&target===data.pages.length){
   status('Escreva primeiro na folha esquerda para continuar à direita.','');
   return;
  }
@@ -306,7 +415,7 @@ function editorMarkup(){
  requestAnimationFrame(()=>{input.focus({preventScroll:true});input.setSelectionRange(input.value.length,input.value.length)});
 }
 function beginEdit(line){
- if(data.mode!=='text'||line<FIRST_LINE)return;
+ if(!editEnabled||data.mode!=='text'||line<FIRST_LINE)return;
  line=clamp(line,FIRST_LINE,ROWS-1);
  if(editing&&editing.line!==line){
   const current=String($('nbEditorText')?.value||'');
@@ -400,11 +509,12 @@ function renderStickies(){
   'px;width:'+clamp(Number(s.w)||170,65,460)+'px;height:'+clamp(Number(s.h)||146,65,460)+'px;">'+
   '<div class="nb-sticky-head" data-nb-drag="'+esc(s.id)+'" title="Arraste para mover"><span>✦ Nota adesiva</span>'+
   '<button type="button" data-nb-delete-sticky="'+esc(s.id)+'" title="Remover post-it" aria-label="Remover post-it"'+
-  (selected?.type==='sticky'&&selected.id===s.id?'':' hidden')+'>×</button></div>'+
-  '<textarea aria-label="Escreva no post-it" data-nb-sticky-text="'+esc(s.id)+'" maxlength="700" placeholder="Sua observação…">'+esc(s.text||'')+'</textarea></div>'
+  (editEnabled&&selected?.type==='sticky'&&selected.id===s.id?'':' hidden')+'>×</button></div>'+
+  '<textarea aria-label="Escreva no post-it" data-nb-sticky-text="'+esc(s.id)+'" maxlength="700" placeholder="Sua observação…"'+(!editEnabled?' readonly':'')+'>'+esc(s.text||'')+'</textarea></div>'
  ).join('');
 }
 function addSticky(p){
+ if(!editEnabled)return;
  checkpoint();const tones=['yellow','pink','violet'],list=page().stickies;
  const n={id:id(),x:clamp(p.x-75,95,W-185),y:clamp(p.y-30,102,H-172),text:'',tone:data.stickyTone||tones[list.length%3]};
  list.push(n);renderStickies();save();
@@ -643,6 +753,7 @@ function renderSelectionHandles(){
   '</div>';
 }
 function startResize(event,dir){
+ if(!editEnabled)return;
  const item=selectedItem();
  if(!selected||!item||!TRANSFORM_HANDLES.includes(dir))return;
  const bounds=itemBounds(selected.type,item);if(!bounds)return;
@@ -714,7 +825,7 @@ function startPan(event){
 }
 
 function startMoveDrag(event,type,item){
- if(!item)return;
+ if(!editEnabled||!item)return;
  const p=point(event);
  moveDrag={
   pointerId:event.pointerId,type,id:item.id,
@@ -780,6 +891,7 @@ function finishMoveDrag(event){
 }
 
 function pointerDownCanvas(event){
+ if(!editEnabled)return;
  if(event.button!==0||event.pointerType==='touch'&&pinch)return;
  const p=point(event);
  if(data.mode==='select'){
@@ -858,6 +970,7 @@ function switchBook(bookId,fromHistory=false){
  checkpoint();data.bookId=bookId;data.pages=activeBook().pages;data.page=0;
  pendingPage=emptyPage();selected=null;galleryOffset=0;
  renderPage();renderDrawer();renderPageRail();if(galleryOpen)renderGallery();
+ if(!shelfOpen){editEnabled=false;data.mode='none';syncNotebookUI();}
  save();closeDrawer();
  if(!fromHistory){
   try{history.pushState({uentzoulNotebook:'book',bookId},'', '#caderno='+encodeURIComponent(bookId));}catch(_){}
@@ -870,7 +983,7 @@ function renderDrawer(){
   '<button type="button" data-nb-action="closeDrawer" aria-label="Fechar cadernos">×</button></div>'+
   '<div class="nb-book-list">'+data.books.map((book,i)=>
     '<button class="nb-book-row '+(book.id===data.bookId?'active':'')+'" data-nb-book="'+esc(book.id)+'" aria-label="Abrir caderno '+esc(book.name)+'">'+
-     '<span class="nb-book-cover" data-cover="'+(i%6)+'"><span class="nb-cover-spine" aria-hidden="true"></span>'+
+     '<span class="nb-book-cover" data-cover="'+(i%6)+'" style="--nb-book-cover:'+bookColor(book)+'"><span class="nb-cover-spine" aria-hidden="true"></span>'+
      '<span class="nb-cover-title">'+esc(book.name)+'</span><span class="nb-cover-foot">PSICOMOODLE</span></span>'+
      '<span class="nb-book-details"><strong>'+esc(book.name)+'</strong><small>'+book.pages.length+' '+
      (book.pages.length===1?'folha salva':'folhas salvas')+'</small></span></button>'
@@ -887,17 +1000,18 @@ function renderDrawer(){
 function fitCoverTitles(){
  const canvas=document.createElement('canvas'),ctx=canvas.getContext('2d');
  if(!ctx)return;
- for(const title of document.querySelectorAll('.nb-cover-title')){
+ for(const title of document.querySelectorAll('.nb-cover-title,.nb-shelf-title')){
   const source=String(title.textContent||'').trim();
   const words=source.split(/\s+/).filter(Boolean),available=Math.max(65,title.clientWidth-3);
-  let chosen=14;
+  const onShelf=title.classList.contains('nb-shelf-title');
+  let chosen=onShelf?21:14;
   // A palavra inteira precisa caber; o navegador nunca fica autorizado a dividi-la.
-  for(let px=14;px>=8.5;px-=.5){
+  for(let px=onShelf?21:14;px>=(onShelf?10:8.5);px-=.5){
    ctx.font='850 '+px+'px system-ui';
    const widest=Math.max(0,...words.map(word=>ctx.measureText(word).width));
    const total=ctx.measureText(source).width;
    const estimatedLines=Math.max(1,Math.ceil(total/available));
-   if(widest<=available-2&&estimatedLines*px*1.23<=100){chosen=px;break}
+   if(widest<=available-2&&estimatedLines*px*1.23<=(onShelf?156:100)){chosen=px;break}
    chosen=px;
   }
   title.style.fontSize=chosen+'px';
@@ -988,7 +1102,7 @@ function refreshCurrentRailSnapshot(){
  }
 }
 function goRailPage(index){
- if(!Number.isInteger(index)||index<0||index>data.pages.length)return;
+ if(!Number.isInteger(index)||index<0||index>data.pages.length||!editEnabled&&index===data.pages.length)return;
  if(editing)saveEditor(false);
  if(index===data.page){if(isMobile())closePageRail();return;}
  data.page=index;pendingPage=emptyPage();selected=null;
@@ -999,24 +1113,42 @@ function goRailPage(index){
 function closePageRail(){railOpen=false;renderPageRail();}
 function togglePageRail(){railOpen=!railOpen;renderPageRail();}
 function closeDrawer(){drawerOpen=false;$('nbDrawer').hidden=true;root.classList.remove('nb-drawer-open');}
-function backToBooks(){
- if(galleryOpen)hideGallery();
- if(!drawerOpen)toggleDrawer();
-}
-function restoreNotebookRoute(state){
- if(!state||state.uentzoulNotebook==='shelf'){
-  if(galleryOpen)hideGallery();
-  if(!drawerOpen)toggleDrawer();
+function backToBooks(){showShelf();}
+function navigateBackInside(){
+ if(shelfOpen)return;
+ if(galleryOpen){hideGallery();return}
+ if(editEnabled){setEditEnabled(false);return}
+ if(data.page>0){
+  if(data.layout==='book'&&data.page%2===1)goRailPage(data.page-1);
+  else flip(-1);
   return;
  }
- if(state.uentzoulNotebook==='book'&&data.books.some(b=>b.id===state.bookId)){
-  if(data.bookId!==state.bookId)switchBook(state.bookId,true);
-  if(galleryOpen)hideGallery();
-  closeDrawer();
- }
+ showShelf();
 }
-window.addEventListener('popstate',event=>restoreNotebookRoute(event.state));
-try{history.replaceState({uentzoulNotebook:'shelf'},'',location.href)}catch(_){}
+// O histórico do iframe permanece dentro do Caderno mesmo usando o botão
+// lateral do mouse ou o Voltar nativo do navegador.
+window.addEventListener('popstate',()=>{
+ navigateBackInside();
+ try{history.pushState({psicomoodleCaderno:'protected'},'','#caderno-interno')}catch(_){}
+});
+try{
+ history.replaceState({psicomoodleCaderno:'base'},'',location.href);
+ history.pushState({psicomoodleCaderno:'protected'},'','#caderno-interno');
+}catch(_){}
+let lastHardwareBack=0;
+function sideBack(event){
+ if(event.button!==3)return false;
+ event.preventDefault();event.stopPropagation();
+ if(typeof event.stopImmediatePropagation==='function')event.stopImmediatePropagation();
+ const now=performance.now();
+ if(now-lastHardwareBack>330){lastHardwareBack=now;navigateBackInside()}
+ return true;
+}
+root.addEventListener('auxclick',sideBack,true);
+window.addEventListener('mousedown',sideBack,true);
+window.addEventListener('mouseup',event=>{
+ if(event.button===3){event.preventDefault();event.stopPropagation()}
+},true);
 function toggleDrawer(){
  drawerOpen=!drawerOpen;
  if(drawerOpen){toolPaletteOpen=false;renderStickyPalette();renderDrawer()}
@@ -1124,7 +1256,7 @@ function selectedItem(){
  return (selected.type==='note'?page().notes:selected.type==='stroke'?page().strokes:page().stickies).find(x=>x.id===selected.id)||null;
 }
 function deleteSelected(){
- if(!selected)return;
+ if(!editEnabled||!selected)return;
  const target=selectedItem();if(!target){selected=null;return}
  checkpoint();
  const prop=selected.type==='note'?'notes':selected.type==='stroke'?'strokes':'stickies';
@@ -1135,6 +1267,7 @@ function deleteSelected(){
  status('Item removido. Use Ctrl+Z para desfazer.','success');
 }
 function contextMenu(event){
+ if(!editEnabled)return;
  if(event.target.closest('#nbEditorText,#nbPaperDate,.nb-drawer,.nb-gallery'))return;
  const note=event.target.closest('[data-nb-note]'),sticky=event.target.closest('[data-nb-sticky]');
  if(note)selectItem('note',note.dataset.nbNote);
@@ -1210,10 +1343,10 @@ function toolCursor(event){
 
 function renderPage(){
  selectedStroke=-1;selected=null;closeEditor();renderSelectionHandles();
- refreshTools();renderNotes();renderStickies();drawCanvas();setZoom(data.zoom,false);renderBookSpread();
+ refreshTools();renderNotes();renderStickies();drawCanvas();setZoom(data.zoom,false);renderBookSpread();syncNotebookUI();
 }
 function renderAll(){
- renderPage();renderPageRail();updateShortcutsList();
+ renderPage();renderPageRail();renderShelf();syncNotebookUI();updateShortcutsList();
  if(drawerOpen)renderDrawer();
  if(galleryOpen)renderGallery();
  renderStickyPalette();
@@ -1222,7 +1355,7 @@ function flip(direction){
  if(flipping)return;
  if(editing)saveEditor(false);
  const target=data.layout==='book'?(Math.floor(data.page/2)*2+(direction>0?2:-2)):data.page+direction;
- if(target<0||target>data.pages.length){status(direction<0?'Esta já é a primeira folha.':'Escreva nas folhas atuais antes de avançar.','');return;}
+ if(target<0||target>data.pages.length||!editEnabled&&target>=data.pages.length){status(direction<0?'Esta já é a primeira folha.':'Não há mais folhas salvas para ler. Clique em Editar para criar outras.','');return;}
  if(target===data.page)return;
  if(target===data.pages.length&&data.pages.length>=250){status('Limite de páginas atingido nesta prévia.','error');return}
  flipping=true;sheet.classList.add('nb-folding');
@@ -1276,6 +1409,15 @@ function bindShortcut(event){
  $('nbShortcutHint').textContent='Atalho registrado.';
 }
 function act(action){
+ if(action==='toggleEdit'){setEditEnabled(!editEnabled);return}
+ if(action==='backToBooks'){showShelf();return}
+ if(action==='drawer'&&shelfOpen)return;
+ const allowedReadOnly=['prev','next','gallery','closeGallery','galleryPrev','galleryNext',
+  'toggleRail','zoomIn','zoomOut','export','drawer','closeDrawer'];
+ if(shelfOpen||!editEnabled&&!allowedReadOnly.includes(action)){
+  if(!shelfOpen)status('Somente leitura. Clique em Editar para modificar a folha.','');
+  return;
+ }
  if(action==='sticky'){toolPaletteOpen=!toolPaletteOpen;renderStickyPalette();return;}
  if(MODES.includes(action)){
   if(editing)saveEditor(false);
@@ -1315,8 +1457,11 @@ function act(action){
  }
 }
 root.addEventListener('click',event=>{
+ const shelfBook=event.target.closest('[data-nb-shelf-book]');
+ if(shelfBook){openShelfBook(shelfBook.dataset.nbShelfBook,shelfBook);return}
+ if(shelfOpen)return;
  const ctx=event.target.closest('[data-nb-context]');
- if(ctx){contextAction(ctx.dataset.nbContext);return}
+ if(ctx){if(editEnabled)contextAction(ctx.dataset.nbContext);return}
  const rail=event.target.closest('[data-nb-rail-page]');
  if(rail){goRailPage(Number(rail.dataset.nbRailPage));return}
  const book=event.target.closest('[data-nb-book]');
@@ -1331,7 +1476,7 @@ root.addEventListener('click',event=>{
   return;
  }
  const d=event.target.closest('[data-nb-delete-sticky]');
- if(d){
+ if(d&&editEnabled){
   event.preventDefault();event.stopPropagation();
   checkpoint();page().stickies=page().stickies.filter(s=>s.id!==d.dataset.nbDeleteSticky);
   selected=null;renderStickies();renderSelectionHandles();save();
@@ -1360,6 +1505,7 @@ root.addEventListener('change',event=>{
   status(data.layout==='book'?'Caderno aberto: clique em cada folha para editá-la.':'Folha única ativada.','success');
   return;
  }
+ if(!editEnabled)return;
  if(event.target.id==='nbFont'){
   data.font=event.target.value;renderNotes();
   if(editing){editing.draft=$('nbEditorText')?.value||'';editorMarkup()}
@@ -1373,7 +1519,7 @@ root.addEventListener('change',event=>{
  }
  if(event.target.id==='nbSmooth'){data.smooth=event.target.checked;save();}
  if(event.target.id==='nbEraseBehavior'){data.eraserMode=event.target.value==='whole'?'whole':'parts';save();}
- if(event.target.id==='nbPaperDate'){page().date=event.target.value;save();}
+ if(event.target.id==='nbPaperDate'&&editEnabled){page().date=event.target.value;save();}
 });
 root.addEventListener('input',event=>{
  const t=event.target;
@@ -1414,7 +1560,7 @@ document.addEventListener('keydown',event=>{
  if(listening){event.preventDefault();bindShortcut(event);return}
  if(event.isComposing)return;
  const inInput=!!event.target.closest('textarea,input,select,[contenteditable="true"]');
- if((event.ctrlKey||event.metaKey)&&!inInput){
+ if(editEnabled&&(event.ctrlKey||event.metaKey)&&!inInput){
   if(event.code==='KeyZ'){event.preventDefault();if(event.shiftKey)redo();else undo();return}
   if(event.code==='KeyY'){event.preventDefault();redo();return}
  }
@@ -1433,11 +1579,16 @@ document.addEventListener('keydown',event=>{
  if(inInput||event.repeat)return;
  const code=shortcutEventString(event);
  const action=Object.keys(data.shortcuts).find(k=>data.shortcuts[k]===code);
- if(action){event.preventDefault();act(action);}
+ if(action&&!shelfOpen){event.preventDefault();act(action);}
 });
 root.addEventListener('pointerdown',event=>{
- if(event.button===3&&!listening&&!Object.values(data.shortcuts).includes('mouse:3')){
-  event.preventDefault();backToBooks();return;
+ if(event.button===3){sideBack(event);return}
+ if(shelfOpen)return;
+ if(!editEnabled){
+  const onPaper=event.button===0&&event.target.closest('#nbSheet')&&
+   !event.target.closest('button,input,textarea');
+  if(onPaper)startPan(event);
+  return;
  }
  if(listening&&event.button!==0){
   event.preventDefault();
@@ -1595,7 +1746,7 @@ root.addEventListener('contextmenu',event=>{
 });
 root.addEventListener('pointerdown',event=>{
  if(listening||event.button===0||event.target.closest('input,textarea,button,select'))return;
- if(event.button===2&&event.target.closest('#nbSheet')&&(selectedItem()||event.target.closest('[data-nb-note],[data-nb-sticky]')))return;
+ if(event.button===2&&editEnabled&&event.target.closest('#nbSheet')&&(selectedItem()||event.target.closest('[data-nb-note],[data-nb-sticky]')))return;
  const action=Object.keys(data.shortcuts).find(k=>data.shortcuts[k]==='mouse:'+event.button);
  if(action){event.preventDefault();act(action)}
 },true);
