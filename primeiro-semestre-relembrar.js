@@ -104,7 +104,7 @@ function optionQuestion(id,model,i,focus,all){
  const prompts=[
   'Leia a situação:\n\n'+t.scenario+'\n\nQual conceito explica MELHOR o que acontece?',
   'Qual conceito corresponde à definição abaixo?\n\n'+t.definition,
-  'Uma interpretação equivocada afirma:\n\n“'+t.myth+'”\n\nA qual conceito essa afirmação se refere?',
+  'Considere a situação:\n\n'+t.scenario+'\n\nUma análise equivocada sustenta:\n“'+t.myth+'”\n\nQual conceito permite criticar essa interpretação com maior precisão?',
   'Analise a situação à luz dos materiais da disciplina:\n\n'+t.scenario+'\n\nQual tema deve orientar a análise?',
   'Identifique o conceito central na descrição:\n\n'+t.definition,
   'Ao relacionar teoria e prática, que conceito se destaca neste exemplo?\n\n'+t.scenario
@@ -145,7 +145,7 @@ function exams(id,arr){
 }
 function makeCase(id,t,other,i){
  const good='Relacionar a situação aos elementos de '+t.title+' e considerar o contexto antes de concluir.';
- const bad='Ignorar o contexto e afirmar que '+t.myth;
+ const bad='Interpretar o caso como confirmação da hipótese de que '+t.myth;
  return {id:'relembrar-2026-1-'+id+'-'+i,title:'Caso '+i+' — '+t.title,area:'Aplicação e pensamento crítico',
   intro:t.scenario+' Uma equipe de estudantes deve analisar o exemplo com base nos textos da disciplina.',
   stages:[
@@ -153,13 +153,13 @@ function makeCase(id,t,other,i){
    choices:[
     {label:good,outcome:'O grupo identifica o que os dados permitem discutir.',reason:t.definition},
     {label:bad,outcome:'A interpretação não se sustenta na leitura do material.',reason:'O enunciado incorreto do texto é: '+t.myth},
-    {label:'Concluir que não é necessário consultar o material ou justificar a resposta.',outcome:'O grupo perde a oportunidade de testar sua explicação.',reason:'Um estudo de caso exige conceitos e argumentos verificáveis.'}
+    {label:'Priorizar a explicação de '+other.title+' a partir da premissa: '+other.definition,outcome:'O grupo utiliza uma explicação conceitual diferente da que melhor se relaciona ao problema descrito.',reason:'É preciso distinguir o que o exemplo descreve de outros processos relacionados: '+t.definition}
    ]},
   {prompt:'Ao aprofundar o estudo, que estratégia ajuda a evitar uma conclusão superficial?',
    choices:[
     {label:'Comparar '+t.title+' a '+other.title+' e justificar as diferenças com a leitura.',outcome:'A equipe explicita relações e limites entre conceitos.',reason:'Segundo as fontes, '+t.definition+' Já '+other.title+': '+other.definition},
-    {label:'Tratar '+t.title+' e '+other.title+' como necessariamente sinônimos.',outcome:'As distinções teóricas deixam de ser analisadas.',reason:'As duas expressões descrevem objetos e ênfases próprias.'},
-    {label:'Escolher uma resposta pela familiaridade da palavra, sem examinar o cenário.',outcome:'A justificativa fica desconectada dos fatos.',reason:'É preciso associar conceitos aos elementos concretos do caso.'}
+    {label:'Considerar os processos de '+t.title+' e '+other.title+' equivalentes para interpretar o caso.',outcome:'As diferenças entre mecanismos teóricos ficam subestimadas.',reason:'As duas noções descrevem objetos e ênfases que precisam ser diferenciados.'},
+    {label:'Transferir diretamente a explicação de '+other.title+' para o exemplo sem verificar se os dados sustentam o mesmo mecanismo.',outcome:'A analogia não sustenta a conclusão proposta.',reason:'O caso deve ser interpretado a partir das características e condições descritas, e não apenas pela semelhança entre temas.'}
    ]}
   ],wrapUp:'Síntese: '+t.definition+' Leitura indicada: '+t.source+'. Articulação: '+other.source+'.'};
 }
