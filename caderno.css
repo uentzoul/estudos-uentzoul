@@ -705,3 +705,8 @@ html[data-theme="dark"] .nb-align-select{background:#203149;border-color:#3b4e69
 .nb-rail-spread .nb-rail-caption{font-size:9px}
 .nb-rail-spread .nb-rail-page:first-child .nb-rail-paper{border-radius:6px 1px 1px 6px}
 .nb-rail-spread .nb-rail-page:last-child .nb-rail-paper{border-radius:1px 6px 6px 1px}
+
+.nb-rail-spread .nb-rail-blank{display:flex;flex-direction:column;align-items:center;
+ width:100%;min-width:0;padding:5px 2px;pointer-events:none}
+.nb-rail-spread .nb-rail-blank .nb-rail-paper{width:100%!important;aspect-ratio:780/1240!important}
+.nb-reading #nbCompanionWrap,.nb-reading #nbSheet{touch-action:none!important}
