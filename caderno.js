@@ -485,16 +485,32 @@ function makeRoom(saved){
  }
 }
 function fallbackBasic(input){
- let text=String(input||'').replace(/[\t ]+/g,' ').replace(/\s+([,.;!?])/g,'$1')
+ // Protege a tabulação real contra a normalização da revisão gramatical.
+ const tabMarker='\uE000';
+ let text=String(input||'').replace(/\t/g,tabMarker).replace(/ +/g,' ').replace(/\s+([,.;!?])/g,'$1')
   .replace(/([,;!?])(?=\S)/g,'$1 ').trim();
  if(!text)return '';
  text=text.replace(/\bnao\b/gi,word=>word[0]==='N'?'Não':'não');
- // Vírgula do vocativo quando uma saudação é dirigida a alguém.
  text=text.replace(/^(bom dia|boa tarde|boa noite)\s+(rapaziada|pessoal|gente|galera|turma|professor(?:a)?|amigos)\b/iu,
   (_,saudacao,vocativo)=>saudacao+', '+vocativo);
- text=text.replace(/^([\p{L}])/u,first=>first.toLocaleUpperCase('pt-BR'));
+ text=text.replace(/^(\uE000*)([\p{L}])/u,(_,tabs,first)=>tabs+first.toLocaleUpperCase('pt-BR'));
  if(!/[.!?…]$/.test(text))text+='.';
- return text;
+ return text.replace(/\uE000/g,'\t');
+}
+function restoreTextTabs(original,corrected){
+ // A IA revisa o conteúdo; os recuos feitos pelo aluno são preservados.
+ const source=String(original||'').split('\n'),revised=String(corrected||'').split('\n');
+ if(!source.some(line=>line.includes('\t')))return corrected;
+ if(source.length!==revised.length){
+  const prefix=source[0].match(/^\t*/)?.[0]||'';
+  return prefix+String(corrected||'').replace(/^\t*/,'');
+ }
+ return revised.map((line,i)=>{
+  const raw=source[i],prefix=raw.match(/^\t*/)?.[0]||'';
+  // Evita realocar um Tab intermediário caso a revisão mude a ordem das palavras.
+  if(raw.slice(prefix.length).includes('\t'))return raw;
+  return prefix+line.replace(/^\t*/,'');
+ }).join('\n');
 }
 async function correctNote(noteId,raw){
  const currentOwner=userId;
@@ -509,7 +525,7 @@ async function correctNote(noteId,raw){
   if(!revised||revised.length<raw.length*.5||revised.length>raw.length*1.75)throw Error('Revisão não confiável.');
   const n=data.books.flatMap(b=>b.pages).flatMap(p=>p.notes).find(n=>n.id===noteId);
   if(!n||n.original!==raw)return;
-  n.text=fallbackBasic(result.reviewed===true?revised:raw);
+  n.text=fallbackBasic(restoreTextTabs(raw,result.reviewed===true?revised:raw));
   n.pending=false;n.reviewed=result.reviewed===true;n.span=occupiedSpan(n);
   delete n.original; // Descartar o rascunho bruto: a versão corrigida é definitiva.
   if(page().notes.includes(n))makeRoom(n);
@@ -529,8 +545,8 @@ async function correctNote(noteId,raw){
 function saveEditor(advance=true){
  if(!editing)return;
  const priorLine=editing.line;
- const typed=String($('nbEditorText')?.value||'').trim();
- if(!typed){closeEditor();if(advance)advanceLine(priorLine+1);return}
+ const typed=String($('nbEditorText')?.value||'').replace(/\r\n?/g,'\n').trimEnd();
+ if(!typed.trim()){closeEditor();if(advance)advanceLine(priorLine+1);return}
  checkpoint();
  let n=editing.id?page().notes.find(n=>n.id===editing.id):null;
  if(!n){n={id:id(),line:editing.line,text:typed};page().notes.push(n)}
@@ -1612,7 +1628,31 @@ root.addEventListener('input',event=>{
   if(st){st.text=t.value;save();}
  }
 });
+function applyTabKey(input,outdent){
+ const value=input.value,start=input.selectionStart,end=input.selectionEnd;
+ if(outdent){
+  const lineStart=value.lastIndexOf('\n',Math.max(0,start-1))+1;
+  let from=lineStart;
+  if(value[from]!=='\t'){
+   if(start===0||value[start-1]!=='\t')return false;
+   from=start-1;
+  }
+  input.setRangeText('',from,from+1,'preserve');
+  input.setSelectionRange(Math.max(from,start-1),Math.max(from,end-1));
+ }else{
+  const limit=Number(input.maxLength)||Infinity;
+  if(value.length-(end-start)>=limit)return true;
+  input.setRangeText('\t',start,end,'end');
+ }
+ input.dispatchEvent(new Event('input',{bubbles:true}));
+ return true;
+}
 root.addEventListener('keydown',event=>{
+ if(event.key==='Tab'&&!event.isComposing&&!event.ctrlKey&&!event.metaKey&&!event.altKey&&editEnabled&&
+    (event.target.id==='nbEditorText'||event.target.matches?.('[data-nb-sticky-text]'))){
+  if(applyTabKey(event.target,event.shiftKey)){event.preventDefault();event.stopPropagation();}
+  return;
+ }
  if(event.target.id==='nbEditorText'){
   if(event.key==='Enter'&&!event.shiftKey&&!event.isComposing){
    event.preventDefault();event.stopPropagation();saveEditor(true);return;
@@ -1857,8 +1897,8 @@ window.addEventListener('blur',()=>{if(drawPoints||warpDrag)pointerUpCanvas();if
 window.addEventListener('pagehide',()=>{
  // O iframe pode ser desmontado ao navegar: conserva inclusive a anotação ainda em edição.
  if(editing){
-  const typed=String($('nbEditorText')?.value||'').trim();
-  if(typed){
+  const typed=String($('nbEditorText')?.value||'').replace(/\r\n?/g,'\n').trimEnd();
+  if(typed.trim()){
    let note=editing.id?page().notes.find(n=>n.id===editing.id):null;
    if(!note){note={id:id(),line:editing.line,text:typed};page().notes.push(note)}
    Object.assign(note,{text:typed,original:typed,font:data.font,size:data.size,ink:data.ink,pending:false,reviewed:false});
