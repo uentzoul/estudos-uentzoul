@@ -66,7 +66,7 @@ test('Páginas vazias não são preservadas ao virar ou serializar',()=>{
  assert.ok(def);
  const hasPageContent=vm.runInNewContext('(p=>'+def[1]+')');
  assert.equal(!!hasPageContent({title:'',notes:[],strokes:[],stickies:[]}),false);
- assert.equal(!!hasPageContent({title:'Título',date:'2026-11-15',notes:[],strokes:[],stickies:[]}),false);
+ assert.equal(!!hasPageContent({title:'Título',date:'2026-11-15',notes:[],strokes:[],stickies:[]}),true,'data escrita deve ser preservada');
  assert.equal(!!hasPageContent({notes:[{text:'Texto'}],strokes:[],stickies:[]}),true);
  assert.equal(!!hasPageContent({notes:[],strokes:[{points:[{x:1,y:1}]}],stickies:[]}),true);
  assert.equal(!!hasPageContent({notes:[],strokes:[],stickies:[{text:'Observação'}]}),true);
@@ -184,7 +184,7 @@ test('Selecionar é padrão, ESC volta ao seletor e papel pode ser arrastado sem
  assert.match(script,/selected=null;selectedStroke=-1;act\('none'\)/);
  assert.match(script,/function startPan\(event\)/);
  assert.match(script,/startPan\(event\);\}/);
- assert.match(script,/view\.scrollLeft=panDrag\.left-dx;view\.scrollTop=panDrag\.top-dy/);
+ assert.match(script,/setPan\(panDrag\.x\+dx,panDrag\.y\+dy\)/,'arraste da folha não depende dos limites da barra de rolagem');
 });
 test('Oito alças redimensionam cantos e lados com limites para texto, desenho e post-it',()=>{
  const start=script.indexOf('function transformRect('),end=script.indexOf('function updateResize(',start);
@@ -290,14 +290,16 @@ test('Marca exibida é PsicoMoodle e texto corrigido jamais reabre como rascunho
 });
 
 
-test('Uma linha tem maiúsculas e minúsculas do mesmo tamanho; duas linhas aumentam só a maiúscula',()=>{
- assert.match(script,/--nb-small:26px;--nb-cap-size:/);
- assert.match(script,/\(26\+\(size-1\)\*34\)/);
- assert.match(style,/\.nb-note \.nb-uppercase\{font-size:var\(--nb-cap-size/);
- assert.match(style,/\.nb-note \.nb-note-content\{position:relative;top:-10px/);
+test('Texto preserva passo fixo da pauta na edição, visualização e miniatura',()=>{
+ assert.match(script,/--nb-note-row:/);
+ assert.match(script,/--nb-note-size:/);
+ assert.match(script,/font-size:.*nb-note-size/s);
+ assert.match(style,/\.nb-note \.nb-note-content\{display:block!important;position:static!important/);
+ assert.match(style,/line-height:var\(--nb-note-row,34px\)!important/);
+ assert.match(script,/function letterMarkup\(text\)/);
+ assert.match(script,/String\(text\|\|''\)\)\.replace\(\/\\n\/g/);
  const pdf=read('caderno-pdf.js');
- assert.match(pdf,/const small=26/);
- assert.match(pdf,/upper\?\(scale-1\)\*34:0/);
+ assert.match(pdf,/const fontSize=26\+\(scale-1\)\*30/);
 });
 test('Três fontes com duas letras de forma e cursiva conectada',()=>{
  assert.match(script,/value="print">Letra de forma 1/);
