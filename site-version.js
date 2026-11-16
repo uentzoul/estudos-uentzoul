@@ -283,8 +283,11 @@ setTimeout(check,15000);
    '#nav .nb-preview-label{margin-left:auto;font-size:9px;font-weight:800;letter-spacing:.2px;white-space:nowrap;padding:3px 6px;border-radius:6px;color:#8067b6;background:#ece5f8;}'+
    '#navUpcomingFloatingTip{display:none!important}#nav #navCadernoPreview.active{background:color-mix(in srgb,#7964b9 14%,var(--paper));border-color:color-mix(in srgb,#7964b9 36%,transparent)}'+
    '#nav #navCadernoPreview:disabled{opacity:1!important;pointer-events:none;cursor:not-allowed;transform:none!important}'+
-   '#main.nb-shell-active{max-width:none!important;width:100%!important;padding:8px 10px!important;overflow:hidden;}'+
-   '#main #uentzoulCadernoFrame{display:block;width:100%;height:calc(100dvh - 12px);min-height:0;border:1px solid #e3ddeb;border-radius:16px;background:#f3f1f9;box-shadow:0 10px 32px #342c4715;}'+
+   '#main.nb-shell-active{max-width:none!important;width:100%!important;padding:8px 10px!important;overflow:hidden;background:#f3f1f9;}'+
+   'html[data-theme="dark"] #main.nb-shell-active{background:#0c1523;}'+
+   // Suppress the iframe's white about:blank first paint until the notebook is loaded.
+   '#main #uentzoulCadernoFrame{display:block;width:100%;height:calc(100dvh - 12px);min-height:0;border:1px solid #e3ddeb;border-radius:16px;background:#f3f1f9;box-shadow:0 10px 32px #342c4715;opacity:0;visibility:hidden;}'+
+   '#main #uentzoulCadernoFrame.nb-frame-ready{opacity:1;visibility:visible;transition:opacity .16s ease-out;}'+
    '@media(max-width:760px){#main.nb-shell-active{padding:4px!important;}#main #uentzoulCadernoFrame{height:calc(100dvh - 12px);min-height:0;border-radius:12px}#nav #navCadernoPreview .nb-preview-label{font-size:9px;padding:2px 5px}}';
   document.head.appendChild(css);
  }
@@ -319,6 +322,18 @@ setTimeout(check,15000);
   previewOpen=true;permissionLostSince=0;addStyles();
   target.classList.add('nb-shell-active');
   target.innerHTML='<iframe id="'+FRAME_ID+'" title="Caderno de aula — prévia administrativa" src="'+notebookUrl()+'" data-nb-semester="'+selectedSemester()+'" loading="eager" referrerpolicy="same-origin"></iframe>';
+  const frame=document.getElementById(FRAME_ID);
+  if(frame)frame.addEventListener('load',()=>{
+   // Ignore the iframe's initial about:blank; wait for actual notebook content.
+   try{
+    const doc=frame.contentDocument;
+    if(!doc||doc.readyState!=='complete'||!doc.getElementById('nbRoot')||
+       !/\/caderno\.html$/.test(frame.contentWindow.location.pathname))return;
+   }catch(_){return}
+   requestAnimationFrame(()=>requestAnimationFrame(()=>{
+    if(previewOpen&&frame.isConnected)frame.classList.add('nb-frame-ready');
+   }));
+  });
   document.querySelectorAll('#nav [data-page].active').forEach(n=>n.classList.remove('active'));
   document.getElementById(NAV_ID)?.classList.add('active');
   window.pmMobileDrawer?.close?.();
@@ -414,6 +429,7 @@ setTimeout(check,15000);
    const frame=document.getElementById(FRAME_ID),semester=selectedSemester();
    if(frame&&previewOpen&&frame.dataset.nbSemester!==semester){
     // A página anterior grava as anotações no pagehide antes da troca.
+    frame.classList.remove('nb-frame-ready');
     frame.dataset.nbSemester=semester;frame.src=notebookUrl();
    }
    sync();
