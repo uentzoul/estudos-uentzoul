@@ -261,7 +261,7 @@ setTimeout(check,15000);
   }
   return semesters.includes(value)?value:'2026/2';
  }
- const notebookUrl=()=>('./caderno.html?v=20261116-caderno-v10-spread-singleline&semester='+
+ const notebookUrl=()=>('./caderno.html?v=20261116-caderno-v11-semester-double-leaf&semester='+
    encodeURIComponent(selectedSemester()));
  function addStyles(){
   if(document.getElementById(STYLE_ID))return;
