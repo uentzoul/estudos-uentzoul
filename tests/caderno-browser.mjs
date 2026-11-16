@@ -332,9 +332,29 @@ try{
  await f.locator('[data-nb-action="warp"]').click();
  const moldPoint=await point(400,560);
  await page.mouse.move(moldPoint.x,moldPoint.y);await page.mouse.down();
- await page.mouse.move(moldPoint.x+35,moldPoint.y+20,{steps:6});await page.mouse.up();
+ const selectionBox=f.locator('.nb-transform-box.nb-transform-mold');
+ await selectionBox.waitFor({state:'visible'});
+ const beforeHeight=await selectionBox.evaluate(el=>parseFloat(el.style.height));
+ await page.mouse.move(moldPoint.x+35,moldPoint.y+20,{steps:6});
+ const duringHeight=await selectionBox.evaluate(el=>parseFloat(el.style.height));
+ assert.ok(duringHeight>beforeHeight+5,
+  'A moldura deve acompanhar o crescimento do traço já durante o arraste');
+ await page.mouse.up();
  await page.waitForTimeout(250);
  const molded=await pageTwoStrokes();
+ const bounds=await selectionBox.evaluate(el=>{
+  const s=JSON.parse(localStorage.getItem('uentzoul:caderno:alpha2:qa-browser-admin'));
+  const pts=s.books[0].pages[1].strokes[0].points;
+  return {left:parseFloat(el.style.left),top:parseFloat(el.style.top),
+   width:parseFloat(el.style.width),height:parseFloat(el.style.height),
+   minX:Math.min(...pts.map(p=>p.x)),minY:Math.min(...pts.map(p=>p.y)),
+   maxX:Math.max(...pts.map(p=>p.x)),maxY:Math.max(...pts.map(p=>p.y))};
+ });
+ assert.ok(Math.abs(bounds.left-bounds.minX)<2&&Math.abs(bounds.top-bounds.minY)<2,
+  'A moldura deve iniciar onde o desenho realmente começa');
+ assert.ok(Math.abs(bounds.left+bounds.width-bounds.maxX)<2&&
+  Math.abs(bounds.top+bounds.height-bounds.maxY)<7,
+  'A moldura deve terminar nos limites reais do desenho');
  assert.notDeepEqual(molded[0].points,remaining[0].points,'Arrastar no desenho deve moldar a região tocada');
  assert.ok(molded[0].points.some(p=>p.y>remaining[0].points[0].y+9),'O trecho tocado acompanha o arraste');
  assert.ok(Math.abs(molded[0].points[0].y-remaining[0].points[0].y)<9,'Trechos distantes pouco mudam');

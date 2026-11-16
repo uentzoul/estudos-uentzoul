@@ -274,7 +274,7 @@ setTimeout(check,15000);
   }
   return semesters.includes(value)?value:'2026/2';
  }
- const notebookUrl=()=>('./caderno.html?v=20261116-caderno-v23-moldar-direto&semester='+
+ const notebookUrl=()=>('./caderno.html?v=20261116-caderno-v24-moldura-alinhada&semester='+
    encodeURIComponent(selectedSemester()));
  function addStyles(){
   if(document.getElementById(STYLE_ID))return;

@@ -267,6 +267,9 @@ test('Moldar diretamente a curva e os pontos intermediários, com botão de move
  assert.match(script,/const hit=findStrokeNear\(p\)/);
  assert.match(script,/startWarpDrag\(event,hit\.stroke,hit\.index,hit\.anchor\)/);
  assert.match(script,/dist\(q,warpDrag\.center\)/);
+ assert.match(script,/if\(existing&&host\.dataset\.selectionKey===key\)/);
+ assert.match(script,/drawCanvas\(\);renderSelectionHandles\(\);event\.preventDefault\(\);return;/);
+ assert.match(script,/if\(data\.mode!=='warp'&&selected\?\.type==='stroke'/);
  const first=script.indexOf('function closestPointOnStroke('),last=script.indexOf('function findStrokeNear(',first);
  const methods=vm.runInNewContext('(()=>{'+script.slice(first,last)+';return {closestPointOnStroke,denseWarpPoints};})()',
   {clamp:(v,a,b)=>Math.max(a,Math.min(b,v)),dist:(a,b)=>Math.hypot(a.x-b.x,a.y-b.y)});

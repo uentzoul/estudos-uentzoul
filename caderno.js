@@ -1057,7 +1057,7 @@ function drawCanvas(){
  ctx.setTransform(dpr,0,0,dpr,0,0);ctx.clearRect(0,0,W,H);
  page().strokes.forEach((s,i)=>{
   paintStroke(s.points,s.ink,Number(s.width)||2.6,!!s.corrected&&!['line','polygon','rectangle'].includes(s.kind));
-  if((data.mode==='warp'&&selectedStroke===i)||(selected?.type==='stroke'&&selected.id===s.id)){
+  if(data.mode!=='warp'&&selected?.type==='stroke'&&selected.id===s.id){
    ctx.lineWidth=1;ctx.strokeStyle='#8065b7';ctx.setLineDash([5,4]);
    const p=s.points;
    if(p.length){ctx.strokeRect(p.reduce((n,x)=>Math.min(n,x.x),W)-5,p.reduce((n,x)=>Math.min(n,x.y),H)-5,
@@ -1146,12 +1146,20 @@ function renderSelectionHandles(){
  const host=$('nbTransformLayer');if(!host)return;
  const item=selectedItem(),rect=selected&&item?itemBounds(selected.type,item):null;
  if(!rect||galleryOpen){
-  host.innerHTML='';return;
+  host.innerHTML='';delete host.dataset.selectionKey;return;
  }
- const minW=selected.type==='stroke'?12:42,minH=selected.type==='stroke'?12:35;
+ const minW=selected.type==='stroke'?6:42,minH=selected.type==='stroke'?6:35;
  const x=clamp(rect.x,0,W-minW),y=clamp(rect.y,0,H-minH);
  const width=clamp(rect.w,minW,W-x),height=clamp(rect.h,minH,H-y);
  const molding=data.mode==='warp'&&selected.type==='stroke';
+ const key=selected.type+':'+String(item.id)+':'+(molding?'mold':'resize');
+ const existing=host.querySelector('.nb-transform-box');
+ if(existing&&host.dataset.selectionKey===key){
+  existing.style.left=x+'px';existing.style.top=y+'px';
+  existing.style.width=width+'px';existing.style.height=height+'px';
+  return;
+ }
+ host.dataset.selectionKey=key;
  host.innerHTML='<div class="nb-transform-box'+(molding?' nb-transform-mold':'')+'" style="left:'+x+'px;top:'+y+'px;width:'+width+
   'px;height:'+height+'px;" role="group" aria-label="'+(molding?'Mover ou moldar desenho':'Redimensionar item selecionado')+'">'+
   (molding?
@@ -1262,7 +1270,7 @@ function updateMoveDrag(event){
   item.points=drag.originalPoints.map(q=>({
    x:clamp(q.x+dx,0,W),y:clamp(q.y+dy,0,H)
   }));
-  drawCanvas();
+  drawCanvas();renderSelectionHandles();
  }else if(drag.type==='sticky'){
   item.x=clamp(drag.originX+dx,88,W-(Number(item.w)||170));
   item.y=clamp(drag.originY+dy,95,H-(Number(item.h)||146));
@@ -1345,7 +1353,7 @@ function pointerMoveCanvas(event){
    const weight=Math.exp(-Math.pow(dist(q,warpDrag.center)/83,2)*1.3);
    return{x:clamp(q.x+dx*weight,5,W-5),y:clamp(q.y+dy*weight,5,H-5)};
   });
-  drawCanvas();event.preventDefault();return;
+  drawCanvas();renderSelectionHandles();event.preventDefault();return;
  }
 }
 function pointerUpCanvas(event){
