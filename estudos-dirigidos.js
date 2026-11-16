@@ -27,7 +27,7 @@
        '<span class="sd-count">PDF oficial</span><span class="sd-arrow" aria-hidden="true">⌄</span></summary>'+
        '<div class="sd-guide-body"><div class="sd-source"><strong>Estudo dirigido original do professor</strong>'+
        '<p>O PDF é preservado na íntegra. Os roteiros produzidos por IA não substituem este documento.</p></div>'+
-       '<a class="sd-official-action" href="#" data-library-file="'+esc(doc.resource_key)+'">Abrir estudo dirigido (PDF) ↗</a>'+
+       '<a class="sd-official-action" href="#" data-sd-official="'+esc(doc.resource_key)+'">Abrir estudo dirigido (PDF) ↗</a>'+
        '</div></details>').join('')+'</section>';
  }
  function refreshVisibleGuides(){
@@ -42,11 +42,11 @@
    officialLoading=true;lastOfficialCheck=Date.now();
    try{
      const {data,error}=await client.from(UPLOAD_TABLE)
-       .select('resource_key,display_title,filename,file_subject,content_tags,publish_at,library_public')
+       .select('resource_key,display_title,filename,file_subject,storage_path,content_tags,publish_at,library_public')
        .contains('content_tags',[OFFICIAL_TAG]).limit(500);
      if(error)throw error;
      const current=Date.now();
-     const next=(data||[]).filter(d=>d.library_public===true&&(!d.publish_at||Date.parse(d.publish_at)<=current))
+     const next=(data||[]).filter(d=>d.library_public===true&&typeof d.storage_path==='string'&&d.storage_path.startsWith('materials/'))
        .sort((a,b)=>String(a.display_title||a.filename||'').localeCompare(String(b.display_title||b.filename||''),'pt-BR'));
      const changed=!officialReady||JSON.stringify(officialRows)!==JSON.stringify(next);
      officialRows=next;officialReady=true;
@@ -56,6 +56,25 @@
      if(!officialReady){officialReady=true;refreshVisibleGuides();}
    }finally{officialLoading=false;}
  }
+
+ // Abre um link temporário do Storage privado, mesmo quando o restante do material
+ // permanece fora do escopo das provas até a data programada de liberação.
+ document.addEventListener('click',async event=>{
+   const link=event.target.closest('[data-sd-official]');
+   if(!link)return;
+   event.preventDefault();
+   const client=window.uentzoulAIAuth?.client?.(),user=window.uentzoulAIAuth?.user?.();
+   if(!client||!user){alert('Entre na conta para consultar o estudo dirigido.');window.uentzoulAIAuth?.openLogin?.();return;}
+   const row=officialRows.find(d=>d.resource_key===link.dataset.sdOfficial);
+   if(!row?.storage_path){alert('O documento não está disponível. Atualize a página e tente novamente.');return;}
+   const tab=window.open('','_blank');
+   if(tab){try{tab.document.title='Abrindo estudo dirigido…';tab.document.body.textContent='Carregando documento…';}catch(_){}}
+   try{
+     const {data,error}=await client.storage.from('uentzoul-library-files').createSignedUrl(row.storage_path,3600);
+     if(error||!data?.signedUrl)throw error||Error('Link temporário indisponível.');
+     if(tab&&!tab.closed)tab.location.replace(data.signedUrl);else window.location.assign(data.signedUrl);
+   }catch(err){if(tab&&!tab.closed)tab.close();alert('Não foi possível abrir o estudo dirigido: '+(err?.message||'tente novamente'));}
+ });
  window.addEventListener('uentzoul:library-updated',()=>{void refreshOfficialGuides(true);});
  window.addEventListener('uentzoul:auth',()=>{officialReady=false;lastOfficialCheck=0;void refreshOfficialGuides(true);});
  window.addEventListener('focus',()=>{void refreshOfficialGuides();});
