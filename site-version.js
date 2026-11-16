@@ -343,10 +343,15 @@ setTimeout(check,15000);
     if(frame&&!frame.dataset.nbLocked){
      frame.dataset.nbLocked='true';
      frame.setAttribute('title','Caderno indisponível sem conta administrativa');
-     frame.src='about:blank';
+     frame.srcdoc='<!doctype html><html lang="pt-BR"><meta charset="utf-8"><body style="margin:0;min-height:100vh;display:grid;place-items:center;background:#f3f1f9;color:#483c60;font:600 15px system-ui,sans-serif"><p style="padding:28px;text-align:center">Sessão administrativa encerrada. Entre novamente para reabrir o caderno.</p></body></html>';
     }
    }
-  }else if(previewOpen)permissionLostSince=0;
+  }else if(previewOpen){
+   permissionLostSince=0;
+   const frame=document.getElementById(FRAME_ID);
+   if(frame?.dataset.nbLocked==='true')openPreview();
+   else if(!frame)requestAnimationFrame(restoreNotebookIfStolen);
+  }
  }
  function setup(){
   if(!nav()||!main())return;
