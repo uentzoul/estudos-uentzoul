@@ -590,6 +590,25 @@ try{
  const afterMove=await tw.locator('#nbWrap').boundingBox();
  assert.ok(afterMove.x>beforeMove.x+60&&afterMove.y>beforeMove.y+35,
   'Modo Navegar move a dupla de folhas também pelo lado oposto');
+
+ // Borracha e Selecionar também devem operar na folha oposta já no primeiro gesto.
+ const beforeErase=(await notebookData()).books[0].pages[1].strokes;
+ assert.ok(beforeErase.length>0,'Há um desenho para apagar na direita');
+ await tw.locator('[data-nb-action="erase"]').click();
+ const eraseRight=await hitOnOpposite(370,494);
+ await twinPage.mouse.click(eraseRight.x,eraseRight.y);
+ await twinPage.waitForTimeout(270);
+ const erasedRight=(await notebookData()).books[0].pages[1].strokes;
+ assert.notDeepEqual(erasedRight,beforeErase,
+  'Borracha deve afetar imediatamente o desenho da folha direita oposta');
+ assert.equal(await tw.locator('#nbPageNum').textContent(),'02');
+ await tw.locator('[data-nb-action="select"]').click();
+ const selectLeft=await hitOnOpposite(265,145);
+ await twinPage.mouse.click(selectLeft.x,selectLeft.y);
+ assert.equal(await tw.locator('#nbPageNum').textContent(),'01');
+ await tw.locator('#nbTextLayer .nb-note.nb-selected').waitFor({state:'visible',timeout:6000});
+ assert.match(await tw.locator('#nbTextLayer .nb-note.nb-selected').textContent(),/Texto da esquerda/,
+  'Selecionar deve reconhecer anotações na folha oposta no primeiro clique');
  await twinContext.close();
 
  // Catálogos distintos do primeiro, segundo e terceiro semestres. Dados independentes.
