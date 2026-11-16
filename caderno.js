@@ -180,6 +180,14 @@ function setEditEnabled(value){
  renderStickyPalette();syncNotebookUI();
  if(!editEnabled)save();
 }
+function animateShelfTransition(kind,change,from,to){
+ const style=document.documentElement;
+ const flag=kind==='open'?'nb-opening-book':'nb-closing-book';
+ style.classList.remove('nb-opening-book','nb-closing-book');
+ style.classList.add(flag);
+ transitionView(change,from,to);
+ setTimeout(()=>style.classList.remove(flag),1150);
+}
 function showShelf(animate=true){
  if(editing)saveEditor(false);
  editEnabled=false;data.mode='none';selected=null;selectedStroke=-1;
@@ -187,7 +195,8 @@ function showShelf(animate=true){
  if(drawerOpen)closeDrawer();
  const source=!shelfOpen?wrap:null;
  const update=()=>{shelfOpen=true;renderShelf();syncNotebookUI();save();};
- if(animate&&source)transitionView(update,source,()=>root.querySelector('.nb-shelf-book[data-nb-shelf-book="'+data.bookId+'"] .nb-shelf-cover'));
+ if(animate&&source)animateShelfTransition('close',update,source,
+  ()=>root.querySelector('.nb-shelf-book[data-nb-shelf-book="'+data.bookId+'"] .nb-shelf-cover'));
  else update();
 }
 function openShelfBook(bookId,button){
@@ -199,7 +208,7 @@ function openShelfBook(bookId,button){
   syncNotebookUI();
   view.scrollTop=0;view.scrollLeft=0;
  };
- if(from)transitionView(update,from,()=>wrap);
+ if(from)animateShelfTransition('open',update,from,()=>wrap);
  else update();
 }
 
@@ -501,7 +510,7 @@ function renderStickies(){
   '<div class="nb-sticky-head" data-nb-drag="'+esc(s.id)+'" title="Arraste para mover"><span>✦ Nota adesiva</span>'+
   '<button type="button" data-nb-delete-sticky="'+esc(s.id)+'" title="Remover post-it" aria-label="Remover post-it"'+
   (editEnabled&&selected?.type==='sticky'&&selected.id===s.id?'':' hidden')+'>×</button></div>'+
-  '<textarea aria-label="Escreva no post-it" data-nb-sticky-text="'+esc(s.id)+'" maxlength="700" placeholder="Sua observação…"'+(!editEnabled?' readonly':'')+'> '+esc(s.text||'')+'</textarea></div>'
+  '<textarea aria-label="Escreva no post-it" data-nb-sticky-text="'+esc(s.id)+'" maxlength="700" placeholder="Sua observação…"'+(!editEnabled?' readonly':'')+'>'+esc(s.text||'')+'</textarea></div>'
  ).join('');
 }
 function addSticky(p){
