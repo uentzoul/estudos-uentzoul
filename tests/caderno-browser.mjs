@@ -47,7 +47,7 @@ try{
  const phonePage=await phoneContext.newPage();
  await phonePage.goto(address,{waitUntil:'domcontentloaded'});
  const phoneFrame=phonePage.frameLocator('#nbQaFrame');
- await phoneFrame.locator('#nbRoot.nb-guard').waitFor({state:'visible'});
+ await phoneFrame.locator('#nbRoot strong').getByText('Caderno indisponível no celular.').waitFor({state:'visible',timeout:12000});
  assert.match(await phoneFrame.locator('#nbRoot').innerText(),/Caderno indisponível no celular/);
  assert.equal(await phoneFrame.locator('.nb-shelf-book').count(),0,
   'O Caderno não pode abrir no celular nem pelo link direto');
