@@ -67,7 +67,13 @@ def run_case(browser,device,settings,semester):
         if semester in ("2026/1","2026/2"):
             try:
                 page.wait_for_function("Boolean(window.PSICO_VACATION_REVIEW?.show)",timeout=20000)
-                page.evaluate("() => window.PSICO_VACATION_REVIEW.show()")
+                # Testa o clique real no menu, não só uma chamada direta à função.
+                review_nav=page.locator("#navVacationReview")
+                if not review_nav.is_visible():
+                    page.locator("#mobileNavMoreToggle").click(timeout=8000)
+                if not review_nav.is_enabled():
+                    issues.append("Botão Revisão de Férias desativado")
+                review_nav.click(timeout=8000)
                 page.locator("#vr-root .vr-month").first.wait_for(state="visible",timeout=20000)
                 expected_events=21 if semester=="2026/1" else 24
                 real_events=page.locator("#vr-root .vr-event").count()
@@ -77,7 +83,12 @@ def run_case(browser,device,settings,semester):
                     issues.append("Revisão pública falhou ao buscar dados")
                 if page.locator("#vr-root .vr-month").count()!=4:
                     issues.append("Linha do tempo não mostra quatro meses")
-                page.locator("#vr-root .vr-month").first.click(timeout=8000)
+                months=page.locator("#vr-root .vr-month")
+                if months.first.get_attribute("aria-expanded")!="true":
+                    issues.append("Primeiro mês não abriu automaticamente")
+                months.nth(1).click(timeout=8000)
+                if months.nth(1).get_attribute("aria-expanded")!="true":
+                    issues.append("Clique no segundo mês não expandiu o capítulo")
                 page.screenshot(path=str(OUT/(prefix+"_revisao.png")),full_page=True,timeout=20000)
                 page.evaluate("() => window.PSICO_VACATION_REVIEW.close()")
             except Exception as exc:
