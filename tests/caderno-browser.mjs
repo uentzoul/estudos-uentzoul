@@ -576,6 +576,13 @@ try{
  await twinPage.mouse.click(leftSticky.x,leftSticky.y);
  await twinPage.waitForTimeout(240);
  dataTwin=await notebookData();
+ console.log('TWIN STICKY TRACE',JSON.stringify(await tw.locator('#nbRoot').evaluate(()=>({
+  log:window.__nbGestureLog||[],mode:document.querySelector('#nbSheet')?.dataset?.mode,
+  status:document.querySelector('#nbStatus')?.textContent,
+  page:document.querySelector('#nbPageNum')?.textContent,
+  notes:document.querySelectorAll('#nbStickyLayer .nb-sticky').length,
+  saved:JSON.parse(localStorage.getItem('uentzoul:caderno:alpha2:qa-browser-admin')||'{}').books?.[0]?.pages?.map(p=>p.stickies.length)
+ }))));
  assert.equal(await tw.locator('#nbPageNum').textContent(),'01');
  assert.equal(dataTwin.books[0].pages[0].stickies.length,1,
   'Post-it na folha oposta é aplicado sem um segundo clique');
