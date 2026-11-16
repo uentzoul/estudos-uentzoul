@@ -100,7 +100,6 @@ const explanations={
   "Pulsão como conceito-limite": "Na teoria freudiana, pulsão articula corpo e trabalho psíquico. Não é idêntica a uma resposta reflexa automática.",
   "Fonte, pressão, finalidade e objeto": "O objeto é o meio pelo qual a pulsão pode alcançar satisfação e pode variar. Não é necessariamente fixo.",
   "Dualismos pulsionais": "Freud reformulou a oposição inicial entre pulsões sexuais e de autoconservação para o conflito entre pulsões de vida e de morte.",
-  "Angústia e sinal de perigo": "Na segunda teoria, a angústia pode funcionar como sinal de perigo para o ego e mobilizar defesas; a explicação não se reduz à libido recalcada.",
   "Mecanismos de defesa": "Mecanismos de defesa podem ocorrer em diferentes organizações psíquicas. Um mecanismo isolado não define um diagnóstico.",
   "Narcisismo e constituição do eu": "O conceito freudiano envolve investimento libidinal no eu e sua constituição; não equivale apenas à vaidade cotidiana."
  },
@@ -132,5 +131,5 @@ function explain(subject,topic){
  if(definition)return 'A afirmação não corresponde à explicação do conceito: '+definition;
  return 'Essa afirmação apresenta uma interpretação incorreta do assunto. Consulte o conceito e os materiais originais da disciplina para compreender a distinção.';
 }
-window.PSICO_REVIEW_ERRORS={explain,count:{"tcc":32,"familia":8,"social":33,"grupos":3,"meta":16,"avaliacao":12}};
+window.PSICO_REVIEW_ERRORS={explain,count:{"tcc":32,"familia":8,"social":33,"grupos":3,"meta":15,"avaliacao":12}};
 })();
