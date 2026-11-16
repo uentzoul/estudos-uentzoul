@@ -134,13 +134,13 @@ try{
  const y2=Number((await second.getAttribute('style')).match(/top:\s*([\d.]+)px/)?.[1]);
  assert.equal(y2-y1,34,'Tamanho 1 deve avançar uma linha física');
  const oneLineSizing=await f.locator('#nbTextLayer .nb-note').first().evaluate(el=>{
-  const cap=el.querySelector('.nb-uppercase'),lower=el.querySelector('.nb-lowercase');
+  const content=el.querySelector('.nb-note-content');
   const paper=document.querySelector('#nbSheet'),scale=paper.getBoundingClientRect().width/780;
   const bounds=el.querySelector('.nb-note-content').getBoundingClientRect();
   const positionTop=parseFloat(el.style.top);
   const target=paper.getBoundingClientRect().top+(positionTop+34)*scale;
-  return {capital:parseFloat(getComputedStyle(cap).fontSize),
-   lower:parseFloat(getComputedStyle(lower).fontSize),lineGap:(target-bounds.bottom)/scale,
+  return {capital:parseFloat(getComputedStyle(content).fontSize),
+   lower:parseFloat(getComputedStyle(el).fontSize),lineGap:(target-bounds.bottom)/scale,
    top:positionTop,cssHeight:bounds.height/scale};
  });
  console.log('LINE BASELINE QA '+JSON.stringify(oneLineSizing));
