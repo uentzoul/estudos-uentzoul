@@ -349,7 +349,7 @@ test('Correção local protege o usuário mesmo sem resposta da IA',()=>{
  assert.equal(basic('boa tarde rapaziada'),'Boa tarde, rapaziada.');
  assert.equal(basic('oi pessoal'),'Oi pessoal.');
  assert.equal(basic('nao posso'),'Não posso.');
- assert.match(script,/text:normalizeNoteText\(typed\)/);
+ assert.match(script,/const normalized=normalizeNoteText\(typed\)/);
  assert.match(script,/n\.text=normalizeNoteText\(raw\)/);
  assert.match(script,/list\?list\.prefix\+fallbackBasic/);
  assert.match(script,/input\.value\.endsWith\(' '\)/);
@@ -554,7 +554,7 @@ test('Altura de letra tem somente uma pauta; notas antigas não são destruídas
  assert.match(script,/data\.size=1; \/\/ O editor permite somente a altura de uma pauta/);
  assert.match(script,/const line=editing\.line,top=START\+line\*L-3,fsize=26/);
  assert.match(script,/const lineHeight=L;/);
- assert.match(script,/size:1,ink:data\.ink,align:data\.align/);
+ assert.match(script,/size:1,ink:initialInk/);
  assert.match(script,/item\.scaleY=1; \/\/ Arrastar uma alça não amplia/);
  assert.match(script,/const size=clamp\(Number\(n\.size\)\|\|1,1,3\)/,
   'notas antigas com letras maiores podem ser lidas sem alterar os dados salvos');
