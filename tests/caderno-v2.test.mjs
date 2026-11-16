@@ -49,8 +49,51 @@ test('Enter preserva zoom e só acompanha a linha fora da visualização',()=>{
  assert.doesNotMatch(source,/setZoom\(/,'Enter não força zoom');
 });
 
+test('Enter insere pauta entre textos, empurra notas e conserva excedente na folha seguinte',()=>{
+ const source=fn('function insertBlankPauta(line,alreadyCheckpointed=false){','function previousWritingLine(){');
+ const data={page:0,pages:[
+  {notes:[{id:'a',line:5,span:1,text:'Antes'},{id:'b',line:6,span:1,text:'Depois'},{id:'c',line:29,span:1,text:'Fim'}]},
+  {notes:[{id:'d',line:3,span:2,text:'Próxima folha'}]}
+ ]};
+ let checkpoints=0,rendered=0;
+ const context={data,FIRST_LINE:3,ROWS:30,pendingPage:{notes:[]},
+  emptyPage:()=>({notes:[],date:'',strokes:[],stickies:[]}),
+  checkpoint:()=>checkpoints++,status:()=>{},materializePage:()=>{},
+  renderNotes:()=>rendered++,renderBookSpread:()=>{},renderPageRail:()=>{},
+  save:()=>{},Math};
+ const insert=vm.runInNewContext('('+source+')',context);
+ assert.equal(insert(6),true);
+ assert.equal(data.pages[0].notes.find(n=>n.id==='a').line,5);
+ assert.equal(data.pages[0].notes.find(n=>n.id==='b').line,7,'texto abaixo do Enter desce uma pauta');
+ assert.equal(data.pages[1].notes.find(n=>n.id==='c').line,3,'última linha passa à folha seguinte');
+ assert.equal(data.pages[1].notes.find(n=>n.id==='d').line,4,'conteúdo existente na próxima folha também desce');
+ assert.deepEqual([...data.pages[0].notes,...data.pages[1].notes].map(n=>n.id).sort(),['a','b','c','d']);
+ assert.equal(checkpoints,1,'inserção inteira gera somente um checkpoint');
+ assert.equal(rendered,1);
+ // Enter em uma pauta vazia ainda abre espaço para as notas seguintes.
+ assert.equal(insert(6),true);
+ assert.equal(data.pages[0].notes.find(n=>n.id==='b').line,8);
+ assert.equal(checkpoints,2);
+});
+test('Backspace numa pauta sem texto retorna ao final da anterior sem apagar notas',()=>{
+ const source=fn('function previousWritingLine(){','function advanceLine(to){');
+ const pageData={notes:[{id:'before',line:5,span:1,text:'Não apagar'}]};
+ const input={value:''},visited=[];
+ const context={editing:{line:6,id:null},data:{mode:'text',page:0,pages:[pageData]},editEnabled:true,
+  $:()=>input,listInfo:()=>null,closeEditor:()=>{},
+  beginEdit:line=>visited.push(line),saveEditor:()=>{},page:()=>pageData,
+  pendingPage:{notes:[]},emptyPage:()=>({notes:[]}),renderPage:()=>{},renderPageRail:()=>{},save:()=>{},FIRST_LINE:3,ROWS:30};
+ const back=vm.runInNewContext('('+source+')',context);
+ back();
+ assert.equal(visited.at(-1),5);
+ assert.equal(pageData.notes.length,1);
+ assert.equal(pageData.notes[0].text,'Não apagar');
+ assert.match(script,/event\.key==='Backspace'/);
+ assert.match(script,/saveEditor\(true,true\)/,'Enter ativa inserção sem sobrepor notas');
+});
+
 test('Enter registra e corrige texto e move para a próxima linha; vazio apenas move',()=>{
- const src=fn('function saveEditor(advance=true){','function renderStickies(){');
+ const src=fn('function saveEditor(advance=true,insertLine=false){','function renderStickies(){');
  let calls={checkpoints:0,correct:[],advanced:[],saved:0},value='  Psicologia e uma ciencia  ';
  const mockPage={notes:[]},context={
   editing:{id:null,line:3},data:{font:'print',size:1,ink:'blue'},

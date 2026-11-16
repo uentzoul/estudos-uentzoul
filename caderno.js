@@ -824,18 +824,23 @@ async function correctNote(noteId,raw){
   save();status('Pontuação e maiúsculas corrigidas. Revisão adicional de IA indisponível.','');
  }
 }
-function saveEditor(advance=true){
+function saveEditor(advance=true,insertLine=false){
  if(!editing)return;
  const priorLine=editing.line;
  const typed=String($('nbEditorText')?.value||'').replace(/\r\n?/g,'\n').trimEnd();
  const listOnly=listInfo(typed);
  if(listOnly&&!typed.slice(listOnly.prefix.length).trim()){
-  if(editing.id&&page().notes.some(n=>n.id===editing.id)){
+  const hadNote=!!editing.id;
+  if(hadNote&&page().notes.some(n=>n.id===editing.id)){
    checkpoint();page().notes=page().notes.filter(n=>n.id!==editing.id);
    renderPageRail();save();
   }
   data.listStyle='none';closeEditor();refreshTools();
-  if(advance)advanceLine(priorLine);
+  if(advance){
+   const target=insertLine?priorLine+1:priorLine;
+   if(insertLine)insertBlankPauta(target,hadNote);
+   advanceLine(target);
+  }
   return;
  }
  if(!typed.trim()){
@@ -847,7 +852,10 @@ function saveEditor(advance=true){
    closeEditor();renderPageRail();save();
    status('Anotação apagada. Ctrl+Z desfaz.','success');
   }else closeEditor();
-  if(advance)advanceLine(priorLine+1);
+  if(advance){
+   if(insertLine)insertBlankPauta(priorLine+1,!!previousId);
+   advanceLine(priorLine+1);
+  }
   return;
  }
  checkpoint();
@@ -855,10 +863,13 @@ function saveEditor(advance=true){
  if(!n){n={id:id(),line:editing.line,text:typed};page().notes.push(n)}
  Object.assign(n,{text:normalizeNoteText(typed),original:typed,font:data.font,size:1,ink:data.ink,align:data.align||'left',pending:true,reviewed:false});
  n.span=occupiedSpan(n);makeRoom(n);materializePage();
- const nid=n.id;closeEditor();renderNotes();save();
+ const nextLine=editing.line+Math.max(1,Number(n.span)||1);
+ const nid=n.id;closeEditor();renderNotes();
+ if(advance&&insertLine)insertBlankPauta(nextLine,true);
+ save();
  status('Linha registrada; revisão gramatical em andamento…','');
  void correctNote(nid,typed);
- if(advance)advanceLine(priorLine+1);
+ if(advance)advanceLine(insertLine?nextLine:priorLine+1);
 }
 function renderStickies(){
  $('nbStickyLayer').innerHTML=page().stickies.map(s=>
@@ -1497,11 +1508,80 @@ function pointerUpCanvas(event){
 }
 
 /* A escrita acontece no papel; Enter conclui a linha e posiciona o cursor na próxima. */
+/* Inserir uma pauta sem sobrescrever o texto seguinte; o excedente segue na próxima folha. */
+function insertBlankPauta(line,alreadyCheckpointed=false){
+ const firstPage=line>=ROWS?data.page+1:data.page;
+ const firstLine=line>=ROWS?FIRST_LINE:Math.max(FIRST_LINE,line);
+ if(firstPage>=250){status('O caderno atingiu o limite de folhas.','error');return false;}
+ const staging=new Map();
+ let carry=[],shifted=false,finished=false;
+ for(let index=firstPage;index<250;index++){
+  const source=index<data.pages.length?data.pages[index]:(index===data.page?pendingPage:null);
+  const notes=(source?.notes||[]).map(n=>({...n}));
+  if(index===firstPage){
+   for(const note of notes){
+    if(Number(note.line)>=firstLine){note.line=Number(note.line)+1;shifted=true;}
+   }
+  }
+  if(carry.length){
+   const used=Math.max(...carry.map(n=>Number(n.line)+Math.max(1,Number(n.span)||1)))-FIRST_LINE;
+   for(const note of notes)note.line=Number(note.line)+used;
+   notes.push(...carry);shifted=true;
+  }
+  notes.sort((a,b)=>Number(a.line)-Number(b.line));
+  const overflow=notes.filter(n=>Number(n.line)+Math.max(1,Number(n.span)||1)>ROWS);
+  staging.set(index,notes.filter(n=>!overflow.includes(n)));
+  if(!overflow.length){finished=true;break;}
+  let end=FIRST_LINE;
+  const first=Number(overflow[0].line);
+  carry=overflow.map(note=>{
+   const target=Math.max(end,FIRST_LINE+Number(note.line)-first);
+   end=target+Math.max(1,Number(note.span)||1);
+   return {...note,line:target};
+  });
+ }
+ if(!finished){status('Sem espaço suficiente para inserir uma linha sem perder texto.','error');return false;}
+ if(!shifted)return true;
+ if(!alreadyCheckpointed)checkpoint();
+ for(const [index,notes] of staging){
+  if(index<data.pages.length)data.pages[index].notes=notes;
+  else if(index===data.page)pendingPage.notes=notes;
+  else{
+   while(data.pages.length<index)data.pages.push(emptyPage());
+   data.pages.push({...emptyPage(),notes});
+  }
+ }
+ materializePage();
+ renderNotes();renderBookSpread();renderPageRail();save();
+ return true;
+}
+function previousWritingLine(){
+ if(!editing||data.mode!=='text'||!editEnabled)return;
+ const input=$('nbEditorText');
+ if(!input)return;
+ const typed=String(input.value||'');
+ const marker=listInfo(typed);
+ if(typed.trim()&&!(marker&&!typed.slice(marker.prefix.length).trim()))return;
+ const at=editing.line;
+ // Confirma exclusão apenas se o aluno apagou uma anotação existente.
+ if(editing.id)saveEditor(false);
+ else closeEditor();
+ if(at>FIRST_LINE){beginEdit(at-1);return;}
+ if(data.page>0){
+  data.page--;pendingPage=emptyPage();renderPage();renderPageRail();
+  const previous=page().notes.filter(n=>Number(n.line)<ROWS)
+   .sort((a,b)=>Number(b.line)-Number(a.line))[0];
+  beginEdit(previous?Number(previous.line):ROWS-1);
+  save();
+ }else beginEdit(FIRST_LINE);
+}
 function advanceLine(to){
  if(to>=ROWS){
-  if(data.page<data.pages.length){flip(1);setTimeout(()=>{if(data.mode==='text')beginEdit(FIRST_LINE)},230)}
-  else status('Fim da folha. Use Próxima para continuar em uma nova página.','');
-  return;
+  if(data.page+1>=250){status('Limite de folhas do caderno atingido.','error');return;}
+  data.page++;pendingPage=emptyPage();selected=null;selectedStroke=-1;
+  renderPage();renderPageRail();
+  view.scrollTop=0;view.scrollLeft=0;
+  save();beginEdit(FIRST_LINE);return;
  }
  let line=Math.max(FIRST_LINE,to);
  for(let i=0;i<ROWS;i++){
@@ -2222,8 +2302,15 @@ root.addEventListener('keydown',event=>{
   return;
  }
  if(event.target.id==='nbEditorText'){
+  if(event.key==='Backspace'&&!event.isComposing&&!event.ctrlKey&&!event.metaKey&&!event.altKey&&
+   editing&&(!event.target.value.trim()||(()=>{
+    const entry=listInfo(event.target.value);
+    return !!(entry&&!event.target.value.slice(entry.prefix.length).trim());
+   })())){
+   event.preventDefault();event.stopPropagation();previousWritingLine();return;
+  }
   if(event.key==='Enter'&&!event.shiftKey&&!event.isComposing){
-   event.preventDefault();event.stopPropagation();saveEditor(true);return;
+   event.preventDefault();event.stopPropagation();saveEditor(true,true);return;
   }
   // Dois espaços seguidos no fim da linha confirmam a anotação.
   // Um espaço sozinho continua separando palavras normalmente.

@@ -870,6 +870,39 @@ try{
    'Enquadramento de Moldar fora do traço no DPR 2, lado '+i+': '+JSON.stringify(geometry)));
   await hiContext.close();
 
+  // Editor com notas acima e abaixo: Enter cria uma pauta; Backspace vazio volta para a anterior.
+  const flowContext=await browser.newContext({viewport:{width:1340,height:930}});
+  const flowPage=await flowContext.newPage(),flowErrors=[];
+  flowPage.on('pageerror',error=>flowErrors.push(error.message));
+  await flowPage.goto(address,{waitUntil:'domcontentloaded'});
+  const flow=flowPage.frameLocator('#nbQaFrame');
+  await flow.locator('#nbShelf').waitFor({state:'visible'});
+  await flow.locator('[data-nb-shelf-book="materia-familia"]').click();
+  await flow.locator('[data-nb-action="text"]').click();
+  const flowBox=await flow.locator('#nbSheet').boundingBox();
+  await flowPage.mouse.click(flowBox.x+260*flowBox.width/780,flowBox.y+(28+3*34+8)*flowBox.height/1240);
+  await flow.locator('#nbEditorText').fill('Texto anterior');
+  await flow.locator('#nbEditorText').press('Enter');
+  await flow.locator('#nbEditorText').fill('Texto seguinte');
+  await flow.locator('#nbEditorText').press('Enter');
+  const getLine=async text=>flow.locator('#nbTextLayer .nb-note').evaluateAll((els,query)=>{
+   const node=els.find(el=>el.textContent.includes(query));
+   return node?Math.round((parseFloat(node.style.top)+3-28)/34):null;
+  },text);
+  assert.equal(await getLine('Texto anterior'),3);
+  assert.equal(await getLine('Texto seguinte'),4);
+  const beforeZoom=await flow.locator('#nbZoomText').textContent();
+  const current=await flow.locator('#nbSheet').boundingBox();
+  await flowPage.mouse.click(current.x+260*current.width/780,current.y+(28+3*34+8)*current.height/1240);
+  await flow.locator('#nbEditorText').press('Enter');
+  assert.equal(await getLine('Texto seguinte'),5,'Enter entre textos empurra a anotação de baixo');
+  assert.equal(await flow.locator('#nbZoomText').textContent(),beforeZoom,'Enter não muda zoom');
+  await flow.locator('#nbEditorText').press('Backspace');
+  assert.match(await flow.locator('#nbEditorText').inputValue(),/Texto anterior/,'Backspace retorna ao fim da nota anterior');
+  assert.equal(await getLine('Texto seguinte'),5,'Backspace não apaga a nota deslocada');
+  assert.deepEqual(flowErrors,[]);
+  await flowContext.close();
+
   const tourContext=await browser.newContext({viewport:{width:1280,height:900}});
  const tourPage=await tourContext.newPage();
  await tourPage.goto(address,{waitUntil:'domcontentloaded'});
