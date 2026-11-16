@@ -1225,7 +1225,23 @@ function renderGallery(){
 }
 function transitionView(change,fromEl=null,toEl=null){
  const reduced=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
- if(reduced||!document.startViewTransition){change();return}
+ if(reduced){change();return}
+ if(!document.startViewTransition){
+  // Safari/navegadores sem View Transitions: abrir e voltar à estante nunca será instantâneo.
+  change();
+  const destination=typeof toEl==='function'?toEl():toEl;
+  if(destination?.animate){
+   const opening=document.documentElement.classList.contains('nb-opening-book');
+   destination.animate(opening?[
+    {opacity:0,transform:'perspective(1100px) rotateY(-14deg) scale(.86)'},
+    {opacity:1,transform:'perspective(1100px) rotateY(0deg) scale(1)'}
+   ]:[
+    {opacity:.18,transform:'perspective(1100px) rotateY(-65deg) scale(.85)'},
+    {opacity:1,transform:'perspective(1100px) rotateY(0deg) scale(1)'}
+   ],{duration:800,easing:'cubic-bezier(.18,.72,.22,1)'});
+  }
+  return;
+ }
  if(fromEl)fromEl.style.viewTransitionName='nb-shared-sheet';
  const transition=document.startViewTransition(()=>{
   change();
