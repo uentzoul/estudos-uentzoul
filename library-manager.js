@@ -42,6 +42,20 @@ function selectedBatchSubject(){
 }
 
 const WEEK_TABLE='uentzoul_material_weeks',PLACEMENTS='uentzoul_material_placements';
+const TEACHER_GUIDE_TAG='psicomoodle:estudo-dirigido:professor';
+const isTeacherGuideName=r=>/(^| )(estudo dirigido|roteiro de estudos)( |$)/.test(foldText([r.file?.name,r.title].join(' ')));
+const guessAssessment=r=>{
+ const t=foldText([r.title,r.file?.name].join(' '));
+ const m=t.match(/\b(a1|a2|p1|p2)\b/);
+ return m?m[1].toUpperCase():(/\b(prova final|avaliacao final|final)\b/.test(t)?'Final':'');
+};
+const teacherGuide=r=>!!r.professorGuide&&r.category==='activities';
+const mustScheduleEntry=(sem,r)=>mustSchedule(sem)&&!teacherGuide(r);
+const taggedTopics=r=>{
+ const tags=(r.analysis?.topics||[]).filter(t=>typeof t==='string').slice(0,teacherGuide(r)?13:15);
+ if(teacherGuide(r)){tags.push(TEACHER_GUIDE_TAG);if(r.guideExam)tags.push('psicomoodle:prova:'+r.guideExam);}
+ return tags;
+};
 const LIBRARY_CATEGORIES=[['plans','Planos de ensino e cronogramas'],['classes','Aulas e apresentações'],['texts','Artigos e textos-base'],['books','Livros, capítulos e obras de referência'],['activities','Atividades e estudos dirigidos'],['regulations','Normas e documentos profissionais'],['reports','Relatórios, cartilhas e infográficos'],['review','Guias e materiais de revisão'],['videos','Vídeos e referências online'],['extras','Materiais complementares']];
 const foldText=x=>String(x||'').toLocaleLowerCase('pt-BR').normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]+/g,' ').trim();
 function suggestCategory(r){
@@ -111,6 +125,7 @@ function destinationOptions(r){
   clean(x.title)+(x.uploaded?' · substituir arquivo':' · arquivo pendente')+'</option>').join('');
 }
 function reviewCard(r,i){
+ const scheduled=mustScheduleEntry(api()?.semester?.(),r);
  const a=r.analysis,quality=a?.quality||'',hit=a?.hits?.length?a.hits.slice(0,7).join(' · '):'Nenhum marcador forte identificado';
  const status=!a?'Analisando o conteúdo…':quality==='pacote'?'Arquivo identificado em pacote organizado · confirme o destino antes de publicar':quality==='texto'?
   'Texto analisado · '+(a.textLength/1000).toFixed(1)+' mil caracteres amostrados · '+(a.confidence==='alta'?'confiança alta':a.confidence==='moderada'?'confiança moderada':'confirmar classificação'):
@@ -126,20 +141,27 @@ function reviewCard(r,i){
   (a?.quality==='texto'?'<div class="library-review-evidence"><strong>Assuntos reconhecidos no conteúdo</strong><span>'+clean(hit)+'</span><small class="library-review-exam-match">'+clean(examStatus)+'</small>'+
   (a.preview?'<details><summary>Ver trecho extraído para conferência</summary><p>'+clean(a.preview)+'</p></details>':'')+'</div>':'')+
   (warn?'<p class="library-review-warning">'+clean(warn)+'</p>':'')+
-  (mustSchedule(api()?.semester?.())&&r.suggestion?.uploaded?
+  (scheduled&&r.suggestion?.uploaded?
    '<p class="library-review-warning">Um arquivo com este nome já existe no acervo. Este envio criará uma nova cópia, sem substituir o material atual das provas.</p>':'')+
   '<div class="library-review-fields"><label>Disciplina <select data-review-subject="'+i+'">'+choices+'</select></label>'+
   '<label>Vincular a material existente ou criar novo <select data-review-target="'+i+'">'+destinationOptions(r)+'</select></label>'+
   (r.targetKey==='__new__'?'<label>Nome exibido na Biblioteca <input data-review-title="'+i+'" maxlength="160" type="text" value="'+clean(r.title)+'" placeholder="Título do material"></label>':'')+
   (['2026/1','2026/2'].includes(api()?.semester?.())?'<label>'+(api()?.semester?.()==='2026/1'?'Tema de revisão (semana não confirmada)':'Seção no Moodle')+' <select data-review-section="'+i+'">'+sectionOptions(r)+'</select></label>'+
    '<label>Categoria no Acervo geral <select data-review-category="'+i+'">'+categoryOptions(r)+'</select></label>':'')+
+  (r.category==='activities'?'<label>É estudo dirigido oficial do professor? <select data-review-teacher-guide="'+i+'">'+
+   '<option value="no" '+(!r.professorGuide?'selected':'')+'>Não · atividade comum</option>'+
+   '<option value="yes" '+(r.professorGuide?'selected':'')+'>Sim · roteiro oficial do professor</option></select></label>'+
+   (r.professorGuide?'<label>Prova <select data-review-guide-exam="'+i+'">'+
+   [['','Não identificada'],['P1','P1'],['P2','P2'],['A1','A1'],['A2','A2'],['Final','Final']].map(([v,label])=>
+   '<option value="'+v+'" '+(r.guideExam===v?'selected':'')+'>'+label+'</option>').join('')+'</select></label>':''):'')+
   '<label>Visibilidade <select data-review-scope="'+i+'">'+
-  (mustSchedule(api()?.semester?.())?
+  (scheduled?
    '<option value="scheduled" selected>Disponível agora no acervo · fora da prova atual</option>':
    '<option value="in" '+(r.scope==='in'?'selected':'')+'>'+(api()?.semester?.()==='2026/1'?'Biblioteca do 1º semestre':'Biblioteca do 2º semestre')+'</option>'+
    '<option value="archive" '+(r.scope==='archive'?'selected':'')+'>Guardar fora da revisão</option>')+
   '</select></label></div>'+
-  '<p class="library-review-foot">'+(mustSchedule(api()?.semester?.())?
+  '<p class="library-review-foot">'+(teacherGuide(r)?
+  'Este roteiro do professor será publicado agora em Estudos Dirigidos e terá prioridade sobre a versão gerada por IA.':scheduled?
   'Este arquivo aparecerá no Acervo geral e em Por semanas para todos. Os simulados, flashcards e demais atividades do 2º semestre continuarão usando apenas os conteúdos das últimas provas.':
   (r.targetKey==='__new__'?'O arquivo será cadastrado como material novo.':'Este arquivo será associado ao material selecionado.')+
    ' O destino pode ser alterado antes da publicação.')+
@@ -208,7 +230,7 @@ async function select(files){
  }
  ++scanToken;const mine=scanToken;
  reviewed=list.map(file=>({file,analysis:null,subject:selectedBatchSubject(),title:titleFromFile(file,null),
-  suggestion:getTarget(file),targetKey:'__new__',scope:'in',conflict:false}));
+  suggestion:getTarget(file),targetKey:'__new__',scope:'in',conflict:false,professorGuide:false,guideExam:''}));
  chosenFiles=list;logEntries=[];isAnalyzing=!!list.length;paint();
  for(let i=0;i<reviewed.length;i++){
   if(scanToken!==mine)return;
@@ -227,6 +249,8 @@ async function select(files){
    r.scope=mustSchedule(reviewSemester)?'scheduled':(api()?.semester?.()==='2026/1'?'in':(known?.inExam||['principal','complementar'].includes(r.analysis?.examMatch)?'in':'archive'));
   }catch(err){r.analysis={quality:'indisponivel',error:err?.message||'Leitura indisponível'};r.subject=selectedBatchSubject()||r.suggestion?.subject||'';r.targetKey=mustSchedule(reviewSemester)?'__new__':(r.suggestion?.key||'__new__');r.scope=mustSchedule(reviewSemester)?'scheduled':(api()?.semester?.()==='2026/1'||r.suggestion?.inExam?'in':'archive')}
   suggestOrganization(r);
+  r.guideExam=guessAssessment(r);
+  r.professorGuide=r.category==='activities'&&isTeacherGuideName(r);
   paint();
  }
  if(scanToken!==mine)return;isAnalyzing=false;paint();
@@ -291,6 +315,8 @@ async function importLibraryPackage(archive,append=false){
     subject:item.subject,title:item.title.trim(),suggestion:exact||null,targetKey:mustSchedule(reviewSemester)?'__new__':(exact?.key||'__new__'),
     scope:mustSchedule(reviewSemester)?'scheduled':(item.scope==='archive'?'archive':'in'),conflict:false});
    suggestOrganization(next[next.length-1]);
+   next[next.length-1].guideExam=guessAssessment(next[next.length-1]);
+   next[next.length-1].professorGuide=next[next.length-1].category==='activities'&&isTeacherGuideName(next[next.length-1]);
   }
   if(scanToken!==mine)return;
   const combined=[...previous,...next];
