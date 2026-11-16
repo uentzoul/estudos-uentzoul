@@ -482,39 +482,20 @@ test('Caderno permanece aberto durante atualizações assíncronas de outras se�
 });
 
 
-test('Entradas JavaScript e estilos locais apontam para arquivos presentes',()=>{
+test('Scripts e estilos locais referenciados no HTML existem',()=>{
  const resources=[...html.matchAll(/<(script|link)\b[^>]+\b(?:src|href)=["']([^"']+)["']/gi)];
  const local=resources.map(m=>m[1]).filter(url=>!/^https?:|^\/\/|^data:|^\//i.test(url))
-  .filter(url=>!url.includes('
- const loader=read('site-version.js');
- assert.match(loader,/opacity:0;visibility:hidden/,'iframe permanece oculto durante o primeiro carregamento');
- assert.match(loader,/nb-frame-ready\{opacity:1;visibility:visible/,'o caderno só aparece quando pronto');
- assert.match(loader,/frame\.addEventListener\('load'/,'aguarda o carregamento do caderno');
- assert.match(loader,/doc\.readyState!==['"]complete['"]/,'aguarda conteúdo completo');
- assert.match(loader,/frame\.classList\.remove\('nb-frame-ready'\)/,'oculta novamente antes de trocar semestre');
- assert.match(html,/site-version\.js\?v=20261116-caderno-v[0-9]+-[a-z0-9-]+/,'carregamento da versão atualizada');
-});
-
-test('Revisão de Férias: clique delegado, botão destravado e sem fade global',()=>{
- const review=read('revisao-ferias.js');
- assert.match(review,/if\(b\.disabled\)b\.disabled=false/);
- assert.match(review,/removeAttribute\('aria-disabled'\)/);
- assert.match(review,/removeAttribute\('inert'\)/);
- assert.match(review,/event\.target\?\.closest\?\.\('#navVacationReview'\)/);
- assert.match(review,/if\(visible&&semester===selectedSemester&&document\.getElementById\('vr-root'\)\)/);
- assert.doesNotMatch(read('revisao-ferias.css'),/animation:vr-page-enter\s*\.\d/);
-});
-+'{')).map(url=>url.split(/[?#]/)[0].replace(/^\.\//,''));
- assert.ok(local.length>=35,'O site precisa manter os módulos publicados');
+  .map(url=>url.split(/[?#]/)[0].replace(/^\.\//,''));
+ assert.ok(local.length>=35,'Site precisa carregar os módulos');
  for(const file of local)assert.ok(fs.existsSync(path.join(root,file)),'Arquivo local ausente: '+file);
 });
 
-test('Versão do Caderno invalida o cache do carregador principal',()=>{
+test('Carregador do Caderno atualiza sua versão de cache no HTML',()=>{
  const loader=read('site-version.js');
  const entry=html.match(/site-version\.js\?v=([^"']+)/);
  const notebook=loader.match(/caderno\.html\?v=([^&"']+)/);
- assert.ok(entry&&notebook,'Ambos os links precisam de uma revisão de cache');
- assert.equal(entry[1],notebook[1],'A página inicial não pode prender uma versão antiga do Caderno');
+ assert.ok(entry&&notebook,'Versões do carregador e do Caderno devem existir');
+ assert.equal(entry[1],notebook[1],'Atualizações do Caderno precisam invalidar o cache do carregador');
 });
 
 test('Caderno não expõe o iframe branco antes de carregar',()=>{
