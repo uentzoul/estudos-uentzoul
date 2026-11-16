@@ -687,14 +687,16 @@ html.nb-closing-book::view-transition-new(nb-shared-sheet){
 .nb-paper-date-read{display:none;font:700 16px/30px 'DM Sans',system-ui,sans-serif;color:#4b3d5f}
 .nb-reading .nb-paper-date-read:not([hidden]){display:block!important;width:100%;text-align:right}
 .nb-snapshot-sheet .nb-paper-date-label{display:none!important}
+/* Frente de caderno aberto: a margem vermelha acompanha os furos, sempre no lado da lombada.
+   Esquerda => furos e margem à direita. Direita => furos e margem à esquerda. */
 .nb-snapshot-sheet.nb-left-page:before,
 .nb-stage.nb-double .nb-sheet.nb-left-page:before{left:auto!important;right:85px!important}
 .nb-snapshot-sheet.nb-right-page:before,
 .nb-stage.nb-double .nb-sheet.nb-right-page:before{right:auto!important;left:85px!important}
 .nb-snapshot-sheet.nb-left-page .nb-holes,
-.nb-stage.nb-double .nb-sheet.nb-left-page .nb-holes{left:22px!important;right:auto!important}
+.nb-stage.nb-double .nb-sheet.nb-left-page .nb-holes{left:auto!important;right:22px!important}
 .nb-snapshot-sheet.nb-right-page .nb-holes,
-.nb-stage.nb-double .nb-sheet.nb-right-page .nb-holes{left:auto!important;right:22px!important}
+.nb-stage.nb-double .nb-sheet.nb-right-page .nb-holes{right:auto!important;left:22px!important}
 .nb-stage.nb-double:before{display:none!important}
 html[data-theme="dark"] .nb-align-select{background:#203149;border-color:#3b4e69;color:#e9effa}
 /* Miniaturas em pares, uma folha de cada lado da encadernação. */
@@ -719,3 +721,7 @@ html[data-theme="dark"] .nb-align-select{background:#203149;border-color:#3b4e69
  border-radius:15px;padding:28px;text-align:center;box-shadow:0 8px 28px #30243f13}
 .nb-phone-unavailable h1{font-size:20px;line-height:1.35;margin:0 0 12px}
 .nb-phone-unavailable p{font-size:14px;line-height:1.6;margin:0;color:#655e73}
+
+/* Em caderno aberto, arrastar a folha oposta funciona tanto lendo quanto editando. */
+.nb-stage.nb-double #nbCompanionWrap{touch-action:none!important;cursor:grab}
+.nb-stage.nb-double #nbCompanionWrap:active{cursor:grabbing}
