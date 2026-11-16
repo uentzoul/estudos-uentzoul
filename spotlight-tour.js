@@ -574,7 +574,7 @@ function show(n){
  // um alvo antigo sobre a próxima tela (iPhone, inclusive ao voltar).
  clearTimeout(fadeTimer);
  document.documentElement.dataset.pmTourPreparing='true';
- if(spot)spot.style.visibility='hidden';
+ if(spot){spot.style.display='none';spot.style.visibility='hidden';}
  if(sidebarSpot)sidebarSpot.hidden=true;
  shell.querySelector('.pm-spotlight-svg').setAttribute('viewBox','0 0 '+innerWidth+' '+innerHeight);
  shell.querySelector('.pm-spotlight-path').setAttribute('d','M 0 0 H '+innerWidth+' V '+innerHeight+' H 0 Z');
