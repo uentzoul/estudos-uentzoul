@@ -356,7 +356,9 @@ test('Caderno abre para contas registradas e mantém anotações privadas',()=>{
  assert.match(loader,/if\(button\.disabled\)button\.disabled=false/,'botão conduz ao login quando necessário');
  assert.match(loader,/if\(!loggedIn\(\)\)\{/,'acesso solicita conta quando não autenticado');
  const siteMarkup=read('index.html');
- assert.match(siteMarkup,/id="navCadernoPreview"\s+disabled aria-disabled="true"/,'estado inicial já bloqueado sem flash visual');
+ assert.match(siteMarkup,/id="navCadernoPreview"\s+aria-label="Caderno/,'botão público desde o primeiro paint');
+  assert.doesNotMatch(siteMarkup,/id="navCadernoPreview"\s+disabled/,'visitantes podem clicar para entrar ou cadastrar');
+  assert.doesNotMatch(siteMarkup,/<span class="nav-label">Caderno<\/span><span class="nb-preview-label">Em breve<\/span>/);
  assert.doesNotMatch(siteMarkup,/id="navCadernoPreview"\s+style="visibility:hidden"/);
  assert.match(loader,/data-page="exams"/);
  assert.match(loader,/caderno\.html\?v=/);
@@ -373,6 +375,26 @@ test('Caderno abre para contas registradas e mantém anotações privadas',()=>{
  assert.doesNotMatch(notebook,/\.from\(['"]uentzoul_(?:messages|progress|profiles|exams)/);
 });
 
+
+test('Tutorial do Caderno apresenta ferramentas sem escrever nas notas',()=>{
+ const tutorial=read('caderno-tutorial.js'),notebook=read('caderno.js');
+ const html=read('caderno.html'),css=read('caderno.css'),loader=read('site-version.js');
+ assert.match(notebook,/data-nb-tour-start/);
+ assert.match(tutorial,/nb-tour-card/);
+ assert.match(tutorial,/document\.body\.appendChild\(overlay\)/);
+ assert.match(tutorial,/if\(active&&event\.key==='Escape'\)/);
+ assert.match(tutorial,/data-nb-action="backToBooks"/);
+ for(const feature of ['Escrever','Selecionar','Desenhar','Ajustar traços','Borracha',
+  'Post-its','Moldar desenhos','PDF','zoom','atalhos']){
+  assert.ok(tutorial.includes(feature),'ausência no tutorial: '+feature);
+ }
+ assert.match(html,/src="caderno-tutorial\.js\?v=/);
+ assert.match(css,/\.nb-shelf-tutorial-button\{/);
+ assert.match(notebook,/from\('uentzoul_notebooks'\)\.upsert/);
+ assert.match(notebook,/\.select\('content,client_modified_at'\)/);
+ assert.match(notebook,/backup-before-cloud/);
+ assert.match(loader,/uentzoulAIAuth\?\.openLogin/);
+});
 
 test('Caderno ajusta círculo, retângulo e linhas sem confundir as formas',()=>{
  const source=read('caderno.js');
@@ -437,8 +459,8 @@ test('Ajuste inteligente do caderno reconhece meia-lua e não destrói desenhos 
  assert.match(source,/const r=smartStroke\(item\.points\)/);
  assert.ok(source.includes("!['line','polygon','rectangle'].includes(s.kind)"),'arestas retas no canvas');
  assert.ok(pdf.includes("!['line','polygon','rectangle'].includes(stroke.kind)"),'arestas retas no PDF');
- assert.match(read('caderno.html'),/20261116-caderno-v21-erase-blur-guard/);
- assert.match(read('site-version.js'),/caderno\.html\?v=20261116-caderno-v21-erase-blur-guard/);
+ assert.match(read('caderno.html'),/20261116-caderno-v22-publico-tutorial-sync/);
+ assert.match(read('site-version.js'),/caderno\.html\?v=20261116-caderno-v22-publico-tutorial-sync/);
 });
 
 test('Caderno remove a seta superior sem alterar a navegação restante',()=>{
