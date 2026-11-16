@@ -3,7 +3,7 @@
    Roteiros originais dos professores são preservados separadamente. */
 (()=>{
 'use strict';
-const TARGETS=['tcc','familia','meta','grupos','avaliacao'];
+const TARGETS=['tcc','familia','meta','grupos','social','avaliacao'];
 function makeQuestion(topic,i){
  const scenario=String(topic.scenario||'Analise como o conceito se aplica a uma situação real, respeitando o contexto.').trim();
  const idea=String(topic.definition||'').trim();
