@@ -32,7 +32,7 @@ if(!userId){
  root.innerHTML='<section><strong>Acesso restrito.</strong><p>Esta prévia só pode ser aberta por uma conta administrativa autenticada no site.</p></section>';
  return;
 }
-const W=780,H=1240,L=34,START=28,ROWS=30,FIRST_LINE=3;
+const W=780,H=1240,L=34,START=28,ROWS=30,FIRST_LINE=3,BINDER_SAFE=58;
 // Cada semestre tem seu catálogo e seu armazenamento. O 2026/2 conserva a chave
 // original para manter intactas todas as anotações já existentes.
 const SEMESTERS={
@@ -328,7 +328,7 @@ root.innerHTML=
  '<div class="nb-workspace" id="nbWorkspace"><aside id="nbPageRail" class="nb-page-rail" aria-label="Folhas deste caderno"></aside>'+
  '<div class="nb-view" id="nbViewport" aria-label="Folha do caderno, com zoom e rolagem">'+
  '<div class="nb-stage" id="nbStage"><div class="nb-sheet-wrap" id="nbWrap">'+
- '<div class="nb-sheet" id="nbSheet"><div class="nb-holes" aria-hidden="true"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div>'+
+ '<div class="nb-sheet" id="nbSheet"><div class="nb-holes" aria-hidden="true"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div><span class="nb-binder-zone" aria-hidden="true"></span>'+
  '<div class="nb-paper-date-group"><label class="nb-paper-date-label" for="nbPaperDate">Data</label><input id="nbPaperDate" class="nb-paper-date" type="date" aria-label="Data da aula"><span id="nbPaperDateRead" class="nb-paper-date-read" hidden></span></div>'+
  '<button class="nb-corner-back" data-nb-action="prev" aria-label="Voltar à página anterior" title="Página anterior">‹</button>'+
  '<div class="nb-line-hover" id="nbLineHover" hidden></div>'+
@@ -362,7 +362,11 @@ function updateBookHeading(){$('nbBookHeading').textContent=activeBook().name||'
 const view=$('nbViewport'),sheet=$('nbSheet'),canvas=$('nbDrawing'),ctx=canvas.getContext('2d'),wrap=$('nbWrap'),companion=$('nbCompanionWrap'),stage=$('nbStage');
 function currentRect(){return sheet.getBoundingClientRect()}
 function point(event){
- const r=currentRect();return{x:clamp((event.clientX-r.left)/data.zoom,0,W),y:clamp((event.clientY-r.top)/data.zoom,0,H)};
+ const r=currentRect();
+ const rawX=clamp((event.clientX-r.left)/data.zoom,0,W);
+ const x=data.layout==='book'&&editEnabled?
+  (data.page%2===0?Math.min(rawX,W-BINDER_SAFE):Math.max(rawX,BINDER_SAFE)):rawX;
+ return{x,y:clamp((event.clientY-r.top)/data.zoom,0,H)};
 }
 function syncLayoutGeometry(){
  const book=data.layout==='book';
@@ -387,9 +391,20 @@ function renderBookSpread(){
  $('nbCompanionPaper').innerHTML=snapshotSheetMarkup(other,index);
  companion.setAttribute('aria-label','Abrir e editar folha '+(index+1));
 }
+function companionIndex(){return data.page%2===0?data.page+1:data.page-1}
+function isInBinderZone(event){
+ if(data.layout!=='book')return false;
+ const onLive=!!event.target.closest?.('#nbSheet');
+ const onOther=!!event.target.closest?.('#nbCompanionWrap');
+ if(!onLive&&!onOther)return false;
+ const rect=(onLive?sheet:companion).getBoundingClientRect();
+ const x=(event.clientX-rect.left)/Math.max(.01,data.zoom);
+ const index=onLive?data.page:companionIndex();
+ return index%2===0?x>=W-BINDER_SAFE:x<=BINDER_SAFE;
+}
 function activateCompanion(event){
  if(data.layout!=='book'||flipping)return;
- const target=data.page%2===0?data.page+1:data.page-1;
+ const target=companionIndex();
  if(target>data.pages.length||!editEnabled&&target===data.pages.length){
   status('Escreva primeiro na folha esquerda para continuar à direita.','');
   return;
@@ -400,6 +415,31 @@ function activateCompanion(event){
  renderPage();renderPageRail();save();
  if(data.mode==='text'&&localY>=START+FIRST_LINE*L&&localY<=START+ROWS*L)
   beginEdit(clamp(Math.floor((localY-START)/L),FIRST_LINE,ROWS-1));
+}
+// O papel oposto passa a usar imediatamente a ferramenta ativa.
+ // A troca preserva a posição visual das folhas: somente a folha viva muda de lado.
+function beginOpposingLeafGesture(event){
+ if(shelfOpen||!editEnabled||data.layout!=='book'||data.mode==='none'||flipping||isInBinderZone(event))return false;
+ const target=companionIndex();
+ if(target>data.pages.length)return false;
+ event.preventDefault();event.stopImmediatePropagation();
+ if(editing)saveEditor(false);
+ data.page=target;pendingPage=emptyPage();selected=null;selectedStroke=-1;
+ renderPage();renderPageRail();save();
+ suppressLeafClickUntil=Date.now()+450;
+ // Não depender de um segundo clique. O primeiro pointerdown é reproduzido
+ // na folha ativa recém-trocada para Desenhar, Apagar, Selecionar, Moldar, Post-it e Escrever.
+ const recipient=document.elementFromPoint(event.clientX,event.clientY);
+ if(!recipient?.closest('#nbSheet'))return true;
+ const copy=new PointerEvent('pointerdown',{
+  bubbles:true,cancelable:true,composed:true,pointerId:event.pointerId,
+  pointerType:event.pointerType,button:event.button,buttons:event.buttons,
+  isPrimary:event.isPrimary,clientX:event.clientX,clientY:event.clientY,
+  ctrlKey:event.ctrlKey,altKey:event.altKey,shiftKey:event.shiftKey,metaKey:event.metaKey,
+  pressure:event.pressure
+ });
+ recipient.dispatchEvent(copy);
+ return true;
 }
 function setZoom(value,saveState=true){
  data.zoom=clamp(Number(value)||1,.42,2.3);
@@ -1133,7 +1173,7 @@ function snapshotStickyMarkup(st){
 function snapshotSheetMarkup(p,index){
  const date=p.date?new Date(p.date+'T12:00:00').toLocaleDateString('pt-BR'):'';
  return '<span class="nb-sheet nb-snapshot-sheet '+(index%2===0?'nb-left-page':'nb-right-page')+'" aria-hidden="true">'+
-  '<span class="nb-holes">'+Array.from({length:8},()=>'<span></span>').join('')+'</span>'+
+  '<span class="nb-holes">'+Array.from({length:8},()=>'<span></span>').join('')+'</span><span class="nb-binder-zone" aria-hidden="true"></span>'+
   (date?'<span class="nb-paper-date-group nb-has-date"><span class="nb-snapshot-date">'+esc(date)+'</span></span>':'')+
   snapshotSvg(p)+
   '<span class="nb-text-layer">'+(p.notes||[]).map(n=>noteMarkup(n,false).replace(' data-nb-note="'+esc(n.id)+'"','')).join('')+'</span>'+
@@ -1592,7 +1632,9 @@ root.addEventListener('click',event=>{
  if(bind){listening=bind.dataset.nbBind;$('nbShortcutHint').textContent='Pressione uma tecla ou botão extra do mouse.';updateShortcutsList();return;}
  const button=event.target.closest('[data-nb-action]');
  if(button?.dataset.nbAction==='switchLeaf'){
-  if(Date.now()<suppressLeafClickUntil){event.preventDefault();return;}
+  if(data.layout==='book'&&(data.mode==='none'||Date.now()<suppressLeafClickUntil)){
+   event.preventDefault();return;
+  }
   activateCompanion(event);return;
  }
  if(button){act(button.dataset.nbAction);return}
@@ -1692,6 +1734,25 @@ document.addEventListener('keydown',event=>{
  const action=Object.keys(data.shortcuts).find(k=>data.shortcuts[k]===code);
  if(action&&!shelfOpen){event.preventDefault();act(action);}
 });
+// Faixa de proteção junto à lombada: nenhum gesto, seleção ou ferramenta.
+root.addEventListener('pointerdown',event=>{
+ if(isInBinderZone(event)){event.preventDefault();event.stopImmediatePropagation();return;}
+ if(event.button===0&&event.target.closest('#nbCompanionWrap')&&
+    editEnabled&&data.mode!=='none'){
+  beginOpposingLeafGesture(event);
+ }
+},true);
+root.addEventListener('click',event=>{
+ if(isInBinderZone(event)){event.preventDefault();event.stopImmediatePropagation();}
+},true);
+root.addEventListener('contextmenu',event=>{
+ if(isInBinderZone(event)){event.preventDefault();event.stopImmediatePropagation();}
+},true);
+root.addEventListener('pointerup',event=>{
+ if(event.target.closest?.('#nbCompanionWrap')&&editEnabled&&data.mode!=='none')
+  suppressLeafClickUntil=Date.now()+250;
+},true);
+
 root.addEventListener('pointerdown',event=>{
  if(event.button===3){sideBack(event);return}
  if(shelfOpen)return;
