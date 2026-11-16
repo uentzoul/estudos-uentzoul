@@ -896,3 +896,19 @@ html[data-theme="dark"] .nb-format-trigger[aria-expanded="true"]{background:#344
 .nb-grammar-retry:disabled{opacity:.65;cursor:progress;pointer-events:none}
 html[data-theme="dark"] .nb-grammar-progress{color:#b9afd2}
 @media(max-width:760px){.nb-grammar-progress{flex-basis:100%;order:3;text-align:right}}
+
+/* Desenhar: nenhuma anotação pode capturar o mouse ou interromper o traço.
+   O próprio canvas recebe toda a largura da pauta (inclusive sobre palavras).
+   A regra só vale com a caneta ativa; escrever/selecionar permanecem intactos. */
+.nb-sheet[data-mode="draw"] .nb-text-layer,
+.nb-sheet[data-mode="draw"] .nb-text-layer *{
+ pointer-events:none!important;
+ cursor:crosshair!important;
+ -webkit-user-select:none;
+ user-select:none;
+}
+.nb-sheet[data-mode="draw"] .nb-drawing{
+ pointer-events:auto!important;
+ cursor:crosshair!important;
+ touch-action:none;
+}
