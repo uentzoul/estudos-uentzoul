@@ -333,8 +333,11 @@ try{
  assert.equal(await page.locator('#nbQaFrame').count(),1,'Voltar do navegador não remove o iframe');
  await f.locator('[data-nb-shelf-book="materia-avaliacao"]').click();
  await f.locator('#nbSheet').waitFor({state:'visible'});
- const backPoint=await f.locator('#nbSheet').boundingBox();
- await page.mouse.click(backPoint.x+200,backPoint.y+140,{button:'back'});
+ const blockedSideBack=await f.locator('#nbSheet').evaluate(el=>{
+  const ev=new MouseEvent('mousedown',{button:3,bubbles:true,cancelable:true,view:window});
+  el.dispatchEvent(ev);return ev.defaultPrevented;
+ });
+ assert.equal(blockedSideBack,true,'Botão lateral 3 deve cancelar a navegação padrão');
  await f.locator('#nbShelf').waitFor({state:'visible'});
  assert.equal(await page.locator('#nbQaFrame').count(),1,'Botão lateral não sai do PsicoMoodle');
  await page.evaluate(()=>{document.documentElement.dataset.theme='dark'});
