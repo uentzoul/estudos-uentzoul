@@ -191,7 +191,7 @@ test('Tutorial de férias cobre os dois semestres e não muda à força para o p
  assert.match(tour,/A revisão do 1º e do 2º semestres está liberada/);
  assert.doesNotMatch(tour,/27\/11|segundo ainda está em preparação|temporaryVacationSemester/);
  assert.match(tour,/currentSemester\?\.\(\)===1\?3:8/);
- assert.match(loader,/spotlight-tour\.js\?v=20261115-flicker-fixed-v32/);
+ assert.match(loader,/spotlight-tour\.js\?v=20261116-flicker-fixed-v33/);
  assert.match(vacation,/const MONTHS=\{1:\[3,4,5,6\],2:\[8,9,10,11\]\}/);
 });
 
@@ -202,6 +202,7 @@ test('Tutorial móvel usa uma rolagem suave por etapa sem reposicionamento tardi
  assert.match(tour,/mobilePositionAttempts=1/);
  assert.match(tour,/window\.scrollTo\(\{top:next,behavior:'instant'\}\)/);
  assert.match(tour,/dataset\.pmTourPreparing='true'/);
+ assert.match(tour,/if\(spot\)\{spot\.style\.display='none';spot\.style\.visibility='hidden';\}/,'o destaque anterior deve sumir enquanto a próxima cena é preparada');
  assert.match(tour,/if\(tourMobile&&pendingScroll\)window\.scrollTo/);
  assert.doesNotMatch(tour,/requestAnimationFrame\(\(\)=>requestAnimationFrame\(\(\)=>\{\s*pendingScroll=false/);
 });
@@ -281,7 +282,7 @@ test('Tour mobile não pisca ao avançar e voltar nas etapas 6, 9 e 19',()=>{
  const tour=read('spotlight-tour.js');
  const vacation=read('revisao-ferias.js');
  const loader=read('site-version.js');
- const currentScript='spotlight-tour.js?v=20261115-flicker-fixed-v32';
+ const currentScript='spotlight-tour.js?v=20261116-flicker-fixed-v33';
  const currentCSS='spotlight-tour.css?v=20261115-smooth-mobile-v29';
  assert.ok(html.includes(currentScript),'HTML precisa carregar o tutorial corrigido');
  assert.ok(html.includes(currentCSS),'HTML deve usar a mesma versão dos estilos');
