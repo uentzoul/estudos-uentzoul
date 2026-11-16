@@ -234,17 +234,18 @@ window.PSICO_TRAIL_CURRICULUM={
       ]
     ],
     [
-      "Angústia, conflito e mecanismos de defesa",
-      "Compare as formulações freudianas da angústia e explique por que o ego pode mobilizar defesas inconscientes. Evite transformar conceitos isolados em diagnósticos.",
+      "Defesas do ego e conflitos psíquicos",
+      "Explique a mediação do ego entre as exigências do id, do superego e da realidade, relacionando mecanismos de defesa a conflitos sem transformar conceitos isolados em diagnósticos.",
       [
-        "Angústia e sinal de perigo",
-        "Mecanismos de defesa"
+        "Mecanismos de defesa",
+        "Três senhores do ego",
+        "Ego e princípio da realidade"
       ],
       [
-        "angústia"
+        "segunda tópica"
       ],
       [
-        6,
+        4,
         7
       ]
     ]
