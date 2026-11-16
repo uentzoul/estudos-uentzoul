@@ -414,5 +414,5 @@ test('Caderno não expõe o iframe branco antes de carregar',()=>{
  assert.match(loader,/frame\.addEventListener\('load'/,'aguarda o carregamento do caderno');
  assert.match(loader,/doc\.readyState!==['"]complete['"]/,'aguarda conteúdo completo');
  assert.match(loader,/frame\.classList\.remove\('nb-frame-ready'\)/,'oculta novamente antes de trocar semestre');
- assert.match(html,/site-version\.js\?v=20261116-caderno-v16-no-white-flash/,'carregamento da versão atualizada');
+ assert.match(html,/site-version\.js\?v=20261116-caderno-v17-date-only-right-hover/,'carregamento da versão atualizada');
 });
