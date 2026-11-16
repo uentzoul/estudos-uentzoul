@@ -438,6 +438,7 @@ try{
  await bookPage.mouse.down();
  await bookPage.mouse.move(movedCompanion.x+movedCompanion.width*.50+124,movedCompanion.y+movedCompanion.height*.55+82,{steps:9});
  await bookPage.mouse.up();
+ await bookPage.waitForTimeout(110);
  await bf.locator('#nbEditToggle').click();
  // A segunda folha é clicável e abre editor naquela mesma posição.
  await bf.locator('[data-nb-action="text"]').click();
