@@ -1,35 +1,18 @@
-/* Caderno de aula — primeira prévia administrativa.
-   Conteúdo local por conta, nenhuma alteração nas tabelas ou em outras abas. */
+/* Caderno de aula — privado por conta e sincronizado com o Supabase.
+   A cópia local permite recuperar alterações quando não há conexão. */
 (function(){
 'use strict';
 const root=document.getElementById('nbRoot');
-// Disponível em computador e tablet; indisponível em telefone, mesmo pela URL direta.
-function isNotebookPhone(){
- const ua=String(navigator.userAgent||''),platform=String(navigator.platform||'');
- const touches=Number(navigator.maxTouchPoints)||0;
- const shortSide=Math.min(screen.width||0,screen.height||0);
- if(/iPad|Tablet|Kindle|Silk|PlayBook|Nexus 7|Nexus 10/i.test(ua)||
-   (/Android/i.test(ua)&&!/Mobile/i.test(ua))||
-   (/MacIntel|Macintosh/i.test(platform+' '+ua)&&touches>1))return false;
- if(/iPhone|iPod|Windows Phone|IEMobile|Android[^)]*Mobile|Mobile/i.test(ua))return true;
- if(navigator.userAgentData?.mobile===true)return true;
- return !!(window.matchMedia?.('(pointer: coarse)')?.matches&&touches>0&&shortSide>0&&shortSide<600);
-}
-if(isNotebookPhone()){
- root.className='nb-phone-unavailable';
- root.innerHTML='<section role="status" aria-label="Caderno indisponível no celular"><h1>Caderno indisponível no celular</h1><p>O caderno do PsicoMoodle está disponível somente em computadores e tablets.</p></section>';
- return;
-}
+// Caderno reservado a contas registradas; o banco também aplica RLS por usuário.
 let userId='';
 try{
- if(window.parent!==window &&
-    window.parent.uentzoulAdminConfig?.isAdmin?.()===true &&
-    window.parent.uentzoulAIAuth?.user?.()?.id){
-  userId=String(window.parent.uentzoulAIAuth.user().id);
- }
+ const user=window.parent!==window?window.parent.uentzoulAIAuth?.user?.():null;
+ if(user?.id&&user.is_anonymous!==true)userId=String(user.id);
 }catch(_){}
 if(!userId){
- root.innerHTML='<section><strong>Acesso restrito.</strong><p>Esta prévia só pode ser aberta por uma conta administrativa autenticada no site.</p></section>';
+ root.className='nb-guard';
+ root.innerHTML='<section role="status"><strong>Entre na sua conta.</strong>'+
+  '<p>Para abrir e salvar seus cadernos é necessário entrar ou criar uma conta no PsicoMoodle.</p></section>';
  return;
 }
 const W=780,H=1240,L=34,START=28,ROWS=30,FIRST_LINE=3,BINDER_SAFE=58;
@@ -301,7 +284,7 @@ function redo(){
 }
 root.className='nb-app';
 root.innerHTML=
- '<header class="nb-top"><div class="nb-brand"><button type="button" class="nb-mark nb-hamburger" data-nb-action="drawer" aria-label="Abrir lista de cadernos" title="Cadernos">☰</button><div><h1 id="nbBookHeading">Caderno de aula</h1><p>Prévia exclusiva da administração</p></div></div>'+
+ '<header class="nb-top"><div class="nb-brand"><button type="button" class="nb-mark nb-hamburger" data-nb-action="drawer" aria-label="Abrir lista de cadernos" title="Cadernos">☰</button><div><h1 id="nbBookHeading">Caderno de aula</h1><p>Meu espaço de anotações</p></div></div>'+
  '<div class="nb-top-right"><button class="nb-quiet nb-back-books" data-nb-action="backToBooks" title="Voltar à estante de cadernos">‹ Cadernos</button><button class="nb-edit-toggle" id="nbEditToggle" data-nb-action="toggleEdit" aria-pressed="false">✎ Editar</button><span class="nb-status" id="nbStatus" role="status">Rascunho local · salvo automaticamente</span><button class="nb-quiet" data-nb-action="export">Exportar PDF</button></div></header>'+
  '<section class="nb-shelf" id="nbShelf" aria-label="Escolher caderno" hidden></section>'+ 
  '<div class="nb-tools" id="nbTools" role="toolbar" aria-label="Ferramentas do caderno">'+
@@ -620,7 +603,7 @@ async function correctNote(noteId,raw){
  const currentOwner=userId;
  try{
   const auth=window.parent.uentzoulAIAuth;
-  if(!window.parent.uentzoulAdminConfig?.isAdmin?.()||auth?.user?.()?.id!==currentOwner)throw Error('A sessão administrativa terminou.');
+  if(auth?.user?.()?.id!==currentOwner||auth?.user?.()?.is_anonymous===true)throw Error('A sessão terminou. Entre novamente.');
   const c=auth.client?.();
   if(!c)throw Error('Serviço indisponível.');
   const {data:result,error}=await c.functions.invoke('caderno-revisao',{body:{text:raw}});
@@ -2265,8 +2248,8 @@ window.addEventListener('pagehide',()=>{
 });
 setInterval(()=>{
  try{
-  if(!window.parent.uentzoulAdminConfig?.isAdmin?.()||window.parent.uentzoulAIAuth?.user?.()?.id!==userId){
-   document.body.innerHTML='<div class="nb-guard">Esta prévia foi encerrada porque a sessão administrativa mudou.</div>';
+  if(window.parent.uentzoulAIAuth?.user?.()?.id!==userId||window.parent.uentzoulAIAuth?.user?.()?.is_anonymous===true){
+   document.body.innerHTML='<div class="nb-guard">A conta ativa mudou. Entre novamente para acessar seus cadernos.</div>';
   }
  }catch(_){document.body.innerHTML='<div class="nb-guard">Acesso encerrado.</div>'}
 },7000);
