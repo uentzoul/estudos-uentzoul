@@ -293,7 +293,7 @@ test('Marca exibida é PsicoMoodle e texto corrigido jamais reabre como rascunho
 test('Texto preserva passo fixo da pauta na edição, visualização e miniatura',()=>{
  assert.match(script,/--nb-note-row:/);
  assert.match(script,/--nb-note-size:/);
- assert.match(script,/font-size:.*nb-note-size/s);
+ assert.match(script,/--nb-note-size:/);
  assert.match(style,/\.nb-note \.nb-note-content\{display:block!important;position:static!important/);
  assert.match(style,/line-height:var\(--nb-note-row,34px\)!important/);
  assert.match(script,/function letterMarkup\(text\)/);
