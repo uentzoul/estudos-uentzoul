@@ -157,7 +157,6 @@ let shelfOpen=true,editEnabled=false;
 let panOffset={x:0,y:0},suppressLeafClickUntil=0,opposingStrokePointer=null;
 let selected=null,contextTarget=null,panDrag=null,lastPointer=null,toolPaletteOpen=false,eraseDrag=null,moveDrag=null,resizeDrag=null;
 function materializePage(){
- window.__nbGestureLog?.push(['materializeAttempt',data.page,data.pages.length,pendingPage.strokes.length]);
  if(data.page<data.pages.length||!hasPageContent(pendingPage))return;
  if(data.page>=250)return;
  // Permite escrever primeiro na direita sem renumerá-la como esquerda.
@@ -419,7 +418,6 @@ function activateCompanion(event){
 // O papel oposto passa a usar imediatamente a ferramenta ativa.
  // A troca preserva a posição visual das folhas: somente a folha viva muda de lado.
 function beginOpposingLeafGesture(event){
- window.__nbGestureLog?.push(['start',event.pointerId,data.page,data.mode]);
  if(shelfOpen||!editEnabled||data.layout!=='book'||data.mode==='none'||flipping||isInBinderZone(event))return false;
  const target=companionIndex();
  if(target>data.pages.length+1)return false;
@@ -442,7 +440,6 @@ function beginOpposingLeafGesture(event){
   if(mode==='draw')drawPoints=[pos];
   else{eraseDrag={pointerId:event.pointerId};applyEraser(pos);}
   opposingStrokePointer=event.pointerId;
-  window.__nbGestureLog?.push(['beginStroke',event.pointerId,data.page,drawPoints?.length]);
   // Captura o apontador físico no botão que recebeu o clique original;
   // eventos sintéticos não têm captura garantida em todos os navegadores.
   try{companion.setPointerCapture?.(event.pointerId)}catch(_){}
@@ -1109,7 +1106,6 @@ function pointerUpCanvas(event){
   if(raw.length){
    const result=data.smooth?fluidStroke(raw):{points:raw,kind:'free'};
    page().strokes.push({id:id(),points:result.points,corrected:!!data.smooth,kind:result.kind,ink:data.ink,width:2.6});
-   window.__nbGestureLog?.push(['strokeSaved',data.page,data.pages.length,pendingPage.strokes.length]);
    save();status(data.smooth?'Desenho ajustado. Pode usar Deformar.':'Traço livre inserido.','success');
   }
  }
@@ -1923,7 +1919,6 @@ root.addEventListener('pointerdown',event=>{
 });
 root.addEventListener('pointermove',event=>{
  if(opposingStrokePointer===event.pointerId){
-  window.__nbGestureLog?.push(['move',event.pointerId,data.page,drawPoints?.length]);
   pointerMoveCanvas(event);return;
  }
  toolCursor(event);
@@ -1959,7 +1954,6 @@ root.addEventListener('pointermove',event=>{
 });
 root.addEventListener('pointerup',event=>{
  if(opposingStrokePointer===event.pointerId){
-  window.__nbGestureLog?.push(['up',event.pointerId,data.page,drawPoints?.length]);
   opposingStrokePointer=null;
   pointerUpCanvas(event);
   suppressLeafClickUntil=Date.now()+250;
@@ -1995,7 +1989,6 @@ root.addEventListener('pointerup',event=>{
 });
 root.addEventListener('pointercancel',event=>{
  if(opposingStrokePointer===event.pointerId){
-  window.__nbGestureLog?.push(['cancel',event.pointerId,data.page,drawPoints?.length]);
   opposingStrokePointer=null;pointerUpCanvas(event);
  }
  if(resizeDrag&&resizeDrag.pointerId===event.pointerId)finishResize(event);
