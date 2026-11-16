@@ -46,7 +46,7 @@ const ACTIONS=[
 const emptyPage=()=>({title:'',date:'',notes:[],strokes:[],stickies:[]});
 const newBook=(name='Meu caderno')=>({id:'book-'+Date.now()+'-'+Math.random().toString(36).slice(2,8),name,pages:[]});
 const defaults=()=>({books:initialBooks(),bookId:'materia-familia',page:0,mode:'none',font:'print',ink:'blue',size:1,layout:'single',smooth:false,zoom:.88,shortcuts:{},stickyTone:'yellow',eraserMode:'parts',eraserRadius:14});
-const hasPageContent=p=>!!(p?.notes?.some(n=>String(n.text||'').trim())||p?.strokes?.some(s=>s.points?.length)||p?.stickies?.length);
+const hasPageContent=p=>!!(String(p?.date||'').trim()||p?.notes?.some(n=>String(n.text||'').trim())||p?.strokes?.some(s=>s.points?.length)||p?.stickies?.length);
 const cleanPage=p=>({title:String(p?.title||'').slice(0,100),date:String(p?.date||'').slice(0,16),
  notes:Array.isArray(p?.notes)?p.notes.slice(0,140).map(n=>{const {original,...corrected}=n;corrected.pending=false;return corrected;}):[],strokes:Array.isArray(p?.strokes)?p.strokes.slice(0,500):[],
  stickies:Array.isArray(p?.stickies)?p.stickies.slice(0,40):[]});
@@ -156,6 +156,10 @@ function renderShelf(){
  requestAnimationFrame(fitCoverTitles);
 }
 function syncNotebookUI(){
+ const writtenDate=String(page().date||'');
+ const readDate=$('nbPaperDateRead');
+ if(readDate){readDate.hidden=!writtenDate;readDate.textContent=writtenDate?new Date(writtenDate+'T12:00:00').toLocaleDateString('pt-BR'):'';}
+ $('nbPaperDate')?.closest('.nb-paper-date-group')?.classList.toggle('nb-has-date',!!writtenDate);
  root.classList.toggle('nb-shelf-active',shelfOpen);
  root.classList.toggle('nb-reading',!shelfOpen&&!editEnabled);
  root.classList.toggle('nb-editing',!shelfOpen&&editEnabled);
@@ -265,7 +269,7 @@ root.innerHTML=
  '<div class="nb-view" id="nbViewport" aria-label="Folha do caderno, com zoom e rolagem">'+
  '<div class="nb-stage" id="nbStage"><div class="nb-sheet-wrap" id="nbWrap">'+
  '<div class="nb-sheet" id="nbSheet"><div class="nb-holes" aria-hidden="true"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div>'+
- '<div class="nb-paper-date-group"><label class="nb-paper-date-label" for="nbPaperDate">Data</label><input id="nbPaperDate" class="nb-paper-date" type="date" aria-label="Data da aula"></div>'+
+ '<div class="nb-paper-date-group"><label class="nb-paper-date-label" for="nbPaperDate">Data</label><input id="nbPaperDate" class="nb-paper-date" type="date" aria-label="Data da aula"><span id="nbPaperDateRead" class="nb-paper-date-read" hidden></span></div>'+
  '<button class="nb-corner-back" data-nb-action="prev" aria-label="Voltar à página anterior" title="Página anterior">‹</button>'+
  '<div class="nb-line-hover" id="nbLineHover" hidden></div>'+
  '<canvas id="nbDrawing" class="nb-drawing" width="780" height="1240" aria-label="Área de desenho"></canvas>'+
@@ -1050,10 +1054,9 @@ function snapshotStickyMarkup(st){
 }
 function snapshotSheetMarkup(p,index){
  const date=p.date?new Date(p.date+'T12:00:00').toLocaleDateString('pt-BR'):'';
- return '<span class="nb-sheet nb-snapshot-sheet" aria-hidden="true">'+
+ return '<span class="nb-sheet nb-snapshot-sheet '+(index%2===0?'nb-left-page':'nb-right-page')+'" aria-hidden="true">'+
   '<span class="nb-holes">'+Array.from({length:8},()=>'<span></span>').join('')+'</span>'+
-  '<span class="nb-paper-date-group"><span class="nb-paper-date-label">Data</span>'+
-  '<span class="nb-paper-date nb-snapshot-date">'+esc(date)+'</span></span>'+
+  (date?'<span class="nb-paper-date-group nb-has-date"><span class="nb-snapshot-date">'+esc(date)+'</span></span>':'')+
   snapshotSvg(p)+
   '<span class="nb-text-layer">'+(p.notes||[]).map(n=>noteMarkup(n,false).replace(' data-nb-note="'+esc(n.id)+'"','')).join('')+'</span>'+
   '<span class="nb-sticky-layer">'+(p.stickies||[]).map(snapshotStickyMarkup).join('')+'</span>'+
@@ -1519,7 +1522,7 @@ root.addEventListener('change',event=>{
  }
  if(event.target.id==='nbSmooth'){data.smooth=event.target.checked;save();}
  if(event.target.id==='nbEraseBehavior'){data.eraserMode=event.target.value==='whole'?'whole':'parts';save();}
- if(event.target.id==='nbPaperDate'&&editEnabled){page().date=event.target.value;save();}
+ if(event.target.id==='nbPaperDate'&&editEnabled){page().date=event.target.value;syncNotebookUI();save();}
 });
 root.addEventListener('input',event=>{
  const t=event.target;
