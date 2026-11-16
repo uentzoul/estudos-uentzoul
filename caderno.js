@@ -83,7 +83,7 @@ if(stored&&typeof stored==='object'){
   if(!data.books.some(b=>b.id===data.bookId))data.bookId=data.books[0].id;
   data.page=Math.min(data.books.find(b=>b.id===data.bookId).pages.length,Math.max(0,Number(data.page)||0));
   data.zoom=Math.min(2.3,Math.max(.42,Number(data.zoom)||.88));
-  data.size=Math.min(3,Math.max(1,Number(data.size)||1));
+  data.size=1; // O editor permite somente a altura de uma pauta.
   if(!MODES.includes(data.mode))data.mode='none';
   if(!COLORS[data.ink])data.ink='blue';
   if(!['print','cursive','joined'].includes(data.font))data.font='print';
@@ -228,7 +228,11 @@ function openShelfBook(bookId,button){
  const update=()=>{
   shelfOpen=false;editEnabled=false;data.mode='none';
   switchBook(bookId);
-  syncNotebookUI();
+  // Cadernos sem nenhuma anotação, data, desenho ou post-it abrem prontos para editar.
+  // Um caderno que já foi usado continua iniciando em somente leitura.
+  editEnabled=!activeBook().pages.some(hasPageContent);
+  data.mode='none';
+  refreshTools();syncNotebookUI();
   view.scrollTop=0;view.scrollLeft=0;
  };
  if(from)animateShelfTransition('open',update,from,()=>wrap);
@@ -279,7 +283,7 @@ root.innerHTML=
  '<button class="nb-color" data-nb-action="blue" style="--swatch:#213f72" aria-label="Caneta azul"><span></span></button>'+
  '<button class="nb-color" data-nb-action="red" style="--swatch:#bb3d43" aria-label="Caneta vermelha"><span></span></button></span>'+
  '<select class="nb-font-select" id="nbFont" aria-label="Tipo de letra"><option value="print">Letra de forma 1</option><option value="cursive">Letra de forma 2</option><option value="joined">Letra cursiva</option></select>'+
- '<select class="nb-size-select" id="nbSize" aria-label="Altura da letra"><option value="1">1 linha</option><option value="2">2 linhas</option><option value="3">3 linhas</option></select>'+
+ 
  '<select class="nb-align-select" id="nbTextAlign" aria-label="Alinhamento do texto"><option value="left">Esquerda</option><option value="center">Centro</option><option value="right">Direita</option><option value="justify">Justificado</option></select></div>'+
  '<div class="nb-toolgroup"><label class="nb-layout-label" for="nbLayout">Estilo</label><select class="nb-layout-select" id="nbLayout" aria-label="Estilo do caderno"><option value="single">Folha única</option><option value="book">Caderno aberto</option></select></div>'+ 
  '<div class="nb-toolgroup"><label class="nb-correct-toggle" title="Reconhecer formas simples e suavizar tremores"><input id="nbSmooth" type="checkbox">Ajustar traços</label>'+
@@ -395,7 +399,7 @@ function refreshTools(){
  $('nbEraseBehavior').value=data.eraserMode==='whole'?'whole':'parts';
  $('nbEraseSize').value=clamp(Number(data.eraserRadius)||14,6,32);
  for(const a of Object.keys(COLORS)){const b=root.querySelector('[data-nb-action="'+a+'"]');b?.setAttribute('aria-pressed',String(data.ink===a));}
- $('nbFont').value=data.font;$('nbSize').value=String(data.size);$('nbSmooth').checked=!!data.smooth;
+ $('nbFont').value=data.font;$('nbSmooth').checked=!!data.smooth;
  $('nbTextAlign').value=['left','center','right','justify'].includes(data.align)?data.align:'left';
  $('nbLayout').value=data.layout;
  sheet.dataset.mode=data.mode;
@@ -428,8 +432,8 @@ function renderNotes(){
 function editorMarkup(){
  const host=$('nbEditorHost');
  if(!editing){host.innerHTML='';return;}
- const line=editing.line,top=START+line*L-3,fsize=26+(clamp(Number(data.size)||1,1,3)-1)*30;
- const lineHeight=L*clamp(Number(data.size)||1,1,3);
+ const line=editing.line,top=START+line*L-3,fsize=26;
+ const lineHeight=L;
  host.innerHTML='<textarea class="nb-inline-edit '+(data.font==='joined'?'joined':data.font==='cursive'?'cursive':'print')+
   '" id="nbEditorText" style="top:'+top+'px;--nb-small:'+fsize+'px;--nb-note-size:'+fsize+'px;--nb-note-row:'+lineHeight+'px;text-align:'+data.align+';color:'+
   (COLORS[data.ink]||COLORS.blue)+';" rows="1" maxlength="2500" spellcheck="true"'+
@@ -445,11 +449,10 @@ function beginEdit(line){
   const current=String($('nbEditorText')?.value||'');
   if(current.trim())saveEditor(false);else closeEditor();
  }
- if(line===FIRST_LINE&&data.size>2)data.size=2;
+ data.size=1;
  const existing=page().notes.find(n=>line>=Number(n.line)&&line<Number(n.line)+Number(n.span||Number(n.size)||1));
  editing={line:existing?Number(existing.line):line,id:existing?.id||null,draft:existing?.text||''};
- if(existing){data.font=existing.font;data.ink=existing.ink;data.size=existing.size;data.align=existing.align||'left';}
- if(editing.line===FIRST_LINE&&data.size>2)data.size=2;
+ if(existing){data.font=existing.font;data.ink=existing.ink;data.align=existing.align||'left';}
  previewText=editing.draft;
  refreshTools();renderNotes();editorMarkup();focusLine(editing.line);
 }
@@ -532,7 +535,7 @@ function saveEditor(advance=true){
  checkpoint();
  let n=editing.id?page().notes.find(n=>n.id===editing.id):null;
  if(!n){n={id:id(),line:editing.line,text:typed};page().notes.push(n)}
- Object.assign(n,{text:fallbackBasic(typed),original:typed,font:data.font,size:data.size,ink:data.ink,align:data.align||'left',pending:true,reviewed:false});
+ Object.assign(n,{text:fallbackBasic(typed),original:typed,font:data.font,size:1,ink:data.ink,align:data.align||'left',pending:true,reviewed:false});
  n.span=occupiedSpan(n);makeRoom(n);materializePage();
  const nid=n.id;closeEditor();renderNotes();save();
  status('Linha registrada; revisão gramatical em andamento…','');
@@ -842,7 +845,7 @@ function updateResize(event){
   item.x=b.x;
   const rawWidth=clamp(Number(item.frameW)||620,70,720);
   item.scaleX=clamp(b.w/rawWidth,.35,3.8);
-  item.scaleY=clamp(drag.initialScaleY*b.h/Math.max(1,drag.rect.h),.35,3.8);
+  item.scaleY=1; // Arrastar uma alça não amplia a altura das letras além de uma pauta.
   item.offsetY=drag.initialY+b.y-drag.rect.y;
   renderNotes();
  }
@@ -1581,12 +1584,6 @@ root.addEventListener('change',event=>{
   if(editing){editing.draft=$('nbEditorText')?.value||'';editorMarkup()}
   save();
  }
- if(event.target.id==='nbSize'){
-  data.size=clamp(Number(event.target.value),1,editing?.line===FIRST_LINE?2:3);
-  refreshTools();renderNotes();
-  if(editing){editing.draft=$('nbEditorText')?.value||'';editorMarkup()}
-  save();
- }
  if(event.target.id==='nbTextAlign'){
   const align=['left','center','right','justify'].includes(event.target.value)?event.target.value:'left';
   data.align=align;
@@ -1669,6 +1666,11 @@ root.addEventListener('pointerdown',event=>{
    if(onPaper)startPan(event);
    return;
   }
+ // Também no modo Editar, a outra folha deve poder ser arrastada livremente.
+ // Um clique sem movimento continua ativando aquela folha para escrita.
+ if(event.button===0&&data.layout==='book'&&event.target.closest('#nbCompanionWrap')){
+  startPan(event);return;
+ }
  if(listening&&event.button!==0){
   event.preventDefault();
   if([1,2,3,4].includes(event.button)){
