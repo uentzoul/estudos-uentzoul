@@ -59,6 +59,7 @@ const SEMESTER=selectedSemester();
 const SEMESTER_LABEL={'2026/1':'1º semestre','2026/2':'2º semestre','2027/1':'3º semestre'}[SEMESTER];
 const STORE=SEMESTER==='2026/2'?'uentzoul:caderno:alpha2:'+userId:
  'psicomoodle:caderno:'+SEMESTER+':alpha1:'+userId;
+const STAMP_KEY=STORE+':modified';
 const LEGACY_STORE='uentzoul:caderno:alpha1:'+userId;
 const BACKUP_STORE=SEMESTER==='2026/2'?
  'psicomoodle:caderno:backup-antes-das-seis-materias:'+userId:
@@ -173,6 +174,13 @@ function restoreState(serialized){
 }
 let editing=null, previewText='',drawPoints=null,warpDrag=null,stickyDrag=null,selectedStroke=-1,tapCandidate=null;
 let undoStack=[],redoStack=[],listening='',pinch=null,saveTimer=null,flipping=false;
+let localStamp=0;
+try{localStamp=Math.max(0,Number(localStorage.getItem(STAMP_KEY))||0)}catch(_){}
+let cloudReady=false,cloudBusy=false,cloudDirty=false,cloudLoading=false,cloudTimer=null,retryTimer=null;
+const notebookClient=()=>{
+ try{const a=window.parent.uentzoulAIAuth,u=a?.user?.();
+  return u?.id===userId&&u?.is_anonymous!==true?a?.client?.():null;}catch(_){return null}
+};
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const clamp=(v,min,max)=>Math.max(min,Math.min(max,v));
 const page=()=>data.pages[data.page]||pendingPage;
@@ -260,14 +268,81 @@ function openShelfBook(bookId,button){
 
 function persistNow(){
  clearTimeout(saveTimer);
- try{localStorage.setItem(STORE,JSON.stringify(serializable()));refreshCurrentRailSnapshot();return true}
- catch(e){status('Armazenamento cheio. Exporte uma cópia do caderno.','error');return false}
+ try{
+  const payload=JSON.stringify(serializable());
+  localStamp=Math.max(Date.now(),localStamp+1);
+  localStorage.setItem(STORE,payload);localStorage.setItem(STAMP_KEY,String(localStamp));
+  cloudDirty=true;refreshCurrentRailSnapshot();
+  if(cloudReady)scheduleCloudSave();
+  return true;
+ }catch(_){status('Armazenamento cheio. Exporte uma cópia em PDF.','error');return false;}
 }
 function save(){
  clearTimeout(saveTimer);
  saveTimer=setTimeout(()=>{
-  if(persistNow())status('Salvo neste dispositivo','success');
+  if(persistNow())status('Salvo neste dispositivo · sincronização pendente…','success');
  },180);
+}
+function scheduleCloudSave(delay=650){
+ if(!cloudReady||!cloudDirty)return;
+ clearTimeout(cloudTimer);cloudTimer=setTimeout(()=>{void flushCloud()},delay);
+}
+async function flushCloud(){
+ if(!cloudReady||!cloudDirty||cloudBusy)return;
+ const c=notebookClient();
+ if(!c){status('Entre na sua conta para sincronizar. A cópia local está preservada.','error');return;}
+ cloudBusy=true;cloudDirty=false;
+ const stamp=localStamp,content=serializable();
+ try{
+  const {error}=await c.from('uentzoul_notebooks').upsert({
+   user_id:userId,semester:SEMESTER,content,client_modified_at:stamp,updated_at:new Date().toISOString()
+  },{onConflict:'user_id,semester'});
+  if(error)throw error;
+  clearTimeout(retryTimer);retryTimer=null;
+  if(stamp===localStamp&&!cloudDirty)status('Salvo na sua conta e neste dispositivo','success');
+ }catch(_){
+  cloudDirty=true;
+  status('Sem conexão com a nuvem · cópia local preservada.','error');
+  clearTimeout(retryTimer);retryTimer=setTimeout(()=>{retryTimer=null;scheduleCloudSave(100)},15000);
+ }finally{
+  cloudBusy=false;
+  if(cloudDirty&&!retryTimer)scheduleCloudSave();
+ }
+}
+async function loadCloud(){
+ if(cloudReady||cloudLoading)return;
+ const c=notebookClient();if(!c)return;
+ cloudLoading=true;
+ try{
+  const {data:remote,error}=await c.from('uentzoul_notebooks')
+   .select('content,client_modified_at').eq('user_id',userId).eq('semester',SEMESTER).maybeSingle();
+  if(error)throw error;
+  const stamp=Math.max(0,Number(remote?.client_modified_at)||0);
+  const valid=Array.isArray(remote?.content?.books)&&remote.content.books.length>0;
+  if(valid&&stamp>localStamp&&!cloudDirty){
+   try{if(data.books.some(book=>book.pages?.some(hasPageContent))&&!localStorage.getItem(STORE+':backup-before-cloud'))
+    localStorage.setItem(STORE+':backup-before-cloud',JSON.stringify(serializable()));}catch(_){}
+   restoreState(JSON.stringify(remote.content));
+   data.mode='none';editEnabled=false;selected=null;selectedStroke=-1;
+   localStamp=stamp;
+   try{localStorage.setItem(STORE,JSON.stringify(serializable()));localStorage.setItem(STAMP_KEY,String(stamp));}catch(_){}
+   renderAll();setZoom(data.zoom,false);
+   status('Cadernos recuperados da sua conta','success');
+  }else if(remote&&!cloudDirty)status('Cadernos sincronizados com sua conta','success');
+  cloudReady=true;
+  if(cloudDirty||(!remote&&(stored||data.books.some(book=>book.pages?.some(hasPageContent))))||
+   (remote&&localStamp>stamp)){
+   cloudDirty=true;
+   if(localStamp===0){
+    localStamp=Date.now();
+    try{localStorage.setItem(STAMP_KEY,String(localStamp))}catch(_){}
+   }
+   scheduleCloudSave(100);
+  }
+ }catch(_){
+  status('Nuvem indisponível · anotações mantidas neste dispositivo','error');
+  clearTimeout(retryTimer);retryTimer=setTimeout(()=>{retryTimer=null;void loadCloud()},15000);
+ }finally{cloudLoading=false;}
 }
 function status(message,kind){
  const e=document.getElementById('nbStatus');if(!e)return;
@@ -2262,7 +2337,15 @@ syncTheme();window.matchMedia('(prefers-color-scheme:dark)').addEventListener?.(
 setInterval(syncTheme,1100);
 renderAll();
 setZoom(data.zoom,false);
+void loadCloud();
+window.addEventListener('online',()=>{
+ if(!cloudReady)void loadCloud();
+ else if(cloudDirty){clearTimeout(retryTimer);retryTimer=null;scheduleCloudSave(100);}
+});
+window.addEventListener('visibilitychange',()=>{
+ if(document.visibilityState==='hidden'&&cloudDirty&&cloudReady)void flushCloud();
+});
 window.addEventListener('resize',scheduleSnapshotScales,{passive:true});
-status('Rascunho salvo apenas neste dispositivo.','');
+status('Carregando os cadernos da sua conta…','');
 if(isMobile()&&!localStorage.getItem(STORE))setZoom(.5,false);
 })();
