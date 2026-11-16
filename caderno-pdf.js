@@ -94,13 +94,13 @@
    ctx.lineWidth=Math.min(10,Math.max(1,Number(stroke.width)||2.6));
    ctx.lineJoin='round';ctx.lineCap='round';
    ctx.moveTo(points[0].x,points[0].y);
-   if(stroke.corrected&&points.length>2){
+   if(stroke.corrected&&!['line','polygon','rectangle'].includes(stroke.kind)&&points.length>2){
     for(let i=1;i<points.length-1;i++){
      const mid={x:(points[i].x+points[i+1].x)/2,y:(points[i].y+points[i+1].y)/2};
      ctx.quadraticCurveTo(points[i].x,points[i].y,mid.x,mid.y);
     }
    }
-   for(let i=stroke.corrected&&points.length>2?points.length-1:1;i<points.length;i++)
+   for(let i=stroke.corrected&&!['line','polygon','rectangle'].includes(stroke.kind)&&points.length>2?points.length-1:1;i<points.length;i++)
     ctx.lineTo(points[i].x,points[i].y);
    ctx.stroke();
   }
