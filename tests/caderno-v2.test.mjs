@@ -15,14 +15,14 @@ const fn=(start,end)=>{
  assert.ok(last>0,'fechamento de função: '+start);
  return body.slice(0,last+1);
 };
-test('Prévia deve exigir administrador autenticado e nunca usar service role no browser',()=>{
- assert.match(script,/window\.parent\.uentzoulAdminConfig\?\.isAdmin\?\.\(\)===true/);
+test('Caderno exige conta registrada e não expõe credenciais de serviço no browser',()=>{
+ assert.match(script,/if\(user\?\.id&&user\.is_anonymous!==true\)userId=String\(user\.id\)/);
  assert.match(script,/const STORE=SEMESTER==='2026\/2'\?'uentzoul:caderno:alpha2:'/);
  assert.match(script,/const LEGACY_STORE='uentzoul:caderno:alpha1:'/);
  assert.match(script,/functions\.invoke\('caderno-revisao'/);
  assert.doesNotMatch(script,/\bservice[_-]?role\b/i);
  assert.match(html,/robots" content="noindex, nofollow"/);
- assert.match(nav,/if\(button\.disabled===allowed\)button\.disabled=!allowed/);
+ assert.match(nav,/const loggedIn=\(\)=>!!account\(\)/);
  assert.match(nav,/navCadernoPreview/);
 });
 test('Texto é editado diretamente no caderno sem caixa de envio flutuante',()=>{
@@ -395,40 +395,14 @@ test('Voltar do mouse e navegador retorna dentro do Caderno e mantém a estante'
 });
 
 
-test('Caderno é acessível em computador e tablet, mas não em telefone',()=>{
- const functionSource=source=>{
-  const match=source.match(/function isNotebookPhone\(\)\{[\s\S]*?\n\s*\}/);
-  assert.ok(match,'Detector específico de telefones precisa existir nos dois pontos de acesso');
-  return match[0];
- };
- const navGuard=functionSource(nav),directGuard=functionSource(script);
- const classify=(source,ua,platform='Linux x86_64',touches=0,coarse=false,size=[1366,768])=>vm.runInNewContext(
-  '('+source+')()',
-  {navigator:{userAgent:ua,platform,maxTouchPoints:touches,userAgentData:{mobile:false}},
-   screen:{width:size[0],height:size[1]},
-   window:{matchMedia:()=>({matches:coarse})}}
- );
- const devices=[
-  {name:'iPhone',ua:'Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit Mobile/15E148',touches:5,coarse:true,size:[390,844],phone:true},
-  {name:'Android phone',ua:'Mozilla/5.0 (Linux; Android 15; Pixel 9) AppleWebKit Chrome/130 Mobile Safari',touches:5,coarse:true,size:[412,915],phone:true},
-  {name:'iPad',ua:'Mozilla/5.0 (iPad; CPU OS 18_0 like Mac OS X) AppleWebKit Mobile/15E148',touches:5,coarse:true,size:[834,1112],phone:false},
-  {name:'Android tablet',ua:'Mozilla/5.0 (Linux; Android 14; SM-X710) AppleWebKit Chrome/130 Safari',touches:5,coarse:true,size:[800,1280],phone:false},
-  {name:'iPadOS desktop UA',ua:'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit Safari',platform:'MacIntel',touches:5,coarse:true,size:[820,1180],phone:false},
-  {name:'desktop resized',ua:'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit Chrome/130 Safari',touches:0,coarse:false,size:[390,844],phone:false}
- ];
- for(const device of devices){
-  for(const [name,source] of [['site-version.js',navGuard],['caderno.js',directGuard]]){
-   assert.equal(classify(source,device.ua,device.platform,device.touches,device.coarse,device.size),device.phone,device.name+' in '+name);
-  }
- }
- assert.match(nav,/const allowed=admin\(\)&&!phone/);
- assert.match(nav,/if\(!admin\(\)\|\|isNotebookPhone\(\)\)return/);
- assert.match(nav,/if\(button\.disabled===allowed\)button\.disabled=!allowed/);
- assert.match(script,/if\(isNotebookPhone\(\)\)\{\s*root\.className='nb-phone-unavailable'/);
- assert.match(script,/return;\s*\}\s*let userId=/);
- assert.match(style,/\.nb-phone-unavailable\{/);
+test('Caderno de conta registrada pode abrir em desktop, tablet e telefone',()=>{
+ assert.match(nav,/const loggedIn=\(\)=>!!account\(\)/);
+ assert.match(nav,/if\(!loggedIn\(\)\)\{/);
+ assert.match(nav,/window\.uentzoulAIAuth\?\.openLogin\?\.\(\)/);
+ assert.match(nav,/const allowed=loggedIn\(\)/);
+ assert.match(script,/if\(user\?\.id&&user\.is_anonymous!==true\)userId=String\(user\.id\)/);
+ assert.doesNotMatch(script,/if\(isNotebookPhone\(\)\)/);
 });
-
 
 test('Caderno ainda intocado abre em Editar; caderno com conteúdo inicia em leitura',()=>{
  assert.match(script,/editEnabled=!activeBook\(\)\.pages\.some\(hasPageContent\)/);
@@ -508,7 +482,7 @@ test('Caderno já está no HTML da navegação antes da autenticação, sem inse
  assert.equal((index.match(/id="navCadernoPreview"/g)||[]).length,1);
  assert.match(index,/id="navCadernoPreview"\s+disabled aria-disabled="true"/);
  assert.match(nav,/button\.dataset\.nbBound!=='true'/);
- assert.match(nav,/if\(button\.disabled===allowed\)button\.disabled=!allowed/);
+ assert.match(nav,/const loggedIn=\(\)=>!!account\(\)/);
 });
 
 
