@@ -624,6 +624,13 @@ try{
    const has=localStorage.getItem(key);
    return has?JSON.parse(has).books.length:0;
   },current.storage);
+  console.log('SEMESTER TRACE',JSON.stringify(await sc.locator('#nbRoot').evaluate(key=>({
+   current:document.querySelector('.nb-shelf-eyebrow')?.textContent,
+   requestedKey:key,
+   keys:Object.keys(localStorage).filter(k=>k.includes('caderno')),
+   found:localStorage.getItem(key)?.slice(0,150),
+   guard:document.querySelector('#nbRoot')?.className
+  }),current.storage)));
   assert.equal(ownKey,current.count,'Apenas os cadernos do semestre atual são persistidos');
  }
  await semesterContext.close();
