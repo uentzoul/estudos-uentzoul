@@ -33,7 +33,7 @@
   ctx.clearRect(0,0,WIDTH,HEIGHT);
   ctx.fillStyle='#fffdf8';ctx.fillRect(0,0,WIDTH,HEIGHT);
   ctx.fillStyle='#f9f3e8';ctx.fillRect(0,0,9,HEIGHT);
-  for(let y=LINETOP;y<HEIGHT-35;y+=LINEROW){
+  for(let y=LINETOP+LINEROW-1;y<HEIGHT-35;y+=LINEROW){
    ctx.beginPath();ctx.moveTo(0,y+.5);ctx.lineTo(WIDTH,y+.5);
    ctx.strokeStyle='#bad3e3';ctx.lineWidth=.7;ctx.stroke();
   }
@@ -45,8 +45,8 @@
   }
   ctx.textBaseline='alphabetic';ctx.textAlign='left';
   ctx.fillStyle='#6a607c';ctx.font='600 13px Arial,sans-serif';
-  ctx.fillText('Data',510,57);
   if(pg.date){
+   ctx.fillText('Data',510,57);
    const m=String(pg.date).match(/^(\d{4})-(\d{2})-(\d{2})$/);
    ctx.font='600 16px Arial,sans-serif';
    ctx.fillText(m?m[3]+'/'+m[2]+'/'+m[1]:String(pg.date),557,57);
@@ -54,27 +54,38 @@
   // A gramática é reproduzida tal como está na folha no momento da exportação.
   for(const note of pg.notes||[]){
    const scale=Math.min(3,Math.max(1,Number(note.size)||1));
-   const small=26;
+   const fontSize=26+(scale-1)*30;
+   const rowStep=LINEROW*scale;
    const left=Math.min(720,Math.max(85,Number(note.x)||110));
    const top=LINETOP+(Number(note.line)||0)*LINEROW+(Number(note.offsetY)||0);
    const scaleX=Math.min(3.8,Math.max(.35,Number(note.scaleX)||1));
    const scaleY=Math.min(3.8,Math.max(.35,Number(note.scaleY)||1));
-   const width=Math.max(70,Number(note.frameW)||620);
-   ctx.save();ctx.translate(left,top+27);ctx.scale(scaleX,scaleY);
-   let x=0,y=0;
+   const width=Math.max(70,Math.min(Number(note.frameW)||620,WIDTH-left-20));
+   ctx.save();ctx.translate(left,top+rowStep-Math.max(7,Math.round(fontSize*.27)));ctx.scale(scaleX,scaleY);
    const font=note.font||'print';
-   ctx.fillStyle=colorOf(note.ink);
-   const chars=Array.from(String(note.text||''));
-   for(const ch of chars){
-    if(ch==='\n'){x=0;y+=small*1.13;continue;}
-    const upper=ch.toUpperCase()===ch&&ch.toLowerCase()!==ch;
-    pfont(ctx,small+(upper?(scale-1)*34:0),font);
-    const size=ctx.measureText(ch).width;
-    if(x+size>width){x=0;y+=small*1.13;}
-    if(top+y>HEIGHT-35)break;
-    ctx.fillText(ch,x,y);
-    x+=size;
+   pfont(ctx,fontSize,font);ctx.fillStyle=colorOf(note.ink);
+   const align=['left','center','right','justify'].includes(note.align)?note.align:'left';
+   const lineX=align==='right'?width:align==='center'?width/2:0;
+   const rows=[];
+   for(const paragraph of String(note.text||'').split(/\n/)){
+    const words=paragraph.split(/(\s+)/).filter(Boolean);
+    let line='';
+    for(const word of words){
+     const trial=line+word;
+     if(line&&ctx.measureText(trial).width>width){rows.push(line.trimEnd());line=word.trimStart();}
+     else line=trial;
+     while(line&&ctx.measureText(line).width>width){
+      let cut=1;while(cut<line.length&&ctx.measureText(line.slice(0,cut+1)).width<=width)cut++;
+      rows.push(line.slice(0,cut));line=line.slice(cut);
+     }
+    }
+    rows.push(line.trimEnd());
    }
+   ctx.textAlign=align==='justify'?'left':align;
+   rows.forEach((line,i)=>{
+    if(top+i*rowStep>HEIGHT-35)return;
+    ctx.fillText(line,lineX,i*rowStep);
+   });
    ctx.restore();
   }
   for(const stroke of pg.strokes||[]){
@@ -153,6 +164,7 @@
  }
  async function exportBook(book,notify){
   const pages=Array.isArray(book?.pages)?book.pages.filter(pg=>
+   String(pg.date||'').trim()||
    (pg.notes||[]).some(n=>String(n.text||'').trim())||
    (pg.strokes||[]).some(st=>(st.points||[]).length)||
    (pg.stickies||[]).length):[];
