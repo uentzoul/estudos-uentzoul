@@ -243,7 +243,7 @@ test('Título da aula desaparece e a data ocupa a segunda linha física',()=>{
  assert.doesNotMatch(script,/id="nbPaperTitle"/);
  assert.match(script,/START=28,ROWS=30,FIRST_LINE=3/);
  assert.match(style,/\.nb-paper-date-group\{[\s\S]*?top:30px/);
- assert.match(style,/\.nb-corner-back\{[\s\S]*?top:12px/);
+ assert.doesNotMatch(style,/\.nb-corner-back\{/,'a seta removida não deve voltar ao caderno');
  assert.doesNotMatch(script,/case 'prev':if\(data\.page===0\)backToBooks\(\)/);
 });
 test('Correção local protege o usuário mesmo sem resposta da IA',()=>{
