@@ -536,6 +536,7 @@ try{
   const raw=localStorage.getItem('uentzoul:caderno:alpha2:qa-browser-admin');
   return raw?JSON.parse(raw):{};
  });
+ await tw.locator('#nbRoot').evaluate(()=>window.__nbGestureLog=[]);
  await tw.locator('[data-nb-action="draw"]').click();
  const beginRight=await hitOnOpposite(350,490);
  await twinPage.mouse.move(beginRight.x,beginRight.y);await twinPage.mouse.down();
@@ -544,6 +545,11 @@ try{
  assert.equal(await tw.locator('#nbPageNum').textContent(),'02',
   'Desenhar na folha oposta seleciona automaticamente a página direita');
  let dataTwin=await notebookData();
+ console.log('TWIN TRACE',JSON.stringify(await tw.locator('#nbRoot').evaluate(()=>({
+  log:window.__nbGestureLog||[],status:document.getElementById('nbStatus')?.textContent,
+  page:document.getElementById('nbPageNum')?.textContent,
+  saved:JSON.parse(localStorage.getItem('uentzoul:caderno:alpha2:qa-browser-admin')||'{}').books?.[0]?.pages?.map(p=>p.strokes.length)
+ }))));
  assert.ok(dataTwin.books[0].pages[1].strokes.length>=1,
   'A primeira pressão na folha direita desenha, em vez de apenas selecionar a folha');
  await tw.locator('[data-nb-action="text"]').click();
