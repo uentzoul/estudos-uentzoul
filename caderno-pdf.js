@@ -67,7 +67,7 @@
    const align=['left','center','right','justify'].includes(note.align)?note.align:'left';
    const lineX=align==='right'?width:align==='center'?width/2:0;
    const rows=[];
-   for(const paragraph of String(note.text||'').split(/\n/)){
+   for(const paragraph of String(note.text||'').replace(/\t/g,'    ').split(/\n/)){
     const words=paragraph.split(/(\s+)/).filter(Boolean);
     let line='';
     for(const word of words){
