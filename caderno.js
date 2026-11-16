@@ -421,7 +421,9 @@ function beginOpposingLeafGesture(event){
  event.preventDefault();event.stopImmediatePropagation();
  if(editing)saveEditor(false);
  data.page=target;pendingPage=emptyPage();selected=null;selectedStroke=-1;
- renderPage();renderPageRail();save();
+ // Não salvar enquanto o usuário ainda está desenhando na direita vazia.
+ // A escrita, desenho ou post-it faz o save depois de criar a folha corretamente.
+ renderPage();renderPageRail();
  suppressLeafClickUntil=Date.now()+450;
  // Não depender de um segundo clique. O primeiro pointerdown é reproduzido
  // na folha ativa recém-trocada para Desenhar, Apagar, Selecionar, Moldar, Post-it e Escrever.
