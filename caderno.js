@@ -551,7 +551,8 @@ function beginEdit(line){
  line=clamp(line,FIRST_LINE,ROWS-1);
  if(editing&&editing.line!==line){
   const current=String($('nbEditorText')?.value||'');
-  if(current.trim())saveEditor(false);else closeEditor();
+  // Trocar de linha também deve confirmar exclusões feitas com Backspace.
+  saveEditor(false);
  }
  data.size=1;
  const existing=page().notes.find(n=>line>=Number(n.line)&&line<Number(n.line)+Number(n.span||Number(n.size)||1));
@@ -651,7 +652,18 @@ function saveEditor(advance=true){
  if(!editing)return;
  const priorLine=editing.line;
  const typed=String($('nbEditorText')?.value||'').replace(/\r\n?/g,'\n').trimEnd();
- if(!typed.trim()){closeEditor();if(advance)advanceLine(priorLine+1);return}
+ if(!typed.trim()){
+  // Texto existente esvaziado deve ser realmente excluído do armazenamento.
+  const previousId=editing.id;
+  if(previousId&&page().notes.some(n=>n.id===previousId)){
+   checkpoint();
+   page().notes=page().notes.filter(n=>n.id!==previousId);
+   closeEditor();renderPageRail();save();
+   status('Anotação apagada. Ctrl+Z desfaz.','success');
+  }else closeEditor();
+  if(advance)advanceLine(priorLine+1);
+  return;
+ }
  checkpoint();
  let n=editing.id?page().notes.find(n=>n.id===editing.id):null;
  if(!n){n={id:id(),line:editing.line,text:typed};page().notes.push(n)}
@@ -1896,6 +1908,16 @@ root.addEventListener('change',event=>{
  if(event.target.id==='nbEraseBehavior'){data.eraserMode=event.target.value==='whole'?'whole':'parts';save();}
  if(event.target.id==='nbPaperDate'&&editEnabled){page().date=event.target.value;syncNotebookUI();save();}
 });
+// Clicar fora do texto confirma alterações, inclusive a exclusão completa.
+root.addEventListener('focusout',event=>{
+ if(event.target.id!=='nbEditorText'||!editing)return;
+ const input=event.target,session=editing;
+ queueMicrotask(()=>{
+  // Enter/troca de linha e re-renderização do editor podem substituir a caixa.
+  if(editing===session&&$('nbEditorText')===input&&document.activeElement!==input)
+   saveEditor(false);
+ });
+});
 root.addEventListener('input',event=>{
  const t=event.target;
  if(t.id==='nbEraseSize'){data.eraserRadius=clamp(Number(t.value)||14,6,32);save();return;}
@@ -2229,7 +2251,10 @@ window.addEventListener('pagehide',()=>{
  // O iframe pode ser desmontado ao navegar: conserva inclusive a anotação ainda em edição.
  if(editing){
   const typed=String($('nbEditorText')?.value||'').replace(/\r\n?/g,'\n').trimEnd();
-  if(typed.trim()){
+  if(!typed.trim()&&editing.id){
+   // Ao descarregar o iframe, não persistir uma anotação já apagada na caixa.
+   page().notes=page().notes.filter(n=>n.id!==editing.id);
+  }else if(typed.trim()){
    let note=editing.id?page().notes.find(n=>n.id===editing.id):null;
    if(!note){note={id:id(),line:editing.line,text:typed};page().notes.push(note)}
    Object.assign(note,{text:typed,original:typed,font:data.font,size:data.size,ink:data.ink,pending:false,reviewed:false});
