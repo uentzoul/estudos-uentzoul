@@ -251,6 +251,7 @@ async function select(files){
   suggestOrganization(r);
   r.guideExam=guessAssessment(r);
   r.professorGuide=r.category==='activities'&&isTeacherGuideName(r);
+  if(r.professorGuide)r.scope='in';
   paint();
  }
  if(scanToken!==mine)return;isAnalyzing=false;paint();
@@ -317,6 +318,7 @@ async function importLibraryPackage(archive,append=false){
    suggestOrganization(next[next.length-1]);
    next[next.length-1].guideExam=guessAssessment(next[next.length-1]);
    next[next.length-1].professorGuide=next[next.length-1].category==='activities'&&isTeacherGuideName(next[next.length-1]);
+   if(next[next.length-1].professorGuide)next[next.length-1].scope='in';
   }
   if(scanToken!==mine)return;
   const combined=[...previous,...next];
