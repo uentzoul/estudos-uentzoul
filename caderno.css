@@ -710,3 +710,12 @@ html[data-theme="dark"] .nb-align-select{background:#203149;border-color:#3b4e69
  width:100%;min-width:0;padding:5px 2px;pointer-events:none}
 .nb-rail-spread .nb-rail-blank .nb-rail-paper{width:100%!important;aspect-ratio:780/1240!important}
 .nb-reading #nbCompanionWrap,.nb-reading #nbSheet{touch-action:none!important}
+
+/* Aviso da página do caderno para acesso direto por telefone.
+   O site principal permanece completamente acessível em smartphones. */
+.nb-phone-unavailable{min-height:100dvh;display:grid;place-items:center;
+ padding:24px;background:#f6f3fa;color:#3d3457;font-family:system-ui,-apple-system,'Segoe UI',sans-serif}
+.nb-phone-unavailable>section{width:min(440px,100%);background:#fff;border:1px solid #e5deec;
+ border-radius:15px;padding:28px;text-align:center;box-shadow:0 8px 28px #30243f13}
+.nb-phone-unavailable h1{font-size:20px;line-height:1.35;margin:0 0 12px}
+.nb-phone-unavailable p{font-size:14px;line-height:1.6;margin:0;color:#655e73}

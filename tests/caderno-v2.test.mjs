@@ -380,3 +380,38 @@ test('Voltar do mouse e navegador retorna dentro do Caderno e mantém a estante'
  assert.match(style,/@keyframes nb-book-cover-open/);
  assert.match(style,/prefers-reduced-motion:reduce/);
 });
+
+
+test('Caderno é acessível em computador e tablet, mas não em telefone',()=>{
+ const functionSource=source=>{
+  const match=source.match(/function isNotebookPhone\(\)\{[\s\S]*?\n\s*\}/);
+  assert.ok(match,'Detector específico de telefones precisa existir nos dois pontos de acesso');
+  return match[0];
+ };
+ const navGuard=functionSource(nav),directGuard=functionSource(script);
+ const classify=(source,ua,platform='Linux x86_64',touches=0,coarse=false,size=[1366,768])=>vm.runInNewContext(
+  '('+source+')()',
+  {navigator:{userAgent:ua,platform,maxTouchPoints:touches,userAgentData:{mobile:false}},
+   screen:{width:size[0],height:size[1]},
+   window:{matchMedia:()=>({matches:coarse})}}
+ );
+ const devices=[
+  {name:'iPhone',ua:'Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit Mobile/15E148',touches:5,coarse:true,size:[390,844],phone:true},
+  {name:'Android phone',ua:'Mozilla/5.0 (Linux; Android 15; Pixel 9) AppleWebKit Chrome/130 Mobile Safari',touches:5,coarse:true,size:[412,915],phone:true},
+  {name:'iPad',ua:'Mozilla/5.0 (iPad; CPU OS 18_0 like Mac OS X) AppleWebKit Mobile/15E148',touches:5,coarse:true,size:[834,1112],phone:false},
+  {name:'Android tablet',ua:'Mozilla/5.0 (Linux; Android 14; SM-X710) AppleWebKit Chrome/130 Safari',touches:5,coarse:true,size:[800,1280],phone:false},
+  {name:'iPadOS desktop UA',ua:'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit Safari',platform:'MacIntel',touches:5,coarse:true,size:[820,1180],phone:false},
+  {name:'desktop resized',ua:'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit Chrome/130 Safari',touches:0,coarse:false,size:[390,844],phone:false}
+ ];
+ for(const device of devices){
+  for(const [name,source] of [['site-version.js',navGuard],['caderno.js',directGuard]]){
+   assert.equal(classify(source,device.ua,device.platform,device.touches,device.coarse,device.size),device.phone,device.name+' in '+name);
+  }
+ }
+ assert.match(nav,/const allowed=admin\(\)&&!phone/);
+ assert.match(nav,/if\(!admin\(\)\|\|isNotebookPhone\(\)\)return/);
+ assert.match(nav,/button\.hidden=!allowed/);
+ assert.match(script,/if\(isNotebookPhone\(\)\)\{\s*root\.className='nb-phone-unavailable'/);
+ assert.match(script,/return;\s*\}\s*let userId=/);
+ assert.match(style,/\.nb-phone-unavailable\{/);
+});

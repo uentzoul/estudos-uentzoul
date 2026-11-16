@@ -235,6 +235,19 @@ setTimeout(check,15000);
  const STYLE_ID='uentzoul-notebook-preview-style',NAV_ID='navCadernoPreview',FRAME_ID='uentzoulCadernoFrame';
  let previewOpen=false;
  const admin=()=>window.uentzoulAdminConfig?.isAdmin?.()===true&&!!window.uentzoulAIAuth?.user?.()?.id;
+ // A restrição é pelo tipo de aparelho, não apenas pela largura da janela.
+ // iPad e tablets Android continuam disponíveis, mesmo com viewport estreito.
+ function isNotebookPhone(){
+  const ua=String(navigator.userAgent||''),platform=String(navigator.platform||'');
+  const touches=Number(navigator.maxTouchPoints)||0;
+  const shortSide=Math.min(screen.width||0,screen.height||0);
+  if(/iPad|Tablet|Kindle|Silk|PlayBook|Nexus 7|Nexus 10/i.test(ua)||
+    (/Android/i.test(ua)&&!/Mobile/i.test(ua))||
+    (/MacIntel|Macintosh/i.test(platform+' '+ua)&&touches>1))return false;
+  if(/iPhone|iPod|Windows Phone|IEMobile|Android[^)]*Mobile|Mobile/i.test(ua))return true;
+  if(navigator.userAgentData?.mobile===true)return true;
+  return !!(window.matchMedia?.('(pointer: coarse)')?.matches&&touches>0&&shortSide>0&&shortSide<600);
+ }
  const nav=()=>document.getElementById('nav');
  const main=()=>document.getElementById('main');
  function addStyles(){
@@ -245,6 +258,7 @@ setTimeout(check,15000);
    '#nav .nb-preview-label{margin-left:auto;font-size:9px;font-weight:800;letter-spacing:.2px;white-space:nowrap;padding:3px 6px;border-radius:6px;color:#8067b6;background:#ece5f8;}'+
    '#navUpcomingFloatingTip{display:none!important}#nav #navCadernoPreview.active{background:color-mix(in srgb,#7964b9 14%,var(--paper));border-color:color-mix(in srgb,#7964b9 36%,transparent)}'+
    '#nav #navCadernoPreview[hidden]{display:none!important}'+
+   'html[data-pm-notebook-phone="true"] #nav #navCadernoPreview{display:none!important}'+
    '#main.nb-shell-active{max-width:none!important;width:100%!important;padding:8px 10px!important;overflow:hidden;}'+
    '#main #uentzoulCadernoFrame{display:block;width:100%;height:calc(100dvh - 12px);min-height:0;border:1px solid #e3ddeb;border-radius:16px;background:#f3f1f9;box-shadow:0 10px 32px #342c4715;}'+
    '@media(max-width:760px){#main.nb-shell-active{padding:4px!important;}#main #uentzoulCadernoFrame{height:calc(100dvh - 12px);min-height:0;border-radius:12px}#nav #navCadernoPreview .nb-preview-label{font-size:9px;padding:2px 5px}}';
@@ -263,11 +277,11 @@ setTimeout(check,15000);
   document.getElementById(NAV_ID)?.classList.remove('active');
  }
  function openPreview(){
-  if(!admin())return;
+  if(!admin()||isNotebookPhone())return;
   const target=main();if(!target)return;
   previewOpen=true;addStyles();
   target.classList.add('nb-shell-active');
-  target.innerHTML='<iframe id="'+FRAME_ID+'" title="Caderno de aula — prévia administrativa" src="./caderno.html?v=20261116-caderno-v9-line-grid" loading="eager" referrerpolicy="same-origin"></iframe>';
+  target.innerHTML='<iframe id="'+FRAME_ID+'" title="Caderno de aula — prévia administrativa" src="./caderno.html?v=20261116-caderno-desktop-tablet-only" loading="eager" referrerpolicy="same-origin"></iframe>';
   document.querySelectorAll('#nav [data-page].active').forEach(n=>n.classList.remove('active'));
   document.getElementById(NAV_ID)?.classList.add('active');
   window.pmMobileDrawer?.close?.();
@@ -302,7 +316,9 @@ setTimeout(check,15000);
   if(button.parentNode!==el||exam?.nextElementSibling!==button){
    if(exam)exam.after(button);else el.appendChild(button);
   }
-  const allowed=admin();
+  const phone=isNotebookPhone();
+  document.documentElement.dataset.pmNotebookPhone=String(phone);
+  const allowed=admin()&&!phone;
   if(previewOpen)fitNotebookHeight();
   button.hidden=!allowed;button.style.display=allowed?'':'none';
   if(previewOpen&&!allowed){
@@ -319,7 +335,7 @@ setTimeout(check,15000);
   observer.observe(main(),{childList:true});
   window.addEventListener('uentzoul:auth',()=>{sync();setTimeout(sync,420)});
   window.addEventListener('focus',sync);
-  window.addEventListener('resize',fitNotebookHeight,{passive:true});
+  window.addEventListener('resize',()=>{sync();fitNotebookHeight();},{passive:true});
   setInterval(sync,2300);
  }
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',setup,{once:true});
