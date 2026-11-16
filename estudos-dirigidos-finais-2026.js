@@ -40,6 +40,7 @@ function apply(db){
   const topics=curated(db,subject);
   if(!topics?.length)continue;
   guides[subject]=guides[subject]||[];
+  if(subject==='meta')guides[subject]=guides[subject].filter(x=>x.id!==id);
   if(guides[subject].some(x=>x.id===id))continue;
   guides[subject].unshift({id,title:'Estudo dirigido — revisão final de 2026/2',
    subtitle:topics.length+' conceitos comentados com exemplos e limites de interpretação',
