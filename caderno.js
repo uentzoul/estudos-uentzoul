@@ -154,7 +154,7 @@ data.mode='none'; // Ao abrir, nenhuma ferramenta atua na folha até o usuário 
 if(!stored?.smoothingV3){data.smooth=true;data.smoothingV3=true;}
 let pendingPage=emptyPage(),galleryOpen=false,drawerOpen=false,galleryOffset=0,railOpen=!window.matchMedia('(max-width:760px)').matches;
 let shelfOpen=true,editEnabled=false;
-let panOffset={x:0,y:0},suppressLeafClickUntil=0;
+let panOffset={x:0,y:0},suppressLeafClickUntil=0,opposingStrokePointer=null;
 let selected=null,contextTarget=null,panDrag=null,lastPointer=null,toolPaletteOpen=false,eraseDrag=null,moveDrag=null,resizeDrag=null;
 function materializePage(){
  if(data.page<data.pages.length||!hasPageContent(pendingPage))return;
@@ -421,22 +421,49 @@ function beginOpposingLeafGesture(event){
  event.preventDefault();event.stopImmediatePropagation();
  if(editing)saveEditor(false);
  data.page=target;pendingPage=emptyPage();selected=null;selectedStroke=-1;
- // Não salvar enquanto o usuário ainda está desenhando na direita vazia.
- // A escrita, desenho ou post-it faz o save depois de criar a folha corretamente.
+ // Só a folha viva muda: ambas conservam a mesma posição visual.
+ // NÃO salvar antes de terminar o gesto na página direita nova.
  renderPage();renderPageRail();
  suppressLeafClickUntil=Date.now()+450;
- // Não depender de um segundo clique. O primeiro pointerdown é reproduzido
- // na folha ativa recém-trocada para Desenhar, Apagar, Selecionar, Moldar, Post-it e Escrever.
- const recipient=document.elementFromPoint(event.clientX,event.clientY);
- if(!recipient?.closest('#nbSheet'))return true;
- const copy=new PointerEvent('pointerdown',{
-  bubbles:true,cancelable:true,composed:true,pointerId:event.pointerId,
-  pointerType:event.pointerType,button:event.button,buttons:event.buttons,
-  isPrimary:event.isPrimary,clientX:event.clientX,clientY:event.clientY,
-  ctrlKey:event.ctrlKey,altKey:event.altKey,shiftKey:event.shiftKey,metaKey:event.metaKey,
-  pressure:event.pressure
- });
- recipient.dispatchEvent(copy);
+ const pos=point(event),mode=data.mode;
+ if(mode==='text'){
+  if(pos.x>=88&&pos.y>=START+FIRST_LINE*L&&pos.y<START+ROWS*L)
+   beginEdit(Math.floor((pos.y-START)/L));
+  return true;
+ }
+ if(mode==='sticky'){addSticky(pos);return true;}
+ if(mode==='draw'||mode==='erase'){
+  checkpoint();
+  if(mode==='draw')drawPoints=[pos];
+  else{eraseDrag={pointerId:event.pointerId};applyEraser(pos);}
+  opposingStrokePointer=event.pointerId;
+  // Captura o apontador físico no botão que recebeu o clique original;
+  // eventos sintéticos não têm captura garantida em todos os navegadores.
+  try{companion.setPointerCapture?.(event.pointerId)}catch(_){}
+  return true;
+ }
+ if(mode==='select'||mode==='warp'){
+  const element=document.elementFromPoint(event.clientX,event.clientY);
+  const note=element?.closest('#nbSheet [data-nb-note]');
+  const sticky=element?.closest('#nbSheet [data-nb-sticky]');
+  if(mode==='select'&&note){
+   selectItem('note',note.dataset.nbNote);
+   startMoveDrag(event,'note',selectedItem());return true;
+  }
+  if(mode==='select'&&sticky){
+   selectItem('sticky',sticky.dataset.nbSticky);
+   startMoveDrag(event,'sticky',selectedItem());return true;
+  }
+  const hit=findStrokeNear(pos,mode==='select');
+  if(hit.stroke){
+   selectItem('stroke',hit.stroke.id);selectedStroke=hit.index;
+   if(mode==='select')startMoveDrag(event,'stroke',hit.stroke);
+   return true;
+  }
+  selected=null;selectedStroke=-1;renderSelectionHandles();
+  if(mode==='select')startPan(event);
+  return true;
+ }
  return true;
 }
 function setZoom(value,saveState=true){
@@ -1884,6 +1911,9 @@ root.addEventListener('pointerdown',event=>{
  }
 });
 root.addEventListener('pointermove',event=>{
+ if(opposingStrokePointer===event.pointerId){
+  pointerMoveCanvas(event);return;
+ }
  toolCursor(event);
  if(resizeDrag&&resizeDrag.pointerId===event.pointerId){updateResize(event);return;}
  if(moveDrag&&moveDrag.pointerId===event.pointerId){updateMoveDrag(event);return;}
@@ -1916,6 +1946,12 @@ root.addEventListener('pointermove',event=>{
  }
 });
 root.addEventListener('pointerup',event=>{
+ if(opposingStrokePointer===event.pointerId){
+  opposingStrokePointer=null;
+  pointerUpCanvas(event);
+  suppressLeafClickUntil=Date.now()+250;
+  return;
+ }
  if(resizeDrag&&resizeDrag.pointerId===event.pointerId){finishResize(event);return;}
  if(moveDrag&&moveDrag.pointerId===event.pointerId){finishMoveDrag(event);return;}
  if(warpDrag&&warpDrag.pointerId===event.pointerId){pointerUpCanvas(event);return;}
@@ -1945,6 +1981,9 @@ root.addEventListener('pointerup',event=>{
  if(stickyDrag){stickyDrag=null;save();}
 });
 root.addEventListener('pointercancel',event=>{
+ if(opposingStrokePointer===event.pointerId){
+  opposingStrokePointer=null;pointerUpCanvas(event);
+ }
  if(resizeDrag&&resizeDrag.pointerId===event.pointerId)finishResize(event);
  if(moveDrag&&moveDrag.pointerId===event.pointerId)finishMoveDrag(event);
  if(warpDrag&&warpDrag.pointerId===event.pointerId)pointerUpCanvas(event);
