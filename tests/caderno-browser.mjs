@@ -46,11 +46,26 @@ try{
  const colors=await f.locator('.nb-shelf-cover').evaluateAll(els=>
   els.map(el=>getComputedStyle(el).getPropertyValue('--nb-book-cover').trim()));
  assert.equal(new Set(colors).size,6,'Cada matéria deve ter sua própria cor');
+ const columns=await f.locator('.nb-shelf-grid').evaluate(el=>getComputedStyle(el).gridTemplateColumns.split(' ').length);
+ assert.equal(columns,3,'Estante desktop deve organizar as seis capas em 3 colunas');
+ for(const title of await f.locator('.nb-shelf-title').all()){
+  const state=await title.evaluate(el=>{
+   const font=getComputedStyle(el),ctx=document.createElement('canvas').getContext('2d');
+   ctx.font=font.fontWeight+' '+font.fontSize+' '+font.fontFamily;
+   return {word:Math.max(...el.textContent.split(/\s+/).map(w=>ctx.measureText(w).width)),
+    width:el.clientWidth};
+  });
+  assert.ok(state.word<state.width+4,'Nenhum nome de matéria deve cortar uma palavra na capa');
+ }
  await f.locator('[data-nb-shelf-book="materia-familia"]').click();
  await f.locator('#nbSheet').waitFor({state:'visible',timeout:15000});
  assert.equal(await f.locator('#nbTools').isVisible(),false,'Caderno abre em modo somente leitura');
  assert.equal(await f.locator('#nbPaperDate').isDisabled(),true);
  assert.equal(await f.locator('#nbEditToggle').textContent(),'✎ Editar');
+ const rawReadOnly=await f.locator('#nbSheet').boundingBox();
+ await page.mouse.click(rawReadOnly.x+250*rawReadOnly.width/780,
+  rawReadOnly.y+140*rawReadOnly.height/1240);
+ assert.equal(await f.locator('#nbEditorText').count(),0,'Modo leitura não pode criar notas ao tocar na folha');
  await f.locator('.nb-page-control [data-nb-action="next"]').click();
  assert.equal(await f.locator('#nbPageNum').textContent(),'01','Leitura não cria páginas vazias');
  await f.locator('#nbEditToggle').click();
@@ -355,6 +370,8 @@ try{
  const mf=mobilePage.frameLocator('#nbQaFrame');
  await mf.locator('#nbShelf').waitFor({state:'visible'});
  assert.equal(await mf.locator('.nb-shelf-book').count(),6);
+ assert.equal(await mf.locator('.nb-shelf-grid').evaluate(el=>getComputedStyle(el).gridTemplateColumns.split(' ').length),2,
+  'No celular as capas usam duas colunas simétricas');
  await mf.locator('[data-nb-shelf-book="materia-familia"]').click();
  await mf.locator('#nbSheet').waitFor({state:'visible'});
  assert.equal(await mf.locator('#nbPageRail').evaluate(el=>el.classList.contains('is-open')),false,
@@ -433,5 +450,31 @@ try{
  assert.equal(await bf.locator('#nbZoomText').textContent(),'76%');
  assert.deepEqual(bookErrors,[],'Nenhum erro de execução no caderno de duas páginas');
  await bookContext.close();
+ // Migração em um navegador limpo: exibe só as seis capas e arquiva o legado.
+ const priorContext=await browser.newContext({viewport:{width:1150,height:800}});
+ await priorContext.addInitScript(()=>{
+  const flag='qa-legacy-seed-installed';
+  if(localStorage.getItem(flag))return;
+  localStorage.setItem(flag,'yes');
+  localStorage.setItem('uentzoul:caderno:alpha2:qa-browser-admin',JSON.stringify({
+   books:[{id:'legacy-book',name:'Caderno antigo',pages:[{
+    date:'2026-11-01',notes:[{id:'old-note',line:3,text:'Guardado com segurança',size:1}],
+    strokes:[],stickies:[]}]}],bookId:'legacy-book',page:0,mode:'none'
+  }));
+ });
+ const priorPage=await priorContext.newPage();await priorPage.goto(address,{waitUntil:'domcontentloaded'});
+ const pf=priorPage.frameLocator('#nbQaFrame');
+ await pf.locator('#nbShelf').waitFor({state:'visible'});
+ assert.equal(await pf.locator('.nb-shelf-book').count(),6);
+ const archives=await pf.locator('#nbShelf').evaluate(()=>{
+  const backup=localStorage.getItem('psicomoodle:caderno:backup-antes-das-seis-materias:qa-browser-admin');
+  const fresh=JSON.parse(localStorage.getItem('uentzoul:caderno:alpha2:qa-browser-admin')||'{}');
+  return{backup:backup&&JSON.parse(backup),fresh};
+ });
+ assert.equal(archives.backup.books[0].name,'Caderno antigo');
+ assert.equal(archives.backup.books[0].pages[0].notes[0].text,'Guardado com segurança');
+ assert.equal(archives.fresh.books.length,6);
+ assert.equal(archives.fresh.curriculumSeeded,true);
+ await priorContext.close();
  console.log('Caderno browser QA OK: Enter, IA, post-it, seleção, borracha, Ctrl+Z, galeria, PDF, pan e celular');
 }finally{await browser.close();await new Promise(resolve=>server.close(resolve))}
