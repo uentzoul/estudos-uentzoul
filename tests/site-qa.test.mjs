@@ -398,6 +398,48 @@ test('Caderno ajusta círculo, retângulo e linhas sem confundir as formas',()=>
  assert.equal(perfectShape(curve).kind,'curve');
 });
 
+
+test('Ajuste inteligente do caderno reconhece meia-lua e não destrói desenhos livres',()=>{
+ const source=read('caderno.js'),pdf=read('caderno-pdf.js');
+ const start=source.indexOf('function dist(a,b)'),end=source.indexOf('function paintStroke(');
+ assert.ok(start>=0&&end>start);
+ const {smartStroke}=vm.runInNewContext('(()=>{const W=780,H=1240;const clamp=(n,a,b)=>Math.max(a,Math.min(b,n));'+
+  source.slice(start,end)+';return {smartStroke};})()');
+ const arc=Array.from({length:115},(_,i)=>{
+  const a=-Math.PI+Math.PI*i/114;
+  return {x:310+110*Math.cos(a)+Math.sin(i*1.2)*3.5,y:410+110*Math.sin(a)+Math.cos(i*2.1)*3.5};
+ });
+ const line=Array.from({length:75},(_,i)=>({x:125+5*i,y:210+i*.3+Math.sin(i*2)*2}));
+ const circle=Array.from({length:115},(_,i)=>{
+  const a=2*Math.PI*i/114;return{x:350+90*Math.cos(a)+Math.sin(i*1.3)*2,y:410+90*Math.sin(a)+Math.cos(i*1.7)*2};
+ });
+ const triangle=[[140,140],[390,155],[240,375]].flatMap((a,i,v)=>{
+  const b=v[(i+1)%v.length];
+  return Array.from({length:36},(_,j)=>{
+   const t=j/36;return{x:a[0]+(b[0]-a[0])*t+Math.sin(j*1.5),y:a[1]+(b[1]-a[1])*t+Math.cos(j*1.2)};
+  });
+ });
+ const wave=Array.from({length:160},(_,i)=>({x:110+i*2.4,
+  y:420+45*Math.sin(i/11)+25*Math.sin(i/4)+Math.sin(i*1.7)*2}));
+ const corrected=smartStroke(arc);
+ assert.equal(corrected.kind,'arc','meia-lua irregular vira arco circular');
+ const center={x:310,y:410};
+ const radii=corrected.points.map(p=>Math.hypot(p.x-center.x,p.y-center.y));
+ const average=radii.reduce((sum,v)=>sum+v,0)/radii.length;
+ const variance=radii.reduce((sum,v)=>sum+(v-average)**2,0)/radii.length;
+ assert.ok(Math.sqrt(variance)<1,'arco com raio consistente');
+ assert.equal(smartStroke(circle).kind,'circle');
+ assert.equal(smartStroke(line).kind,'line');
+ assert.equal(smartStroke(triangle).kind,'polygon');
+ assert.equal(smartStroke(wave).kind,'fluid','traço complexo não vira círculo/linha');
+ assert.match(source,/data\.smooth\?smartStroke\(raw\)/);
+ assert.match(source,/const r=smartStroke\(item\.points\)/);
+ assert.match(source,/!\\['line','polygon','rectangle'\\]\.includes\(s\.kind\)/);
+ assert.match(pdf,/!\\['line','polygon','rectangle'\\]\.includes\(stroke\.kind\)/);
+ assert.match(read('caderno.html'),/20261116-caderno-v18-smart-shapes/);
+ assert.match(read('site-version.js'),/caderno\.html\?v=20261116-caderno-v18-smart-shapes/);
+});
+
 test('Caderno permanece aberto durante atualizações assíncronas de outras seções',()=>{
  const loader=read('site-version.js');
  assert.match(html,/if\(window\.PSICO_NOTEBOOK_ACTIVE\?\.\(\)&&document\.getElementById\('uentzoulCadernoFrame'\)\)return;/);
