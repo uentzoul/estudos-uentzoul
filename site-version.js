@@ -281,7 +281,7 @@ setTimeout(check,15000);
   const target=main();if(!target)return;
   previewOpen=true;addStyles();
   target.classList.add('nb-shell-active');
-  target.innerHTML='<iframe id="'+FRAME_ID+'" title="Caderno de aula — prévia administrativa" src="./caderno.html?v=20261116-caderno-v9-line-grid" loading="eager" referrerpolicy="same-origin"></iframe>';
+  target.innerHTML='<iframe id="'+FRAME_ID+'" title="Caderno de aula — prévia administrativa" src="./caderno.html?v=20261116-caderno-desktop-tablet-only" loading="eager" referrerpolicy="same-origin"></iframe>';
   document.querySelectorAll('#nav [data-page].active').forEach(n=>n.classList.remove('active'));
   document.getElementById(NAV_ID)?.classList.add('active');
   window.pmMobileDrawer?.close?.();
