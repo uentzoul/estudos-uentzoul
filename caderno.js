@@ -3,6 +3,23 @@
 (function(){
 'use strict';
 const root=document.getElementById('nbRoot');
+// Disponível em computador e tablet; indisponível em telefone, mesmo pela URL direta.
+function isNotebookPhone(){
+ const ua=String(navigator.userAgent||''),platform=String(navigator.platform||'');
+ const touches=Number(navigator.maxTouchPoints)||0;
+ const shortSide=Math.min(screen.width||0,screen.height||0);
+ if(/iPad|Tablet|Kindle|Silk|PlayBook|Nexus 7|Nexus 10/i.test(ua)||
+   (/Android/i.test(ua)&&!/Mobile/i.test(ua))||
+   (/MacIntel|Macintosh/i.test(platform+' '+ua)&&touches>1))return false;
+ if(/iPhone|iPod|Windows Phone|IEMobile|Android[^)]*Mobile|Mobile/i.test(ua))return true;
+ if(navigator.userAgentData?.mobile===true)return true;
+ return !!(window.matchMedia?.('(pointer: coarse)')?.matches&&touches>0&&shortSide>0&&shortSide<600);
+}
+if(isNotebookPhone()){
+ root.className='nb-phone-unavailable';
+ root.innerHTML='<section role="status" aria-label="Caderno indisponível no celular"><h1>Caderno indisponível no celular</h1><p>O caderno do PsicoMoodle está disponível somente em computadores e tablets.</p></section>';
+ return;
+}
 let userId='';
 try{
  if(window.parent!==window &&
