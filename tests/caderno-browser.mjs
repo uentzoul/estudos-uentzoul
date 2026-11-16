@@ -89,12 +89,14 @@ try{
  // Com Selecionar, arrastar o espaço vazio desloca a folha (não desenha).
  await f.locator('[data-nb-action="select"]').click();
  const blank=await point(550,540);
- const beforePan=await f.locator('#nbViewport').evaluate(el=>el.scrollTop);
+ const beforePan=(await f.locator('#nbSheet').boundingBox()).y;
  await page.mouse.move(blank.x,blank.y);await page.mouse.down();
  await page.mouse.move(blank.x,blank.y-132,{steps:9});await page.mouse.up();
- const afterPan=await f.locator('#nbViewport').evaluate(el=>el.scrollTop);
- assert.ok(afterPan>beforePan+20,'Selecionar deve arrastar a página para cima e para baixo');
- await f.locator('#nbViewport').evaluate(el=>{el.scrollTop=0;el.scrollLeft=0});
+ const afterPan=(await f.locator('#nbSheet').boundingBox()).y;
+ assert.ok(afterPan<beforePan-20,'Selecionar deve arrastar a página livremente para cima e para baixo');
+ const resetBlank=await point(550,540);
+ await page.mouse.move(resetBlank.x,resetBlank.y);await page.mouse.down();
+ await page.mouse.move(resetBlank.x,resetBlank.y+132,{steps:9});await page.mouse.up();
  await f.locator('[data-nb-action="text"]').click();
  const first=await point(250,28+3*34+8);
  await page.mouse.click(first.x,first.y);
