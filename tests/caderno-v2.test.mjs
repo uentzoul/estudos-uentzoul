@@ -50,7 +50,7 @@ test('Enter preserva zoom e só acompanha a linha fora da visualização',()=>{
 });
 
 test('Enter insere pauta entre textos, empurra notas e conserva excedente na folha seguinte',()=>{
- const source=fn('function insertBlankPauta(line,alreadyCheckpointed=false){','function previousWritingLine(){');
+ const source=fn('function insertBlankPauta(line,alreadyCheckpointed=false){','function removeBlankPauta(line,alreadyCheckpointed=false){');
  const data={page:0,pages:[
   {notes:[{id:'a',line:5,span:1,text:'Antes'},{id:'b',line:6,span:1,text:'Depois'},{id:'c',line:29,span:1,text:'Fim'}]},
   {notes:[{id:'d',line:3,span:2,text:'Próxima folha'}]}
@@ -82,7 +82,8 @@ test('Backspace numa pauta sem texto retorna ao final da anterior sem apagar not
  const context={editing:{line:6,id:null},data:{mode:'text',page:0,pages:[pageData]},editEnabled:true,
   $:()=>input,listInfo:()=>null,closeEditor:()=>{},
   beginEdit:line=>visited.push(line),saveEditor:()=>{},page:()=>pageData,
-  pendingPage:{notes:[]},emptyPage:()=>({notes:[]}),renderPage:()=>{},renderPageRail:()=>{},save:()=>{},FIRST_LINE:3,ROWS:30};
+  pendingPage:{notes:[]},emptyPage:()=>({notes:[]}),renderPage:()=>{},renderPageRail:()=>{},save:()=>{},FIRST_LINE:3,ROWS:30,
+  removeBlankPauta:()=>false,status:()=>{}};
  const back=vm.runInNewContext('('+source+')',context);
  back();
  assert.equal(visited.at(-1),5);
@@ -90,6 +91,72 @@ test('Backspace numa pauta sem texto retorna ao final da anterior sem apagar not
  assert.equal(pageData.notes[0].text,'Não apagar');
  assert.match(script,/event\.key==='Backspace'/);
  assert.match(script,/saveEditor\(true,true\)/,'Enter ativa inserção sem sobrepor notas');
+});
+
+
+test('Backspace recolhe pauta vazia no meio da folha, sem perder textos ou formatação',()=>{
+ const source=fn('function removeBlankPauta(line,alreadyCheckpointed=false){','function previousWritingLine(){');
+ const pageData={notes:[
+  {id:'above',line:5,span:1,text:'Texto acima',ink:'red'},
+  {id:'below',line:8,span:1,text:'Texto abaixo',ink:'blue',inkRuns:[{start:0,end:11,ink:'blue'}]},
+  {id:'end',line:20,span:2,text:'Texto final'}
+ ],date:'2026-11-16',strokes:[{id:'r1'}],stickies:[{id:'p1'}]};
+ const laterPage={notes:[{id:'next',line:3,span:1,text:'Outra página'}]};
+ const data={mode:'text',page:0,pages:[pageData,laterPage]};
+ let checkpoints=0,renders=0,saved=0;
+ const context={editEnabled:true,data,FIRST_LINE:3,ROWS:30,page:()=>pageData,
+  checkpoint:()=>{checkpoints++},renderNotes:()=>{renders++},
+  renderBookSpread:()=>{},renderPageRail:()=>{},save:()=>{saved++}};
+ const remove=vm.runInNewContext('('+source+')',context);
+ const original=JSON.stringify(data);
+ assert.equal(remove(6),true);
+ assert.equal(pageData.notes.find(n=>n.id==='above').line,5);
+ assert.equal(pageData.notes.find(n=>n.id==='below').line,7);
+ assert.equal(pageData.notes.find(n=>n.id==='end').line,19);
+ assert.equal(pageData.notes.find(n=>n.id==='below').inkRuns[0].ink,'blue');
+ assert.equal(pageData.date,'2026-11-16');
+ assert.equal(pageData.strokes.length,1);
+ assert.equal(pageData.stickies.length,1);
+ assert.equal(laterPage.notes[0].line,3,'A folha seguinte não muda');
+ assert.equal(checkpoints,1);
+ assert.equal(renders,1);
+ assert.equal(saved,1);
+ // Segunda pauta em branco pode ser eliminada com outro Backspace.
+ assert.equal(remove(6),true);
+ assert.equal(pageData.notes.find(n=>n.id==='below').line,6);
+ assert.equal(checkpoints,2);
+ assert.equal(remove(6),false,'Não pode remover pauta ocupada por texto');
+ assert.equal(checkpoints,2,'Linha ocupada não gera checkpoint');
+ assert.equal(remove(18),false,'Linha ocupada por nota de várias pautas não pode ser excluída');
+ assert.equal(JSON.parse(original).pages[0].notes[1].line,8,'Estado anterior fica preservável para Ctrl+Z');
+});
+test('Backspace na pauta vazia apaga uma linha e posiciona no texto anterior',()=>{
+ const collapseSrc=fn('function removeBlankPauta(line,alreadyCheckpointed=false){','function previousWritingLine(){');
+ const backSrc=fn('function previousWritingLine(){','function advanceLine(to){');
+ const pageData={notes:[{id:'up',line:5,span:1,text:'Acima'},{id:'down',line:7,span:1,text:'Abaixo'}]};
+ const input={value:''},visits=[];
+ let checkpoints=0;
+ const context={editing:{line:6,id:null},data:{mode:'text',page:0,pages:[pageData]},editEnabled:true,
+  FIRST_LINE:3,ROWS:30,page:()=>pageData,$:()=>input,listInfo:()=>null,
+  closeEditor:()=>{},saveEditor:()=>{},beginEdit:line=>visits.push(line),
+  checkpoint:()=>checkpoints++,renderNotes:()=>{},renderBookSpread:()=>{},
+  renderPageRail:()=>{},save:()=>{},status:()=>{}};
+ context.removeBlankPauta=vm.runInNewContext('('+collapseSrc+')',context);
+ const back=vm.runInNewContext('('+backSrc+')',context);
+ back();
+ assert.equal(pageData.notes[1].line,6,'Texto abaixo ocupa o espaço deletado');
+ assert.equal(pageData.notes[0].line,5);
+ assert.equal(visits.at(-1),5,'Cursor retorna à linha anterior');
+ assert.equal(checkpoints,1);
+ // Apagar por completo uma anotação já salva e fechar espaço é um único undo.
+ pageData.notes.push({id:'erased',line:6,span:1,text:'Apagado'});
+ pageData.notes.find(n=>n.id==='down').line=7;
+ context.editing={line:6,id:'erased'};
+ context.saveEditor=()=>{checkpoints++;pageData.notes=pageData.notes.filter(n=>n.id!=='erased')};
+ back();
+ assert.equal(checkpoints,2,'Exclusão + recolhimento compartilham um checkpoint');
+ assert.equal(pageData.notes.find(n=>n.id==='down').line,6);
+ assert.equal(pageData.notes.some(n=>n.id==='erased'),false);
 });
 
 test('Cores por trecho preservam azul e vermelho e persistem como intervalos',()=>{
