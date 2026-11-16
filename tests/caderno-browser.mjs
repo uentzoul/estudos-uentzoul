@@ -365,23 +365,29 @@ try{
  assert.equal(await f.locator('#nbSheet').evaluate(el=>getComputedStyle(el).backgroundColor),'rgb(255, 253, 248)');
  assert.deepEqual(errors,[],'Nenhum erro JavaScript de execução');
  await ctx.close();
- // Também verifica o trilho de folhas recolhido no celular e a abertura pelo puxador.
- const mobile=await browser.newContext({viewport:{width:390,height:844},isMobile:true,hasTouch:true,acceptDownloads:true});
+ // Celular: mesmo acessando /caderno.html diretamente, nenhuma estante é iniciada.
+ const mobile=await browser.newContext({
+  viewport:{width:390,height:844},isMobile:true,hasTouch:true,acceptDownloads:true,
+  userAgent:'Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.0 Mobile/15E148 Safari/604.1'
+ });
  const mobilePage=await mobile.newPage();
  await mobilePage.goto(address,{waitUntil:'domcontentloaded'});
  const mf=mobilePage.frameLocator('#nbQaFrame');
- await mf.locator('#nbShelf').waitFor({state:'visible'});
- assert.equal(await mf.locator('.nb-shelf-book').count(),6);
- assert.equal(await mf.locator('.nb-shelf-grid').evaluate(el=>getComputedStyle(el).gridTemplateColumns.split(' ').length),2,
-  'No celular as capas usam duas colunas simétricas');
- await mf.locator('[data-nb-shelf-book="materia-familia"]').click();
- await mf.locator('#nbSheet').waitFor({state:'visible'});
- assert.equal(await mf.locator('#nbPageRail').evaluate(el=>el.classList.contains('is-open')),false,
-   'No celular, a lista de páginas começa recolhida');
- await mf.locator('[data-nb-action="toggleRail"]').click();
- assert.equal(await mf.locator('#nbPageRail').evaluate(el=>el.classList.contains('is-open')),true,
-   'O puxador deve abrir o painel móvel');
+ await mf.locator('.nb-phone-unavailable').waitFor({state:'visible',timeout:15000});
+ assert.match(await mf.locator('.nb-phone-unavailable').innerText(),/somente em computadores e tablets/);
+ assert.equal(await mf.locator('#nbShelf').count(),0,'O caderno não deve iniciar no iPhone');
  await mobile.close();
+ // Tablet iPad: permanece disponível até com user agent contendo "Mobile".
+ const tablet=await browser.newContext({
+  viewport:{width:834,height:1112},isMobile:true,hasTouch:true,acceptDownloads:true,
+  userAgent:'Mozilla/5.0 (iPad; CPU OS 18_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.0 Mobile/15E148 Safari/604.1'
+ });
+ const tabletPage=await tablet.newPage();
+ await tabletPage.goto(address,{waitUntil:'domcontentloaded'});
+ const tf=tabletPage.frameLocator('#nbQaFrame');
+ await tf.locator('#nbShelf').waitFor({state:'visible',timeout:15000});
+ assert.equal(await tf.locator('.nb-shelf-book').count(),6,'O caderno permanece no iPad');
+ await tablet.close();
  // Teste isolado: modo neutro, fontes, dupla folha e editor em ambos os lados.
  const bookContext=await browser.newContext({viewport:{width:1440,height:940},acceptDownloads:true});
  const bookPage=await bookContext.newPage(),bookErrors=[];
@@ -500,5 +506,5 @@ try{
  assert.equal(archives.fresh.books.length,6);
  assert.equal(archives.fresh.curriculumSeeded,true);
  await priorContext.close();
- console.log('Caderno browser QA OK: Enter, IA, post-it, seleção, borracha, Ctrl+Z, galeria, PDF, pan e celular');
+ console.log('Caderno browser QA OK: Enter, IA, post-it, seleção, borracha, Ctrl+Z, galeria, PDF, pan, bloqueio de celular e acesso em tablet');
 }finally{await browser.close();await new Promise(resolve=>server.close(resolve))}
