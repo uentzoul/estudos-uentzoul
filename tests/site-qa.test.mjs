@@ -62,7 +62,8 @@ test('Revisão de Férias já existe no HTML inicial e não pisca no refresh',()
  });
  initialize();initialize();
  assert.equal(creations,0,'não deve recriar o botão existente');
- assert.equal(registrations,1,'registra o clique uma única vez');
+ assert.equal(registrations,0,'o botão não registra listeners diretos: o clique é delegado uma única vez no setup');
+ assert.match(review,/document\.addEventListener\('click',event=>\{\s*const button=event\.target\?\.closest\?\.\('#navVacationReview'\)/,'delegação do clique ocorre fora de navButton');
  assert.equal(updates,2,'atualiza somente metadados sem inserir nós');
 });
 
