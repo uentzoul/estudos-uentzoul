@@ -117,7 +117,7 @@ function updateCounter(){
  '<div class="library-count-track"><i style="width:'+(st.total?Math.round(st.sent/st.total*100):100)+'%"></i></div>';
 }
 function destinationOptions(r){
- if(mustSchedule(api()?.semester?.()))return '<option value="__new__" selected>Novo material · visível imediatamente no acervo</option>';
+ if(mustScheduleEntry(api()?.semester?.(),r))return '<option value="__new__" selected>Novo material · visível imediatamente no acervo</option>';
  const list=entries().filter(x=>!r.subject||x.subject===r.subject).sort((a,b)=>
   Number(b.key===r.suggestion?.key)-Number(a.key===r.suggestion?.key)||a.title.localeCompare(b.title,'pt-BR'));
  return '<option value="__new__" '+(r.targetKey==='__new__'?'selected':'')+'>+ Adicionar como novo material</option>'+
@@ -175,7 +175,7 @@ function paint(){
  const el=document.getElementById('libraryUploadFeedback'),btn=document.getElementById('libraryUploadSend');
  updateCounter();
  if(!el)return;
- if(btn){btn.disabled=isBusy||isAnalyzing||!reviewed.length;btn.textContent=isBusy?'Enviando arquivos…':isAnalyzing?'Lendo os materiais…':(mustSchedule(activeSemester)?'Agendar ':'Publicar ')+reviewed.length+' material(is)';}
+ if(btn){btn.disabled=isBusy||isAnalyzing||!reviewed.length;btn.textContent=isBusy?'Enviando arquivos…':isAnalyzing?'Lendo os materiais…':(reviewed.every(r=>mustScheduleEntry(activeSemester,r))?'Agendar ':'Publicar ')+reviewed.length+' material(is)';}
  let html='';
  if(reviewed.length)html='<div class="library-review-intro"><strong>'+reviewed.length+' arquivo(s) selecionado(s)</strong>'+
  '<small>'+ (isAnalyzing?'Analisando o conteúdo de cada arquivo…':'Confira as disciplinas, destinos e conteúdos antes de publicar.')+'</small></div>'+
@@ -415,7 +415,7 @@ async function submit(event){
  if(reviewSemester!==sem){show('O semestre mudou. Selecione novamente os arquivos para evitar misturar os acervos.');return;}
  const catalog=entries();
  const queue=reviewed.map(r=>{
-  const scheduled=mustSchedule(sem);
+  const scheduled=mustScheduleEntry(sem,r);
   const existing=scheduled?null:catalog.find(x=>x.key===r.targetKey);
   const subject=existing?.subject||r.subject;
   const title=(existing?.title||r.title||'').trim().slice(0,160);
@@ -459,7 +459,7 @@ async function submit(event){
     resource_key:key,storage_path:path,filename:file.name.slice(0,255),mime_type:fmt.mime,
     size_bytes:file.size,updated_by:u.id,updated_at:new Date().toISOString(),
     file_subject:sem==='2026/1'?'2026/1::'+subject:subject,display_title:title,content_summary:String(r.analysis?.summary||'').slice(0,600),
-    content_tags:(r.analysis?.topics||[]).slice(0,15),exam_scope:scheduled?false:scope,scan_quality:r.analysis?.quality||'manual',library_public:true,
+    content_tags:taggedTopics(r),exam_scope:scheduled?false:scope,scan_quality:r.analysis?.quality||'manual',library_public:true,
     publish_at:scheduled?SECOND_SEMESTER_RELEASE:null
    },{onConflict:'resource_key'});
    if(error)throw Error('Arquivo salvo, mas falhou ao associar ao acervo: '+error.message);
@@ -484,7 +484,7 @@ async function submit(event){
  }
  paint();
  const feedback=document.getElementById('libraryUploadFeedback');
- if(feedback){const summary=document.createElement('strong');summary.textContent='Envio concluído: '+passed+(mustSchedule(sem)?' agendado(s)':' publicado(s)')+(failed?' · '+failed+' pendência(s)':'')+'.';feedback.prepend(summary)}
+ if(feedback){const summary=document.createElement('strong');summary.textContent='Envio concluído: '+passed+' arquivo(s) processado(s)'+(failed?' · '+failed+' pendência(s)':'')+'.';feedback.prepend(summary)}
 }
 document.addEventListener('click',async e=>{
  const packageTrigger=e.target.closest('[data-library-package-choose]');
@@ -529,7 +529,7 @@ document.addEventListener('change',e=>{
   r.subject=subj.value;r.targetKey='__new__';if(!r.title)r.title=titleFromFile(r.file,r.analysis);suggestOrganization(r);paint();return;}
  const dest=e.target.closest('[data-review-target]');
  if(dest){const i=Number(dest.dataset.reviewTarget),r=reviewed[i];if(!r)return;
-  if(mustSchedule(reviewSemester)){r.targetKey='__new__';paint();return;}
+  if(mustScheduleEntry(reviewSemester,r)){r.targetKey='__new__';paint();return;}
   r.targetKey=dest.value;const match=entries().find(x=>x.key===dest.value);
   if(match){r.subject=match.subject;r.title=match.title;r.scope=match.inExam?'in':r.scope;}suggestOrganization(r);paint();return;}
  const section=e.target.closest('[data-review-section]');
@@ -538,7 +538,16 @@ document.addEventListener('change',e=>{
   r.sectionHint=(window.PSICO_COURSE_MANAGER?.sectionCatalog?.(reviewSemester,r.subject)||[]).find(x=>x.number===r.sectionNumber)?.label||'';
  }return;}
  const category=e.target.closest('[data-review-category]');
- if(category){const r=reviewed[Number(category.dataset.reviewCategory)];if(r)r.category=category.value;return;}
+ if(category){const r=reviewed[Number(category.dataset.reviewCategory)];if(r){r.category=category.value;if(r.category!=='activities')r.professorGuide=false;paint();}return;}
+ const teacher=e.target.closest('[data-review-teacher-guide]');
+ if(teacher){const r=reviewed[Number(teacher.dataset.reviewTeacherGuide)];if(r){
+   r.professorGuide=teacher.value==='yes';r.targetKey='__new__';
+   if(r.professorGuide){r.category='activities';r.scope='in';if(!r.guideExam)r.guideExam=guessAssessment(r);}
+   else if(mustSchedule(reviewSemester))r.scope='scheduled';
+   paint();
+  }return;}
+ const evaluation=e.target.closest('[data-review-guide-exam]');
+ if(evaluation){const r=reviewed[Number(evaluation.dataset.reviewGuideExam)];if(r)r.guideExam=evaluation.value;return;}
  const scope=e.target.closest('[data-review-scope]');
  if(scope){const r=reviewed[Number(scope.dataset.reviewScope)];if(r)r.scope=scope.value;return;}
 });
