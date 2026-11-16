@@ -167,7 +167,7 @@ function materializePage(){
 function serializable(){
  materializePage();
  for(const book of data.books){
-  const cleaned=(book.pages||[]).map(cleanPage);
+  const cleaned=(book.pages||[]).slice(); // Manter notas pendentes até a IA concluir a revisão.
   // Não manter folhas vazias NO FIM, mas nunca apagar uma folha esquerda
   // vazia caso a folha direita do mesmo par já tenha conteúdo.
   while(cleaned.length&&!hasPageContent(cleaned[cleaned.length-1]))cleaned.pop();
