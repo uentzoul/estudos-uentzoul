@@ -345,16 +345,16 @@ test('Tour mobile não pisca ao avançar e voltar nas etapas 6, 9 e 19',()=>{
 });
 
 
-test('Caderno experimental permanece isolado e reservado aos administradores',()=>{
+test('Caderno abre para contas registradas e mantém anotações privadas',()=>{
  const loader=read('site-version.js');
  const notebook=read('caderno.js');
  const markup=read('caderno.html');
  const styles=read('caderno.css');
  assert.match(loader,/navCadernoPreview/);
- assert.match(loader,/const admin=\(\)=>window\.uentzoulAdminConfig\?\.isAdmin\?\.\(\)===true/);
+ assert.match(loader,/const loggedIn=\(\)=>!!account\(\)/);
  assert.match(loader,/button\.hidden=false/,'botão fica visível para visitantes desde a abertura');
- assert.match(loader,/button\.disabled=!allowed/,'somente administradores podem clicar');
- assert.match(loader,/if\(!admin\(\)\|\|isNotebookPhone\(\)\)return/,'a abertura continua restrita aos administradores');
+ assert.match(loader,/if\(button\.disabled\)button\.disabled=false/,'botão conduz ao login quando necessário');
+ assert.match(loader,/if\(!loggedIn\(\)\)\{/,'acesso solicita conta quando não autenticado');
  const siteMarkup=read('index.html');
  assert.match(siteMarkup,/id="navCadernoPreview"\s+disabled aria-disabled="true"/,'estado inicial já bloqueado sem flash visual');
  assert.doesNotMatch(siteMarkup,/id="navCadernoPreview"\s+style="visibility:hidden"/);
@@ -362,7 +362,7 @@ test('Caderno experimental permanece isolado e reservado aos administradores',()
  assert.match(loader,/caderno\.html\?v=/);
  assert.match(markup,/name="robots" content="noindex, nofollow"/);
  assert.match(markup,/src="caderno\.js\?v=/);
- assert.match(notebook,/window\.parent\.uentzoulAdminConfig\?\.isAdmin\?\.\(\)===true/);
+ assert.match(notebook,/if\(user\?\.id&&user\.is_anonymous!==true\)userId=String\(user\.id\)/);
  assert.match(notebook,/uentzoul:caderno:alpha1:/);
  assert.match(notebook,/functions\.invoke\('caderno-revisao'/);
  assert.match(notebook,/const hit=findStrokeNear\(p,false\)/);
