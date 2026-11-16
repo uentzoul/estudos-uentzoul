@@ -273,7 +273,7 @@ setTimeout(check,15000);
   }
   return semesters.includes(value)?value:'2026/2';
  }
- const notebookUrl=()=>('./caderno.html?v=20261116-caderno-v12-semesters-two-leaves-tab&semester='+
+ const notebookUrl=()=>('./caderno.html?v=20261116-caderno-v17-date-only-right-hover&semester='+
    encodeURIComponent(selectedSemester()));
  function addStyles(){
   if(document.getElementById(STYLE_ID))return;
