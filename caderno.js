@@ -188,8 +188,9 @@ const id=()=>typeof crypto.randomUUID==='function'?crypto.randomUUID():'nb-'+Dat
 const isMobile=()=>window.matchMedia('(max-width:760px)').matches;
 function renderShelf(){
  const host=$('nbShelf');if(!host)return;
- host.innerHTML='<div class="nb-shelf-heading"><span class="nb-shelf-eyebrow">PSICOMOODLE · '+SEMESTER_LABEL.toUpperCase()+'</span>'+
-  '<h2>Meus cadernos</h2><p>Escolhe uma matéria para abrir o caderno e folhear suas páginas.</p></div>'+
+ host.innerHTML='<div class="nb-shelf-tutorial-bar"><button type="button" class="nb-shelf-tutorial-button" data-nb-tour-start aria-label="Abrir tutorial do Caderno">ⓘ Tutorial</button></div>'+
+  '<div class="nb-shelf-heading"><span class="nb-shelf-eyebrow">PSICOMOODLE · '+SEMESTER_LABEL.toUpperCase()+'</span>'+
+  '<h2>Meus cadernos</h2><p>Escolhe uma matéria para abrir o caderno e folhear suas páginas. Anotações sincronizadas com a sua conta.</p></div>'+
   '<div class="nb-shelf-grid">'+data.books.map((book,i)=>
    '<button class="nb-shelf-book" data-nb-shelf-book="'+esc(book.id)+'" aria-label="Abrir '+esc(book.name)+'">'+
     '<span class="nb-shelf-cover" style="--nb-book-cover:'+bookColor(book)+'" data-cover="'+i%6+'">'+
