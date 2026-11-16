@@ -327,7 +327,12 @@ test('Caderno experimental permanece isolado e reservado aos administradores',()
  const styles=read('caderno.css');
  assert.match(loader,/navCadernoPreview/);
  assert.match(loader,/const admin=\(\)=>window\.uentzoulAdminConfig\?\.isAdmin\?\.\(\)===true/);
- assert.match(loader,/button\.style\.visibility=allowed\?'visible':'hidden'/);
+ assert.match(loader,/button\.hidden=false/,'botão fica visível para visitantes desde a abertura');
+ assert.match(loader,/button\.disabled=!allowed/,'somente administradores podem clicar');
+ assert.match(loader,/if\(!admin\(\)\|\|isNotebookPhone\(\)\)return/,'a abertura continua restrita aos administradores');
+ const siteMarkup=read('index.html');
+ assert.match(siteMarkup,/id="navCadernoPreview"\s+disabled aria-disabled="true"/,'estado inicial já bloqueado sem flash visual');
+ assert.doesNotMatch(siteMarkup,/id="navCadernoPreview"\s+style="visibility:hidden"/);
  assert.match(loader,/data-page="exams"/);
  assert.match(loader,/caderno\.html\?v=/);
  assert.match(markup,/name="robots" content="noindex, nofollow"/);
