@@ -725,3 +725,17 @@ html[data-theme="dark"] .nb-align-select{background:#203149;border-color:#3b4e69
 /* Em caderno aberto, arrastar a folha oposta funciona tanto lendo quanto editando. */
 .nb-stage.nb-double #nbCompanionWrap{touch-action:none!important;cursor:grab}
 .nb-stage.nb-double #nbCompanionWrap:active{cursor:grabbing}
+
+
+/* Tabulações reais: mesma largura no editor, na nota salva e nas miniaturas. */
+.nb-inline-edit,.nb-note .nb-note-content,.nb-sticky textarea,.nb-sticky-text-preview{
+ tab-size:4;-moz-tab-size:4;
+}
+/* Estante ↔ folha: evitar que a transição da página inteira revele um fundo claro.
+   A animação 3D da capa continua usando a transição compartilhada. */
+html.nb-opening-book::view-transition,
+html.nb-closing-book::view-transition{background:var(--nb-bg)}
+html.nb-opening-book::view-transition-old(root),
+html.nb-opening-book::view-transition-new(root),
+html.nb-closing-book::view-transition-old(root),
+html.nb-closing-book::view-transition-new(root){animation:none!important}
