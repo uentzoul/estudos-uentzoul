@@ -234,7 +234,7 @@ function setEditEnabled(value){
  if(!value&&editing)saveEditor(false);
  editEnabled=!!value;
  data.mode='none';selected=null;selectedStroke=-1;toolPaletteOpen=false;
- $('nbLineHover').hidden=true;$('nbContextMenu').hidden=true;
+ $('nbLineHover').hidden=true;$('nbCompanionLineHover')?.setAttribute('hidden','');$('nbContextMenu').hidden=true;
  refreshTools();renderNotes();renderStickies();drawCanvas();renderSelectionHandles();
  renderStickyPalette();syncNotebookUI();
  if(!editEnabled)save();
@@ -328,7 +328,7 @@ root.innerHTML=
  '<div class="nb-view" id="nbViewport" aria-label="Folha do caderno, com zoom e rolagem">'+
  '<div class="nb-stage" id="nbStage"><div class="nb-sheet-wrap" id="nbWrap">'+
  '<div class="nb-sheet" id="nbSheet"><div class="nb-holes" aria-hidden="true"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div><span class="nb-binder-zone" aria-hidden="true"></span>'+
- '<div class="nb-paper-date-group"><label class="nb-paper-date-label" for="nbPaperDate">Data</label><input id="nbPaperDate" class="nb-paper-date" type="date" aria-label="Data da aula"><span id="nbPaperDateRead" class="nb-paper-date-read" hidden></span></div>'+
+ '<div class="nb-paper-date-group"><input id="nbPaperDate" class="nb-paper-date" type="date" aria-label="Data da aula"><span id="nbPaperDateRead" class="nb-paper-date-read" hidden></span></div>'+
  '<button class="nb-corner-back" data-nb-action="prev" aria-label="Voltar à página anterior" title="Página anterior">‹</button>'+
  '<div class="nb-line-hover" id="nbLineHover" hidden></div>'+
  '<canvas id="nbDrawing" class="nb-drawing" width="780" height="1240" aria-label="Área de desenho"></canvas>'+
@@ -387,7 +387,7 @@ function renderBookSpread(){
  if(data.layout!=='book')return;
  const index=data.page%2===0?data.page+1:data.page-1;
  const other=data.pages[index]||emptyPage();
- $('nbCompanionPaper').innerHTML=snapshotSheetMarkup(other,index);
+ $('nbCompanionPaper').innerHTML=snapshotSheetMarkup(other,index,true);
  companion.setAttribute('aria-label','Abrir e editar folha '+(index+1));
 }
 function companionIndex(){return data.page%2===0?data.page+1:data.page-1}
@@ -1214,11 +1214,12 @@ function snapshotStickyMarkup(st){
   '<span class="nb-sticky-head"><span>✦ Nota adesiva</span></span>'+
   '<span class="nb-sticky-text-preview">'+esc(st.text||'')+'</span></span>';
 }
-function snapshotSheetMarkup(p,index){
+function snapshotSheetMarkup(p,index,withHover=false){
  const date=p.date?new Date(p.date+'T12:00:00').toLocaleDateString('pt-BR'):'';
  return '<span class="nb-sheet nb-snapshot-sheet '+(index%2===0?'nb-left-page':'nb-right-page')+'" aria-hidden="true">'+
   '<span class="nb-holes">'+Array.from({length:8},()=>'<span></span>').join('')+'</span><span class="nb-binder-zone" aria-hidden="true"></span>'+
   (date?'<span class="nb-paper-date-group nb-has-date"><span class="nb-snapshot-date">'+esc(date)+'</span></span>':'')+
+  (withHover?'<span class="nb-line-hover" id="nbCompanionLineHover" hidden aria-hidden="true"></span>':'')+
   snapshotSvg(p)+
   '<span class="nb-text-layer">'+(p.notes||[]).map(n=>noteMarkup(n,false).replace(' data-nb-note="'+esc(n.id)+'"','')).join('')+'</span>'+
   '<span class="nb-sticky-layer">'+(p.stickies||[]).map(snapshotStickyMarkup).join('')+'</span>'+
@@ -1618,7 +1619,7 @@ function act(action){
   // Em Deformar, preservar a seleção e as alças do traço corrigido.
   const keepSelection=action==='warp'&&selected?.type==='stroke'&&selectedItem()?.corrected;
   data.mode=action;toolPaletteOpen=false;if(!keepSelection)selected=null;selectedStroke=-1;
-  $('nbLineHover').hidden=true;$('nbContextMenu').hidden=true;
+  $('nbLineHover').hidden=true;$('nbCompanionLineHover')?.setAttribute('hidden','');$('nbContextMenu').hidden=true;
   refreshTools();renderNotes();renderStickies();drawCanvas();renderSelectionHandles();renderStickyPalette();save();
   if(action==='none')status('Modo navegar: arraste a página, use zoom ou selecione outra ferramenta.','');
   if(action==='select')status('Clique para selecionar e arrastar textos, desenhos ou post-its.','');
@@ -1945,11 +1946,23 @@ root.addEventListener('pointermove',event=>{
    if(el){el.style.left=st.x+'px';el.style.top=st.y+'px';}
   }return;
  }
+ // A linha roxa acompanha a folha física sob o mouse, não a folha ativa.
  if(data.mode==='text'&&event.pointerType==='mouse'&&!editing){
-  const pos=point(event),el=$('nbLineHover');
-  if(pos.x>=90&&pos.y>=START+FIRST_LINE*L&&pos.y<START+ROWS*L){
-   el.style.top=(START+Math.floor((pos.y-START)/L)*L)+'px';el.hidden=false;
-  }else el.hidden=true;
+  const liveHover=$('nbLineHover'),companionHover=$('nbCompanionLineHover');
+  liveHover.hidden=true;
+  if(companionHover)companionHover.hidden=true;
+  const onLive=!!event.target.closest('#nbSheet');
+  const onCompanion=data.layout==='book'&&!!event.target.closest('#nbCompanionWrap');
+  if((onLive||onCompanion)&&!isInBinderZone(event)){
+   const rect=(onCompanion?companion:sheet).getBoundingClientRect();
+   const x=(event.clientX-rect.left)*W/Math.max(1,rect.width);
+   const y=(event.clientY-rect.top)*H/Math.max(1,rect.height);
+   const el=onCompanion?companionHover:liveHover;
+   if(el&&x>=90&&x<W&&y>=START+FIRST_LINE*L&&y<START+ROWS*L){
+    el.style.top=(START+Math.floor((y-START)/L)*L)+'px';
+    el.hidden=false;
+   }
+  }
  }
 });
 root.addEventListener('pointerup',event=>{
@@ -1996,7 +2009,10 @@ root.addEventListener('pointercancel',event=>{
  if(warpDrag&&warpDrag.pointerId===event.pointerId)pointerUpCanvas(event);
  tapCandidate=null;panDrag=null;if(stickyDrag){stickyDrag=null;save();}
 });
-root.addEventListener('pointerleave',()=>{$('nbToolCursor').hidden=true});
+root.addEventListener('pointerleave',()=>{
+ $('nbToolCursor').hidden=true;$('nbLineHover').hidden=true;
+ $('nbCompanionLineHover')?.setAttribute('hidden','');
+});
 canvas.addEventListener('pointerdown',pointerDownCanvas);
 canvas.addEventListener('pointermove',pointerMoveCanvas);
 canvas.addEventListener('pointerup',pointerUpCanvas);
