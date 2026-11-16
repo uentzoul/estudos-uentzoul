@@ -46,6 +46,16 @@
    return doc?'<div class="sd-original-file"><span>Arquivo original do professor</span>'+
     '<a href="#" class="sd-official-action" data-sd-official="'+esc(doc.resource_key)+'">Abrir documento ('+esc(docFormat(doc))+') ↗</a></div>':'';
  }
+ function prepareMissingGuides(){
+   if(!sourcesReady||!isAdmin()||preparation.running)return;
+   const priority=['tcc','familia','meta','grupos','social','avaliacao'];
+   for(const subject of priority){
+     const doc=currentDoc(subject),saved=currentSaved(subject);
+     if(!doc||inlineOriginal(subject)||(saved?.resource_key===doc.resource_key&&saved?.guide?.questions?.length))continue;
+     void prepareGuide(subject);
+     break;
+   }
+ }
  function sourceStatusMarkup(subject,doc){
    const exam=TARGETS[subject],error=preparation.errors[subject];
    const running=preparation.running===subject;
@@ -90,6 +100,7 @@
        JSON.stringify(guides)!==JSON.stringify(publishedGuides);
      officialRows=documents;publishedGuides=guides;sourcesReady=true;
      if(changed)refreshVisibleGuides();
+     if(isAdmin())setTimeout(prepareMissingGuides,900);
    }catch(error){
      console.warn('Consulta dos estudos dirigidos indisponível:',error);
      if(!sourcesReady){sourcesReady=true;refreshVisibleGuides();}
@@ -108,7 +119,7 @@
      if(error||!data?.ok)throw Error(data?.error||error?.message||'Falha de geração');
      await refreshSources(true);
    }catch(error){preparation.errors[subject]=error?.message||'Não foi possível processar o documento.';}
-   finally{preparation.running=null;refreshVisibleGuides();}
+   finally{preparation.running=null;refreshVisibleGuides();if(isAdmin())setTimeout(prepareMissingGuides,1200);}
  }
  document.addEventListener('click',async event=>{
    const start=event.target.closest('[data-sd-prepare]');
@@ -134,10 +145,7 @@
  setInterval(()=>{
    if(document.hidden)return;
    void refreshSources();
-   if(isAdmin())document.querySelectorAll('[data-sd-subject]').forEach(node=>{
-     const subject=node.getAttribute('data-sd-subject');
-     if(subject&&TARGETS[subject])void prepareGuide(subject);
-   });
+   if(isAdmin())prepareMissingGuides();
  },20000);
  setTimeout(()=>{void refreshSources(true);},1000);
  function paragraph(s){
