@@ -79,8 +79,6 @@ button,input,textarea,select{font:inherit}button{cursor:pointer}button:disabled{
 .nb-paper-date-label{position:absolute;top:154px;right:205px;color:#8b7b8e;font:700 11px 'DM Sans',sans-serif;z-index:4}
 .nb-paper-date{position:absolute;top:142px;right:47px;width:149px;height:28px;border:0;border-bottom:1px dashed #bdabc7;background:transparent;color:#5c4c69;font:600 13px 'DM Sans',sans-serif;z-index:4;outline:none}
 .nb-paper-date:focus{border-bottom-color:#705ab0}
-.nb-corner-back{position:absolute;left:53px;top:110px;width:32px;height:45px;border:0;border-radius:6px;background:transparent;color:#8a6dac;font-size:29px;z-index:8;opacity:.75;transition:transform .2s,color .2s,background .2s}
-.nb-corner-back:hover{transform:translateX(-3px);color:#6953a2;background:#f2e9fa}
 .nb-sheet-wrap:has(.nb-inline-edit) .nb-line-hover{display:none!important}
 .nb-inline-edit{position:absolute;left:110px;width:calc(100% - 145px);min-height:38px;max-height:710px;overflow:auto;z-index:8;margin:0;padding:1px 2px 0;border:none;outline:none;resize:none;caret-color:#7355b4;background:#e6dbff14;box-shadow:0 1px 0 #9279bb66;white-space:pre-wrap;word-break:break-word;overflow-wrap:anywhere;font-weight:500;font-size:var(--nb-small);letter-spacing:0;line-height:1.04}
 .nb-inline-edit.print{font-family:'Patrick Hand','Segoe Print',cursive}
@@ -331,16 +329,6 @@ html[data-theme="dark"] .nb-back-books{background:#263752;color:#e4dafa;border-c
  user-select:none;-webkit-user-select:none;
 }
 .nb-note.nb-selected .nb-note-content{background:transparent!important;outline:0!important;box-shadow:none!important}
-.nb-corner-back{
- left:45px;top:12px;width:43px;height:42px;font-size:32px;line-height:40px;
- background:#eee5f9;color:#5b4194;border:2px solid #baa7d9;border-radius:11px;
- opacity:1;font-weight:900;z-index:20;
- box-shadow:0 3px 12px #3a2b5b2b;
-}
-.nb-corner-back:hover,.nb-corner-back:focus-visible{
- background:#ddcff2;color:#3a256f;border-color:#7c64b3;outline:2px solid #fff;
-}
-.nb-corner-back:disabled{opacity:.65}
 .nb-sticky-head{position:relative;min-height:23px;overflow:visible}
 .nb-sticky-head button[data-nb-delete-sticky]{
  position:relative;z-index:18;width:29px;height:29px;flex:0 0 29px;
