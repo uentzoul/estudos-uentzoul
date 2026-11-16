@@ -281,8 +281,7 @@ setTimeout(check,15000);
    '#nav #navCadernoPreview{display:flex;align-items:center;gap:9px;min-width:0;position:relative;cursor:pointer;}'+
    '#nav .nb-preview-label{margin-left:auto;font-size:9px;font-weight:800;letter-spacing:.2px;white-space:nowrap;padding:3px 6px;border-radius:6px;color:#8067b6;background:#ece5f8;}'+
    '#navUpcomingFloatingTip{display:none!important}#nav #navCadernoPreview.active{background:color-mix(in srgb,#7964b9 14%,var(--paper));border-color:color-mix(in srgb,#7964b9 36%,transparent)}'+
-   '#nav #navCadernoPreview[hidden]{display:none!important}'+
-   'html[data-pm-notebook-phone="true"] #nav #navCadernoPreview{display:none!important}'+
+   '#nav #navCadernoPreview:disabled{opacity:.56;pointer-events:none;cursor:not-allowed;transform:none!important}'+
    '#main.nb-shell-active{max-width:none!important;width:100%!important;padding:8px 10px!important;overflow:hidden;}'+
    '#main #uentzoulCadernoFrame{display:block;width:100%;height:calc(100dvh - 12px);min-height:0;border:1px solid #e3ddeb;border-radius:16px;background:#f3f1f9;box-shadow:0 10px 32px #342c4715;}'+
    '@media(max-width:760px){#main.nb-shell-active{padding:4px!important;}#main #uentzoulCadernoFrame{height:calc(100dvh - 12px);min-height:0;border-radius:12px}#nav #navCadernoPreview .nb-preview-label{font-size:9px;padding:2px 5px}}';
@@ -351,8 +350,6 @@ setTimeout(check,15000);
    button.addEventListener('click',openPreview);
    button.dataset.nbBound='true';
   }
-  button.title='Caderno · '+selectedSemester()+' · prévia administrativa';
-  button.setAttribute('aria-label','Caderno de '+selectedSemester()+', prévia disponível para administrador');
   const exam=el.querySelector('[data-page="exams"]');
   if(button.parentNode!==el||exam?.nextElementSibling!==button){
    if(exam)exam.after(button);else el.appendChild(button);
@@ -361,12 +358,19 @@ setTimeout(check,15000);
   document.documentElement.dataset.pmNotebookPhone=String(phone);
   const allowed=admin()&&!phone;
   if(previewOpen)fitNotebookHeight();
-  // A posição é reservada no HTML, portanto autenticar não injeta uma nova
-  // linha no menu e não faz a barra lateral pular/ficar piscando.
-  button.hidden=phone;
-  button.style.display=phone?'none':'';
-  button.style.visibility=allowed?'visible':'hidden';
-  button.setAttribute('aria-hidden',String(!allowed));
+  // O Caderno fica visível desde o primeiro quadro também para visitantes.
+  // Somente administradores em dispositivos compatíveis podem ativá-lo.
+  button.hidden=false;
+  if(button.style.display)button.style.removeProperty('display');
+  if(button.style.visibility)button.style.removeProperty('visibility');
+  if(button.disabled===allowed)button.disabled=!allowed;
+  const label=allowed?'Caderno de '+selectedSemester()+', prévia administrativa':
+   'Caderno indisponível no momento. Acesso reservado a administradores.';
+  if(button.getAttribute('aria-label')!==label)button.setAttribute('aria-label',label);
+  if(button.getAttribute('aria-disabled')!==String(!allowed))button.setAttribute('aria-disabled',String(!allowed));
+  if(button.hasAttribute('aria-hidden'))button.removeAttribute('aria-hidden');
+  const title=allowed?'Caderno · '+selectedSemester()+' · prévia administrativa':'Caderno · em breve';
+  if(button.title!==title)button.title=title;
   if(previewOpen&&!allowed){
    // Oscilações temporárias de sessão nunca provocam navegação involuntária.
    if(!permissionLostSince)permissionLostSince=Date.now();
