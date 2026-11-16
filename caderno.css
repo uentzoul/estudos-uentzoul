@@ -752,3 +752,40 @@ html.nb-opening-book::view-transition-old(root),
 html.nb-opening-book::view-transition-new(root),
 html.nb-closing-book::view-transition-old(root),
 html.nb-closing-book::view-transition-new(root){animation:none!important}
+
+
+/* Cabeçalho da folha: somente a data, sem rótulo ou traço.
+   Posição única nos modos editar, leitura e miniatura da folha oposta. */
+.nb-paper-date-group{
+ top:30px!important;right:42px!important;width:180px!important;height:32px!important;
+ display:flex;align-items:center;justify-content:center;
+ margin:0!important;padding:0!important;gap:0!important;
+ border:0!important;border-bottom:0!important;background:transparent!important;
+}
+.nb-paper-date-group .nb-paper-date{
+ display:block;width:100%!important;max-width:none!important;min-width:0!important;
+ height:32px!important;line-height:32px!important;
+ margin:0!important;padding:0!important;text-align:center!important;
+ border:0!important;border-bottom:0!important;
+ box-shadow:none!important;background:transparent!important;
+}
+.nb-paper-date-group .nb-paper-date:focus{
+ border:0!important;border-bottom:0!important;box-shadow:none!important;
+}
+.nb-paper-date-read{
+ width:100%!important;margin:0!important;padding:0!important;
+ text-align:center!important;line-height:32px!important;
+}
+.nb-reading .nb-paper-date-read:not([hidden]){
+ display:block!important;width:100%!important;text-align:center!important;
+}
+.nb-snapshot-sheet .nb-snapshot-date{
+ display:block!important;flex:1;max-width:none;
+ width:100%;line-height:32px;text-align:center!important;
+}
+/* Mesma indicação roxa na folha ativa e na folha oposta,
+   dentro das coordenadas originais de 780 × 1240. */
+.nb-companion-wrap .nb-snapshot-sheet .nb-line-hover{
+ position:absolute;left:100px;right:32px;height:34px;
+ pointer-events:none;z-index:3;
+}
