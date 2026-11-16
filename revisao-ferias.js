@@ -87,18 +87,18 @@ function navButton(){
   const before=el.querySelector('.nav-upcoming')||el.querySelector('[data-page="admin"]');
   if(before)el.insertBefore(button,before);else el.appendChild(button);
  }
- if(button.dataset.vrBound!=='true'){
-  button.addEventListener('click',async e=>{
-   e.stopPropagation();await show();
-  });
-  button.dataset.vrBound='true';
- }
+ // O clique é gerenciado por delegação, inclusive se o botão for substituído.
  updateNavStatus();
 }
 function updateNavStatus(){
  const b=document.getElementById('navVacationReview');if(!b)return;
  // Revisões do primeiro e do segundo semestre liberadas também para visitantes.
- b.classList.remove('vr-pending');
+ b.classList.remove('vr-pending','vr-disabled','disabled');
+ // Limpa bloqueios antigos sem mover o botão ou alterar o layout.
+ if(b.disabled)b.disabled=false;
+ if(b.hasAttribute('aria-disabled'))b.removeAttribute('aria-disabled');
+ if(b.hasAttribute('inert'))b.removeAttribute('inert');
+ if(b.style.pointerEvents==='none')b.style.removeProperty('pointer-events');
  b.querySelector('.vr-soon')?.remove();
  b.title='Abrir Revisão de Férias';
  b.setAttribute('aria-label','Revisão de Férias');
@@ -323,6 +323,10 @@ async function load(){
 }
 async function show(){
  const selectedSemester=currSemester();
+ // Clique repetido não reinicia a revisão nem causa novo carregamento visual.
+ if(visible&&semester===selectedSemester&&document.getElementById('vr-root')){
+  setActive(true);updateNavStatus();window.pmMobileDrawer?.close?.();return;
+ }
  const snapshot=document.documentElement.classList.contains('pm-tour-running')&&
   tourCache?.semester===selectedSemester&&Date.now()-tourCache.savedAt<120000?tourCache:null;
  visible=true;semester=selectedSemester;
@@ -331,11 +335,14 @@ async function show(){
   events=snapshot.events.slice();indexMaterials(snapshot.materials);
   fileLoadError=snapshot.fileLoadError;
  }
- rootElement();setActive(true);render();
+ rootElement();setActive(true);
+ // Sem render duplicado da tela de carregamento; load() já faz isso.
+ if(snapshot)render();
  window.dispatchEvent(new CustomEvent('uentzoul:route',{detail:{page:'vacation',semester:'2026/'+semester}}));
  window.pmMobileDrawer?.close?.();
  if(snapshot){updateNavStatus();return;}
- try{await window.uentzoulAdminConfig?.refresh?.();}catch(_){}
+ // Os semestres públicos não dependem da consulta administrativa.
+ if(!canView())try{await window.uentzoulAdminConfig?.refresh?.();}catch(_){}
  if(!visible)return;
  updateNavStatus();
  if(!canView()){loading=false;events=[];render();return;}
@@ -392,6 +399,13 @@ function handleClick(ev){
 }
 function setup(){
  navButton();
+ // Captura o clique real, por mouse ou teclado, em botões reconstruídos.
+ document.addEventListener('click',event=>{
+  const button=event.target?.closest?.('#navVacationReview');
+  if(!button||!nav()?.contains(button))return;
+  event.preventDefault();event.stopPropagation();
+  void show();
+ },true);
  const n=nav();
  if(n&&!navObserver){navObserver=new MutationObserver(()=>navButton());navObserver.observe(n,{childList:true});}
  const m=main();

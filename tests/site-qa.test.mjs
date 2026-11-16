@@ -310,8 +310,8 @@ test('Tour mobile não pisca ao avançar e voltar nas etapas 6, 9 e 19',()=>{
  assert.ok(html.includes(currentCSS),'HTML deve usar a mesma versão dos estilos');
  assert.ok(loader.includes(currentScript),'Carregador não pode depender de uma versão antiga');
  assert.ok(loader.includes(currentCSS),'Estilos do carregador devem ser iguais aos do HTML');
- assert.ok(loader.includes('revisao-ferias.js?v=20261116-static-nav-no-flash-v6'));
-  assert.ok(html.includes('id="pm-vacation-timeline-js" src="revisao-ferias.js?v=20261116-static-nav-no-flash-v6" defer'));
+ assert.ok(loader.includes('revisao-ferias.js?v=20261116-review-click-stable-v7'));
+  assert.ok(html.includes('id="pm-vacation-timeline-js" src="revisao-ferias.js?v=20261116-review-click-stable-v7" defer'));
   assert.ok(html.includes('id="pm-vacation-timeline-css" rel="stylesheet" href="revisao-ferias.css?v=20261116-static-nav-no-flash-v6"'));
  assert.match(tour,/dataset\.pmTourPreparing='true'/);
  assert.match(tour,/dataset\.pmTourPreparing='false'/);
@@ -467,4 +467,14 @@ test('Caderno não expõe o iframe branco antes de carregar',()=>{
  assert.match(loader,/doc\.readyState!==['"]complete['"]/,'aguarda conteúdo completo');
  assert.match(loader,/frame\.classList\.remove\('nb-frame-ready'\)/,'oculta novamente antes de trocar semestre');
  assert.match(html,/site-version\.js\?v=20261116-caderno-v[0-9]+-[a-z0-9-]+/,'carregamento da versão atualizada');
+});
+
+test('Revisão de Férias: clique delegado, botão destravado e sem fade global',()=>{
+ const review=read('revisao-ferias.js');
+ assert.match(review,/if\(b\.disabled\)b\.disabled=false/);
+ assert.match(review,/removeAttribute\('aria-disabled'\)/);
+ assert.match(review,/removeAttribute\('inert'\)/);
+ assert.match(review,/event\.target\?\.closest\?\.\('#navVacationReview'\)/);
+ assert.match(review,/if\(visible&&semester===selectedSemester&&document\.getElementById\('vr-root'\)\)/);
+ assert.doesNotMatch(read('revisao-ferias.css'),/animation:vr-page-enter\s*\.\d/);
 });

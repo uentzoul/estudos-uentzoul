@@ -230,7 +230,7 @@ setTimeout(check,15000);
   if(!document.getElementById('pm-vacation-timeline-js')){
    const js=document.createElement('script');
    js.id='pm-vacation-timeline-js';
-   js.src='revisao-ferias.js?v=20261116-static-nav-no-flash-v6';
+   js.src='revisao-ferias.js?v=20261116-review-click-stable-v7';
    js.async=true;document.head.appendChild(js);
   }
  };
