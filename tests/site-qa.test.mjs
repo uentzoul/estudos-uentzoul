@@ -573,3 +573,70 @@ test('Detecção diferencia iPhone, iPad e tela MacIntel sensível ao toque',()=
  assert.equal(detect('Mozilla/5.0 (Macintosh; Intel Mac OS X) Safari',900),false);
  assert.match(read('caderno.js'),/if\(\/iPhone\|iPod\|Windows Phone\|IEMobile\/i\.test\(ua\)\)return true/);
 });
+
+
+test('Revisão dos simulados mantém identificadores e exige conhecimento da disciplina',()=>{
+ const match=html.match(/<script id="dataset" type="application\/json">([\s\S]*?)<\/script>/);
+ assert.ok(match,'Banco de questões da página principal disponível');
+ const original=JSON.parse(match[1]);
+ assert.equal(original.exams.length,30,'Provas anteriores não podem ser apagadas');
+ assert.ok(original.exams.some(x=>x.id==='familia-1'));
+ assert.ok(original.exams.some(x=>x.id==='familia-5'));
+ const oldIDs=original.exams.map(e=>e.id);
+ const oldQuestionIds=original.exams.map(e=>e.questions.map(q=>q.id));
+ assert.match(html,/store\.results\[e\.id\]/,'Progresso continua indexado pelo mesmo ID');
+ assert.match(html,/doneBox\('sim:'\+e\.id/,'Marcações de visto continuam ligadas ao mesmo ID');
+ assert.doesNotMatch(html,/Sentir vergonha uma vez é suficiente para confirmar um esquema persistente/);
+ const defectividade=original.topics.tcc.find(t=>t.title==='Defectividade e vergonha');
+ assert.match(defectividade.myth,/crença.+próprio valor/,'O erro exige conhecer a formulação de defectividade/vergonha');
+ const socialSrc=read('psicomoodle-new-content.js');
+ const socialMatch=socialSrc.match(/const DATA=(\{[\s\S]*?\});\s*\n/);
+ assert.ok(socialMatch);
+ const social=JSON.parse(socialMatch[1]).social;
+ assert.equal(social.length,18);
+ assert.doesNotMatch(social.map(t=>t.myth).join(' '),/assegura automaticamente igualdade|sem relação com pessoas ou poder/);
+ const runtime={window:{PSICOMOODLE_NEW_CONTENT:{social}}};
+ vm.runInNewContext(read('simulados-finais-2026.js'),runtime);
+ runtime.window.PSICO_FINAL_EXAMS.apply(original);
+ assert.deepEqual(original.exams.slice(0,30).map(e=>e.id),oldIDs,'IDs das provas antigas não são trocados');
+ assert.deepEqual(original.exams.slice(0,30).map(e=>e.questions.map(q=>q.id)),oldQuestionIds,
+  'IDs das questões antigas permanecem intactos');
+ const current=original.exams.filter(e=>e.final2026&&e.revision===runtime.window.PSICO_FINAL_EXAMS.version);
+ assert.equal(current.length,30,'Cinco simulados por cada uma das seis disciplinas');
+ for(const subject of ['tcc','familia','meta','grupos','social','avaliacao']){
+  const exams=current.filter(e=>e.subject===subject);
+  assert.equal(exams.length,5,subject);
+  for(const exam of exams){
+   assert.equal(exam.questions.length,15,'Treze objetivas e duas dissertativas: '+exam.id);
+   assert.equal(new Set(exam.questions.map(q=>q.id)).size,15,'IDs únicos');
+   for(const q of exam.questions){
+    if(q.type==='choice'||q.type==='combo')assert.ok(q.answer>=0&&q.answer<q.options.length,q.id);
+   }
+  }
+ }
+ assert.ok(current.filter(e=>e.subject==='familia').every(e=>e.id.startsWith('familia-rev-provas-equivalentes-20261113-')));
+ const meta=current.filter(e=>e.subject==='meta');
+ assert.ok(meta.every(e=>!e.questions.some(q=>/ang[uú]sti/i.test(JSON.stringify(q)))));
+ assert.ok(current.some(e=>e.questions.some(q=>q.type==='combo'&&q.assertions.some(a=>/esquema inicial desadaptativo de crenças intermediárias/.test(a.text)))),
+  'Distrator revisado compara conceitos próximos');
+});
+
+test('Revisão do primeiro semestre preserva números dos simulados e o banco de fontes',()=>{
+ const src=read('primeiro-semestre-dados.js'),raw=JSON.parse(src.split('window.PSICO_FIRST_SEM_DATA=')[1].replace(/;\s*$/,''));
+ assert.equal(Object.keys(raw).length,7);
+ for(const arr of Object.values(raw)){
+  assert.ok(arr.length>=14);
+  assert.ok(arr.every(topic=>topic.length===5&&Number.isInteger(topic[4])));
+ }
+ const win={PSICO_FIRST_SEM_DATA:raw,PSICO_FIRST_SEM_SOURCES:{}};
+ vm.runInNewContext(read('primeiro-semestre-relembrar.js'),{window:win});
+ const db={topics:{},exams:[]};
+ win.PSICO_FIRST_SEMESTER.apply(db);
+ assert.equal(db.exams.length,35,'Cinco simulados nas sete matérias');
+ assert.ok(db.exams.every(e=>e.questions.length===12));
+ assert.equal(new Set(db.exams.map(e=>e.id)).size,35);
+ const ids=db.exams.map(e=>e.id);
+ win.PSICO_FIRST_SEMESTER.apply(db);
+ assert.deepEqual(db.exams.map(e=>e.id),ids,'Não duplicar IDs nem reiniciar progresso');
+ assert.ok(db.exams.every(e=>e.id.startsWith('relembrar-2026-1-')));
+});
