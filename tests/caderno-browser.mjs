@@ -570,13 +570,6 @@ try{
  await twinPage.mouse.click(leftSticky.x,leftSticky.y);
  await twinPage.waitForTimeout(240);
  dataTwin=await notebookData();
- console.log('TWIN STICKY TRACE',JSON.stringify(await tw.locator('#nbRoot').evaluate(()=>({
-  log:window.__nbGestureLog||[],mode:document.querySelector('#nbSheet')?.dataset?.mode,
-  status:document.querySelector('#nbStatus')?.textContent,
-  page:document.querySelector('#nbPageNum')?.textContent,
-  notes:document.querySelectorAll('#nbStickyLayer .nb-sticky').length,
-  saved:JSON.parse(localStorage.getItem('uentzoul:caderno:alpha2:qa-browser-admin')||'{}').books?.[0]?.pages?.map(p=>p.stickies.length)
- }))));
  assert.equal(await tw.locator('#nbPageNum').textContent(),'01');
  assert.equal(dataTwin.books[0].pages[0].stickies.length,1,
   'Post-it na folha oposta é aplicado sem um segundo clique');
@@ -621,11 +614,20 @@ try{
   assert.equal(await sc.locator('.nb-shelf-book').count(),current.count,
    'Cadernos por semestre '+current.semester);
   assert.equal(await sc.locator('.nb-shelf-title').first().textContent(),current.first);
-  const ownKey=await sc.locator('#nbRoot').evaluate((el,key)=>{
-   const has=localStorage.getItem(key);
-   return has?JSON.parse(has).books.length:0;
+  // Um caderno novo pode existir apenas em memória até a primeira anotação.
+  // Criar uma data real antes de exigir a persistência independente por semestre.
+  await sc.locator('.nb-shelf-book').first().click();
+  await sc.locator('#nbPaperDate').fill('2026-11-16');
+  await semesterPage.waitForFunction(key=>{
+   const raw=localStorage.getItem(key);
+   if(!raw)return false;
+   const state=JSON.parse(raw);
+   return state.books?.[0]?.pages?.[0]?.date==='2026-11-16';
   },current.storage);
-  assert.equal(ownKey,current.count,'Apenas os cadernos do semestre atual são persistidos');
+  const ownData=await semesterPage.evaluate(key=>JSON.parse(localStorage.getItem(key)),current.storage);
+  assert.equal(ownData.books.length,current.count,'Catálogo do semestre é salvo na chave própria');
+  assert.equal(ownData.books[0].pages[0].date,'2026-11-16',
+   'Uma anotação deve ser preservada no armazenamento desse semestre');
  }
  await semesterContext.close();
  // Migração em um navegador limpo: exibe só as seis capas e arquiva o legado.
