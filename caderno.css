@@ -725,3 +725,16 @@ html[data-theme="dark"] .nb-align-select{background:#203149;border-color:#3b4e69
 /* Em caderno aberto, arrastar a folha oposta funciona tanto lendo quanto editando. */
 .nb-stage.nb-double #nbCompanionWrap{touch-action:none!important;cursor:grab}
 .nb-stage.nb-double #nbCompanionWrap:active{cursor:grabbing}
+
+/* Duas folhas: a faixa da encadernação não recebe nenhuma ferramenta.
+   O restante de ambas as folhas conserva a área inteira de interação. */
+.nb-stage.nb-double .nb-binder-zone{display:block;position:absolute;top:0;bottom:0;
+ width:58px;z-index:21;pointer-events:none;user-select:none;
+ background:linear-gradient(to right,#61567306,#5a516f0c,#61567303)}
+.nb-stage.nb-double .nb-sheet.nb-left-page .nb-binder-zone,
+.nb-stage.nb-double .nb-snapshot-sheet.nb-left-page .nb-binder-zone{right:0;left:auto}
+.nb-stage.nb-double .nb-sheet.nb-right-page .nb-binder-zone,
+.nb-stage.nb-double .nb-snapshot-sheet.nb-right-page .nb-binder-zone{left:0;right:auto}
+.nb-stage:not(.nb-double) .nb-binder-zone{display:none}
+.nb-stage.nb-double .nb-companion-wrap,
+.nb-stage.nb-double .nb-sheet{touch-action:none}
