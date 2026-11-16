@@ -31,7 +31,7 @@ test('Texto é editado diretamente no caderno sem caixa de envio flutuante',()=>
  assert.doesNotMatch(script,/Digite rapidamente suas anotações/);
  assert.match(script,/const W=780,H=1240,L=34,START=28,ROWS=30,FIRST_LINE=3/);
  assert.match(script,/line<FIRST_LINE/);
- assert.match(script,/if\(editing\.line===FIRST_LINE&&data\.size>2\)data\.size=2/);
+ assert.match(script,/const line=editing\.line,top=START\+line\*L-3,fsize=26/);
  assert.match(script,/if\(event\.key==='Enter'&&!event\.shiftKey&&!event\.isComposing\)/);
  assert.match(style,/\.nb-inline-edit\{/);
 });
@@ -414,4 +414,36 @@ test('Caderno é acessível em computador e tablet, mas não em telefone',()=>{
  assert.match(script,/if\(isNotebookPhone\(\)\)\{\s*root\.className='nb-phone-unavailable'/);
  assert.match(script,/return;\s*\}\s*let userId=/);
  assert.match(style,/\.nb-phone-unavailable\{/);
+});
+
+
+test('Caderno ainda intocado abre em Editar; caderno com conteúdo inicia em leitura',()=>{
+ assert.match(script,/editEnabled=!activeBook\(\)\.pages\.some\(hasPageContent\)/);
+ assert.match(script,/editEnabled=!activeBook\(\)\.pages\.some\(hasPageContent\);\s*data\.mode='none';/);
+ assert.match(script,/const hasPageContent=p=>!!\(String\(p\?\.date\|\|''\)\.trim\(\)/);
+ assert.match(script,/refreshTools\(\);syncNotebookUI\(\)/);
+});
+
+test('Altura de letra tem somente uma pauta; notas antigas não são destruídas ao carregar',()=>{
+ assert.doesNotMatch(script,/id="nbSize"/,'seletor 1, 2 e 3 linhas removido');
+ assert.doesNotMatch(script,/event\.target\.id==='nbSize'/);
+ assert.match(script,/data\.size=1; \/\/ O editor permite somente a altura de uma pauta/);
+ assert.match(script,/const line=editing\.line,top=START\+line\*L-3,fsize=26/);
+ assert.match(script,/const lineHeight=L;/);
+ assert.match(script,/size:1,ink:data\.ink,align:data\.align/);
+ assert.match(script,/item\.scaleY=1; \/\/ Arrastar uma alça não amplia/);
+ assert.match(script,/const size=clamp\(Number\(n\.size\)\|\|1,1,3\)/,
+  'notas antigas com letras maiores podem ser lidas sem alterar os dados salvos');
+});
+
+test('No caderno aberto linha vermelha e furos ficam juntos na lombada de cada folha',()=>{
+ assert.match(script,/sheet\.classList\.toggle\('nb-left-page',book&&data\.page%2===0\)/);
+ assert.match(script,/sheet\.classList\.toggle\('nb-right-page',book&&data\.page%2===1\)/);
+ assert.match(style,/\.nb-stage\.nb-double \.nb-sheet\.nb-left-page:before\{left:auto!important;right:85px!important\}/);
+ assert.match(style,/\.nb-stage\.nb-double \.nb-sheet\.nb-right-page:before\{right:auto!important;left:85px!important\}/);
+ assert.match(style,/\.nb-stage\.nb-double \.nb-sheet\.nb-left-page \.nb-holes\{left:auto!important;right:22px!important\}/);
+ assert.match(style,/\.nb-stage\.nb-double \.nb-sheet\.nb-right-page \.nb-holes\{right:auto!important;left:22px!important\}/);
+ assert.match(script,/snapshotSheetMarkup\(other,index\)/);
+ assert.match(script,/event\.button===0&&data\.layout==='book'&&event\.target\.closest\('#nbCompanionWrap'\)/,
+  'folha oposta deve permitir arraste também em modo edição');
 });
