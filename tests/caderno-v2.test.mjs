@@ -106,7 +106,7 @@ test('Post-its têm paleta e seleção, Ctrl+Z, Delete e menu contextual de acor
  assert.match(script,/selected\.type==='note'/);
  assert.match(script,/selected\.type==='stroke'/);
  assert.match(script,/selected\.type==='sticky'/);
- assert.match(script,/\[\['warp','⌁ Moldar desenho'\]\]/);
+ assert.match(script,/\['warp','⌁ Moldar desenho'\]/);
  assert.match(script,/\[\['fix','✧ Corrigir traço'\]\]/);
 });
 test('Trabalhos mantém Em breve, mas o Caderno público não tem marcador',()=>{
@@ -260,13 +260,21 @@ test('Ao apagar item, zera seleção e controles; não redimensiona outros desen
  assert.match(script,/renderStickies\(\);drawCanvas\(\);renderSelectionHandles\(\);save\(\)/);
  assert.match(script,/if\(!inInput&&!event\.repeat&&\(event\.key==='Delete'/);
 });
-test('Moldar seleciona o traço sem deformar; quadrado para mover e ponto para moldar',()=>{
+test('Moldar diretamente a curva e os pontos intermediários, com botão de mover',()=>{
  assert.match(script,/\['warp','Moldar'\]/);
  assert.match(script,/data-nb-move-handle/);
- assert.match(script,/data-nb-mold-handle/);
- assert.match(script,/const hit=findStrokeNear\(p,false\)/);
- assert.match(script,/warpDrag=\{pointerId:event\.pointerId/);
- assert.match(script,/if\(warpDrag&&warpDrag\.pointerId===event\.pointerId\)/);
+ assert.doesNotMatch(script,/data-nb-mold-handle/);
+ assert.match(script,/const hit=findStrokeNear\(p\)/);
+ assert.match(script,/startWarpDrag\(event,hit\.stroke,hit\.index,hit\.anchor\)/);
+ assert.match(script,/dist\(q,warpDrag\.center\)/);
+ const first=script.indexOf('function closestPointOnStroke('),last=script.indexOf('function findStrokeNear(',first);
+ const methods=vm.runInNewContext('(()=>{'+script.slice(first,last)+';return {closestPointOnStroke,denseWarpPoints};})()',
+  {clamp:(v,a,b)=>Math.max(a,Math.min(b,v)),dist:(a,b)=>Math.hypot(a.x-b.x,a.y-b.y)});
+ const line={points:[{x:0,y:40},{x:120,y:40}]},near=methods.closestPointOnStroke({x:63,y:48},line);
+ assert.equal(near.point.x,63);
+ assert.equal(near.point.y,40);
+ assert.equal(near.distance,8);
+ assert.ok(methods.denseWarpPoints(line.points).length>20);
 });
 test('Capas dimensionam palavras inteiras e moldura ocupa altura do viewport',()=>{
  assert.match(script,/function fitCoverTitles\(\)/);

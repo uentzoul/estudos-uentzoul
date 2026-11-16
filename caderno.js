@@ -380,7 +380,7 @@ root.innerHTML=
  '<button class="nb-tool" data-nb-action="erase" title="Apagar partes ou traços inteiros de desenhos">⌫ Borracha</button>'+
  '<button class="nb-tool" data-nb-action="draw" title="Desenhar diretamente na folha">〰 Desenhar</button>'+
  '<button class="nb-tool" data-nb-action="sticky" title="Colocar um post-it">▤ Post-it</button>'+
- '<button class="nb-tool" data-nb-action="warp" title="Moldar somente traços corrigidos">⌁ Moldar</button>'+
+ '<button class="nb-tool" data-nb-action="warp" title="Arraste qualquer parte de um traço para moldar">⌁ Moldar</button>'+
  '<span id="nbEraserControls" class="nb-eraser-controls" hidden><label for="nbEraseBehavior">Apagar</label>'+
  '<select id="nbEraseBehavior" aria-label="Tipo de borracha"><option value="parts">Trechos</option><option value="whole">Traço inteiro</option></select>'+
  '<label for="nbEraseSize">Raio</label><input id="nbEraseSize" type="range" min="6" max="32" step="2" value="14" aria-label="Tamanho da borracha"></span></div>'+
@@ -1155,9 +1155,8 @@ function renderSelectionHandles(){
  host.innerHTML='<div class="nb-transform-box'+(molding?' nb-transform-mold':'')+'" style="left:'+x+'px;top:'+y+'px;width:'+width+
   'px;height:'+height+'px;" role="group" aria-label="'+(molding?'Mover ou moldar desenho':'Redimensionar item selecionado')+'">'+
   (molding?
-   '<button class="nb-transform-move" data-nb-move-handle="1" type="button" title="Arraste para mover desenho" aria-label="Mover desenho sem deformar">▣</button>'+
-   '<button class="nb-transform-mold-handle" data-nb-mold-handle="1" type="button" title="Arraste para moldar curva" aria-label="Moldar curva">●</button>'
-   :TRANSFORM_HANDLES.map(dir=>'<button type="button" class="nb-transform-handle nb-handle-'+dir+
+   '<button class="nb-transform-move" data-nb-move-handle="1" type="button" title="Arraste para mover desenho" aria-label="Mover desenho sem deformar">▣</button>'
+    :TRANSFORM_HANDLES.map(dir=>'<button type="button" class="nb-transform-handle nb-handle-'+dir+
    '" data-nb-handle="'+dir+'" aria-label="Redimensionar '+dir+'" title="Arraste para redimensionar"></button>').join(''))+
   '</div>';
 }
@@ -1323,14 +1322,13 @@ function pointerDownCanvas(event){
   checkpoint();drawPoints=[p];canvas.setPointerCapture?.(event.pointerId);
   event.preventDefault();
  }else if(data.mode==='warp'){
-  const hit=findStrokeNear(p,false);
+  const hit=findStrokeNear(p);
   if(hit.stroke){
    selectItem('stroke',hit.stroke.id);selectedStroke=hit.index;
-   drawCanvas();renderSelectionHandles();status('Quadradinho move; ponto redondo molda.','');
+   startWarpDrag(event,hit.stroke,hit.index,hit.anchor);
   }else{
-   selected=null;selectedStroke=-1;drawCanvas();renderSelectionHandles();
+   selected=null;selectedStroke=-1;drawCanvas();renderSelectionHandles();event.preventDefault();
   }
-  event.preventDefault();
  }
 }
 function pointerMoveCanvas(event){
@@ -1339,12 +1337,15 @@ function pointerMoveCanvas(event){
  if(drawPoints){drawPoints.push(point(event));drawCanvas();event.preventDefault();}
  if(warpDrag&&warpDrag.pointerId===event.pointerId){
   const p=point(event),dx=p.x-warpDrag.from.x,dy=p.y-warpDrag.from.y;
-  const reference=warpDrag.original[warpDrag.at];
-  page().strokes[warpDrag.index].points=warpDrag.original.map(q=>{
-   const weight=Math.exp(-Math.pow(dist(q,reference)/83,2)*1.3);
+  if(!warpDrag.moved&&Math.hypot(dx,dy)<1.5)return;
+  const stroke=page().strokes.find(s=>s.id===warpDrag.id);
+  if(!stroke){warpDrag=null;return;}
+  if(!warpDrag.moved){checkpoint();warpDrag.moved=true;}
+  stroke.points=warpDrag.original.map(q=>{
+   const weight=Math.exp(-Math.pow(dist(q,warpDrag.center)/83,2)*1.3);
    return{x:clamp(q.x+dx*weight,5,W-5),y:clamp(q.y+dy*weight,5,H-5)};
   });
-  drawCanvas();event.preventDefault();
+  drawCanvas();event.preventDefault();return;
  }
 }
 function pointerUpCanvas(event){
@@ -1362,7 +1363,10 @@ function pointerUpCanvas(event){
     ' Pode usar Deformar.':'Traço livre inserido.','success');
   }
  }
- if(warpDrag&&(!event||event.pointerId===warpDrag.pointerId)){warpDrag=null;renderSelectionHandles();save();status('Curva moldada. Ctrl+Z desfaz.','success');}
+ if(warpDrag&&(!event||event.pointerId===warpDrag.pointerId)){
+  const changed=warpDrag.moved;warpDrag=null;renderSelectionHandles();
+  if(changed){save();status('Desenho moldado. Ctrl+Z desfaz.','success');}
+ }
  drawCanvas();
 }
 
@@ -1679,13 +1683,46 @@ function renderStickyPalette(){
    '<small>'+name+'</small></button>').join('')+'</div>';
  box.hidden=false;
 }
+function closestPointOnStroke(pos,stroke){
+ const points=stroke?.points||[];
+ if(!points.length)return null;
+ let best={distance:dist(pos,points[0]),point:{...points[0]}};
+ for(let i=1;i<points.length;i++){
+  const a=points[i-1],b=points[i],dx=b.x-a.x,dy=b.y-a.y,len=dx*dx+dy*dy;
+  const t=len?clamp(((pos.x-a.x)*dx+(pos.y-a.y)*dy)/len,0,1):0;
+  const p={x:a.x+t*dx,y:a.y+t*dy},d=dist(pos,p);
+  if(d<best.distance)best={distance:d,point:p};
+ }
+ return best;
+}
+// Pontos intermediários permitem moldar até o meio de traços retos.
+function denseWarpPoints(points){
+ if(points.length>=2400)return points.map(p=>({...p}));
+ const dense=[{...points[0]}];
+ for(let i=1;i<points.length;i++){
+  const a=points[i-1],b=points[i],available=Math.max(1,2400-dense.length-(points.length-i-1));
+  const steps=Math.min(Math.max(1,Math.ceil(dist(a,b)/5)),available);
+  for(let j=1;j<=steps;j++)dense.push({x:a.x+(b.x-a.x)*j/steps,y:a.y+(b.y-a.y)*j/steps});
+ }
+ return dense;
+}
 function findStrokeNear(p,includeUncorrected=true){
- let best={score:16,stroke:null,index:-1};
+ let best={score:Math.max(12,16/data.zoom),stroke:null,index:-1};
  page().strokes.forEach((s,i)=>{
   if(!includeUncorrected&&!s.corrected)return;
-  const pts=s.points||[];
-  pts.forEach(q=>{const d=dist(p,q);if(d<best.score)best={score:d,stroke:s,index:i}});
- });return best;
+  const near=closestPointOnStroke(p,s);
+  if(near&&near.distance<best.score)best={score:near.distance,stroke:s,index:i,anchor:near.point};
+ });
+ return best;
+}
+function startWarpDrag(event,stroke,index,anchor){
+ if(!editEnabled||!stroke?.points?.length||index<0)return;
+ const from=point(event),near=anchor?{point:anchor}:closestPointOnStroke(from,stroke);
+ if(!near)return;
+ warpDrag={pointerId:event.pointerId,index,id:stroke.id,from,center:near.point,
+  original:denseWarpPoints(stroke.points),moved:false};
+ canvas.setPointerCapture?.(event.pointerId);
+ event.preventDefault();
 }
 function selectItem(type,itemId){
  selected={type,id:itemId};
@@ -1728,7 +1765,7 @@ function contextMenu(event){
   [['edit','✎ Editar texto'],['move','⌖ Selecionar e mover'],['correct','✧ Revisar gramática'],['copy','▣ Copiar texto'],
    ['blue','● Caneta azul'],['black','● Caneta preta'],['red','● Caneta vermelha'],['delete','⌫ Excluir']]:
   type==='stroke'?
-  [['move','⌖ Selecionar e mover'],...(item.corrected?[['warp','⌁ Moldar desenho']]:[['fix','✧ Corrigir traço']]),
+  [['move','⌖ Selecionar e mover'],['warp','⌁ Moldar desenho'],...(!item.corrected?[['fix','✧ Corrigir traço']]:[]),
    ['blue','● Caneta azul'],['black','● Caneta preta'],['red','● Caneta vermelha'],['delete','⌫ Excluir']]:
   [['edit','✎ Editar post-it'],['move','⌖ Selecionar e mover'],['tone:yellow','▤ Amarelo'],['tone:pink','▤ Rosa'],
    ['tone:violet','▤ Lilás'],['delete','⌫ Excluir']];
@@ -1750,7 +1787,7 @@ function contextAction(action){
  }
  if(action==='copy'&&selected.type==='note'){navigator.clipboard?.writeText?.(item.text||'')?.then?.(()=>status('Texto copiado.','success'));return}
  if(action==='correct'&&selected.type==='note'){item.pending=true;renderNotes();void correctNote(item.id,item.original||item.text||'');return}
- if(action==='warp'&&selected.type==='stroke'&&item.corrected){data.mode='warp';refreshTools();drawCanvas();renderSelectionHandles();status('Quadradinho move; ponto redondo molda.','');return}
+ if(action==='warp'&&selected.type==='stroke'){data.mode='warp';refreshTools();drawCanvas();renderSelectionHandles();status('Arraste qualquer parte do traço para moldar; quadradinho move sem deformar.','');return}
  if(action==='fix'&&selected.type==='stroke'&&!item.corrected){
   checkpoint();const r=smartStroke(item.points);item.points=r.points;item.kind=r.kind;item.corrected=true;
   drawCanvas();save();return;
@@ -1869,15 +1906,15 @@ function act(action){
  }
  if(MODES.includes(action)){
   if(editing)saveEditor(false);
-  // Em Deformar, preservar a seleção e as alças do traço corrigido.
-  const keepSelection=action==='warp'&&selected?.type==='stroke'&&selectedItem()?.corrected;
+  // Em Moldar, preservar a seleção de qualquer desenho.
+  const keepSelection=action==='warp'&&selected?.type==='stroke'&&!!selectedItem();
   data.mode=action;toolPaletteOpen=false;if(!keepSelection)selected=null;selectedStroke=-1;
   $('nbLineHover').hidden=true;$('nbCompanionLineHover')?.setAttribute('hidden','');$('nbContextMenu').hidden=true;
   refreshTools();renderNotes();renderStickies();drawCanvas();renderSelectionHandles();renderStickyPalette();save();
   if(action==='none')status('Modo navegar: arraste a página, use zoom ou selecione outra ferramenta.','');
   if(action==='select')status('Clique para selecionar e arrastar textos, desenhos ou post-its.','');
   if(action==='erase')status('Arraste a borracha sobre o desenho para apagar trechos ou traços inteiros.','');
-  if(action==='warp')status('Selecione o desenho e use o quadradinho para mover ou o ponto redondo para moldar.','');
+  if(action==='warp')status('Clique e arraste qualquer trecho do desenho para moldar. O quadradinho move sem deformar.','');
   return;
  }
  if(COLORS[action]){data.ink=action;refreshTools();renderNotes();save();return}
@@ -2120,16 +2157,6 @@ root.addEventListener('pointerdown',event=>{
  const moveHandle=event.target.closest('[data-nb-move-handle]');
  if(moveHandle&&event.button===0&&data.mode==='warp'&&selected?.type==='stroke'){
   startMoveDrag(event,'stroke',selectedItem());return;
- }
- const moldHandle=event.target.closest('[data-nb-mold-handle]');
- if(moldHandle&&event.button===0&&data.mode==='warp'&&selected?.type==='stroke'){
-  const stroke=selectedItem(),index=page().strokes.findIndex(x=>x.id===stroke?.id);
-  if(index>=0&&stroke?.corrected&&stroke.points?.length){
-   checkpoint();selectedStroke=index;
-   warpDrag={pointerId:event.pointerId,index,at:Math.floor(stroke.points.length/2),
-    from:point(event),original:stroke.points.map(p=>({...p}))};
-   sheet.setPointerCapture?.(event.pointerId);event.preventDefault();return;
-  }
  }
  const handleButton=event.target.closest('[data-nb-handle]');
  if(handleButton&&event.button===0){startResize(event,handleButton.dataset.nbHandle);return;}

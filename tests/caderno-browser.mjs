@@ -328,22 +328,23 @@ try{
  const remaining=await pageTwoStrokes();
  assert.equal(remaining.length,1,'Delete deve excluir só o traço selecionado');
  assert.deepEqual(remaining[0].points,originalSecond[1].points,'Delete não pode aumentar o outro desenho');
- // Moldar: tocar/arrastar sobre o traço NÃO altera o desenho.
+ // Moldar no próprio desenho, inclusive em traços sem correção prévia.
  await f.locator('[data-nb-action="warp"]').click();
  const moldPoint=await point(400,560);
  await page.mouse.move(moldPoint.x,moldPoint.y);await page.mouse.down();
- await page.mouse.move(moldPoint.x+35,moldPoint.y+12,{steps:6});await page.mouse.up();
+ await page.mouse.move(moldPoint.x+35,moldPoint.y+20,{steps:6});await page.mouse.up();
  await page.waitForTimeout(250);
- const noMold=await pageTwoStrokes();
- assert.deepEqual(noMold[0].points,remaining[0].points,'Arrastar diretamente o desenho em Moldar não o deforma');
+ const molded=await pageTwoStrokes();
+ assert.notDeepEqual(molded[0].points,remaining[0].points,'Arrastar no desenho deve moldar a região tocada');
+ assert.ok(molded[0].points.some(p=>p.y>remaining[0].points[0].y+9),'O trecho tocado acompanha o arraste');
+ assert.ok(Math.abs(molded[0].points[0].y-remaining[0].points[0].y)<9,'Trechos distantes pouco mudam');
  await f.locator('.nb-transform-move').waitFor({state:'visible'});
  const grab=await f.locator('.nb-transform-move').boundingBox();
  await page.mouse.move(grab.x+grab.width/2,grab.y+grab.height/2);await page.mouse.down();
  await page.mouse.move(grab.x+grab.width/2+25,grab.y+grab.height/2-20,{steps:6});await page.mouse.up();
  await page.waitForTimeout(260);
  const translated=await pageTwoStrokes();
- assert.ok(Math.abs(translated[0].points[0].x-remaining[0].points[0].x)>10,
-  'Quadradinho em Moldar precisa mover o desenho sem modificar sua forma');
+ assert.ok(Math.abs(translated[0].points[0].x-molded[0].points[0].x)>10,'Quadradinho move inteiro sem moldar');
  // Voltar à estante (sem sair do iframe) e verificar capas simétricas.
  await f.locator('[data-nb-action="backToBooks"]').click();
  await f.locator('#nbShelf').waitFor({state:'visible'});

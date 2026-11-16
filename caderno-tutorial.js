@@ -17,7 +17,7 @@
   {view:'edit',target:'#nbSmooth',title:'Ajustar traços',body:'Com Ajustar traços ativado, o caderno tenta corrigir linhas, círculos, elipses, meia-luas, arcos e polígonos. Formas complexas recebem suavização.'},
   {view:'edit',target:'[data-nb-action="erase"]',title:'Borracha',body:'Apague trechos ou traços inteiros de desenhos. Você pode selecionar o tipo de borracha e seu raio, sem precisar apagar a página toda.'},
   {view:'edit',target:'[data-nb-action="sticky"]',title:'Post-its',body:'Cole pequenos lembretes no papel. Escreva, escolha a cor, mova o post-it e exclua quando não precisar mais dele.'},
-  {view:'edit',target:'[data-nb-action="warp"]',title:'Moldar desenhos',body:'Selecione um traço corrigido e use Moldar para adaptar sua curva. Alças também permitem mover e ajustar itens selecionados.'},
+  {view:'edit',target:'[data-nb-action="warp"]',title:'Moldar desenhos',body:'Em Moldar, arraste diretamente qualquer trecho do desenho para deformar só aquela região. O quadradinho move o desenho inteiro sem deformar.'},
   {view:'edit',target:'.nb-colors',title:'Cores e formatação',body:'As canetas preta, azul-marinho e vermelha mudam a cor da escrita. Os menus próximos configuram letra de forma, cursiva e alinhamento.'},
   {view:'edit',target:'#nbLayout',title:'Caderno aberto',body:'No menu Estilo você alterna entre folha única e caderno aberto, com duas folhas lado a lado. A encadernação central não recebe escrita ou desenhos.'},
   {view:'edit',target:'[data-nb-action="undo"]',title:'Desfazer, refazer e atalhos',body:'As setas desfazem e refazem alterações. O botão Atalhos permite personalizar teclas e botões do mouse.'},
