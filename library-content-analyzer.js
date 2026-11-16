@@ -43,7 +43,7 @@ async function pptx(file){
  let result='';for(const name of slides.slice(0,35)){let xml=await zip.file(name).async('string');const parts=[...xml.matchAll(/<a:t>([\s\S]*?)<\/a:t>/g)].map(m=>m[1].replace(/&(?:amp|lt|gt|quot|apos);/g,c=>({'&amp;':'&','&lt;':'<','&gt;':'>','&quot;':'"','&apos;':"'"}[c])));result+=' '+parts.join(' ');if(result.length>40000)break}return result.slice(0,40000);
 }
 const finalExamFocus={
- meta:['segunda tópica','id, ego e superego','Édipo','narcisismo','pulsões','angústia','recalcamento'],
+ meta:['segunda tópica','id, ego e superego','Édipo','narcisismo','pulsões','recalcamento'],
  familia:['divórcio e recasamento','segredos e adoção','violência intrafamiliar','luto','dependência química','atendimento familiar'],
  tcc:['Terapia do Esquema','ACT / flexibilidade','terapias de terceira onda'],
  social:['psicologia social crítica','ideologia e marcadores sociais','algoritmos e polarização','interações sociais'],
