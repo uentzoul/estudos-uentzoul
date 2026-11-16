@@ -190,9 +190,9 @@ async function check(){
   if(!res.ok)return;
   const latest=(await res.text()).trim();
   if(!/^[a-f0-9]{40}$/.test(latest)||latest===version)return;
-  const current=document.querySelector('[data-page].active')?.dataset.page||'';
-  const safe=window.PSICO_NOTEBOOK_ACTIVE?.()!==true&&['home','library'].includes(current)&&!document.querySelector('input[type="file"]:focus');
-  if(safe)reload(latest);else promptUpdate(latest);
+  // Atualizar sem consentimento recriava o DOM inteiro enquanto a pessoa estudava.
+  // Nunca recarregar automaticamente; o usuário escolhe quando aplicar a nova versão.
+  promptUpdate(latest);
  }catch(_){}
  finally{checking=false;}
 }
