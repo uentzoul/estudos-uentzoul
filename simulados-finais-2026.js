@@ -3,7 +3,7 @@
 (()=>{
 'use strict';
 const VERSION='rev-provas-equivalentes-20261113';
-const META_VERSION='rev-prova-sem-angustia-20261116';
+const META_VERSION='rev-prova-foco-p2-20261116';
 const LEGACY_CURRENT='rev-final-20261113-r2';
 const PREVIOUS_VERSION='rev-final-20261113';
 const LETTERS=['I','II','III','IV','V'];
@@ -237,6 +237,8 @@ function apply(db){
      myth:String(t.myth||'').replace(/angústia/gi,'tensão psíquica')
    }));
  }
+ db.archivedExams=db.archivedExams||[];
+ for(const e of db.exams.filter(e=>e?.subject==='meta'))if(!db.archivedExams.some(a=>a.id===e.id))db.archivedExams.push(e);
  db.exams=db.exams.filter(e=>e?.subject!=='meta');
  for(const id of ['tcc','familia','meta','grupos','social','avaliacao']){
   if(!db.subjects[id])continue;
