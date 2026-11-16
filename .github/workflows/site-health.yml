@@ -1,5 +1,11 @@
 name: Saúde do Site — revisão a cada 2 horas
 on:
+  pull_request:
+    paths:
+      - '.github/workflows/site-health.yml'
+      - 'scripts/site-health.mjs'
+      - 'site-health-panel.js'
+      - 'site-version.js'
   push:
     branches: [main]
     paths:
