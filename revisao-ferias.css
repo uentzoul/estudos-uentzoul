@@ -7,7 +7,7 @@
  --vr-border:var(--line,#e5e2ee);--vr-track:#afbacb;
  --vr-accent:#60a8b6;--vr-accent-soft:#d9edf2;
  width:100%;max-width:1220px;margin:0 auto 52px;color:var(--vr-ink);
- animation:vr-page-enter .65s cubic-bezier(.22,1,.36,1) both;
+ /* Entrada opaca: evita flicker no refresh, preservando as animações internas. */
 }
 .main.vr-active > :not(#vr-root){display:none!important}
 #vr-root *,#vr-root *:before,#vr-root *:after{box-sizing:border-box}
