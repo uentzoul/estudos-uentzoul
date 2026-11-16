@@ -1909,6 +1909,8 @@ root.addEventListener('change',event=>{
 // Clicar fora do texto confirma alterações, inclusive a exclusão completa.
 root.addEventListener('focusout',event=>{
  if(event.target.id!=='nbEditorText'||!editing)return;
+ // Ocultações temporárias (ex.: renderização ou captura visual) não são saídas reais.
+ if(getComputedStyle(event.target).visibility==='hidden'||!event.target.isConnected)return;
  const input=event.target,session=editing;
  queueMicrotask(()=>{
   // Enter/troca de linha e re-renderização do editor podem substituir a caixa.
