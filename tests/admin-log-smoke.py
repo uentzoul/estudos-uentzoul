@@ -13,14 +13,15 @@ with sync_playwright() as p:
     page.wait_for_function("Boolean(window.uentzoulAdminConfig?.render && document.getElementById('main'))",timeout=25000)
     result=page.evaluate("""async () => {
        const fakeUid='11111111-1111-4111-8111-111111111111';
+       const otherUid='22222222-2222-4222-8222-222222222222';
        const oldTime='2026-11-12T14:00:00Z';
        const nowTime='2026-11-14T20:00:00Z';
        const tables={
         uentzoul_access_log:[
          {id:1002,user_id:null,actor:'anonymous',entered_at:oldTime,last_seen_at:null,ended_at:null},
-         {id:1001,user_id:fakeUid,actor:'account',entered_at:nowTime,last_seen_at:nowTime,ended_at:nowTime}
+         {id:1001,user_id:otherUid,actor:'account',entered_at:nowTime,last_seen_at:nowTime,ended_at:nowTime}
         ],
-        uentzoul_profiles:[{user_id:fakeUid,display_name:'Conta de teste'}],
+        uentzoul_profiles:[{user_id:otherUid,display_name:'Conta de teste'}],
         uentzoul_access_log_labels:[],
         uentzoul_visit_steps:[
          {id:1,access_id:1001,kind:'entry',section:'home',detail:null,semester:'2026/2',happened_at:nowTime},
@@ -28,7 +29,7 @@ with sync_playwright() as p:
          {id:3,access_id:1001,kind:'navigate',section:'messages',detail:null,semester:'2026/2',happened_at:nowTime},
          {id:4,access_id:1001,kind:'exit',section:'home',detail:null,semester:'2026/2',happened_at:nowTime}
         ],
-        uentzoul_presence:[{user_id:fakeUid,last_seen:new Date().toISOString()}],
+        uentzoul_presence:[{user_id:otherUid,last_seen:new Date().toISOString()}],
         uentzoul_admin_topics:[],
         uentzoul_error_reports:[]
        };
