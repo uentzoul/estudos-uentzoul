@@ -39,6 +39,19 @@ try{
  const f=page.frameLocator('#nbQaFrame');
  await f.locator('#nbShelf').waitFor({state:'visible',timeout:15000});
  assert.equal(await f.locator('[data-nb-shelf-book]').count(),6,'Estante inicia com as seis matérias');
+ // Telefone com conta simulada não pode entrar nem via URL direta do iframe.
+ const phoneContext=await browser.newContext({
+  viewport:{width:390,height:844},isMobile:true,hasTouch:true,deviceScaleFactor:3,
+  userAgent:'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1'
+ });
+ const phonePage=await phoneContext.newPage();
+ await phonePage.goto(address,{waitUntil:'domcontentloaded'});
+ const phoneFrame=phonePage.frameLocator('#nbQaFrame');
+ await phoneFrame.locator('#nbRoot.nb-guard').waitFor({state:'visible'});
+ assert.match(await phoneFrame.locator('#nbRoot').innerText(),/Caderno indisponível no celular/);
+ assert.equal(await phoneFrame.locator('.nb-shelf-book').count(),0,
+  'O Caderno não pode abrir no celular nem pelo link direto');
+ await phoneContext.close();
  assert.deepEqual(await f.locator('.nb-shelf-title').allTextContents(),[
   'Psicologia da Família','Avaliação Psicológica',
   'Teorias e Modelos Comportamentais e Cognitivos',

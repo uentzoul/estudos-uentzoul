@@ -3,6 +3,28 @@
 (function(){
 'use strict';
 const root=document.getElementById('nbRoot');
+// Bloqueio de telefones também para acesso direto ao endereço do Caderno.
+function isNotebookPhone(){
+ try{
+  if(window.parent!==window&&typeof window.parent.PSICO_NOTEBOOK_IS_PHONE==='function')
+   return window.parent.PSICO_NOTEBOOK_IS_PHONE();
+ }catch(_){}
+ const ua=String(navigator.userAgent||''),platform=String(navigator.platform||'');
+ const touches=Number(navigator.maxTouchPoints)||0;
+ const shortSide=Math.min(screen.width||0,screen.height||0);
+ if(/iPad|Tablet|Kindle|Silk|PlayBook|Nexus 7|Nexus 10/i.test(ua)||
+  (/Android/i.test(ua)&&!/Mobile/i.test(ua))||
+  (/MacIntel|Macintosh/i.test(platform+' '+ua)&&touches>1))return false;
+ if(/iPhone|iPod|Windows Phone|IEMobile|Android[^)]*Mobile|Mobile/i.test(ua))return true;
+ if(navigator.userAgentData?.mobile===true)return true;
+ return !!(window.matchMedia?.('(pointer: coarse)')?.matches&&touches>0&&shortSide>0&&shortSide<600);
+}
+if(isNotebookPhone()){
+ root.className='nb-guard';
+ root.innerHTML='<section role="status"><strong>Caderno indisponível no celular.</strong>'+
+  '<p>Para usar os cadernos e editar suas anotações, acesse pelo computador ou tablet.</p></section>';
+ return;
+}
 // Caderno reservado a contas registradas; o banco também aplica RLS por usuário.
 let userId='';
 try{

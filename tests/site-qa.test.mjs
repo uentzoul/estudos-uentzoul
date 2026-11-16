@@ -353,7 +353,7 @@ test('Caderno abre para contas registradas e mantém anotações privadas',()=>{
  assert.match(loader,/navCadernoPreview/);
  assert.match(loader,/const loggedIn=\(\)=>!!account\(\)/);
  assert.match(loader,/button\.hidden=false/,'botão fica visível para visitantes desde a abertura');
- assert.match(loader,/if\(button\.disabled\)button\.disabled=false/,'botão conduz ao login quando necessário');
+ assert.match(loader,/button\.disabled=phone/,'botão fica desabilitado apenas em celulares');
  assert.match(loader,/if\(!loggedIn\(\)\)\{/,'acesso solicita conta quando não autenticado');
  const siteMarkup=read('index.html');
  assert.match(siteMarkup,/id="navCadernoPreview"\s+aria-label="Caderno/,'botão público desde o primeiro paint');
@@ -375,6 +375,20 @@ test('Caderno abre para contas registradas e mantém anotações privadas',()=>{
  assert.doesNotMatch(notebook,/\.from\(['"]uentzoul_(?:messages|progress|profiles|exams)/);
 });
 
+
+test('Celular mostra o Caderno em cinza e bloqueado, enquanto tablet/desktop mantêm acesso',()=>{
+ const loader=read('site-version.js'),app=read('caderno.js'),site=read('index.html');
+ assert.match(loader,/window\.PSICO_NOTEBOOK_IS_PHONE=isNotebookPhone/);
+ assert.match(loader,/button\.disabled=phone/);
+ assert.match(loader,/button\.classList\.toggle\('nb-phone-locked',phone\)/);
+ assert.match(loader,/if\(isNotebookPhone\(\)\)return;/);
+ assert.match(loader,/nb-phone-locked\{opacity:\.52!important/);
+ assert.match(loader,/button\.setAttribute\('aria-disabled',String\(phone\)\)/);
+ assert.match(loader,/Caderno disponível somente em computador ou tablet/);
+ assert.match(app,/if\(isNotebookPhone\(\)\)\{/);
+ assert.match(app,/Caderno indisponível no celular/);
+ assert.match(site,/#nav #navCadernoPreview\.nb-phone-locked:disabled\{opacity:\.52!important/);
+});
 
 test('Tutorial do Caderno apresenta ferramentas sem escrever nas notas',()=>{
  const tutorial=read('caderno-tutorial.js'),notebook=read('caderno.js');
@@ -459,8 +473,8 @@ test('Ajuste inteligente do caderno reconhece meia-lua e não destrói desenhos 
  assert.match(source,/const r=smartStroke\(item\.points\)/);
  assert.ok(source.includes("!['line','polygon','rectangle'].includes(s.kind)"),'arestas retas no canvas');
  assert.ok(pdf.includes("!['line','polygon','rectangle'].includes(stroke.kind)"),'arestas retas no PDF');
- assert.match(read('caderno.html'),/20261116-caderno-v25-hidpi-cursor-exato/);
- assert.match(read('site-version.js'),/caderno\.html\?v=20261116-caderno-v25-hidpi-cursor-exato/);
+ assert.match(read('caderno.html'),/20261116-caderno-v26-sem-celular/);
+ assert.match(read('site-version.js'),/caderno\.html\?v=20261116-caderno-v26-sem-celular/);
 });
 
 test('Caderno remove a seta superior sem alterar a navegação restante',()=>{

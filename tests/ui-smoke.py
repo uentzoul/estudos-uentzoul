@@ -38,6 +38,23 @@ def run_case(browser,device,settings,semester):
             page.locator(".course-card").first.wait_for(state="visible",timeout=25000)
         except PlaywrightTimeout:
             issues.append("Cartões de disciplinas não ficaram visíveis após carregar")
+        # O Caderno permanece na navegação, cinza e sem clique no telefone.
+        notebook=page.locator("#navCadernoPreview")
+        if notebook.count():
+            phone=device in ("android_chromium","iphone_webkit")
+            if phone:
+                if not notebook.is_disabled():
+                    issues.append("Caderno deve estar bloqueado no telefone")
+                if "nb-phone-locked" not in (notebook.get_attribute("class") or ""):
+                    issues.append("Caderno não aparece visualmente bloqueado")
+                fade=float(notebook.evaluate("(b) => getComputedStyle(b).opacity"))
+                if fade>=0.8:
+                    issues.append("Caderno não está acinzentado no celular")
+                notebook.evaluate("(b) => b.click()")
+                if page.locator("#uentzoulCadernoFrame").count():
+                    issues.append("Caderno abriu no celular")
+            elif notebook.is_disabled():
+                issues.append("Caderno de desktop ficou desabilitado")
         n_cards=page.locator(".course-card").count()
         if n_cards<6:
             issues.append("Quantidade inesperada de cartões: "+str(n_cards))

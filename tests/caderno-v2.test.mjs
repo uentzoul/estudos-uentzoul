@@ -414,13 +414,16 @@ test('Voltar do mouse e navegador retorna dentro do Caderno e mantém a estante'
 });
 
 
-test('Caderno de conta registrada pode abrir em desktop, tablet e telefone',()=>{
+test('Caderno permite computador e tablet, mas bloqueia telefone mesmo autenticado',()=>{
  assert.match(nav,/const loggedIn=\(\)=>!!account\(\)/);
  assert.match(nav,/if\(!loggedIn\(\)\)\{/);
  assert.match(nav,/window\.uentzoulAIAuth\?\.openLogin\?\.\(\)/);
- assert.match(nav,/const allowed=loggedIn\(\)/);
+ assert.match(nav,/button\.disabled=phone/);
+ assert.match(nav,/if\(isNotebookPhone\(\)\)return;/);
+ assert.match(nav,/nb-phone-locked/);
+ assert.match(script,/if\(isNotebookPhone\(\)\)\{/);
+ assert.match(script,/Caderno indisponível no celular/);
  assert.match(script,/if\(user\?\.id&&user\.is_anonymous!==true\)userId=String\(user\.id\)/);
- assert.doesNotMatch(script,/if\(isNotebookPhone\(\)\)/);
 });
 
 test('Caderno ainda intocado abre em Editar; caderno com conteúdo inicia em leitura',()=>{

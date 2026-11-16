@@ -261,6 +261,8 @@ setTimeout(check,15000);
   if(navigator.userAgentData?.mobile===true)return true;
   return !!(window.matchMedia?.('(pointer: coarse)')?.matches&&touches>0&&shortSide>0&&shortSide<600);
  }
+ // Mesma regra para o botão da navegação e para o conteúdo do iframe.
+ window.PSICO_NOTEBOOK_IS_PHONE=isNotebookPhone;
  const nav=()=>document.getElementById('nav');
  const main=()=>document.getElementById('main');
  const semesters=['2026/1','2026/2','2027/1'];
@@ -274,7 +276,7 @@ setTimeout(check,15000);
   }
   return semesters.includes(value)?value:'2026/2';
  }
- const notebookUrl=()=>('./caderno.html?v=20261116-caderno-v25-hidpi-cursor-exato&semester='+
+ const notebookUrl=()=>('./caderno.html?v=20261116-caderno-v26-sem-celular&semester='+
    encodeURIComponent(selectedSemester()));
  function addStyles(){
   if(document.getElementById(STYLE_ID))return;
@@ -284,6 +286,8 @@ setTimeout(check,15000);
    '#nav .nb-preview-label{margin-left:auto;font-size:9px;font-weight:800;letter-spacing:.2px;white-space:nowrap;padding:3px 6px;border-radius:6px;color:#8067b6;background:#ece5f8;}'+
    '#navUpcomingFloatingTip{display:none!important}#nav #navCadernoPreview.active{background:color-mix(in srgb,#7964b9 14%,var(--paper));border-color:color-mix(in srgb,#7964b9 36%,transparent)}'+
    '#nav #navCadernoPreview:disabled{opacity:1!important;pointer-events:none;cursor:not-allowed;transform:none!important}'+
+   '#nav #navCadernoPreview.nb-phone-locked{opacity:.52!important;filter:grayscale(1);pointer-events:none!important;cursor:not-allowed!important;box-shadow:none!important;transform:none!important}'+
+   '#nav #navCadernoPreview.nb-phone-locked::after{content:"PC/tablet";font-size:10px;font-weight:650;white-space:nowrap;margin-left:auto;color:var(--muted,#63728b)}'+
    '#main.nb-shell-active{max-width:none!important;width:100%!important;padding:8px 10px!important;overflow:hidden;background:#f3f1f9;}'+
    'html[data-theme="dark"] #main.nb-shell-active{background:#0c1523;}'+
    // Suppress the iframe's white about:blank first paint until the notebook is loaded.
@@ -318,6 +322,8 @@ setTimeout(check,15000);
   }
  }
  function openPreview(){
+  // Bloqueio efetivo, inclusive após autenticação ou chamadas diretas.
+  if(isNotebookPhone())return;
   if(!loggedIn()){
    pendingOpenAfterLogin=true;
    window.uentzoulAIAuth?.openLogin?.();
@@ -386,14 +392,17 @@ setTimeout(check,15000);
   button.hidden=false;
   if(button.style.display)button.style.removeProperty('display');
   if(button.style.visibility)button.style.removeProperty('visibility');
-  if(button.disabled)button.disabled=false;
+  button.disabled=phone;
+  button.classList.toggle('nb-phone-locked',phone);
   button.querySelector('.nb-preview-label')?.remove();
-  const label=allowed?'Abrir meus cadernos de '+selectedSemester():
+  const label=phone?'Caderno indisponível no celular. Use um computador ou tablet.':
+    allowed?'Abrir meus cadernos de '+selectedSemester():
     'Caderno: entre ou crie uma conta para salvar anotações';
   if(button.getAttribute('aria-label')!==label)button.setAttribute('aria-label',label);
-  if(button.getAttribute('aria-disabled')!=='false')button.setAttribute('aria-disabled','false');
+  if(button.getAttribute('aria-disabled')!==String(phone))button.setAttribute('aria-disabled',String(phone));
   if(button.hasAttribute('aria-hidden'))button.removeAttribute('aria-hidden');
-  const title=allowed?'Caderno · minhas anotações':'Caderno · entre ou crie sua conta';
+  const title=phone?'Caderno disponível somente em computador ou tablet':
+    allowed?'Caderno · minhas anotações':'Caderno · entre ou crie sua conta';
   if(button.title!==title)button.title=title;
   if(previewOpen&&!allowed){
    // Oscilações temporárias de sessão nunca provocam navegação involuntária.
@@ -433,7 +442,7 @@ setTimeout(check,15000);
   window.addEventListener('uentzoul:auth',()=>{
    sync();setTimeout(()=>{
     sync();
-    if(pendingOpenAfterLogin&&loggedIn())openPreview();
+    if(pendingOpenAfterLogin&&loggedIn()&&!isNotebookPhone())openPreview();
    },420);
   });
   window.addEventListener('uentzoul:semester',()=>{

@@ -52,6 +52,19 @@ for(const profile of profiles){
   if(layout.scrollWidth>layout.viewport+10)row.errors.push('Rolagem horizontal: '+layout.scrollWidth+'px / '+layout.viewport+'px');
   if(layout.offenders.length)row.warnings.push('Elementos fora do viewport: '+JSON.stringify(layout.offenders));
   if(!layout.title)row.warnings.push('Título da página ausente');
+  const notebook=page.locator('#navCadernoPreview');
+  if(await notebook.count()){
+    const phone=name==='iphone'||name==='android';
+    const disabled=await notebook.isDisabled();
+    if(disabled!==phone)row.errors.push('Caderno em estado incorreto no dispositivo '+name);
+    if(phone){
+      const opacity=await notebook.evaluate(el=>Number(getComputedStyle(el).opacity));
+      if(opacity>=.8)row.errors.push('Caderno do celular sem aparência cinza');
+      await notebook.evaluate(el=>el.click());
+      if(await page.locator('#uentzoulCadernoFrame').count())row.errors.push('Caderno aberto no celular');
+    }
+    row.checks.push('notebook-availability');
+  }
   // A auditoria deve testar a gaveta real no celular, não pular as abas ocultas.
   // Nenhum destes cliques envia formulário ou altera dados de usuários.
   const sections=['home','library','calendar','exams','messages','ai'];
