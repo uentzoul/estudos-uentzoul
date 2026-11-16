@@ -487,7 +487,7 @@ test('Caderno já está no HTML da navegação antes da autenticação, sem inse
  assert.ok(start>=0);
  const exam=index.indexOf('data-page="exams"',start),notebook=index.indexOf('id="navCadernoPreview"',start),
   calendar=index.indexOf('data-page="calendar"',start);
- assert.ok(exam<notebook&&notebook<calendar,'Caderno fica estável depois de Simulados');
+ assert.ok(calendar<exam&&exam<notebook,'Caderno estático fica após Simulados no menu já ordenado');
  assert.equal((index.match(/id="navCadernoPreview"/g)||[]).length,1);
  assert.match(index,/id="navCadernoPreview"[\s\S]{0,180}visibility:hidden/);
  assert.match(nav,/button\.dataset\.nbBound!=='true'/);
