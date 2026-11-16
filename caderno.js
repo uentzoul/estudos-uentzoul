@@ -824,7 +824,7 @@ function toggleList(style){
   if(updated!==target.text){
    checkpoint();
    target.inkRuns=inkRunsFor(updated,reconcileInkMap(target.text,inkMapFor(target.text,target.ink,target.inkRuns),updated,data.ink),target.ink);
-   target.text=updated;target.pending=false;delete target.original;
+   target.text=updated;target.pending=false;delete target.original;delete target.grammarReviewVersion;
    target.span=occupiedSpan(target);makeRoom(target);renderNotes();
   }
  }else{
@@ -937,7 +937,7 @@ async function correctNote(noteId,raw,quiet=false){
   if(result.reviewed===true){
    if(finalText!==before&&!n.grammarBefore)n.grammarBefore=before;
    n.text=finalText;n.reviewed=true;n.grammarReviewVersion=GRAMMAR_REVIEW_VERSION;
-  }else n.reviewed=false;
+  }else{n.reviewed=false;delete n.grammarReviewVersion;}
   n.pending=false;delete n.original;
   // Na revisão retroativa, preservar a posição, tamanho, cor e fonte das notas.
   if(!quiet){
@@ -955,6 +955,7 @@ async function correctNote(noteId,raw,quiet=false){
   const found=grammarNote(noteId);
   if(valid(found?.n)){
    const n=found.n;n.pending=false;n.reviewed=false;
+   delete n.grammarReviewVersion;
    if(n.original===original)n.text=normalizeNoteText(original);
    delete n.original;
    if(found.p===page())renderNotes();
@@ -1047,6 +1048,8 @@ function saveEditor(advance=true,insertLine=false){
  if(!n){n={id:id(),line:editing.line,text:typed};page().notes.push(n)}
  const normalized=normalizeNoteText(typed),normalizedInk=reconcileInkMap(typed,inkMap,normalized,data.ink);
  const initialInk=normalizedInk[0]||data.ink;
+ // Texto reescrito precisa de uma nova revisão, mesmo que já tenha sido conferido.
+ delete n.grammarReviewVersion;
  Object.assign(n,{text:normalized,original:typed,font:data.font,size:1,ink:initialInk,
   inkRuns:inkRunsFor(normalized,normalizedInk,initialInk),align:data.align||'left',pending:true,reviewed:false});
  n.span=occupiedSpan(n);makeRoom(n);materializePage();
@@ -2822,6 +2825,7 @@ window.addEventListener('pagehide',()=>{
    let note=editing.id?page().notes.find(n=>n.id===editing.id):null;
    if(!note){note={id:id(),line:editing.line,text:typed};page().notes.push(note)}
    const colors=reconcileInkMap(editing.draft,editing.inkMap,typed,data.ink);
+   delete note.grammarReviewVersion;
    Object.assign(note,{text:typed,original:typed,font:data.font,size:data.size,ink:colors[0]||data.ink,
     inkRuns:inkRunsFor(typed,colors,data.ink),pending:false,reviewed:false});
    note.span=occupiedSpan(note);makeRoom(note);

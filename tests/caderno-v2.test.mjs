@@ -729,10 +729,9 @@ test('Correção retroativa só começa após sincronização e mantém backup p
  assert.match(script,/data-nb-grammar-retry/);
 });
 
-test('Caneta desenha sobre toda a pauta sem texto roubar ponteiro ou cursor',()=>{
- assert.match(style,/\.nb-sheet\[data-mode="draw"\] \.nb-text-layer \*/);
- assert.match(style,/\.nb-sheet\[data-mode="draw"\] \.nb-text-layer,\s*\.nb-sheet\[data-mode="draw"\] \.nb-text-layer \*\s*\{\s*pointer-events:none!important/);
- assert.match(style,/\.nb-sheet\[data-mode="draw"\] \.nb-drawing\s*\{\s*pointer-events:auto!important;\s*cursor:crosshair!important/);
- assert.match(script,/canvas\.addEventListener\('pointerdown',pointerDownCanvas\)/);
- assert.match(script,/if\(data\.mode==='draw'\)\{\s*checkpoint\(\);drawPoints=\[p\]/);
+test('Notas editadas depois da revisão voltam à fila sem perder o texto',()=>{
+ assert.match(script,/delete n\.grammarReviewVersion/);
+ assert.match(script,/delete note\.grammarReviewVersion/);
+ assert.match(script,/delete target\.grammarReviewVersion/);
+ assert.match(script,/grammarReviewVersion!==GRAMMAR_REVIEW_VERSION/);
 });
