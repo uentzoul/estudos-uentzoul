@@ -587,15 +587,17 @@ function zoomAt(value,clientX,clientY){
  view.scrollTop+=newer.top+py*data.zoom-clientY;
 }
 function focusLine(line){
- // Na folha única, aproximar facilita escrever. No caderno aberto,
- // preservar o zoom escolhido pelo usuário para não perder a visão das duas páginas.
- const target=isMobile()?.98:1.12;
- if(data.layout!=='book'&&data.zoom<target)setZoom(target);
- const y=(START+(line+2)*L)*data.zoom;
- view.scrollTop=clamp(y-view.clientHeight*.38,0,view.scrollHeight-view.clientHeight);
- const pageLeft=data.layout==='book'&&data.page%2===1?W*data.zoom:0;
- view.scrollLeft=clamp(pageLeft+110*data.zoom-view.clientWidth*.17,0,
-  Math.max(0,view.scrollWidth-view.clientWidth));
+ // Enter mantém zoom e posição; desloca só quando a nova linha sai da tela.
+ const paper=sheet.getBoundingClientRect(),viewport=view.getBoundingClientRect();
+ if(!viewport.height||!viewport.width)return;
+ const y=paper.top+(START+line*L)*data.zoom,lowerY=y+L*data.zoom;
+ const marginY=Math.min(76,Math.max(24,viewport.height*.17));
+ if(y<viewport.top+marginY)view.scrollTop-=Math.ceil(viewport.top+marginY-y);
+ else if(lowerY>viewport.bottom-marginY)view.scrollTop+=Math.ceil(lowerY-(viewport.bottom-marginY));
+ const x=paper.left+110*data.zoom;
+ const marginX=Math.min(45,Math.max(16,viewport.width*.08));
+ if(x<viewport.left+marginX)view.scrollLeft-=Math.ceil(viewport.left+marginX-x);
+ else if(x>viewport.right-marginX)view.scrollLeft+=Math.ceil(x-(viewport.right-marginX));
 }
 function refreshTools(){
  for(const a of MODES){const b=root.querySelector('[data-nb-action="'+a+'"]');b?.setAttribute('aria-pressed',String(data.mode===a));}

@@ -35,6 +35,20 @@ test('Texto é editado diretamente no caderno sem caixa de envio flutuante',()=>
  assert.match(script,/if\(event\.key==='Enter'&&!event\.shiftKey&&!event\.isComposing\)/);
  assert.match(style,/\.nb-inline-edit\{/);
 });
+test('Enter preserva zoom e só acompanha a linha fora da visualização',()=>{
+ const source=fn('function focusLine(line){','function refreshTools(){');
+ const view={scrollTop:170,scrollLeft:65,getBoundingClientRect:()=>({top:100,bottom:600,left:0,right:800,width:800,height:500})};
+ let top=270;
+ const sheet={getBoundingClientRect:()=>({top,left:65})};
+ const focus=vm.runInNewContext('('+source+')',{sheet,view,START:28,L:34,data:{zoom:.7},Math});
+ focus(5);
+ assert.equal(view.scrollTop,170,'Enter não recentraliza uma linha visível');
+ assert.equal(view.scrollLeft,65,'Enter não desloca a folha horizontalmente');
+ top=400;focus(22);
+ assert.ok(view.scrollTop>170,'acompanha linha que ficaria fora da tela');
+ assert.doesNotMatch(source,/setZoom\(/,'Enter não força zoom');
+});
+
 test('Enter registra e corrige texto e move para a próxima linha; vazio apenas move',()=>{
  const src=fn('function saveEditor(advance=true){','function renderStickies(){');
  let calls={checkpoints:0,correct:[],advanced:[],saved:0},value='  Psicologia e uma ciencia  ';
@@ -43,7 +57,7 @@ test('Enter registra e corrige texto e move para a próxima linha; vazio apenas 
   $:()=>({value}),checkpoint(){calls.checkpoints++},page:()=>mockPage,
   id:()=>String(calls.checkpoints),occupiedSpan:()=>2,makeRoom(){},
   materializePage(){},closeEditor(){},renderNotes(){},renderPageRail(){},
-  save(){calls.saved++},status(){},fallbackBasic(text){return text},correctNote(id,text){calls.correct.push({id,text})},
+  save(){calls.saved++},status(){},fallbackBasic(text){return text},listInfo(){return null},normalizeNoteText(text){return text},correctNote(id,text){calls.correct.push({id,text})},
   advanceLine(i){calls.advanced.push(i)}
  };
  const saveEditor=vm.runInNewContext('('+src+')',context);
@@ -251,8 +265,9 @@ test('Correção local protege o usuário mesmo sem resposta da IA',()=>{
  assert.equal(basic('boa tarde rapaziada'),'Boa tarde, rapaziada.');
  assert.equal(basic('oi pessoal'),'Oi pessoal.');
  assert.equal(basic('nao posso'),'Não posso.');
- assert.match(script,/text:fallbackBasic\(typed\)/);
- assert.match(script,/n\.text=fallbackBasic\(raw\)/);
+ assert.match(script,/text:normalizeNoteText\(typed\)/);
+ assert.match(script,/n\.text=normalizeNoteText\(raw\)/);
+ assert.match(script,/list\?list\.prefix\+fallbackBasic/);
  assert.match(script,/input\.value\.endsWith\(' '\)/);
 });
 test('Ao apagar item, zera seleção e controles; não redimensiona outros desenhos',()=>{
@@ -315,7 +330,7 @@ test('Marca exibida é PsicoMoodle e texto corrigido jamais reabre como rascunho
  assert.doesNotMatch(script,/>ESTUDOS UENTZOUL</);
  assert.match(pdf,/PsicoMoodle\.pdf/);
  assert.match(guide,/# PsicoMoodle/);
- assert.match(script,/draft:existing\?\.text\|\|''/);
+ assert.match(script,/draft:existing\?\.text\|\|\(data\.listStyle/);
  assert.doesNotMatch(script,/draft:existing\?\.original/);
  assert.match(script,/delete n\.original/);
  assert.match(script,/const \{original,\.\.\.corrected\}=n/);
