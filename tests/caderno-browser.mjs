@@ -91,7 +91,7 @@ try{
  assert.equal(dateHeader.inputBorder,'0px','Sem traço sob o campo de dia, mês e ano');
  assert.equal(dateHeader.width,180,'O campo conserva a mesma largura em todas as folhas');
  assert.equal(await f.locator('#nbPaperTitle').count(),0);
- assert.ok(await f.locator('.nb-corner-back').evaluate(el=>parseFloat(getComputedStyle(el).top))<20);
+ assert.equal(await f.locator('.nb-corner-back').count(),0,'A seta superior removida não reaparece');
 
  assert.equal(await f.locator('[data-nb-action="none"]').getAttribute('aria-pressed'),'true','Navegar precisa ser o padrão neutro');
  assert.equal(await f.locator('#nbPageRail').count(),1);
