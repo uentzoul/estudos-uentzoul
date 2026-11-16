@@ -73,21 +73,26 @@ const dateLabel=e=>String(e.event_date||'').slice(8,10)+'/'+String(e.event_date|
 const plural=(n,single,multi)=>n===1?single:multi;
 function navButton(){
  const el=nav();if(!el)return;
- // O HTML antigo ainda trazia um segundo item estático "Revisão de Férias — Em breve".
- // Preserva os outros avisos (por exemplo, Trabalhos) e mantém só a entrada funcional.
+ // Compatibilidade: remove eventual aviso duplicado, preservando o botão
+ // que agora já aparece no HTML antes de o JavaScript terminar de carregar.
  for(const item of el.querySelectorAll('.nav-upcoming')){
   if(item.querySelector('.nav-upcoming-name')?.textContent?.trim()==='Revisão de Férias')item.remove();
  }
- if(document.getElementById('navVacationReview')){updateNavStatus();return;}
- const button=document.createElement('button');
- button.type='button';button.id='navVacationReview';button.className='sidebtn';
- button.setAttribute('aria-label','Revisão de Férias');
- button.innerHTML='<svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 17l4-4 4 3 6-9 2 2"/><path d="M3 21h18"/><circle cx="6" cy="7" r="2"/></svg><span class="nav-label"><span class="nav-label-full">Revisão de Férias</span><span class="nav-label-short">Férias</span></span>';
- button.addEventListener('click',async e=>{
-  e.stopPropagation();await show();
- });
- const before=el.querySelector('.nav-upcoming')||el.querySelector('[data-page="admin"]');
- if(before)el.insertBefore(button,before);else el.appendChild(button);
+ let button=document.getElementById('navVacationReview');
+ if(!button){
+  button=document.createElement('button');
+  button.type='button';button.id='navVacationReview';button.className='sidebtn';
+  button.setAttribute('aria-label','Revisão de Férias');
+  button.innerHTML='<svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 17l4-4 4 3 6-9 2 2"/><path d="M3 21h18"/><circle cx="6" cy="7" r="2"/></svg><span class="nav-label"><span class="nav-label-full">Revisão de Férias</span><span class="nav-label-short">Férias</span></span>';
+  const before=el.querySelector('.nav-upcoming')||el.querySelector('[data-page="admin"]');
+  if(before)el.insertBefore(button,before);else el.appendChild(button);
+ }
+ if(button.dataset.vrBound!=='true'){
+  button.addEventListener('click',async e=>{
+   e.stopPropagation();await show();
+  });
+  button.dataset.vrBound='true';
+ }
  updateNavStatus();
 }
 function updateNavStatus(){
