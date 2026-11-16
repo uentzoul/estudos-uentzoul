@@ -177,6 +177,7 @@ let undoStack=[],redoStack=[],listening='',pinch=null,saveTimer=null,flipping=fa
 let localStamp=0;
 try{localStamp=Math.max(0,Number(localStorage.getItem(STAMP_KEY))||0)}catch(_){}
 let cloudReady=false,cloudBusy=false,cloudDirty=false,cloudLoading=false,cloudTimer=null,retryTimer=null;
+let lastContentSignature=JSON.stringify(data.books);
 const notebookClient=()=>{
  try{const a=window.parent.uentzoulAIAuth,u=a?.user?.();
   return u?.id===userId&&u?.is_anonymous!==true?a?.client?.():null;}catch(_){return null}
@@ -271,10 +272,19 @@ function persistNow(){
  clearTimeout(saveTimer);
  try{
   const payload=JSON.stringify(serializable());
-  localStamp=Math.max(Date.now(),localStamp+1);
-  localStorage.setItem(STORE,payload);localStorage.setItem(STAMP_KEY,String(localStamp));
-  cloudDirty=true;refreshCurrentRailSnapshot();
-  if(cloudReady)scheduleCloudSave();
+  // Mudanças de página, zoom ou leitura não podem subir um caderno vazio sobre
+  // anotações recentes de outro aparelho antes da primeira sincronização.
+  const signature=JSON.stringify(data.books);
+  const contentChanged=signature!==lastContentSignature;
+  if(contentChanged){
+   lastContentSignature=signature;
+   localStamp=Math.max(Date.now(),localStamp+1);
+   cloudDirty=true;
+  }
+  localStorage.setItem(STORE,payload);
+  if(localStamp)localStorage.setItem(STAMP_KEY,String(localStamp));
+  refreshCurrentRailSnapshot();
+  if(cloudReady&&cloudDirty)scheduleCloudSave();
   return true;
  }catch(_){status('Armazenamento cheio. Exporte uma cópia em PDF.','error');return false;}
 }
@@ -324,6 +334,7 @@ async function loadCloud(){
    try{if(data.books.some(book=>book.pages?.some(hasPageContent))&&!localStorage.getItem(STORE+':backup-before-cloud'))
     localStorage.setItem(STORE+':backup-before-cloud',JSON.stringify(serializable()));}catch(_){}
    restoreState(JSON.stringify(remote.content));
+   cloudDirty=false;lastContentSignature=JSON.stringify(data.books);
    data.mode='none';editEnabled=false;selected=null;selectedStroke=-1;
    localStamp=stamp;
    try{localStorage.setItem(STORE,JSON.stringify(serializable()));localStorage.setItem(STAMP_KEY,String(stamp));}catch(_){}
