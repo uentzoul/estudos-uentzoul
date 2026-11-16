@@ -1612,7 +1612,11 @@ function act(action){
   if(!shelfOpen)status('Somente leitura. Clique em Editar para modificar a folha.','');
   return;
  }
- if(action==='sticky'){toolPaletteOpen=!toolPaletteOpen;renderStickyPalette();return;}
+ if(action==='sticky'){
+  // Um clique em Post-it ativa a ferramenta; a paleta apenas muda a cor.
+  data.mode='sticky';toolPaletteOpen=!toolPaletteOpen;
+  refreshTools();renderStickyPalette();save();return;
+ }
  if(MODES.includes(action)){
   if(editing)saveEditor(false);
   // Em Deformar, preservar a seleção e as alças do traço corrigido.
