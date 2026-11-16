@@ -80,6 +80,16 @@ try{
  const datePos=await f.locator('.nb-paper-date-group').evaluate(el=>({top:parseFloat(getComputedStyle(el).top),height:el.offsetHeight}));
  assert.equal(datePos.top,30);
  assert.ok(datePos.height>=30);
+ const dateHeader=await f.locator('.nb-paper-date-group').evaluate(el=>{
+  const css=getComputedStyle(el),input=getComputedStyle(el.querySelector('input'));
+  return {hasLabel:!!el.querySelector('label'),right:css.right,border:css.borderBottomWidth,
+   inputBorder:input.borderBottomWidth,width:el.offsetWidth};
+ });
+ assert.equal(dateHeader.hasLabel,false,'Apenas o campo da data aparece, sem a palavra Data');
+ assert.equal(dateHeader.right,'42px','Data fica ancorada sempre na mesma posição');
+ assert.equal(dateHeader.border,'0px','Sem traço sob a área da data');
+ assert.equal(dateHeader.inputBorder,'0px','Sem traço sob o campo de dia, mês e ano');
+ assert.equal(dateHeader.width,180,'O campo conserva a mesma largura em todas as folhas');
  assert.equal(await f.locator('#nbPaperTitle').count(),0);
  assert.ok(await f.locator('.nb-corner-back').evaluate(el=>parseFloat(getComputedStyle(el).top))<20);
 
@@ -447,6 +457,23 @@ try{
  assert.equal(binder.left.holesRight,'22px','Furos à direita da folha esquerda');
  assert.equal(binder.right.redLeft,'85px','Linha vermelha à esquerda da folha direita');
  assert.equal(binder.right.holesLeft,'22px','Furos à esquerda da folha direita');
+ // O destaque acompanha a folha sob o mouse, não necessariamente a folha ativa.
+ await bf.locator('[data-nb-action="text"]').click();
+ const rightHoverBox=await bf.locator('#nbCompanionWrap').boundingBox();
+ await bookPage.mouse.move(rightHoverBox.x+rightHoverBox.width*.45,
+  rightHoverBox.y+rightHoverBox.height*.25);
+ assert.equal(await bf.locator('#nbCompanionLineHover').isVisible(),true,
+  'Passar o mouse na folha direita marca a linha direita');
+ assert.equal(await bf.locator('#nbLineHover').isVisible(),false,
+  'A esquerda não pode ficar marcada com o mouse na direita');
+ const leftHoverBox=await bf.locator('#nbSheet').boundingBox();
+ await bookPage.mouse.move(leftHoverBox.x+leftHoverBox.width*.30,
+  leftHoverBox.y+leftHoverBox.height*.25);
+ assert.equal(await bf.locator('#nbLineHover').isVisible(),true,
+  'A indicação funciona quando o mouse está na folha esquerda');
+ assert.equal(await bf.locator('#nbCompanionLineHover').isVisible(),false,
+  'A indicação da direita desaparece quando o mouse vai para a esquerda');
+ await bf.locator('[data-nb-action="none"]').click();
 
  // A folha oposta pode ser arrastada também enquanto o editor está ativo.
  const editorDrag=await bf.locator('#nbCompanionWrap').boundingBox();
