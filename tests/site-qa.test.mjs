@@ -327,7 +327,7 @@ test('Caderno experimental permanece isolado e reservado aos administradores',()
  const styles=read('caderno.css');
  assert.match(loader,/navCadernoPreview/);
  assert.match(loader,/const admin=\(\)=>window\.uentzoulAdminConfig\?\.isAdmin\?\.\(\)===true/);
- assert.match(loader,/button\.hidden=!allowed/);
+ assert.match(loader,/button\.style\.visibility=allowed\?'visible':'hidden'/);
  assert.match(loader,/data-page="exams"/);
  assert.match(loader,/caderno\.html\?v=/);
  assert.match(markup,/name="robots" content="noindex, nofollow"/);
