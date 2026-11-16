@@ -25,7 +25,8 @@ function setup(){
    nav.querySelector('[data-page="exams"]'),
    nav.querySelector('#navCadernoPreview'),
    nav.querySelector('[data-page="messages"]'),
-   nav.querySelector('[data-page="ai"]')
+   nav.querySelector('[data-page="ai"]'),
+   nav.querySelector('#navVacationReview')
   ].filter(Boolean);
   let next=anchor;
   for(const node of items.reverse()){
@@ -223,13 +224,13 @@ setTimeout(check,15000);
   if(!document.getElementById('pm-vacation-timeline-css')){
    const css=document.createElement('link');
    css.id='pm-vacation-timeline-css';css.rel='stylesheet';
-   css.href='revisao-ferias.css?v=20261114-direct-documents-v1';
+   css.href='revisao-ferias.css?v=20261116-static-nav-no-flash-v6';
    document.head.appendChild(css);
   }
   if(!document.getElementById('pm-vacation-timeline-js')){
    const js=document.createElement('script');
    js.id='pm-vacation-timeline-js';
-   js.src='revisao-ferias.js?v=20261115-flicker-fixed-v5';
+   js.src='revisao-ferias.js?v=20261116-static-nav-no-flash-v6';
    js.async=true;document.head.appendChild(js);
   }
  };
