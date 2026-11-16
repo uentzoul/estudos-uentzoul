@@ -357,6 +357,9 @@ try{
  assert.equal(await page.locator('#nbQaFrame').count(),1,'Voltar do navegador não remove o iframe');
  await f.locator('[data-nb-shelf-book="materia-avaliacao"]').click();
  await f.locator('#nbSheet').waitFor({state:'visible'});
+ assert.equal(await f.locator('#nbTools').isVisible(),true,'Avaliação, vazia, abre em edição');
+ await f.locator('#nbEditToggle').click();
+ assert.equal(await f.locator('#nbTools').isVisible(),false,'Leitura antecede Voltar à estante');
  const blockedSideBack=await f.locator('#nbSheet').evaluate(el=>{
   const ev=new MouseEvent('mousedown',{button:3,bubbles:true,cancelable:true,view:window});
   el.dispatchEvent(ev);return ev.defaultPrevented;
