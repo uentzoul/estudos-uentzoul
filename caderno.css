@@ -887,3 +887,12 @@ html[data-theme="dark"] .nb-format-trigger[aria-expanded="true"]{background:#344
 .nb-inline-edit.nb-colorized::selection{
  background:rgba(110,83,177,.28);-webkit-text-fill-color:transparent
 }
+
+/* Revisão gramatical retroativa: discreta, acessível e sem mudanças na estante. */
+.nb-shelf-tutorial-bar{gap:9px;flex-wrap:wrap}
+.nb-grammar-progress{font:600 11px/1.4 'DM Sans',system-ui,sans-serif;color:#756488;margin-right:auto;min-width:80px}
+.nb-grammar-retry{white-space:nowrap}
+.nb-grammar-retry[hidden]{display:none!important}
+.nb-grammar-retry:disabled{opacity:.65;cursor:progress;pointer-events:none}
+html[data-theme="dark"] .nb-grammar-progress{color:#b9afd2}
+@media(max-width:760px){.nb-grammar-progress{flex-basis:100%;order:3;text-align:right}}

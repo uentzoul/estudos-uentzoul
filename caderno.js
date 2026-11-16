@@ -89,6 +89,8 @@ const LEGACY_STORE='uentzoul:caderno:alpha1:'+userId;
 const BACKUP_STORE=SEMESTER==='2026/2'?
  'psicomoodle:caderno:backup-antes-das-seis-materias:'+userId:
  'psicomoodle:caderno:'+SEMESTER+':backup:'+userId;
+const GRAMMAR_REVIEW_VERSION='20261116-grammar-v2';
+const GRAMMAR_BACKUP_KEY=STORE+':backup-before-grammar-20261116';
 const SUBJECT_BOOKS=SEMESTERS[SEMESTER];
 const initialBooks=()=>SUBJECT_BOOKS.map(b=>({...b,pages:[]}));
 const bookColor=b=>{
@@ -200,6 +202,8 @@ function restoreState(serialized){
  data.pages=activeBook().pages;pendingPage=emptyPage();
 }
 let editing=null, previewText='',drawPoints=null,warpDrag=null,stickyDrag=null,selectedStroke=-1,tapCandidate=null;
+let grammarRunning=false,grammarPaused=false,grammarDone=0,grammarTotal=0;
+const grammarAttempted=new Set(),grammarInFlight=new Set();
 let formatMenuOpen='',formatPointerActive=false;
 let undoStack=[],redoStack=[],listening='',pinch=null,saveTimer=null,flipping=false;
 let localStamp=0;
@@ -215,9 +219,30 @@ const clamp=(v,min,max)=>Math.max(min,Math.min(max,v));
 const page=()=>data.pages[data.page]||pendingPage;
 const id=()=>typeof crypto.randomUUID==='function'?crypto.randomUUID():'nb-'+Date.now()+'-'+Math.random().toString(36).slice(2);
 const isMobile=()=>window.matchMedia('(max-width:760px)').matches;
+function notesNeedingGrammar(){
+ return data.books.flatMap(book=>(book.pages||[]).flatMap(p=>(p.notes||[])))
+  .filter(n=>n&&String(n.text||'').trim()&&n.grammarReviewVersion!==GRAMMAR_REVIEW_VERSION);
+}
+function updateGrammarProgress(){
+ const progress=$('nbGrammarProgress'),button=$('nbGrammarRetry');
+ const remaining=notesNeedingGrammar().length;
+ if(button){
+  button.hidden=!remaining&&!grammarRunning;
+  button.disabled=grammarRunning||!cloudReady;
+  button.textContent=grammarRunning?'Revisando '+grammarDone+'/'+grammarTotal+'…':
+   (grammarPaused?'Retomar revisão ('+remaining+')':'Revisar anotações ('+remaining+')');
+ }
+ if(progress){
+  progress.textContent=grammarRunning?'Gramática: '+grammarDone+' de '+grammarTotal:
+   grammarPaused?'Revisão pausada · '+remaining+' pendentes':
+   remaining?'Revisão disponível para '+remaining+' anotações':'Gramática em dia';
+ }
+}
 function renderShelf(){
  const host=$('nbShelf');if(!host)return;
- host.innerHTML='<div class="nb-shelf-tutorial-bar"><button type="button" class="nb-shelf-tutorial-button" data-nb-tour-start aria-label="Abrir tutorial do Caderno">ⓘ Tutorial</button></div>'+
+ host.innerHTML='<div class="nb-shelf-tutorial-bar"><span id="nbGrammarProgress" class="nb-grammar-progress" role="status" aria-live="polite"></span>'+
+  '<button type="button" id="nbGrammarRetry" class="nb-shelf-tutorial-button nb-grammar-retry" data-nb-grammar-retry>Revisar anotações</button>'+
+  '<button type="button" class="nb-shelf-tutorial-button" data-nb-tour-start aria-label="Abrir tutorial do Caderno">ⓘ Tutorial</button></div>'+
   '<div class="nb-shelf-heading"><span class="nb-shelf-eyebrow">PSICOMOODLE · '+SEMESTER_LABEL.toUpperCase()+'</span>'+
   '<h2>Meus cadernos</h2><p>Escolhe uma matéria para abrir o caderno e folhear suas páginas. Anotações sincronizadas com a sua conta.</p></div>'+
   '<div class="nb-shelf-grid">'+data.books.map((book,i)=>
@@ -229,6 +254,7 @@ function renderShelf(){
     '<span class="nb-shelf-book-meta"><strong>'+esc(book.name)+'</strong><small>'+book.pages.length+
      (book.pages.length===1?' folha salva':' folhas salvas')+'</small></span></button>'
   ).join('')+'</div>';
+ updateGrammarProgress();
  requestAnimationFrame(fitCoverTitles);
 }
 function syncNotebookUI(){
@@ -372,6 +398,8 @@ async function loadCloud(){
    status('Cadernos recuperados da sua conta','success');
   }else if(remote&&!cloudDirty)status('Cadernos sincronizados com sua conta','success');
   cloudReady=true;
+  // Revisões antigas são iniciadas somente após recuperar a versão da conta.
+  setTimeout(()=>{if(cloudReady&&!grammarPaused)void reviewHistoricalNotes();},700);
   if(cloudDirty||(!remote&&(stored||data.books.some(book=>book.pages?.some(hasPageContent))))||
    (remote&&localStamp>stamp)){
    cloudDirty=true;
@@ -862,41 +890,122 @@ function restoreTextTabs(original,corrected){
   return prefix+line.replace(/^\t*/,'');
  }).join('\n');
 }
-async function correctNote(noteId,raw){
- const currentOwner=userId;
+async function grammarError(err){
+ let message=String(err?.message||'Revisão indisponível.');
+ const http=Number(err?.context?.status)||0;
+ if(typeof err?.context?.json==='function'){
+  try{const body=await err.context.json();if(body?.error)message=String(body.error);}catch(_){}
+ }
+ if(http===429&&!/limite/i.test(message))message='Limite diário de revisões atingido.';
+ if(http>=500&&message==='Edge Function returned a non-2xx status code')
+  message='Serviço de correção temporariamente indisponível.';
+ return message;
+}
+function grammarNote(noteId){
+ for(const book of data.books)for(const p of book.pages||[]){
+  const n=(p.notes||[]).find(x=>x.id===noteId);
+  if(n)return {n,p};
+ }
+ return null;
+}
+async function correctNote(noteId,raw,quiet=false){
+ const original=String(raw||''),start=grammarNote(noteId);
+ const valid=x=>x&&(x.original===original||(!x.original&&x.text===original));
+ if(grammarInFlight.has(noteId))return {ok:false,temporary:false,reason:'Revisão em andamento.'};
+ if(!valid(start?.n))return {ok:false,temporary:false,reason:'Texto alterado antes da revisão.'};
+ grammarInFlight.add(noteId);
+ start.n.pending=true;
+ if(start.p===page())renderNotes();
  try{
   const auth=window.parent.uentzoulAIAuth;
-  if(auth?.user?.()?.id!==currentOwner||auth?.user?.()?.is_anonymous===true)throw Error('A sessão terminou. Entre novamente.');
-  const c=auth.client?.();
-  if(!c)throw Error('Serviço indisponível.');
-  const list=listInfo(raw),body=list?raw.slice(list.prefix.length):raw;
+  if(auth?.user?.()?.id!==userId||auth?.user?.()?.is_anonymous===true)
+   throw Error('A sessão terminou. Entre novamente na sua conta.');
+  const c=auth.client?.();if(!c)throw Error('Serviço de revisão indisponível.');
+  const list=listInfo(original),body=list?original.slice(list.prefix.length):original;
   const {data:result,error}=await c.functions.invoke('caderno-revisao',{body:{text:body}});
-  if(error||typeof result?.text!=='string')throw error||Error('Sem resposta da revisão.');
+  if(error)throw Error(await grammarError(error));
+  if(typeof result?.text!=='string')throw Error('O corretor não retornou texto.');
   const revised=result.text.trim();
-  if(!revised||revised.length<body.length*.5||revised.length>body.length*1.75)throw Error('Revisão não confiável.');
-  const n=data.books.flatMap(b=>b.pages).flatMap(p=>p.notes).find(n=>n.id===noteId);
-  if(!n||n.original!==raw)return;
-  const prior=n.text,priorColors=inkMapFor(prior,n.ink,n.inkRuns);
-  n.text=list?list.prefix+fallbackBasic(restoreTextTabs(body,result.reviewed===true?revised:body)):
-   fallbackBasic(restoreTextTabs(raw,result.reviewed===true?revised:raw));
-  n.inkRuns=inkRunsFor(n.text,reconcileInkMap(prior,priorColors,n.text,n.ink),n.ink);
-  n.pending=false;n.reviewed=result.reviewed===true;n.span=occupiedSpan(n);
-  delete n.original; // Descartar o rascunho bruto: a versão corrigida é definitiva.
-  if(page().notes.includes(n))makeRoom(n);
-  if(page().notes.includes(n))renderNotes();
+  if(!revised||revised.length<body.length*.5||revised.length>body.length*1.75)
+   throw Error('Revisão não confiável; anotação preservada.');
+  const found=grammarNote(noteId);
+  if(!valid(found?.n)||editing?.id===noteId)
+   return {ok:false,temporary:false,reason:'Anotação editada durante a revisão.'};
+  const n=found.n,before=n.text;
+  const finalText=list?list.prefix+fallbackBasic(restoreTextTabs(body,result.reviewed===true?revised:body)):
+   fallbackBasic(restoreTextTabs(original,result.reviewed===true?revised:original));
+  if(result.reviewed===true){
+   if(finalText!==before&&!n.grammarBefore)n.grammarBefore=before;
+   n.text=finalText;n.reviewed=true;n.grammarReviewVersion=GRAMMAR_REVIEW_VERSION;
+  }else n.reviewed=false;
+  n.pending=false;delete n.original;
+  // Na revisão retroativa, preservar a posição, tamanho, cor e fonte das notas.
+  if(!quiet){
+   n.span=occupiedSpan(n);
+   if(found.p===page())makeRoom(n);
+  }
+  if(found.p===page())renderNotes();
   save();
-  status(result.reviewed===false?'Texto original preservado: a revisão automática não foi confirmada.':revised===raw?'Anotação conferida, sem mudanças.':'Gramática corrigida sem reescrever a anotação.',result.reviewed===false?'error':'success');
+  if(!quiet)status(result.reviewed===true?
+   (finalText===before?'Anotação conferida, sem mudanças.':'Gramática corrigida.'):
+   'Não foi possível confirmar a revisão. Anotação preservada.',
+   result.reviewed===true?'success':'error');
+  return {ok:result.reviewed===true,temporary:false,reason:'Revisão não confirmada.'};
  }catch(err){
-  const n=data.books.flatMap(b=>b.pages).flatMap(p=>p.notes).find(n=>n.id===noteId);
-  if(!n||n.original!==raw)return;
-  n.pending=false;n.reviewed=false;
-  const prior=n.text,priorColors=inkMapFor(prior,n.ink,n.inkRuns);
-  n.text=normalizeNoteText(raw);
-  n.inkRuns=inkRunsFor(n.text,reconcileInkMap(prior,priorColors,n.text,n.ink),n.ink);
-  delete n.original; // O fallback também substitui definitivamente o texto original.
-  if(page().notes.includes(n))renderNotes();
-  save();status('Pontuação e maiúsculas corrigidas. Revisão adicional de IA indisponível.','');
+  const found=grammarNote(noteId);
+  if(valid(found?.n)){
+   const n=found.n;n.pending=false;n.reviewed=false;
+   if(n.original===original)n.text=normalizeNoteText(original);
+   delete n.original;
+   if(found.p===page())renderNotes();
+   save();
+  }
+  const reason=String(err?.message||'Revisão temporariamente indisponível.');
+  if(!quiet)status(reason+' Texto salvo para nova tentativa.','error');
+  return {ok:false,temporary:true,reason};
+ }finally{grammarInFlight.delete(noteId);}
+}
+function backupGrammarTexts(){
+ try{
+  if(localStorage.getItem(GRAMMAR_BACKUP_KEY))return true;
+  const notes=[];
+  for(const book of data.books)for(const [i,p] of (book.pages||[]).entries())
+   for(const n of p.notes||[])notes.push({bookId:book.id,page:i,id:n.id,text:n.text,reviewed:n.reviewed===true});
+  localStorage.setItem(GRAMMAR_BACKUP_KEY,JSON.stringify({createdAt:new Date().toISOString(),semester:SEMESTER,notes}));
+  return true;
+ }catch(_){return false;}
+}
+async function reviewHistoricalNotes(force=false){
+ if(grammarRunning||!cloudReady||(!force&&grammarPaused))return;
+ const tasks=notesNeedingGrammar().filter(n=>!n.pending&&!grammarInFlight.has(n.id)&&n.id!==editing?.id)
+  .map(n=>({id:n.id,text:n.text})).filter(n=>force||!grammarAttempted.has(n.id));
+ if(!tasks.length){updateGrammarProgress();return;}
+ if(!backupGrammarTexts()){
+  grammarPaused=true;updateGrammarProgress();
+  status('Não foi possível criar a cópia de segurança. Exporte os cadernos e tente novamente.','error');
+  return;
  }
+ grammarPaused=false;grammarRunning=true;grammarDone=0;grammarTotal=tasks.length;
+ updateGrammarProgress();
+ let failed=0,reason='';
+ for(const item of tasks){
+  if(!root.isConnected||!cloudReady)break;
+  grammarAttempted.add(item.id);
+  const result=await correctNote(item.id,item.text,true);
+  grammarDone++;
+  if(!result.ok){
+   failed++;
+   if(result.temporary){grammarPaused=true;reason=result.reason;updateGrammarProgress();break;}
+  }
+  updateGrammarProgress();
+ }
+ grammarRunning=false;persistNow();updateGrammarProgress();
+ const remaining=notesNeedingGrammar().length;
+ if(grammarPaused)status('Revisão pausada: '+reason+' Use Retomar revisão para continuar.','error');
+ else if(failed||remaining){
+  grammarPaused=true;updateGrammarProgress();
+  status('Faltam '+remaining+' anotações para revisar. Texto original preservado.','error');
+ }else status('Revisão das anotações antigas concluída: '+grammarDone+' textos conferidos.','success');
 }
 function saveEditor(advance=true,insertLine=false){
  if(!editing)return;
@@ -2070,7 +2179,9 @@ function contextAction(action){
   return;
  }
  if(action==='copy'&&selected.type==='note'){navigator.clipboard?.writeText?.(item.text||'')?.then?.(()=>status('Texto copiado.','success'));return}
- if(action==='correct'&&selected.type==='note'){item.pending=true;renderNotes();void correctNote(item.id,item.original||item.text||'');return}
+ if(action==='correct'&&selected.type==='note'){
+  void correctNote(item.id,item.original||item.text||'');return;
+ }
  if(action==='warp'&&selected.type==='stroke'){data.mode='warp';refreshTools();drawCanvas();renderSelectionHandles();status('Arraste qualquer parte do traço para moldar; quadradinho move sem deformar.','');return}
  if(action==='fix'&&selected.type==='stroke'&&!item.corrected){
   checkpoint();const r=smartStroke(item.points);item.points=r.points;item.kind=r.kind;item.corrected=true;
@@ -2249,6 +2360,10 @@ root.addEventListener('click',event=>{
  if(!event.target.closest('.nb-format-menu'))closeFormatMenus();
  const shelfBook=event.target.closest('[data-nb-shelf-book]');
  if(shelfBook){openShelfBook(shelfBook.dataset.nbShelfBook,shelfBook);return}
+ if(event.target.closest('[data-nb-grammar-retry]')){
+  if(!grammarRunning){grammarPaused=false;grammarAttempted.clear();void reviewHistoricalNotes(true);}
+  return;
+ }
  if(shelfOpen)return;
  const menuTrigger=event.target.closest('[data-nb-menu-toggle]');
  if(menuTrigger){

@@ -350,7 +350,7 @@ test('Correção local protege o usuário mesmo sem resposta da IA',()=>{
  assert.equal(basic('oi pessoal'),'Oi pessoal.');
  assert.equal(basic('nao posso'),'Não posso.');
  assert.match(script,/const normalized=normalizeNoteText\(typed\)/);
- assert.match(script,/n\.text=normalizeNoteText\(raw\)/);
+ assert.match(script,/n\.text=normalizeNoteText\(original\)/);
  assert.match(script,/list\?list\.prefix\+fallbackBasic/);
  assert.match(script,/input\.value\.endsWith\(' '\)/);
 });
@@ -650,4 +650,81 @@ test('Tutorial guiado inicia na estante, percorre ferramentas e pode ser fechado
  assert.match(tutorial,/data-nb-tour-exit/);
  assert.match(tutorial,/data-nb-action="backToBooks"/);
  assert.match(html,/caderno-tutorial\.js/);
+});
+
+test('Revisão gramatical aceita texto antigo, botão manual e aplica IA sem perder formatação',async()=>{
+ const start=script.indexOf('async function grammarError('),end=script.indexOf('function saveEditor(',start);
+ assert.ok(start>=0&&end>start,'Implementação completa do corretor está disponível');
+ const source=script.slice(start,end);
+ const note={id:'note1',text:'psicologia e importante.',font:'cursive',ink:'blue',
+  line:3,size:1,reviewed:false};
+ const pageData={notes:[note]},calls={saved:0,shown:0,corrected:0};
+ const context={
+  data:{books:[{pages:[pageData]}]},grammarInFlight:new Set(),editing:null,
+  GRAMMAR_REVIEW_VERSION:'20261116-grammar-v2',userId:'qa-user',
+  page:()=>pageData,renderNotes:()=>calls.shown++,save:()=>calls.saved++,
+  status:()=>{},occupiedSpan:()=>1,makeRoom:()=>{},
+  listInfo:()=>null,fallbackBasic:t=>t,restoreTextTabs:(_,t)=>t,
+  normalizeNoteText:t=>t,
+  window:{parent:{uentzoulAIAuth:{
+   user:()=>({id:'qa-user',is_anonymous:false}),
+   client:()=>({functions:{invoke:async(_name,args)=>{
+    assert.equal(args.body.text,'psicologia e importante.');
+    calls.corrected++;
+    return {data:{text:'Psicologia é importante.',reviewed:true},error:null};
+   }}})
+  }}}
+ };
+ const exec=vm.runInNewContext('(()=>{'+source+';return correctNote;})()',context);
+ const result=await exec(note.id,note.text);
+ assert.equal(result.ok,true);
+ assert.equal(note.text,'Psicologia é importante.');
+ assert.equal(note.grammarBefore,'psicologia e importante.');
+ assert.equal(note.grammarReviewVersion,'20261116-grammar-v2');
+ assert.equal(note.font,'cursive');assert.equal(note.ink,'blue');
+ assert.equal(note.line,3);
+ assert.equal(note.pending,false);
+ assert.equal(calls.corrected,1);
+ assert.ok(calls.saved>=1);
+});
+test('Erro de limite de revisões mantém o texto antigo e permite tentar novamente',async()=>{
+ const start=script.indexOf('async function grammarError('),end=script.indexOf('function saveEditor(',start);
+ const source=script.slice(start,end);
+ const note={id:'old2',text:'texto sem revisao.',reviewed:false,original:'texto sem revisao.'};
+ const pageData={notes:[note]};let lastStatus='';
+ const context={
+  data:{books:[{pages:[pageData]}]},grammarInFlight:new Set(),editing:null,
+  GRAMMAR_REVIEW_VERSION:'20261116-grammar-v2',userId:'qa-user',
+  page:()=>pageData,renderNotes:()=>{},save:()=>{},
+  status:message=>lastStatus=message,occupiedSpan:()=>1,makeRoom:()=>{},
+  listInfo:()=>null,fallbackBasic:t=>t,restoreTextTabs:(_,t)=>t,
+  normalizeNoteText:t=>t,
+  window:{parent:{uentzoulAIAuth:{
+   user:()=>({id:'qa-user',is_anonymous:false}),
+   client:()=>({functions:{invoke:async()=>({
+    data:null,error:{message:'Edge Function returned a non-2xx status code',
+     context:{status:429,json:async()=>({error:'Limite diário de revisões do caderno atingido.'})}}
+   })}})
+  }}}
+ };
+ const exec=vm.runInNewContext('(()=>{'+source+';return correctNote;})()',context);
+ const result=await exec(note.id,note.text);
+ assert.equal(result.ok,false);
+ assert.equal(result.temporary,true);
+ assert.match(result.reason,/Limite diário/);
+ assert.match(lastStatus,/Limite diário/);
+ assert.equal(note.text,'texto sem revisao.');
+ assert.equal(note.reviewed,false);
+ assert.equal(note.pending,false);
+ assert.equal(note.grammarReviewVersion,undefined);
+ assert.equal(note.original,undefined);
+});
+test('Correção retroativa só começa após sincronização e mantém backup próprio',()=>{
+ assert.match(script,/setTimeout\(\(\)=>\{if\(cloudReady&&!grammarPaused\)void reviewHistoricalNotes\(\);\},700\)/);
+ assert.match(script,/GRAMMAR_BACKUP_KEY/);
+ assert.match(script,/backupGrammarTexts\(\)/);
+ assert.match(script,/grammarReviewVersion!==GRAMMAR_REVIEW_VERSION/);
+ assert.match(script,/grammarAttempted\.add\(item\.id\)/);
+ assert.match(script,/grammarPaused=true/);
+ assert.match(script,/data-nb-grammar-retry/);
 });
