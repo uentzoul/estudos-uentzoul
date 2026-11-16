@@ -92,6 +92,45 @@ test('Backspace numa pauta sem texto retorna ao final da anterior sem apagar not
  assert.match(script,/saveEditor\(true,true\)/,'Enter ativa inserção sem sobrepor notas');
 });
 
+test('Cores por trecho preservam azul e vermelho e persistem como intervalos',()=>{
+ const snippet=script.slice(script.indexOf('function inkMapFor('),script.indexOf('function letterMarkup('));
+ const colors={black:'#24242e',blue:'#213f72',red:'#bb3d43'};
+ const fn=vm.runInNewContext('(()=>{'+snippet+';return {inkMapFor,inkRunsFor,reconcileInkMap,coloredTextMarkup};})()',
+  {COLORS:colors,clamp:(v,a,b)=>Math.min(b,Math.max(a,v)),esc:x=>String(x)});
+ const before='Texto azul',after='Texto azul e vermelho',start=fn.inkMapFor(before,'blue');
+ const result=fn.reconcileInkMap(before,start,after,'red');
+ assert.deepEqual(Array.from(result).slice(0,before.length),Array(before.length).fill('blue'));
+ assert.deepEqual(Array.from(result).slice(before.length),Array(after.length-before.length).fill('red'));
+ const runs=fn.inkRunsFor(after,result,'blue');
+ assert.equal(runs.length,2);assert.equal(runs[0].end,before.length);
+ assert.equal(runs[1].start,before.length);assert.equal(runs[1].ink,'red');
+ assert.deepEqual(Array.from(fn.inkMapFor(after,'blue',runs)),Array.from(result));
+ assert.match(fn.coloredTextMarkup(after,result,'blue'),/color:#bb3d43/);
+ assert.match(script,/inkRuns:inkRunsFor\(normalized,normalizedInk,initialInk\)/);
+ assert.match(script,/function syncInkOverlay\(/);
+ assert.match(script,/id="nbEditorColors"/);
+ assert.match(style,/#nbEditorColors\.nb-inline-colors\{/);
+ assert.match(style,/\.nb-inline-edit\.nb-colorized\{/);
+ assert.match(read('caderno-pdf.js'),/const multiInk=/);
+});
+test('Backspace transforma marcadores de tópicos e numeração em texto comum',()=>{
+ const source=fn('function removeListMarker(input,marker){','function toggleList(style){');
+ for(const [raw,prefix,kind,want] of [
+  ['• Título','• ','bullets','Título'],['3. Conteúdo','3. ','numbered','Conteúdo']]){
+  const events=[],input={value:raw,
+   setRangeText(text,from,to){this.value=this.value.slice(0,from)+text+this.value.slice(to);},
+   dispatchEvent:event=>events.push(event.type),focus:()=>{}};
+  const data={listStyle:kind};
+  const erase=vm.runInNewContext('('+source+')',{editing:{line:3},data,refreshTools(){},
+   Event:class Event{constructor(type){this.type=type}}});
+  erase(input,{prefix,indent:''});
+  assert.equal(input.value,want);assert.equal(data.listStyle,'none');
+  assert.deepEqual(events,['input']);
+ }
+ assert.match(script,/const oldMarker=listInfo\(editing\.draft\),newMarker=listInfo\(t\.value\)/);
+ assert.match(script,/removeListMarker\(input,marker\);return;/);
+});
+
 test('Enter registra e corrige texto e move para a próxima linha; vazio apenas move',()=>{
  const src=fn('function saveEditor(advance=true,insertLine=false){','function renderStickies(){');
  let calls={checkpoints:0,correct:[],advanced:[],saved:0},value='  Psicologia e uma ciencia  ';
@@ -101,7 +140,9 @@ test('Enter registra e corrige texto e move para a próxima linha; vazio apenas 
   id:()=>String(calls.checkpoints),occupiedSpan:()=>2,makeRoom(){},
   materializePage(){},closeEditor(){},renderNotes(){},renderPageRail(){},
   save(){calls.saved++},status(){},fallbackBasic(text){return text},listInfo(){return null},normalizeNoteText(text){return text},correctNote(id,text){calls.correct.push({id,text})},
-  advanceLine(i){calls.advanced.push(i)}
+  advanceLine(i){calls.advanced.push(i)},
+  reconcileInkMap:(before,colors,after,ink)=>Array(after.length).fill(ink),
+  inkRunsFor:(text,colors,ink)=>[{start:0,end:text.length,ink}]
  };
  const saveEditor=vm.runInNewContext('('+src+')',context);
  saveEditor(true);

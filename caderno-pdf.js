@@ -81,10 +81,37 @@
     }
     rows.push(line.trimEnd());
    }
-   ctx.textAlign=align==='justify'?'left':align;
+   const multiInk=Array.isArray(note.inkRuns)&&note.inkRuns.some(run=>run.ink!==note.ink);
+   const raw=String(note.text||''),plain=raw.replace(/\t/g,'    ');
+   const colorMap=[];
+   if(multiInk){
+    const perChar=Array(raw.length).fill(note.ink||'blue');
+    for(const run of note.inkRuns){
+     if(!palette[run.ink])continue;
+     const from=Math.max(0,Math.min(raw.length,Math.floor(Number(run.start)||0)));
+     const to=Math.max(from,Math.min(raw.length,Math.floor(Number(run.end)||0)));
+     perChar.fill(run.ink,from,to);
+    }
+    for(let c=0;c<raw.length;c++)for(let t=0;t<(raw[c]==='\t'?4:1);t++)colorMap.push(perChar[c]);
+   }
+   ctx.textAlign=multiInk?'left':align==='justify'?'left':align;
+   let searchFrom=0;
    rows.forEach((line,i)=>{
     if(top+i*rowStep>HEIGHT-35)return;
-    ctx.fillText(line,lineX,i*rowStep);
+    if(!multiInk){ctx.fillText(line,lineX,i*rowStep);return;}
+    const found=plain.indexOf(line,searchFrom),offset=found<0?searchFrom:found;
+    searchFrom=offset+line.length;
+    const size=ctx.measureText(line).width;
+    const xStart=align==='right'?width-size:align==='center'?(width-size)/2:0;
+    let cursor=0;
+    while(cursor<line.length){
+     const ink=colorMap[offset+cursor]||note.ink||'blue';
+     let end=cursor+1;
+     while(end<line.length&&(colorMap[offset+end]||note.ink||'blue')===ink)end++;
+     ctx.fillStyle=colorOf(ink);
+     ctx.fillText(line.slice(cursor,end),xStart+ctx.measureText(line.slice(0,cursor)).width,i*rowStep);
+     cursor=end;
+    }
    });
    ctx.restore();
   }

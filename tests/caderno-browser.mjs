@@ -900,6 +900,38 @@ try{
   await flow.locator('#nbEditorText').press('Backspace');
   assert.match(await flow.locator('#nbEditorText').inputValue(),/Texto anterior/,'Backspace retorna ao fim da nota anterior');
   assert.equal(await getLine('Texto seguinte'),5,'Backspace não apaga a nota deslocada');
+  // Trocar de cor mantém os caracteres anteriores e colore só os novos.
+  await flow.locator('#nbEditorText').fill('Primeiro ');
+  await flow.locator('[data-nb-menu-toggle="colors"]').click();
+  await flow.locator('#nbMenuColors [data-nb-action="red"]').click();
+  await flow.locator('#nbEditorText').type('segundo');
+  const liveColors=await flow.locator('#nbEditorColors span').evaluateAll(els=>els.map(el=>({
+   text:el.textContent,color:el.style.color
+  })));
+  assert.equal(liveColors[0].text,'Primeiro ');
+  assert.equal(liveColors[0].color,'rgb(33, 63, 114)');
+  assert.equal(liveColors[1].text,'segundo');
+  assert.equal(liveColors[1].color,'rgb(187, 61, 67)');
+  await flow.locator('#nbEditorText').press('Enter');
+  const persistedColors=await flow.locator('#nbTextLayer .nb-note').evaluateAll(els=>{
+   const item=els.find(el=>el.textContent.includes('Primeiro segundo'));
+   return item?Array.from(item.querySelectorAll('.nb-note-content > span')).map(el=>el.style.color):[];
+  });
+  assert.ok(persistedColors.includes('rgb(33, 63, 114)'));
+  assert.ok(persistedColors.includes('rgb(187, 61, 67)'));
+  // Tópicos e números são caracteres: Backspace retira o símbolo e encerra a lista.
+  await flow.locator('[data-nb-menu-toggle="lists"]').click();
+  await flow.locator('#nbMenuLists [data-nb-action="bullets"]').click();
+  assert.equal(await flow.locator('#nbEditorText').inputValue(),'• ');
+  await flow.locator('#nbEditorText').press('Backspace');
+  assert.equal(await flow.locator('#nbEditorText').inputValue(),'');
+  assert.equal(await flow.locator('#nbMenuLists [data-nb-action="bullets"]').getAttribute('aria-pressed'),'false');
+  await flow.locator('[data-nb-menu-toggle="lists"]').click();
+  await flow.locator('#nbMenuLists [data-nb-action="numbered"]').click();
+  assert.match(await flow.locator('#nbEditorText').inputValue(),/^\d+\. $/);
+  await flow.locator('#nbEditorText').press('Backspace');
+  assert.equal(await flow.locator('#nbEditorText').inputValue(),'');
+  assert.equal(await flow.locator('#nbMenuLists [data-nb-action="numbered"]').getAttribute('aria-pressed'),'false');
   assert.deepEqual(flowErrors,[]);
   await flowContext.close();
 

@@ -865,3 +865,25 @@ html[data-theme="dark"] .nb-format-trigger[aria-expanded="true"]{background:#344
  .nb-tools{gap:7px;padding:7px 9px}.nb-format-panel{min-width:160px}
  .nb-primary-tools{gap:3px}.nb-icon-tool{width:35px;min-width:35px;height:35px}
 }
+
+/* Escrita multicolorida: camada de tinta acompanha a caixa nativa, sem substituir o cursor. */
+#nbEditorColors.nb-inline-colors{
+ position:absolute;left:110px;width:620px;min-height:38px;max-height:710px;
+ z-index:7;box-sizing:border-box;margin:0;padding:0;overflow:hidden;
+ white-space:pre-wrap;word-break:break-word;overflow-wrap:anywhere;tab-size:4;
+ font-size:var(--nb-note-size,26px)!important;line-height:var(--nb-note-row,34px)!important;
+ letter-spacing:normal!important;font-weight:500;pointer-events:none;
+}
+#nbEditorColors.nb-inline-colors.print{font-family:'Patrick Hand','Segoe Print',cursive}
+#nbEditorColors.nb-inline-colors.cursive{font-family:'Caveat','Segoe Print',cursive;font-weight:600}
+#nbEditorColors.nb-inline-colors.joined{
+ font-family:'Dancing Script','Brush Script MT','Segoe Script',cursive;font-weight:600;
+ font-variant-ligatures:common-ligatures
+}
+.nb-inline-edit.nb-colorized{
+ color:transparent!important;-webkit-text-fill-color:transparent!important;
+ background:transparent!important;position:absolute;z-index:8;
+}
+.nb-inline-edit.nb-colorized::selection{
+ background:rgba(110,83,177,.28);-webkit-text-fill-color:transparent
+}

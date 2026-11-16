@@ -657,6 +657,59 @@ function normalizeNoteText(raw){
  const item=listInfo(raw);
  return item?item.prefix+fallbackBasic(String(raw).slice(item.prefix.length)):fallbackBasic(raw);
 }
+/* Cada anotação mantém texto puro e intervalos de cores independentes. */
+function inkMapFor(text,ink='blue',runs=[]){
+ const size=String(text||'').length,base=COLORS[ink]?ink:'blue',colors=Array(size).fill(base);
+ if(Array.isArray(runs))for(const run of runs.slice(0,2500)){
+  const start=clamp(Math.floor(Number(run.start)||0),0,size),end=clamp(Math.floor(Number(run.end)||0),start,size);
+  if(COLORS[run.ink])colors.fill(run.ink,start,end);
+ }
+ return colors;
+}
+function inkRunsFor(text,map,defaultInk='blue'){
+ const len=String(text||'').length;if(!len)return [];
+ const colors=Array.isArray(map)?map:[],runs=[];
+ let previous=COLORS[colors[0]]?colors[0]:defaultInk,start=0;
+ for(let i=1;i<=len;i++){
+  const next=i<len?(COLORS[colors[i]]?colors[i]:defaultInk):'';
+  if(next!==previous){runs.push({start,end:i,ink:previous});start=i;previous=next;}
+ }
+ return runs;
+}
+/* Substituições deixam cores nos trechos intactos, inclusive ao aplicar a gramática. */
+function reconcileInkMap(before,colors,after,chosenInk){
+ before=String(before||'');after=String(after||'');
+ const previous=Array.isArray(colors)&&colors.length===before.length?colors:inkMapFor(before,chosenInk);
+ if(before===after)return previous.slice();
+ let prefix=0;while(prefix<before.length&&prefix<after.length&&before[prefix]===after[prefix])prefix++;
+ let suffix=0;
+ while(suffix<before.length-prefix&&suffix<after.length-prefix&&
+  before[before.length-1-suffix]===after[after.length-1-suffix])suffix++;
+ const replaced=before.length-prefix-suffix;
+ const ink=replaced?(previous[prefix]||previous[prefix-1]||chosenInk):chosenInk;
+ return previous.slice(0,prefix).concat(Array(after.length-prefix-suffix).fill(COLORS[ink]?ink:'blue'),
+  suffix?previous.slice(before.length-suffix):[]);
+}
+function coloredTextMarkup(text,colors,fallback='blue'){
+ const value=String(text||'');
+ return inkRunsFor(value,colors,fallback).map(run=>
+  '<span style="color:'+COLORS[run.ink]+'">'+esc(value.slice(run.start,run.end))+'</span>').join('');
+}
+function noteTextMarkup(note){
+ const value=String(note.text||'');
+ return Array.isArray(note.inkRuns)&&note.inkRuns.length?
+  coloredTextMarkup(value,inkMapFor(value,note.ink,note.inkRuns),note.ink):
+  letterMarkup(value);
+}
+function syncInkOverlay(){
+ if(!editing)return;
+ const input=$('nbEditorText'),overlay=$('nbEditorColors');
+ if(!input||!overlay)return;
+ overlay.innerHTML=coloredTextMarkup(input.value,editing.inkMap,data.ink);
+ overlay.style.height=input.clientHeight+'px';
+ overlay.scrollTop=input.scrollTop;overlay.scrollLeft=input.scrollLeft;
+ input.style.caretColor=COLORS[data.ink]||COLORS.blue;
+}
 function letterMarkup(text){
  // Uma métrica tipográfica por linha; spans letra por letra deformavam a pauta.
  return esc(String(text||'')).replace(/\n/g,'<br>');
@@ -672,7 +725,7 @@ function noteMarkup(n,preview){
   (26+(size-1)*30)+'px;--nb-note-size:'+(26+(size-1)*30)+'px;--nb-note-row:'+(size*L)+'px;text-align:'+(['left','center','right','justify'].includes(n.align)?n.align:'left')+';color:'+(COLORS[n.ink]||COLORS.blue)+';';
  return '<div class="nb-note '+(n.font==='joined'?'joined':n.font==='cursive'?'cursive':'print')+(preview?' nb-preview':'')+
   (editing&&editing.id===n.id?' nb-selected':'')+(n.pending?' nb-correcting':'')+
-  '" style="'+css+'"'+(!preview?' data-nb-note="'+esc(n.id)+'"':'')+'><span class="nb-note-content">'+letterMarkup(n.text)+'</span></div>';
+  '" style="'+css+'"'+(!preview?' data-nb-note="'+esc(n.id)+'"':'')+'><span class="nb-note-content">'+noteTextMarkup(n)+'</span></div>';
 }
 function renderNotes(){
  const notes=page().notes;
@@ -683,12 +736,14 @@ function editorMarkup(){
  if(!editing){host.innerHTML='';return;}
  const line=editing.line,top=START+line*L-3,fsize=26;
  const lineHeight=L;
- host.innerHTML='<textarea class="nb-inline-edit '+(data.font==='joined'?'joined':data.font==='cursive'?'cursive':'print')+
-  '" id="nbEditorText" style="top:'+top+'px;--nb-small:'+fsize+'px;--nb-note-size:'+fsize+'px;--nb-note-row:'+lineHeight+'px;text-align:'+data.align+';color:'+
-  (COLORS[data.ink]||COLORS.blue)+';" rows="1" maxlength="2500" spellcheck="true"'+
+ const fontClass=data.font==='joined'?'joined':data.font==='cursive'?'cursive':'print';
+ const shared='top:'+top+'px;--nb-small:'+fsize+'px;--nb-note-size:'+fsize+'px;--nb-note-row:'+lineHeight+'px;text-align:'+data.align+';';
+ host.innerHTML='<div id="nbEditorColors" class="nb-inline-colors '+fontClass+'" style="'+shared+'" aria-hidden="true"></div>'+
+  '<textarea class="nb-inline-edit nb-colorized '+fontClass+'" id="nbEditorText" style="'+shared+'" rows="1" maxlength="2500" spellcheck="true"'+
   ' aria-label="Escrever diretamente na linha '+(line+1)+'"></textarea>';
  const input=$('nbEditorText');input.value=editing.draft||'';
  input.style.height=Math.max(38,input.scrollHeight)+'px';
+ syncInkOverlay();
  requestAnimationFrame(()=>{input.focus({preventScroll:true});input.setSelectionRange(input.value.length,input.value.length)});
 }
 function beginEdit(line){
@@ -704,9 +759,22 @@ function beginEdit(line){
  if(existing)data.listStyle=listInfo(existing.text)?.kind||'none';
  editing={line:existing?Number(existing.line):line,id:existing?.id||null,
   draft:existing?.text||(data.listStyle!=='none'?listMarker(data.listStyle,line):'')};
- if(existing){data.font=existing.font;data.ink=existing.ink;data.align=existing.align||'left';}
+ if(existing){
+  data.font=existing.font;data.align=existing.align||'left';
+  editing.inkMap=inkMapFor(editing.draft,existing.ink,existing.inkRuns);
+  data.ink=editing.inkMap.at(-1)||existing.ink||data.ink;
+ }else editing.inkMap=inkMapFor(editing.draft,data.ink);
  previewText=editing.draft;
  refreshTools();renderNotes();editorMarkup();focusLine(editing.line);
+}
+/* Marcadores e números são caracteres apagáveis, não elementos fixos. */
+function removeListMarker(input,marker){
+ if(!editing||!input||!marker)return;
+ input.setRangeText('',marker.indent.length,marker.prefix.length,'end');
+ data.listStyle='none';
+ input.dispatchEvent(new Event('input',{bubbles:true}));
+ refreshTools();
+ input.focus({preventScroll:true});
 }
 function toggleList(style){
  const input=$('nbEditorText');
@@ -726,7 +794,9 @@ function toggleList(style){
   const plain=oldItem?indent+target.text.slice(oldItem.prefix.length):target.text;
   const updated=next==='none'?plain:indent+listMarker(next,Number(target.line))+plain.slice(indent.length);
   if(updated!==target.text){
-   checkpoint();target.text=updated;target.pending=false;delete target.original;
+   checkpoint();
+   target.inkRuns=inkRunsFor(updated,reconcileInkMap(target.text,inkMapFor(target.text,target.ink,target.inkRuns),updated,data.ink),target.ink);
+   target.text=updated;target.pending=false;delete target.original;
    target.span=occupiedSpan(target);makeRoom(target);renderNotes();
   }
  }else{
@@ -806,8 +876,10 @@ async function correctNote(noteId,raw){
   if(!revised||revised.length<body.length*.5||revised.length>body.length*1.75)throw Error('Revisão não confiável.');
   const n=data.books.flatMap(b=>b.pages).flatMap(p=>p.notes).find(n=>n.id===noteId);
   if(!n||n.original!==raw)return;
+  const prior=n.text,priorColors=inkMapFor(prior,n.ink,n.inkRuns);
   n.text=list?list.prefix+fallbackBasic(restoreTextTabs(body,result.reviewed===true?revised:body)):
    fallbackBasic(restoreTextTabs(raw,result.reviewed===true?revised:raw));
+  n.inkRuns=inkRunsFor(n.text,reconcileInkMap(prior,priorColors,n.text,n.ink),n.ink);
   n.pending=false;n.reviewed=result.reviewed===true;n.span=occupiedSpan(n);
   delete n.original; // Descartar o rascunho bruto: a versão corrigida é definitiva.
   if(page().notes.includes(n))makeRoom(n);
@@ -818,7 +890,9 @@ async function correctNote(noteId,raw){
   const n=data.books.flatMap(b=>b.pages).flatMap(p=>p.notes).find(n=>n.id===noteId);
   if(!n||n.original!==raw)return;
   n.pending=false;n.reviewed=false;
+  const prior=n.text,priorColors=inkMapFor(prior,n.ink,n.inkRuns);
   n.text=normalizeNoteText(raw);
+  n.inkRuns=inkRunsFor(n.text,reconcileInkMap(prior,priorColors,n.text,n.ink),n.ink);
   delete n.original; // O fallback também substitui definitivamente o texto original.
   if(page().notes.includes(n))renderNotes();
   save();status('Pontuação e maiúsculas corrigidas. Revisão adicional de IA indisponível.','');
@@ -828,6 +902,7 @@ function saveEditor(advance=true,insertLine=false){
  if(!editing)return;
  const priorLine=editing.line;
  const typed=String($('nbEditorText')?.value||'').replace(/\r\n?/g,'\n').trimEnd();
+ const inkMap=reconcileInkMap(editing.draft,editing.inkMap,typed,data.ink);
  const listOnly=listInfo(typed);
  if(listOnly&&!typed.slice(listOnly.prefix.length).trim()){
   const hadNote=!!editing.id;
@@ -861,7 +936,10 @@ function saveEditor(advance=true,insertLine=false){
  checkpoint();
  let n=editing.id?page().notes.find(n=>n.id===editing.id):null;
  if(!n){n={id:id(),line:editing.line,text:typed};page().notes.push(n)}
- Object.assign(n,{text:normalizeNoteText(typed),original:typed,font:data.font,size:1,ink:data.ink,align:data.align||'left',pending:true,reviewed:false});
+ const normalized=normalizeNoteText(typed),normalizedInk=reconcileInkMap(typed,inkMap,normalized,data.ink);
+ const initialInk=normalizedInk[0]||data.ink;
+ Object.assign(n,{text:normalized,original:typed,font:data.font,size:1,ink:initialInk,
+  inkRuns:inkRunsFor(normalized,normalizedInk,initialInk),align:data.align||'left',pending:true,reviewed:false});
  n.span=occupiedSpan(n);makeRoom(n);materializePage();
  const nextLine=editing.line+Math.max(1,Number(n.span)||1);
  const nid=n.id;closeEditor();renderNotes();
@@ -2127,15 +2205,27 @@ function act(action){
   return;
  }
  if(COLORS[action]){
+  const input=$('nbEditorText');
+  if(editing&&input){
+   const start=input.selectionStart,end=input.selectionEnd;
+   if(end>start){
+    if(!Array.isArray(editing.inkMap))editing.inkMap=inkMapFor(input.value,data.ink);
+    editing.inkMap.fill(action,start,end);
+   }
+  }
   data.ink=action;
-  const input=$('nbEditorText');if(editing&&input)input.style.color=COLORS[action];
+  if(editing)syncInkOverlay();
   refreshTools();renderNotes();save();return;
  }
  switch(action){
  case 'print':case 'cursive':case 'joined':
   data.font=action;refreshTools();renderNotes();
   const fontInput=$('nbEditorText');
-  if(editing&&fontInput){fontInput.classList.remove('print','cursive','joined');fontInput.classList.add(action);}
+  if(editing&&fontInput){
+   fontInput.classList.remove('print','cursive','joined');fontInput.classList.add(action);
+   const overlay=$('nbEditorColors');
+   if(overlay){overlay.classList.remove('print','cursive','joined');overlay.classList.add(action);}
+  }
   save();break;
  case 'prev':if(data.page>0)flip(-1);else status('Esta já é a primeira folha. Use Cadernos para ver as capas.','');break;case 'next':flip(1);break;
  case 'drawer':toggleDrawer();break;case 'closeDrawer':closeDrawer();break;
@@ -2264,9 +2354,14 @@ root.addEventListener('input',event=>{
  if(t.id==='nbEraseSize'){data.eraserRadius=clamp(Number(t.value)||14,6,32);save();return;}
  if(t.id==='nbEditorText'){
   if(!editing)return;
+  const oldMarker=listInfo(editing.draft),newMarker=listInfo(t.value);
+  if(oldMarker&&(!newMarker||newMarker.kind!==oldMarker.kind)){
+   data.listStyle='none';refreshTools();
+  }
+  editing.inkMap=reconcileInkMap(editing.draft,editing.inkMap,t.value,data.ink);
   editing.draft=t.value;previewText=t.value;
   t.style.height=Math.max(38,t.scrollHeight)+'px';
-  return;
+  syncInkOverlay();return;
  }
  if(t.id==='nbZoomSlider'){
   zoomAt(Number(t.value)/100,view.getBoundingClientRect().left+view.clientWidth/2,view.getBoundingClientRect().top+view.clientHeight/2);return;
@@ -2276,6 +2371,9 @@ root.addEventListener('input',event=>{
   if(st){st.text=t.value;save();}
  }
 });
+root.addEventListener('scroll',event=>{
+ if(event.target.id==='nbEditorText')syncInkOverlay();
+},true);
 function applyTabKey(input,outdent){
  const value=input.value,start=input.selectionStart,end=input.selectionEnd;
  if(outdent){
@@ -2302,12 +2400,18 @@ root.addEventListener('keydown',event=>{
   return;
  }
  if(event.target.id==='nbEditorText'){
-  if(event.key==='Backspace'&&!event.isComposing&&!event.ctrlKey&&!event.metaKey&&!event.altKey&&
-   editing&&(!event.target.value.trim()||(()=>{
-    const entry=listInfo(event.target.value);
-    return !!(entry&&!event.target.value.slice(entry.prefix.length).trim());
-   })())){
-   event.preventDefault();event.stopPropagation();previousWritingLine();return;
+  if(event.key==='Backspace'&&!event.isComposing&&!event.ctrlKey&&!event.metaKey&&!event.altKey&&editing){
+   const input=event.target,marker=listInfo(input.value);
+   const markerOnly=!!(marker&&!input.value.slice(marker.prefix.length).trim());
+   const atMarker=!!(marker&&input.selectionStart===input.selectionEnd&&
+    input.selectionStart<=marker.prefix.length&&input.selectionStart>marker.indent.length);
+   if(marker&&(markerOnly||atMarker)){
+    event.preventDefault();event.stopPropagation();
+    removeListMarker(input,marker);return;
+   }
+   if(!input.value.trim()){
+    event.preventDefault();event.stopPropagation();previousWritingLine();return;
+   }
   }
   if(event.key==='Enter'&&!event.shiftKey&&!event.isComposing){
    event.preventDefault();event.stopPropagation();saveEditor(true,true);return;
@@ -2602,7 +2706,9 @@ window.addEventListener('pagehide',()=>{
   }else if(typed.trim()){
    let note=editing.id?page().notes.find(n=>n.id===editing.id):null;
    if(!note){note={id:id(),line:editing.line,text:typed};page().notes.push(note)}
-   Object.assign(note,{text:typed,original:typed,font:data.font,size:data.size,ink:data.ink,pending:false,reviewed:false});
+   const colors=reconcileInkMap(editing.draft,editing.inkMap,typed,data.ink);
+   Object.assign(note,{text:typed,original:typed,font:data.font,size:data.size,ink:colors[0]||data.ink,
+    inkRuns:inkRunsFor(typed,colors,data.ink),pending:false,reviewed:false});
    note.span=occupiedSpan(note);makeRoom(note);
   }
  }
