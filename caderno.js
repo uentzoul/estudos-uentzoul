@@ -1751,7 +1751,7 @@ root.addEventListener('pointerup',event=>{
  if(warpDrag&&warpDrag.pointerId===event.pointerId){pointerUpCanvas(event);return;}
  if(panDrag&&event.pointerId===panDrag.pointerId){
   const drag=panDrag;panDrag=null;
-   if(drag.moved)suppressLeafClickUntil=Date.now()+320;
+   if(drag.moved)suppressLeafClickUntil=Date.now()+80;
   if(drag.button===0&&!drag.moved){
    const pos=point(event);
    if(drag.mode==='text'&&pos.x>=88&&pos.y>=START+FIRST_LINE*L&&pos.y<START+ROWS*L)
