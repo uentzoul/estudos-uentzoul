@@ -37,7 +37,25 @@ try{
  page.on('pageerror',e=>errors.push(e.message));
  await page.goto(address,{waitUntil:'domcontentloaded'});
  const f=page.frameLocator('#nbQaFrame');
+ await f.locator('#nbShelf').waitFor({state:'visible',timeout:15000});
+ assert.equal(await f.locator('[data-nb-shelf-book]').count(),6,'Estante inicia com as seis matérias');
+ assert.deepEqual(await f.locator('.nb-shelf-title').allTextContents(),[
+  'Psicologia da Família','Avaliação Psicológica',
+  'Teorias e Modelos Comportamentais e Cognitivos',
+  'Psicologia Social I','Metapsicologia','Psicologia de Grupos']);
+ const colors=await f.locator('.nb-shelf-cover').evaluateAll(els=>
+  els.map(el=>getComputedStyle(el).getPropertyValue('--nb-book-cover').trim()));
+ assert.equal(new Set(colors).size,6,'Cada matéria deve ter sua própria cor');
+ await f.locator('[data-nb-shelf-book="materia-familia"]').click();
  await f.locator('#nbSheet').waitFor({state:'visible',timeout:15000});
+ assert.equal(await f.locator('#nbTools').isVisible(),false,'Caderno abre em modo somente leitura');
+ assert.equal(await f.locator('#nbPaperDate').isDisabled(),true);
+ assert.equal(await f.locator('#nbEditToggle').textContent(),'✎ Editar');
+ await f.locator('.nb-page-control [data-nb-action="next"]').click();
+ assert.equal(await f.locator('#nbPageNum').textContent(),'01','Leitura não cria páginas vazias');
+ await f.locator('#nbEditToggle').click();
+ assert.equal(await f.locator('#nbTools').isVisible(),true,'Editar libera as ferramentas');
+ assert.equal(await f.locator('#nbPaperDate').isEnabled(),true);
  // Data deve ocupar a segunda linha real, sem campo de título.
  const datePos=await f.locator('.nb-paper-date-group').evaluate(el=>({top:parseFloat(getComputedStyle(el).top),height:el.offsetHeight}));
  assert.equal(datePos.top,30);
@@ -294,27 +312,31 @@ try{
  const translated=await pageTwoStrokes();
  assert.ok(Math.abs(translated[0].points[0].x-remaining[0].points[0].x)>10,
   'Quadradinho em Moldar precisa mover o desenho sem modificar sua forma');
- // Capas acessíveis pelo botão de voltar e ambiente externo escuro, papel claro.
+ // Voltar à estante (sem sair do iframe) e verificar capas simétricas.
  await f.locator('[data-nb-action="backToBooks"]').click();
- assert.equal(await f.locator('.nb-book-cover').count(),1);
- await f.locator('#nbRenameBook').fill('Metapsicologia');
- await f.locator('[data-nb-action="renameBook"]').click();
- const cover=f.locator('.nb-cover-title').first();
+ await f.locator('#nbShelf').waitFor({state:'visible'});
+ assert.equal(await f.locator('[data-nb-shelf-book]').count(),6);
+ const cover=f.locator('[data-nb-shelf-book="materia-metapsicologia"] .nb-shelf-title');
  assert.equal(await cover.textContent(),'Metapsicologia');
- assert.equal(await f.locator('.nb-cover-foot').first().textContent(),'PSICOMOODLE');
  assert.ok(await cover.evaluate(el=>{
-  const ctx=document.createElement('canvas').getContext('2d'),
-   style=getComputedStyle(el);ctx.font=style.fontWeight+' '+style.fontSize+' '+style.fontFamily;
+  const ctx=document.createElement('canvas').getContext('2d'),st=getComputedStyle(el);
+  ctx.font=st.fontWeight+' '+st.fontSize+' '+st.fontFamily;
   return ctx.measureText('Metapsicologia').width<=el.clientWidth+3;
- }), 'Metapsicologia deve caber inteira na capa sem divisão da palavra');
- // O botão Voltar do navegador/mouse deve retornar à biblioteca de cadernos.
- await f.locator('[data-nb-book]').first().click();
- assert.equal(await f.locator('#nbDrawer').isVisible(),false);
- // Navegação da história interna do iframe (sem aguardar reload da página principal).
+ }), 'Nome da matéria deve caber inteiro na capa');
+ assert.equal(await f.locator('.nb-shelf-mark').first().textContent(),'PSICOMOODLE');
+ // No modo leitura, mouse Voltar e histórico interno jamais devem abandonar o Caderno.
+ await f.locator('[data-nb-shelf-book="materia-metapsicologia"]').click();
+ await f.locator('#nbSheet').waitFor({state:'visible'});
+ assert.equal(await f.locator('#nbTools').isVisible(),false);
  await f.locator('#nbRoot').evaluate(()=>history.back());
- await f.locator('#nbDrawer').waitFor({state:'visible'});
- assert.ok(await f.locator('.nb-book-cover').count()>=1,'Voltar deve mostrar os cadernos');
- await f.locator('[data-nb-action="closeDrawer"]').click();
+ await f.locator('#nbShelf').waitFor({state:'visible'});
+ assert.equal(await page.locator('#nbQaFrame').count(),1,'Voltar do navegador não remove o iframe');
+ await f.locator('[data-nb-shelf-book="materia-avaliacao"]').click();
+ await f.locator('#nbSheet').waitFor({state:'visible'});
+ const backPoint=await f.locator('#nbSheet').boundingBox();
+ await page.mouse.click(backPoint.x+200,backPoint.y+140,{button:'back'});
+ await f.locator('#nbShelf').waitFor({state:'visible'});
+ assert.equal(await page.locator('#nbQaFrame').count(),1,'Botão lateral não sai do PsicoMoodle');
  await page.evaluate(()=>{document.documentElement.dataset.theme='dark'});
  await page.waitForFunction(()=>{
   const frame=document.querySelector('#nbQaFrame')?.contentDocument;
@@ -328,6 +350,9 @@ try{
  const mobilePage=await mobile.newPage();
  await mobilePage.goto(address,{waitUntil:'domcontentloaded'});
  const mf=mobilePage.frameLocator('#nbQaFrame');
+ await mf.locator('#nbShelf').waitFor({state:'visible'});
+ assert.equal(await mf.locator('.nb-shelf-book').count(),6);
+ await mf.locator('[data-nb-shelf-book="materia-familia"]').click();
  await mf.locator('#nbSheet').waitFor({state:'visible'});
  assert.equal(await mf.locator('#nbPageRail').evaluate(el=>el.classList.contains('is-open')),false,
    'No celular, a lista de páginas começa recolhida');
@@ -341,7 +366,11 @@ try{
  bookPage.on('pageerror',error=>bookErrors.push(error.message));
  await bookPage.goto(address,{waitUntil:'domcontentloaded'});
  const bf=bookPage.frameLocator('#nbQaFrame');
+ await bf.locator('#nbShelf').waitFor({state:'visible'});
+ await bf.locator('[data-nb-shelf-book="materia-familia"]').click();
  await bf.locator('#nbSheet').waitFor({state:'visible'});
+ assert.equal(await bf.locator('#nbTools').isVisible(),false);
+ await bf.locator('#nbEditToggle').click();
  assert.equal(await bf.locator('[data-nb-action="none"]').getAttribute('aria-pressed'),'true');
  const fontOptions=await bf.locator('#nbFont option').allTextContents();
  assert.deepEqual(fontOptions,['Letra de forma 1','Letra de forma 2','Letra cursiva']);
