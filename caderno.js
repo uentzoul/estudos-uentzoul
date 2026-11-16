@@ -321,7 +321,7 @@ root.innerHTML=
  '<select class="nb-font-select" id="nbFont" aria-label="Tipo de letra"><option value="print">Letra de forma 1</option><option value="cursive">Letra de forma 2</option><option value="joined">Letra cursiva</option></select>'+
  '<select class="nb-align-select" id="nbTextAlign" aria-label="Alinhamento do texto"><option value="left">Esquerda</option><option value="center">Centro</option><option value="right">Direita</option><option value="justify">Justificado</option></select></div>'+
  '<div class="nb-toolgroup"><label class="nb-layout-label" for="nbLayout">Estilo</label><select class="nb-layout-select" id="nbLayout" aria-label="Estilo do caderno"><option value="single">Folha única</option><option value="book">Caderno aberto</option></select></div>'+ 
- '<div class="nb-toolgroup"><label class="nb-correct-toggle" title="Reconhecer formas simples e suavizar tremores"><input id="nbSmooth" type="checkbox">Ajustar traços</label>'+
+ '<div class="nb-toolgroup"><label class="nb-correct-toggle" title="Corrigir linhas, arcos, círculos, curvas e polígonos; preservar desenhos livres"><input id="nbSmooth" type="checkbox">Ajustar traços</label>'+
  '<button class="nb-tool" data-nb-action="shortcuts" title="Personalizar teclas e botões do mouse">⌨ Atalhos</button>'+
  '<button class="nb-tool" data-nb-action="undo" title="Desfazer">↶</button><button class="nb-tool" data-nb-action="redo" title="Refazer">↷</button></div></div>'+
  '<div class="nb-workspace" id="nbWorkspace"><aside id="nbPageRail" class="nb-page-rail" aria-label="Folhas deste caderno"></aside>'+
@@ -976,7 +976,7 @@ function drawCanvas(){
  }
  ctx.setTransform(dpr,0,0,dpr,0,0);ctx.clearRect(0,0,W,H);
  page().strokes.forEach((s,i)=>{
-  paintStroke(s.points,s.ink,Number(s.width)||2.6,!!s.corrected);
+  paintStroke(s.points,s.ink,Number(s.width)||2.6,!!s.corrected&&!['line','polygon','rectangle'].includes(s.kind));
   if((data.mode==='warp'&&selectedStroke===i)||(selected?.type==='stroke'&&selected.id===s.id)){
    ctx.lineWidth=1;ctx.strokeStyle='#8065b7';ctx.setLineDash([5,4]);
    const p=s.points;
@@ -1275,7 +1275,11 @@ function pointerUpCanvas(event){
   if(raw.length){
    const result=data.smooth?smartStroke(raw):{points:raw,kind:'free'};
    page().strokes.push({id:id(),points:result.points,corrected:!!data.smooth,kind:result.kind,ink:data.ink,width:2.6});
-   save();status(data.smooth?'Desenho ajustado. Pode usar Deformar.':'Traço livre inserido.','success');
+   save();status(data.smooth?
+    ({arc:'Arco corrigido.',bezier:'Curva ajustada.',circle:'Círculo corrigido.',
+      ellipse:'Elipse corrigida.',rectangle:'Retângulo corrigido.',polygon:'Polígono corrigido.',
+      line:'Linha endireitada.',fluid:'Desenho suavizado.'}[result.kind]||'Desenho ajustado.')+
+    ' Pode usar Deformar.':'Traço livre inserido.','success');
   }
  }
  if(warpDrag&&(!event||event.pointerId===warpDrag.pointerId)){warpDrag=null;renderSelectionHandles();save();status('Curva moldada. Ctrl+Z desfaz.','success');}
@@ -1363,7 +1367,7 @@ function snapshotSvg(p){
   const pts=st.points||[];if(!pts.length)return '';
   let d='M '+fmt(pts[0].x)+' '+fmt(pts[0].y);
   if(pts.length===1)d+=' L '+fmt(pts[0].x+.05)+' '+fmt(pts[0].y+.05);
-  else if(st.corrected&&pts.length>2){
+  else if(st.corrected&&!['line','polygon','rectangle'].includes(st.kind)&&pts.length>2){
    for(let i=1;i<pts.length-1;i++){
     const mid={x:(pts[i].x+pts[i+1].x)/2,y:(pts[i].y+pts[i+1].y)/2};
     d+=' Q '+fmt(pts[i].x)+' '+fmt(pts[i].y)+' '+fmt(mid.x)+' '+fmt(mid.y);
