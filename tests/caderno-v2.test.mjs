@@ -348,10 +348,26 @@ test('Texto preserva passo fixo da pauta na edição, visualização e miniatura
  const pdf=read('caderno-pdf.js');
  assert.match(pdf,/const fontSize=26\+\(scale-1\)\*30/);
 });
+test('Barra compacta recolhe cores, fontes, alinhamento e listas sem perder ferramentas',()=>{
+ for(const mode of ['none','text','select','erase','draw','sticky','warp'])
+  assert.match(script,new RegExp('class="nb-tool nb-icon-tool" data-nb-action="'+mode+'"'));
+ for(const menu of ['colors','fonts','alignment','lists']){
+  assert.match(script,new RegExp('data-nb-menu-toggle="'+menu+'"'));
+  assert.match(script,new RegExp('data-nb-format-menu="'+menu+'"'));
+ }
+ assert.match(script,/aria-label="Cores da caneta"/);
+ assert.match(script,/id="nbAlignIcon" class="nb-align-bars/);
+ assert.match(script,/function showFormatMenu\(/);
+ assert.match(script,/function closeFormatMenus\(/);
+ assert.match(script,/function applyTextAlign\(/);
+ assert.match(script,/if\(editing&&event.target.closest\('\.nb-format-menu'\)\)event.preventDefault\(\)/);
+ assert.match(style,/\.nb-format-panel\[hidden\]\{display:none!important\}/);
+});
+
 test('Três fontes com duas letras de forma e cursiva conectada',()=>{
- assert.match(script,/value="print">Letra de forma 1/);
- assert.match(script,/value="cursive">Letra de forma 2/);
- assert.match(script,/value="joined">Letra cursiva/);
+ assert.match(script,/data-nb-action="print"[^>]*>Letra de forma 1/);
+ assert.match(script,/data-nb-action="cursive"[^>]*>Letra de forma 2/);
+ assert.match(script,/data-nb-action="joined"[^>]*>Letra cursiva/);
  assert.match(style,/family=Dancing\+Script/);
  assert.match(style,/\.nb-note\.joined/);
  assert.match(script,/if\(!\['print','cursive','joined'\]\.includes/);

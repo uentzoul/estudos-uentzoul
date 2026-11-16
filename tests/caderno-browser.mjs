@@ -452,8 +452,10 @@ try{
  await bf.locator('#nbSheet').waitFor({state:'visible'});
  assert.equal(await bf.locator('#nbTools').isVisible(),true,'Primeira abertura do caderno vazio começa editável');
  assert.equal(await bf.locator('[data-nb-action="none"]').getAttribute('aria-pressed'),'true');
- const fontOptions=await bf.locator('#nbFont option').allTextContents();
+ await bf.locator('[data-nb-menu-toggle="fonts"]').click();
+ const fontOptions=await bf.locator('#nbMenuFonts .nb-format-option').allTextContents();
  assert.deepEqual(fontOptions,['Letra de forma 1','Letra de forma 2','Letra cursiva']);
+ await bf.locator('[data-nb-menu-toggle="fonts"]').click();
  // A seta anterior não pode abrir a biblioteca quando já se está na primeira folha.
  await bf.locator('.nb-page-control [data-nb-action="prev"]').click();
  await bf.locator('.nb-page-control [data-nb-action="prev"]').click();
@@ -560,7 +562,8 @@ try{
  assert.match(await bf.locator('#nbCompanionPaper .nb-note').first().textContent(),/Anotação da folha esquerda/);
  assert.match(await bf.locator('#nbTextLayer .nb-note').first().textContent(),/Anotação da folha direita/);
  // Cursiva conectada é a 3ª opção e fica disponível ao escrever na folha direita.
- await bf.locator('#nbFont').selectOption('joined');
+ await bf.locator('[data-nb-menu-toggle="fonts"]').click();
+ await bf.locator('#nbMenuFonts [data-nb-action="joined"]').click();
  const third=await bf.locator('#nbSheet').boundingBox();
  await bookPage.mouse.click(third.x+250*third.width/780,third.y+(28+8*34)*third.height/1240);
  await bf.locator('#nbEditorText').fill('Escrita cursiva conectada');
@@ -799,7 +802,8 @@ try{
   await hiFrame.locator('#nbShelf').waitFor({state:'visible'});
   await hiFrame.locator('[data-nb-shelf-book="materia-familia"]').click();
   await hiFrame.locator('[data-nb-action="draw"]').click();
-  await hiFrame.locator('[data-nb-action="red"]').click();
+  await hiFrame.locator('[data-nb-menu-toggle="colors"]').click();
+ await hiFrame.locator('#nbMenuColors [data-nb-action="red"]').click();
   const hiCanvas=hiFrame.locator('#nbDrawing');
   const sheetSize=await hiFrame.locator('#nbSheet').boundingBox();
   const canvasSize=await hiCanvas.boundingBox();

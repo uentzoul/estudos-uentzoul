@@ -280,7 +280,7 @@ setTimeout(check,15000);
   }
   return semesters.includes(value)?value:'2026/2';
  }
- const notebookUrl=()=>('./caderno.html?v=20261116-caderno-v29-enter-fix&semester='+
+ const notebookUrl=()=>('./caderno.html?v=20261116-caderno-v30-toolbar&semester='+
    encodeURIComponent(selectedSemester()));
  function addStyles(){
   if(document.getElementById(STYLE_ID))return;

@@ -200,6 +200,7 @@ function restoreState(serialized){
  data.pages=activeBook().pages;pendingPage=emptyPage();
 }
 let editing=null, previewText='',drawPoints=null,warpDrag=null,stickyDrag=null,selectedStroke=-1,tapCandidate=null;
+let formatMenuOpen='',formatPointerActive=false;
 let undoStack=[],redoStack=[],listening='',pinch=null,saveTimer=null,flipping=false;
 let localStamp=0;
 try{localStamp=Math.max(0,Number(localStorage.getItem(STAMP_KEY))||0)}catch(_){}
@@ -252,6 +253,7 @@ function syncNotebookUI(){
 function setEditEnabled(value){
  if(shelfOpen)return;
  if(!value&&editing)saveEditor(false);
+ closeFormatMenus();
  editEnabled=!!value;
  data.mode='none';selected=null;selectedStroke=-1;toolPaletteOpen=false;
  $('nbLineHover').hidden=true;$('nbCompanionLineHover')?.setAttribute('hidden','');$('nbContextMenu').hidden=true;
@@ -268,6 +270,7 @@ function animateShelfTransition(kind,change,from,to){
  setTimeout(()=>style.classList.remove(flag),1150);
 }
 function showShelf(animate=true){
+ closeFormatMenus();
  if(editing)saveEditor(false);
  editEnabled=false;data.mode='none';selected=null;selectedStroke=-1;
  if(galleryOpen){galleryOpen=false;$('nbGallery').hidden=true;view.hidden=false;root.classList.remove('nb-gallery-open');}
@@ -402,23 +405,20 @@ root.innerHTML=
  '<div class="nb-top-right"><button class="nb-quiet nb-back-books" data-nb-action="backToBooks" title="Voltar à estante de cadernos">‹ Cadernos</button><button class="nb-edit-toggle" id="nbEditToggle" data-nb-action="toggleEdit" aria-pressed="false">✎ Editar</button><span class="nb-status" id="nbStatus" role="status">Rascunho local · salvo automaticamente</span><button class="nb-quiet" data-nb-action="export">Exportar PDF</button></div></header>'+
  '<section class="nb-shelf" id="nbShelf" aria-label="Escolher caderno" hidden></section>'+ 
  '<div class="nb-tools" id="nbTools" role="toolbar" aria-label="Ferramentas do caderno">'+
- '<div class="nb-toolgroup"><button class="nb-tool" data-nb-action="none" title="Mover a folha sem selecionar nem editar">✋ Navegar</button><button class="nb-tool" data-nb-action="text" title="Escrever nas linhas">✎ Escrever</button>'+
- '<button class="nb-tool" data-nb-action="select" title="Selecionar anotações, post-its e desenhos">⌖ Selecionar</button>'+
- '<button class="nb-tool" data-nb-action="erase" title="Apagar partes ou traços inteiros de desenhos">⌫ Borracha</button>'+
- '<button class="nb-tool" data-nb-action="draw" title="Desenhar diretamente na folha">〰 Desenhar</button>'+
- '<button class="nb-tool" data-nb-action="sticky" title="Colocar um post-it">▤ Post-it</button>'+
- '<button class="nb-tool" data-nb-action="warp" title="Arraste qualquer parte de um traço para moldar">⌁ Moldar</button>'+
- '<span id="nbEraserControls" class="nb-eraser-controls" hidden><label for="nbEraseBehavior">Apagar</label>'+
- '<select id="nbEraseBehavior" aria-label="Tipo de borracha"><option value="parts">Trechos</option><option value="whole">Traço inteiro</option></select>'+
- '<label for="nbEraseSize">Raio</label><input id="nbEraseSize" type="range" min="6" max="32" step="2" value="14" aria-label="Tamanho da borracha"></span></div>'+
- '<span class="nb-sep"></span><div class="nb-toolgroup"><span class="nb-colors" aria-label="Cor da caneta">'+
- '<button class="nb-color" data-nb-action="black" style="--swatch:#24242e" aria-label="Caneta preta"><span></span></button>'+
- '<button class="nb-color" data-nb-action="blue" style="--swatch:#213f72" aria-label="Caneta azul"><span></span></button>'+
- '<button class="nb-color" data-nb-action="red" style="--swatch:#bb3d43" aria-label="Caneta vermelha"><span></span></button></span>'+
- '<select class="nb-font-select" id="nbFont" aria-label="Tipo de letra"><option value="print">Letra de forma 1</option><option value="cursive">Letra de forma 2</option><option value="joined">Letra cursiva</option></select>'+
- '<select class="nb-align-select" id="nbTextAlign" aria-label="Alinhamento do texto"><option value="left">Esquerda</option><option value="center">Centro</option><option value="right">Direita</option><option value="justify">Justificado</option></select>'+
- '<button type="button" class="nb-tool nb-list-tool" data-nb-action="bullets" title="Lista com marcadores (•)" aria-label="Lista com marcadores" aria-pressed="false">• Tópicos</button>'+
- '<button type="button" class="nb-tool nb-list-tool" data-nb-action="numbered" title="Lista numerada (1, 2, 3...)" aria-label="Lista numerada" aria-pressed="false">1. Numeração</button></div>'+
+ '<div class="nb-toolgroup nb-primary-tools">' +
+ '<button type="button" class="nb-tool nb-icon-tool" data-nb-action="none" aria-label="Navegar" title="Navegar">✋</button>' +
+ '<button type="button" class="nb-tool nb-icon-tool" data-nb-action="text" aria-label="Escrever" title="Escrever">✍️</button>' +
+ '<button type="button" class="nb-tool nb-icon-tool" data-nb-action="select" aria-label="Selecionar" title="Selecionar">👆</button>' +
+ '<button type="button" class="nb-tool nb-icon-tool" data-nb-action="erase" aria-label="Borracha" title="Borracha">🧽</button>' +
+ '<button type="button" class="nb-tool nb-icon-tool" data-nb-action="draw" aria-label="Desenhar" title="Desenhar">🖌️</button>' +
+ '<button type="button" class="nb-tool nb-icon-tool" data-nb-action="sticky" aria-label="Post-it" title="Post-it">🗒️</button>' +
+ '<button type="button" class="nb-tool nb-icon-tool" data-nb-action="warp" aria-label="Moldar" title="Moldar">🪄</button>' +
+ '<span id="nbEraserControls" class="nb-eraser-controls" hidden><label for="nbEraseBehavior">Apagar</label><select id="nbEraseBehavior" aria-label="Tipo de borracha"><option value="parts">Trechos</option><option value="whole">Traço inteiro</option></select><label for="nbEraseSize">Raio</label><input id="nbEraseSize" type="range" min="6" max="32" step="2" value="14" aria-label="Tamanho da borracha"></span></div><span class="nb-sep"></span><div class="nb-toolgroup nb-format-tools">' +
+ '<div class="nb-format-menu" data-nb-format-menu="colors"><button type="button" class="nb-tool nb-format-trigger nb-palette-trigger" data-nb-menu-toggle="colors" aria-label="Cores da caneta" title="Cores da caneta" aria-controls="nbMenuColors" aria-expanded="false">🎨<span id="nbCurrentInk" class="nb-current-ink" aria-hidden="true"></span><span class="nb-menu-chevron" aria-hidden="true">⌄</span></button><div id="nbMenuColors" class="nb-format-panel " role="group" aria-label="Cores da caneta" hidden><button type="button" class="nb-format-option" data-nb-action="black" aria-pressed="false"><span class="nb-color-dot" style="--swatch:#24242e"></span>Preta</button><button type="button" class="nb-format-option" data-nb-action="blue" aria-pressed="false"><span class="nb-color-dot" style="--swatch:#213f72"></span>Azul-marinho</button><button type="button" class="nb-format-option" data-nb-action="red" aria-pressed="false"><span class="nb-color-dot" style="--swatch:#bb3d43"></span>Vermelha</button></div></div>' +
+ '<div class="nb-format-menu" data-nb-format-menu="fonts"><button type="button" class="nb-tool nb-format-trigger " data-nb-menu-toggle="fonts" aria-label="Fontes" title="Fontes" aria-controls="nbMenuFonts" aria-expanded="false">Fontes<span class="nb-menu-chevron" aria-hidden="true">⌄</span></button><div id="nbMenuFonts" class="nb-format-panel " role="group" aria-label="Fontes" hidden><button type="button" class="nb-format-option" data-nb-action="print" aria-pressed="false">Letra de forma 1</button><button type="button" class="nb-format-option" data-nb-action="cursive" aria-pressed="false">Letra de forma 2</button><button type="button" class="nb-format-option" data-nb-action="joined" aria-pressed="false">Letra cursiva</button></div></div>' +
+ '<div class="nb-format-menu" data-nb-format-menu="alignment"><button type="button" class="nb-tool nb-format-trigger " data-nb-menu-toggle="alignment" aria-label="Alinhamento do texto" title="Alinhamento do texto" aria-controls="nbMenuAlignment" aria-expanded="false"><span id="nbAlignIcon" class="nb-align-bars nb-align-left" aria-hidden="true"><i></i><i></i><i></i><i></i></span><span class="nb-menu-chevron" aria-hidden="true">⌄</span></button><div id="nbMenuAlignment" class="nb-format-panel nb-panel-right" role="group" aria-label="Alinhar texto" hidden><button type="button" class="nb-format-option" data-nb-align="left" aria-pressed="false"><span class="nb-align-bars nb-align-left" aria-hidden="true"><i></i><i></i><i></i><i></i></span>Esquerda</button><button type="button" class="nb-format-option" data-nb-align="center" aria-pressed="false"><span class="nb-align-bars nb-align-center" aria-hidden="true"><i></i><i></i><i></i><i></i></span>Centralizado</button><button type="button" class="nb-format-option" data-nb-align="right" aria-pressed="false"><span class="nb-align-bars nb-align-right" aria-hidden="true"><i></i><i></i><i></i><i></i></span>Direita</button><button type="button" class="nb-format-option" data-nb-align="justify" aria-pressed="false"><span class="nb-align-bars nb-align-justify" aria-hidden="true"><i></i><i></i><i></i><i></i></span>Justificado</button></div></div>' +
+ '<div class="nb-format-menu" data-nb-format-menu="lists"><button type="button" class="nb-tool nb-format-trigger " data-nb-menu-toggle="lists" aria-label="Listas: tópicos e numeração" title="Listas: tópicos e numeração" aria-controls="nbMenuLists" aria-expanded="false" aria-pressed="false">☷<span class="nb-menu-chevron" aria-hidden="true">⌄</span></button><div id="nbMenuLists" class="nb-format-panel nb-panel-right" role="group" aria-label="Listas" hidden><button type="button" class="nb-format-option" data-nb-action="bullets" aria-pressed="false">• Tópicos</button><button type="button" class="nb-format-option" data-nb-action="numbered" aria-pressed="false">1. Numeração</button></div></div>' +
+ '</div>' +
  '<div class="nb-toolgroup"><label class="nb-layout-label" for="nbLayout">Estilo</label><select class="nb-layout-select" id="nbLayout" aria-label="Estilo do caderno"><option value="single">Folha única</option><option value="book">Caderno aberto</option></select></div>'+ 
  '<div class="nb-toolgroup"><label class="nb-correct-toggle" title="Corrigir linhas, arcos, círculos, curvas e polígonos; preservar desenhos livres"><input id="nbSmooth" type="checkbox">Ajustar traços</label>'+
  '<button class="nb-tool" data-nb-action="shortcuts" title="Personalizar teclas e botões do mouse">⌨ Atalhos</button>'+
@@ -599,14 +599,39 @@ function focusLine(line){
  if(x<viewport.left+marginX)view.scrollLeft-=Math.ceil(viewport.left+marginX-x);
  else if(x>viewport.right-marginX)view.scrollLeft+=Math.ceil(x-(viewport.right-marginX));
 }
+/* Uma única opção de menu por vez; nenhuma destas ações altera o zoom. */
+const FORMAT_MENUS=['colors','fonts','alignment','lists'];
+function showFormatMenu(which=''){
+ formatMenuOpen=FORMAT_MENUS.includes(which)?which:'';
+ for(const name of FORMAT_MENUS){
+  const panel=$('nbMenu'+name[0].toUpperCase()+name.slice(1));
+  const button=root.querySelector('[data-nb-menu-toggle="'+name+'"]');
+  if(panel)panel.hidden=name!==formatMenuOpen;
+  if(button)button.setAttribute('aria-expanded',String(name===formatMenuOpen));
+ }
+}
+function closeFormatMenus(){if(formatMenuOpen)showFormatMenu('');}
+function applyTextAlign(align){
+ if(!['left','center','right','justify'].includes(align))return;
+ data.align=align;
+ const item=editing?.id?page().notes.find(n=>n.id===editing.id):selected?.type==='note'?selectedItem():null;
+ if(item){item.align=align;renderNotes();}
+ const input=$('nbEditorText');if(editing&&input)input.style.textAlign=align;
+ refreshTools();save();
+}
 function refreshTools(){
  for(const a of MODES){const b=root.querySelector('[data-nb-action="'+a+'"]');b?.setAttribute('aria-pressed',String(data.mode===a));}
  $('nbEraserControls').hidden=data.mode!=='erase';
  $('nbEraseBehavior').value=data.eraserMode==='whole'?'whole':'parts';
  $('nbEraseSize').value=clamp(Number(data.eraserRadius)||14,6,32);
  for(const a of Object.keys(COLORS)){const b=root.querySelector('[data-nb-action="'+a+'"]');b?.setAttribute('aria-pressed',String(data.ink===a));}
- $('nbFont').value=data.font;$('nbSmooth').checked=!!data.smooth;
- $('nbTextAlign').value=['left','center','right','justify'].includes(data.align)?data.align:'left';
+ $('nbSmooth').checked=!!data.smooth;
+ for(const name of ['print','cursive','joined'])root.querySelector('[data-nb-action="'+name+'"]')?.setAttribute('aria-pressed',String(data.font===name));
+ const align=['left','center','right','justify'].includes(data.align)?data.align:'left';
+ const alignmentIcon=$('nbAlignIcon');if(alignmentIcon)alignmentIcon.className='nb-align-bars nb-align-'+align;
+ for(const choice of root.querySelectorAll('[data-nb-align]'))choice.setAttribute('aria-pressed',String(choice.dataset.nbAlign===align));
+ const inkIndicator=$('nbCurrentInk');if(inkIndicator)inkIndicator.style.background=COLORS[data.ink]||COLORS.blue;
+ root.querySelector('[data-nb-menu-toggle="lists"]')?.setAttribute('aria-pressed',String(data.listStyle!=='none'));
  for(const action of ['bullets','numbered'])root.querySelector('[data-nb-action="'+action+'"]')?.setAttribute('aria-pressed',String(data.listStyle===action));
  $('nbLayout').value=data.layout;
  sheet.dataset.mode=data.mode;
@@ -2021,11 +2046,16 @@ function act(action){
   if(action==='warp')status('Clique e arraste qualquer trecho do desenho para moldar. O quadradinho move sem deformar.','');
   return;
  }
- if(COLORS[action]){data.ink=action;refreshTools();renderNotes();save();return}
+ if(COLORS[action]){
+  data.ink=action;
+  const input=$('nbEditorText');if(editing&&input)input.style.color=COLORS[action];
+  refreshTools();renderNotes();save();return;
+ }
  switch(action){
  case 'print':case 'cursive':case 'joined':
   data.font=action;refreshTools();renderNotes();
-  if(editing){editing.draft=$('nbEditorText')?.value||'';editorMarkup()}
+  const fontInput=$('nbEditorText');
+  if(editing&&fontInput){fontInput.classList.remove('print','cursive','joined');fontInput.classList.add(action);}
   save();break;
  case 'prev':if(data.page>0)flip(-1);else status('Esta já é a primeira folha. Use Cadernos para ver as capas.','');break;case 'next':flip(1);break;
  case 'drawer':toggleDrawer();break;case 'closeDrawer':closeDrawer();break;
@@ -2046,9 +2076,26 @@ function act(action){
  }
 }
 root.addEventListener('click',event=>{
+ if(!event.target.closest('.nb-format-menu'))closeFormatMenus();
  const shelfBook=event.target.closest('[data-nb-shelf-book]');
  if(shelfBook){openShelfBook(shelfBook.dataset.nbShelfBook,shelfBook);return}
  if(shelfOpen)return;
+ const menuTrigger=event.target.closest('[data-nb-menu-toggle]');
+ if(menuTrigger){
+  if(editEnabled){
+   const name=menuTrigger.dataset.nbMenuToggle;
+   showFormatMenu(formatMenuOpen===name?'':name);
+   if(editing)$('nbEditorText')?.focus({preventScroll:true});
+  }
+  return;
+ }
+ const alignmentChoice=event.target.closest('[data-nb-align]');
+ if(alignmentChoice){
+  if(editEnabled)applyTextAlign(alignmentChoice.dataset.nbAlign);
+  closeFormatMenus();
+  if(editing)$('nbEditorText')?.focus({preventScroll:true});
+  return;
+ }
  const ctx=event.target.closest('[data-nb-context]');
  if(ctx){if(editEnabled)contextAction(ctx.dataset.nbContext);return}
  const rail=event.target.closest('[data-nb-rail-page]');
@@ -2080,7 +2127,15 @@ root.addEventListener('click',event=>{
   }
   activateCompanion(event);return;
  }
- if(button){act(button.dataset.nbAction);return}
+ if(button){
+  const fromMenu=!!button.closest('.nb-format-panel');
+  act(button.dataset.nbAction);
+  if(fromMenu){
+   closeFormatMenus();
+   if(editing)$('nbEditorText')?.focus({preventScroll:true});
+  }
+  return;
+ }
  if(event.target.id==='nbShortcutsDialog')act('closeShortcuts');
  if(!event.target.closest('#nbContextMenu'))$('nbContextMenu').hidden=true;
  if(!event.target.closest('#nbStickyPalette')&&!event.target.closest('[data-nb-action="sticky"]')){
@@ -2100,29 +2155,20 @@ root.addEventListener('change',event=>{
   return;
  }
  if(!editEnabled)return;
- if(event.target.id==='nbFont'){
-  data.font=event.target.value;renderNotes();
-  if(editing){editing.draft=$('nbEditorText')?.value||'';editorMarkup()}
-  save();
- }
- if(event.target.id==='nbTextAlign'){
-  const align=['left','center','right','justify'].includes(event.target.value)?event.target.value:'left';
-  data.align=align;
-  const item=editing?.id?page().notes.find(n=>n.id===editing.id):selected?.type==='note'?selectedItem():null;
-  if(item){item.align=align;renderNotes();}
-  if(editing){editing.draft=$('nbEditorText')?.value||'';editorMarkup();}
-  save();return;
- }
  if(event.target.id==='nbSmooth'){data.smooth=event.target.checked;save();}
  if(event.target.id==='nbEraseBehavior'){data.eraserMode=event.target.value==='whole'?'whole':'parts';save();}
  if(event.target.id==='nbPaperDate'&&editEnabled){page().date=event.target.value;syncNotebookUI();save();}
 });
 // Clicar fora do texto confirma alterações, inclusive a exclusão completa.
+document.addEventListener('pointerdown',event=>{
+ formatPointerActive=!!event.target.closest('.nb-format-menu');
+ if(!formatPointerActive)closeFormatMenus();
+},true);
 root.addEventListener('mousedown',event=>{
- if(editing&&event.target.closest('[data-nb-action="bullets"],[data-nb-action="numbered"]'))event.preventDefault();
+ if(editing&&event.target.closest('.nb-format-menu'))event.preventDefault();
 });
 root.addEventListener('focusout',event=>{
- if(event.relatedTarget?.closest?.('[data-nb-action="bullets"],[data-nb-action="numbered"]'))return;
+ if(formatPointerActive||event.relatedTarget?.closest?.('.nb-format-menu'))return;
  if(event.target.id!=='nbEditorText'||!editing)return;
  // Ocultações temporárias (ex.: renderização ou captura visual) não são saídas reais.
  if(getComputedStyle(event.target).visibility==='hidden'||!event.target.isConnected)return;
@@ -2187,7 +2233,10 @@ root.addEventListener('keydown',event=>{
     event.preventDefault();event.stopPropagation();saveEditor(true);return;
    }
   }
-  if(event.key==='Escape'){event.preventDefault();event.stopPropagation();act('none');}
+  if(event.key==='Escape'){
+   event.preventDefault();event.stopPropagation();
+   if(formatMenuOpen)closeFormatMenus();else act('none');
+  }
  }
  if(event.target.id==='nbNewBook'&&event.key==='Enter'){event.preventDefault();addBook();}
  if(event.target.id==='nbRenameBook'&&event.key==='Enter'){event.preventDefault();renameBook();}
@@ -2204,6 +2253,7 @@ document.addEventListener('keydown',event=>{
   event.preventDefault();deleteSelected();return;
  }
  if(event.key==='Escape'){
+  if(formatMenuOpen){event.preventDefault();closeFormatMenus();return;}
   if(resizeDrag)finishResize();
   if(!$('nbContextMenu').hidden)$('nbContextMenu').hidden=true;
   if(toolPaletteOpen){toolPaletteOpen=false;renderStickyPalette();}
