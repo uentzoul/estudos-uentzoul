@@ -9,8 +9,8 @@
  const UPLOAD_TABLE='uentzoul_library_uploads',GUIDES_TABLE='uentzoul_study_guides';
  const TARGETS=Object.freeze({familia:'P2',tcc:'P2',meta:'P2',grupos:'P2',social:'P3',avaliacao:'P3'});
  const FALLBACK_IDS=Object.freeze({
-   familia:['familia-p2-revisao-conferida-2026'],tcc:['final-2026-2-tcc'],
-   meta:['final-2026-2-meta'],grupos:['grupos-p2-revisao-conferida-2026'],
+   familia:['familia-p2-revisao-conferida-2026'],tcc:[],
+   meta:[],grupos:['grupos-p2-revisao-conferida-2026'],
    social:['social-p3-revisao-integrada-2026'],
    avaliacao:['avaliacao-p3-revisao-conferida-2026']
  });
@@ -221,7 +221,10 @@
        title:'Estudo dirigido — '+TARGETS[subject]+' (revisão autoral)'};
      return renderGuideHtml(subject,copy,null,true);
    }
-   return '<div class="sd-empty" data-sd-subject="'+esc(subject)+'">Ainda não há estudo dirigido disponível para a avaliação '+TARGETS[subject]+'.</div>';
+   return '<div class="sd-empty" data-sd-subject="'+esc(subject)+'">'+
+    (subject==='tcc'||subject==='meta'?
+     'O roteiro oficial da avaliação '+TARGETS[subject]+' está temporariamente indisponível. Recarregue a aba para consultar a fonte do professor.':
+     'Ainda não há estudo dirigido disponível para a avaliação '+TARGETS[subject]+'.')+'</div>';
  };
 
 })();
