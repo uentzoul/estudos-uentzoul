@@ -1,5 +1,12 @@
 name: Testar Caderno sem publicar
 on:
+  push:
+    branches: [main]
+    paths:
+      - 'caderno.*'
+      - 'site-version.js'
+      - 'tests/**'
+      - '.github/workflows/caderno-qa.yml'
   pull_request:
     paths:
       - 'caderno.*'
