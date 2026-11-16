@@ -5,12 +5,14 @@ on:
     paths:
       - 'caderno.*'
       - 'site-version.js'
+      - 'chat-sticker-personal.*'
       - 'tests/**'
       - '.github/workflows/caderno-qa.yml'
   pull_request:
     paths:
       - 'caderno.*'
       - 'site-version.js'
+      - 'chat-sticker-personal.*'
       - 'tests/**'
       - '.github/workflows/caderno-qa.yml'
   workflow_dispatch:
@@ -32,3 +34,5 @@ jobs:
           npx playwright install --with-deps chromium
       - name: Exercitar escrita real, seleção, borracha e exportação PDF
         run: node tests/caderno-browser.mjs
+      - name: Verificar pacotes pessoais de figurinhas no desktop e celular
+        run: node tests/sticker-personal-browser.mjs

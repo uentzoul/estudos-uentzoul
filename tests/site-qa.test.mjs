@@ -533,3 +533,21 @@ test('Revisão de Férias: clique delegado, botão destravado e sem fade global'
  assert.match(review,/if\(visible&&semester===selectedSemester&&document\.getElementById\('vr-root'\)\)/);
  assert.doesNotMatch(read('revisao-ferias.css'),/animation:vr-page-enter\s*\.\d/);
 });
+
+
+test('Pacotes pessoais mantêm biblioteca por conta e links seguros do Sticker.ly',()=>{
+ const js=read('chat-sticker-personal.js'),css=read('chat-sticker-personal.css');
+ assert.match(html,/chat-sticker-personal\.js\?v=/);
+ assert.match(html,/chat-sticker-personal\.css\?v=/);
+ for(const term of [/data-pm-sticker-add/,/data-pm-pack-import/,/data-pm-pack-upload/,/uentzoul_sticker_packs/,/uentzoul_stickers/,/owner_id/,/stickerly-pack/,/source_type:'upload'/,/enabled:false/])assert.match(js,term);
+ assert.match(css,/max-width:600px/);
+ assert.doesNotThrow(()=>new vm.Script(js));
+ const parser=js.match(/function codeFrom\(text\)\{[\s\S]*?\n\}/)?.[0];
+ assert.ok(parser);
+ const parse=vm.runInNewContext('('+parser+')',{URL});
+ assert.equal(parse('A3ZA4F'),'A3ZA4F');
+ assert.equal(parse('https://sticker.ly/s/A3ZA4F'),'A3ZA4F');
+ assert.equal(parse('https://sticker.ly/s/A3ZA4F/'),'A3ZA4F');
+ assert.equal(parse('https://not-sticker.ly/s/A3ZA4F'),'');
+ assert.equal(parse('javascript:alert(1)'),'');
+});
