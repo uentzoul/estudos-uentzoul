@@ -434,8 +434,8 @@ test('Ajuste inteligente do caderno reconhece meia-lua e não destrói desenhos 
  assert.equal(smartStroke(wave).kind,'fluid','traço complexo não vira círculo/linha');
  assert.match(source,/data\.smooth\?smartStroke\(raw\)/);
  assert.match(source,/const r=smartStroke\(item\.points\)/);
- assert.match(source,/!\\['line','polygon','rectangle'\\]\.includes\(s\.kind\)/);
- assert.match(pdf,/!\\['line','polygon','rectangle'\\]\.includes\(stroke\.kind\)/);
+ assert.ok(source.includes("!['line','polygon','rectangle'].includes(s.kind)"),'arestas retas no canvas');
+ assert.ok(pdf.includes("!['line','polygon','rectangle'].includes(stroke.kind)"),'arestas retas no PDF');
  assert.match(read('caderno.html'),/20261116-caderno-v18-smart-shapes/);
  assert.match(read('site-version.js'),/caderno\.html\?v=20261116-caderno-v18-smart-shapes/);
 });
