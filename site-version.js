@@ -281,7 +281,7 @@ setTimeout(check,15000);
    '#nav #navCadernoPreview{display:flex;align-items:center;gap:9px;min-width:0;position:relative;cursor:pointer;}'+
    '#nav .nb-preview-label{margin-left:auto;font-size:9px;font-weight:800;letter-spacing:.2px;white-space:nowrap;padding:3px 6px;border-radius:6px;color:#8067b6;background:#ece5f8;}'+
    '#navUpcomingFloatingTip{display:none!important}#nav #navCadernoPreview.active{background:color-mix(in srgb,#7964b9 14%,var(--paper));border-color:color-mix(in srgb,#7964b9 36%,transparent)}'+
-   '#nav #navCadernoPreview:disabled{opacity:.56;pointer-events:none;cursor:not-allowed;transform:none!important}'+
+   '#nav #navCadernoPreview:disabled{opacity:1!important;pointer-events:none;cursor:not-allowed;transform:none!important}'+
    '#main.nb-shell-active{max-width:none!important;width:100%!important;padding:8px 10px!important;overflow:hidden;}'+
    '#main #uentzoulCadernoFrame{display:block;width:100%;height:calc(100dvh - 12px);min-height:0;border:1px solid #e3ddeb;border-radius:16px;background:#f3f1f9;box-shadow:0 10px 32px #342c4715;}'+
    '@media(max-width:760px){#main.nb-shell-active{padding:4px!important;}#main #uentzoulCadernoFrame{height:calc(100dvh - 12px);min-height:0;border-radius:12px}#nav #navCadernoPreview .nb-preview-label{font-size:9px;padding:2px 5px}}';
