@@ -406,7 +406,7 @@ function editorMarkup(){
  requestAnimationFrame(()=>{input.focus({preventScroll:true});input.setSelectionRange(input.value.length,input.value.length)});
 }
 function beginEdit(line){
- if(data.mode!=='text'||line<FIRST_LINE)return;
+ if(!editEnabled||data.mode!=='text'||line<FIRST_LINE)return;
  line=clamp(line,FIRST_LINE,ROWS-1);
  if(editing&&editing.line!==line){
   const current=String($('nbEditorText')?.value||'');
@@ -500,11 +500,12 @@ function renderStickies(){
   'px;width:'+clamp(Number(s.w)||170,65,460)+'px;height:'+clamp(Number(s.h)||146,65,460)+'px;">'+
   '<div class="nb-sticky-head" data-nb-drag="'+esc(s.id)+'" title="Arraste para mover"><span>✦ Nota adesiva</span>'+
   '<button type="button" data-nb-delete-sticky="'+esc(s.id)+'" title="Remover post-it" aria-label="Remover post-it"'+
-  (selected?.type==='sticky'&&selected.id===s.id?'':' hidden')+'>×</button></div>'+
-  '<textarea aria-label="Escreva no post-it" data-nb-sticky-text="'+esc(s.id)+'" maxlength="700" placeholder="Sua observação…">'+esc(s.text||'')+'</textarea></div>'
+  (editEnabled&&selected?.type==='sticky'&&selected.id===s.id?'':' hidden')+'>×</button></div>'+
+  '<textarea aria-label="Escreva no post-it" data-nb-sticky-text="'+esc(s.id)+'" maxlength="700" placeholder="Sua observação…"'+(!editEnabled?' readonly':'')+'> '+esc(s.text||'')+'</textarea></div>'
  ).join('');
 }
 function addSticky(p){
+ if(!editEnabled)return;
  checkpoint();const tones=['yellow','pink','violet'],list=page().stickies;
  const n={id:id(),x:clamp(p.x-75,95,W-185),y:clamp(p.y-30,102,H-172),text:'',tone:data.stickyTone||tones[list.length%3]};
  list.push(n);renderStickies();save();
@@ -743,6 +744,7 @@ function renderSelectionHandles(){
   '</div>';
 }
 function startResize(event,dir){
+ if(!editEnabled)return;
  const item=selectedItem();
  if(!selected||!item||!TRANSFORM_HANDLES.includes(dir))return;
  const bounds=itemBounds(selected.type,item);if(!bounds)return;
@@ -814,7 +816,7 @@ function startPan(event){
 }
 
 function startMoveDrag(event,type,item){
- if(!item)return;
+ if(!editEnabled||!item)return;
  const p=point(event);
  moveDrag={
   pointerId:event.pointerId,type,id:item.id,
@@ -880,6 +882,7 @@ function finishMoveDrag(event){
 }
 
 function pointerDownCanvas(event){
+ if(!editEnabled)return;
  if(event.button!==0||event.pointerType==='touch'&&pinch)return;
  const p=point(event);
  if(data.mode==='select'){
@@ -971,7 +974,7 @@ function renderDrawer(){
   '<button type="button" data-nb-action="closeDrawer" aria-label="Fechar cadernos">×</button></div>'+
   '<div class="nb-book-list">'+data.books.map((book,i)=>
     '<button class="nb-book-row '+(book.id===data.bookId?'active':'')+'" data-nb-book="'+esc(book.id)+'" aria-label="Abrir caderno '+esc(book.name)+'">'+
-     '<span class="nb-book-cover" data-cover="'+(i%6)+'"><span class="nb-cover-spine" aria-hidden="true"></span>'+
+     '<span class="nb-book-cover" data-cover="'+(i%6)+'" style="--nb-book-cover:'+bookColor(book)+'"><span class="nb-cover-spine" aria-hidden="true"></span>'+
      '<span class="nb-cover-title">'+esc(book.name)+'</span><span class="nb-cover-foot">PSICOMOODLE</span></span>'+
      '<span class="nb-book-details"><strong>'+esc(book.name)+'</strong><small>'+book.pages.length+' '+
      (book.pages.length===1?'folha salva':'folhas salvas')+'</small></span></button>'
@@ -988,17 +991,18 @@ function renderDrawer(){
 function fitCoverTitles(){
  const canvas=document.createElement('canvas'),ctx=canvas.getContext('2d');
  if(!ctx)return;
- for(const title of document.querySelectorAll('.nb-cover-title')){
+ for(const title of document.querySelectorAll('.nb-cover-title,.nb-shelf-title')){
   const source=String(title.textContent||'').trim();
   const words=source.split(/\s+/).filter(Boolean),available=Math.max(65,title.clientWidth-3);
-  let chosen=14;
+  const onShelf=title.classList.contains('nb-shelf-title');
+  let chosen=onShelf?21:14;
   // A palavra inteira precisa caber; o navegador nunca fica autorizado a dividi-la.
-  for(let px=14;px>=8.5;px-=.5){
+  for(let px=onShelf?21:14;px>=(onShelf?10:8.5);px-=.5){
    ctx.font='850 '+px+'px system-ui';
    const widest=Math.max(0,...words.map(word=>ctx.measureText(word).width));
    const total=ctx.measureText(source).width;
    const estimatedLines=Math.max(1,Math.ceil(total/available));
-   if(widest<=available-2&&estimatedLines*px*1.23<=100){chosen=px;break}
+   if(widest<=available-2&&estimatedLines*px*1.23<=(onShelf?156:100)){chosen=px;break}
    chosen=px;
   }
   title.style.fontSize=chosen+'px';
@@ -1222,7 +1226,7 @@ function selectedItem(){
  return (selected.type==='note'?page().notes:selected.type==='stroke'?page().strokes:page().stickies).find(x=>x.id===selected.id)||null;
 }
 function deleteSelected(){
- if(!selected)return;
+ if(!editEnabled||!selected)return;
  const target=selectedItem();if(!target){selected=null;return}
  checkpoint();
  const prop=selected.type==='note'?'notes':selected.type==='stroke'?'strokes':'stickies';
@@ -1233,6 +1237,7 @@ function deleteSelected(){
  status('Item removido. Use Ctrl+Z para desfazer.','success');
 }
 function contextMenu(event){
+ if(!editEnabled)return;
  if(event.target.closest('#nbEditorText,#nbPaperDate,.nb-drawer,.nb-gallery'))return;
  const note=event.target.closest('[data-nb-note]'),sticky=event.target.closest('[data-nb-sticky]');
  if(note)selectItem('note',note.dataset.nbNote);
@@ -1308,7 +1313,7 @@ function toolCursor(event){
 
 function renderPage(){
  selectedStroke=-1;selected=null;closeEditor();renderSelectionHandles();
- refreshTools();renderNotes();renderStickies();drawCanvas();setZoom(data.zoom,false);renderBookSpread();
+ refreshTools();renderNotes();renderStickies();drawCanvas();setZoom(data.zoom,false);renderBookSpread();syncNotebookUI();
 }
 function renderAll(){
  renderPage();renderPageRail();renderShelf();syncNotebookUI();updateShortcutsList();
@@ -1374,6 +1379,15 @@ function bindShortcut(event){
  $('nbShortcutHint').textContent='Atalho registrado.';
 }
 function act(action){
+ if(action==='toggleEdit'){setEditEnabled(!editEnabled);return}
+ if(action==='backToBooks'){showShelf();return}
+ if(action==='drawer'&&shelfOpen)return;
+ const allowedReadOnly=['prev','next','gallery','closeGallery','galleryPrev','galleryNext',
+  'toggleRail','zoomIn','zoomOut','export','drawer','closeDrawer'];
+ if(shelfOpen||!editEnabled&&!allowedReadOnly.includes(action)){
+  if(!shelfOpen)status('Somente leitura. Clique em Editar para modificar a folha.','');
+  return;
+ }
  if(action==='sticky'){toolPaletteOpen=!toolPaletteOpen;renderStickyPalette();return;}
  if(MODES.includes(action)){
   if(editing)saveEditor(false);
@@ -1413,8 +1427,11 @@ function act(action){
  }
 }
 root.addEventListener('click',event=>{
+ const shelfBook=event.target.closest('[data-nb-shelf-book]');
+ if(shelfBook){openShelfBook(shelfBook.dataset.nbShelfBook,shelfBook);return}
+ if(shelfOpen)return;
  const ctx=event.target.closest('[data-nb-context]');
- if(ctx){contextAction(ctx.dataset.nbContext);return}
+ if(ctx){if(editEnabled)contextAction(ctx.dataset.nbContext);return}
  const rail=event.target.closest('[data-nb-rail-page]');
  if(rail){goRailPage(Number(rail.dataset.nbRailPage));return}
  const book=event.target.closest('[data-nb-book]');
@@ -1429,7 +1446,7 @@ root.addEventListener('click',event=>{
   return;
  }
  const d=event.target.closest('[data-nb-delete-sticky]');
- if(d){
+ if(d&&editEnabled){
   event.preventDefault();event.stopPropagation();
   checkpoint();page().stickies=page().stickies.filter(s=>s.id!==d.dataset.nbDeleteSticky);
   selected=null;renderStickies();renderSelectionHandles();save();
@@ -1458,6 +1475,7 @@ root.addEventListener('change',event=>{
   status(data.layout==='book'?'Caderno aberto: clique em cada folha para editá-la.':'Folha única ativada.','success');
   return;
  }
+ if(!editEnabled)return;
  if(event.target.id==='nbFont'){
   data.font=event.target.value;renderNotes();
   if(editing){editing.draft=$('nbEditorText')?.value||'';editorMarkup()}
@@ -1471,7 +1489,7 @@ root.addEventListener('change',event=>{
  }
  if(event.target.id==='nbSmooth'){data.smooth=event.target.checked;save();}
  if(event.target.id==='nbEraseBehavior'){data.eraserMode=event.target.value==='whole'?'whole':'parts';save();}
- if(event.target.id==='nbPaperDate'){page().date=event.target.value;save();}
+ if(event.target.id==='nbPaperDate'&&editEnabled){page().date=event.target.value;save();}
 });
 root.addEventListener('input',event=>{
  const t=event.target;
