@@ -57,7 +57,7 @@
    const fontSize=26+(scale-1)*30;
    const rowStep=LINEROW*scale;
    const left=Math.min(720,Math.max(85,Number(note.x)||110));
-   const top=LINETOP+(Number(note.line)||0)*LINEROW+(Number(note.offsetY)||0);
+   const top=LINETOP+(Number(note.line)||0)*LINEROW+(Number(note.offsetY)||0)-3;
    const scaleX=Math.min(3.8,Math.max(.35,Number(note.scaleX)||1));
    const scaleY=Math.min(3.8,Math.max(.35,Number(note.scaleY)||1));
    const width=Math.max(70,Math.min(Number(note.frameW)||620,WIDTH-left-20));
