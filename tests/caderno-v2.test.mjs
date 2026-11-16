@@ -61,7 +61,7 @@ test('Enter registra e corrige texto e move para a próxima linha; vazio apenas 
  context.editing={id:null,line:10};value='Teste';saveEditor(false);
  assert.equal(calls.advanced.length,2,'Salvar ao trocar de área não salta linha');
 });
-test('Páginas vazias não são preservadas ao virar ou serializar',()=>{
+test('Páginas vazias finais não são salvas, mas o lado esquerdo vazio é preservado quando há escrita à direita',()=>{
  const def=script.match(/const hasPageContent=p=>([^\n]+);/);
  assert.ok(def);
  const hasPageContent=vm.runInNewContext('(p=>'+def[1]+')');
@@ -71,7 +71,9 @@ test('Páginas vazias não são preservadas ao virar ou serializar',()=>{
  assert.equal(!!hasPageContent({notes:[],strokes:[{points:[{x:1,y:1}]}],stickies:[]}),true);
  assert.equal(!!hasPageContent({notes:[],strokes:[],stickies:[{text:'Observação'}]}),true);
  assert.match(script,/target>data\.pages\.length/);
- assert.match(script,/if\(hasPageContent\(item\)\)cleaned\.push\(item\)/);
+ assert.match(script,/while\(data\.pages\.length<data\.page\)data\.pages\.push\(emptyPage\(\)\)/);
+ assert.match(script,/while\(cleaned\.length&&!hasPageContent\(cleaned\[cleaned\.length-1\]\)\)cleaned\.pop\(\)/);
+ assert.match(script,/const cleaned=\(book\.pages\|\|\[\]\)\.slice\(\)/);
  assert.match(script,/Nova página ·/);
 });
 test('Galeria exibe 15 folhas em cinco colunas e transição respeita movimento reduzido',()=>{
