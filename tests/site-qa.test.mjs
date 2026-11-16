@@ -582,8 +582,9 @@ test('Revisão dos simulados mantém identificadores e exige conhecimento da dis
  assert.equal(original.exams.length,30,'Provas anteriores não podem ser apagadas');
  assert.ok(original.exams.some(x=>x.id==='familia-1'));
  assert.ok(original.exams.some(x=>x.id==='familia-5'));
- const oldIDs=original.exams.map(e=>e.id);
- const oldQuestionIds=original.exams.map(e=>e.questions.map(q=>q.id));
+ const preserved=original.exams.filter(e=>e.subject!=='meta');
+ const oldIDs=preserved.map(e=>e.id);
+ const oldQuestionIds=preserved.map(e=>e.questions.map(q=>q.id));
  assert.match(html,/store\.results\[e\.id\]/,'Progresso continua indexado pelo mesmo ID');
  assert.match(html,/doneBox\('sim:'\+e\.id/,'Marcações de visto continuam ligadas ao mesmo ID');
  assert.doesNotMatch(html,/Sentir vergonha uma vez é suficiente para confirmar um esquema persistente/);
@@ -598,8 +599,9 @@ test('Revisão dos simulados mantém identificadores e exige conhecimento da dis
  const runtime={window:{PSICOMOODLE_NEW_CONTENT:{social}}};
  vm.runInNewContext(read('simulados-finais-2026.js'),runtime);
  runtime.window.PSICO_FINAL_EXAMS.apply(original);
- assert.deepEqual(original.exams.slice(0,30).map(e=>e.id),oldIDs,'IDs das provas antigas não são trocados');
- assert.deepEqual(original.exams.slice(0,30).map(e=>e.questions.map(q=>q.id)),oldQuestionIds,
+ const kept=original.exams.filter(e=>oldIDs.includes(e.id));
+ assert.deepEqual(kept.map(e=>e.id),oldIDs,'IDs das provas anteriores de Família e demais disciplinas não são trocados');
+ assert.deepEqual(kept.map(e=>e.questions.map(q=>q.id)),oldQuestionIds,
   'IDs das questões antigas permanecem intactos');
  const current=original.exams.filter(e=>e.final2026&&e.revision===runtime.window.PSICO_FINAL_EXAMS.version);
  assert.equal(current.length,30,'Cinco simulados por cada uma das seis disciplinas');
