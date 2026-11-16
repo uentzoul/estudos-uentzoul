@@ -899,7 +899,7 @@ try{
   assert.equal(await flow.locator('#nbZoomText').textContent(),beforeZoom,'Enter não muda zoom');
   await flow.locator('#nbEditorText').press('Backspace');
   assert.match(await flow.locator('#nbEditorText').inputValue(),/Texto anterior/,'Backspace retorna ao fim da nota anterior');
-  assert.equal(await getLine('Texto seguinte'),5,'Backspace não apaga a nota deslocada');
+  assert.equal(await getLine('Texto seguinte'),4,'Backspace recolhe a pauta vazia e mantém a nota deslocada');
   // Trocar de cor mantém os caracteres anteriores e colore só os novos.
   await flow.locator('#nbEditorText').fill('Primeiro ');
   await flow.locator('[data-nb-menu-toggle="colors"]').click();
