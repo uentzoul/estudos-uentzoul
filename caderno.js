@@ -45,7 +45,7 @@ const ACTIONS=[
 ];
 const emptyPage=()=>({title:'',date:'',notes:[],strokes:[],stickies:[]});
 const newBook=(name='Meu caderno')=>({id:'book-'+Date.now()+'-'+Math.random().toString(36).slice(2,8),name,pages:[]});
-const defaults=()=>({books:initialBooks(),bookId:'materia-familia',page:0,mode:'none',font:'print',ink:'blue',size:1,layout:'single',smooth:false,zoom:.88,shortcuts:{},stickyTone:'yellow',eraserMode:'parts',eraserRadius:14});
+const defaults=()=>({books:initialBooks(),bookId:'materia-familia',page:0,mode:'none',font:'print',ink:'blue',size:1,align:'left',layout:'single',smooth:false,zoom:.88,shortcuts:{},stickyTone:'yellow',eraserMode:'parts',eraserRadius:14});
 const hasPageContent=p=>!!(String(p?.date||'').trim()||p?.notes?.some(n=>String(n.text||'').trim())||p?.strokes?.some(s=>s.points?.length)||p?.stickies?.length);
 const cleanPage=p=>({title:String(p?.title||'').slice(0,100),date:String(p?.date||'').slice(0,16),
  notes:Array.isArray(p?.notes)?p.notes.slice(0,140).map(n=>{const {original,...corrected}=n;corrected.pending=false;return corrected;}):[],strokes:Array.isArray(p?.strokes)?p.strokes.slice(0,500):[],
@@ -70,6 +70,7 @@ if(stored&&typeof stored==='object'){
   if(!MODES.includes(data.mode))data.mode='none';
   if(!COLORS[data.ink])data.ink='blue';
   if(!['print','cursive','joined'].includes(data.font))data.font='print';
+   if(!['left','center','right','justify'].includes(data.align))data.align='left';
   if(!data.shortcuts||typeof data.shortcuts!=='object')data.shortcuts={};
   if(!['single','book'].includes(data.layout))data.layout='single';
  }
@@ -260,7 +261,8 @@ root.innerHTML=
  '<button class="nb-color" data-nb-action="blue" style="--swatch:#213f72" aria-label="Caneta azul"><span></span></button>'+
  '<button class="nb-color" data-nb-action="red" style="--swatch:#bb3d43" aria-label="Caneta vermelha"><span></span></button></span>'+
  '<select class="nb-font-select" id="nbFont" aria-label="Tipo de letra"><option value="print">Letra de forma 1</option><option value="cursive">Letra de forma 2</option><option value="joined">Letra cursiva</option></select>'+
- '<select class="nb-size-select" id="nbSize" aria-label="Altura da letra"><option value="1">1 linha</option><option value="2">2 linhas</option><option value="3">3 linhas</option></select></div>'+
+ '<select class="nb-size-select" id="nbSize" aria-label="Altura da letra"><option value="1">1 linha</option><option value="2">2 linhas</option><option value="3">3 linhas</option></select>'+
+ '<select class="nb-align-select" id="nbTextAlign" aria-label="Alinhamento do texto"><option value="left">Esquerda</option><option value="center">Centro</option><option value="right">Direita</option><option value="justify">Justificado</option></select></div>'+
  '<div class="nb-toolgroup"><label class="nb-layout-label" for="nbLayout">Estilo</label><select class="nb-layout-select" id="nbLayout" aria-label="Estilo do caderno"><option value="single">Folha única</option><option value="book">Caderno aberto</option></select></div>'+ 
  '<div class="nb-toolgroup"><label class="nb-correct-toggle" title="Reconhecer formas simples e suavizar tremores"><input id="nbSmooth" type="checkbox">Ajustar traços</label>'+
  '<button class="nb-tool" data-nb-action="shortcuts" title="Personalizar teclas e botões do mouse">⌨ Atalhos</button>'+
@@ -374,6 +376,7 @@ function refreshTools(){
  $('nbEraseSize').value=clamp(Number(data.eraserRadius)||14,6,32);
  for(const a of Object.keys(COLORS)){const b=root.querySelector('[data-nb-action="'+a+'"]');b?.setAttribute('aria-pressed',String(data.ink===a));}
  $('nbFont').value=data.font;$('nbSize').value=String(data.size);$('nbSmooth').checked=!!data.smooth;
+ $('nbTextAlign').value=['left','center','right','justify'].includes(data.align)?data.align:'left';
  $('nbLayout').value=data.layout;
  sheet.dataset.mode=data.mode;
  $('nbPageCount').textContent=pageCountLabel();updateBookHeading();
@@ -382,11 +385,8 @@ function refreshTools(){
  const back=$('nbSheet').querySelector('.nb-corner-back');if(back){back.disabled=false;back.setAttribute('aria-label',data.page===0?'Primeira folha do caderno':'Voltar à folha anterior');back.title=data.page===0?'Primeira folha do caderno':'Voltar à folha anterior';}
 }
 function letterMarkup(text){
- return Array.from(String(text||'')).map(ch=>{
-  if(ch==='\n')return '<br>';
-  const isUpper=/\p{Lu}/u.test(ch);
-  return '<span class="'+(isUpper?'nb-uppercase':'nb-lowercase')+'">'+esc(ch)+'</span>';
- }).join('');
+ // Uma métrica tipográfica por linha; spans letra por letra deformavam a pauta.
+ return esc(String(text||'')).replace(/\n/g,'<br>');
 }
 function noteMarkup(n,preview){
  const size=clamp(Number(n.size)||1,1,3),
@@ -396,7 +396,7 @@ function noteMarkup(n,preview){
   scaleX=clamp(Number(n.scaleX)||1,.35,3.8),scaleY=clamp(Number(n.scaleY)||1,.35,3.8);
  const css='left:'+left+'px;right:auto;width:'+width+'px;top:'+top+'px;min-height:'+
   (size*L)+'px;transform:scale('+scaleX+','+scaleY+');transform-origin:top left;--nb-small:26px;--nb-cap-size:'+
-  (26+(size-1)*34)+'px;color:'+(COLORS[n.ink]||COLORS.blue)+';';
+  (26+(size-1)*30)+'px;--nb-note-size:'+(26+(size-1)*30)+'px;--nb-note-row:'+(size*L)+'px;text-align:'+(['left','center','right','justify'].includes(n.align)?n.align:'left')+';color:'+(COLORS[n.ink]||COLORS.blue)+';';
  return '<div class="nb-note '+(n.font==='joined'?'joined':n.font==='cursive'?'cursive':'print')+(preview?' nb-preview':'')+
   (editing&&editing.id===n.id?' nb-selected':'')+(n.pending?' nb-correcting':'')+
   '" style="'+css+'"'+(!preview?' data-nb-note="'+esc(n.id)+'"':'')+'><span class="nb-note-content">'+letterMarkup(n.text)+'</span></div>';
@@ -408,10 +408,10 @@ function renderNotes(){
 function editorMarkup(){
  const host=$('nbEditorHost');
  if(!editing){host.innerHTML='';return;}
- const line=editing.line,top=START+line*L+7,fsize=26;
- const lineHeight=Math.max(34,Math.round(fsize*1.22));
+ const line=editing.line,top=START+line*L,fsize=26+(clamp(Number(data.size)||1,1,3)-1)*30;
+ const lineHeight=L*clamp(Number(data.size)||1,1,3);
  host.innerHTML='<textarea class="nb-inline-edit '+(data.font==='joined'?'joined':data.font==='cursive'?'cursive':'print')+
-  '" id="nbEditorText" style="top:'+top+'px;--nb-small:'+fsize+'px;line-height:'+lineHeight+'px;color:'+
+  '" id="nbEditorText" style="top:'+top+'px;--nb-small:'+fsize+'px;--nb-note-size:'+fsize+'px;--nb-note-row:'+lineHeight+'px;text-align:'+data.align+';color:'+
   (COLORS[data.ink]||COLORS.blue)+';" rows="1" maxlength="2500" spellcheck="true"'+
   ' aria-label="Escrever diretamente na linha '+(line+1)+'"></textarea>';
  const input=$('nbEditorText');input.value=editing.draft||'';
@@ -428,7 +428,7 @@ function beginEdit(line){
  if(line===FIRST_LINE&&data.size>2)data.size=2;
  const existing=page().notes.find(n=>line>=Number(n.line)&&line<Number(n.line)+Number(n.span||Number(n.size)||1));
  editing={line:existing?Number(existing.line):line,id:existing?.id||null,draft:existing?.text||''};
- if(existing){data.font=existing.font;data.ink=existing.ink;data.size=existing.size;}
+ if(existing){data.font=existing.font;data.ink=existing.ink;data.size=existing.size;data.align=existing.align||'left';}
  if(editing.line===FIRST_LINE&&data.size>2)data.size=2;
  previewText=editing.draft;
  refreshTools();renderNotes();editorMarkup();focusLine(editing.line);
@@ -499,7 +499,7 @@ function saveEditor(advance=true){
  checkpoint();
  let n=editing.id?page().notes.find(n=>n.id===editing.id):null;
  if(!n){n={id:id(),line:editing.line,text:typed};page().notes.push(n)}
- Object.assign(n,{text:fallbackBasic(typed),original:typed,font:data.font,size:data.size,ink:data.ink,pending:true,reviewed:false});
+ Object.assign(n,{text:fallbackBasic(typed),original:typed,font:data.font,size:data.size,ink:data.ink,align:data.align||'left',pending:true,reviewed:false});
  n.span=occupiedSpan(n);makeRoom(n);materializePage();
  const nid=n.id;closeEditor();renderNotes();save();
  status('Linha registrada; revisão gramatical em andamento…','');
@@ -862,7 +862,7 @@ function updateMoveDrag(event){
   renderSelectionHandles();
  }else if(drag.type==='note'){
   const el=root.querySelector('[data-nb-note="'+item.id+'"]');
-  if(el)el.style.transform='translate('+dx+'px,'+dy+'px) scale('+(Number(item.scaleX)||1)+','+(Number(item.scaleY)||1)+')';
+  if(el)el.style.transform='translate(0px,'+(Math.round(dy/L)*L)+'px) scale('+(Number(item.scaleX)||1)+','+(Number(item.scaleY)||1)+')';
  }
  event.preventDefault();
 }
@@ -887,7 +887,7 @@ function finishMoveDrag(event){
    chosen=available.length?available[0]:drag.originLine;
   }
   item.line=chosen;
-  item.x=clamp(drag.originX+((drag.last||drag.start).x-drag.start.x),85,W-70);
+  /* O arraste do texto não altera sua margem horizontal. */
  }
  selected=null;selectedStroke=-1;
  serializable();renderNotes();renderStickies();drawCanvas();refreshTools();renderSelectionHandles();save();
@@ -1519,6 +1519,14 @@ root.addEventListener('change',event=>{
   refreshTools();renderNotes();
   if(editing){editing.draft=$('nbEditorText')?.value||'';editorMarkup()}
   save();
+ }
+ if(event.target.id==='nbTextAlign'){
+  const align=['left','center','right','justify'].includes(event.target.value)?event.target.value:'left';
+  data.align=align;
+  const item=editing?.id?page().notes.find(n=>n.id===editing.id):selected?.type==='note'?selectedItem():null;
+  if(item){item.align=align;renderNotes();}
+  if(editing){editing.draft=$('nbEditorText')?.value||'';editorMarkup();}
+  save();return;
  }
  if(event.target.id==='nbSmooth'){data.smooth=event.target.checked;save();}
  if(event.target.id==='nbEraseBehavior'){data.eraserMode=event.target.value==='whole'?'whole':'parts';save();}
