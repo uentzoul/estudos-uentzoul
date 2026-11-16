@@ -34,7 +34,15 @@ for(const profile of profiles){
   const layout=await page.evaluate(()=>{
    const vw=document.documentElement.clientWidth;
    const root=document.documentElement;
-   const shown=el=>{const s=getComputedStyle(el),r=el.getBoundingClientRect();return s.display!=='none'&&s.visibility!=='hidden'&&r.width>0&&r.height>0};
+   const shown=el=>{
+     // Os controles da gaveta móvel fechada não são conteúdo fora da tela.
+     if(el.closest('[hidden],[inert],[aria-hidden="true"]'))return false;
+     for(let parent=el;parent;parent=parent.parentElement){
+       const s=getComputedStyle(parent);
+       if(s.display==='none'||s.visibility==='hidden')return false;
+     }
+     const r=el.getBoundingClientRect();return r.width>0&&r.height>0;
+   };
    const offenders=[...document.querySelectorAll('main,nav,header,section,article,button,input,textarea,select,[role="textbox"],.panel,.modal,.card')].filter(shown).filter(el=>{const r=el.getBoundingClientRect();return r.right>vw+8||r.left< -8}).slice(0,12).map(el=>({tag:el.tagName,id:el.id||'',className:String(el.className||'').slice(0,70),left:Math.round(el.getBoundingClientRect().left),right:Math.round(el.getBoundingClientRect().right)}));
    const inputs=[...document.querySelectorAll('textarea,input,[contenteditable="true"]')].filter(shown).map(el=>{const r=el.getBoundingClientRect();return {tag:el.tagName,width:Math.round(r.width),right:Math.round(r.right),left:Math.round(r.left)}});
    return {title:document.title,viewport:vw,scrollWidth:root.scrollWidth,bodyWidth:document.body.scrollWidth,hasMain:!!document.querySelector('main,#main'),offenders,inputs};
@@ -44,20 +52,38 @@ for(const profile of profiles){
   if(layout.scrollWidth>layout.viewport+10)row.errors.push('Rolagem horizontal: '+layout.scrollWidth+'px / '+layout.viewport+'px');
   if(layout.offenders.length)row.warnings.push('Elementos fora do viewport: '+JSON.stringify(layout.offenders));
   if(!layout.title)row.warnings.push('Título da página ausente');
-  // Navegação anônima: só aciona botões de seções públicas que não enviam formulários.
+  // A auditoria deve testar a gaveta real no celular, não pular as abas ocultas.
+  // Nenhum destes cliques envia formulário ou altera dados de usuários.
   const sections=['home','library','calendar','exams','messages','ai'];
+  const mobileMenu=page.locator('#pmMobileMenuToggle');
+  const mobile=await mobileMenu.count()>0&&await mobileMenu.isVisible();
   for(const section of sections){
     const el=page.locator('#nav [data-page="'+section+'"]');
-    if(await el.count()&&await el.first().isVisible()){
-      try{
-        await el.first().click({timeout:2500});
-        await page.waitForTimeout(300);
-        const h=await page.evaluate(()=>({scroll:document.documentElement.scrollWidth,width:document.documentElement.clientWidth}));
-        if(h.scroll>h.width+10)row.warnings.push('Rolagem horizontal em '+section+': '+h.scroll+'/'+h.width);
-        row.checks.push(section);
-      }catch(e){row.warnings.push('Não foi possível abrir '+section+': '+String(e.message).slice(0,90))}
+    if(!await el.count())continue;
+    try{
+      if(mobile){
+        await mobileMenu.click({timeout:3500});
+        await page.locator('body.pm-mobile-menu-open').waitFor({state:'attached',timeout:3500});
+      }
+      if(!await el.first().isVisible()){
+        row.warnings.push('Aba '+section+' não ficou visível na navegação');
+        continue;
+      }
+      await el.first().click({timeout:3500});
+      await page.waitForTimeout(300);
+      const h=await page.evaluate(()=>({scroll:document.documentElement.scrollWidth,width:document.documentElement.clientWidth}));
+      if(h.scroll>h.width+10)row.warnings.push('Rolagem horizontal em '+section+': '+h.scroll+'/'+h.width);
+      if(mobile&&await page.locator('body.pm-mobile-menu-open').count())
+        row.warnings.push('Menu não fechou ao selecionar '+section);
+      row.checks.push(section);
+    }catch(e){
+      row.warnings.push('Não foi possível abrir '+section+': '+String(e.message).slice(0,120));
+    }finally{
+      if(mobile&&await page.locator('body.pm-mobile-menu-open').count())
+        await mobileMenu.click({timeout:1500}).catch(()=>{});
     }
   }
+  if(!row.checks.length)row.errors.push('Nenhuma aba pública foi verificada pela navegação');
   row.status=row.errors.length?'critical':row.warnings.length?'warning':'ok';
   await page.screenshot({path:'site-health-artifacts/'+name+'.png',fullPage:true,timeout:15000}).catch(()=>{});
  }catch(err){row.status='critical';row.errors.push(String(err.message).slice(0,400))}

@@ -44,12 +44,16 @@ jobs:
       - name: Auditar três semestres em Chromium desktop, Android e WebKit iPhone
         run: python tests/ui-smoke.py
       - name: Percorrer tutorial e verificar estabilidade visual no Safari iPhone e Android
+        if: ${{ !cancelled() }}
         run: python tests/tutorial-mobile-smoke.py
       - name: Verificar cartões de PDF em iPhone e Android (320px e 390px)
+        if: ${{ !cancelled() }}
         run: python tests/material-card-smoke.py
       - name: Verificar entrada limpa da IA Tzoul em iPhone e Android
+        if: ${{ !cancelled() }}
         run: python tests/ai-mobile-composer-smoke.py
       - name: Verificar cliques do Admin Config com registros fictícios
+        if: ${{ !cancelled() }}
         run: python tests/admin-log-smoke.py
       - name: Publicar evidências da auditoria
         if: always()

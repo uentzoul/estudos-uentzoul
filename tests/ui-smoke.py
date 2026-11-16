@@ -69,11 +69,21 @@ def run_case(browser,device,settings,semester):
                 page.wait_for_function("Boolean(window.PSICO_VACATION_REVIEW?.show)",timeout=20000)
                 # Testa o clique real no menu, não só uma chamada direta à função.
                 review_nav=page.locator("#navVacationReview")
+                # Navegação atual: gaveta lateral pelo botão do cabeçalho.
+                # O antigo #mobileNavMoreToggle foi removido da interface móvel.
+                mobile_toggle=page.locator("#pmMobileMenuToggle")
+                if mobile_toggle.is_visible():
+                    mobile_toggle.click(timeout=8000)
+                    page.locator("body.pm-mobile-menu-open").wait_for(state="attached",timeout=5000)
+                    if mobile_toggle.get_attribute("aria-expanded")!="true":
+                        issues.append("Menu móvel não sinalizou abertura")
                 if not review_nav.is_visible():
-                    page.locator("#mobileNavMoreToggle").click(timeout=8000)
+                    issues.append("Revisão de Férias não ficou visível na navegação")
                 if not review_nav.is_enabled():
                     issues.append("Botão Revisão de Férias desativado")
                 review_nav.click(timeout=8000)
+                if mobile_toggle.is_visible() and mobile_toggle.get_attribute("aria-expanded")!="false":
+                    issues.append("Menu móvel não fechou após abrir Revisão de Férias")
                 page.locator("#vr-root .vr-month").first.wait_for(state="visible",timeout=20000)
                 expected_events=21 if semester=="2026/1" else 24
                 real_events=page.locator("#vr-root .vr-event").count()
