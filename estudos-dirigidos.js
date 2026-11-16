@@ -9,7 +9,7 @@
  const UPLOAD_TABLE='uentzoul_library_uploads',GUIDES_TABLE='uentzoul_study_guides';
  const TARGETS=Object.freeze({familia:'P2',tcc:'P2',meta:'P2',grupos:'P2',social:'P3',avaliacao:'P3'});
  const FALLBACK_IDS=Object.freeze({
-   familia:['final-2026-2-familia'],tcc:['final-2026-2-tcc'],
+   familia:['familia-p2-revisao-conferida-2026'],tcc:['final-2026-2-tcc'],
    meta:['final-2026-2-meta'],grupos:['final-2026-2-grupos'],
    social:['final-2026-2-social','social-novos-textos-2026'],
    avaliacao:['final-2026-2-avaliacao']
@@ -63,7 +63,7 @@
    const exam=TARGETS[subject],error=preparation.errors[subject];
    const running=preparation.running===subject;
    const title=doc?.display_title||doc?.filename||'Roteiro do professor';
-   if(!doc)return '<div class="sd-empty" data-sd-subject="'+esc(subject)+'">Ainda não há estudo dirigido disponível para '+esc(exam)+'.</div>';
+   if(!doc)return '<div class="sd-empty" data-sd-subject="'+esc(subject)+'">Ainda não há estudo dirigido oficial confirmado para '+esc(exam)+'.</div>';
    // Não iniciar correções sem validação documental explícita.
    return '<section class="sd-root" data-sd-subject="'+esc(subject)+'" aria-label="Estudos dirigidos da disciplina">'+
     '<header class="sd-header"><span class="sd-kicker">ESTUDO DIRIGIDO · '+esc(exam)+'</span><h2>Estudos dirigidos</h2>'+
