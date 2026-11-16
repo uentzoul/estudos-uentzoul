@@ -393,7 +393,7 @@ function letterMarkup(text){
 }
 function noteMarkup(n,preview){
  const size=clamp(Number(n.size)||1,1,3),
-  top=START+(Number(n.line)||0)*L+(Number(n.offsetY)||0),
+  top=START+(Number(n.line)||0)*L+(Number(n.offsetY)||0)-3,
   left=clamp(Number(n.x)||110,85,W-65),
   width=clamp(Number(n.frameW)||620,70,W-left-20),
   scaleX=clamp(Number(n.scaleX)||1,.35,3.8),scaleY=clamp(Number(n.scaleY)||1,.35,3.8);
@@ -411,7 +411,7 @@ function renderNotes(){
 function editorMarkup(){
  const host=$('nbEditorHost');
  if(!editing){host.innerHTML='';return;}
- const line=editing.line,top=START+line*L,fsize=26+(clamp(Number(data.size)||1,1,3)-1)*30;
+ const line=editing.line,top=START+line*L-3,fsize=26+(clamp(Number(data.size)||1,1,3)-1)*30;
  const lineHeight=L*clamp(Number(data.size)||1,1,3);
  host.innerHTML='<textarea class="nb-inline-edit '+(data.font==='joined'?'joined':data.font==='cursive'?'cursive':'print')+
   '" id="nbEditorText" style="top:'+top+'px;--nb-small:'+fsize+'px;--nb-note-size:'+fsize+'px;--nb-note-row:'+lineHeight+'px;text-align:'+data.align+';color:'+
