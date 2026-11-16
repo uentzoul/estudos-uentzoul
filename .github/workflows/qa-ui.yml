@@ -1,6 +1,12 @@
 name: Auditoria visual de interface — desktop e celular
 
 on:
+  pull_request:
+    paths:
+      - 'caderno.*'
+      - 'site-version.js'
+      - 'tests/**'
+      - '.github/workflows/qa-ui.yml'
   push:
     branches: [main]
     paths:
