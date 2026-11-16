@@ -265,7 +265,7 @@ test('Capas dimensionam palavras inteiras e moldura ocupa altura do viewport',()
 
 
 test('Miniatura reutiliza letra, geometria, desenho, data e post-it da folha',()=>{
- assert.match(script,/function snapshotSheetMarkup\(p,index\)/);
+ assert.match(script,/function snapshotSheetMarkup\(p,index,withHover=false\)/);
  assert.match(script,/function snapshotSvg\(p\)/);
  assert.match(script,/snapshotSheetMarkup\(p,i\)/);
  assert.match(script,/snapshotSheetMarkup\(p,index\)/);
@@ -443,7 +443,7 @@ test('No caderno aberto linha vermelha e furos ficam juntos na lombada de cada f
  assert.match(style,/\.nb-stage\.nb-double \.nb-sheet\.nb-right-page:before\{right:auto!important;left:85px!important\}/);
  assert.match(style,/\.nb-stage\.nb-double \.nb-sheet\.nb-left-page \.nb-holes\{left:auto!important;right:22px!important\}/);
  assert.match(style,/\.nb-stage\.nb-double \.nb-sheet\.nb-right-page \.nb-holes\{right:auto!important;left:22px!important\}/);
- assert.match(script,/snapshotSheetMarkup\(other,index\)/);
+ assert.match(script,/snapshotSheetMarkup\(other,index,true\)/);
  assert.match(script,/event\.button===0&&data\.layout==='book'&&event\.target\.closest\('#nbCompanionWrap'\)/,
   'folha oposta deve permitir arraste também em modo edição');
 });
@@ -496,4 +496,22 @@ test('Caderno já está no HTML da navegação antes da autenticação, sem inse
  assert.match(index,/id="navCadernoPreview"[\s\S]{0,180}visibility:hidden/);
  assert.match(nav,/button\.dataset\.nbBound!=='true'/);
  assert.match(nav,/button\.style\.visibility=allowed\?'visible':'hidden'/);
+});
+
+
+test('Data isolada e destaque de escrita acompanham a folha física',()=>{
+ // A data guarda apenas dia/mês/ano. Nenhum texto decorativo aparece junto dela.
+ assert.match(script,/id="nbPaperDate" class="nb-paper-date" type="date" aria-label="Data da aula"/);
+ assert.doesNotMatch(script,/<label class="nb-paper-date-label"/);
+ assert.match(script,/id="nbPaperDateRead"/);
+ assert.match(style,/\.nb-paper-date-group\{[\s\S]*?border:0!important;border-bottom:0!important/);
+ assert.match(style,/\.nb-reading \.nb-paper-date-read:not\(\[hidden\]\)\{/);
+ assert.match(style,/\.nb-snapshot-sheet \.nb-snapshot-date\{/);
+ // Somente a folha oposta recebe um indicador próprio; não altera miniaturas comuns.
+ assert.match(script,/snapshotSheetMarkup\(other,index,true\)/);
+ assert.match(script,/withHover\?'<span class="nb-line-hover" id="nbCompanionLineHover"/);
+ assert.match(script,/const onCompanion=data\.layout==='book'&&!!event\.target\.closest\('#nbCompanionWrap'\)/);
+ assert.match(script,/const rect=\(onCompanion\?companion:sheet\)\.getBoundingClientRect\(\)/);
+ assert.match(script,/const el=onCompanion\?companionHover:liveHover/);
+ assert.match(style,/\.nb-companion-wrap \.nb-snapshot-sheet \.nb-line-hover\{/);
 });
