@@ -12,7 +12,7 @@ const html='<!doctype html><html lang="pt-BR"><meta charset="utf-8">'+
  '<style>html,body{margin:0;height:100%;overflow:hidden}iframe{border:0;width:100%;height:100vh}</style>'+
  '<script>window.uentzoulAdminConfig={isAdmin:()=>true};'+
  'window.uentzoulAIAuth={user:()=>({id:"qa-browser-admin"}),'+
- 'client:()=>({functions:{invoke:async(_,args)=>({data:{text:args.body.text.replace(/nao/g,"não"),reviewed:true},error:null})}})};'+
+ 'client:()=>({from:()=>({select(){return this},eq(){return this},async maybeSingle(){return {data:null,error:null}},async upsert(row){window.__nbCloudLast=row;return {error:null}}}),functions:{invoke:async(_,args)=>({data:{text:args.body.text.replace(/nao/g,"não"),reviewed:true},error:null})}})};'+
  '</script><iframe id="nbQaFrame" title="Caderno QA" src="/caderno.html"></iframe></html>';
 const types={'.html':'text/html;charset=utf-8','.js':'text/javascript;charset=utf-8','.css':'text/css;charset=utf-8'};
 const server=createServer(async(req,res)=>{
@@ -20,7 +20,7 @@ const server=createServer(async(req,res)=>{
  if(pathname==='/'){
   res.writeHead(200,{'content-type':'text/html; charset=utf-8','cache-control':'no-store'});res.end(html);return;
  }
- if(!/^\/caderno(?:-pdf)?\.(?:html|js|css)$/.test(pathname)){
+ if(!/^\/caderno(?:-pdf|-tutorial)?\.(?:html|js|css)$/.test(pathname)){
   res.writeHead(404);res.end('not found');return;
  }
  try{
@@ -43,6 +43,15 @@ try{
   'Psicologia da Família','Avaliação Psicológica',
   'Teorias e Modelos Comportamentais e Cognitivos',
   'Psicologia Social I','Metapsicologia','Psicologia de Grupos']);
+  await f.locator('[data-nb-tour-start]').click();
+  assert.equal(await f.locator('#nbNotebookTutorial').count(),1,'Tutorial aparece na estante');
+  await f.locator('[data-nb-tour-next]').click();
+  await f.locator('[data-nb-tour-next]').click();
+  await f.locator('#nbSheet').waitFor({state:'visible'});
+  await f.locator('[data-nb-tour-exit]').click();
+  await f.locator('#nbShelf').waitFor({state:'visible'});
+  assert.equal(await f.locator('#nbNotebookTutorial').count(),0,'Tutorial fecha sem bloquear caderno');
+
  const colors=await f.locator('.nb-shelf-cover').evaluateAll(els=>
   els.map(el=>getComputedStyle(el).getPropertyValue('--nb-book-cover').trim()));
  assert.equal(new Set(colors).size,6,'Cada matéria deve ter sua própria cor');
