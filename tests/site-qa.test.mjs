@@ -436,8 +436,18 @@ test('Ajuste inteligente do caderno reconhece meia-lua e não destrói desenhos 
  assert.match(source,/const r=smartStroke\(item\.points\)/);
  assert.ok(source.includes("!['line','polygon','rectangle'].includes(s.kind)"),'arestas retas no canvas');
  assert.ok(pdf.includes("!['line','polygon','rectangle'].includes(stroke.kind)"),'arestas retas no PDF');
- assert.match(read('caderno.html'),/20261116-caderno-v18-smart-shapes/);
- assert.match(read('site-version.js'),/caderno\.html\?v=20261116-caderno-v18-smart-shapes/);
+ assert.match(read('caderno.html'),/20261116-caderno-v19-no-corner-back/);
+ assert.match(read('site-version.js'),/caderno\.html\?v=20261116-caderno-v19-no-corner-back/);
+});
+
+test('Caderno remove a seta superior sem alterar a navegação restante',()=>{
+ const script=read('caderno.js'),styles=read('caderno.css');
+ assert.doesNotMatch(script,/nb-corner-back/,'não renderizar nem manipular a seta superior');
+ assert.doesNotMatch(styles,/nb-corner-back/,'sem CSS restante da seta');
+ assert.match(script,/data-nb-action="prev">‹ Anterior/,'botão inferior Anterior preservado');
+ assert.match(script,/data-nb-action="next">Próxima ›/,'botão inferior Próxima preservado');
+ assert.match(script,/id="nbPageRail"/,'lista lateral de páginas preservada');
+ assert.match(script,/data-nb-action="backToBooks"/,'retorno para capas preservado');
 });
 
 test('Caderno permanece aberto durante atualizações assíncronas de outras seções',()=>{
