@@ -109,7 +109,7 @@ test('Post-its têm paleta e seleção, Ctrl+Z, Delete e menu contextual de acor
  assert.match(script,/\[\['warp','⌁ Moldar desenho'\]\]/);
  assert.match(script,/\[\['fix','✧ Corrigir traço'\]\]/);
 });
-test('O marcador Em breve de Trabalhos é igual ao do Caderno e não usa tooltip externo',()=>{
+test('Trabalhos mantém Em breve, mas o Caderno público não tem marcador',()=>{
  assert.match(nav,/jobs\.querySelector\('\.nav-upcoming-tip'\)\?\.remove\(\)/);
  assert.match(nav,/badge\.className='nb-preview-label'/);
  assert.match(nav,/#navUpcomingFloatingTip\{display:none!important\}/);
@@ -480,7 +480,9 @@ test('Caderno já está no HTML da navegação antes da autenticação, sem inse
   calendar=index.indexOf('data-page="calendar"',start);
  assert.ok(calendar<exam&&exam<notebook,'Caderno estático fica após Simulados no menu já ordenado');
  assert.equal((index.match(/id="navCadernoPreview"/g)||[]).length,1);
- assert.match(index,/id="navCadernoPreview"\s+disabled aria-disabled="true"/);
+ assert.match(index,/id="navCadernoPreview"\s+aria-label="Caderno/);
+ assert.doesNotMatch(index,/id="navCadernoPreview"\s+disabled/);
+ assert.doesNotMatch(index,/<span class="nav-label">Caderno<\/span><span class="nb-preview-label">Em breve<\/span>/);
  assert.match(nav,/button\.dataset\.nbBound!=='true'/);
  assert.match(nav,/const loggedIn=\(\)=>!!account\(\)/);
 });
@@ -501,4 +503,14 @@ test('Data isolada e destaque de escrita acompanham a folha física',()=>{
  assert.match(script,/const rect=\(onCompanion\?companion:sheet\)\.getBoundingClientRect\(\)/);
  assert.match(script,/const el=onCompanion\?companionHover:liveHover/);
  assert.match(style,/\.nb-companion-wrap \.nb-snapshot-sheet \.nb-line-hover\{/);
+});
+
+test('Tutorial guiado inicia na estante, percorre ferramentas e pode ser fechado',()=>{
+ const tutorial=read('caderno-tutorial.js');
+ assert.match(script,/data-nb-tour-start/);
+ assert.match(tutorial,/steps=\[/);
+ assert.match(tutorial,/if\(active&&event\.key==='Escape'\)/);
+ assert.match(tutorial,/data-nb-tour-exit/);
+ assert.match(tutorial,/data-nb-action="backToBooks"/);
+ assert.match(html,/caderno-tutorial\.js/);
 });
