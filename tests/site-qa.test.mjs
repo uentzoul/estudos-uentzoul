@@ -484,7 +484,9 @@ test('Caderno permanece aberto durante atualizações assíncronas de outras se�
 
 test('Scripts e estilos locais referenciados no HTML existem',()=>{
  const resources=[...html.matchAll(/<(script|link)\b[^>]+\b(?:src|href)=["']([^"']+)["']/gi)];
- const local=resources.map(m=>m[1]).filter(url=>!/^https?:|^\/\/|^data:|^\//i.test(url))
+ const local=resources.map(m=>m[1])
+  .filter(url=>/\.(?:js|css)(?:[?#]|$)/i.test(url))
+  .filter(url=>!/^https?:|^\/\/|^data:|^\//i.test(url))
   .map(url=>url.split(/[?#]/)[0].replace(/^\.\//,''));
  assert.ok(local.length>=35,'Site precisa carregar os módulos');
  for(const file of local)assert.ok(fs.existsSync(path.join(root,file)),'Arquivo local ausente: '+file);
