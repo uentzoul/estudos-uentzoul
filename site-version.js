@@ -180,7 +180,8 @@ async function check(){
   const latest=(await res.text()).trim();
   if(!/^[a-f0-9]{40}$/.test(latest)||latest===version)return;
   const current=document.querySelector('[data-page].active')?.dataset.page||'';
-  const safe=['home','library'].includes(current)&&!document.querySelector('input[type="file"]:focus');
+  // O Caderno é uma prévia independente: a atualização de versão nunca deve fechar a edição.
+  const safe=window.PSICO_NOTEBOOK_ACTIVE?.()!==true&&['home','library'].includes(current)&&!document.querySelector('input[type="file"]:focus');
   if(safe)reload(latest);else promptUpdate(latest);
  }catch(_){}
  finally{checking=false;}
@@ -233,7 +234,7 @@ setTimeout(check,15000);
 (()=>{
  'use strict';
  const STYLE_ID='uentzoul-notebook-preview-style',NAV_ID='navCadernoPreview',FRAME_ID='uentzoulCadernoFrame';
- let previewOpen=false;
+ let previewOpen=false,lastExplicitNav=0,permissionLostSince=0;
  const admin=()=>window.uentzoulAdminConfig?.isAdmin?.()===true&&!!window.uentzoulAIAuth?.user?.()?.id;
  // A restrição é pelo tipo de aparelho, não apenas pela largura da janela.
  // iPad e tablets Android continuam disponíveis, mesmo com viewport estreito.
@@ -273,15 +274,27 @@ setTimeout(check,15000);
   frame.style.height=h+'px';
  }
  function deactivate(){
-  previewOpen=false;main()?.classList.remove('nb-shell-active');
+  previewOpen=false;permissionLostSince=0;main()?.classList.remove('nb-shell-active');
   document.getElementById(NAV_ID)?.classList.remove('active');
+ }
+ window.PSICO_NOTEBOOK_ACTIVE=()=>previewOpen;
+ function restoreNotebookIfStolen(){
+  if(!previewOpen||document.getElementById(FRAME_ID))return;
+  if(performance.now()-lastExplicitNav<1500){deactivate();return;}
+  // Uma atualização de outro painel não pode substituir o conteúdo do Caderno.
+  // Ao restaurar a rota preservamos as notas já persistidas no armazenamento local.
+  if(admin())openPreview();
+  else if(main()){
+   main().classList.add('nb-shell-active');
+   main().innerHTML='<section role="status" style="padding:34px">Sessão administrativa temporariamente indisponível. Entre novamente para abrir o Caderno.</section>';
+  }
  }
  function openPreview(){
   if(!admin()||isNotebookPhone())return;
   const target=main();if(!target)return;
-  previewOpen=true;addStyles();
+  previewOpen=true;permissionLostSince=0;addStyles();
   target.classList.add('nb-shell-active');
-  target.innerHTML='<iframe id="'+FRAME_ID+'" title="Caderno de aula — prévia administrativa" src="./caderno.html?v=20261116-caderno-v10-spread-singleline" loading="eager" referrerpolicy="same-origin"></iframe>';
+  target.innerHTML='<iframe id="'+FRAME_ID+'" title="Caderno de aula — prévia administrativa" src="./caderno.html?v=20261116-caderno-v11-tab-no-white-flash" loading="eager" referrerpolicy="same-origin"></iframe>';
   document.querySelectorAll('#nav [data-page].active').forEach(n=>n.classList.remove('active'));
   document.getElementById(NAV_ID)?.classList.add('active');
   window.pmMobileDrawer?.close?.();
@@ -322,17 +335,30 @@ setTimeout(check,15000);
   if(previewOpen)fitNotebookHeight();
   button.hidden=!allowed;button.style.display=allowed?'':'none';
   if(previewOpen&&!allowed){
-   deactivate();
-   window.uentzoulAdminBridge?.refreshCurrent?.();
-  }
+   // Estado de autorização pode oscilar enquanto Supabase atualiza a sessão.
+   // O antigo refreshCurrent() causava o salto espontâneo para a aba visitada antes do Caderno.
+   if(!permissionLostSince)permissionLostSince=Date.now();
+   if(Date.now()-permissionLostSince>12000){
+    const frame=document.getElementById(FRAME_ID);
+    if(frame&&!frame.dataset.nbLocked){
+     frame.dataset.nbLocked='true';
+     frame.setAttribute('title','Caderno indisponível sem conta administrativa');
+     frame.src='about:blank';
+    }
+   }
+  }else if(previewOpen)permissionLostSince=0;
  }
  function setup(){
   if(!nav()||!main())return;
   sync();
   const observer=new MutationObserver(()=>{
-   if(previewOpen&&!document.getElementById(FRAME_ID))deactivate();
+   if(previewOpen&&!document.getElementById(FRAME_ID))requestAnimationFrame(restoreNotebookIfStolen);
   });
   observer.observe(main(),{childList:true});
+  nav().addEventListener('click',event=>{
+   if(event.target.closest('[data-page],#navAdminConfig,.nav-upcoming'))lastExplicitNav=performance.now();
+  },true);
+  window.addEventListener('popstate',()=>{if(previewOpen)lastExplicitNav=performance.now();});
   window.addEventListener('uentzoul:auth',()=>{sync();setTimeout(sync,420)});
   window.addEventListener('focus',sync);
   window.addEventListener('resize',()=>{sync();fitNotebookHeight();},{passive:true});
