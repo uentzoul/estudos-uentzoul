@@ -131,7 +131,14 @@
  window.addEventListener('uentzoul:library-updated',()=>{void refreshSources(true);});
  window.addEventListener('uentzoul:auth',()=>{sourcesReady=false;lastSourcesAt=0;void refreshSources(true);});
  window.addEventListener('focus',()=>{void refreshSources();});
- setInterval(()=>{if(!document.hidden)void refreshSources();},45000);
+ setInterval(()=>{
+   if(document.hidden)return;
+   void refreshSources();
+   if(isAdmin())document.querySelectorAll('[data-sd-subject]').forEach(node=>{
+     const subject=node.getAttribute('data-sd-subject');
+     if(subject&&TARGETS[subject])void prepareGuide(subject);
+   });
+ },20000);
  setTimeout(()=>{void refreshSources(true);},1000);
  function paragraph(s){
   const text=String(s||'').trim();
