@@ -777,3 +777,47 @@ html.nb-closing-book::view-transition-new(root){animation:none!important}
  position:absolute;left:100px;right:32px;height:34px;
  pointer-events:none;z-index:3;
 }
+
+
+/* Tutorial exclusivo do Caderno: nenhuma reestruturação dos cartões/folhas. */
+.nb-shelf-tutorial-bar{display:flex;align-items:center;justify-content:flex-end;
+ max-width:1040px;margin:0 auto 10px;min-height:37px}
+.nb-shelf-tutorial-button{appearance:none;display:inline-flex;align-items:center;gap:6px;
+ min-height:35px;padding:7px 12px;border:1px solid #cabbdf;border-radius:9px;
+ background:#fff;color:#574477;font:750 12px/1.2 'DM Sans',system-ui,sans-serif;
+ cursor:pointer;box-shadow:0 2px 8px #30243b12}
+.nb-shelf-tutorial-button:hover,.nb-shelf-tutorial-button:focus-visible{
+ background:#ede6f8;border-color:#9e86c8;outline-offset:2px}
+.nb-tour-screen{position:fixed;inset:0;z-index:2000;pointer-events:auto;
+ background:#1c172d50;font-family:'DM Sans',system-ui,Arial,sans-serif}
+.nb-tour-focus{position:fixed;z-index:1;pointer-events:none;
+ border:2px solid #b7a3f5;border-radius:11px;outline:2px solid #fff9;
+ box-shadow:0 0 0 120vmax #130d2952,0 0 25px #9f83ff85}
+.nb-tour-card{position:fixed;z-index:3;bottom:max(16px,env(safe-area-inset-bottom));
+ left:50%;transform:translateX(-50%);width:min(440px,calc(100vw - 24px));
+ padding:19px 19px 16px;border:1px solid #d7c9e9;border-radius:16px;
+ background:#fffdfa;color:#383047;box-shadow:0 18px 65px #1e102c50}
+.nb-tour-head{display:flex;align-items:center;justify-content:space-between;
+ gap:12px;color:#756488;font-size:11px;font-weight:850}
+.nb-tour-head button{display:grid;place-items:center;width:30px;height:30px;
+ background:#f2ebf9;border:1px solid #dfd0ef;border-radius:9px;
+ font:23px/1 Arial,sans-serif;color:#5f4a83;cursor:pointer}
+.nb-tour-card h2{font-size:18px;line-height:1.25;margin:10px 0 9px;font-weight:850}
+.nb-tour-card p{font-size:13px;line-height:1.55;margin:0 0 17px;color:#655b71}
+.nb-tour-actions{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.nb-tour-actions button{min-height:36px;padding:7px 13px;border:1px solid #d5c5e6;
+ border-radius:9px;background:#f4eff9;color:#564675;font-size:12px;font-weight:800;cursor:pointer}
+.nb-tour-actions button:disabled{opacity:.35;cursor:not-allowed}
+.nb-tour-actions .nb-tour-next{background:#6b54a2;border-color:#6b54a2;color:#fff}
+html[data-theme="dark"] .nb-shelf-tutorial-button{background:#213450;color:#eee7fa;border-color:#4d5976}
+html[data-theme="dark"] .nb-tour-card{background:#1e3047;color:#edf0fa;border-color:#53627b}
+html[data-theme="dark"] .nb-tour-card p{color:#bec9dc}
+html[data-theme="dark"] .nb-tour-head button,html[data-theme="dark"] .nb-tour-actions button{
+ background:#30435f;color:#f0e8fa;border-color:#576686}
+html[data-theme="dark"] .nb-tour-actions .nb-tour-next{background:#806bb6;color:#fff}
+@media(max-width:760px){
+ .nb-shelf-tutorial-bar{margin-bottom:12px}
+ .nb-tour-card{padding:16px 16px 14px}
+ .nb-tour-card h2{font-size:16px}
+ .nb-tour-card p{font-size:12.5px}
+}
