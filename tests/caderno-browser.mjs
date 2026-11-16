@@ -43,15 +43,6 @@ try{
   'Psicologia da Família','Avaliação Psicológica',
   'Teorias e Modelos Comportamentais e Cognitivos',
   'Psicologia Social I','Metapsicologia','Psicologia de Grupos']);
-  await f.locator('[data-nb-tour-start]').click();
-  assert.equal(await f.locator('#nbNotebookTutorial').count(),1,'Tutorial aparece na estante');
-  await f.locator('[data-nb-tour-next]').click();
-  await f.locator('[data-nb-tour-next]').click();
-  await f.locator('#nbSheet').waitFor({state:'visible'});
-  await f.locator('[data-nb-tour-exit]').click();
-  await f.locator('#nbShelf').waitFor({state:'visible'});
-  assert.equal(await f.locator('#nbNotebookTutorial').count(),0,'Tutorial fecha sem bloquear caderno');
-
  const colors=await f.locator('.nb-shelf-cover').evaluateAll(els=>
   els.map(el=>getComputedStyle(el).getPropertyValue('--nb-book-cover').trim()));
  assert.equal(new Set(colors).size,6,'Cada matéria deve ter sua própria cor');
@@ -765,6 +756,21 @@ try{
  assert.equal(await ef.locator('#nbTextLayer .nb-note').count(),0,
   'Após recarregar, anotações apagadas não retornam');
  await eraseContext.close();
+
+ const tourContext=await browser.newContext({viewport:{width:1280,height:900}});
+ const tourPage=await tourContext.newPage();
+ await tourPage.goto(address,{waitUntil:'domcontentloaded'});
+ const tourFrame=tourPage.frameLocator('#nbQaFrame');
+ await tourFrame.locator('#nbShelf').waitFor({state:'visible'});
+ await tourFrame.locator('[data-nb-tour-start]').click();
+ assert.equal(await tourFrame.locator('#nbNotebookTutorial').count(),1,'Tutorial inicia na estante');
+ await tourFrame.locator('[data-nb-tour-next]').click();
+ await tourFrame.locator('[data-nb-tour-next]').click();
+ await tourFrame.locator('#nbSheet').waitFor({state:'visible'});
+ await tourFrame.locator('[data-nb-tour-exit]').click();
+ await tourFrame.locator('#nbShelf').waitFor({state:'visible'});
+ assert.equal(await tourFrame.locator('#nbNotebookTutorial').count(),0,'Tutorial termina na estante');
+ await tourContext.close();
 
  console.log('Caderno browser QA OK: Enter, IA, post-it, seleção, borracha, Ctrl+Z, galeria, PDF, pan, acesso autenticado em celular e tablet');
 }finally{await browser.close();await new Promise(resolve=>server.close(resolve))}
