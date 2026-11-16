@@ -33,17 +33,54 @@ if(!userId){
  return;
 }
 const W=780,H=1240,L=34,START=28,ROWS=30,FIRST_LINE=3;
-const STORE='uentzoul:caderno:alpha2:'+userId;
+// Cada semestre tem seu catálogo e seu armazenamento. O 2026/2 conserva a chave
+// original para manter intactas todas as anotações já existentes.
+const SEMESTERS={
+ '2026/1':[
+  {id:'materia-2026-1-profissao',name:'Psicologia como Profissão',color:'#6577b2'},
+  {id:'materia-2026-1-processos',name:'Processos Psicológicos Básicos',color:'#44877e'},
+  {id:'materia-2026-1-direitos',name:'Psicologia e Direitos Humanos',color:'#af7181'},
+  {id:'materia-2026-1-epistemologia',name:'Fundamentos Epistemológicos em Psicologia',color:'#a48755'},
+  {id:'materia-2026-1-historia',name:'História da Psicologia',color:'#786fba'},
+  {id:'materia-2026-1-sociocognitivas',name:'Teorias Sociocognitivas',color:'#9370a7'},
+  {id:'materia-2026-1-desenvolvimento',name:'Psicologia do Desenvolvimento (Ciclo Vital)',color:'#4c87aa'}
+ ],
+ '2026/2':[
+  {id:'materia-familia',name:'Psicologia da Família',color:'#946b79'},
+  {id:'materia-avaliacao',name:'Avaliação Psicológica',color:'#567f88'},
+  {id:'materia-tcc',name:'Teorias e Modelos Comportamentais e Cognitivos',color:'#6876a0'},
+  {id:'materia-social',name:'Psicologia Social I',color:'#99815e'},
+  {id:'materia-metapsicologia',name:'Metapsicologia',color:'#79689b'},
+  {id:'materia-grupos',name:'Psicologia de Grupos',color:'#65856f'}
+ ],
+ '2027/1':[
+  {id:'materia-2027-1-inteligencia',name:'Avaliação Psicológica: Inteligência e Funções Cognitivas',color:'#6577b2'},
+  {id:'materia-2027-1-basesbiologicas',name:'Bases Biológicas do Comportamento Humano',color:'#44877e'},
+  {id:'materia-2027-1-psicopatologia',name:'Concepções em Psicopatologia',color:'#af7181'},
+  {id:'materia-2027-1-observacao',name:'Fundamentos e Técnicas em Observação e Entrevista',color:'#a48755'},
+  {id:'materia-2027-1-grupos2',name:'Psicologia dos Grupos II',color:'#786fba'},
+  {id:'materia-2027-1-psiquismo',name:'Psiquismo e Subjetividade em Psicanálise',color:'#9370a7'},
+  {id:'materia-2027-1-escolar',name:'Psicologia Escolar e da Educação I',color:'#4c87aa'},
+  {id:'materia-2027-1-etica',name:'Ética e Legislação em Psicologia',color:'#569270'}
+ ]
+};
+function selectedSemester(){
+ let value=new URLSearchParams(location.search).get('semester');
+ if(!value)try{
+  value=window.parent.uentzoulProfileBridge?.semester?.()||
+   window.parent.uentzoulLibraryApp?.semester?.();
+ }catch(_){}
+ return Object.hasOwn(SEMESTERS,value)?value:'2026/2';
+}
+const SEMESTER=selectedSemester();
+const SEMESTER_LABEL={'2026/1':'1º semestre','2026/2':'2º semestre','2027/1':'3º semestre'}[SEMESTER];
+const STORE=SEMESTER==='2026/2'?'uentzoul:caderno:alpha2:'+userId:
+ 'psicomoodle:caderno:'+SEMESTER+':alpha1:'+userId;
 const LEGACY_STORE='uentzoul:caderno:alpha1:'+userId;
-const BACKUP_STORE='psicomoodle:caderno:backup-antes-das-seis-materias:'+userId;
-const SUBJECT_BOOKS=[
- {id:'materia-familia',name:'Psicologia da Família',color:'#946b79'},
- {id:'materia-avaliacao',name:'Avaliação Psicológica',color:'#567f88'},
- {id:'materia-tcc',name:'Teorias e Modelos Comportamentais e Cognitivos',color:'#6876a0'},
- {id:'materia-social',name:'Psicologia Social I',color:'#99815e'},
- {id:'materia-metapsicologia',name:'Metapsicologia',color:'#79689b'},
- {id:'materia-grupos',name:'Psicologia de Grupos',color:'#65856f'}
-];
+const BACKUP_STORE=SEMESTER==='2026/2'?
+ 'psicomoodle:caderno:backup-antes-das-seis-materias:'+userId:
+ 'psicomoodle:caderno:'+SEMESTER+':backup:'+userId;
+const SUBJECT_BOOKS=SEMESTERS[SEMESTER];
 const initialBooks=()=>SUBJECT_BOOKS.map(b=>({...b,pages:[]}));
 const bookColor=b=>{
  const predefined=SUBJECT_BOOKS.find(x=>x.id===b.id);
@@ -62,14 +99,14 @@ const ACTIONS=[
 ];
 const emptyPage=()=>({title:'',date:'',notes:[],strokes:[],stickies:[]});
 const newBook=(name='Meu caderno')=>({id:'book-'+Date.now()+'-'+Math.random().toString(36).slice(2,8),name,pages:[]});
-const defaults=()=>({books:initialBooks(),bookId:'materia-familia',page:0,mode:'none',font:'print',ink:'blue',size:1,align:'left',layout:'single',smooth:false,zoom:.88,shortcuts:{},stickyTone:'yellow',eraserMode:'parts',eraserRadius:14});
+const defaults=()=>({books:initialBooks(),bookId:SUBJECT_BOOKS[0].id,page:0,mode:'none',font:'print',ink:'blue',size:1,align:'left',layout:'single',smooth:false,zoom:.88,shortcuts:{},stickyTone:'yellow',eraserMode:'parts',eraserRadius:14});
 const hasPageContent=p=>!!(String(p?.date||'').trim()||p?.notes?.some(n=>String(n.text||'').trim())||p?.strokes?.some(s=>s.points?.length)||p?.stickies?.length);
 const cleanPage=p=>({title:String(p?.title||'').slice(0,100),date:String(p?.date||'').slice(0,16),
  notes:Array.isArray(p?.notes)?p.notes.slice(0,140).map(n=>{const {original,...corrected}=n;corrected.pending=false;return corrected;}):[],strokes:Array.isArray(p?.strokes)?p.strokes.slice(0,500):[],
  stickies:Array.isArray(p?.stickies)?p.stickies.slice(0,40):[]});
 let data=defaults(),stored=null;
 try{stored=JSON.parse(localStorage.getItem(STORE)||'null');}catch(_){}
-if(!stored)try{
+if(!stored&&SEMESTER==='2026/2')try{
  const legacy=JSON.parse(localStorage.getItem(LEGACY_STORE)||'null');
  if(legacy&&Array.isArray(legacy.pages))stored={...legacy,books:[{id:'book-original',name:'Meu caderno',pages:legacy.pages}],bookId:'book-original'};
 }catch(_){}
@@ -161,7 +198,7 @@ const id=()=>typeof crypto.randomUUID==='function'?crypto.randomUUID():'nb-'+Dat
 const isMobile=()=>window.matchMedia('(max-width:760px)').matches;
 function renderShelf(){
  const host=$('nbShelf');if(!host)return;
- host.innerHTML='<div class="nb-shelf-heading"><span class="nb-shelf-eyebrow">PSICOMOODLE · PSICOLOGIA</span>'+
+ host.innerHTML='<div class="nb-shelf-heading"><span class="nb-shelf-eyebrow">PSICOMOODLE · '+SEMESTER_LABEL.toUpperCase()+'</span>'+
   '<h2>Meus cadernos</h2><p>Escolhe uma matéria para abrir o caderno e folhear suas páginas.</p></div>'+
   '<div class="nb-shelf-grid">'+data.books.map((book,i)=>
    '<button class="nb-shelf-book" data-nb-shelf-book="'+esc(book.id)+'" aria-label="Abrir '+esc(book.name)+'">'+
