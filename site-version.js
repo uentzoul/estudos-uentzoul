@@ -83,7 +83,7 @@ function setup(){
  if(!document.getElementById('pm-tutorial-script')){
   const script=document.createElement('script');
   script.id='pm-tutorial-script';
-  script.src='spotlight-tour.js?v=20261115-flicker-fixed-v32';
+  script.src='spotlight-tour.js?v=20261116-flicker-fixed-v33';
   script.async=true;
   document.head.appendChild(script);
  }
