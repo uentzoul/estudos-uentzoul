@@ -22,7 +22,7 @@ test('Prévia deve exigir administrador autenticado e nunca usar service role no
  assert.match(script,/functions\.invoke\('caderno-revisao'/);
  assert.doesNotMatch(script,/\bservice[_-]?role\b/i);
  assert.match(html,/robots" content="noindex, nofollow"/);
- assert.match(nav,/button\.style\.visibility=allowed\?'visible':'hidden'/);
+ assert.match(nav,/if\(button\.disabled===allowed\)button\.disabled=!allowed/);
  assert.match(nav,/navCadernoPreview/);
 });
 test('Texto é editado diretamente no caderno sem caixa de envio flutuante',()=>{
@@ -177,7 +177,7 @@ test('Traços ajustados preservam percurso original e reduzem tremores em curvas
   'A curva ajustada precisa ser muito menos tremida do que a original');
  assert.ok(Math.max(...corrected.points.map(p=>p.y))-Math.min(...corrected.points.map(p=>p.y))>70,
   'Não pode achatar o desenho em uma reta');
- assert.match(script,/data\.smooth\?fluidStroke\(raw\)/);
+ assert.match(script,/data\.smooth\?smartStroke\(raw\)/);
 });
 test('Selecionar é padrão, ESC volta ao seletor e papel pode ser arrastado sem selecionar item',()=>{
  assert.match(script,/bookId:SUBJECT_BOOKS\[0\]\.id,page:0,mode:'none'/);
@@ -410,7 +410,7 @@ test('Caderno é acessível em computador e tablet, mas não em telefone',()=>{
  }
  assert.match(nav,/const allowed=admin\(\)&&!phone/);
  assert.match(nav,/if\(!admin\(\)\|\|isNotebookPhone\(\)\)return/);
- assert.match(nav,/button\.style\.visibility=allowed\?'visible':'hidden'/);
+ assert.match(nav,/if\(button\.disabled===allowed\)button\.disabled=!allowed/);
  assert.match(script,/if\(isNotebookPhone\(\)\)\{\s*root\.className='nb-phone-unavailable'/);
  assert.match(script,/return;\s*\}\s*let userId=/);
  assert.match(style,/\.nb-phone-unavailable\{/);
@@ -493,9 +493,9 @@ test('Caderno já está no HTML da navegação antes da autenticação, sem inse
   calendar=index.indexOf('data-page="calendar"',start);
  assert.ok(calendar<exam&&exam<notebook,'Caderno estático fica após Simulados no menu já ordenado');
  assert.equal((index.match(/id="navCadernoPreview"/g)||[]).length,1);
- assert.match(index,/id="navCadernoPreview"[\s\S]{0,180}visibility:hidden/);
+ assert.match(index,/id="navCadernoPreview"\s+disabled aria-disabled="true"/);
  assert.match(nav,/button\.dataset\.nbBound!=='true'/);
- assert.match(nav,/button\.style\.visibility=allowed\?'visible':'hidden'/);
+ assert.match(nav,/if\(button\.disabled===allowed\)button\.disabled=!allowed/);
 });
 
 
