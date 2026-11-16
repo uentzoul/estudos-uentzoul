@@ -72,3 +72,11 @@ html[data-theme="dark"] .sd-correct .sd-option-letter{background:#267c62}
 .sd-topic-divider{display:flex;align-items:center;gap:14px;margin:15px 0 2px;color:var(--subject-accent,#6857bc)}
 .sd-topic-divider:after{content:"";height:1px;flex:1;background:var(--line)}
 .sd-topic-divider span{font-size:12px;font-weight:900;text-transform:uppercase;letter-spacing:.08em}
+
+
+/* PDF original publicado pelo professor: o documento substitui o roteiro gerado por IA. */
+.sd-official-action{display:inline-flex;align-items:center;justify-content:center;gap:8px;margin-top:18px;padding:11px 16px;
+ border:1px solid color-mix(in srgb,var(--subject-accent,#6857bc) 42%,var(--line));
+ border-radius:11px;color:var(--subject-accent,#6857bc);font-size:13px;font-weight:800;text-decoration:none;
+ background:color-mix(in srgb,var(--subject-accent,#6857bc) 7%,var(--paper,#fff))}
+.sd-official-action:hover,.sd-official-action:focus-visible{background:color-mix(in srgb,var(--subject-accent,#6857bc) 15%,var(--paper,#fff))}
