@@ -173,7 +173,10 @@ function serializable(){
   // vazia caso a folha direita do mesmo par já tenha conteúdo.
   while(cleaned.length&&!hasPageContent(cleaned[cleaned.length-1]))cleaned.pop();
   if(book.id===data.bookId){
-   data.page=Math.min(cleaned.length,Math.max(0,data.page));
+   // Em folha dupla, a direita pode estar selecionada, mas ainda não materializada.
+   // Checkpoint (Ctrl+Z) não pode renumerá-la como esquerda antes de desenhar.
+   const pendingRight=data.layout==='book'&&editEnabled?1:0;
+   data.page=Math.min(cleaned.length+pendingRight,Math.max(0,data.page));
    data.pages=cleaned;
   }
   book.pages=cleaned;
