@@ -2652,6 +2652,8 @@ function pmNavSave(previousScroll){
 }
 function pmNavRestore(state){
  if(!state?.[PM_HISTORY_KEY])return;
+ // Uma navegação real pelo histórico principal encerra a prévia intencionalmente.
+ window.PSICO_NOTEBOOK_CLOSE?.();
  navRestoring=true;
  try{
   if(state.semester!==semester&&SEMESTER_DB[state.semester]){
@@ -2704,6 +2706,8 @@ const go=(page,extra={})=>{
  const previousScroll=window.scrollY||0;
  if(page==='home')current.libraryCourse=null;
  current={...current,...extra,page};
+ // Navegação solicitada pelo usuário pode trocar a tela do Caderno.
+ window.PSICO_NOTEBOOK_CLOSE?.();
  try{render()}catch(e){console.error('Erro ao abrir seção',e);toast('Não foi possível abrir esta seção. Tente novamente no Safari/Chrome.');return}
  window.dispatchEvent(new CustomEvent('uentzoul:route',{detail:window.uentzoulCurrentRoute()}));
  pmNavSave(previousScroll);
@@ -4350,6 +4354,8 @@ function renderThirdSemester(){
  return courseCards();
 }
 function render(){
+ // Não desmontar o iframe do Caderno quando outras seções atualizarem em segundo plano.
+ if(window.PSICO_NOTEBOOK_ACTIVE?.()&&document.getElementById('uentzoulCadernoFrame'))return;
  if(current.page==='calendar'&&!agendaAvailable())current.page='home';
  renderNav();
  if((semester==='2027/1'||semester==='2026/1')&&!['ai','messages','admin','exams','test'].includes(current.page)){
@@ -7994,7 +8000,7 @@ document.addEventListener("click",e=>{if(!e.target.closest("[data-theme-toggle]"
 <!-- Extensão integrada ao núcleo de mensagens. -->
 <script id="pm-tutorial-script" src="spotlight-tour.js?v=20261116-flicker-fixed-v33" defer></script>
 <script id="pm-podcast-mini-script" src="podcast-mini.js?v=20261114-podcast-mini-v2" defer></script>
-<script src="site-version.js?v=20261116-caderno-v14-public-disabled-first-paint"></script>
+<script src="site-version.js?v=20261116-caderno-v15-guard-background-render"></script>
 
 <script>
 /* Aviso desacoplado do scroll da sidebar. Nenhuma alteração em navegação. */
