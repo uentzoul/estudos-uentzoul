@@ -385,7 +385,7 @@ try{
  assert.equal(await f.locator('#nbSheet').evaluate(el=>getComputedStyle(el).backgroundColor),'rgb(255, 253, 248)');
  assert.deepEqual(errors,[],'Nenhum erro JavaScript de execução');
  await ctx.close();
- // Celular: mesmo acessando /caderno.html diretamente, nenhuma estante é iniciada.
+ // Celular: conta autenticada pode acessar seus cadernos sem perder dados.
  const mobile=await browser.newContext({
   viewport:{width:390,height:844},isMobile:true,hasTouch:true,acceptDownloads:true,
   userAgent:'Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.0 Mobile/15E148 Safari/604.1'
@@ -393,9 +393,8 @@ try{
  const mobilePage=await mobile.newPage();
  await mobilePage.goto(address,{waitUntil:'domcontentloaded'});
  const mf=mobilePage.frameLocator('#nbQaFrame');
- await mf.locator('.nb-phone-unavailable').waitFor({state:'visible',timeout:15000});
- assert.match(await mf.locator('.nb-phone-unavailable').innerText(),/somente em computadores e tablets/);
- assert.equal(await mf.locator('#nbShelf').count(),0,'O caderno não deve iniciar no iPhone');
+ await mf.locator('#nbShelf').waitFor({state:'visible',timeout:15000});
+ assert.equal(await mf.locator('.nb-shelf-book').count(),6,'Cadernos da conta também aparecem no iPhone');
  await mobile.close();
  // Tablet iPad: permanece disponível até com user agent contendo "Mobile".
  const tablet=await browser.newContext({
@@ -758,5 +757,5 @@ try{
   'Após recarregar, anotações apagadas não retornam');
  await eraseContext.close();
 
- console.log('Caderno browser QA OK: Enter, IA, post-it, seleção, borracha, Ctrl+Z, galeria, PDF, pan, bloqueio de celular e acesso em tablet');
+ console.log('Caderno browser QA OK: Enter, IA, post-it, seleção, borracha, Ctrl+Z, galeria, PDF, pan, acesso autenticado em celular e tablet');
 }finally{await browser.close();await new Promise(resolve=>server.close(resolve))}
