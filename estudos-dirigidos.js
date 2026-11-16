@@ -16,6 +16,9 @@
    const token=(row.content_tags||[]).find(t=>/^psicomoodle:prova:/i.test(t));
    return token?token.split(':').pop():'';
  }
+ function officialFormat(doc){
+   return String(doc.filename||'').toLowerCase().match(/\.(pdf|docx|pptx)$/)?.[1]?.toUpperCase()||'Arquivo';
+ }
  function renderOfficial(subject,documents){
    return '<section class="sd-root" data-sd-subject="'+esc(subject)+'" aria-label="Estudos dirigidos da disciplina">'+
      '<header class="sd-header"><span class="sd-kicker">ROTEIRO DO PROFESSOR</span><h2>Estudos dirigidos</h2>'+
@@ -24,10 +27,10 @@
        '<summary class="sd-guide-summary"><span class="sd-guide-icon" aria-hidden="true">▤</span><span class="sd-guide-label">'+
        '<strong>'+fmt(doc.display_title||doc.filename||'Estudo dirigido')+'</strong>'+
        '<small>Material oficial do professor'+(officialExam(doc)?' · '+fmt(officialExam(doc)):'')+'</small></span>'+
-       '<span class="sd-count">PDF oficial</span><span class="sd-arrow" aria-hidden="true">⌄</span></summary>'+
+       '<span class="sd-count">'+officialFormat(doc)+' oficial</span><span class="sd-arrow" aria-hidden="true">⌄</span></summary>'+
        '<div class="sd-guide-body"><div class="sd-source"><strong>Estudo dirigido original do professor</strong>'+
-       '<p>O PDF é preservado na íntegra. Os roteiros produzidos por IA não substituem este documento.</p></div>'+
-       '<a class="sd-official-action" href="#" data-sd-official="'+esc(doc.resource_key)+'">Abrir estudo dirigido (PDF) ↗</a>'+
+       '<p>O documento é preservado na íntegra. Os roteiros produzidos por IA não substituem este material.</p></div>'+
+       '<a class="sd-official-action" href="#" data-sd-official="'+esc(doc.resource_key)+'">Abrir estudo dirigido ('+officialFormat(doc)+') ↗</a>'+
        '</div></details>').join('')+'</section>';
  }
  function refreshVisibleGuides(){
@@ -128,7 +131,9 @@
     avaliacao:new Set(['final-2026-2-avaliacao','avaliacao-p2'])
    };
    const onlyCurrent=window.PSICO_FINAL_EXAMS?.version&&liveGuideIds[subject];
-   const guides=onlyCurrent?allGuides.filter(g=>liveGuideIds[subject].has(g.id)):allGuides;
+   const available=onlyCurrent?allGuides.filter(g=>liveGuideIds[subject].has(g.id)):allGuides;
+   const originals=available.filter(g=>g.status==='original');
+   const guides=originals.length?originals:available;
    if(!guides.length)return '<div class="sd-empty" data-sd-subject="'+esc(subject)+'">Ainda não há um estudo dirigido com enunciados suficientes para montar esta área.</div>';
    return '<section class="sd-root" data-sd-subject="'+esc(subject)+'" aria-label="Estudos dirigidos da disciplina">'+
     '<header class="sd-header"><span class="sd-kicker">ESTUDO EXPLICADO</span><h2>Estudos dirigidos</h2>'+
