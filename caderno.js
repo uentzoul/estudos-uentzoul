@@ -439,9 +439,22 @@ function beginEdit(line){
 function closeEditor(){editing=null;previewText='';renderNotes();editorMarkup();}
 function occupiedSpan(note){
  const size=clamp(Number(note.size)||1,1,3);
- const maxLineChars=Math.max(12,Math.floor(53/size));
- const visualRows=Math.max(1,String(note.text||'').split('\n').reduce((n,line)=>n+Math.max(1,Math.ceil(line.length/maxLineChars)),0));
- return clamp(size*visualRows,1,ROWS);
+ // Mede exatamente o fluxo usado na folha: a IA pode mudar palavras, mas nunca o passo da pauta.
+ const left=clamp(Number(note.x)||110,85,W-65);
+ const width=clamp(Number(note.frameW)||620,70,W-left-20);
+ const fontSize=26+(size-1)*30;
+ const probe=document.createElement('div');
+ probe.className='nb-note '+(note.font==='joined'?'joined':note.font==='cursive'?'cursive':'print');
+ probe.style.cssText='left:-9999px;top:0;width:'+width+'px;min-height:0;visibility:hidden;pointer-events:none;'+
+  '--nb-small:26px;--nb-note-size:'+fontSize+'px;--nb-note-row:'+(size*L)+'px;';
+ probe.innerHTML='<span class="nb-note-content">'+letterMarkup(note.text)+'</span>';
+ sheet.appendChild(probe);
+ const height=probe.scrollHeight;
+ probe.remove();
+ if(height>0)return clamp(size*Math.max(1,Math.ceil(height/(size*L)-.01)),1,ROWS);
+ // Fallback para testes sem motor de layout.
+ const lines=Math.max(1,String(note.text||'').split('\n').length);
+ return clamp(size*lines,1,ROWS);
 }
 function makeRoom(saved){
  const list=page().notes.filter(n=>n.id!==saved.id).sort((a,b)=>a.line-b.line);
