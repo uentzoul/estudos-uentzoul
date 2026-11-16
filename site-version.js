@@ -16,10 +16,21 @@ function setup(){
  }
  const nav=document.getElementById('nav');
  if(nav){
+  // Navegação no mesmo alinhamento desde o primeiro quadro.
+  // Não remover e reinserir todos os botões ao carregar: isso causava o flick.
   const anchor=nav.querySelector('.nav-upcoming')||nav.querySelector('[data-page="admin"]')||null;
-  for(const page of ['home','calendar','exams','messages','ai']){
-   const node=nav.querySelector('[data-page="'+page+'"]');
-   if(node)nav.insertBefore(node,anchor);
+  const items=[
+   nav.querySelector('[data-page="home"]'),
+   nav.querySelector('[data-page="calendar"]'),
+   nav.querySelector('[data-page="exams"]'),
+   nav.querySelector('#navCadernoPreview'),
+   nav.querySelector('[data-page="messages"]'),
+   nav.querySelector('[data-page="ai"]')
+  ].filter(Boolean);
+  let next=anchor;
+  for(const node of items.reverse()){
+   if(node.nextElementSibling!==next)nav.insertBefore(node,next);
+   next=node;
   }
  }
  // Marca e nome: atalhos discretos para Início, sem atualizar toda a página.
