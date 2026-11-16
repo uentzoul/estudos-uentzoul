@@ -42,7 +42,7 @@ test('Enter registra e corrige texto e move para a próxima linha; vazio apenas 
   editing:{id:null,line:3},data:{font:'print',size:1,ink:'blue'},
   $:()=>({value}),checkpoint(){calls.checkpoints++},page:()=>mockPage,
   id:()=>String(calls.checkpoints),occupiedSpan:()=>2,makeRoom(){},
-  materializePage(){},closeEditor(){},renderNotes(){},
+  materializePage(){},closeEditor(){},renderNotes(){},renderPageRail(){},
   save(){calls.saved++},status(){},fallbackBasic(text){return text},correctNote(id,text){calls.correct.push({id,text})},
   advanceLine(i){calls.advanced.push(i)}
  };
@@ -60,6 +60,19 @@ test('Enter registra e corrige texto e move para a próxima linha; vazio apenas 
  assert.equal(calls.advanced[1],8);
  context.editing={id:null,line:10};value='Teste';saveEditor(false);
  assert.equal(calls.advanced.length,2,'Salvar ao trocar de área não salta linha');
+ const erasedId=mockPage.notes[0].id, savedBefore=calls.saved;
+ context.editing={id:erasedId,line:3};value='';
+ saveEditor(true);
+ assert.equal(mockPage.notes.some(n=>n.id===erasedId),false,
+  'Backspace em todo o conteúdo deve remover a anotação anterior');
+ assert.equal(calls.saved,savedBefore+1,
+  'Excluir uma anotação existente deve salvar a exclusão');
+ assert.equal(calls.advanced.at(-1),4,
+  'Enter após apagar tudo deve avançar para a próxima linha');
+ assert.match(script,/root\.addEventListener\('focusout',event=>/);
+ assert.match(script,/if\(editing===session&&\$\('nbEditorText'\)===input/);
+ assert.match(script,/if\(!typed\.trim\(\)&&editing\.id\)\{/);
+
 });
 test('Páginas vazias finais não são salvas, mas o lado esquerdo vazio é preservado quando há escrita à direita',()=>{
  const def=script.match(/const hasPageContent=p=>([^\n]+);/);
