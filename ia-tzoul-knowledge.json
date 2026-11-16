@@ -1,6 +1,6 @@
 {
-  "version": 1,
-  "updatedAt": "2026-11-13",
+  "version": 2,
+  "updatedAt": "2026-11-16",
   "semester": "2026/2",
   "name": "Psicologia PUCRS 2026/2 — base IA Tzoul",
   "disclaimer": "A base inclui os conteúdos de ACT e os 16 materiais novos de Psicologia Social. O cadastro de um material não significa que o PDF original esteja disponível por link público; não invente leitura integral de arquivo não publicado.",
@@ -242,15 +242,6 @@
       "subject": "meta",
       "title": "Metapsicologia — Podcast 5: Do instinto à pulsão de morte",
       "text": "Episódio 5 de podcast sobre Do instinto à pulsão de morte. Este índice contém o título, não a transcrição do áudio.",
-      "url": "#audio"
-    },
-    {
-      "id": "c264",
-      "type": "podcast",
-      "semester": "2026/2",
-      "subject": "meta",
-      "title": "Metapsicologia — Podcast 6: As duas teorias freudianas da angústia",
-      "text": "Episódio 6 de podcast sobre As duas teorias freudianas da angústia. Este índice contém o título, não a transcrição do áudio.",
       "url": "#audio"
     },
     {
@@ -1549,16 +1540,6 @@
       "text": "Freud modifica suas formulações: de pulsões sexuais versus autoconservação para pulsões de vida e pulsões de morte.\nExemplo: Um estudante compara as duas organizações históricas da teoria das pulsões.\nEquívoco a evitar: O primeiro e o segundo dualismo pulsional freudiano são idênticos."
     },
     {
-      "id": "final-topic-meta-14",
-      "type": "topico",
-      "subject": "meta",
-      "semester": "2026/2",
-      "title": "Angústia e sinal de perigo",
-      "topicIndex": 13,
-      "url": "#meta",
-      "text": "A segunda teoria freudiana da angústia destaca seu papel de sinal diante de perigo, mobilizando defesas; difere da concepção anterior.\nExemplo: Uma situação associada a ameaça interna desencadeia alerta e operações defensivas do ego.\nEquívoco a evitar: Na segunda teoria, toda angústia é apenas produto mecânico de libido recalcada."
-    },
-    {
       "id": "final-topic-meta-15",
       "type": "topico",
       "subject": "meta",
@@ -1566,7 +1547,7 @@
       "title": "Mecanismos de defesa",
       "topicIndex": 14,
       "url": "#meta",
-      "text": "São operações psíquicas do ego, frequentemente inconscientes, que procuram lidar com conflitos e angústia; podem ser flexíveis, rígidas ou insuficientes.\nExemplo: Uma pessoa atribui a outra sentimentos próprios que encontra dificuldade de reconhecer.\nEquívoco a evitar: Um mecanismo de defesa isolado basta para fazer diagnóstico de psicose."
+      "text": "São operações psíquicas do ego, frequentemente inconscientes, que procuram lidar com conflitos e tensões psíquicas; podem ser flexíveis, rígidas ou insuficientes.\nExemplo: Uma pessoa atribui a outra sentimentos próprios que encontra dificuldade de reconhecer.\nEquívoco a evitar: Um mecanismo de defesa isolado basta para fazer diagnóstico de psicose."
     },
     {
       "id": "final-topic-meta-16",
@@ -1577,19 +1558,6 @@
       "topicIndex": 15,
       "url": "#meta",
       "text": "O narcisismo é relevante para pensar investimentos libidinais no eu e sua constituição, incluindo idealização e relação com objetos.\nExemplo: Uma pessoa regula sua autoestima por ideais de perfeição e reconhecimento.\nEquívoco a evitar: O narcisismo freudiano significa apenas vaidade cotidiana."
-    },
-    {
-      "id": "final-material-meta-1",
-      "type": "material",
-      "subject": "meta",
-      "semester": "2026/2",
-      "title": "Angústia — slides",
-      "filename": "Lâminas 05 - Angústia.pdf",
-      "source": "Lâminas 05 - Angústia.pdf",
-      "url": "#meta",
-      "available": true,
-      "resourceKey": "meta::Angústia — slides",
-      "text": "Material cadastrado no PsicoMoodle: Angústia — slides. Arquivo: Lâminas 05 - Angústia.pdf. Consulte o documento integral em Materiais e textos. Amostra do cadastro automatizado, que não substitui a leitura do PDF: Conteúdo identificado: pulsões, angústia, recalcamento, base psicanalítica. Amostra: Angústia Prof. Dr. Jefferson Silva Krug Metapsicologia Psicanalítica PUCRS TEXTO DE REFERÊNCIA Macedo (2015), Cap. 13 (p.282-292)  Primeira Teoria da Angústia (1895-1900)  O reca"
     },
     {
       "id": "final-material-meta-2",
@@ -1615,7 +1583,7 @@
       "url": "#meta",
       "available": true,
       "resourceKey": "meta::Estudo Dirigido P2",
-      "text": "Material cadastrado no PsicoMoodle: Estudo Dirigido P2. Arquivo: ESTUDO DIRIGIDO P2 - METAPSICOLOGIA.docx. Consulte o documento integral em Materiais e textos. Amostra do cadastro automatizado, que não substitui a leitura do PDF: Conteúdo identificado: segunda tópica, id, ego e superego, Édipo, pulsões, angústia, recalcamento. Amostra: ESTUDO DIRIGIDO P2 – METAPSICOLOGIA PSICANALÍTICA Prof. Jefferson Krug Segunda tópica Explique 3 diferenças entre a primeira e a segunda tópica. Cite 5 características do Id. Cite "
+      "text": "Material cadastrado no PsicoMoodle: Estudo Dirigido P2. Arquivo: ESTUDO DIRIGIDO P2 - METAPSICOLOGIA.docx. Consulte o documento integral em Materiais e textos. Revisão de prova: consulte a seleção atualizada dos assuntos na disciplina."
     },
     {
       "id": "final-material-meta-4",
@@ -1641,7 +1609,7 @@
       "url": "#meta",
       "available": true,
       "resourceKey": "meta::Lâminas 02 - Sexualidade, Inconsciente e Recalcamento",
-      "text": "Material cadastrado no PsicoMoodle: Lâminas 02 - Sexualidade, Inconsciente e Recalcamento. Arquivo: Lâminas 02 - Sexualidade, Inconsciente e Recalcamento.pdf. Consulte o documento integral em Materiais e textos. Amostra do cadastro automatizado, que não substitui a leitura do PDF: Conteúdo identificado: Édipo, pulsões, angústia, recalcamento, base psicanalítica. Amostra: Primeira tópica: sexualidade, inconsciente e recalcamento Prof. Dr. Jefferson Silva Krug Metapsicologia Psicanalítica PUCRS TEXTOS DE REFERÊNCIA * Macedo (2015), Cap. 03 (Sexualida"
+      "text": "Material cadastrado no PsicoMoodle: Lâminas 02 - Sexualidade, Inconsciente e Recalcamento. Arquivo: Lâminas 02 - Sexualidade, Inconsciente e Recalcamento.pdf. Consulte o documento integral em Materiais e textos. Revisão de prova: consulte a seleção atualizada dos assuntos na disciplina."
     },
     {
       "id": "final-material-meta-6",
@@ -1667,7 +1635,7 @@
       "url": "#meta",
       "available": true,
       "resourceKey": "meta::Plano e cronograma de Metapsicologia",
-      "text": "Material cadastrado no PsicoMoodle: Plano e cronograma de Metapsicologia. Arquivo: PLANO DE ENSINO e CRONOGRAMA Metapsicologia Psicanalítica 2026-2 1.pdf. Consulte o documento integral em Materiais e textos. Amostra do cadastro automatizado, que não substitui a leitura do PDF: Conteúdo identificado: segunda tópica, Édipo, narcisismo, pulsões, angústia, recalcamento. Amostra: Av. Ipiranga, 6681 – Prédio 1 – Sala 309 | CEP 90619 - 900 | Porto Alegre, RS – Brasil Fone: (51) 3320 - 3630 | E - mail: diretoria.graduacao@pucrs.br | www.pucrs.br PLANO DE ENSIN"
+      "text": "Material cadastrado no PsicoMoodle: Plano e cronograma de Metapsicologia. Arquivo: PLANO DE ENSINO e CRONOGRAMA Metapsicologia Psicanalítica 2026-2 1.pdf. Consulte o documento integral em Materiais e textos. Revisão de prova: consulte a seleção atualizada dos assuntos na disciplina."
     },
     {
       "id": "final-material-meta-8",
@@ -3658,16 +3626,6 @@
       "text": "Formato: combo\nEnunciado: Analise as afirmações abaixo sobre Três senhores do ego, Ideal do ego e identificação e Complexo de Édipo.\n\nAssinale a alternativa que contém somente as afirmações corretas.\nConceito: Três senhores do ego\nAssertivas: I. O ideal do ego significa exclusivamente o conjunto de desejos pulsionais do id.; II. Na teoria freudiana, envolve desejos, rivalidades e identificações inconscientes em relações parentais e participa da constituição do superego.; III. Freud descreve o ego pressionado pelo id, pelo superego e pelo mundo externo, tentando mediar forças contraditórias.; IV. Os três senhores do ego são consciente, pré-consciente e inconsciente.; V. O ideal do ego envolve modelos internalizados perante os quais a pessoa se avalia; identificações com figuras importantes participam desse processo."
     },
     {
-      "id": "final-question-meta-rev-final-20261113-r2-1-9",
-      "type": "questao",
-      "subject": "meta",
-      "semester": "2026/2",
-      "title": "Simulado 1 — questão 9",
-      "examId": "meta-rev-final-20261113-r2-1",
-      "url": "#meta",
-      "text": "Formato: choice\nEnunciado: Situação: Uma criança percebe que seu cuidador tem vínculos além da relação exclusiva com ela.\n\nQual interpretação é mais coerente com o material da disciplina?\nConceito: Triangulação e interdição\nAlternativas: Triangulação e interdição: A triangulação edípica refere-se à presença de um terceiro e à experiência de limites na relação dual, com função simbólica de interdição.; Priorizar Fonte, pressão, finalidade e objeto: Os quatro elementos da pulsão são fonte somática, pressão ou força, finalidade de satisfação e objeto pelo qual a satisfação pode ocorrer.; Priorizar Angústia e sinal de perigo: A segunda teoria freudiana da angústia destaca seu papel de sinal diante de perigo, mobilizando defesas; difere da concepção anterior.; Priorizar Narcisismo e constituição do eu: O narcisismo é relevante para pensar investimentos libidinais no eu e sua constituição, incluindo idealização e relação com objetos.; Priorizar Segunda tópica: É o modelo estrutural das instâncias id, ego e superego, cujas exigências interagem entre si e com a realidade externa."
-    },
-    {
       "id": "final-question-meta-rev-final-20261113-r2-1-10",
       "type": "questao",
       "subject": "meta",
@@ -3686,36 +3644,6 @@
       "examId": "meta-rev-final-20261113-r2-2",
       "url": "#meta",
       "text": "Simulado pronto, nível 2 de 5, com 10 questões de formatos variados e 2 dissertativas finais; conteúdo restrito à revisão 2026/2."
-    },
-    {
-      "id": "final-question-meta-rev-final-20261113-r2-2-1",
-      "type": "questao",
-      "subject": "meta",
-      "semester": "2026/2",
-      "title": "Simulado 2 — questão 1",
-      "examId": "meta-rev-final-20261113-r2-2",
-      "url": "#meta",
-      "text": "Formato: choice\nEnunciado: Situação: Uma criança vivencia a entrada de um terceiro como limite à exclusividade imaginada.\n\nQue conceito ajuda a compreender melhor o caso apresentado?\nConceito: Complexo de Édipo\nAlternativas: Priorizar Pulsão como conceito-limite: Freud entende a pulsão como conceito-limite entre somático e psíquico, articulado à exigência de trabalho para o aparelho psíquico.; Priorizar Fonte, pressão, finalidade e objeto: Os quatro elementos da pulsão são fonte somática, pressão ou força, finalidade de satisfação e objeto pelo qual a satisfação pode ocorrer.; Priorizar Dualismos pulsionais: Freud modifica suas formulações: de pulsões sexuais versus autoconservação para pulsões de vida e pulsões de morte.; Priorizar Angústia e sinal de perigo: A segunda teoria freudiana da angústia destaca seu papel de sinal diante de perigo, mobilizando defesas; difere da concepção anterior.; Complexo de Édipo: Na teoria freudiana, envolve desejos, rivalidades e identificações inconscientes em relações parentais e participa da constituição do superego."
-    },
-    {
-      "id": "final-question-meta-rev-final-20261113-r2-2-2",
-      "type": "questao",
-      "subject": "meta",
-      "semester": "2026/2",
-      "title": "Simulado 2 — questão 2",
-      "examId": "meta-rev-final-20261113-r2-2",
-      "url": "#meta",
-      "text": "Formato: choice\nEnunciado: Situação: Uma excitação corporal se apresenta como exigência psíquica de satisfação.\n\nQue conceito ajuda a compreender melhor o caso apresentado?\nConceito: Pulsão como conceito-limite\nAlternativas: Pulsão como conceito-limite: Freud entende a pulsão como conceito-limite entre somático e psíquico, articulado à exigência de trabalho para o aparelho psíquico.; Priorizar Angústia e sinal de perigo: A segunda teoria freudiana da angústia destaca seu papel de sinal diante de perigo, mobilizando defesas; difere da concepção anterior.; Priorizar Mecanismos de defesa: São operações psíquicas do ego, frequentemente inconscientes, que procuram lidar com conflitos e angústia; podem ser flexíveis, rígidas ou insuficientes.; Priorizar Narcisismo e constituição do eu: O narcisismo é relevante para pensar investimentos libidinais no eu e sua constituição, incluindo idealização e relação com objetos.; Priorizar Primeira tópica: Freud diferencia sistemas consciente, pré-consciente e inconsciente em um modelo topográfico, ligado às condições de acesso do conteúdo à consciência."
-    },
-    {
-      "id": "final-question-meta-rev-final-20261113-r2-2-3",
-      "type": "questao",
-      "subject": "meta",
-      "semester": "2026/2",
-      "title": "Simulado 2 — questão 3",
-      "examId": "meta-rev-final-20261113-r2-2",
-      "url": "#meta",
-      "text": "Formato: combo\nEnunciado: Analise as afirmações abaixo sobre Angústia e sinal de perigo, Mecanismos de defesa e Narcisismo e constituição do eu.\n\nAssinale a alternativa que contém somente as afirmações corretas.\nConceito: Angústia e sinal de perigo\nAssertivas: I. O narcisismo é relevante para pensar investimentos libidinais no eu e sua constituição, incluindo idealização e relação com objetos.; II. A segunda teoria freudiana da angústia destaca seu papel de sinal diante de perigo, mobilizando defesas; difere da concepção anterior.; III. Na segunda teoria, toda angústia é apenas produto mecânico de libido recalcada.; IV. São operações psíquicas do ego, frequentemente inconscientes, que procuram lidar com conflitos e angústia; podem ser flexíveis, rígidas ou insuficientes.; V. Um mecanismo de defesa isolado basta para fazer diagnóstico de psicose."
     },
     {
       "id": "final-question-meta-rev-final-20261113-r2-2-4",
@@ -3758,16 +3686,6 @@
       "text": "Formato: tf\nEnunciado: Julgue a seguinte afirmação sobre Castração simbólica:\n\nNa leitura psicanalítica, a castração tem dimensão de limite, falta e impossibilidade de satisfação plena, além das formulações anatômicas históricas de Freud.\nConceito: Castração simbólica"
     },
     {
-      "id": "final-question-meta-rev-final-20261113-r2-2-8",
-      "type": "questao",
-      "subject": "meta",
-      "semester": "2026/2",
-      "title": "Simulado 2 — questão 8",
-      "examId": "meta-rev-final-20261113-r2-2",
-      "url": "#meta",
-      "text": "Formato: combo\nEnunciado: Analise as afirmações abaixo sobre Dualismos pulsionais, Angústia e sinal de perigo e Mecanismos de defesa.\n\nAssinale a alternativa que contém somente as afirmações corretas.\nConceito: Dualismos pulsionais\nAssertivas: I. São operações psíquicas do ego, frequentemente inconscientes, que procuram lidar com conflitos e angústia; podem ser flexíveis, rígidas ou insuficientes.; II. Freud modifica suas formulações: de pulsões sexuais versus autoconservação para pulsões de vida e pulsões de morte.; III. O primeiro e o segundo dualismo pulsional freudiano são idênticos.; IV. A segunda teoria freudiana da angústia destaca seu papel de sinal diante de perigo, mobilizando defesas; difere da concepção anterior.; V. Na segunda teoria, toda angústia é apenas produto mecânico de libido recalcada."
-    },
-    {
       "id": "final-question-meta-rev-final-20261113-r2-2-9",
       "type": "questao",
       "subject": "meta",
@@ -3796,16 +3714,6 @@
       "examId": "meta-rev-final-20261113-r2-3",
       "url": "#meta",
       "text": "Simulado pronto, nível 3 de 5, com 10 questões de formatos variados e 2 dissertativas finais; conteúdo restrito à revisão 2026/2."
-    },
-    {
-      "id": "final-question-meta-rev-final-20261113-r2-3-1",
-      "type": "questao",
-      "subject": "meta",
-      "semester": "2026/2",
-      "title": "Simulado 3 — questão 1",
-      "examId": "meta-rev-final-20261113-r2-3",
-      "url": "#meta",
-      "text": "Formato: choice\nEnunciado: Situação: Uma pessoa atribui a outra sentimentos próprios que encontra dificuldade de reconhecer.\n\nQual alternativa relaciona corretamente teoria, situação e contexto?\nConceito: Mecanismos de defesa\nAlternativas: Priorizar Ego e princípio da realidade: O ego diferencia-se do id sob influência do mundo externo, medeia exigências, testa realidade e utiliza defesas, inclusive inconscientes.; Mecanismos de defesa: São operações psíquicas do ego, frequentemente inconscientes, que procuram lidar com conflitos e angústia; podem ser flexíveis, rígidas ou insuficientes.; Priorizar Três senhores do ego: Freud descreve o ego pressionado pelo id, pelo superego e pelo mundo externo, tentando mediar forças contraditórias.; Priorizar Complexo de Édipo: Na teoria freudiana, envolve desejos, rivalidades e identificações inconscientes em relações parentais e participa da constituição do superego.; Priorizar Castração simbólica: Na leitura psicanalítica, a castração tem dimensão de limite, falta e impossibilidade de satisfação plena, além das formulações anatômicas históricas de Freud."
     },
     {
       "id": "final-question-meta-rev-final-20261113-r2-3-2",
@@ -3848,16 +3756,6 @@
       "text": "Formato: choice\nEnunciado: Situação: Uma excitação corporal se apresenta como exigência psíquica de satisfação.\n\nQual alternativa relaciona corretamente teoria, situação e contexto?\nConceito: Pulsão como conceito-limite\nAlternativas: Pulsão como conceito-limite: Freud entende a pulsão como conceito-limite entre somático e psíquico, articulado à exigência de trabalho para o aparelho psíquico.; Priorizar Narcisismo e constituição do eu: O narcisismo é relevante para pensar investimentos libidinais no eu e sua constituição, incluindo idealização e relação com objetos.; Priorizar Segunda tópica: É o modelo estrutural das instâncias id, ego e superego, cujas exigências interagem entre si e com a realidade externa.; Priorizar Ego e princípio da realidade: O ego diferencia-se do id sob influência do mundo externo, medeia exigências, testa realidade e utiliza defesas, inclusive inconscientes.; Priorizar Três senhores do ego: Freud descreve o ego pressionado pelo id, pelo superego e pelo mundo externo, tentando mediar forças contraditórias."
     },
     {
-      "id": "final-question-meta-rev-final-20261113-r2-3-6",
-      "type": "questao",
-      "subject": "meta",
-      "semester": "2026/2",
-      "title": "Simulado 3 — questão 6",
-      "examId": "meta-rev-final-20261113-r2-3",
-      "url": "#meta",
-      "text": "Formato: choice\nEnunciado: Situação: Uma situação associada a ameaça interna desencadeia alerta e operações defensivas do ego.\n\nQual alternativa relaciona corretamente teoria, situação e contexto?\nConceito: Angústia e sinal de perigo\nAlternativas: Priorizar Id e princípio do prazer: O id é polo pulsional, não opera por julgamento moral nem tempo cronológico e pressiona pela satisfação, sendo apresentado como reservatório inicial da energia psíquica.; Angústia e sinal de perigo: A segunda teoria freudiana da angústia destaca seu papel de sinal diante de perigo, mobilizando defesas; difere da concepção anterior.; Priorizar Superego e consciência moral: O superego internaliza exigências, proibições e ideais; pode exercer auto-observação e produzir culpa quando o ego não corresponde ao padrão.; Priorizar Ideal do ego e identificação: O ideal do ego envolve modelos internalizados perante os quais a pessoa se avalia; identificações com figuras importantes participam desse processo.; Priorizar Triangulação e interdição: A triangulação edípica refere-se à presença de um terceiro e à experiência de limites na relação dual, com função simbólica de interdição."
-    },
-    {
       "id": "final-question-meta-rev-final-20261113-r2-3-7",
       "type": "questao",
       "subject": "meta",
@@ -3878,16 +3776,6 @@
       "text": "Formato: combo\nEnunciado: Analise as afirmações abaixo sobre Ego e princípio da realidade, Superego e consciência moral e Três senhores do ego.\n\nAssinale a alternativa que contém somente as afirmações corretas.\nConceito: Ego e princípio da realidade\nAssertivas: I. O ego diferencia-se do id sob influência do mundo externo, medeia exigências, testa realidade e utiliza defesas, inclusive inconscientes.; II. O ego atua de forma inteiramente consciente e não emprega defesas.; III. O superego internaliza exigências, proibições e ideais; pode exercer auto-observação e produzir culpa quando o ego não corresponde ao padrão.; IV. O superego é apenas uma pessoa externa dizendo o que fazer e não integra o psiquismo.; V. Freud descreve o ego pressionado pelo id, pelo superego e pelo mundo externo, tentando mediar forças contraditórias."
     },
     {
-      "id": "final-question-meta-rev-final-20261113-r2-3-9",
-      "type": "questao",
-      "subject": "meta",
-      "semester": "2026/2",
-      "title": "Simulado 3 — questão 9",
-      "examId": "meta-rev-final-20261113-r2-3",
-      "url": "#meta",
-      "text": "Formato: choice\nEnunciado: Situação: Um estudante procura corresponder a um ideal rigoroso de sucesso aprendido na infância.\n\nQual alternativa relaciona corretamente teoria, situação e contexto?\nConceito: Ideal do ego e identificação\nAlternativas: Priorizar Fonte, pressão, finalidade e objeto: Os quatro elementos da pulsão são fonte somática, pressão ou força, finalidade de satisfação e objeto pelo qual a satisfação pode ocorrer.; Priorizar Angústia e sinal de perigo: A segunda teoria freudiana da angústia destaca seu papel de sinal diante de perigo, mobilizando defesas; difere da concepção anterior.; Priorizar Narcisismo e constituição do eu: O narcisismo é relevante para pensar investimentos libidinais no eu e sua constituição, incluindo idealização e relação com objetos.; Priorizar Segunda tópica: É o modelo estrutural das instâncias id, ego e superego, cujas exigências interagem entre si e com a realidade externa.; Ideal do ego e identificação: O ideal do ego envolve modelos internalizados perante os quais a pessoa se avalia; identificações com figuras importantes participam desse processo."
-    },
-    {
       "id": "final-question-meta-rev-final-20261113-r2-3-10",
       "type": "questao",
       "subject": "meta",
@@ -3906,36 +3794,6 @@
       "examId": "meta-rev-final-20261113-r2-4",
       "url": "#meta",
       "text": "Simulado pronto, nível 4 de 5, com 10 questões de formatos variados e 2 dissertativas finais; conteúdo restrito à revisão 2026/2."
-    },
-    {
-      "id": "final-question-meta-rev-final-20261113-r2-4-1",
-      "type": "questao",
-      "subject": "meta",
-      "semester": "2026/2",
-      "title": "Simulado 4 — questão 1",
-      "examId": "meta-rev-final-20261113-r2-4",
-      "url": "#meta",
-      "text": "Formato: choice\nEnunciado: Situação: Alguém deseja fugir de uma obrigação, sente culpa moral e enfrenta um prazo real.\n\nQual análise profissional evita inferências indevidas nesse caso?\nConceito: Três senhores do ego\nAlternativas: Priorizar Pulsão como conceito-limite: Freud entende a pulsão como conceito-limite entre somático e psíquico, articulado à exigência de trabalho para o aparelho psíquico.; Priorizar Fonte, pressão, finalidade e objeto: Os quatro elementos da pulsão são fonte somática, pressão ou força, finalidade de satisfação e objeto pelo qual a satisfação pode ocorrer.; Priorizar Dualismos pulsionais: Freud modifica suas formulações: de pulsões sexuais versus autoconservação para pulsões de vida e pulsões de morte.; Três senhores do ego: Freud descreve o ego pressionado pelo id, pelo superego e pelo mundo externo, tentando mediar forças contraditórias.; Priorizar Angústia e sinal de perigo: A segunda teoria freudiana da angústia destaca seu papel de sinal diante de perigo, mobilizando defesas; difere da concepção anterior."
-    },
-    {
-      "id": "final-question-meta-rev-final-20261113-r2-4-2",
-      "type": "questao",
-      "subject": "meta",
-      "semester": "2026/2",
-      "title": "Simulado 4 — questão 2",
-      "examId": "meta-rev-final-20261113-r2-4",
-      "url": "#meta",
-      "text": "Formato: choice\nEnunciado: Situação: Uma criança percebe que seu cuidador tem vínculos além da relação exclusiva com ela.\n\nQual análise profissional evita inferências indevidas nesse caso?\nConceito: Triangulação e interdição\nAlternativas: Priorizar Angústia e sinal de perigo: A segunda teoria freudiana da angústia destaca seu papel de sinal diante de perigo, mobilizando defesas; difere da concepção anterior.; Priorizar Mecanismos de defesa: São operações psíquicas do ego, frequentemente inconscientes, que procuram lidar com conflitos e angústia; podem ser flexíveis, rígidas ou insuficientes.; Priorizar Narcisismo e constituição do eu: O narcisismo é relevante para pensar investimentos libidinais no eu e sua constituição, incluindo idealização e relação com objetos.; Priorizar Primeira tópica: Freud diferencia sistemas consciente, pré-consciente e inconsciente em um modelo topográfico, ligado às condições de acesso do conteúdo à consciência.; Triangulação e interdição: A triangulação edípica refere-se à presença de um terceiro e à experiência de limites na relação dual, com função simbólica de interdição."
-    },
-    {
-      "id": "final-question-meta-rev-final-20261113-r2-4-3",
-      "type": "questao",
-      "subject": "meta",
-      "semester": "2026/2",
-      "title": "Simulado 4 — questão 3",
-      "examId": "meta-rev-final-20261113-r2-4",
-      "url": "#meta",
-      "text": "Formato: combo\nEnunciado: Analise as afirmações abaixo sobre Fonte, pressão, finalidade e objeto, Dualismos pulsionais e Angústia e sinal de perigo.\n\nAssinale a alternativa que contém somente as afirmações corretas.\nConceito: Fonte, pressão, finalidade e objeto\nAssertivas: I. Na teoria freudiana, o objeto pulsional é obrigatoriamente fixo e imutável.; II. Freud modifica suas formulações: de pulsões sexuais versus autoconservação para pulsões de vida e pulsões de morte.; III. O primeiro e o segundo dualismo pulsional freudiano são idênticos.; IV. A segunda teoria freudiana da angústia destaca seu papel de sinal diante de perigo, mobilizando defesas; difere da concepção anterior.; V. Os quatro elementos da pulsão são fonte somática, pressão ou força, finalidade de satisfação e objeto pelo qual a satisfação pode ocorrer."
     },
     {
       "id": "final-question-meta-rev-final-20261113-r2-4-4",
@@ -3986,16 +3844,6 @@
       "examId": "meta-rev-final-20261113-r2-4",
       "url": "#meta",
       "text": "Formato: combo\nEnunciado: Analise as afirmações abaixo sobre Pulsão como conceito-limite, Fonte, pressão, finalidade e objeto e Dualismos pulsionais.\n\nAssinale a alternativa que contém somente as afirmações corretas.\nConceito: Pulsão como conceito-limite\nAssertivas: I. Pulsão e reflexo fisiológico são perfeitamente idênticos em Freud.; II. Os quatro elementos da pulsão são fonte somática, pressão ou força, finalidade de satisfação e objeto pelo qual a satisfação pode ocorrer.; III. Na teoria freudiana, o objeto pulsional é obrigatoriamente fixo e imutável.; IV. Freud modifica suas formulações: de pulsões sexuais versus autoconservação para pulsões de vida e pulsões de morte.; V. Freud entende a pulsão como conceito-limite entre somático e psíquico, articulado à exigência de trabalho para o aparelho psíquico."
-    },
-    {
-      "id": "final-question-meta-rev-final-20261113-r2-4-9",
-      "type": "questao",
-      "subject": "meta",
-      "semester": "2026/2",
-      "title": "Simulado 4 — questão 9",
-      "examId": "meta-rev-final-20261113-r2-4",
-      "url": "#meta",
-      "text": "Formato: choice\nEnunciado: Situação: Uma situação associada a ameaça interna desencadeia alerta e operações defensivas do ego.\n\nQual análise profissional evita inferências indevidas nesse caso?\nConceito: Angústia e sinal de perigo\nAlternativas: Priorizar Id e princípio do prazer: O id é polo pulsional, não opera por julgamento moral nem tempo cronológico e pressiona pela satisfação, sendo apresentado como reservatório inicial da energia psíquica.; Angústia e sinal de perigo: A segunda teoria freudiana da angústia destaca seu papel de sinal diante de perigo, mobilizando defesas; difere da concepção anterior.; Priorizar Ego e princípio da realidade: O ego diferencia-se do id sob influência do mundo externo, medeia exigências, testa realidade e utiliza defesas, inclusive inconscientes.; Priorizar Superego e consciência moral: O superego internaliza exigências, proibições e ideais; pode exercer auto-observação e produzir culpa quando o ego não corresponde ao padrão.; Priorizar Três senhores do ego: Freud descreve o ego pressionado pelo id, pelo superego e pelo mundo externo, tentando mediar forças contraditórias."
     },
     {
       "id": "final-question-meta-rev-final-20261113-r2-4-10",
@@ -4096,16 +3944,6 @@
       "examId": "meta-rev-final-20261113-r2-5",
       "url": "#meta",
       "text": "Formato: combo\nEnunciado: Analise as afirmações abaixo sobre Segunda tópica, Id e princípio do prazer e Ego e princípio da realidade.\n\nAssinale a alternativa que contém somente as afirmações corretas.\nConceito: Segunda tópica\nAssertivas: I. O id é polo pulsional, não opera por julgamento moral nem tempo cronológico e pressiona pela satisfação, sendo apresentado como reservatório inicial da energia psíquica.; II. O id é responsável pelo teste da realidade e regula a satisfação por regras sociais.; III. O ego diferencia-se do id sob influência do mundo externo, medeia exigências, testa realidade e utiliza defesas, inclusive inconscientes.; IV. É o modelo estrutural das instâncias id, ego e superego, cujas exigências interagem entre si e com a realidade externa.; V. A segunda tópica afirma que só o id possui conteúdos inconscientes."
-    },
-    {
-      "id": "final-question-meta-rev-final-20261113-r2-5-9",
-      "type": "questao",
-      "subject": "meta",
-      "semester": "2026/2",
-      "title": "Simulado 5 — questão 9",
-      "examId": "meta-rev-final-20261113-r2-5",
-      "url": "#meta",
-      "text": "Formato: choice\nEnunciado: Situação: Após um erro pequeno, uma pessoa se pune mentalmente de maneira excessiva.\n\nQual formulação integra melhor conceito, aplicação e limites da conclusão?\nConceito: Superego e consciência moral\nAlternativas: Priorizar Fonte, pressão, finalidade e objeto: Os quatro elementos da pulsão são fonte somática, pressão ou força, finalidade de satisfação e objeto pelo qual a satisfação pode ocorrer.; Priorizar Angústia e sinal de perigo: A segunda teoria freudiana da angústia destaca seu papel de sinal diante de perigo, mobilizando defesas; difere da concepção anterior.; Priorizar Narcisismo e constituição do eu: O narcisismo é relevante para pensar investimentos libidinais no eu e sua constituição, incluindo idealização e relação com objetos.; Superego e consciência moral: O superego internaliza exigências, proibições e ideais; pode exercer auto-observação e produzir culpa quando o ego não corresponde ao padrão.; Priorizar Segunda tópica: É o modelo estrutural das instâncias id, ego e superego, cujas exigências interagem entre si e com a realidade externa."
     },
     {
       "id": "final-question-meta-rev-final-20261113-r2-5-10",
