@@ -1745,6 +1745,22 @@ function insertBlankPauta(line,alreadyCheckpointed=false){
  renderNotes();renderBookSpread();renderPageRail();save();
  return true;
 }
+/* Backspace em pauta vazia desfaz o espaço aberto pelo Enter:
+   sobe uma pauta apenas o texto abaixo, sem apagar nem mover o que está acima.
+   Não mexe em post-its, desenhos, datas ou anotações de outras folhas. */
+function removeBlankPauta(line,alreadyCheckpointed=false){
+ if(!editEnabled||data.mode!=='text'||line<FIRST_LINE||line>=ROWS)return false;
+ const notes=page().notes;
+ // Uma pauta ocupada (inclusive por uma anotação de várias linhas) não é vazia.
+ if(notes.some(n=>Number(n.line)<=line&&
+    Number(n.line)+Math.max(1,Number(n.span)||1)>line))return false;
+ const below=notes.filter(n=>Number(n.line)>line);
+ if(!below.length)return false;
+ if(!alreadyCheckpointed)checkpoint();
+ for(const note of below)note.line=Number(note.line)-1;
+ renderNotes();renderBookSpread();renderPageRail();save();
+ return true;
+}
 function previousWritingLine(){
  if(!editing||data.mode!=='text'||!editEnabled)return;
  const input=$('nbEditorText');
@@ -1753,9 +1769,12 @@ function previousWritingLine(){
  const marker=listInfo(typed);
  if(typed.trim()&&!(marker&&!typed.slice(marker.prefix.length).trim()))return;
  const at=editing.line;
- // Confirma exclusão apenas se o aluno apagou uma anotação existente.
+ // Apagar uma anotação esvaziada e recolher a pauta deve ser um único Ctrl+Z.
+ const hadNote=!!editing.id&&page().notes.some(n=>n.id===editing.id);
  if(editing.id)saveEditor(false);
  else closeEditor();
+ const removed=removeBlankPauta(at,hadNote);
+ if(removed)status('Pauta vazia removida. Ctrl+Z desfaz.','success');
  if(at>FIRST_LINE){beginEdit(at-1);return;}
  if(data.page>0){
   data.page--;pendingPage=emptyPage();renderPage();renderPageRail();
