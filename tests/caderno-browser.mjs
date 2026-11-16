@@ -702,5 +702,61 @@ try{
  assert.equal(archives.fresh.books.length,6);
  assert.equal(archives.fresh.curriculumSeeded,true);
  await priorContext.close();
+ // Backspace apaga definitivamente a anotação, com Enter ou ao clicar fora.
+ const eraseContext=await browser.newContext({viewport:{width:1366,height:900}});
+ const erasePage=await eraseContext.newPage();
+ await erasePage.goto(address,{waitUntil:'domcontentloaded'});
+ const ef=erasePage.frameLocator('#nbQaFrame');
+ await ef.locator('#nbShelf').waitFor({state:'visible'});
+ await ef.locator('[data-nb-shelf-book="materia-familia"]').click();
+ await ef.locator('[data-nb-action="text"]').click();
+ const clickLine=async line=>{
+  const sheet=await ef.locator('#nbSheet').boundingBox();
+  await erasePage.mouse.click(sheet.x+sheet.width*.35,
+   sheet.y+(28+line*34+8)*sheet.height/1240);
+ };
+ const eraseText=async()=>{
+  await ef.locator('#nbEditorText').press('ControlOrMeta+A');
+  await ef.locator('#nbEditorText').press('Backspace');
+  assert.equal(await ef.locator('#nbEditorText').inputValue(),'');
+ };
+ const eraseStore='uentzoul:caderno:alpha2:qa-browser-admin';
+ const storedNotes=async()=>erasePage.evaluate(key=>{
+  const data=JSON.parse(localStorage.getItem(key)||'null');
+  return (data?.books?.find(b=>b.id==='materia-familia')?.pages||[]).flatMap(p=>p.notes||[]);
+ },eraseStore);
+ await clickLine(3);
+ await ef.locator('#nbEditorText').fill('Esta anotação deve ser excluída com Enter');
+ await ef.locator('#nbEditorText').press('Enter');
+ await erasePage.waitForTimeout(350);
+ assert.equal((await storedNotes()).length,1,'Texto inicial foi salvo');
+ await clickLine(3);
+ await eraseText();
+ await ef.locator('#nbEditorText').press('Enter');
+ await erasePage.waitForTimeout(350);
+ assert.equal(await ef.locator('#nbTextLayer .nb-note').count(),0,
+  'Apagar tudo e Enter remove a nota da folha');
+ assert.equal((await storedNotes()).length,0,
+  'Apagar tudo e Enter remove a nota do armazenamento');
+ // Nova anotação em linha 4, apagada sem Enter (clicando fora).
+ await ef.locator('#nbEditorText').fill('Esta anotação deve ser excluída ao clicar fora');
+ await ef.locator('#nbEditorText').press('Enter');
+ await erasePage.waitForTimeout(350);
+ assert.equal((await storedNotes()).length,1);
+ await clickLine(4);
+ await eraseText();
+ await ef.locator('#nbBookHeading').click();
+ await erasePage.waitForTimeout(350);
+ assert.equal(await ef.locator('#nbTextLayer .nb-note').count(),0,
+  'Clicar fora após Backspace não ressuscita o texto');
+ assert.equal((await storedNotes()).length,0,
+  'Clicar fora persiste a remoção no armazenamento');
+ await erasePage.locator('#nbQaFrame').evaluate(frame=>{frame.src='/caderno.html'});
+ await ef.locator('#nbShelf').waitFor({state:'visible'});
+ await ef.locator('[data-nb-shelf-book="materia-familia"]').click();
+ assert.equal(await ef.locator('#nbTextLayer .nb-note').count(),0,
+  'Após recarregar, anotações apagadas não retornam');
+ await eraseContext.close();
+
  console.log('Caderno browser QA OK: Enter, IA, post-it, seleção, borracha, Ctrl+Z, galeria, PDF, pan, bloqueio de celular e acesso em tablet');
 }finally{await browser.close();await new Promise(resolve=>server.close(resolve))}
