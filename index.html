@@ -1979,6 +1979,8 @@ html[data-theme="dark"] .tz-pending-icon{background:#40375e;color:#d6c4ff}
 }
 .agenda-reading-unavailable{display:block;font-size:11px;color:var(--muted);margin-top:8px}
 </style>
+<link id="pm-vacation-timeline-css" rel="stylesheet" href="revisao-ferias.css?v=20261116-static-nav-no-flash-v6">
+<script id="pm-vacation-timeline-js" src="revisao-ferias.js?v=20261116-static-nav-no-flash-v6" defer></script>
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2064%2064%22%3E%3Crect%20width%3D%2264%22%20height%3D%2264%22%20rx%3D%2214%22%20fill%3D%22%23192d44%22%2F%3E%3Ctext%20x%3D%2232%22%20y%3D%2246%22%20fill%3D%22white%22%20font-size%3D%2246%22%20font-family%3D%22Georgia%2Cserif%22%20text-anchor%3D%22middle%22%3E%CE%A8%3C%2Ftext%3E%3C%2Fsvg%3E">
 <link rel="stylesheet" href="library-manager.css?v=20261114-batch-recovery-v1">
 <link rel="stylesheet" href="biblioteca-moodle.css?v=20261112-3">
@@ -2228,6 +2230,10 @@ html[data-theme="dark"] .tz-library-download{background:#26374c;border-color:#45
 <button class="sidebtn" data-page="messages"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.5 8.5 0 0 1-8.5 8.5c-1.5 0-3.1-.4-4.4-1.1L3 20l1.2-4.9A8.5 8.5 0 1 1 21 11.5Z"/><path d="M8 11.5h8M8 14.5h5"/></svg><span class="nav-label">Mensagens</span> <span class="dm-nav-badge" id="dmNavBadge" hidden></span></button>
 
 <button class="sidebtn" data-page="ai"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="m12 2 2.6 6.9L21 11l-6.4 2.1L12 20l-2.6-6.9L3 11l6.4-2.1L12 2Z"/><path d="m19 18 1 2 2 1-2 1-1 2-1-2-2-1 2-1z"/></svg><span class="nav-label">IA Tzoul</span></button>
+
+<button type="button" class="sidebtn" id="navVacationReview" aria-label="Revisão de Férias">
+<svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 17l4-4 4 3 6-9 2 2"/><path d="M3 21h18"/><circle cx="6" cy="7" r="2"/></svg><span class="nav-label"><span class="nav-label-full">Revisão de Férias</span><span class="nav-label-short">Férias</span></span>
+</button>
 
 <span class="sidebtn nav-upcoming" role="note" tabindex="0" aria-disabled="true" aria-label="Trabalhos — em breve" title="Em breve"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3h8l4 4v14H4V3h4Z"/><path d="M16 3v5h4M8 12h8M8 16h8M8 8h4"/></svg><span class="nav-upcoming-name">Trabalhos</span><span class="nav-upcoming-tip" aria-hidden="true">Em breve</span></span>
 </span>
