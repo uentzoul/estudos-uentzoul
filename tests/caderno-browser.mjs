@@ -89,12 +89,14 @@ try{
  // Com Selecionar, arrastar o espaço vazio desloca a folha (não desenha).
  await f.locator('[data-nb-action="select"]').click();
  const blank=await point(550,540);
- const beforePan=await f.locator('#nbViewport').evaluate(el=>el.scrollTop);
+ const beforePan=(await f.locator('#nbSheet').boundingBox()).y;
  await page.mouse.move(blank.x,blank.y);await page.mouse.down();
  await page.mouse.move(blank.x,blank.y-132,{steps:9});await page.mouse.up();
- const afterPan=await f.locator('#nbViewport').evaluate(el=>el.scrollTop);
- assert.ok(afterPan>beforePan+20,'Selecionar deve arrastar a página para cima e para baixo');
- await f.locator('#nbViewport').evaluate(el=>{el.scrollTop=0;el.scrollLeft=0});
+ const afterPan=(await f.locator('#nbSheet').boundingBox()).y;
+ assert.ok(afterPan<beforePan-20,'Selecionar deve arrastar a página livremente para cima e para baixo');
+ const resetBlank=await point(550,540);
+ await page.mouse.move(resetBlank.x,resetBlank.y);await page.mouse.down();
+ await page.mouse.move(resetBlank.x,resetBlank.y+132,{steps:9});await page.mouse.up();
  await f.locator('[data-nb-action="text"]').click();
  const first=await point(250,28+3*34+8);
  await page.mouse.click(first.x,first.y);
@@ -132,13 +134,13 @@ try{
  const y2=Number((await second.getAttribute('style')).match(/top:\s*([\d.]+)px/)?.[1]);
  assert.equal(y2-y1,34,'Tamanho 1 deve avançar uma linha física');
  const oneLineSizing=await f.locator('#nbTextLayer .nb-note').first().evaluate(el=>{
-  const cap=el.querySelector('.nb-uppercase'),lower=el.querySelector('.nb-lowercase');
+  const content=el.querySelector('.nb-note-content');
   const paper=document.querySelector('#nbSheet'),scale=paper.getBoundingClientRect().width/780;
   const bounds=el.querySelector('.nb-note-content').getBoundingClientRect();
   const positionTop=parseFloat(el.style.top);
   const target=paper.getBoundingClientRect().top+(positionTop+34)*scale;
-  return {capital:parseFloat(getComputedStyle(cap).fontSize),
-   lower:parseFloat(getComputedStyle(lower).fontSize),lineGap:(target-bounds.bottom)/scale,
+  return {capital:parseFloat(getComputedStyle(content).fontSize),
+   lower:parseFloat(getComputedStyle(el).fontSize),lineGap:(target-bounds.bottom)/scale,
    top:positionTop,cssHeight:bounds.height/scale};
  });
  console.log('LINE BASELINE QA '+JSON.stringify(oneLineSizing));
@@ -416,6 +418,28 @@ try{
  assert.ok(one.width>200&&two.width>200,'Cada folha do caderno aberto deve ocupar espaço real');
  assert.ok(Math.abs(one.y-two.y)<3,'Páginas abertas devem estar alinhadas verticalmente');
  assert.ok(two.x>=one.x+one.width-3,'Primeira folha à esquerda, segunda à direita');
+ // Ler: a data vazia não aparece; arraste também funciona na folha direita.
+ await bf.locator('#nbEditToggle').click();
+ assert.equal(await bf.locator('.nb-paper-date-group').isVisible(),false,
+  'A visualização não exibe campos de data sem preenchimento');
+ const dragStart=await bf.locator('#nbCompanionWrap').boundingBox();
+ const beforeFreePan=await bf.locator('#nbWrap').boundingBox();
+ await bookPage.mouse.move(dragStart.x+dragStart.width*.50,dragStart.y+dragStart.height*.55);
+ await bookPage.mouse.down();
+ await bookPage.mouse.move(dragStart.x+dragStart.width*.50-124,dragStart.y+dragStart.height*.55-82,{steps:9});
+ await bookPage.mouse.up();
+ const afterFreePan=await bf.locator('#nbWrap').boundingBox();
+ assert.ok(afterFreePan.x<beforeFreePan.x-90&&afterFreePan.y<beforeFreePan.y-60,
+  'A folha direita também deve arrastar o caderno livremente em X e Y');
+ assert.equal(await bf.locator('#nbPageNum').textContent(),'01',
+  'Arrastar a folha direita não pode trocar de página por engano');
+ const movedCompanion=await bf.locator('#nbCompanionWrap').boundingBox();
+ await bookPage.mouse.move(movedCompanion.x+movedCompanion.width*.50,movedCompanion.y+movedCompanion.height*.55);
+ await bookPage.mouse.down();
+ await bookPage.mouse.move(movedCompanion.x+movedCompanion.width*.50+124,movedCompanion.y+movedCompanion.height*.55+82,{steps:9});
+ await bookPage.mouse.up();
+ await bookPage.waitForTimeout(110);
+ await bf.locator('#nbEditToggle').click();
  // A segunda folha é clicável e abre editor naquela mesma posição.
  await bf.locator('[data-nb-action="text"]').click();
  const z=await bf.locator('#nbRoot').evaluate(()=>Number(document.querySelector('#nbZoomText').textContent.replace('%',''))/100);

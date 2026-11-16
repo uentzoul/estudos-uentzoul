@@ -83,7 +83,7 @@ function setup(){
  if(!document.getElementById('pm-tutorial-script')){
   const script=document.createElement('script');
   script.id='pm-tutorial-script';
-  script.src='spotlight-tour.js?v=20261115-flicker-fixed-v32';
+  script.src='spotlight-tour.js?v=20261116-flicker-fixed-v33';
   script.async=true;
   document.head.appendChild(script);
  }
@@ -267,7 +267,7 @@ setTimeout(check,15000);
   const target=main();if(!target)return;
   previewOpen=true;addStyles();
   target.classList.add('nb-shell-active');
-  target.innerHTML='<iframe id="'+FRAME_ID+'" title="Caderno de aula — prévia administrativa" src="./caderno.html?v=20261115-caderno-v8" loading="eager" referrerpolicy="same-origin"></iframe>';
+  target.innerHTML='<iframe id="'+FRAME_ID+'" title="Caderno de aula — prévia administrativa" src="./caderno.html?v=20261116-caderno-v9-line-grid" loading="eager" referrerpolicy="same-origin"></iframe>';
   document.querySelectorAll('#nav [data-page].active').forEach(n=>n.classList.remove('active'));
   document.getElementById(NAV_ID)?.classList.add('active');
   window.pmMobileDrawer?.close?.();

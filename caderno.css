@@ -666,3 +666,47 @@ html.nb-closing-book::view-transition-new(nb-shared-sheet){
  html.nb-closing-book::view-transition-new(nb-shared-sheet){animation:none!important}
  .nb-shelf-book,.nb-shelf-cover{transition:none!important}
 }
+
+
+/* PsicoMoodle — pauta única: a mesma geometria durante edição, correção e leitura. */
+.nb-note{display:block!important;align-items:initial!important;white-space:pre-wrap;
+ overflow-wrap:anywhere;font-size:var(--nb-note-size,26px)!important;
+ line-height:var(--nb-note-row,34px)!important}
+.nb-note .nb-note-content{display:block!important;position:static!important;top:auto!important;
+ width:100%;max-width:100%;font-size:inherit!important;line-height:inherit!important;
+ white-space:pre-wrap;overflow-wrap:anywhere}
+.nb-note .nb-uppercase,.nb-note .nb-lowercase{font-size:inherit!important;line-height:inherit!important}
+.nb-inline-edit{left:110px;width:620px;box-sizing:border-box;
+ font-size:var(--nb-note-size,26px)!important;line-height:var(--nb-note-row,34px)!important;
+ padding:0!important;letter-spacing:normal!important;white-space:pre-wrap!important}
+.nb-align-select{min-height:34px;color:#3d3458;background:#fff;border:1px solid #ded7e9;
+ border-radius:9px;padding:6px 9px;max-width:125px;font-size:12px;font-weight:700}
+.nb-reading .nb-paper-date-group:not(.nb-has-date){display:none!important}
+.nb-reading .nb-paper-date-group .nb-paper-date-label,
+.nb-reading .nb-paper-date-group .nb-paper-date{display:none!important}
+.nb-paper-date-read{display:none;font:700 16px/30px 'DM Sans',system-ui,sans-serif;color:#4b3d5f}
+.nb-reading .nb-paper-date-read:not([hidden]){display:block!important;width:100%;text-align:right}
+.nb-snapshot-sheet .nb-paper-date-label{display:none!important}
+.nb-snapshot-sheet.nb-left-page:before,
+.nb-stage.nb-double .nb-sheet.nb-left-page:before{left:auto!important;right:85px!important}
+.nb-snapshot-sheet.nb-right-page:before,
+.nb-stage.nb-double .nb-sheet.nb-right-page:before{right:auto!important;left:85px!important}
+.nb-snapshot-sheet.nb-left-page .nb-holes,
+.nb-stage.nb-double .nb-sheet.nb-left-page .nb-holes{left:22px!important;right:auto!important}
+.nb-snapshot-sheet.nb-right-page .nb-holes,
+.nb-stage.nb-double .nb-sheet.nb-right-page .nb-holes{left:auto!important;right:22px!important}
+.nb-stage.nb-double:before{display:none!important}
+html[data-theme="dark"] .nb-align-select{background:#203149;border-color:#3b4e69;color:#e9effa}
+/* Miniaturas em pares, uma folha de cada lado da encadernação. */
+.nb-rail-spread{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));align-items:start;
+ width:100%;gap:2px;position:relative}
+.nb-rail-spread .nb-rail-page{width:100%;max-width:none;min-width:0;padding:5px 2px;gap:5px}
+.nb-rail-spread .nb-rail-paper{width:100%!important;aspect-ratio:780/1240!important}
+.nb-rail-spread .nb-rail-caption{font-size:9px}
+.nb-rail-spread .nb-rail-page:first-child .nb-rail-paper{border-radius:6px 1px 1px 6px}
+.nb-rail-spread .nb-rail-page:last-child .nb-rail-paper{border-radius:1px 6px 6px 1px}
+
+.nb-rail-spread .nb-rail-blank{display:flex;flex-direction:column;align-items:center;
+ width:100%;min-width:0;padding:5px 2px;pointer-events:none}
+.nb-rail-spread .nb-rail-blank .nb-rail-paper{width:100%!important;aspect-ratio:780/1240!important}
+.nb-reading #nbCompanionWrap,.nb-reading #nbSheet{touch-action:none!important}

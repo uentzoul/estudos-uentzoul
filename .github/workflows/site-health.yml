@@ -1,5 +1,11 @@
 name: Saúde do Site — revisão a cada 2 horas
 on:
+  pull_request:
+    paths:
+      - '.github/workflows/site-health.yml'
+      - 'scripts/site-health.mjs'
+      - 'site-health-panel.js'
+      - 'site-version.js'
   push:
     branches: [main]
     paths:
@@ -26,7 +32,7 @@ jobs:
           node-version: '22'
       - name: Instalar navegador de testes isolado
         run: |
-          npm install --no-save --no-package-lock playwright@1.56.1
+          npm install --no-save --no-package-lock playwright@1.64.1
           npx playwright install --with-deps chromium webkit
       - name: Verificar layout publicado (desktop, tablet, iOS, Android)
         env:
