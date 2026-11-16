@@ -473,7 +473,11 @@ test('Dupla folha tem a mesma ferramenta ativa imediatamente em qualquer lado co
  assert.match(script,/const W=780,H=1240,L=34,START=28,ROWS=30,FIRST_LINE=3,BINDER_SAFE=58/);
  assert.match(script,/function isInBinderZone\(event\)/);
  assert.match(script,/function beginOpposingLeafGesture\(event\)/);
- assert.match(script,/recipient\.dispatchEvent\(copy\)/);
+ assert.match(script,/opposingStrokePointer=event\.pointerId/);
+ assert.match(script,/if\(mode==='draw'\)drawPoints=\[pos\]/);
+ assert.match(script,/if\(mode==='sticky'\)\{addSticky\(pos\);return true;\}/);
+ assert.match(script,/if\(opposingStrokePointer===event\.pointerId\)/);
+ assert.doesNotMatch(script,/recipient\.dispatchEvent\(copy\)/,'as ferramentas não dependem de evento artificial');
  assert.match(script,/event\.stopImmediatePropagation\(\)/);
  assert.match(script,/if\(isInBinderZone\(event\)\)\{event\.preventDefault\(\);event\.stopImmediatePropagation\(\);return;\}/);
  assert.match(script,/data\.mode==='none'/);
