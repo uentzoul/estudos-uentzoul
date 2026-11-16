@@ -786,6 +786,175 @@ function fluidStroke(raw){
  return {points:finished.slice(0,2400),kind:'fluid'};
 }
 
+
+/* Ajuste inteligente do desenho: reconhecer somente geometrias plausíveis.
+   Os demais desenhos continuam livres, apenas com suavização vetorial. */
+function smartStroke(raw){
+ const input=(raw||[]).filter(p=>Number.isFinite(p?.x)&&Number.isFinite(p?.y));
+ const smooth=fluidStroke(input),points=smooth.points;
+ if(points.length<4)return smooth;
+ const first=points[0],last=points[points.length-1];
+ let minX=Infinity,minY=Infinity,maxX=-Infinity,maxY=-Infinity;
+ for(const p of points){minX=Math.min(minX,p.x);maxX=Math.max(maxX,p.x);minY=Math.min(minY,p.y);maxY=Math.max(maxY,p.y);}
+ const width=maxX-minX,height=maxY-minY,diag=Math.hypot(width,height);
+ if(diag<14)return smooth;
+ const closed=input.length>12&&dist(first,last)<Math.max(13,diag*.12);
+ if(closed){
+  if(width>27&&height>27&&rectangleScore(points,minX,maxX,minY,maxY)>.82){
+   const shape=perfectShape(points);
+   if(shape.kind==='rectangle')return shape;
+  }
+  if(width>28&&height>28){
+   const cx=(minX+maxX)/2,cy=(minY+maxY)/2,rx=width/2,ry=height/2;
+   let rms=0,max=0;
+   for(const p of points){
+    const e=Math.abs(Math.hypot((p.x-cx)/rx,(p.y-cy)/ry)-1);
+    rms+=e*e;max=Math.max(max,e);
+   }
+   if(Math.sqrt(rms/points.length)<.103&&max<.26){
+    let angle=Math.atan2((first.y-cy)/ry,(first.x-cx)/rx),sweep=0;
+    const initial=angle;
+    for(const p of points.slice(1)){
+     const next=Math.atan2((p.y-cy)/ry,(p.x-cx)/rx);
+     let change=next-angle;
+     while(change>Math.PI)change-=2*Math.PI;
+     while(change< -Math.PI)change+=2*Math.PI;
+     sweep+=change;angle=next;
+    }
+    if(Math.abs(sweep)>4.8){
+     const circle=rx/ry>.82&&rx/ry<1.22,r=circle?(rx+ry)/2:0;
+     return {points:Array.from({length:129},(_,i)=>{
+      const t=initial+Math.sign(sweep)*2*Math.PI*i/128;
+      return {x:cx+(circle?r:rx)*Math.cos(t),y:cy+(circle?r:ry)*Math.sin(t)};
+     }),kind:circle?'circle':'ellipse'};
+    }
+   }
+  }
+  // Ramer–Douglas–Peucker com o contorno fechado separado em duas metades.
+  function reduce(segment,tolerance){
+   if(segment.length<=2)return segment;
+   const a=segment[0],b=segment[segment.length-1],dx=b.x-a.x,dy=b.y-a.y;
+   let best=-1,at=-1;
+   for(let i=1;i<segment.length-1;i++){
+    const p=segment[i],t=clamp(((p.x-a.x)*dx+(p.y-a.y)*dy)/Math.max(.001,dx*dx+dy*dy),0,1);
+    const d=Math.hypot(p.x-a.x-t*dx,p.y-a.y-t*dy);
+    if(d>best){best=d;at=i;}
+   }
+   if(best<=tolerance)return [a,b];
+   return reduce(segment.slice(0,at+1),tolerance).slice(0,-1).concat(reduce(segment.slice(at),tolerance));
+  }
+  const far=points.reduce((best,p,i)=>dist(p,first)>dist(points[best],first)?i:best,0);
+  if(far>3&&far<points.length-4){
+   const tol=Math.max(3.6,diag*.028);
+   const vertices=reduce(points.slice(0,far+1),tol).slice(0,-1)
+    .concat(reduce(points.slice(far).concat([first]),tol).slice(0,-1));
+   if(vertices.length>=3&&vertices.length<=9){
+    let corners=0;
+    for(let i=0;i<vertices.length;i++){
+     const p=vertices[i],a=vertices[(i+vertices.length-1)%vertices.length],b=vertices[(i+1)%vertices.length];
+     const ux=p.x-a.x,uy=p.y-a.y,vx=b.x-p.x,vy=b.y-p.y;
+     const angle=Math.acos(clamp((ux*vx+uy*vy)/Math.max(.001,Math.hypot(ux,uy)*Math.hypot(vx,vy)),-1,1));
+     if(angle>.83)corners++;
+    }
+    if(corners>=3){
+     const ideal=[];
+     for(let i=0;i<vertices.length;i++){
+      const a=vertices[i],b=vertices[(i+1)%vertices.length],count=Math.max(3,Math.ceil(dist(a,b)/3));
+      for(let j=0;j<count;j++)ideal.push({x:a.x+(b.x-a.x)*j/count,y:a.y+(b.y-a.y)*j/count});
+     }
+     ideal.push({...vertices[0]});
+     return {points:ideal,kind:'polygon'};
+    }
+   }
+  }
+  return smooth;
+ }
+ const dx=last.x-first.x,dy=last.y-first.y,chord=Math.hypot(dx,dy);
+ if(chord>30){
+  let maximum=0,variance=0,length=0;
+  for(let i=0;i<points.length;i++){
+   const p=points[i],e=Math.abs(dx*(p.y-first.y)-dy*(p.x-first.x))/chord;
+   maximum=Math.max(maximum,e);variance+=e*e;
+   if(i)length+=dist(points[i-1],p);
+  }
+  if(maximum<Math.max(5.5,chord*.045)&&Math.sqrt(variance/points.length)<Math.max(2.8,chord*.022)&&length/chord<1.13){
+   const n=Math.ceil(chord/3);
+   return {points:Array.from({length:n+1},(_,i)=>({x:first.x+dx*i/n,y:first.y+dy*i/n})),kind:'line'};
+  }
+ }
+ if(points.length>9){
+  // Ajuste algébrico de círculo por mínimos quadrados para arcos abertos.
+  let mx=0,my=0;
+  for(const p of points){mx+=p.x;my+=p.y;}mx/=points.length;my/=points.length;
+  let xx=0,xy=0,yy=0,xz=0,yz=0;
+  for(const p of points){
+   const x=p.x-mx,y=p.y-my,z=x*x+y*y;
+   xx+=x*x;xy+=x*y;yy+=y*y;xz+=x*z;yz+=y*z;
+  }
+  const determinant=xx*yy-xy*xy;
+  if(determinant>Math.max(1,xx*yy*.00001)){
+   const cx=mx+(xz*yy-yz*xy)/(2*determinant),cy=my+(yz*xx-xz*xy)/(2*determinant);
+   let radius=0;
+   for(const p of points)radius+=Math.hypot(p.x-cx,p.y-cy);
+   radius/=points.length;
+   let errors=0,maximum=0;
+   for(const p of points){
+    const e=Math.abs(Math.hypot(p.x-cx,p.y-cy)-radius);
+    errors+=e*e;maximum=Math.max(maximum,e);
+   }
+   const initial=Math.atan2(first.y-cy,first.x-cx);
+   let previous=initial,sweep=0,totalAngle=0;
+   for(const p of points.slice(1)){
+    const angle=Math.atan2(p.y-cy,p.x-cx);
+    let step=angle-previous;
+    while(step>Math.PI)step-=2*Math.PI;
+    while(step< -Math.PI)step+=2*Math.PI;
+    sweep+=step;totalAngle+=Math.abs(step);previous=angle;
+   }
+   if(radius>13&&radius<diag*4.5&&Math.abs(sweep)>.58&&Math.abs(sweep)<5.7&&
+      Math.abs(sweep)/Math.max(.001,totalAngle)>.85&&
+      Math.sqrt(errors/points.length)<Math.max(3.7,diag*.035)&&maximum<Math.max(8,diag*.09)){
+    const n=clamp(Math.ceil(radius*Math.abs(sweep)/2.5),36,220);
+    return {points:Array.from({length:n+1},(_,i)=>{
+     const angle=initial+sweep*i/n;
+     return {x:cx+radius*Math.cos(angle),y:cy+radius*Math.sin(angle)};
+    }),kind:'arc'};
+   }
+  }
+ }
+ if(chord>45&&points.length>8){
+  // Uma curva ampla não circular pode ser idealizada por uma Bézier quadrática.
+  let totalLength=0;const lengths=[0];
+  for(let i=1;i<points.length;i++){totalLength+=dist(points[i-1],points[i]);lengths.push(totalLength);}
+  if(totalLength>chord*1.12&&totalLength<chord*2.6){
+   let sumX=0,sumY=0,sumWeights=0;
+   for(let i=1;i<points.length-1;i++){
+    const t=lengths[i]/totalLength,u=1-t,w=2*u*t,p=points[i];
+    sumX+=w*(p.x-u*u*first.x-t*t*last.x);
+    sumY+=w*(p.y-u*u*first.y-t*t*last.y);
+    sumWeights+=w*w;
+   }
+   if(sumWeights>.01){
+    const c={x:sumX/sumWeights,y:sumY/sumWeights};
+    let error=0,maximum=0;
+    for(let i=0;i<points.length;i++){
+     const t=lengths[i]/totalLength,u=1-t,p=points[i];
+     const ex=u*u*first.x+2*u*t*c.x+t*t*last.x-p.x;
+     const ey=u*u*first.y+2*u*t*c.y+t*t*last.y-p.y;
+     const d=Math.hypot(ex,ey);error+=d*d;maximum=Math.max(maximum,d);
+    }
+    const bend=Math.abs(dx*(c.y-first.y)-dy*(c.x-first.x))/chord;
+    if(Math.sqrt(error/points.length)<diag*.043&&maximum<diag*.11&&bend>chord*.13){
+     return {points:Array.from({length:101},(_,i)=>{
+      const t=i/100,u=1-t;
+      return{x:u*u*first.x+2*u*t*c.x+t*t*last.x,y:u*u*first.y+2*u*t*c.y+t*t*last.y};
+     }),kind:'bezier'};
+    }
+   }
+  }
+ }
+ return smooth;
+}
 function paintStroke(points,color,width,curved=false){
  if(!points?.length)return;
  ctx.beginPath();ctx.lineWidth=width||2.5;ctx.lineCap='round';ctx.lineJoin='round';ctx.strokeStyle=COLORS[color]||COLORS.blue;
@@ -1104,7 +1273,7 @@ function pointerUpCanvas(event){
  if(drawPoints){
   const raw=drawPoints;drawPoints=null;
   if(raw.length){
-   const result=data.smooth?fluidStroke(raw):{points:raw,kind:'free'};
+   const result=data.smooth?smartStroke(raw):{points:raw,kind:'free'};
    page().strokes.push({id:id(),points:result.points,corrected:!!data.smooth,kind:result.kind,ink:data.ink,width:2.6});
    save();status(data.smooth?'Desenho ajustado. Pode usar Deformar.':'Traço livre inserido.','success');
   }
@@ -1499,7 +1668,7 @@ function contextAction(action){
  if(action==='correct'&&selected.type==='note'){item.pending=true;renderNotes();void correctNote(item.id,item.original||item.text||'');return}
  if(action==='warp'&&selected.type==='stroke'&&item.corrected){data.mode='warp';refreshTools();drawCanvas();renderSelectionHandles();status('Quadradinho move; ponto redondo molda.','');return}
  if(action==='fix'&&selected.type==='stroke'&&!item.corrected){
-  checkpoint();const r=fluidStroke(item.points);item.points=r.points;item.kind=r.kind;item.corrected=true;
+  checkpoint();const r=smartStroke(item.points);item.points=r.points;item.kind=r.kind;item.corrected=true;
   drawCanvas();save();return;
  }
  if(action.startsWith('tone:')&&selected.type==='sticky'){
