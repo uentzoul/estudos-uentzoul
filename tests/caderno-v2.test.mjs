@@ -36,7 +36,7 @@ test('Texto é editado diretamente no caderno sem caixa de envio flutuante',()=>
  assert.match(style,/\.nb-inline-edit\{/);
 });
 test('Enter preserva zoom e só acompanha a linha fora da visualização',()=>{
- const source=fn('function focusLine(line){','function refreshTools(){');
+ const source=fn('function focusLine(line){','const FORMAT_MENUS=');
  const view={scrollTop:170,scrollLeft:65,getBoundingClientRect:()=>({top:100,bottom:600,left:0,right:800,width:800,height:500})};
  let top=270;
  const sheet={getBoundingClientRect:()=>({top,left:65})};
