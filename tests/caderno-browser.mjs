@@ -59,7 +59,12 @@ try{
  }
  await f.locator('[data-nb-shelf-book="materia-familia"]').click();
  await f.locator('#nbSheet').waitFor({state:'visible',timeout:15000});
- assert.equal(await f.locator('#nbTools').isVisible(),false,'Caderno abre em modo somente leitura');
+ assert.equal(await f.locator('#nbTools').isVisible(),true,'Caderno vazio abre diretamente em modo editor');
+ assert.equal(await f.locator('#nbPaperDate').isEnabled(),true);
+ assert.equal(await f.locator('#nbEditToggle').textContent(),'✓ Concluir edição');
+ assert.equal(await f.locator('#nbSize').count(),0,'Só existe uma altura de letra: uma pauta');
+ await f.locator('#nbEditToggle').click();
+ assert.equal(await f.locator('#nbTools').isVisible(),false,'Após concluir edição é possível consultar em leitura');
  assert.equal(await f.locator('#nbPaperDate').isDisabled(),true);
  assert.equal(await f.locator('#nbEditToggle').textContent(),'✎ Editar');
  const rawReadOnly=await f.locator('#nbSheet').boundingBox();
@@ -344,6 +349,8 @@ try{
  // No modo leitura, mouse Voltar e histórico interno jamais devem abandonar o Caderno.
  await f.locator('[data-nb-shelf-book="materia-metapsicologia"]').click();
  await f.locator('#nbSheet').waitFor({state:'visible'});
+ assert.equal(await f.locator('#nbTools').isVisible(),true,'Outra disciplina ainda vazia começa em Editar');
+ await f.locator('#nbEditToggle').click();
  assert.equal(await f.locator('#nbTools').isVisible(),false);
  await f.locator('#nbRoot').evaluate(()=>history.back());
  await f.locator('#nbShelf').waitFor({state:'visible'});
@@ -397,8 +404,7 @@ try{
  await bf.locator('#nbShelf').waitFor({state:'visible'});
  await bf.locator('[data-nb-shelf-book="materia-familia"]').click();
  await bf.locator('#nbSheet').waitFor({state:'visible'});
- assert.equal(await bf.locator('#nbTools').isVisible(),false);
- await bf.locator('#nbEditToggle').click();
+ assert.equal(await bf.locator('#nbTools').isVisible(),true,'Primeira abertura do caderno vazio começa editável');
  assert.equal(await bf.locator('[data-nb-action="none"]').getAttribute('aria-pressed'),'true');
  const fontOptions=await bf.locator('#nbFont option').allTextContents();
  assert.deepEqual(fontOptions,['Letra de forma 1','Letra de forma 2','Letra cursiva']);
@@ -424,6 +430,36 @@ try{
  assert.ok(one.width>200&&two.width>200,'Cada folha do caderno aberto deve ocupar espaço real');
  assert.ok(Math.abs(one.y-two.y)<3,'Páginas abertas devem estar alinhadas verticalmente');
  assert.ok(two.x>=one.x+one.width-3,'Primeira folha à esquerda, segunda à direita');
+ // Margem e furos devem mirar a lombada: página esquerda à direita; página direita à esquerda.
+ const binder=await bf.locator('#nbStage').evaluate(stage=>{
+  const left=stage.querySelector('#nbSheet');
+  const right=stage.querySelector('#nbCompanionPaper .nb-snapshot-sheet');
+  const side=(page)=>{
+   const line=getComputedStyle(page,'::before'),holes=getComputedStyle(page.querySelector('.nb-holes'));
+   return {redLeft:line.left,redRight:line.right,holesLeft:holes.left,holesRight:holes.right};
+  };
+  return {left:side(left),right:side(right)};
+ });
+ assert.equal(binder.left.redRight,'85px','Linha vermelha à direita da folha esquerda');
+ assert.equal(binder.left.holesRight,'22px','Furos à direita da folha esquerda');
+ assert.equal(binder.right.redLeft,'85px','Linha vermelha à esquerda da folha direita');
+ assert.equal(binder.right.holesLeft,'22px','Furos à esquerda da folha direita');
+
+ // A folha oposta pode ser arrastada também enquanto o editor está ativo.
+ const editorDrag=await bf.locator('#nbCompanionWrap').boundingBox();
+ const editorBefore=await bf.locator('#nbWrap').boundingBox();
+ const startEditor={x:editorDrag.x+editorDrag.width*.50,y:editorDrag.y+editorDrag.height*.55};
+ await bookPage.mouse.move(startEditor.x,startEditor.y);await bookPage.mouse.down();
+ await bookPage.mouse.move(startEditor.x-100,startEditor.y-65,{steps:8});await bookPage.mouse.up();
+ const editorAfter=await bf.locator('#nbWrap').boundingBox();
+ assert.ok(editorAfter.x<editorBefore.x-70&&editorAfter.y<editorBefore.y-45,
+  'No modo editor, arrastar a folha direita deve mover o caderno em X e Y');
+ assert.equal(await bf.locator('#nbPageNum').textContent(),'01','Arrastar não pode ativar outra folha');
+ const editorReset=await bf.locator('#nbCompanionWrap').boundingBox();
+ const startReset={x:editorReset.x+editorReset.width*.50,y:editorReset.y+editorReset.height*.55};
+ await bookPage.mouse.move(startReset.x,startReset.y);await bookPage.mouse.down();
+ await bookPage.mouse.move(startReset.x+100,startReset.y+65,{steps:8});await bookPage.mouse.up();
+ await bookPage.waitForTimeout(110);
  // Ler: a data vazia não aparece; arraste também funciona na folha direita.
  await bf.locator('#nbEditToggle').click();
  assert.equal(await bf.locator('.nb-paper-date-group').isVisible(),false,
