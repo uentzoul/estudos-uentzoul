@@ -1095,13 +1095,22 @@ function renderPageRail(){
  const host=$('nbPageRail');if(!host)return;
  const oldScroll=host.querySelector('.nb-rail-scroll')?.scrollTop||0;
  const pages=data.pages;
+ const railLeaf=(p,i)=>'<button class="nb-rail-page '+(i===data.page?'active':'')+
+  '" data-nb-rail-page="'+i+'" title="Ir para folha '+(i+1)+'">'+
+  '<span class="nb-rail-paper" aria-hidden="true">'+snapshotSheetMarkup(p,i)+'</span>'+
+  '<span class="nb-rail-caption">Folha '+(i+1)+'</span></button>';
+ const railItems=data.layout==='book'
+  ?Array.from({length:Math.ceil(pages.length/2)},(_,pair)=>{
+    const left=pair*2,right=left+1;
+    return '<div class="nb-rail-spread">'+railLeaf(pages[left],left)+
+     (pages[right]?railLeaf(pages[right],right):
+      '<span class="nb-rail-blank" aria-hidden="true"><span class="nb-rail-paper">'+
+       snapshotSheetMarkup(emptyPage(),right)+'</span></span>')+'</div>';
+   }).join('')
+  :pages.map(railLeaf).join('');
  host.innerHTML=
   '<div class="nb-rail-inner"><div class="nb-rail-head"><span>Folhas</span><span class="nb-rail-count">'+pages.length+'</span></div>'+
-  '<div class="nb-rail-scroll">'+pages.map((p,i)=>
-   '<button class="nb-rail-page '+(i===data.page?'active':'')+'" data-nb-rail-page="'+i+'" title="Ir para folha '+(i+1)+'">'+
-   '<span class="nb-rail-paper" aria-hidden="true">'+snapshotSheetMarkup(p,i)+'</span>'+
-   '<span class="nb-rail-caption">Folha '+(i+1)+'</span></button>'
-  ).join('')+
+  '<div class="nb-rail-scroll">'+railItems+
   '<button class="nb-rail-new '+(data.page===pages.length?'active':'')+
   '" data-nb-rail-page="'+pages.length+'">＋<span>Nova folha</span></button></div></div>'+
   '<button class="nb-rail-tab" type="button" data-nb-action="toggleRail" aria-label="'+
