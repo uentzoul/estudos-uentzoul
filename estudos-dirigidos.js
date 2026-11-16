@@ -70,8 +70,8 @@
    });
  }
  async function refreshSources(force=false){
-   const c=client();
-   if(!c||sourcesLoading||(!force&&Date.now()-lastSourcesAt<30000))return;
+   const c=client(),user=window.uentzoulAIAuth?.user?.();
+   if(!c||!user||sourcesLoading||(!force&&Date.now()-lastSourcesAt<30000))return;
    sourcesLoading=true;lastSourcesAt=Date.now();
    try{
      const [uploads,saved]=await Promise.all([
@@ -192,6 +192,7 @@
  }
  window.renderStudyGuide=function(subject){
    if(!Object.prototype.hasOwnProperty.call(TARGETS,subject))return '<div class="sd-empty">Não há estudo dirigido desta disciplina na seleção atual.</div>';
+   if(!window.uentzoulAIAuth?.user?.())return '<div class="sd-empty" data-sd-subject="'+esc(subject)+'">Entre na sua conta para consultar os estudos dirigidos.</div>';
    if(semester()!=='2026/2')return '<div class="sd-empty" data-sd-subject="'+esc(subject)+'">A seleção atual de estudos dirigidos corresponde às avaliações de 2026/2.</div>';
    if(!sourcesReady&&client()){
      void refreshSources();
