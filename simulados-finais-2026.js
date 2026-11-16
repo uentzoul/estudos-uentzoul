@@ -3,6 +3,7 @@
 (()=>{
 'use strict';
 const VERSION='rev-provas-equivalentes-20261113';
+const META_VERSION='rev-prova-sem-angustia-20261116';
 const LEGACY_CURRENT='rev-final-20261113-r2';
 const PREVIOUS_VERSION='rev-final-20261113';
 const LETTERS=['I','II','III','IV','V'];
@@ -20,6 +21,7 @@ function curated(db,id){
  let items=id==='social'?[...(window.PSICOMOODLE_NEW_CONTENT?.social||[])]:[...(db.topics[id]||[])];
  if(id==='familia')for(const x of familyExtra)if(!items.some(t=>t.title===x.title))items.push(x);
  if(id==='avaliacao')items=items.filter(x=>evalScope.has(x.title));
+  if(id==='meta')items=items.filter(x=>!/ang[uú]sti/i.test(x.title||''));
  return items.filter(x=>x.title&&x.definition);
 }
 function choices(all,t,level,slot,id,version=LEGACY_CURRENT){
@@ -206,18 +208,18 @@ function questionEssay(topics,model,idx,a,b,qid){
   source:'Resposta orientativa autoral; consulte os materiais da disciplina.'};
 }
 function generateEqual(id,model,topics){
- const qs=[],format=FORMATS[id]||FORMATS.familia;
+ const qs=[],format=FORMATS[id]||FORMATS.familia,version=id==='meta'?META_VERSION:VERSION;
  for(let i=0;i<13;i++){
   const a=pickPool(topics,model,i),b=pickPool(topics,model,i,1),c=pickPool(topics,model,i,2);
-  const qid=id+'-'+VERSION+'-'+model+'-'+(i+1);
+  const qid=id+'-'+version+'-'+model+'-'+(i+1);
   qs.push(format[i]==='combo'?questionCombo(topics,model,i,a,b,c,qid):
    format[i]==='tf'?questionTF(model,i,a,qid):questionChoice(id,topics,model,i,a,qid));
  }
  for(let i=0;i<2;i++){
   const a=pickPool(topics,model,13+i*2),b=pickPool(topics,model,14+i*2);
-  qs.push(questionEssay(topics,model,i,a,b,id+'-'+VERSION+'-'+model+'-'+(14+i)));
+  qs.push(questionEssay(topics,model,i,a,b,id+'-'+version+'-'+model+'-'+(14+i)));
  }
- return {id:id+'-'+VERSION+'-'+model,subject:id,model,
+ return {id:id+'-'+version+'-'+model,subject:id,model,
    title:'Simulado '+model,final2026:true,revision:VERSION,
    difficulty:'Padrão da prova',difficultyLevel:'equivalente',sameDifficulty:true,
    questions:qs};
@@ -225,6 +227,17 @@ function generateEqual(id,model,topics){
 
 function apply(db){
  if(!db?.subjects||!db?.topics||!Array.isArray(db.exams))return;
+ // Novo recorte da P2: o tema retirado da prova não pode reaparecer em
+ // tópicos, alternativas, assertivas, flashcards ou modelos legados.
+ if(Array.isArray(db.topics.meta)){
+   db.topics.meta=db.topics.meta.filter(t=>!/ang[uú]sti/i.test(t.title||'')).map(t=>({
+     ...t,
+     definition:String(t.definition||'').replace(/conflitos e angústia/gi,'conflitos e tensões psíquicas'),
+     scenario:String(t.scenario||'').replace(/angústia/gi,'tensão psíquica'),
+     myth:String(t.myth||'').replace(/angústia/gi,'tensão psíquica')
+   }));
+ }
+ db.exams=db.exams.filter(e=>e?.subject!=='meta');
  for(const id of ['tcc','familia','meta','grupos','social','avaliacao']){
   if(!db.subjects[id])continue;
   const oldTopics=curated(db,id);
@@ -233,7 +246,7 @@ function apply(db){
   if(topics.length<3)continue;
   for(let level=1;level<=5;level++){
    // Preservar provas antigas sem alterar questões/gabaritos de tentativas anteriores.
-   for(const legacy of [PREVIOUS_VERSION,LEGACY_CURRENT]){
+   for(const legacy of (id==='meta'?[]:[PREVIOUS_VERSION,LEGACY_CURRENT])){
      const oldExam=generate(id,level,oldTopics,legacy);
      if(!db.exams.some(e=>e.id===oldExam.id))db.exams.push(oldExam);
    }
@@ -242,5 +255,5 @@ function apply(db){
   }
  }
 }
-window.PSICO_FINAL_EXAMS={apply,curated,familyExtra,version:VERSION,generateEqual,formats:FORMATS};
+window.PSICO_FINAL_EXAMS={apply,curated,familyExtra,version:VERSION,metaVersion:META_VERSION,generateEqual,formats:FORMATS};
 })();
