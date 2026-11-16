@@ -315,7 +315,7 @@ function renderBookSpread(){
 function activateCompanion(event){
  if(data.layout!=='book'||flipping)return;
  const target=data.page%2===0?data.page+1:data.page-1;
- if(target>data.pages.length){
+ if(target>data.pages.length||!editEnabled&&target===data.pages.length){
   status('Escreva primeiro na folha esquerda para continuar à direita.','');
   return;
  }
@@ -1093,7 +1093,7 @@ function refreshCurrentRailSnapshot(){
  }
 }
 function goRailPage(index){
- if(!Number.isInteger(index)||index<0||index>data.pages.length)return;
+ if(!Number.isInteger(index)||index<0||index>data.pages.length||!editEnabled&&index===data.pages.length)return;
  if(editing)saveEditor(false);
  if(index===data.page){if(isMobile())closePageRail();return;}
  data.page=index;pendingPage=emptyPage();selected=null;
@@ -1105,20 +1105,41 @@ function closePageRail(){railOpen=false;renderPageRail();}
 function togglePageRail(){railOpen=!railOpen;renderPageRail();}
 function closeDrawer(){drawerOpen=false;$('nbDrawer').hidden=true;root.classList.remove('nb-drawer-open');}
 function backToBooks(){showShelf();}
-function restoreNotebookRoute(state){
- if(!state||state.uentzoulNotebook==='shelf'){
-  if(galleryOpen)hideGallery();
-  if(!drawerOpen)toggleDrawer();
+function navigateBackInside(){
+ if(shelfOpen)return;
+ if(galleryOpen){hideGallery();return}
+ if(editEnabled){setEditEnabled(false);return}
+ if(data.page>0){
+  if(data.layout==='book'&&data.page%2===1)goRailPage(data.page-1);
+  else flip(-1);
   return;
  }
- if(state.uentzoulNotebook==='book'&&data.books.some(b=>b.id===state.bookId)){
-  if(data.bookId!==state.bookId)switchBook(state.bookId,true);
-  if(galleryOpen)hideGallery();
-  closeDrawer();
- }
+ showShelf();
 }
-window.addEventListener('popstate',event=>restoreNotebookRoute(event.state));
-try{history.replaceState({uentzoulNotebook:'shelf'},'',location.href)}catch(_){}
+// O histórico do iframe permanece dentro do Caderno mesmo usando o botão
+// lateral do mouse ou o Voltar nativo do navegador.
+window.addEventListener('popstate',()=>{
+ navigateBackInside();
+ try{history.pushState({psicomoodleCaderno:'protected'},'','#caderno-interno')}catch(_){}
+});
+try{
+ history.replaceState({psicomoodleCaderno:'base'},'',location.href);
+ history.pushState({psicomoodleCaderno:'protected'},'','#caderno-interno');
+}catch(_){}
+let lastHardwareBack=0;
+function sideBack(event){
+ if(event.button!==3)return false;
+ event.preventDefault();event.stopPropagation();
+ if(typeof event.stopImmediatePropagation==='function')event.stopImmediatePropagation();
+ const now=performance.now();
+ if(now-lastHardwareBack>330){lastHardwareBack=now;navigateBackInside()}
+ return true;
+}
+root.addEventListener('auxclick',sideBack,true);
+window.addEventListener('mousedown',sideBack,true);
+window.addEventListener('mouseup',event=>{
+ if(event.button===3){event.preventDefault();event.stopPropagation()}
+},true);
 function toggleDrawer(){
  drawerOpen=!drawerOpen;
  if(drawerOpen){toolPaletteOpen=false;renderStickyPalette();renderDrawer()}
@@ -1325,7 +1346,7 @@ function flip(direction){
  if(flipping)return;
  if(editing)saveEditor(false);
  const target=data.layout==='book'?(Math.floor(data.page/2)*2+(direction>0?2:-2)):data.page+direction;
- if(target<0||target>data.pages.length){status(direction<0?'Esta já é a primeira folha.':'Escreva nas folhas atuais antes de avançar.','');return;}
+ if(target<0||target>data.pages.length||!editEnabled&&target>=data.pages.length){status(direction<0?'Esta já é a primeira folha.':'Não há mais folhas salvas para ler. Clique em Editar para criar outras.','');return;}
  if(target===data.page)return;
  if(target===data.pages.length&&data.pages.length>=250){status('Limite de páginas atingido nesta prévia.','error');return}
  flipping=true;sheet.classList.add('nb-folding');
@@ -1530,7 +1551,7 @@ document.addEventListener('keydown',event=>{
  if(listening){event.preventDefault();bindShortcut(event);return}
  if(event.isComposing)return;
  const inInput=!!event.target.closest('textarea,input,select,[contenteditable="true"]');
- if((event.ctrlKey||event.metaKey)&&!inInput){
+ if(editEnabled&&(event.ctrlKey||event.metaKey)&&!inInput){
   if(event.code==='KeyZ'){event.preventDefault();if(event.shiftKey)redo();else undo();return}
   if(event.code==='KeyY'){event.preventDefault();redo();return}
  }
@@ -1549,11 +1570,16 @@ document.addEventListener('keydown',event=>{
  if(inInput||event.repeat)return;
  const code=shortcutEventString(event);
  const action=Object.keys(data.shortcuts).find(k=>data.shortcuts[k]===code);
- if(action){event.preventDefault();act(action);}
+ if(action&&!shelfOpen){event.preventDefault();act(action);}
 });
 root.addEventListener('pointerdown',event=>{
- if(event.button===3&&!listening&&!Object.values(data.shortcuts).includes('mouse:3')){
-  event.preventDefault();backToBooks();return;
+ if(event.button===3){sideBack(event);return}
+ if(shelfOpen)return;
+ if(!editEnabled){
+  const onPaper=event.button===0&&event.target.closest('#nbSheet')&&
+   !event.target.closest('button,input,textarea');
+  if(onPaper)startPan(event);
+  return;
  }
  if(listening&&event.button!==0){
   event.preventDefault();
@@ -1711,7 +1737,7 @@ root.addEventListener('contextmenu',event=>{
 });
 root.addEventListener('pointerdown',event=>{
  if(listening||event.button===0||event.target.closest('input,textarea,button,select'))return;
- if(event.button===2&&event.target.closest('#nbSheet')&&(selectedItem()||event.target.closest('[data-nb-note],[data-nb-sticky]')))return;
+ if(event.button===2&&editEnabled&&event.target.closest('#nbSheet')&&(selectedItem()||event.target.closest('[data-nb-note],[data-nb-sticky]')))return;
  const action=Object.keys(data.shortcuts).find(k=>data.shortcuts[k]==='mouse:'+event.button);
  if(action){event.preventDefault();act(action)}
 },true);
