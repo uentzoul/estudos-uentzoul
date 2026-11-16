@@ -373,3 +373,11 @@ test('Caderno ajusta círculo, retângulo e linhas sem confundir as formas',()=>
  assert.equal(perfectShape(line).kind,'line');
  assert.equal(perfectShape(curve).kind,'curve');
 });
+
+test('Caderno permanece aberto durante atualizações assíncronas de outras seções',()=>{
+ const loader=read('site-version.js');
+ assert.match(html,/if\(window\.PSICO_NOTEBOOK_ACTIVE\?\.\(\)&&document\.getElementById\('uentzoulCadernoFrame'\)\)return;/);
+ assert.match(html,/window\.PSICO_NOTEBOOK_CLOSE\?\.\(\);/);
+ assert.match(loader,/window\.PSICO_NOTEBOOK_CLOSE=deactivate;/);
+ assert.match(loader,/if\(previewOpen\)deactivate\(\);/);
+});
