@@ -575,8 +575,8 @@ try{
   'Post-it na folha oposta é aplicado sem um segundo clique');
  // Uma estreita faixa junto à lombada impede ferramentas de tocar nas argolas.
  const beforeGuard=(await notebookData()).books[0].pages[0].stickies.length;
- const binder=await tw.locator('#nbSheet').boundingBox();
- await twinPage.mouse.click(binder.x+binder.width-20,binder.y+binder.height*.4);
+ const binderZoneBox=await tw.locator('#nbSheet').boundingBox();
+ await twinPage.mouse.click(binderZoneBox.x+binderZoneBox.width-20,binderZoneBox.y+binderZoneBox.height*.4);
  await twinPage.waitForTimeout(220);
  assert.equal((await notebookData()).books[0].pages[0].stickies.length,beforeGuard,
   'Faixa da encadernação não permite colocar post-its');
