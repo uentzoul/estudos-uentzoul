@@ -103,12 +103,13 @@ const ACTIONS=[
  ['none','Mover folha / nenhuma seleção'],['text','Escrever'],['select','Selecionar'],['draw','Desenhar'],['erase','Borracha'],['sticky','Post-it'],['warp','Moldar'],
  ['black','Caneta preta'],['blue','Caneta azul'],['red','Caneta vermelha'],
  ['print','Letra de forma 1'],['cursive','Letra de forma 2'],['joined','Letra cursiva conectada'],
+ ['bullets','Lista com marcadores'],['numbered','Lista numerada'],
  ['prev','Página anterior'],['next','Próxima página'],['zoomIn','Aproximar'],['zoomOut','Afastar'],
  ['smooth','Alternar ajuste do traço']
 ];
 const emptyPage=()=>({title:'',date:'',notes:[],strokes:[],stickies:[]});
 const newBook=(name='Meu caderno')=>({id:'book-'+Date.now()+'-'+Math.random().toString(36).slice(2,8),name,pages:[]});
-const defaults=()=>({books:initialBooks(),bookId:SUBJECT_BOOKS[0].id,page:0,mode:'none',font:'print',ink:'blue',size:1,align:'left',layout:'single',smooth:false,zoom:.88,shortcuts:{},stickyTone:'yellow',eraserMode:'parts',eraserRadius:14});
+const defaults=()=>({books:initialBooks(),bookId:SUBJECT_BOOKS[0].id,page:0,mode:'none',font:'print',ink:'blue',size:1,align:'left',listStyle:'none',layout:'single',smooth:false,zoom:.88,shortcuts:{},stickyTone:'yellow',eraserMode:'parts',eraserRadius:14});
 const hasPageContent=p=>!!(String(p?.date||'').trim()||p?.notes?.some(n=>String(n.text||'').trim())||p?.strokes?.some(s=>s.points?.length)||p?.stickies?.length);
 const cleanPage=p=>({title:String(p?.title||'').slice(0,100),date:String(p?.date||'').slice(0,16),
  notes:Array.isArray(p?.notes)?p.notes.slice(0,140).map(n=>{const {original,...corrected}=n;corrected.pending=false;return corrected;}):[],strokes:Array.isArray(p?.strokes)?p.strokes.slice(0,500):[],
@@ -134,6 +135,7 @@ if(stored&&typeof stored==='object'){
   if(!COLORS[data.ink])data.ink='blue';
   if(!['print','cursive','joined'].includes(data.font))data.font='print';
    if(!['left','center','right','justify'].includes(data.align))data.align='left';
+  if(!['none','bullets','numbered'].includes(data.listStyle))data.listStyle='none';
   if(!data.shortcuts||typeof data.shortcuts!=='object')data.shortcuts={};
   if(!['single','book'].includes(data.layout))data.layout='single';
  }
@@ -414,7 +416,9 @@ root.innerHTML=
  '<button class="nb-color" data-nb-action="blue" style="--swatch:#213f72" aria-label="Caneta azul"><span></span></button>'+
  '<button class="nb-color" data-nb-action="red" style="--swatch:#bb3d43" aria-label="Caneta vermelha"><span></span></button></span>'+
  '<select class="nb-font-select" id="nbFont" aria-label="Tipo de letra"><option value="print">Letra de forma 1</option><option value="cursive">Letra de forma 2</option><option value="joined">Letra cursiva</option></select>'+
- '<select class="nb-align-select" id="nbTextAlign" aria-label="Alinhamento do texto"><option value="left">Esquerda</option><option value="center">Centro</option><option value="right">Direita</option><option value="justify">Justificado</option></select></div>'+
+ '<select class="nb-align-select" id="nbTextAlign" aria-label="Alinhamento do texto"><option value="left">Esquerda</option><option value="center">Centro</option><option value="right">Direita</option><option value="justify">Justificado</option></select>'+
+ '<button type="button" class="nb-tool nb-list-tool" data-nb-action="bullets" title="Lista com marcadores (•)" aria-label="Lista com marcadores" aria-pressed="false">• Tópicos</button>'+
+ '<button type="button" class="nb-tool nb-list-tool" data-nb-action="numbered" title="Lista numerada (1, 2, 3...)" aria-label="Lista numerada" aria-pressed="false">1. Numeração</button></div>'+
  '<div class="nb-toolgroup"><label class="nb-layout-label" for="nbLayout">Estilo</label><select class="nb-layout-select" id="nbLayout" aria-label="Estilo do caderno"><option value="single">Folha única</option><option value="book">Caderno aberto</option></select></div>'+ 
  '<div class="nb-toolgroup"><label class="nb-correct-toggle" title="Corrigir linhas, arcos, círculos, curvas e polígonos; preservar desenhos livres"><input id="nbSmooth" type="checkbox">Ajustar traços</label>'+
  '<button class="nb-tool" data-nb-action="shortcuts" title="Personalizar teclas e botões do mouse">⌨ Atalhos</button>'+
@@ -601,11 +605,30 @@ function refreshTools(){
  for(const a of Object.keys(COLORS)){const b=root.querySelector('[data-nb-action="'+a+'"]');b?.setAttribute('aria-pressed',String(data.ink===a));}
  $('nbFont').value=data.font;$('nbSmooth').checked=!!data.smooth;
  $('nbTextAlign').value=['left','center','right','justify'].includes(data.align)?data.align:'left';
+ for(const action of ['bullets','numbered'])root.querySelector('[data-nb-action="'+action+'"]')?.setAttribute('aria-pressed',String(data.listStyle===action));
  $('nbLayout').value=data.layout;
  sheet.dataset.mode=data.mode;
  $('nbPageCount').textContent=pageCountLabel();updateBookHeading();
  $('nbPageNum').textContent=String(data.page+1).padStart(2,'0');
  $('nbPaperDate').value=page().date||'';
+}
+/* Prefixos de listas integram o próprio texto: nuvem, miniaturas e PDF preservam os itens. */
+function listInfo(value){
+ const match=/^([ \t]*)(?:(•)(?:[ \t]+|$)|(\d{1,4})\.(?:[ \t]+|$))/.exec(String(value||''));
+ return match?{indent:match[1],kind:match[2]?'bullets':'numbered',number:Number(match[3]||0),prefix:match[0]}:null;
+}
+function nextListNumber(line){
+ const previous=page().notes.filter(n=>Number(n.line)+Math.max(1,Number(n.span)||1)===line)
+  .sort((a,b)=>Number(b.line)-Number(a.line))[0];
+ const item=listInfo(previous?.text||'');
+ return item?.kind==='numbered'?Math.min(9999,item.number+1):1;
+}
+function listMarker(style,line){
+ return style==='bullets'?'• ':style==='numbered'?nextListNumber(line)+'. ':'';
+}
+function normalizeNoteText(raw){
+ const item=listInfo(raw);
+ return item?item.prefix+fallbackBasic(String(raw).slice(item.prefix.length)):fallbackBasic(raw);
 }
 function letterMarkup(text){
  // Uma métrica tipográfica por linha; spans letra por letra deformavam a pauta.
@@ -651,10 +674,39 @@ function beginEdit(line){
  }
  data.size=1;
  const existing=page().notes.find(n=>line>=Number(n.line)&&line<Number(n.line)+Number(n.span||Number(n.size)||1));
- editing={line:existing?Number(existing.line):line,id:existing?.id||null,draft:existing?.text||''};
+ if(existing)data.listStyle=listInfo(existing.text)?.kind||'none';
+ editing={line:existing?Number(existing.line):line,id:existing?.id||null,
+  draft:existing?.text||(data.listStyle!=='none'?listMarker(data.listStyle,line):'')};
  if(existing){data.font=existing.font;data.ink=existing.ink;data.align=existing.align||'left';}
  previewText=editing.draft;
  refreshTools();renderNotes();editorMarkup();focusLine(editing.line);
+}
+function toggleList(style){
+ const input=$('nbEditorText');
+ const target=!editing&&selected?.type==='note'?selectedItem():null;
+ const currentStyle=editing?data.listStyle:target?(listInfo(target.text)?.kind||'none'):data.listStyle;
+ const next=currentStyle===style?'none':style;
+ if(input&&editing){
+  const oldText=input.value,oldItem=listInfo(oldText),indent=oldItem?.indent||'';
+  const plain=oldItem?indent+oldText.slice(oldItem.prefix.length):oldText;
+  const updated=next==='none'?plain:indent+listMarker(next,editing.line)+plain.slice(indent.length);
+  const cursor=clamp(input.selectionStart+updated.length-oldText.length,0,updated.length);
+  input.value=updated;
+  input.dispatchEvent(new Event('input',{bubbles:true}));
+  input.focus({preventScroll:true});input.setSelectionRange(cursor,cursor);
+ }else if(target){
+  const oldItem=listInfo(target.text),indent=oldItem?.indent||'';
+  const plain=oldItem?indent+target.text.slice(oldItem.prefix.length):target.text;
+  const updated=next==='none'?plain:indent+listMarker(next,Number(target.line))+plain.slice(indent.length);
+  if(updated!==target.text){
+   checkpoint();target.text=updated;target.pending=false;delete target.original;
+   target.span=occupiedSpan(target);makeRoom(target);renderNotes();
+  }
+ }else{
+  data.mode='text';
+ }
+ data.listStyle=next;refreshTools();save();
+ status(next==='none'?'Lista desativada.':next==='bullets'?'Lista com marcadores ativada.':'Lista numerada ativada.','success');
 }
 function closeEditor(){editing=null;previewText='';renderNotes();editorMarkup();}
 function occupiedSpan(note){
@@ -720,13 +772,15 @@ async function correctNote(noteId,raw){
   if(auth?.user?.()?.id!==currentOwner||auth?.user?.()?.is_anonymous===true)throw Error('A sessão terminou. Entre novamente.');
   const c=auth.client?.();
   if(!c)throw Error('Serviço indisponível.');
-  const {data:result,error}=await c.functions.invoke('caderno-revisao',{body:{text:raw}});
+  const list=listInfo(raw),body=list?raw.slice(list.prefix.length):raw;
+  const {data:result,error}=await c.functions.invoke('caderno-revisao',{body:{text:body}});
   if(error||typeof result?.text!=='string')throw error||Error('Sem resposta da revisão.');
   const revised=result.text.trim();
-  if(!revised||revised.length<raw.length*.5||revised.length>raw.length*1.75)throw Error('Revisão não confiável.');
+  if(!revised||revised.length<body.length*.5||revised.length>body.length*1.75)throw Error('Revisão não confiável.');
   const n=data.books.flatMap(b=>b.pages).flatMap(p=>p.notes).find(n=>n.id===noteId);
   if(!n||n.original!==raw)return;
-  n.text=fallbackBasic(restoreTextTabs(raw,result.reviewed===true?revised:raw));
+  n.text=list?list.prefix+fallbackBasic(restoreTextTabs(body,result.reviewed===true?revised:body)):
+   fallbackBasic(restoreTextTabs(raw,result.reviewed===true?revised:raw));
   n.pending=false;n.reviewed=result.reviewed===true;n.span=occupiedSpan(n);
   delete n.original; // Descartar o rascunho bruto: a versão corrigida é definitiva.
   if(page().notes.includes(n))makeRoom(n);
@@ -737,7 +791,7 @@ async function correctNote(noteId,raw){
   const n=data.books.flatMap(b=>b.pages).flatMap(p=>p.notes).find(n=>n.id===noteId);
   if(!n||n.original!==raw)return;
   n.pending=false;n.reviewed=false;
-  n.text=fallbackBasic(raw);
+  n.text=normalizeNoteText(raw);
   delete n.original; // O fallback também substitui definitivamente o texto original.
   if(page().notes.includes(n))renderNotes();
   save();status('Pontuação e maiúsculas corrigidas. Revisão adicional de IA indisponível.','');
@@ -747,6 +801,16 @@ function saveEditor(advance=true){
  if(!editing)return;
  const priorLine=editing.line;
  const typed=String($('nbEditorText')?.value||'').replace(/\r\n?/g,'\n').trimEnd();
+ const listOnly=listInfo(typed);
+ if(listOnly&&!typed.slice(listOnly.prefix.length).trim()){
+  if(editing.id&&page().notes.some(n=>n.id===editing.id)){
+   checkpoint();page().notes=page().notes.filter(n=>n.id!==editing.id);
+   renderPageRail();save();
+  }
+  data.listStyle='none';closeEditor();refreshTools();
+  if(advance)advanceLine(priorLine);
+  return;
+ }
  if(!typed.trim()){
   // Texto existente esvaziado deve ser realmente excluído do armazenamento.
   const previousId=editing.id;
@@ -762,7 +826,7 @@ function saveEditor(advance=true){
  checkpoint();
  let n=editing.id?page().notes.find(n=>n.id===editing.id):null;
  if(!n){n={id:id(),line:editing.line,text:typed};page().notes.push(n)}
- Object.assign(n,{text:fallbackBasic(typed),original:typed,font:data.font,size:1,ink:data.ink,align:data.align||'left',pending:true,reviewed:false});
+ Object.assign(n,{text:normalizeNoteText(typed),original:typed,font:data.font,size:1,ink:data.ink,align:data.align||'left',pending:true,reviewed:false});
  n.span=occupiedSpan(n);makeRoom(n);materializePage();
  const nid=n.id;closeEditor();renderNotes();save();
  status('Linha registrada; revisão gramatical em andamento…','');
@@ -1941,6 +2005,7 @@ function act(action){
   data.mode='sticky';toolPaletteOpen=!toolPaletteOpen;
   refreshTools();renderStickyPalette();save();return;
  }
+ if(action==='bullets'||action==='numbered'){toggleList(action);return;}
  if(MODES.includes(action)){
   if(editing)saveEditor(false);
   // Em Moldar, preservar a seleção de qualquer desenho.
@@ -2051,7 +2116,11 @@ root.addEventListener('change',event=>{
  if(event.target.id==='nbPaperDate'&&editEnabled){page().date=event.target.value;syncNotebookUI();save();}
 });
 // Clicar fora do texto confirma alterações, inclusive a exclusão completa.
+root.addEventListener('mousedown',event=>{
+ if(editing&&event.target.closest('[data-nb-action="bullets"],[data-nb-action="numbered"]'))event.preventDefault();
+});
 root.addEventListener('focusout',event=>{
+ if(event.relatedTarget?.closest?.('[data-nb-action="bullets"],[data-nb-action="numbered"]'))return;
  if(event.target.id!=='nbEditorText'||!editing)return;
  // Ocultações temporárias (ex.: renderização ou captura visual) não são saídas reais.
  if(getComputedStyle(event.target).visibility==='hidden'||!event.target.isConnected)return;
@@ -2385,7 +2454,10 @@ window.addEventListener('pagehide',()=>{
  // O iframe pode ser desmontado ao navegar: conserva inclusive a anotação ainda em edição.
  if(editing){
   const typed=String($('nbEditorText')?.value||'').replace(/\r\n?/g,'\n').trimEnd();
-  if(!typed.trim()&&editing.id){
+  const marker=listInfo(typed);
+  if(marker&&!typed.slice(marker.prefix.length).trim()){
+   if(editing.id)page().notes=page().notes.filter(n=>n.id!==editing.id);
+  }else if(!typed.trim()&&editing.id){
    // Ao descarregar o iframe, não persistir uma anotação já apagada na caixa.
    page().notes=page().notes.filter(n=>n.id!==editing.id);
   }else if(typed.trim()){

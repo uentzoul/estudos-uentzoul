@@ -666,6 +666,7 @@ html.nb-closing-book::view-transition-new(nb-shared-sheet){
 .nb-inline-edit{left:110px;width:620px;box-sizing:border-box;
  font-size:var(--nb-note-size,26px)!important;line-height:var(--nb-note-row,34px)!important;
  padding:0!important;letter-spacing:normal!important;white-space:pre-wrap!important}
+.nb-list-tool{min-width:76px;font-variant-numeric:tabular-nums}
 .nb-align-select{min-height:34px;color:#3d3458;background:#fff;border:1px solid #ded7e9;
  border-radius:9px;padding:6px 9px;max-width:125px;font-size:12px;font-weight:700}
 .nb-reading .nb-paper-date-group:not(.nb-has-date){display:none!important}
