@@ -241,12 +241,13 @@ setTimeout(check,15000);
 (()=>{const load=()=>{if(document.getElementById('pm-site-health-panel-script'))return;const s=document.createElement('script');s.id='pm-site-health-panel-script';s.src='site-health-panel.js?v=20261114-v1';s.async=true;document.head.appendChild(s)};if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',load,{once:true});else load()})();
 
 
-/* Caderno: acesso visual exclusivo ao administrador; página de teste isolada. */
+/* Caderno público para contas cadastradas; cada pessoa tem suas próprias anotações. */
 (()=>{
  'use strict';
  const STYLE_ID='uentzoul-notebook-preview-style',NAV_ID='navCadernoPreview',FRAME_ID='uentzoulCadernoFrame';
- let previewOpen=false,lastExplicitNav=0,permissionLostSince=0;
- const admin=()=>window.uentzoulAdminConfig?.isAdmin?.()===true&&!!window.uentzoulAIAuth?.user?.()?.id;
+ let previewOpen=false,lastExplicitNav=0,permissionLostSince=0,pendingOpenAfterLogin=false;
+ const account=()=>{const u=window.uentzoulAIAuth?.user?.();return u?.id&&u.is_anonymous!==true?u:null;};
+ const loggedIn=()=>!!account();
  // A restrição é pelo tipo de aparelho, não apenas pela largura da janela.
  // iPad e tablets Android continuam disponíveis, mesmo com viewport estreito.
  function isNotebookPhone(){
@@ -310,18 +311,23 @@ setTimeout(check,15000);
   if(!previewOpen||document.getElementById(FRAME_ID))return;
   if(performance.now()-lastExplicitNav<1500){deactivate();return;}
   // Atualização de outro painel não pode substituir silenciosamente o Caderno.
-  if(admin())openPreview();
+  if(loggedIn())openPreview();
   else if(main()){
    main().classList.add('nb-shell-active');
-   main().innerHTML='<section role="status" style="padding:34px">Sessão administrativa temporariamente indisponível. Entre novamente para abrir o Caderno.</section>';
+   main().innerHTML='<section role="status" style="padding:34px">Sessão temporariamente indisponível. Entre novamente para abrir o Caderno.</section>';
   }
  }
  function openPreview(){
-  if(!admin()||isNotebookPhone())return;
+  if(!loggedIn()){
+   pendingOpenAfterLogin=true;
+   window.uentzoulAIAuth?.openLogin?.();
+   return;
+  }
+  pendingOpenAfterLogin=false;
   const target=main();if(!target)return;
   previewOpen=true;permissionLostSince=0;addStyles();
   target.classList.add('nb-shell-active');
-  target.innerHTML='<iframe id="'+FRAME_ID+'" title="Caderno de aula — prévia administrativa" src="'+notebookUrl()+'" data-nb-semester="'+selectedSemester()+'" loading="eager" referrerpolicy="same-origin"></iframe>';
+  target.innerHTML='<iframe id="'+FRAME_ID+'" title="Caderno de aula — anotações privadas" src="'+notebookUrl()+'" data-nb-semester="'+selectedSemester()+'" loading="eager" referrerpolicy="same-origin"></iframe>';
   const frame=document.getElementById(FRAME_ID);
   if(frame)frame.addEventListener('load',()=>{
    // Ignore the iframe's initial about:blank; wait for actual notebook content.
@@ -360,9 +366,9 @@ setTimeout(check,15000);
    // Compatibilidade com versões de HTML em cache: na página atual o botão
    // já existe na navegação desde o primeiro quadro renderizado.
    button=document.createElement('button');button.type='button';button.id=NAV_ID;
-   button.className='sidebtn nav-caderno';button.title='Caderno · prévia administrativa';
+   button.className='sidebtn nav-caderno';button.title='Caderno · entre ou crie sua conta';
    button.innerHTML='<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M5 3h14v18H5zM9 3v18M12 8h4M12 12h4M12 16h4"/></svg>'+
-    '<span class="nav-label">Caderno</span><span class="nb-preview-label">Em breve</span>';
+    '<span class="nav-label">Caderno</span>';
   }
   if(button.dataset.nbBound!=='true'){
    button.addEventListener('click',openPreview);
@@ -374,20 +380,20 @@ setTimeout(check,15000);
   }
   const phone=isNotebookPhone();
   document.documentElement.dataset.pmNotebookPhone=String(phone);
-  const allowed=admin()&&!phone;
+  const allowed=loggedIn();
   if(previewOpen)fitNotebookHeight();
-  // O Caderno fica visível desde o primeiro quadro também para visitantes.
-  // Somente administradores em dispositivos compatíveis podem ativá-lo.
+  // O item aparece desde o primeiro instante; visitas sem conta abrem o login.
   button.hidden=false;
   if(button.style.display)button.style.removeProperty('display');
   if(button.style.visibility)button.style.removeProperty('visibility');
-  if(button.disabled===allowed)button.disabled=!allowed;
-  const label=allowed?'Caderno de '+selectedSemester()+', prévia administrativa':
-   'Caderno indisponível no momento. Acesso reservado a administradores.';
+  if(button.disabled)button.disabled=false;
+  button.querySelector('.nb-preview-label')?.remove();
+  const label=allowed?'Abrir meus cadernos de '+selectedSemester():
+    'Caderno: entre ou crie uma conta para salvar anotações';
   if(button.getAttribute('aria-label')!==label)button.setAttribute('aria-label',label);
-  if(button.getAttribute('aria-disabled')!==String(!allowed))button.setAttribute('aria-disabled',String(!allowed));
+  if(button.getAttribute('aria-disabled')!=='false')button.setAttribute('aria-disabled','false');
   if(button.hasAttribute('aria-hidden'))button.removeAttribute('aria-hidden');
-  const title=allowed?'Caderno · '+selectedSemester()+' · prévia administrativa':'Caderno · em breve';
+  const title=allowed?'Caderno · minhas anotações':'Caderno · entre ou crie sua conta';
   if(button.title!==title)button.title=title;
   if(previewOpen&&!allowed){
    // Oscilações temporárias de sessão nunca provocam navegação involuntária.
@@ -396,8 +402,8 @@ setTimeout(check,15000);
     const frame=document.getElementById(FRAME_ID);
     if(frame&&!frame.dataset.nbLocked){
      frame.dataset.nbLocked='true';
-     frame.setAttribute('title','Caderno indisponível sem conta administrativa');
-     frame.srcdoc='<!doctype html><html lang="pt-BR"><meta charset="utf-8"><body style="margin:0;min-height:100vh;display:grid;place-items:center;background:#f3f1f9;color:#483c60;font:600 15px system-ui,sans-serif"><p style="padding:28px;text-align:center">Sessão administrativa encerrada. Entre novamente para reabrir o caderno.</p></body></html>';
+     frame.setAttribute('title','Caderno indisponível sem sessão autenticada');
+     frame.srcdoc='<!doctype html><html lang="pt-BR"><meta charset="utf-8"><body style="margin:0;min-height:100vh;display:grid;place-items:center;background:#f3f1f9;color:#483c60;font:600 15px system-ui,sans-serif"><p style="padding:28px;text-align:center">Sessão encerrada. Entre novamente para reabrir o caderno.</p></body></html>';
     }
    }
   }else if(previewOpen){
@@ -424,7 +430,12 @@ setTimeout(check,15000);
   window.addEventListener('popstate',()=>{
    if(previewOpen){lastExplicitNav=performance.now();deactivate();}
   });
-  window.addEventListener('uentzoul:auth',()=>{sync();setTimeout(sync,420)});
+  window.addEventListener('uentzoul:auth',()=>{
+   sync();setTimeout(()=>{
+    sync();
+    if(pendingOpenAfterLogin&&loggedIn())openPreview();
+   },420);
+  });
   window.addEventListener('uentzoul:semester',()=>{
    const frame=document.getElementById(FRAME_ID),semester=selectedSemester();
    if(frame&&previewOpen&&frame.dataset.nbSemester!==semester){
