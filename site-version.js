@@ -11,7 +11,7 @@ function setup(){
  }
  if(!document.getElementById('pm-phone-portrait-js')){
   const script=document.createElement('script');
-  script.id='pm-phone-portrait-js';script.src='phone-portrait-only.js?v=20261115-1';
+  script.id='pm-phone-portrait-js';script.src='phone-portrait-only.js?v=20261116-iphone-v2';
   script.async=true;document.head.appendChild(script);
  }
  const nav=document.getElementById('nav');
@@ -254,10 +254,14 @@ setTimeout(check,15000);
   const ua=String(navigator.userAgent||''),platform=String(navigator.platform||'');
   const touches=Number(navigator.maxTouchPoints)||0;
   const shortSide=Math.min(screen.width||0,screen.height||0);
+  // iPhones têm prioridade sobre a heurística de iPadOS/MacIntel.
+  if(/iPhone|iPod|Windows Phone|IEMobile/i.test(ua))return true;
   if(/iPad|Tablet|Kindle|Silk|PlayBook|Nexus 7|Nexus 10/i.test(ua)||
-    (/Android/i.test(ua)&&!/Mobile/i.test(ua))||
-    (/MacIntel|Macintosh/i.test(platform+' '+ua)&&touches>1))return false;
-  if(/iPhone|iPod|Windows Phone|IEMobile|Android[^)]*Mobile|Mobile/i.test(ua))return true;
+    (/Android/i.test(ua)&&!/Mobile/i.test(ua)))return false;
+  if(navigator.userAgentData?.mobile===true)return true;
+  if(/MacIntel|Macintosh/i.test(platform+' '+ua)&&touches>1)
+    return shortSide>0&&shortSide<600;
+  if(/Android[^)]*Mobile|Mobile/i.test(ua))return true;
   if(navigator.userAgentData?.mobile===true)return true;
   return !!(window.matchMedia?.('(pointer: coarse)')?.matches&&touches>0&&shortSide>0&&shortSide<600);
  }
@@ -276,7 +280,7 @@ setTimeout(check,15000);
   }
   return semesters.includes(value)?value:'2026/2';
  }
- const notebookUrl=()=>('./caderno.html?v=20261116-caderno-v26-sem-celular&semester='+
+ const notebookUrl=()=>('./caderno.html?v=20261116-caderno-v27-iphone-check&semester='+
    encodeURIComponent(selectedSemester()));
  function addStyles(){
   if(document.getElementById(STYLE_ID))return;

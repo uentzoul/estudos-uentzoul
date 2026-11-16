@@ -10,10 +10,13 @@ function isPhoneDevice(info){
  const touches=Number(info.touches)||0;
  const shortSide=Number(info.shortSide)||0;
  // iPadOS pode anunciar "MacIntel" mesmo sendo tablet.
+ if(/iPhone|iPod|Windows Phone|IEMobile/i.test(ua))return true;
  if(/iPad|Tablet|Kindle|Silk|PlayBook|Nexus 7|Nexus 10/i.test(ua)||
-    (/Android/i.test(ua)&&!/Mobile/i.test(ua))||
-    ((/MacIntel|Macintosh/i.test(platform+' '+ua))&&touches>1))return false;
- if(/iPhone|iPod|Windows Phone|IEMobile|Android[^)]*Mobile|Mobile/i.test(ua))return true;
+    (/Android/i.test(ua)&&!/Mobile/i.test(ua)))return false;
+ if(info.uaMobile===true)return true;
+ if((/MacIntel|Macintosh/i.test(platform+' '+ua))&&touches>1)
+   return shortSide>0&&shortSide<600;
+ if(/Android[^)]*Mobile|Mobile/i.test(ua))return true;
  if(info.uaMobile===true)return true;
  // Dispositivos móveis com user-agent atípico, sem afetar laptops touch.
  return !!info.coarse&&touches>0&&shortSide>0&&shortSide<600;

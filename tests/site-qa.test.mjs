@@ -473,8 +473,8 @@ test('Ajuste inteligente do caderno reconhece meia-lua e não destrói desenhos 
  assert.match(source,/const r=smartStroke\(item\.points\)/);
  assert.ok(source.includes("!['line','polygon','rectangle'].includes(s.kind)"),'arestas retas no canvas');
  assert.ok(pdf.includes("!['line','polygon','rectangle'].includes(stroke.kind)"),'arestas retas no PDF');
- assert.match(read('caderno.html'),/20261116-caderno-v26-sem-celular/);
- assert.match(read('site-version.js'),/caderno\.html\?v=20261116-caderno-v26-sem-celular/);
+ assert.match(read('caderno.html'),/20261116-caderno-v27-iphone-check/);
+ assert.match(read('site-version.js'),/caderno\.html\?v=20261116-caderno-v27-iphone-check/);
 });
 
 test('Caderno remove a seta superior sem alterar a navegação restante',()=>{
@@ -550,4 +550,26 @@ test('Pacotes pessoais mantêm biblioteca por conta e links seguros do Sticker.l
  assert.equal(parse('https://sticker.ly/s/A3ZA4F/'),'A3ZA4F');
  assert.equal(parse('https://not-sticker.ly/s/A3ZA4F'),'');
  assert.equal(parse('javascript:alert(1)'),'');
+});
+
+
+test('Detecção diferencia iPhone, iPad e tela MacIntel sensível ao toque',()=>{
+ const loader=read('site-version.js');
+ const start=loader.indexOf('function isNotebookPhone(){');
+ const end=loader.indexOf(' // Mesma regra para o botão da navegação',start);
+ assert.ok(start>=0&&end>start);
+ const func=loader.slice(start,end).trim();
+ const detect=(ua,short,platform='MacIntel',touches=5,mobile=false)=>{
+  const phone=vm.runInNewContext('('+func+')',{
+   navigator:{userAgent:ua,platform,maxTouchPoints:touches,userAgentData:{mobile}},
+   screen:{width:short,height:short*2},
+   window:{matchMedia:()=>({matches:touches>0})}
+  });
+  return phone();
+ };
+ assert.equal(detect('Mozilla/5.0 (iPhone; CPU iPhone OS 18_0) Mobile Safari',390),true);
+ assert.equal(detect('Mozilla/5.0 (iPad; CPU OS 18_0) Mobile Safari',834),false);
+ assert.equal(detect('Mozilla/5.0 (Macintosh; Intel Mac OS X) Safari',390),true);
+ assert.equal(detect('Mozilla/5.0 (Macintosh; Intel Mac OS X) Safari',900),false);
+ assert.match(read('caderno.js'),/if\(\/iPhone\|iPod\|Windows Phone\|IEMobile\/i\.test\(ua\)\)return true/);
 });

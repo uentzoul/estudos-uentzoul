@@ -143,7 +143,7 @@ with sync_playwright() as p:
     profiles=[
       ("desktop_chromium",p.chromium,dict(viewport={"width":1440,"height":900},device_scale_factor=1)),
       ("android_chromium",p.chromium,dict(viewport={"width":393,"height":852},is_mobile=True,has_touch=True,device_scale_factor=2)),
-      ("iphone_webkit",p.webkit,dict(viewport={"width":390,"height":844},is_mobile=True,has_touch=True,device_scale_factor=2))
+      ("iphone_webkit",p.webkit,dict(viewport={"width":390,"height":844},is_mobile=True,has_touch=True,device_scale_factor=2,user_agent="Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.0 Mobile/15E148 Safari/604.1"))
     ]
     for device,engine,settings in profiles:
         browser=engine.launch(headless=True)
