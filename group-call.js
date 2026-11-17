@@ -7,7 +7,7 @@ const escCall=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>
 const S={room:null,stage:'off',overlay:null,channel:null,key:'',peers:new Map(),presence:new Map(),
  mic:true,cam:false,hand:false,screen:false,audio:null,camera:null,display:null,stream:null,
  panel:'',pinned:null,chat:[],chatBusy:false,chatTimer:null,guard:null,pendingSignals:[],devicePanel:false,photoUrl:'',
- micDevice:'',camDevice:'',notice:'',noticeTimer:null,callStarted:0,generation:0};
+ micDevice:'',camDevice:'',notice:'',noticeTimer:null,callStarted:0,generation:0,reconnectTimer:null};
 const eligible=()=>typeof client!=='undefined'&&client&&typeof onlineUser!=='undefined'&&onlineUser?.id&&!onlineUser.is_anonymous;
 const group=id=>typeof dm!=='undefined'&&dm.rooms?.find(r=>r.id===id&&r.kind==='group');
 const person=id=>typeof dmPrettyPerson==='function'?dmPrettyPerson(id):{display_name:'Participante'};
@@ -352,15 +352,29 @@ async function join(){
    if(S.channel!==channel)return;
    if(statusValue==='SUBSCRIBED'){
     try{
+     const returning=S.stage==='live';
+     clearTimeout(S.reconnectTimer);S.reconnectTimer=null;
      const current=channel.presenceState();
      const count=Object.values(current).reduce((n,items)=>n+(Array.isArray(items)?items.length:0),0);
-     if(count>=6){await leave();if(typeof toast==='function')toast('Esta versão aceita até 6 participantes simultâneos para preservar a qualidade da call.');return;}
+     if(!returning&&count>=6){await leave();if(typeof toast==='function')toast('Esta versão aceita até 6 participantes simultâneos para preservar a qualidade da call.');return;}
+     if(returning){
+      S.peers.forEach(p=>p.pc.close());S.peers.clear();S.pendingSignals=[];S.presence.clear();
+     }
      await channel.track(meta());
-     if(S.generation!==generation){await leave();return;}
-     S.stage='live';S.presence.set(S.key,meta());draw();synchronize();
+     if(S.generation!==generation||S.channel!==channel){return;}
+     S.stage='live';S.presence.set(S.key,meta());status('',0);draw();synchronize();
      clearInterval(S.guard);S.guard=setInterval(()=>{void checkMembership()},15000);
     }catch(e){status('Não foi possível entrar na call. '+(e.message||''),10);await leave();}
-   }else if(['CHANNEL_ERROR','TIMED_OUT','CLOSED'].includes(statusValue)&&S.stage!=='off'){
+   }else if(['CHANNEL_ERROR','TIMED_OUT'].includes(statusValue)&&S.stage==='live'){
+    const label=S.overlay?.querySelector('[data-gc-connection]');
+    if(label){label.textContent='Reconectando…';label.classList.remove('is-live');}
+    status('Conexão instável. Tentando restabelecer a call automaticamente…',0);
+    if(!S.reconnectTimer)S.reconnectTimer=setTimeout(()=>{
+     if(S.channel===channel&&S.stage==='live'){
+      void leave().then(()=>{if(typeof toast==='function')toast('Não foi possível reconectar. Entre novamente na call.');});
+     }
+    },30000);
+   }else if((statusValue==='CLOSED'||S.stage==='joining'&&['CHANNEL_ERROR','TIMED_OUT'].includes(statusValue))&&S.stage!=='off'){
     await leave();if(typeof toast==='function')toast('A conexão da call foi interrompida. Entre novamente para reconectar.');
    }
   });
@@ -453,6 +467,7 @@ async function leave(){
  ++S.generation;
  const channel=S.channel;S.channel=null;
  clearInterval(S.guard);S.guard=null;
+ clearTimeout(S.reconnectTimer);S.reconnectTimer=null;
  clearTimeout(S.noticeTimer);
  S.peers.forEach(p=>p.pc.close());S.peers.clear();
  if(channel){try{void channel.untrack().catch(()=>{});}catch(_){}try{void client.removeChannel(channel).catch(()=>{});}catch(_){}}
