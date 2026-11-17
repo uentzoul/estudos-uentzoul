@@ -129,32 +129,96 @@ function gcd(a,b){while(b){const t=a%b;a=b;b=t;}return a;}
 function compact(s,max=260){
  const a=norm(s);return a.length<=max?a:a.slice(0,max).replace(/\s+\S*$/,'')+'…';
 }
+
+/* Distratores curriculares, não frases caricatas:
+   dois conceitos próximos + dois equívocos plausíveis sobre os próprios conceitos.
+   Não mudar IDs, ordem das provas ou posição correta calculada pelo modelo. */
+const CLOSE_TOPICS={
+ tcc:[
+ ['Esquema Inicial','Necessidades emocionais','Defectividade','Abandono','Resignação','Modos esquemáticos','Reparentalização','Confrontação'],
+ ['Flexibilidade psicológica','Desfusão','Aceitação e evitação','Valores e ação','ACT','Hexaflex','Self como contexto','RFT'],
+ ['DBT','MBCT','CFT','FAP','Psicoterapia Baseada','Prática Baseada']
+ ],
+ familia:[
+ ['Violência intrafamiliar','Abuso sexual','Atendimento familiar em clínica','Assistência social'],
+ ['Luto','Mitos','Ritos','transgeracionalidade'],
+ ['Dependência química','Atendimento familiar hospitalar','Atendimento familiar escolar','Atendimento familiar em clínica']
+ ],
+ meta:[
+ ['Primeira tópica','Segunda tópica','Id e princípio','Ego e princípio','Superego','Três senhores','Ideal do ego'],
+ ['Complexo de Édipo','Triangulação','Castração','Narcisismo'],
+ ['Pulsão','Fonte, pressão','Dualismos','Mecanismos de defesa']
+ ],
+ grupos:[
+ ['Psicodrama','Moreno','Aquecimento','Compartilhamento','papéis e espontaneidade'],
+ ['Carl Rogers','Rogers','Empatia','congruência','consideração positiva','facilitação','conflitos e confiança'],
+ ['Escritores da Liberdade','preconceito e pertencimento','vínculos e escuta']
+ ],
+ social:[
+ ['Psicologia Sócio-Histórica','Psicologia da Libertação','Desideologização','Fatalismo','Democracia'],
+ ['Epistemicídio','genocídios/epistemicídios','Racismo e sexismo epistêmicos'],
+ ['Gênero','Feminismos','Interseccionalidade','Categorias de articulação','migração'],
+ ['Infância','Políticas públicas de infância'],
+ ['Tecnologias da informação','Viés de confirmação','Identidade social','Polarização','Bolha','Câmara de eco','algorítmica','consenso','Publicidade','feeds']
+ ],
+ avaliacao:[
+ ['Entrevista de devolução','Linguagem e comunicação','Sigilo','Ética na avaliação'],
+ ['contexto organizacional','hospitalar','forense','pessoas trans'],
+ ['Resolução CFP','Laudo','parecer','Bateria','instrumentos']
+ ]
+};
+function similarTopics(subject,topics,a){
+ const groups=CLOSE_TOPICS[subject]||[],title=String(a.title||'').toLocaleLowerCase('pt-BR');
+ const index=topics.indexOf(a);
+ const group=groups.find(gr=>gr.some(part=>title.includes(part.toLocaleLowerCase('pt-BR'))))||[];
+ const tokens=x=>new Set(String(x||'').toLocaleLowerCase('pt-BR').split(/[^\p{L}\p{N}]+/u)
+   .filter(w=>w.length>3&&!/^(sobre|como|para|uma|entre|pelos|essa|contexto|psicologia|psicológica|abordagem|atendimento|estudo)$/.test(w)));
+ const base=tokens(a.title+' '+a.definition),groupTitles=group.map(x=>x.toLocaleLowerCase('pt-BR'));
+ return topics.filter(x=>x!==a).map((t,i)=>{
+  const otherTitle=String(t.title||'').toLocaleLowerCase('pt-BR'),words=tokens(t.title+' '+t.definition);
+  let overlap=0;for(const w of words)if(base.has(w))overlap++;
+  const close=groupTitles.some(part=>otherTitle.includes(part));
+  const span=Math.abs(topics.indexOf(t)-index);
+  return {topic:t,score:(close?60:0)+Math.min(18,overlap*4)+7/(1+span)};
+ }).sort((x,y)=>y.score-x.score||topics.indexOf(x.topic)-topics.indexOf(y.topic))
+  .map(x=>x.topic);
+}
 function questionChoice(subject,topics,model,slot,a,qid){
- const others=[],seen=new Set([a.title]);
- for(let k=1;k<topics.length+6&&others.length<4;k++){
-   const o=pickPool(topics,model,slot,k);
-   if(!o||seen.has(o.title))continue;
-   seen.add(o.title);others.push(o);
+ const near=similarTopics(subject,topics,a),b=near[0]||a,c=near[1]||near[0]||a;
+ const option=(topic,valid,misconception=false)=>({
+  text:topic.title+' — '+compact(misconception?invalid(topic):definition(topic),225)+'.',
+  correct:valid,
+  why:valid?'A situação corresponde à formulação central de '+a.title+'. '+definition(a)+'.':
+   misconception?'A frase confunde aspectos do conceito '+topic.title+'. '+definition(topic)+'.':
+    'O conceito '+topic.title+' é próximo e pode participar da análise, mas não é o processo mais diretamente descrito. '+definition(a)+'.'
+ });
+ const opts=[
+   option(a,true),
+   option(a,false,true),
+   option(b,false),
+   option(c,false),
+   option(b,false,true)
+ ];
+ // Se houver tópicos insuficientes, impedir alternativas duplicadas.
+ const seen=new Set();for(let i=0;i<opts.length;i++){
+  if(seen.has(opts[i].text)){
+   const other=near.find(t=>!seen.has(t.title+' — '+compact(definition(t),225)+'.'));
+   if(other)opts[i]=option(other,false);
+  }
+  seen.add(opts[i].text);
  }
- const opts=[{text:a.title+' — '+compact(definition(a),230)+'.',correct:true,
-   why:'É a interpretação que melhor corresponde ao elemento central da situação. '+definition(a)+'.'}];
- for(const o of others)opts.push({text:o.title+' — '+compact(definition(o),230)+'.',correct:false,
-   why:'Esta alternativa descreve '+o.title+', mas a situação foi construída para exemplificar principalmente '+a.title+'.'});
- while(opts.length<5){
-   const fallback=opts.length===1?invalid(a):'Uma interpretação baseada apenas em parte dos dados, sem considerar a situação em sua totalidade';
-   opts.push({text:fallback+'.',correct:false,why:'A alternativa não contempla adequadamente o contexto. '+definition(a)+'.'});
- }
- const n=opts.length,correctPosition=(model*3+slot*2)%n;
- const right=opts.shift();opts.splice(correctPosition,0,right);
+ const correctPosition=(model*3+slot*2)%opts.length;
+ opts.splice(correctPosition,0,opts.shift());
  const command=[
- 'Considerando a situação e o conceito que melhor a explica, assinale a alternativa correta.',
- 'Qual alternativa estabelece a relação conceitual mais precisa com o caso?',
- 'Que conceito permite interpretar o aspecto central da situação sem extrapolar os dados?',
- 'Assinale a alternativa que melhor corresponde à situação descrita.'
+ 'Qual formulação teórica interpreta de modo mais preciso o mecanismo central descrito?',
+ 'Que interpretação diferencia o processo central de outros conceitos relacionados?',
+ 'Qual leitura está mais fundamentada pela situação e pela definição estudada?',
+ 'Qual alternativa articula adequadamente a hipótese conceitual e seu mecanismo?'
  ][slot%4];
  return {type:'choice',id:qid,concept:a.title,prompt:'Leia o caso:\n'+context(a)+'\n\n'+command,
-   options:opts,answer:correctPosition,source:'Questão autoral baseada nos materiais da disciplina.'};
+  options:opts,answer:correctPosition,source:'Questão autoral baseada nos materiais da disciplina.'};
 }
+
 const COMBOS_3=[
  [0,1,2],[0,1,3],[0,1,4],[0,2,3],[0,2,4],
  [0,3,4],[1,2,3],[1,2,4],[1,3,4],[2,3,4]
