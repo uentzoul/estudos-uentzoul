@@ -67,15 +67,24 @@ function cardView(id){
  '<div class="as-actions"><button type="button" class="as-secondary" data-active-action="skip">Pular</button><button type="button" class="as-primary" data-active-action="flip">Mostrar resposta</button></div>')+
  '<p class="as-note">Pular mantém o cartão pendente. “Lembrei” registra a conclusão e conserva a revisão espaçada.</p></section>';
 }
+// O mesmo registro de progresso do site, sem novos pontos nem armazenamento paralelo.
+function caseProgressKey(id,c,i){return 'case:'+id+':'+String(c.id||i)}
+function caseSeen(id,c,i){return !!window.uentzoulProfileBridge?.progress?.()?.completed?.[caseProgressKey(id,c,i)]}
+function caseMark(id,c,i){
+ const checked=caseSeen(id,c,i);
+ return '<label class="donecontrol as-case-mark '+(checked?'is-checked':'')+'" title="Registro pessoal do caso estudado">'+
+  '<input type="checkbox" data-complete="'+esc(caseProgressKey(id,c,i))+'" aria-label="Marcar estudo de caso como visto: '+esc(c.title)+'" '+(checked?'checked':'')+'>'+
+  '<span>'+(checked?'✓ Visto':'Marcar como visto')+'</span></label>';
+}
 function listView(id){
  const list=window.PSICO_CASES?.[id]||[];
  return '<section class="as-shell" data-active-mode="case" data-active-id="'+esc(id)+'"><header class="as-head"><div><small>LABORATÓRIO DE CASOS</small><h2>Estudos de casos</h2><p>Situações fictícias com decisões, consequências e explicações. O objetivo é exercitar raciocínio, não adivinhar diagnósticos.</p></div><span>'+list.length+' casos</span></header>'+
- '<div class="as-case-list">'+list.map((c,i)=>'<button type="button" class="as-case-tile" data-active-action="open" data-index="'+i+'"><span>'+String(i+1).padStart(2,'0')+'</span><strong>'+esc(c.title)+'</strong><small>'+esc(c.area)+'</small><b aria-hidden="true">→</b></button>').join('')+'</div></section>';
+ '<div class="as-case-list">'+list.map((c,i)=>'<div class="as-case-row '+(caseSeen(id,c,i)?'is-done':'')+'"><button type="button" class="as-case-tile" data-active-action="open" data-index="'+i+'"><span>'+String(i+1).padStart(2,'0')+'</span><strong>'+esc(c.title)+'</strong><small>'+esc(c.area)+'</small><b aria-hidden="true">→</b></button>'+caseMark(id,c,i)+'</div>').join('')+'</div></section>';
 }
 function caseView(id){
  const s=S(id),all=window.PSICO_CASES?.[id]||[],c=all[s.caseIndex];if(!c)return listView(id);
  const start='<section class="as-shell" data-active-mode="case" data-active-id="'+esc(id)+'"><div class="as-case-nav"><button type="button" data-active-action="back">← Todos os casos</button><span>Caso '+(s.caseIndex+1)+' de '+all.length+'</span></div><div class="as-case-hero"><small>'+esc(c.area)+'</small><h2>'+esc(c.title)+'</h2><p>'+esc(c.intro)+'</p></div>';
- if(s.finished)return start+'<div class="as-complete"><div class="as-complete-symbol">✓</div><h3>Fim do caso</h3><p>'+esc(c.wrapUp)+'</p><button class="as-secondary" data-active-action="restart" type="button">Recomeçar</button><button class="as-primary" data-active-action="next" type="button">Próximo caso</button></div></section>';
+ if(s.finished)return start+'<div class="as-complete"><div class="as-complete-symbol">✓</div><h3>Fim do caso</h3><p>'+esc(c.wrapUp)+'</p><div class="as-case-complete-mark">'+caseMark(id,c,s.caseIndex)+'</div><button class="as-secondary" data-active-action="restart" type="button">Recomeçar</button><button class="as-primary" data-active-action="next" type="button">Próximo caso</button></div></section>';
  const st=c.stages[s.step];if(!st)return listView(id);
  const opts=st.choices.map((o,i)=>'<button type="button" class="as-choice '+(s.chosen===i?'selected':'')+'" data-active-action="choose" data-index="'+i+'" '+(s.chosen>=0?'disabled':'')+'><span>'+String.fromCharCode(65+i)+'</span>'+esc(o.label)+'</button>').join('');
  const strongest=st.choices.findIndex(option=>option.best===true);
