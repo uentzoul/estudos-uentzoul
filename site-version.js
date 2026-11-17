@@ -2,6 +2,14 @@
 (()=>{
 'use strict';
 function setup(){
+ // Restaura a seção aberta mesmo quando uma atualização altera a URL de versão.
+ if(!document.getElementById('pm-navigation-resume')){
+  const script=document.createElement('script');
+  script.id='pm-navigation-resume';
+  script.src='navigation-resume.js?v=20261117-location-v1';
+  script.async=true;document.head.appendChild(script);
+ }
+
  // Celulares ficam somente na vertical; tablets podem continuar na horizontal.
  if(!document.getElementById('pm-phone-portrait-css')){
   const link=document.createElement('link');
@@ -168,6 +176,7 @@ const version=document.querySelector('meta[name="app-build"]')?.content||'';
 if(!version)return;
 let notified=false,checking=false;
 function reload(version){
+ window.PSICO_REMEMBER_NAVIGATION?.();
  const url=new URL(location.href);
  url.searchParams.set('versao',String(version).slice(0,12));
  window.location.replace(url.toString());
