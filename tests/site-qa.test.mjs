@@ -742,3 +742,23 @@ test('Recuperação de senha preserva login e troca de senha por e-mail',()=>{
  assert.match(authScript,/client\.auth\.getUser\(\)/,'Validação da sessão antes da atualização');
  assert.match(authScript,/client\.auth\.signOut\(\)/,'Encerra sessão após troca de senha');
 });
+
+test('Calls de voz e vídeo aparecem apenas em grupos e têm carregamento isolado',()=>{
+ const bootstrap=read('chat-mobile-viewport.js');
+ const call=read('group-call.js');
+ const css=read('group-call.css');
+ assert.match(bootstrap,/group-call\\.js/);
+ assert.match(bootstrap,/group-call\\.css/);
+ assert.doesNotThrow(()=>new vm.Script(call),'JavaScript de chamada válido');
+ assert.match(call,/dm\\.tab!=='groups'/,'nenhum botão para conversas privadas ou geral');
+ assert.match(call,/data-gc-open/);
+ assert.match(call,/Entrar na call/);
+ assert.match(call,/getUserMedia/);
+ assert.match(call,/getDisplayMedia/);
+ assert.match(call,/RTCPeerConnection/);
+ assert.match(call,/private:true/,'sinalização exige canal privado');
+ assert.match(call,/uentzoul-call:/,'canal separado por grupo');
+ assert.match(call,/presence/);
+ assert.match(call,/case 'leave'/);
+ assert.match(css,/max-width:620px/,'layout móvel adaptado');
+});
