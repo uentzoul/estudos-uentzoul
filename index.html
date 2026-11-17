@@ -13,7 +13,7 @@
 <meta name="twitter:card" content="summary">
 <meta name="color-scheme" content="light dark">
 <meta name="site-build" content="psicomoodle-chat-maintenance-20261114-v15">
-<script>try{document.documentElement.dataset.theme=localStorage.getItem("uentzoul_theme_v1")==="dark"?"dark":"light"}catch(e){document.documentElement.dataset.theme="light"}</script>
+<script>document.documentElement.classList.add("js-enabled");window.addEventListener("load",()=>{if(!document.documentElement.classList.contains("app-ready"))document.documentElement.classList.remove("js-enabled")},{once:true});try{document.documentElement.dataset.theme=localStorage.getItem("uentzoul_theme_v1")==="dark"?"dark":"light"}catch(e){document.documentElement.dataset.theme="light"}</script>
 <title>PsicoMoodle · Psicologia PUCRS</title>
 <style>
 /* O botão de Caderno ocupa a posição definitiva desde o primeiro paint.
@@ -153,6 +153,8 @@
 /* FALLBACK NATIVO — evita tela vazia em visores de arquivos do iOS/Android */
 html:not(.app-ready) .app{display:none!important}
 html.app-ready #staticFallback{display:none!important}
+/* A leitura alternativa só aparece se JavaScript estiver desligado ou a inicialização falhar. */
+html.js-enabled:not(.app-ready) #staticFallback{display:none!important}
 .static-fallback{font-family:Inter,Segoe UI,Arial,sans-serif;max-width:960px;margin:0 auto;padding:18px 18px 60px;color:#1c2b40;background:#f7f9fc;line-height:1.55;font-size:15px}
 .static-fallback section{margin:28px 0;scroll-margin-top:20px}
 .static-fallback h1,.static-fallback h2{font-size:23px;line-height:1.28;margin:16px 0 10px}
@@ -4852,7 +4854,7 @@ try{
  render();
  if(!history.state?.[PM_HISTORY_KEY])history.replaceState(pmNavSnapshot(),'',location.href);
  document.documentElement.classList.add('app-ready');
-}catch(e){console.error('Inicialização da Central falhou',e);}
+}catch(e){console.error('Inicialização da Central falhou',e);document.documentElement.classList.remove('js-enabled');}
 })();
 </script><script>
 /* Perfis e ranking online — contas Supabase */
