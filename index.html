@@ -936,26 +936,6 @@ html[data-theme="dark"] .profile-recovery-view .profile-secondary{background:#30
 .dm-group-users{display:grid;gap:6px;max-height:240px;overflow-y:auto;margin:9px 0 15px}
 .dm-group-users label{display:flex;align-items:center;gap:9px;padding:8px;border:1px solid var(--line);border-radius:9px}
 .dm-group-users .profile-avatar{width:28px;height:28px;flex:none}
-/* Adicionar participantes a grupos existentes */
-.dm-member-add-shortcut{display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:34px;border:1px solid var(--line);background:var(--soft);color:var(--ink);font-weight:740;font-size:11px;padding:7px 10px;border-radius:9px;cursor:pointer;white-space:nowrap}
-.dm-member-add-shortcut:hover{border-color:var(--accent,#9475cf)}
-.dm-member-picker-description{font-size:12px;color:var(--muted);line-height:1.55;margin:0 0 12px}
-.dm-member-search{box-sizing:border-box;width:100%;min-height:42px;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:var(--paper);color:var(--ink);font:inherit;font-size:13px}
-.dm-member-picker-list{display:grid;gap:7px;max-height:min(42vh,310px);overflow-y:auto;margin:12px 0}
-.dm-member-picker-row{display:flex;align-items:center;gap:10px;min-width:0;padding:9px 10px;border-radius:10px;border:1px solid var(--line);background:var(--paper);color:var(--ink);cursor:pointer}
-.dm-member-picker-row:has(input:checked){border-color:var(--accent,#9475cf);background:var(--soft)}
-.dm-member-picker-row[hidden]{display:none!important}
-.dm-member-picker-row input{flex:none;accent-color:var(--accent,#9475cf);width:17px;height:17px}
-.dm-member-picker-row .profile-avatar{flex:none;width:32px;height:32px}
-.dm-member-picker-row strong{font-size:12px;line-height:1.4;font-weight:730;overflow:hidden;text-overflow:ellipsis}
-.dm-member-picker-count{display:block;font-size:12px;color:var(--muted);margin:8px 0}
-.dm-member-picker-empty{color:var(--muted);font-size:12px;padding:10px 2px}
-.dm-member-picker-actions{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
-.dm-member-picker-actions .dm-dialog-btn{flex:1;min-height:43px}
-.dm-member-picker-actions button:disabled{cursor:not-allowed;opacity:.55}
-.dm-member-picker-cancel{background:transparent;border:1px solid var(--line);border-radius:9px;color:var(--ink);padding:10px 13px;cursor:pointer;font-weight:650;min-height:43px}
-.dm-member-picker-error{font-size:12px;color:#aa3d40;line-height:1.5}
-@media(max-width:550px){.dm-chat-actions .dm-member-add-shortcut{font-size:0;width:36px;min-width:36px;padding:4px}.dm-chat-actions .dm-member-add-shortcut::before{content:'+';font-size:21px}.dm-member-picker-actions{flex-direction:column}.dm-member-picker-actions button{width:100%}}
 html[data-theme=dark] .dm-channel-tabs{background:#302b47}
 html[data-theme=dark] .dm-channel-tabs button{color:#c3b5df}
 html[data-theme=dark] .dm-channel-tabs button.selected{background:#534170;color:#fff}
@@ -5502,7 +5482,6 @@ function dmOnLogin(){
   .on('postgres_changes',{event:'*',schema:'public',table:'uentzoul_exam_invites'},()=>dmLoad())
   .on('postgres_changes',{event:'*',schema:'public',table:'uentzoul_room_messages'},()=>dmLoad())
   .on('postgres_changes',{event:'*',schema:'public',table:'uentzoul_chat_rooms'},()=>dmLoad())
-  .on('postgres_changes',{event:'*',schema:'public',table:'uentzoul_chat_members'},()=>dmLoad())
   .on('postgres_changes',{event:'INSERT',schema:'public',table:'uentzoul_error_reports'},()=>{if(dm.isAdmin)dmLoad()})
   .subscribe(status=>{dm.channelStatus=status;if(status==='SUBSCRIBED')dmLoad()});
  }catch(err){console.warn('Notificações de chat indisponíveis',err)}
@@ -5669,7 +5648,7 @@ document.addEventListener('visibilitychange',()=>{if(!document.hidden&&onlineUse
 
 
 /* Chat unificado — camada de apresentação */
-const dmW={members:[],reads:[],popup:null,menu:null,panel:null,reply:null,selectedMessage:null,addSelection:new Set(),addSearch:'',addSubmitting:false,mediaKind:'image',wallpaper:false,
+const dmW={members:[],reads:[],popup:null,menu:null,panel:null,reply:null,selectedMessage:null,mediaKind:'image',wallpaper:false,
  recording:false,recorder:null,recordStream:null,recordParts:[],recordTicker:null,recordStarted:0,emojiLoading:false,reading:null,delivering:false};
 function dmWSelected(){return dm.tab==='private'?dm.peerId:dm.tab==='global'?DM_GLOBAL_ROOM:dm.roomId}
 function dmWRoom(){return dmRoom(dmWSelected())}
@@ -5900,7 +5879,7 @@ dmRender=function(){
  '<div class="dm-contacts" id="dmContacts">'+dmContactRows()+'</div></div>'+
  '<div class="dm-main"><header class="dm-chat-head"><button type="button" class="dm-back" data-dmw-back>‹ Voltar</button>'+
  (selected?'<button class="dm-chat-head-main" type="button" '+(peer?'data-dm-profile="'+esc(peer.user_id)+'"':group?'data-dmw-group':'')+'>'+heading+'</button>':'<span class="dm-chat-head-main">'+heading+'</span>')+
- (selected?'<div class="dm-chat-actions">'+(group&&dmWAdmin(room?.id)?'<button type="button" class="dm-member-add-shortcut" data-dmw-add-members aria-label="Adicionar pessoas ao grupo" title="Adicionar pessoas ao grupo">Adicionar +</button>':'')+(group?'<button type="button" class="dm-head-action" data-dmw-group title="Informações do grupo">ⓘ</button>':'')+
+ (selected?'<div class="dm-chat-actions">'+(group?'<button type="button" class="dm-head-action" data-dmw-group title="Informações do grupo">ⓘ</button>':'')+
  '<button type="button" class="dm-head-action" data-dmw-wallpaper title="Fundo da conversa">⋯</button></div>':'')+wallpapers+'</header>'+
  (dm.error?'<div class="dm-error" role="alert">'+esc(dm.error)+'</div>':'')+
  '<div class="dm-messages" id="dmMessages" data-wallpaper="'+esc(dmWWallpaper())+'">'+dmThreadHtml()+'</div>'+dmComposer()+
@@ -6046,7 +6025,7 @@ async function dmWMarkGroupRead(roomId){
 const dmWOriginalLogout=dmOnLogout;
 dmOnLogout=function(){
  dmWStopRecord(true);
- Object.assign(dmW,{members:[],reads:[],popup:null,menu:null,panel:null,reply:null,selectedMessage:null,addSelection:new Set(),addSearch:'',addSubmitting:false,wallpaper:false,recording:false});
+ Object.assign(dmW,{members:[],reads:[],popup:null,menu:null,panel:null,reply:null,selectedMessage:null,wallpaper:false,recording:false});
  dmWOriginalLogout();
 };
 const dmWOriginalAfterRender=dmAfterRender;
@@ -6216,33 +6195,6 @@ function dmWPopupHtml(){
  const close='<button type="button" data-dmw-close-popup aria-label="Fechar">×</button>';
  const start='<div class="dm-float-overlay" data-dmw-overlay><section class="dm-float-dialog" role="dialog" aria-modal="true">';
  const end='</section></div>';
- if(dmW.popup==='group-add'){
-  const room=dmWRoom();if(!room||room.kind!=='group'||!dmWAdmin(room.id))return '';
-  const existing=new Set(dmWMembers(room.id).map(x=>x.user_id));
-  const available=dm.people.filter(p=>p.user_id!==dm.owner&&!existing.has(p.user_id)).sort((a,b)=>String(a.display_name||'').localeCompare(String(b.display_name||''),'pt-BR'));
-  const remaining=Math.max(0,20-existing.size);
-  const selected=[...dmW.addSelection].filter(id=>available.some(p=>p.user_id===id));
-  dmW.addSelection=new Set(selected);
-  const normalize=x=>String(x||'').normalize('NFD').replace(/[\\u0300-\\u036f]/g,'').toLocaleLowerCase('pt-BR');
-  const query=normalize(dmW.addSearch.trim());
-  const rows=available.map(p=>{
-   const visible=!query||normalize(p.display_name).includes(query);
-   return '<label class="dm-member-picker-row" data-dmw-add-row data-search="'+esc(normalize(p.display_name))+'"'+(visible?'':' hidden')+'>'+
-    '<input type="checkbox" name="members" value="'+esc(p.user_id)+'" '+(dmW.addSelection.has(p.user_id)?'checked ':'')+'>'+
-    avatar(p.display_name,p.avatar_url,true)+'<strong>'+esc(p.display_name)+'</strong></label>';
-  }).join('');
-  return start+'<div class="dm-dialog-head"><h2>Adicionar pessoas</h2>'+close+'</div>'+
-   '<p class="dm-member-picker-description">Grupo: <strong>'+esc(room.name)+'</strong>. Selecione os estudantes que deseja convidar. Apenas administradores podem adicionar participantes.</p>'+
-   (remaining===0?'<p class="dm-member-picker-empty">Este grupo já tem 20 participantes.</p>':available.length?
-    '<form id="dmWGroupAddForm"><label class="dm-dialog-field">Pesquisar estudantes<input class="dm-member-search" id="dmWGroupSearch" type="search" autocomplete="off" placeholder="Buscar pelo nome" value="'+esc(dmW.addSearch)+'"></label>'+
-    '<div class="dm-member-picker-list">'+rows+'</div><p class="dm-member-picker-empty" id="dmWGroupNoMatches" hidden>Nenhuma pessoa encontrada.</p>'+
-    '<span class="dm-member-picker-count" id="dmWGroupAddCount" role="status">'+selected.length+' selecionado(s) · '+remaining+' vaga(s) disponível(is)</span>'+
-    '<p id="dmWGroupAddError" class="dm-member-picker-error" role="alert" hidden></p>'+
-    '<div class="dm-member-picker-actions"><button type="button" class="dm-member-picker-cancel" data-dmw-back-to-group>Voltar</button>'+
-    '<button type="submit" class="dm-dialog-btn" '+(!selected.length?'disabled':'')+'>Adicionar participantes</button></div></form>'
-    :'<p class="dm-member-picker-empty">Não há novas pessoas disponíveis para adicionar.</p>')+
-   (remaining===0||!available.length?'<button type="button" class="dm-member-picker-cancel" data-dmw-back-to-group>Voltar às informações do grupo</button>':'')+end;
- }
  if(dmW.popup==='group'){
   const room=dmWRoom();if(!room||room.kind!=='group')return '';
   const admins=dmWAdmin(room.id),owner=room.owner_id===dm.owner,members=dmWMembers(room.id);
@@ -6257,7 +6209,9 @@ function dmWPopupHtml(){
   const edit=(admins||members.some(x=>x.user_id===dm.owner))?'<form id="dmWGroupEdit"><label class="dm-dialog-field">Nome do grupo<input name="name" required minlength="2" maxlength="70" value="'+esc(room.name)+'"></label>'+
    '<label class="dm-dialog-field">Foto do grupo (opcional)<input type="file" name="photo" accept="image/png,image/jpeg,image/webp"></label>'+
    '<button type="submit" class="dm-dialog-btn">Salvar nome e foto</button></form>':'';
-  const add=admins&&others.length?'<button type="button" class="dm-dialog-btn" data-dmw-add-members style="margin-top:12px;width:100%">+ Adicionar participantes</button>':admins?'<p>Todos os usuários disponíveis já participam deste grupo.</p>':'';
+  const add=admins&&others.length?'<form id="dmWGroupAdd"><label class="dm-dialog-field">Adicionar pessoa<select name="member" required style="width:100%;margin-top:6px;padding:10px;background:var(--soft);color:var(--ink);border:1px solid var(--line);border-radius:9px">'+
+   '<option value="">Selecionar usuário</option>'+others.map(p=>'<option value="'+esc(p.user_id)+'">'+esc(p.display_name)+'</option>').join('')+'</select></label>'+
+   '<button type="submit" class="dm-dialog-btn">Adicionar participante</button></form>':'';
   return start+'<div class="dm-dialog-head"><h2>Informações do grupo</h2>'+close+'</div>'+
    '<div style="display:flex;gap:12px;align-items:center;margin:0 0 18px">'+dmWGroupAvatar(room,false)+'<div><strong>'+esc(room.name)+'</strong><p style="margin:2px 0">'+members.length+' participantes</p></div></div>'+
    edit+'<h3 style="font-size:13px;margin-top:20px">Participantes</h3><div class="dm-dialog-list">'+list+'</div>'+add+
@@ -6341,8 +6295,6 @@ document.addEventListener('click',async e=>{
  const bg=hit('[data-dmw-bg]');
  if(bg){stop();try{localStorage.setItem('psicomoodle_bg_'+dm.owner+'_'+dmWSelected(),bg.dataset.dmwBg)}catch(_){}
   dmW.wallpaper=false;dmShow();return}
- if(hit('[data-dmw-add-members]')){stop();if(!dm.roomId||!dmWAdmin(dm.roomId))return;dmW.addSelection=new Set();dmW.addSearch='';dmW.popup='group-add';dmShow();return}
- if(hit('[data-dmw-back-to-group]')){stop();dmW.popup='group';dmW.addSelection.clear();dmW.addSearch='';dmShow();return}
  if(hit('[data-dmw-group]')){stop();dmW.popup='group';dmShow();return}
  const admin=hit('[data-dmw-toggle-admin]');
  if(admin){stop();const row=dmWMembers(dm.roomId).find(x=>x.user_id===admin.dataset.dmwToggleAdmin);
@@ -6366,62 +6318,7 @@ document.addEventListener('click',async e=>{
 document.addEventListener('change',e=>{
  if(e.target.id==='dmWFileInput'&&e.target.files?.[0])dmWPrepareFile(e.target.files[0],dmW.mediaKind);
 });
-function dmWRefreshAddCount(){
- const root=document.getElementById('dmWGroupAddForm');
- if(!root)return;
- const room=dmWRoom();
- const remaining=Math.max(0,20-dmWMembers(room?.id).length);
- const total=dmW.addSelection.size;
- const count=root.querySelector('#dmWGroupAddCount');
- if(count)count.textContent=total+' selecionado(s) · '+remaining+' vaga(s) disponível(is)';
- const submit=root.querySelector('[type=submit]');
- if(submit)submit.disabled=dmW.addSubmitting||!total||total>remaining;
- const error=root.querySelector('#dmWGroupAddError');
- if(error&&total>remaining){error.hidden=false;error.textContent='O grupo aceita até 20 participantes. Selecione no máximo '+remaining+' pessoa(s).'}
- else if(error&&!dmW.addSubmitting){error.hidden=true;error.textContent=''}
-}
-document.addEventListener('input',e=>{
- if(e.target.id!=='dmWGroupSearch')return;
- dmW.addSearch=e.target.value;
- const normalize=x=>String(x||'').normalize('NFD').replace(/[\\u0300-\\u036f]/g,'').toLocaleLowerCase('pt-BR');
- const term=normalize(dmW.addSearch.trim());
- const rows=[...document.querySelectorAll('[data-dmw-add-row]')];
- let visible=0;
- rows.forEach(row=>{row.hidden=!!term&&!row.dataset.search.includes(term);if(!row.hidden)visible++});
- const empty=document.getElementById('dmWGroupNoMatches');
- if(empty)empty.hidden=visible>0;
-});
-document.addEventListener('change',e=>{
- if(e.target.name!=='members'||!e.target.closest('#dmWGroupAddForm'))return;
- const id=e.target.value;
- if(!dmValid(id))return;
- if(e.target.checked)dmW.addSelection.add(id);
- else dmW.addSelection.delete(id);
- dmWRefreshAddCount();
-});
 document.addEventListener('submit',async e=>{
- if(e.target.id==='dmWGroupAddForm'){
-  e.preventDefault();e.stopImmediatePropagation();
-  if(dmW.addSubmitting||!client||!onlineUser||!dmWAdmin(dm.roomId))return;
-  const room=dmWRoom();if(!room||room.kind!=='group')return;
-  const existing=new Set(dmWMembers(room.id).map(m=>m.user_id));
-  const allowed=new Set(dm.people.filter(p=>!existing.has(p.user_id)&&p.user_id!==dm.owner).map(p=>p.user_id));
-  const users=[...dmW.addSelection].filter(id=>dmValid(id)&&allowed.has(id));
-  const remaining=20-existing.size;
-  if(!users.length||users.length>remaining){dmWRefreshAddCount();return}
-  dmW.addSubmitting=true;dmWRefreshAddCount();
-  const submit=e.target.querySelector('[type=submit]');
-  const errorBox=e.target.querySelector('#dmWGroupAddError');
-  try{
-   const result=await client.from('uentzoul_chat_members').insert(users.map(user_id=>({room_id:room.id,user_id,is_admin:false})));
-   if(result.error)throw result.error;
-   dmW.addSelection.clear();dmW.addSearch='';dmW.popup='group';
-   await dmLoad();dmShow();toast(users.length===1?'Participante adicionado ao grupo.':users.length+' participantes adicionados ao grupo.');
-  }catch(err){
-   if(errorBox){errorBox.hidden=false;errorBox.textContent='Não foi possível adicionar os participantes. '+(err?.message||'Tente novamente.')}
-  }finally{dmW.addSubmitting=false;if(submit&&submit.isConnected)submit.disabled=false;dmWRefreshAddCount()}
-  return;
- }
  if(e.target.id==='dmWGifForm'){
   e.preventDefault();e.stopImmediatePropagation();
   const url=String(new FormData(e.target).get('url')||'').trim();
