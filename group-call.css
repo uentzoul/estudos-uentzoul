@@ -212,3 +212,9 @@
 @media(prefers-reduced-motion:reduce){
  .gc-backdrop.is-mini .gc-window{transition:none}
 }
+
+/* Foto do perfil do PsicoMoodle nas calls; a inicial permanece como fallback. */
+.gc-avatar,.gc-member-initial{overflow:hidden}
+.gc-avatar .gc-avatar-initial,.gc-member-initial .gc-avatar-initial{display:grid;place-items:center;width:100%;height:100%}
+.gc-avatar img.gc-avatar-photo,.gc-member-initial img.gc-avatar-photo{display:block;width:100%;height:100%;object-fit:cover;object-position:center;border-radius:inherit}
+.gc-avatar img.gc-avatar-photo[hidden],.gc-member-initial img.gc-avatar-photo[hidden],.gc-avatar .gc-avatar-initial[hidden],.gc-member-initial .gc-avatar-initial[hidden]{display:none!important}
