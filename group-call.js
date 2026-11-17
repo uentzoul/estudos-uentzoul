@@ -842,11 +842,23 @@ async function sendChat(form){
 function panelDraw(){
  const aside=S.overlay?.querySelector('[data-gc-panel]');if(!aside)return;
  aside.hidden=!S.panel;if(!S.panel){aside.innerHTML='';aside.dataset.gcSignature='';return;}
- const title=S.panel==='chat'?(isMaintenance(S.room)?'Anotações de manutenção':isPrivate(S.room)?'Mensagens privadas':'Mensagens do grupo'):S.panel==='members'?'Participantes':S.panel==='react'?'Reações':'Dispositivos';
+ const title=S.panel==='chat'?(isMaintenance(S.room)?'Anotações de manutenção':isPrivate(S.room)?'Mensagens privadas':'Mensagens do grupo'):S.panel==='members'?'Participantes':S.panel==='react'?'Reações':'Áudio e vídeo';
  let body='';
  if(S.panel==='members'){
-  body='<div class="gc-member-list">'+[...S.presence.entries()].map(([k,m])=>
-   '<div>'+avatarBubble(m.userId,m.name||'?','gc-member-initial')+'<strong>'+escCall(m.name||'Participante')+(k===S.key?' (você)':'')+'</strong><span>'+(m.mic?'🎙':'🔇')+(m.hand?' ✋':'')+'</span></div>').join('')+'</div>';
+  body='<div class="gc-member-list" aria-label="Volume individual dos participantes">'+[...S.presence.entries()].map(([key,m])=>{
+   const name=m.name||person(m.userId).display_name||'Participante';
+   const self=key===S.key||m.userId===onlineUser.id;
+   const pref=peerLevel(m.userId);
+   return '<div class="gc-member-entry" data-gc-member-user="'+escCall(m.userId)+'">'+
+    '<div class="gc-member-identity">'+avatarBubble(m.userId,name,'gc-member-initial')+
+     '<strong>'+escCall(name)+(self?' (você)':'')+'</strong><span>'+(m.mic?'🎙':'🔇')+'</span></div>'+
+    (self?'<p class="gc-member-self">Seu microfone é controlado na barra da call.</p>':
+     '<div class="gc-member-volume"><div class="gc-member-volume-head"><span>Volume individual</span>'+
+      '<output data-gc-volume-value>'+pref.volume+'%</output></div>'+
+      '<input type="range" data-gc-volume data-gc-user="'+escCall(m.userId)+'" min="0" max="'+volumeLimit()+'" step="5" value="'+Math.min(volumeLimit(),pref.volume)+'" aria-label="Volume de '+escCall(name)+'">'+
+      '<button type="button" class="gc-peer-mute'+(pref.muted?' is-muted':'')+'" data-gc-action="mute-peer" data-gc-user="'+escCall(m.userId)+'" aria-pressed="'+String(pref.muted)+'">'+(pref.muted?'Ativar som':'Silenciar')+'</button></div>')+
+   '</div>';
+  }).join('')+'</div>';
  }else if(S.panel==='chat'){
   body='<div class="gc-chat-list" data-gc-chat-list>'+S.chat.map(m=>
    '<div class="gc-chat-msg"><strong>'+escCall(person(m.sender_id).display_name||'Estudante')+'</strong><p>'+escCall(m.kind==='text'?m.body:'[Mídia compartilhada na conversa]')+'</p></div>').join('')+
@@ -856,9 +868,9 @@ function panelDraw(){
   body='<div class="gc-reaction-picker">'+['👏','❤️','😂','🎉','👍'].map(emoji=>
    '<button type="button" data-gc-action="react-emoji" data-gc-emoji="'+emoji+'" aria-label="Reagir com '+emoji+'">'+emoji+'</button>').join('')+'</div>';
  }else{
-  body='<div class="gc-device-section"><label>Microfone<select data-gc-device="audio"><option value="">Padrão do sistema</option></select></label>'+
-  '<label>Câmera<select data-gc-device="video"><option value="">Padrão do sistema</option></select></label>'+
-  '<p>Permissões e compatibilidade dependem do navegador. Compartilhar tela pode não estar disponível em celulares.</p></div>';
+  body='<div class="gc-device-section"><p>Escolha o microfone e a câmera desta chamada.</p>'+
+   '<label>Selecionar microfone<select data-gc-device="audio" aria-label="Selecionar microfone"><option value="">Padrão do sistema</option></select></label>'+
+   '<label>Selecionar câmera<select data-gc-device="video" aria-label="Selecionar câmera"><option value="">Padrão do sistema</option></select></label></div>';
  }
  const signature=S.panel+'|'+(S.panel==='chat'?S.chat.map(m=>m.id).join(','):
   S.panel==='members'?JSON.stringify([...S.presence.entries()].map(([k,m])=>[k,m.mic,m.cam,m.hand,m.screen,callAvatarUrl(m.userId)])):
@@ -889,6 +901,7 @@ async function deviceList(){
   for(const [kind,type,chosen] of [['audioinput','audio',S.micDevice],['videoinput','video',S.camDevice]]){
    const select=S.overlay?.querySelector('[data-gc-device="'+type+'"]');if(!select)return;
    const match=devices.filter(d=>d.kind===kind);
+   select.replaceChildren(new Option('Padrão do sistema',''));
    for(const [i,d] of match.entries()){
     const o=document.createElement('option');o.value=d.deviceId;o.textContent=d.label||((type==='audio'?'Microfone ':'Câmera ')+(i+1));select.appendChild(o);
    }
@@ -965,7 +978,6 @@ async function actions(event){
  case 'mic':await toggleMic();break;
  case 'cam':await toggleCam();break;
  case 'screen':await toggleScreen();break;
- case 'hand':S.hand=!S.hand;await publish();break;
  case 'react-emoji':{
   const emoji=action.dataset.gcEmoji;
   if(['👏','❤️','😂','🎉','👍'].includes(emoji)){
@@ -976,16 +988,26 @@ async function actions(event){
  }
  case 'join':await join();break;
  case 'cancel':case 'leave':await leave();break;
- case 'chat':case 'members':case 'settings':case 'react':{
+ case 'members':case 'settings':case 'react':{
   S.panel=S.panel===action.dataset.gcAction?'':action.dataset.gcAction;
-  draw();if(S.panel==='chat')void loadChat();break;
+  draw();break;
  }
  case 'panel-close':S.panel='';draw();break;
  case 'pin':S.pinned=S.pinned===action.dataset.gcKey?null:action.dataset.gcKey;draw();break;
+ case 'volume-peer':{
+  const member=S.presence.get(action.dataset.gcKey);
+  if(!member||member.userId===onlineUser.id)break;
+  S.panel='members';draw();
+  const row=[...(S.overlay?.querySelectorAll('[data-gc-member-user]')||[])].find(x=>x.dataset.gcMemberUser===member.userId);
+  row?.scrollIntoView?.({block:'nearest'});
+  row?.querySelector('[data-gc-volume]')?.focus({preventScroll:true});
+  break;
+ }
+ case 'mute-peer':togglePeerMute(action.dataset.gcUser);break;
  case 'audio-play':{
-  const videos=S.overlay?.querySelectorAll('.gc-tile video:not([muted])')||[];
-  for(const v of videos)try{await v.play()}catch(_){}
-  status('Tentativa de ativar o áudio dos participantes.',3);break;
+  enablePeerSounds();
+  status('Áudio dos participantes ativado quando permitido pelo navegador.',3);
+  break;
  }
  case 'fullscreen':{
   try{if(document.fullscreenElement)await document.exitFullscreen();else await S.overlay.querySelector('.gc-window').requestFullscreen();}catch(_){status('Tela cheia indisponível neste dispositivo.');}break;
@@ -999,6 +1021,11 @@ function init(){
   const f=e.target;if(f instanceof HTMLFormElement&&f.matches('[data-gc-chat-form]')){
    e.preventDefault();void sendChat(f);
   }
+ },true);
+ document.addEventListener('input',e=>{
+  const input=e.target;
+  if(!(input instanceof HTMLInputElement)||!input.matches('[data-gc-volume]')||!S.overlay?.contains(input))return;
+  e.stopPropagation();setPeerVolume(input.dataset.gcUser,input.value);
  },true);
  document.addEventListener('change',e=>{
   const el=e.target;if(el instanceof HTMLSelectElement&&el.dataset.gcDevice)void changeDevice(el.dataset.gcDevice,el.value);
