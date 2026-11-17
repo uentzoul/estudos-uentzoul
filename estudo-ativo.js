@@ -78,7 +78,12 @@ function caseView(id){
  if(s.finished)return start+'<div class="as-complete"><div class="as-complete-symbol">✓</div><h3>Fim do caso</h3><p>'+esc(c.wrapUp)+'</p><button class="as-secondary" data-active-action="restart" type="button">Recomeçar</button><button class="as-primary" data-active-action="next" type="button">Próximo caso</button></div></section>';
  const st=c.stages[s.step];if(!st)return listView(id);
  const opts=st.choices.map((o,i)=>'<button type="button" class="as-choice '+(s.chosen===i?'selected':'')+'" data-active-action="choose" data-index="'+i+'" '+(s.chosen>=0?'disabled':'')+'><span>'+String.fromCharCode(65+i)+'</span>'+esc(o.label)+'</button>').join('');
- const feedback=s.chosen<0?'':'<div class="as-feedback" role="status" aria-live="polite"><h4>Consequência da escolha</h4><p>'+esc(st.choices[s.chosen].outcome)+'</p><h4>Como interpretar</h4><p>'+esc(st.choices[s.chosen].reason)+'</p></div><div class="as-actions"><button class="as-primary" type="button" data-active-action="continue">'+(s.step+1===c.stages.length?'Concluir caso':'Continuar o caso')+'</button></div>';
+ const strongest=st.choices.findIndex(option=>option.best===true);
+ const feedback=s.chosen<0?'':'<div class="as-feedback" role="status" aria-live="polite"><h4>Consequência da escolha</h4><p>'+esc(st.choices[s.chosen].outcome)+'</p><h4>Como interpretar</h4><p>'+esc(st.choices[s.chosen].reason)+'</p>'+
+  (strongest<0?'':'<p class="as-best-answer"><strong>Leitura mais fundamentada: alternativa '+String.fromCharCode(65+strongest)+'.</strong> '+
+   (s.chosen===strongest?'A hipótese escolhida contempla o mecanismo central descrito no caso.':
+    esc(st.choices[strongest].reason))+'</p>')+
+  '</div><div class="as-actions"><button class="as-primary" type="button" data-active-action="continue">'+(s.step+1===c.stages.length?'Concluir caso':'Continuar o caso')+'</button></div>';
  return start+'<div class="as-case-step"><span>Decisão '+(s.step+1)+' de '+c.stages.length+'</span><span class="as-step-track"><i style="width:'+(100*(s.step+1)/c.stages.length)+'%"></i></span></div>'+
  (s.previous?'<div class="as-previous"><strong>Resultado anterior</strong><p>'+esc(s.previous)+'</p></div>':'')+
  '<div class="as-situation"><h3>'+esc(st.prompt)+'</h3><div class="as-choices">'+opts+'</div></div>'+feedback+'</section>';
