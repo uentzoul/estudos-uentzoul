@@ -218,3 +218,68 @@
 .gc-avatar .gc-avatar-initial,.gc-member-initial .gc-avatar-initial{display:grid;place-items:center;width:100%;height:100%}
 .gc-avatar img.gc-avatar-photo,.gc-member-initial img.gc-avatar-photo{display:block;width:100%;height:100%;object-fit:cover;object-position:center;border-radius:inherit}
 .gc-avatar img.gc-avatar-photo[hidden],.gc-member-initial img.gc-avatar-photo[hidden],.gc-avatar .gc-avatar-initial[hidden],.gc-member-initial .gc-avatar-initial[hidden]{display:none!important}
+
+/* GC toolbar: vector controls v2 — identidade Uentzoul, sem PNG/emoji. */
+.gc-footer{
+ min-height:96px;padding:12px 18px 14px;
+ background:linear-gradient(180deg,#212430 0%,#1c1f2b 100%);
+ border-top:1px solid rgba(255,255,255,.09)
+}
+.gc-controls{gap:8px;row-gap:8px;align-items:center;justify-content:center}
+.gc-tool{
+ flex:0 0 auto;min-width:88px;min-height:66px;
+ padding:9px 12px;gap:6px;
+ border-radius:14px;border:1px solid rgba(214,219,255,.17);
+ color:#f5f5ff;background:linear-gradient(180deg,#363a4c 0%,#303445 100%);
+ box-shadow:inset 0 1px 0 rgba(255,255,255,.045),0 2px 6px rgba(0,0,0,.08);
+ font-family:inherit;transition:background .16s ease,border-color .16s ease,box-shadow .16s ease,transform .16s ease
+}
+.gc-tool:hover:not(:disabled){
+ background:linear-gradient(180deg,#454a60 0%,#3b4054 100%);
+ border-color:rgba(208,203,255,.38);
+ box-shadow:inset 0 1px 0 rgba(255,255,255,.06),0 4px 14px rgba(0,0,0,.18);
+ transform:translateY(-1px)
+}
+.gc-tool:active:not(:disabled){transform:translateY(0);box-shadow:inset 0 2px 6px rgba(0,0,0,.18)}
+.gc-tool .gc-icon-wrap{width:25px;height:25px;flex:none;display:grid;place-items:center;line-height:1;font-size:inherit}
+.gc-tool .gc-icon{display:block;flex:none;width:23px;height:23px;stroke-width:1.9;overflow:visible}
+.gc-tool small{display:block;font-size:10.5px;line-height:1.23;white-space:nowrap;letter-spacing:.005em;font-weight:650}
+.gc-tool.is-on{
+ border-color:rgba(177,153,248,.65);
+ background:linear-gradient(180deg,#54486e 0%,#433957 100%);
+ color:#fff
+}
+.gc-tool.is-on:hover:not(:disabled){background:#5b4b7a}
+.gc-tool.is-hand .gc-icon-wrap{color:#f7c76d}
+.gc-tool.is-hand.is-on{
+ color:#ffe5a4;background:linear-gradient(180deg,#594a34 0%,#493d31 100%);
+ border-color:rgba(248,199,109,.68)
+}
+.gc-tool.is-leave{
+ background:linear-gradient(180deg,#bd4050 0%,#a83343 100%);
+ color:#fff;border-color:rgba(248,131,149,.45);
+ box-shadow:inset 0 1px 0 rgba(255,255,255,.1)
+}
+.gc-tool.is-leave:hover:not(:disabled){background:#ce4b5c;border-color:#ed7c8a}
+.gc-tool:disabled{opacity:.43;cursor:not-allowed;box-shadow:none}
+.gc-tool:focus-visible{outline:2px solid #d3b7ff;outline-offset:3px}
+@media(max-width:1100px){
+ .gc-controls{justify-content:flex-start;flex-wrap:nowrap;overflow-x:auto;overflow-y:hidden;scrollbar-width:thin;scrollbar-color:#66647d transparent;overscroll-behavior-x:contain;padding:2px 1px 5px}
+ .gc-footer{padding:9px 10px 10px;min-height:88px}
+ .gc-tool{min-width:86px}
+}
+@media(max-width:620px){
+ .gc-footer{min-height:76px;padding:8px 7px max(7px,env(safe-area-inset-bottom))}
+ .gc-controls{gap:6px}
+ .gc-tool{min-width:73px;min-height:55px;padding:6px 9px;gap:4px;border-radius:12px}
+ .gc-tool .gc-icon-wrap{width:22px;height:22px}
+ .gc-tool .gc-icon{width:21px;height:21px}
+ .gc-tool small{font-size:9.5px}
+}
+@media(max-width:380px){.gc-tool{min-width:69px;padding:6px 7px}.gc-tool small{font-size:9px}}
+/* O player flutuante conserva seus quatro comandos compactos. */
+.gc-backdrop.is-mini .gc-controls{overflow:visible;flex-wrap:nowrap;padding:0}
+.gc-backdrop.is-mini .gc-tool{min-width:0;gap:0;min-height:0}
+.gc-backdrop.is-mini .gc-tool .gc-icon-wrap{width:24px;height:24px}
+.gc-backdrop.is-mini .gc-tool .gc-icon{width:22px;height:22px}
+@media(prefers-reduced-motion:reduce){.gc-tool{transition:none}.gc-tool:hover:not(:disabled),.gc-tool:active:not(:disabled){transform:none}}
