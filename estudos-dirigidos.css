@@ -89,3 +89,13 @@ html[data-theme="dark"] .sd-correct .sd-option-letter{background:#267c62}
 button.sd-official-action{font:inherit;font-size:13px;font-weight:800;cursor:pointer}
 button.sd-official-action:disabled{opacity:.58;cursor:progress}
 @media(max-width:700px){.sd-original-file{align-items:flex-start;flex-direction:column;gap:8px}}
+
+
+/* Visto pessoal do roteiro: alinhado à linha superior sem competir com o título. */
+.sd-header-top{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:8px}
+.sd-header-top .sd-kicker{margin-bottom:0}
+.sd-header-top .sd-seen-control{min-height:36px;font-size:11px}
+@media(max-width:520px){
+ .sd-header-top{align-items:flex-start}
+ .sd-header-top .sd-seen-control{min-height:40px}
+}
