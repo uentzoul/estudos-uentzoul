@@ -847,3 +847,81 @@ test('Auditoria de atualização protege estudo, modais e leitura do primeiro se
  assert.ok(study.includes("node.querySelector('details[open],input:focus,textarea:focus')"),'estudo dirigido aberto não é substituído ao sincronizar');
  assert.ok(library.includes('if(needsInitialPaint&&!reviewed.length)paint()'),'sincronização da biblioteca não descarta formulários de upload em andamento');
 });
+
+// Regressão: mudanças rápidas de mídia não podem terminar a chamada.
+// Cada participante tem um elemento de áudio separado e controle local próprio.
+test('Call reduzida e áudio individual preservam a sessão, inclusive com câmera alternada',async()=>{
+ const source=read('group-call.js');
+ const css=read('group-call.css');
+ assert.doesNotMatch(source,/\(live\?btn\('hand'/,'sem botão levantar mão');
+ assert.doesNotMatch(source,/\(live\?btn\('chat'/,'sem botão de mensagens');
+ assert.match(source,/btn\('settings','Áudio e vídeo','chevron-up'/);
+ assert.match(source,/data-gc-volume/);
+ assert.match(source,/data-gc-peer-audio/);
+ assert.match(source,/audioStream:new MediaStream\(\)/);
+ assert.match(source,/gc-is-self/);
+ assert.match(css,/\.gc-member-volume/);
+ assert.match(css,/\.gc-volume-open/);
+ assert.match(css,/\.gc-tile\.gc-is-self:not\(\.gc-is-presenting\)/,'espelhamento somente do próprio vídeo');
+ assert.doesNotMatch(source,/void leave\(\)\.then\(\(\)=>\{if\(typeof toast/,'não derruba call ao tentar reconectar');
+ const token='if(!init()){';
+ assert.equal(source.split(token).length-1,1,'ponto de inicialização único');
+ const instrumented=source.replace(token,'window.__qa={S,toggleCam,setPeerVolume,togglePeerMute};if(false){');
+ class Track{
+  constructor(id,kind){this.id=id;this.kind=kind;this.readyState='live';this.enabled=true;}
+  stop(){this.readyState='ended'}
+ }
+ class MediaStream{
+  constructor(tracks=[]){this.tracks=[...tracks]}
+  getTracks(){return [...this.tracks]}
+  getVideoTracks(){return this.tracks.filter(x=>x.kind==='video')}
+  getAudioTracks(){return this.tracks.filter(x=>x.kind==='audio')}
+  addTrack(track){this.tracks.push(track)}
+  removeTrack(track){this.tracks=this.tracks.filter(x=>x!==track)}
+ }
+ class AudioContext{
+  constructor(){this.state='running';this.destination={}}
+  createMediaElementSource(){return {connect(){},disconnect(){}}}
+  createGain(){return {gain:{value:1},connect(){},disconnect(){}}}
+  close(){return Promise.resolve()}
+  resume(){return Promise.resolve()}
+ }
+ const me='12345678-1234-1234-1234-123456789abc';
+ const p1='87654321-4321-4321-4321-cba987654321';
+ const p2='11111111-2222-3333-4444-555555555555';
+ let acquired=0;
+ const ctx={window:{uentzoulGroupCallBridge:{
+  client:()=>null,user:()=>({id:me,is_anonymous:false}),state:()=>({rooms:[]}),
+  person:()=>({display_name:'Estudante'}),profile:()=>null,refresh:()=>{}
+ },AudioContext},navigator:{mediaDevices:{getUserMedia:async()=>new MediaStream([new Track('cam-'+(++acquired),'video')])}},
+  document:{},MediaStream,localStorage:{getItem:()=>null,setItem(){}},
+  setTimeout:()=>0,clearTimeout(){},setInterval:()=>0,clearInterval(){},console
+ };
+ vm.runInNewContext(instrumented,ctx,{filename:'group-call.js'});
+ const {S,toggleCam,setPeerVolume,togglePeerMute}=ctx.window.__qa;
+ S.stage='live';S.generation=1;S.room={id:'room'};S.key='self';S.stream=new MediaStream();S.presence.set('self',{userId:me});
+ await toggleCam();
+ assert.equal(S.stage,'live','ao ligar a câmera a chamada continua');
+ assert.equal(S.camera.readyState,'live');
+ await toggleCam();
+ assert.equal(S.stage,'live','ao desligar a câmera a chamada continua');
+ assert.equal(S.camera,null);
+ assert.equal(S.stream.getVideoTracks().length,0);
+ const audioA={volume:1,muted:false},audioB={volume:1,muted:false};
+ const tiles=[
+  {dataset:{key:'a'},querySelector:()=>audioA},
+  {dataset:{key:'b'},querySelector:()=>audioB}
+ ];
+ S.overlay={querySelectorAll(q){return q==='.gc-tile'?tiles:[]},querySelector(){return null}};
+ S.peers.set('a',{});S.peers.set('b',{});
+ S.presence.set('a',{userId:p1});S.presence.set('b',{userId:p2});
+ setPeerVolume(p1,50);
+ assert.equal(audioA.volume,.5);
+ assert.equal(audioB.volume,1,'outro participante não é alterado');
+ setPeerVolume(p1,150);
+ assert.equal(S.audioNodes.get('a').gain.gain.value,1.5,'amplificação até 200%');
+ togglePeerMute(p1);
+ assert.equal(S.audioNodes.get('a').gain.gain.value,0,'mudo individual');
+ assert.equal(audioB.muted,false,'outro participante não foi silenciado');
+ assert.equal(S.stage,'live','nenhum desses controles encerra a call');
+});
