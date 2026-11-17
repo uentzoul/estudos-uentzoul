@@ -2466,7 +2466,9 @@ window.uentzoulLibraryApp={
    known.add(r.resource_key);
   }
   SEMESTER_DB['2026/2'].materials=shown;
-  if(changed&&['2026/1','2026/2'].includes(semester)&&['home','library','subject','admin','calendar'].includes(current.page))render();
+  // Publicação do acervo sincroniza os dados, mas não desmonta páginas de leitura.
+  // A página inicial pode atualizar cartões; as outras áreas atualizam ao navegar.
+  if(changed&&['2026/1','2026/2'].includes(semester)&&current.page==='home')render();
  },
  refresh:()=>{if(['2026/1','2026/2'].includes(semester)&&(current.page==='home'||current.page==='library'||current.page==='admin'))render()}
 };
@@ -3962,7 +3964,7 @@ async function geLoad(forceRender=false){
   ge.loading=false;ge.lastFetch=Date.now();
   const showGeneratedList=current.page==='exams'&&semester!=='2026/1'&&ge.tab==='ai'&&!ge.selected;
   const userReading=document.activeElement?.matches('input,textarea,select,[contenteditable="true"]')||
-   document.querySelector('dialog[open],[role="dialog"]:not([hidden]),details[open]');
+   document.querySelector('#main dialog[open],#main [role="dialog"]:not([hidden]),#main details[open]');
   if(geUser()?.id===userId&&showGeneratedList&&(forceRender||!wasLoaded)&&!userReading)render();
   if(ge.pending&&geUser()?.id===userId){ge.pending=false;queueMicrotask(geLoad)}
  }
@@ -4280,7 +4282,8 @@ window.uentzoulAdminBridge={
     db.topics[item.subject_key]||=[];
    }
   }
-  if(['2026/1','2027/1'].includes(semester)&&!['ai','messages','admin'].includes(current.page))render();
+  // A descoberta de uma disciplina não deve reiniciar simulados, materiais ou textos.
+  if(['2026/1','2027/1'].includes(semester)&&current.page==='home')render();
  },
  refreshCurrent:()=>render(),
  subjects:()=>Object.fromEntries(Object.entries(SEMESTER_DB['2026/2'].subjects).map(([k,v])=>[k,v.name])),
