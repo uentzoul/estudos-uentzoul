@@ -123,6 +123,7 @@ function tryRestore(){
  if(y)requestAnimationFrame(()=>window.scrollTo({top:y,behavior:'instant'}));
 }
 function schedule(){
+ if(restoring)return; // O popstate disparado pela restauração não pode abrir outra restauração.
  if(pending){tryRestore();return;}
  setTimeout(capture,100);
 }
