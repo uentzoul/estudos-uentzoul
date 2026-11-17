@@ -775,3 +775,29 @@ test('Calls de voz e vídeo aparecem em grupos e privadas, jamais no global',()=
  assert.match(call,/case 'leave'/);
  assert.match(css,/max-width:620px/,'layout móvel adaptado');
 });
+
+test('Call minimizada mantém a sessão e permite navegar pelo restante do site',()=>{
+ const call=read('group-call.js');
+ const css=read('group-call.css');
+ assert.doesNotThrow(()=>new vm.Script(call),'Javascript da call continua válido');
+ assert.ok(call.includes('minimized:false'),'estado inicial mantém a sala completa');
+ assert.ok(call.includes("data-gc-action=\"minimize\""),'controle visível para minimizar');
+ assert.ok(call.includes("btn('restore'"),'janela pequena possui botão para restaurar');
+ for(const control of ["btn('mic'","btn('cam'","btn('leave'"])
+  assert.ok(call.includes(control),'controle essencial ausente '+control);
+ assert.match(call,/case 'minimize':setMinimized\(true\)/,'miniatura acionável');
+ assert.match(call,/case 'restore':setMinimized\(false\)/,'restauração acionável');
+ assert.ok(call.includes("classList.toggle('is-mini',mini)"),'miniatura troca de layout sem recriar a chamada');
+ assert.ok(call.includes('document.body.appendChild(S.overlay)'),'janela fica fora do conteúdo principal que sofre navegação');
+ assert.ok(call.includes("const showSelf=main!==S.key&&S.cam&&!!S.camera"),'câmera própria em miniatura');
+ assert.ok(css.includes('.gc-backdrop.is-mini'),'estilo da janela flutuante');
+ assert.ok(css.includes('pointer-events:none'),'miniatura libera cliques no restante do site');
+ assert.ok(css.includes('pointer-events:auto'),'somente a janela captura seus controles');
+ assert.ok(html.includes('if(window.uentzoulGroupCalls?.active)return true;'),'atualização automática não pode derrubar uma call');
+ assert.ok(html.includes('group-call.js?v=20261117-mini-call-v8'),'cache de script atualizado');
+ assert.ok(html.includes('group-call.css?v=20261117-mini-call-v8'),'cache CSS atualizado');
+ const start=call.indexOf('function setMinimized(value)');
+ const end=call.indexOf('function preview(room)',start);
+ const handler=call.slice(start,end);
+ assert.ok(!handler.includes('S.peers.clear()')&&!handler.includes('track.stop()')&&!handler.includes('removeChannel('),'minimizar não deve interromper os canais de mídia');
+});
