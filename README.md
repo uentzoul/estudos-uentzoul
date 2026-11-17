@@ -113,3 +113,16 @@ Para a futura implementação, a proposta é centralizar os trabalhos acadêmico
 ## Fundo do chat — licença
 
 O fundo padrão das mensagens usa a estampa **Topography**, de **Steve Schoger / Hero Patterns**, distribuída sob [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Fonte: https://heropatterns.com/ (repositório: https://github.com/sschoger/hero-patterns). A estampa foi recolorida e teve sua opacidade ajustada para os temas claro e escuro do PsicoMoodle. Os arquivos estão em `assets/chat-topography-light.svg` e `assets/chat-topography-dark.svg`. Créditos mantidos também no CSS e nos SVGs.
+
+
+## Chamadas dos grupos — 17/11/2026
+
+A aba **Mensagens** oferece o botão **Entrar na call** ao abrir uma conversa de **grupo privado**. O chat global e as conversas individuais não possuem chamadas. O botão abre a prévia, com microfone e câmera configuráveis, e a pessoa confirma sua entrada antes de transmitir.
+
+Durante a call: voz e vídeo WebRTC, compartilhamento de tela nos navegadores compatíveis, participantes, levantar a mão, reações, fixação de participante, tela cheia, troca de dispositivos e painel integrado às mensagens já existentes do grupo. A tela utiliza o nome e a foto do grupo e foi adaptada para desktop e celular. Ao sair, os canais e as faixas de captura são encerrados, sem apagar o histórico de mensagens.
+
+**Segurança:** somente contas autenticadas que pertencem ao grupo (incluindo o criador) podem ingressar. A sinalização usa canais privados Supabase Realtime com políticas RLS específicas de grupo em `realtime.messages`; áudio e vídeo percorrem as conexões WebRTC, não o banco de mensagens. O vínculo com o grupo é reconferido periodicamente.
+
+**Capacidade e limitações importantes:** esta é uma implementação WebRTC peer-to-peer (malha), dimensionada inicialmente para **até seis participantes simultâneos** por chamada. Usa STUN e aceita configuração opcional de servidores TURN através de `window.UENTZOUL_CALL_ICE_SERVERS`. Sem um TURN de produção, algumas combinações de firewall/NAT podem impedir a conexão; não se deve garantir conectividade universal. Para escalar sem sobrecarregar os usuários e oferecer confiabilidade semelhante ao Google Meet, é necessário contratar/provisionar um serviço de mídia com **SFU** (por exemplo LiveKit) e **TURN** com credenciais temporárias. Compartilhamento de tela pode estar indisponível no iPhone e em alguns navegadores móveis. Gravação de reunião, legendas automáticas, salas simultâneas e efeitos de fundo não foram implementados.
+
+O código do recurso fica isolado em `group-call.js` e `group-call.css`; o carregador está em `chat-mobile-viewport.js`. O site depende de HTTPS, permissão de câmera/microfone e deve ser validado manualmente com ao menos dois perfis reais em redes diferentes, no Chrome e Safari, antes de considerar chamadas em produção testadas ponta a ponta.
