@@ -2000,17 +2000,17 @@ html[data-theme="dark"] .tz-pending-icon{background:#40375e;color:#d6c4ff}
 <link rel="stylesheet" href="revisao-compacta.css?v=20261113-errors-1">
 <script src="revisao-erros.js?v=20261116-meta-p2"></script>
 <link rel="stylesheet" href="disciplina-clean.css?v=20261113-fullwidth-1">
-<link rel="stylesheet" href="inicio-slogan.css?v=20261112-5">
+<link rel="stylesheet" href="inicio-slogan.css?v=20261117-vistos-podcasts-1">
 <link rel="stylesheet" href="admin-config.css?v=20261115-device-log-v2">
 <link rel="stylesheet" href="agenda-calendario.css?v=20261112-3">
-<link rel="stylesheet" href="estudos-dirigidos.css?v=20261112-2">
-<link rel="stylesheet" href="estudo-ativo.css?v=20261112-2">
+<link rel="stylesheet" href="estudos-dirigidos.css?v=20261117-vistos-guiados-1">
+<link rel="stylesheet" href="estudo-ativo.css?v=20261117-vistos-casos-1">
 <script src="estudos-dirigidos-avaliacao.js?v=20261113-revisao-global-1"></script>
 <script src="estudos-dirigidos-tcc.js?v=20261112-3"></script>
 <script src="estudos-dirigidos-meta.js?v=20261116-meta-p2"></script>
-<script src="estudos-dirigidos.js?v=20261113-revisao-global-1"></script>
+<script src="estudos-dirigidos.js?v=20261117-vistos-guiados-1"></script>
 <script src="estudos-casos-data.js?v=20261117-distratores-teoricos-v2"></script>
-<script src="estudo-ativo.js?v=20261117-distratores-teoricos-v2"></script>
+<script src="estudo-ativo.js?v=20261117-vistos-casos-1"></script>
 <link rel="stylesheet" href="primeiro-semestre-relembrar.css?v=20261114-r1">
 <script src="primeiro-semestre-dados.js?v=20261116-questoes-exigem-estudo-v1"></script>
 <script src="primeiro-semestre-relembrar.js?v=20261117-distratores-teoricos-v2"></script>
@@ -3199,9 +3199,9 @@ function renderAudio(embedded=false){
     '<div class="subject-hub-empty">Nenhum podcast cadastrado nesta disciplina.</div>')+
    '<div class="podcasts-list">'+eps.map((e,i)=>{
     const ready=episodeReady.has(audioKey(k,i));
-    return '<div class="episodeunit '+(chosen===i?'active':'')+'" data-audio-subject="'+k+'" data-audio-index="'+i+'">'+
+    return '<div class="episodeunit '+(chosen===i?'active':'')+' '+(isDone('audio:'+k+':'+e.n)?'is-done':'')+'" data-audio-subject="'+k+'" data-audio-index="'+i+'">'+
      '<button type="button" class="episodeplay" data-action="'+(k==='tcc'?'chapter:':'episode:')+i+'" '+(episodeAvailable(k,i)?'':'disabled title="Áudio ainda não publicado"')+' aria-label="'+(episodeAvailable(k,i)?'Ouvir ':'Não publicado: ')+esc(e.title)+'"><span class="num">'+String(e.n).padStart(2,'0')+'</span><span class="eptext">'+esc(e.title)+'</span><span class="ep-play-icon" aria-hidden="true">'+(episodeAvailable(k,i)?'▶':'Pendente')+'</span></button>'+
-     '</div>';
+     doneBox('audio:'+k+':'+e.n)+'</div>';
    }).join('')+'</div></section>';
  }
 
