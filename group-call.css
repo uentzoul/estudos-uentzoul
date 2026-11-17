@@ -283,3 +283,8 @@
 .gc-backdrop.is-mini .gc-tool .gc-icon-wrap{width:24px;height:24px}
 .gc-backdrop.is-mini .gc-tool .gc-icon{width:22px;height:22px}
 @media(prefers-reduced-motion:reduce){.gc-tool{transition:none}.gc-tool:hover:not(:disabled),.gc-tool:active:not(:disabled){transform:none}}
+
+/* Garante que o avatar carregado substitua a inicial em tiles, lista e janela mini. */
+.gc-avatar.gc-has-photo,.gc-member-initial.gc-has-photo{position:relative}
+.gc-avatar.gc-has-photo .gc-avatar-initial,.gc-member-initial.gc-has-photo .gc-avatar-initial{display:none!important}
+.gc-avatar.gc-has-photo img.gc-avatar-photo,.gc-member-initial.gc-has-photo img.gc-avatar-photo{display:block!important;position:absolute;inset:0;width:100%;height:100%;object-fit:cover;border-radius:inherit;z-index:1}
