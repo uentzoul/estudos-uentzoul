@@ -18,7 +18,8 @@ const escCall=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>
 const S={room:null,stage:'off',overlay:null,channel:null,key:'',peers:new Map(),presence:new Map(),
  mic:true,cam:false,hand:false,screen:false,audio:null,camera:null,display:null,stream:null,
  panel:'',pinned:null,chat:[],chatBusy:false,chatTimer:null,guard:null,pendingSignals:[],devicePanel:false,photoUrl:'',
- micDevice:'',camDevice:'',notice:'',noticeTimer:null,callStarted:0,generation:0,reconnectTimer:null,minimized:false};
+ micDevice:'',camDevice:'',notice:'',noticeTimer:null,callStarted:0,generation:0,reconnectTimer:null,minimized:false,screenBusy:false,screenMuteTimer:null,videoWatch:null};
+let videoReplaceQueue=Promise.resolve();
 const eligible=()=>!!bridge.client()&&!!bridge.user()?.id&&!bridge.user()?.is_anonymous;
 const group=id=>UUID.test(id||'')&&dm.rooms?.find(r=>r.id===id&&r.kind==='group')||null;
 const direct=id=>{
@@ -150,6 +151,12 @@ function mediaFor(key){
  if(key===S.key)return S.stream;
  return S.peers.get(key)?.stream||null;
 }
+function restartTile(key){
+ const tile=[...(S.overlay?.querySelectorAll('.gc-tile')||[])].find(t=>t.dataset.key===key);
+ const video=tile?.querySelector('video');
+ if(video){video.srcObject=null;video._gcTrack=null;}
+ tiles();
+}
 function tiles(){
  const stage=S.overlay?.querySelector('[data-gc-stage]');if(!stage)return;
  stage.classList.toggle('gc-tilegrid',true);
@@ -180,10 +187,16 @@ function tiles(){
   tile.querySelector('[data-gc-icons]').textContent=(m.mic?'🎙':'🔇')+(m.hand?' ✋':'')+(m.screen?' ▤':'');
   const avatar=tile.querySelector('.gc-avatar');avatar.textContent=name.slice(0,1).toUpperCase();
   const v=tile.querySelector('video'),media=mediaFor(key);
-  const videoOn=(m.cam||m.screen)&&!!media&&media.getVideoTracks().length;
-  if(v.srcObject!==media){v.srcObject=media;v.muted=key===S.key;v.volume=1;}
-  v.classList.toggle('is-visible',!!videoOn);
-  avatar.hidden=!!videoOn;
+  const track=media?.getVideoTracks().find(t=>t.readyState==='live')||null;
+  const videoOn=!!(m.cam||m.screen)&&!!track&&!track.muted;
+  // Alterar faixas num mesmo MediaStream exige reanexar o elemento de vídeo.
+  if(v.srcObject!==media||v._gcTrack!==track){
+   v.srcObject=null;v._gcTrack=track;
+   if(media)v.srcObject=media;
+   v.muted=key===S.key;v.volume=1;
+  }
+  v.classList.toggle('is-visible',videoOn);
+  avatar.hidden=videoOn;
   if(media&&v.paused)v.play().catch(()=>{});
   tile.classList.toggle('gc-is-presenting',!!m.screen);
  });
@@ -232,12 +245,27 @@ async function tuneVideo(){
   }catch(_){/* Alguns dispositivos ignoram parâmetros avançados. */}
  }));
 }
-async function replaceVideo(){
- const selected=S.display||S.camera||null;
- if(S.stream){for(const t of S.stream.getVideoTracks())S.stream.removeTrack(t);if(selected)S.stream.addTrack(selected);}
- await Promise.all([...S.peers.values()].map(p=>p.videoSender.replaceTrack(selected).catch(e=>console.warn('Não foi possível atualizar vídeo',e))));
- void tuneVideo();
- if(S.stage==='live')await publish();else draw();
+function replaceVideo(){
+ const generation=S.generation;
+ const update=async()=>{
+  if(generation!==S.generation||S.stage==='off')return;
+  const selected=(S.display?.readyState==='live'?S.display:null)||(S.camera?.readyState==='live'?S.camera:null);
+  if(S.stream){
+   for(const track of S.stream.getVideoTracks())S.stream.removeTrack(track);
+   if(selected)S.stream.addTrack(selected);
+  }
+  await Promise.all([...S.peers.values()].map(peer=>{
+   if(peer.pc.signalingState==='closed')return Promise.resolve();
+   return peer.videoSender.replaceTrack(selected).catch(e=>console.warn('Erro ao substituir vídeo',e));
+  }));
+  if(generation!==S.generation||S.stage==='off')return;
+  void tuneVideo();
+  if(S.stage==='live')await publish();else draw();
+ };
+ // Evita que duas trocas concorrentes deixem a faixa antiga ativa.
+ const pending=videoReplaceQueue.then(update,update);
+ videoReplaceQueue=pending.catch(()=>{});
+ return pending;
 }
 async function toggleMic(){
  S.mic=!S.mic;
@@ -260,21 +288,41 @@ async function toggleCam(){
  }else draw();
 }
 async function toggleScreen(){
+ if(S.screenBusy)return;
+ S.screenBusy=true;
  const generation=S.generation;
- if(S.screen){await endScreen();return;}
- if(!navigator.mediaDevices?.getDisplayMedia){status('Compartilhamento de tela não está disponível neste navegador.');return;}
  try{
+  if(S.screen){await endScreen();return;}
+  if(!navigator.mediaDevices?.getDisplayMedia){status('Compartilhamento de tela não disponível neste navegador.');return;}
   const stream=await navigator.mediaDevices.getDisplayMedia({video:{frameRate:{ideal:15,max:20}},audio:false});
   if(generation!==S.generation||S.stage!=='live'){stream.getTracks().forEach(t=>t.stop());return;}
-  const track=stream.getVideoTracks()[0];if(!track)return;
-  S.display=track;S.screen=true;track.addEventListener('ended',()=>{if(S.display===track)void endScreen();},{once:true});
+  const track=stream.getVideoTracks()[0];
+  if(!track){stream.getTracks().forEach(t=>t.stop());throw Error('Não há vídeo');}
+  try{track.contentHint='detail';}catch(_){}
+  S.display=track;S.screen=true;
+  track.addEventListener('ended',()=>{if(S.display===track)void endScreen();},{once:true});
+  track.addEventListener('mute',()=>{
+   if(S.display!==track)return;
+   clearTimeout(S.screenMuteTimer);
+   S.screenMuteTimer=setTimeout(()=>{
+    if(S.display===track&&track.muted&&S.stage==='live'&&document.visibilityState==='visible'){
+     status('A tela parou de enviar imagem. Compartilhe novamente para retomar.',10);
+     void endScreen();
+    }
+   },12000);
+  });
+  track.addEventListener('unmute',()=>clearTimeout(S.screenMuteTimer));
   await replaceVideo();
- }catch(e){if(e?.name!=='NotAllowedError')status('Não foi possível iniciar a apresentação da tela.');}
+ }catch(e){if(e?.name!=='NotAllowedError'&&generation===S.generation)status('Não foi possível iniciar a apresentação da tela.');}
+ finally{S.screenBusy=false;if(S.stage==='live')draw();}
 }
 async function endScreen(){
- const old=S.display;S.display=null;S.screen=false;
- if(old){old.onended=null;old.stop();}
- await replaceVideo();
+ const old=S.display;
+ if(!old&&!S.screen)return;
+ S.display=null;S.screen=false;
+ clearTimeout(S.screenMuteTimer);S.screenMuteTimer=null;
+ // Primeiro substitui a faixa remota, depois encerra a antiga.
+ try{await replaceVideo();}finally{if(old)try{old.stop()}catch(_){}}
 }
 function iceConfig(){
  const defaults=[{urls:'stun:stun.l.google.com:19302'},{urls:'stun:stun1.l.google.com:19302'}];
@@ -295,30 +343,73 @@ async function offer(peer,iceRestart=false){
   await signal(peer.key,{description:peer.pc.localDescription?.toJSON?.()||peer.pc.localDescription});
  }catch(e){console.warn('Negociação WebRTC',e);}finally{peer.busy=false;}
 }
+function requestPeerRecovery(peer){
+ if(S.stage!=='live'||S.peers.get(peer.key)!==peer||peer.pc.signalingState==='closed')return;
+ if(S.key<peer.key)void offer(peer,true);
+ else void signal(peer.key,{restartVideo:true});
+}
+function schedulePeerRecovery(peer){
+ if(peer.recoveryTimer||S.stage!=='live'||S.peers.get(peer.key)!==peer)return;
+ const delay=Math.min(25000,peer.retries?5000*peer.retries:4000);
+ peer.recoveryTimer=setTimeout(()=>{
+  peer.recoveryTimer=null;
+  if(S.stage!=='live'||S.peers.get(peer.key)!==peer)return;
+  if(['failed','disconnected'].includes(peer.pc.connectionState)||['failed','disconnected'].includes(peer.pc.iceConnectionState)){
+   peer.retries=Math.min(peer.retries+1,5);
+   requestPeerRecovery(peer);
+   schedulePeerRecovery(peer);
+  }
+ },delay);
+}
+// Só recupera vídeo sem imagem real; não reinicia capturas estáticas funcionais.
+function checkVideoHealth(){
+ if(S.stage!=='live'||S.minimized||!S.overlay||document.visibilityState!=='visible')return;
+ const now=Date.now(),stage=S.overlay.querySelector('[data-gc-stage]');
+ for(const [key,member] of S.presence){
+  if(key===S.key||!(member.screen||member.cam))continue;
+  const peer=S.peers.get(key);
+  const tile=[...(stage?.querySelectorAll('.gc-tile')||[])].find(t=>t.dataset.key===key);
+  const video=tile?.querySelector('video');
+  if(!peer||!video)continue;
+  const track=peer.stream.getVideoTracks().find(t=>t.readyState==='live');
+  const healthy=!!track&&!track.muted&&video.videoWidth>0&&video.videoHeight>0&&video.readyState>=2;
+  if(healthy){peer.videoMissingSince=0;continue;}
+  if(!peer.videoMissingSince)peer.videoMissingSince=now;
+  if(now-peer.videoMissingSince<9000||now-peer.lastVideoRecoverAt<18000)continue;
+  peer.lastVideoRecoverAt=now;
+  restartTile(key);
+  if(now-peer.videoMissingSince>=18000)requestPeerRecovery(peer);
+ }
+}
 function ensurePeer(key){
  if(!key||key===S.key||S.peers.has(key)||S.stage!=='live')return S.peers.get(key);
  const pc=new RTCPeerConnection(iceConfig());
  const audioSender=pc.addTransceiver('audio',{direction:'sendrecv'}).sender;
  const videoSender=pc.addTransceiver('video',{direction:'sendrecv'}).sender;
- const peer={key,pc,audioSender,videoSender,stream:new MediaStream(),candidates:[],busy:false,retries:0};
+ const peer={key,pc,audioSender,videoSender,stream:new MediaStream(),candidates:[],busy:false,retries:0,recoveryTimer:null,videoMissingSince:0,lastVideoRecoverAt:0};
  S.peers.set(key,peer);
  if(S.audio)void audioSender.replaceTrack(S.audio).catch(()=>{});
  if(S.display||S.camera)void videoSender.replaceTrack(S.display||S.camera).catch(()=>{});
  pc.ontrack=event=>{
   const track=event.track;
   if(!peer.stream.getTracks().some(t=>t.id===track.id))peer.stream.addTrack(track);
-  track.addEventListener('unmute',tiles);
-  track.addEventListener('ended',()=>{try{peer.stream.removeTrack(track)}catch(_){}tiles()});
+  track.addEventListener('unmute',()=>restartTile(key));
+  track.addEventListener('mute',tiles);
+  track.addEventListener('ended',()=>{try{peer.stream.removeTrack(track)}catch(_){}restartTile(key)});
   tiles();
  };
  pc.onicecandidate=event=>{if(event.candidate)void signal(key,{candidate:event.candidate.toJSON?.()||event.candidate});};
  pc.onnegotiationneeded=()=>{if(S.key<key)void offer(peer);};
  pc.onconnectionstatechange=()=>{
-  if(pc.connectionState==='failed'&&peer.retries++<2&&S.key<key){void offer(peer,true);}
+  if(pc.connectionState==='failed'||pc.connectionState==='disconnected')schedulePeerRecovery(peer);
   if(pc.connectionState==='connected'){
-   peer.retries=0;void tuneVideo();tiles();
+   clearTimeout(peer.recoveryTimer);peer.recoveryTimer=null;
+   peer.retries=0;peer.videoMissingSince=0;void tuneVideo();restartTile(key);
   }
-  if(pc.connectionState==='closed'){tiles();}
+  if(pc.connectionState==='closed'){clearTimeout(peer.recoveryTimer);peer.recoveryTimer=null;tiles();}
+ };
+ pc.oniceconnectionstatechange=()=>{
+  if(pc.iceConnectionState==='failed'||pc.iceConnectionState==='disconnected')schedulePeerRecovery(peer);
  };
  return peer;
 }
@@ -332,6 +423,7 @@ async function receiveSignal(msg){
  const p=ensurePeer(msg.from);if(!p)return;
  const pc=p.pc;
  try{
+  if(msg.restartVideo){if(S.key<msg.from)void offer(p,true);return;}
   if(msg.description){
    const description=msg.description;
    if(description.type==='offer'){
@@ -362,7 +454,7 @@ function synchronize(){
  });
  if(S.key)next.set(S.key,meta());
  S.presence=next;
- for(const [key,peer] of S.peers)if(!next.has(key)){peer.pc.close();S.peers.delete(key);}
+ for(const [key,peer] of S.peers)if(!next.has(key)){clearTimeout(peer.recoveryTimer);peer.pc.close();S.peers.delete(key);}
  for(const key of next.keys())if(key!==S.key&&!S.peers.has(key))ensurePeer(key);
  if(S.pendingSignals.length){const pending=S.pendingSignals.splice(0);pending.forEach(msg=>{if(next.has(msg.from))void receiveSignal(msg);});}
  if(S.pinned&&!next.has(S.pinned))S.pinned=null;
@@ -422,12 +514,13 @@ async function join(){
      const count=Object.values(current).reduce((n,items)=>n+(Array.isArray(items)?items.length:0),0);
      if(!returning&&count>=(isPrivate(room)?2:6)){await leave();alert(isPrivate(room)?'Esta chamada privada já tem dois dispositivos conectados.':'Esta versão aceita até 6 participantes simultâneos para preservar a qualidade da call.');return;}
      if(returning){
-      S.peers.forEach(p=>p.pc.close());S.peers.clear();S.pendingSignals=[];S.presence.clear();
+      S.peers.forEach(p=>{clearTimeout(p.recoveryTimer);p.pc.close()});S.peers.clear();S.pendingSignals=[];S.presence.clear();
      }
      await channel.track(meta());
      if(S.generation!==generation||S.channel!==channel){return;}
      S.stage='live';S.presence.set(S.key,meta());status('',0);draw();synchronize();
      clearInterval(S.guard);S.guard=setInterval(()=>{void checkMembership()},15000);
+     clearInterval(S.videoWatch);S.videoWatch=setInterval(checkVideoHealth,4500);
     }catch(e){status('Não foi possível entrar na call. '+(e.message||''),10);await leave();}
    }else if(['CHANNEL_ERROR','TIMED_OUT'].includes(statusValue)&&S.stage==='live'){
     const label=S.overlay?.querySelector('[data-gc-connection]');
@@ -540,10 +633,12 @@ async function leave(){
  clearInterval(S.guard);S.guard=null;
  clearTimeout(S.reconnectTimer);S.reconnectTimer=null;
  clearTimeout(S.noticeTimer);
- S.peers.forEach(p=>p.pc.close());S.peers.clear();
+ clearInterval(S.videoWatch);S.videoWatch=null;
+ clearTimeout(S.screenMuteTimer);S.screenMuteTimer=null;
+ S.peers.forEach(p=>{clearTimeout(p.recoveryTimer);p.pc.close()});S.peers.clear();
  if(channel){try{void channel.untrack().catch(()=>{});}catch(_){}try{void client.removeChannel(channel).catch(()=>{});}catch(_){}}
  for(const track of [S.audio,S.camera,S.display])try{track?.stop()}catch(_){}
- S.audio=null;S.camera=null;S.display=null;S.stream=null;S.screen=false;S.hand=false;
+ S.audio=null;S.camera=null;S.display=null;S.stream=null;S.screen=false;S.screenBusy=false;S.hand=false;
  S.presence.clear();S.pendingSignals=[];S.key='';S.stage='off';S.room=null;S.panel='';S.chat=[];S.pinned=null;S.minimized=false;
  S.overlay?.remove();S.overlay=null;S.photoUrl='';
  try{if(typeof dmShow==='function')dmShow()}catch(_){}
