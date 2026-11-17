@@ -907,6 +907,22 @@ test('Call reduzida e áudio individual preservam a sessão, inclusive com câme
  assert.equal(S.stage,'live','ao desligar a câmera a chamada continua');
  assert.equal(S.camera,null);
  assert.equal(S.stream.getVideoTracks().length,0);
+ ctx.navigator.mediaDevices.getUserMedia=async()=>{throw Error('Permissão negada')};
+ await toggleCam();
+ assert.equal(S.stage,'live','permissão negada não pode finalizar a chamada');
+ assert.equal(S.cam,false,'estado da câmera permanece desligado após erro');
+ let completeCapture,pendingCount=0;
+ ctx.navigator.mediaDevices.getUserMedia=()=>{
+  pendingCount++;
+  return new Promise(resolve=>{completeCapture=()=>resolve(new MediaStream([new Track('camera-rapid','video')]))});
+ };
+ const first=toggleCam(),second=toggleCam();
+ assert.equal(pendingCount,1,'cliques simultâneos não solicitam duas câmeras');
+ completeCapture();
+ await Promise.all([first,second]);
+ assert.equal(S.stage,'live','cliques rápidos não finalizam a chamada');
+ assert.equal(S.cam,true);
+ await toggleCam();
  const audioA={volume:1,muted:false},audioB={volume:1,muted:false};
  const tiles=[
   {dataset:{key:'a'},querySelector:()=>audioA},
