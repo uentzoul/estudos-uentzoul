@@ -167,15 +167,15 @@ function makeCase(id,t,other,i){
  const third=nearest[0]||all.find(x=>x.title!==t.title&&x.title!==other.title)||other;
  const comparison=CASE_CONTRASTS[id]?.[i-1];
  const labels=[
-  [t,other,third].map(x=>({
-   label:x.title+': '+x.definition,
+  [t,other,third].map((x,j)=>({
+   best:j===0,label:x.title+': '+x.definition,
    outcome:'A equipe passa a interpretar a situação pelo mecanismo de '+x.title+'.',
    reason:x.title===t.title?
     'Esta leitura se relaciona melhor ao dado central do exemplo: '+t.scenario+' '+t.definition:
     'O conceito de '+x.title+' está corretamente descrito, mas não explica com a mesma precisão o aspecto central do cenário. '+t.definition
   })),
   (comparison||[]).map((label,j)=>({
-   label,
+   best:j===0,label,
    outcome:j===0?'A equipe diferencia mecanismos teóricos e considera sua aplicação no caso.':
     'A interpretação se aproxima de outra noção estudada, mas confunde a função dos conceitos.',
    reason:j===0?'A distinção é consistente com os materiais: '+t.definition+' '+other.definition:
