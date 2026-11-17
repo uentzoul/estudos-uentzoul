@@ -432,12 +432,14 @@ async function loadChat(){
  const roomId=S.room.id,generation=S.generation;
  S.chatBusy=true;
  try{
-  const {data,error}=await client.from('uentzoul_room_messages')
-   .select('id,sender_id,body,kind,created_at').eq('room_id',roomId)
+  const privateCall=isPrivate(S.room);
+  const query=client.from(privateCall?'uentzoul_messages':'uentzoul_room_messages')
+   .select('id,sender_id,body,kind,created_at');
+  const {data,error}=await (privateCall?query.or('and(sender_id.eq.'+S.room.selfId+',recipient_id.eq.'+S.room.peerId+'),and(sender_id.eq.'+S.room.peerId+',recipient_id.eq.'+S.room.selfId+')'):query.eq('room_id',roomId))
    .is('deleted_at',null).order('created_at',{ascending:false}).limit(60);
   if(S.room?.id!==roomId||S.generation!==generation)return;
   if(error)throw error;S.chat=(data||[]).reverse();panelDraw();
- }catch(e){status('Falha ao carregar mensagens do grupo.');}
+ }catch(e){status(isPrivate(S.room)?'Falha ao carregar mensagens privadas.':'Falha ao carregar mensagens do grupo.');}
  finally{S.chatBusy=false;}
 }
 async function sendChat(form){
@@ -445,25 +447,28 @@ async function sendChat(form){
  if(!value||value.length>3000||!eligible()||!S.room)return;
  const button=form.querySelector('button[type="submit"]');button.disabled=true;
  try{
-  const {error}=await client.from('uentzoul_room_messages')
-   .insert({room_id:S.room.id,sender_id:onlineUser.id,body:value,kind:'text'});
+  const room=S.room;
+  const privateCall=isPrivate(room);
+  const {error}=await client.from(privateCall?'uentzoul_messages':'uentzoul_room_messages')
+   .insert(privateCall?{recipient_id:room.peerId,sender_id:onlineUser.id,body:value,kind:'text'}:{room_id:room.id,sender_id:onlineUser.id,body:value,kind:'text'});
   if(error)throw error;textarea.value='';await loadChat();
+  if(S.channel&&S.room===room)void S.channel.send({type:'broadcast',event:'chat-updated',payload:{from:S.key}}).catch(()=>{});
  }catch(e){status('Não foi possível enviar a mensagem.');}
  finally{button.disabled=false;}
 }
 function panelDraw(){
  const aside=S.overlay?.querySelector('[data-gc-panel]');if(!aside)return;
  aside.hidden=!S.panel;if(!S.panel){aside.innerHTML='';aside.dataset.gcSignature='';return;}
- const title=S.panel==='chat'?'Mensagens do grupo':S.panel==='members'?'Participantes':S.panel==='react'?'Reações':'Dispositivos';
+ const title=S.panel==='chat'?(isPrivate(S.room)?'Mensagens privadas':'Mensagens do grupo'):S.panel==='members'?'Participantes':S.panel==='react'?'Reações':'Dispositivos';
  let body='';
  if(S.panel==='members'){
   body='<div class="gc-member-list">'+[...S.presence.entries()].map(([k,m])=>
    '<div><span class="gc-member-initial">'+escCall((m.name||'?').slice(0,1).toUpperCase())+'</span><strong>'+escCall(m.name||'Participante')+(k===S.key?' (você)':'')+'</strong><span>'+(m.mic?'🎙':'🔇')+(m.hand?' ✋':'')+'</span></div>').join('')+'</div>';
  }else if(S.panel==='chat'){
   body='<div class="gc-chat-list" data-gc-chat-list>'+S.chat.map(m=>
-   '<div class="gc-chat-msg"><strong>'+escCall(person(m.sender_id).display_name||'Estudante')+'</strong><p>'+escCall(m.kind==='text'?m.body:'[Mídia compartilhada no grupo]')+'</p></div>').join('')+
+   '<div class="gc-chat-msg"><strong>'+escCall(person(m.sender_id).display_name||'Estudante')+'</strong><p>'+escCall(m.kind==='text'?m.body:'[Mídia compartilhada na conversa]')+'</p></div>').join('')+
    (!S.chat.length?'<p class="gc-chat-empty">Nenhuma mensagem recente.</p>':'')+'</div>'+
-   '<form class="gc-chat-form" data-gc-chat-form><textarea maxlength="3000" rows="2" placeholder="Escreva no grupo…"></textarea><button type="submit" aria-label="Enviar mensagem">➤</button></form>';
+   '<form class="gc-chat-form" data-gc-chat-form><textarea maxlength="3000" rows="2" placeholder="'+(isPrivate(S.room)?'Escreva na conversa…':'Escreva no grupo…')+'"></textarea><button type="submit" aria-label="Enviar mensagem">➤</button></form>';
  }else if(S.panel==='react'){
   body='<div class="gc-reaction-picker">'+['👏','❤️','😂','🎉','👍'].map(emoji=>
    '<button type="button" data-gc-action="react-emoji" data-gc-emoji="'+emoji+'" aria-label="Reagir com '+emoji+'">'+emoji+'</button>').join('')+'</div>';
@@ -526,7 +531,7 @@ function preview(room){
  if(!room||!eligible())return;
  if(S.stage!=='off'){
   if(S.room?.id===room.id){S.overlay?.querySelector('[data-gc-action="mic"]')?.focus();return;}
-  if(!confirm('Sair da chamada atual para entrar na chamada de outro grupo?'))return;
+  if(!confirm('Sair da chamada atual para entrar em outra conversa?'))return;
   void leave().then(()=>preview(room));return;
  }
  S.room=room;S.stage='preview';++S.generation;S.mic=true;S.cam=false;S.hand=false;S.notice='';
@@ -535,10 +540,12 @@ function preview(room){
 async function actions(event){
  const target=event.target;
  if(!(target instanceof Element))return;
- const opener=target.closest('[data-gc-open]');
+ const opener=target.closest('[data-gc-open],[data-gc-private]');
  if(opener){
   event.preventDefault();event.stopPropagation();
-  const id=opener.dataset.gcOpen;preview(group(id));return;
+  if(opener.hasAttribute('data-gc-private'))preview(direct(opener.dataset.gcPrivate));
+  else preview(group(opener.dataset.gcOpen));
+  return;
  }
  const action=target.closest('[data-gc-action]');
  if(!action||!S.overlay?.contains(action))return;
@@ -594,7 +601,7 @@ function init(){
  const previousLogout=window.uentzoulMessenger.onLogout;
  window.uentzoulMessenger.onLogout=function(...args){void leave();return previousLogout?.apply(this,args);};
  window.addEventListener('uentzoul:auth',()=>{if(!bridge.user()?.id)void leave();});
- window.uentzoulGroupCalls={open:id=>preview(group(id)),leave:()=>leave(),get active(){return S.stage==='live'},get roomId(){return S.room?.id||null}};
+ window.uentzoulGroupCalls={open:id=>preview(group(id)),openPrivate:id=>preview(direct(id)),leave:()=>leave(),get active(){return S.stage==='live'},get roomId(){return S.room?.id||null},get kind(){return S.room?.kind||null}};
  return true;
 }
 if(!init()){
