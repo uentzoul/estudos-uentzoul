@@ -98,7 +98,7 @@ function relatedFirstTopics(focus,all,t){
  const index=all.findIndex(x=>x.title===t.title);
  const source=new Set(String(t.title+' '+t.definition).toLocaleLowerCase('pt-BR')
   .split(/[^\p{L}\p{N}]+/u).filter(x=>x.length>4));
- return all.filter(x=>x!==t).map(x=>{
+ return all.filter(x=>x.title!==t.title).map(x=>{
   const distance=Math.abs(all.findIndex(t=>t.title===x.title)-index);
   const common=String(x.title+' '+x.definition).toLocaleLowerCase('pt-BR')
    .split(/[^\p{L}\p{N}]+/u).filter(w=>source.has(w)).length;
