@@ -205,3 +205,15 @@ html[data-theme="dark"] .podcasts-minimal .episodeunit .ep-download{background:#
  .dashboard-hero.slogan-hero .slogan-identity{min-width:0}
 }
 @media(max-width:350px){.dashboard-hero.slogan-hero .slogan-title{font-size:27px}}
+
+
+/* Na aba Podcasts da disciplina, o visto é independente do botão Reproduzir. */
+.subject-podcast-area .podcasts-list .episodeunit{display:flex;align-items:center;gap:12px;min-width:0}
+.subject-podcast-area .podcasts-list .episodeplay{flex:1 1 auto;min-width:0}
+.subject-podcast-area .podcasts-list .donecontrol{flex:none;margin:8px 12px 8px 0;max-width:155px;font-size:11px}
+.subject-podcast-area .podcasts-list .episodeunit.is-done{border-color:#a6d3bc}
+@media(max-width:620px){
+ .subject-podcast-area .podcasts-list .episodeunit{flex-wrap:wrap}
+ .subject-podcast-area .podcasts-list .episodeplay{flex-basis:100%}
+ .subject-podcast-area .podcasts-list .donecontrol{margin:0 10px 10px auto;min-height:40px}
+}
