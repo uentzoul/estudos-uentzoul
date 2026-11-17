@@ -18,7 +18,7 @@ const escCall=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>
 const S={room:null,stage:'off',overlay:null,channel:null,key:'',peers:new Map(),presence:new Map(),
  mic:true,cam:false,hand:false,screen:false,audio:null,camera:null,display:null,stream:null,
  panel:'',pinned:null,chat:[],chatBusy:false,chatTimer:null,guard:null,pendingSignals:[],devicePanel:false,photoUrl:'',
- micDevice:'',camDevice:'',notice:'',noticeTimer:null,callStarted:0,generation:0,reconnectTimer:null,minimized:false,screenBusy:false,screenMuteTimer:null,videoWatch:null,avatarProfiles:new Map(),avatarLoading:false,avatarRefreshAt:0};
+ micDevice:'',camDevice:'',notice:'',noticeTimer:null,callStarted:0,generation:0,reconnectTimer:null,minimized:false,screenBusy:false,screenMuteTimer:null,videoWatch:null,avatarProfiles:new Map(),avatarLoading:false,avatarRefreshAt:0,camBusy:false,micBusy:false,audioLevels:new Map(),audioNodes:new Map(),audioContext:null};
 let videoReplaceQueue=Promise.resolve();
 const eligible=()=>!!bridge.client()&&!!bridge.user()?.id&&!bridge.user()?.is_anonymous;
 const group=id=>UUID.test(id||'')&&dm.rooms?.find(r=>r.id===id&&r.kind==='group')||null;
@@ -50,6 +50,7 @@ function icon(name){
   audio:'<path d="M11 5 6 9H3v6h3l5 4V5ZM15.5 8.5a5 5 0 0 1 0 7M18.5 5.5a9 9 0 0 1 0 13"/>',
   full:'<path d="M8 3H5a2 2 0 0 0-2 2v3M16 3h3a2 2 0 0 1 2 2v3M3 16v3a2 2 0 0 0 2 2h3M21 16v3a2 2 0 0 1-2 2h-3"/>',
   'full-exit':'<path d="M3 9h6V3M21 9h-6V3M3 15h6v6M21 15h-6v6"/>',
+  'chevron-up':'<path d="m6 15 6-6 6 6"/>',
   restore:'<rect x="3" y="4" width="18" height="16" rx="3"/><path d="M8 15 16 7M10 7h6v6"/>',
   hangup:'<path d="M3.5 15.4a2.1 2.1 0 0 1-1.4-2.7c1.4-4.3 5.1-6.5 9.9-6.5s8.5 2.2 9.9 6.5a2.1 2.1 0 0 1-1.4 2.7l-2.8.8a2 2 0 0 1-2.4-1.5l-.5-2.2a12 12 0 0 0-5.6 0l-.5 2.2a2 2 0 0 1-2.4 1.5l-2.8-.8Z"/>',
   cancel:'<path d="M18 6 6 18M6 6l12 12"/>'
@@ -57,8 +58,8 @@ function icon(name){
  return '<svg class="gc-icon" viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">'+(paths[name]||paths.settings)+'</svg>';
 }
 function btn(action,label,glyph,active=false,disabled=false){
- const toggle=['mic','cam','screen','hand','react','chat','members','settings'].includes(action);
- return '<button type="button" class="gc-tool'+(active?' is-on':'')+(action==='leave'?' is-leave':'')+(action==='hand'?' is-hand':'')+'" data-gc-action="'+action+'" '+(disabled?'disabled ':'')+'title="'+escCall(label)+'" aria-label="'+escCall(label)+'"'+(toggle?' aria-pressed="'+String(active)+'"':'')+'><span class="gc-icon-wrap" aria-hidden="true">'+icon(glyph||action)+'</span><small>'+escCall(label)+'</small></button>';
+ const toggle=['mic','cam','screen','react','members','settings'].includes(action);
+ return '<button type="button" class="gc-tool'+(active?' is-on':'')+(action==='leave'?' is-leave':'')+(action==='settings'?' gc-tool-devices':'')+'" data-gc-action="'+action+'" '+(disabled?'disabled ':'')+'title="'+escCall(label)+'" aria-label="'+escCall(label)+'"'+(toggle?' aria-pressed="'+String(active)+'"':'')+'><span class="gc-icon-wrap" aria-hidden="true">'+icon(glyph||action)+'</span><small>'+escCall(label)+'</small></button>';
 }
 function syncFullscreenControl(){
  if(!S.overlay)return;
@@ -144,18 +145,16 @@ function draw(){
  const controls=S.overlay.querySelector('[data-gc-controls]');
  if(controls){
   controls.innerHTML=mini?
-   btn('mic',S.mic?'Desativar microfone':'Ativar microfone',S.mic?'mic':'mic-off',S.mic)+
-   btn('cam',S.cam?'Desligar câmera':'Ligar câmera',S.cam?'cam':'cam-off',S.cam)+
+   btn('mic',S.mic?'Desativar microfone':'Ativar microfone',S.mic?'mic':'mic-off',S.mic,S.micBusy)+
+   btn('cam',S.cam?'Desligar câmera':'Ligar câmera',S.cam?'cam':'cam-off',S.cam,S.camBusy)+
    btn('restore','Abrir chamada completa','restore')+
    btn('leave','Sair da call','hangup'):
-   btn('mic',S.mic?'Desativar microfone':'Ativar microfone',S.mic?'mic':'mic-off',S.mic)+
-   btn('cam',S.cam?'Desligar câmera':'Ligar câmera',S.cam?'cam':'cam-off',S.cam)+
+   btn('mic',S.mic?'Desativar microfone':'Ativar microfone',S.mic?'mic':'mic-off',S.mic,S.micBusy)+
+   btn('cam',S.cam?'Desligar câmera':'Ligar câmera',S.cam?'cam':'cam-off',S.cam,S.camBusy)+
    (live?btn('screen',S.screen?'Parar apresentação':'Compartilhar tela',S.screen?'screen-stop':'screen',S.screen,!navigator.mediaDevices?.getDisplayMedia):'')+
-   (live?btn('hand',S.hand?'Abaixar mão':'Levantar mão','hand',S.hand):'')+
    (live?btn('react','Reagir','react',S.panel==='react'):'')+
-   (live?btn('chat','Mensagens','chat',S.panel==='chat'):'')+
    (live?btn('members','Participantes','members',S.panel==='members'):'')+
-   (live?btn('settings','Dispositivos','settings',S.panel==='settings'):'')+
+   (live?btn('settings','Áudio e vídeo','chevron-up',S.panel==='settings'):'')+
    (live?btn('audio-play','Ativar som','audio'):'')+
    (live?btn('fullscreen',document.fullscreenElement?'Sair da tela cheia':'Tela cheia',document.fullscreenElement?'full-exit':'full'):'')+
    (pre?'<button type="button" class="gc-join" data-gc-action="join">Participar da call</button>':'')+
@@ -276,8 +275,9 @@ async function refreshCallAvatars(){
 }
 function tileNode(key){
  const outer=document.createElement('article');outer.className='gc-tile';outer.dataset.key=key;
- outer.innerHTML='<video autoplay playsinline></video>'+avatarBubble('','?','gc-avatar')+
+ outer.innerHTML='<video autoplay playsinline muted></video><audio autoplay playsinline data-gc-peer-audio></audio>'+avatarBubble('','?','gc-avatar')+
   '<div class="gc-tile-info"><strong data-gc-name></strong><span data-gc-icons></span></div>'+
+  '<button type="button" class="gc-volume-open" data-gc-action="volume-peer" data-gc-key="'+escCall(key)+'" title="Ajustar volume desta pessoa" aria-label="Ajustar volume desta pessoa">'+icon('audio')+'</button>'+
   '<button type="button" class="gc-pin" data-gc-action="pin" data-gc-key="'+escCall(key)+'" aria-label="Fixar participante" title="Fixar participante">⛶</button>';
  return outer;
 }
@@ -321,17 +321,26 @@ function tiles(){
   tile.querySelector('[data-gc-icons]').textContent=(m.mic?'🎙':'🔇')+(m.hand?' ✋':'')+(m.screen?' ▤':'');
   const avatar=tile.querySelector('.gc-avatar');syncAvatarBubble(avatar,m.userId,name);
   const v=tile.querySelector('video'),media=mediaFor(key);
+  const audioEl=tile.querySelector('[data-gc-peer-audio]'),peer=S.peers.get(key),remoteAudio=peer?.audioStream||null;
   const track=media?.getVideoTracks().find(t=>t.readyState==='live')||null;
   const videoOn=!!(m.cam||m.screen)&&!!track&&!track.muted;
   // Alterar faixas num mesmo MediaStream exige reanexar o elemento de vídeo.
   if(v.srcObject!==media||v._gcTrack!==track){
    v.srcObject=null;v._gcTrack=track;
    if(media)v.srcObject=media;
-   v.muted=key===S.key;v.volume=1;
+   v.muted=true;v.volume=0;
   }
   v.classList.toggle('is-visible',videoOn);
   avatar.hidden=videoOn;
   if(media&&v.paused)v.play().catch(()=>{});
+  if(key===S.key){audioEl.muted=true;audioEl.srcObject=null;}
+  else{
+   if(audioEl.srcObject!==remoteAudio)audioEl.srcObject=remoteAudio;
+   applyPeerAudio(key,m.userId,audioEl);
+   if(remoteAudio?.getAudioTracks().some(t=>t.readyState==='live')&&audioEl.paused)audioEl.play().catch(()=>{});
+  }
+  const adjust=tile.querySelector('.gc-volume-open');
+  if(adjust)adjust.hidden=key===S.key;
   tile.classList.toggle('gc-is-presenting',!!m.screen);
  });
 }
@@ -520,16 +529,17 @@ function ensurePeer(key){
  const pc=new RTCPeerConnection(iceConfig());
  const audioSender=pc.addTransceiver('audio',{direction:'sendrecv'}).sender;
  const videoSender=pc.addTransceiver('video',{direction:'sendrecv'}).sender;
- const peer={key,pc,audioSender,videoSender,stream:new MediaStream(),candidates:[],busy:false,retries:0,recoveryTimer:null,videoMissingSince:0,lastVideoRecoverAt:0};
+ const peer={key,pc,audioSender,videoSender,stream:new MediaStream(),audioStream:new MediaStream(),candidates:[],busy:false,retries:0,recoveryTimer:null,videoMissingSince:0,lastVideoRecoverAt:0};
  S.peers.set(key,peer);
  if(S.audio)void audioSender.replaceTrack(S.audio).catch(()=>{});
  if(S.display||S.camera)void videoSender.replaceTrack(S.display||S.camera).catch(()=>{});
  pc.ontrack=event=>{
   const track=event.track;
   if(!peer.stream.getTracks().some(t=>t.id===track.id))peer.stream.addTrack(track);
+  if(track.kind==='audio'&&!peer.audioStream.getTracks().some(t=>t.id===track.id))peer.audioStream.addTrack(track);
   track.addEventListener('unmute',()=>restartTile(key));
   track.addEventListener('mute',tiles);
-  track.addEventListener('ended',()=>{try{peer.stream.removeTrack(track)}catch(_){}restartTile(key)});
+  track.addEventListener('ended',()=>{try{peer.stream.removeTrack(track);if(track.kind==='audio')peer.audioStream.removeTrack(track)}catch(_){}restartTile(key)});
   tiles();
  };
  pc.onicecandidate=event=>{if(event.candidate)void signal(key,{candidate:event.candidate.toJSON?.()||event.candidate});};
@@ -589,7 +599,7 @@ function synchronize(){
  if(S.key)next.set(S.key,meta());
  S.presence=next;
  void refreshCallAvatars();
- for(const [key,peer] of S.peers)if(!next.has(key)){clearTimeout(peer.recoveryTimer);peer.pc.close();S.peers.delete(key);}
+ for(const [key,peer] of S.peers)if(!next.has(key)){disposePeerAudio(key);clearTimeout(peer.recoveryTimer);peer.pc.close();S.peers.delete(key);}
  for(const key of next.keys())if(key!==S.key&&!S.peers.has(key))ensurePeer(key);
  if(S.pendingSignals.length){const pending=S.pendingSignals.splice(0);pending.forEach(msg=>{if(next.has(msg.from))void receiveSignal(msg);});}
  if(S.pinned&&!next.has(S.pinned))S.pinned=null;
@@ -659,7 +669,7 @@ async function join(){
      const count=Object.values(current).reduce((n,items)=>n+(Array.isArray(items)?items.length:0),0);
      if(!returning&&count>=(isPrivate(room)?2:6)){await leave();alert(isPrivate(room)?'Esta chamada privada já tem dois dispositivos conectados.':'Esta versão aceita até 6 participantes simultâneos para preservar a qualidade da call.');return;}
      if(returning){
-      S.peers.forEach(p=>{clearTimeout(p.recoveryTimer);p.pc.close()});S.peers.clear();S.pendingSignals=[];S.presence.clear();
+      S.peers.forEach((p,key)=>{disposePeerAudio(key);clearTimeout(p.recoveryTimer);p.pc.close()});S.peers.clear();S.pendingSignals=[];S.presence.clear();
      }
      await channel.track(meta());
      if(S.generation!==generation||S.channel!==channel){return;}
@@ -800,10 +810,11 @@ async function leave(){
  clearTimeout(S.noticeTimer);
  clearInterval(S.videoWatch);S.videoWatch=null;
  clearTimeout(S.screenMuteTimer);S.screenMuteTimer=null;
- S.peers.forEach(p=>{clearTimeout(p.recoveryTimer);p.pc.close()});S.peers.clear();
+ S.peers.forEach((p,key)=>{disposePeerAudio(key);clearTimeout(p.recoveryTimer);p.pc.close()});S.peers.clear();
  if(channel){try{void channel.untrack().catch(()=>{});}catch(_){}try{void client.removeChannel(channel).catch(()=>{});}catch(_){}}
  for(const track of [S.audio,S.camera,S.display])try{track?.stop()}catch(_){}
- S.audio=null;S.camera=null;S.display=null;S.stream=null;S.screen=false;S.screenBusy=false;S.hand=false;
+ S.audio=null;S.camera=null;S.display=null;S.stream=null;S.screen=false;S.screenBusy=false;S.hand=false;S.camBusy=false;S.micBusy=false;
+ const previousContext=S.audioContext;S.audioContext=null;S.audioNodes.clear();if(previousContext)void previousContext.close().catch(()=>{});
  S.presence.clear();S.avatarProfiles.clear();S.avatarRefreshAt=0;S.pendingSignals=[];S.key='';S.stage='off';S.room=null;S.panel='';S.chat=[];S.pinned=null;S.minimized=false;
  S.overlay?.remove();S.overlay=null;S.photoUrl='';
  try{if(typeof dmShow==='function')dmShow()}catch(_){}
@@ -829,7 +840,7 @@ function preview(room){
   if(!confirm('Sair da chamada atual para entrar em outra conversa?'))return;
   void leave().then(()=>preview(room));return;
  }
- S.room=room;S.stage='preview';S.minimized=false;++S.generation;S.mic=true;S.cam=false;S.hand=false;S.notice='';
+ S.room=room;S.stage='preview';S.minimized=false;++S.generation;S.mic=true;S.cam=false;S.hand=false;S.notice='';S.micBusy=false;S.camBusy=false;loadPeerVolumes();
  shell();
 }
 function previewMaintenance(){
