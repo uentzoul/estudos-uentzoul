@@ -747,10 +747,10 @@ test('Calls de voz e vídeo aparecem apenas em grupos e têm carregamento isolad
  const bootstrap=read('chat-mobile-viewport.js');
  const call=read('group-call.js');
  const css=read('group-call.css');
- assert.match(bootstrap,/group-call\\.js/);
- assert.match(bootstrap,/group-call\\.css/);
+ assert.match(bootstrap,/group-call\.js/);
+ assert.match(bootstrap,/group-call\.css/);
  assert.doesNotThrow(()=>new vm.Script(call),'JavaScript de chamada válido');
- assert.match(call,/dm\\.tab!=='groups'/,'nenhum botão para conversas privadas ou geral');
+ assert.match(call,/dm\.tab!=='groups'/,'nenhum botão para conversas privadas ou geral');
  assert.match(call,/data-gc-open/);
  assert.match(call,/Entrar na call/);
  assert.match(call,/getUserMedia/);
