@@ -807,9 +807,11 @@ test('Auditoria de atualização protege estudo, modais e leitura do primeiro se
  const version=read('site-version.js');
  const course=read('course-week-manager.js');
  const study=read('estudos-dirigidos.js');
+ const library=read('library-manager.js');
  assert.doesNotThrow(()=>new vm.Script(version),'notificação de versão válida');
  assert.doesNotThrow(()=>new vm.Script(course),'catálogo de disciplinas válido');
  assert.doesNotThrow(()=>new vm.Script(study),'roteiros de estudo válidos');
+ assert.doesNotThrow(()=>new vm.Script(library),'biblioteca válida');
  // Antes o HTML verificava uma nova versão e chamava reload mesmo com um estudante lendo.
  assert.ok(!html.includes('function applyVersion()'),'mecanismo de atualização silenciosa removido');
  assert.ok(!html.includes('setInterval(applyVersion,5000)'),'checagem invasiva de 5 segundos removida');
@@ -828,4 +830,5 @@ test('Auditoria de atualização protege estudo, modais e leitura do primeiro se
  assert.ok(html.includes("geLoad(true);return"),'botão atualizar simulados continua funcional');
  assert.ok(course.includes('if(subjectsChanged)bridge()?.applyExtraSubjects?.(additional)'),'catálogo sem alterações não remonta o primeiro semestre');
  assert.ok(study.includes("node.querySelector('details[open],input:focus,textarea:focus')"),'estudo dirigido aberto não é substituído ao sincronizar');
+ assert.ok(library.includes('if(needsInitialPaint&&!reviewed.length)paint()'),'sincronização da biblioteca não descarta formulários de upload em andamento');
 });
