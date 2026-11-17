@@ -18,7 +18,7 @@ const escCall=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>
 const S={room:null,stage:'off',overlay:null,channel:null,key:'',peers:new Map(),presence:new Map(),
  mic:true,cam:false,hand:false,screen:false,audio:null,camera:null,display:null,stream:null,
  panel:'',pinned:null,chat:[],chatBusy:false,chatTimer:null,guard:null,pendingSignals:[],devicePanel:false,photoUrl:'',
- micDevice:'',camDevice:'',notice:'',noticeTimer:null,callStarted:0,generation:0,reconnectTimer:null};
+ micDevice:'',camDevice:'',notice:'',noticeTimer:null,callStarted:0,generation:0,reconnectTimer:null,minimized:false};
 const eligible=()=>!!bridge.client()&&!!bridge.user()?.id&&!bridge.user()?.is_anonymous;
 const group=id=>UUID.test(id||'')&&dm.rooms?.find(r=>r.id===id&&r.kind==='group')||null;
 const direct=id=>{
@@ -86,7 +86,8 @@ function shell(){
  S.overlay.style.setProperty('--gc-hue',hue);
  S.overlay.innerHTML='<section class="gc-window" role="dialog" aria-modal="true" aria-label="'+(isPrivate(S.room)?'Chamada privada':'Chamada do grupo')+'">'+
  '<header class="gc-head">'+roomBadge(S.room)+'<div class="gc-head-copy"><strong>'+escCall(S.room.name)+'</strong><small data-gc-subtitle>'+(isPrivate(S.room)?'Chamada privada':'Chamada do grupo')+'</small></div>'+
- '<span class="gc-connection" data-gc-connection>Preparando</span></header>'+
+ '<span class="gc-connection" data-gc-connection>Preparando</span>'+ 
+  '<button type="button" class="gc-minimize" data-gc-action="minimize" title="Minimizar chamada para continuar navegando no site" aria-label="Minimizar chamada" hidden>─</button></header>'+
  '<div class="gc-body"><div class="gc-main"><div class="gc-stage" data-gc-stage></div>'+
  '<div class="gc-reactions" aria-live="polite" data-gc-reactions></div>'+
  '<div class="gc-status" role="status" data-gc-status hidden></div>'+
@@ -97,13 +98,24 @@ function shell(){
 function draw(){
  if(!S.overlay)return;
  const live=S.stage==='live',joining=S.stage==='joining',pre=S.stage==='preview';
+ const mini=live&&S.minimized;
+ S.overlay.classList.toggle('is-mini',mini);
+ const windowEl=S.overlay.querySelector('.gc-window');
+ if(windowEl){windowEl.setAttribute('aria-modal',mini?'false':'true');windowEl.setAttribute('role',mini?'region':'dialog');}
+ const minimize=S.overlay.querySelector('.gc-minimize');
+ if(minimize)minimize.hidden=!live||mini;
  const head=S.overlay.querySelector('[data-gc-subtitle]');
  const conn=S.overlay.querySelector('[data-gc-connection]');
- if(head)head.textContent=pre?'Configure áudio e vídeo':live?'Conversa por voz e vídeo':joining?'Conectando os participantes…':'Chamada';
+ if(head)head.textContent=pre?'Configure áudio e vídeo':mini?'Chamada em andamento':live?'Conversa por voz e vídeo':joining?'Conectando os participantes…':'Chamada';
  if(conn){conn.textContent=pre?'Prévia':joining?'Conectando…':live?'Ao vivo':'Finalizada';conn.classList.toggle('is-live',live);}
  const controls=S.overlay.querySelector('[data-gc-controls]');
  if(controls){
-  controls.innerHTML=btn('mic',S.mic?'Desativar microfone':'Ativar microfone',S.mic?'🎙':'🎙̸',S.mic)+
+  controls.innerHTML=mini?
+   btn('mic',S.mic?'Desativar microfone':'Ativar microfone',S.mic?'🎙':'🔇',S.mic)+
+   btn('cam',S.cam?'Desligar câmera':'Ligar câmera',S.cam?'📷':'📷̸',S.cam)+
+   btn('restore','Abrir chamada completa','⛶')+
+   btn('leave','Sair da call','☎'):
+   btn('mic',S.mic?'Desativar microfone':'Ativar microfone',S.mic?'🎙':'🎙̸',S.mic)+
    btn('cam',S.cam?'Desligar câmera':'Ligar câmera',icon('cam'),S.cam)+
    (live?btn('screen',S.screen?'Parar apresentação':'Compartilhar tela',icon('screen'),S.screen,!navigator.mediaDevices?.getDisplayMedia):'')+
    (live?btn('hand',S.hand?'Abaixar mão':'Levantar mão',icon('hand'),S.hand):'')+
@@ -149,11 +161,20 @@ function tiles(){
  stage.querySelectorAll('.gc-tile').forEach(x=>{if(!keys.has(x.dataset.key))x.remove()});
  const single=members.length<=2;
  stage.classList.toggle('gc-few',single);
+ const main=(
+  (S.pinned&&keys.has(S.pinned)?S.pinned:null)||
+  members.find(([key,m])=>key!==S.key&&m.screen)?.[0]||
+  members.find(([key,m])=>key!==S.key&&m.cam)?.[0]||
+  members.find(([key])=>key!==S.key)?.[0]||S.key
+ );
+ const showSelf=main!==S.key&&S.cam&&!!S.camera;
  stage.classList.toggle('gc-presenting',members.some(([k,m])=>m.screen)||!!S.pinned);
  members.forEach(([key,m])=>{
   let tile=[...stage.children].find(x=>x.classList.contains('gc-tile')&&x.dataset.key===key);
   if(!tile){tile=tileNode(key);stage.appendChild(tile);}
   tile.classList.toggle('gc-featured',S.pinned?S.pinned===key:!!m.screen);
+  tile.classList.toggle('gc-mini-featured',key===main);
+  tile.classList.toggle('gc-mini-self',showSelf&&key===S.key);
   const name=m.name||person(m.userId).display_name||'Participante';
   tile.querySelector('[data-gc-name]').textContent=name+(key===S.key?' (você)':'');
   tile.querySelector('[data-gc-icons]').textContent=(m.mic?'🎙':'🔇')+(m.hand?' ✋':'')+(m.screen?' ▤':'');
@@ -523,18 +544,34 @@ async function leave(){
  if(channel){try{void channel.untrack().catch(()=>{});}catch(_){}try{void client.removeChannel(channel).catch(()=>{});}catch(_){}}
  for(const track of [S.audio,S.camera,S.display])try{track?.stop()}catch(_){}
  S.audio=null;S.camera=null;S.display=null;S.stream=null;S.screen=false;S.hand=false;
- S.presence.clear();S.pendingSignals=[];S.key='';S.stage='off';S.room=null;S.panel='';S.chat=[];S.pinned=null;
+ S.presence.clear();S.pendingSignals=[];S.key='';S.stage='off';S.room=null;S.panel='';S.chat=[];S.pinned=null;S.minimized=false;
  S.overlay?.remove();S.overlay=null;S.photoUrl='';
  try{if(typeof dmShow==='function')dmShow()}catch(_){}
+}
+function setMinimized(value){
+ if(S.stage!=='live'||!S.overlay)return;
+ if(value&&document.fullscreenElement&&S.overlay.contains(document.fullscreenElement))
+  void document.exitFullscreen().catch(()=>{});
+ S.minimized=!!value;
+ if(value)S.panel='';
+ draw();
+ if(!value){
+  const focus=S.overlay.querySelector('.gc-minimize');
+  focus?.focus({preventScroll:true});
+ }
 }
 function preview(room){
  if(!room||!eligible())return;
  if(S.stage!=='off'){
-  if(S.room?.id===room.id){S.overlay?.querySelector('[data-gc-action="mic"]')?.focus();return;}
+  if(S.room?.id===room.id&&S.room?.kind===room.kind){
+    if(S.minimized)setMinimized(false);
+    else S.overlay?.querySelector('[data-gc-action="mic"]')?.focus();
+    return;
+   }
   if(!confirm('Sair da chamada atual para entrar em outra conversa?'))return;
   void leave().then(()=>preview(room));return;
  }
- S.room=room;S.stage='preview';++S.generation;S.mic=true;S.cam=false;S.hand=false;S.notice='';
+ S.room=room;S.stage='preview';S.minimized=false;++S.generation;S.mic=true;S.cam=false;S.hand=false;S.notice='';
  shell();
 }
 async function actions(event){
@@ -551,6 +588,8 @@ async function actions(event){
  if(!action||!S.overlay?.contains(action))return;
  event.preventDefault();event.stopPropagation();
  switch(action.dataset.gcAction){
+ case 'minimize':setMinimized(true);break;
+ case 'restore':setMinimized(false);break;
  case 'mic':await toggleMic();break;
  case 'cam':await toggleCam();break;
  case 'screen':await toggleScreen();break;
@@ -601,7 +640,7 @@ function init(){
  const previousLogout=window.uentzoulMessenger.onLogout;
  window.uentzoulMessenger.onLogout=function(...args){void leave();return previousLogout?.apply(this,args);};
  window.addEventListener('uentzoul:auth',()=>{if(!bridge.user()?.id)void leave();});
- window.uentzoulGroupCalls={open:id=>preview(group(id)),openPrivate:id=>preview(direct(id)),leave:()=>leave(),get active(){return S.stage==='live'},get roomId(){return S.room?.id||null},get kind(){return S.room?.kind||null}};
+ window.uentzoulGroupCalls={open:id=>preview(group(id)),openPrivate:id=>preview(direct(id)),minimize:()=>setMinimized(true),restore:()=>setMinimized(false),leave:()=>leave(),get minimized(){return S.minimized},get active(){return S.stage==='live'},get roomId(){return S.room?.id||null},get kind(){return S.room?.kind||null}};
  return true;
 }
 if(!init()){
