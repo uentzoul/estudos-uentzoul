@@ -6,7 +6,7 @@ const UUID=/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const escCall=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;','\'':'&#39;'}[c]));
 const S={room:null,stage:'off',overlay:null,channel:null,key:'',peers:new Map(),presence:new Map(),
  mic:true,cam:false,hand:false,screen:false,audio:null,camera:null,display:null,stream:null,
- panel:'',pinned:null,chat:[],chatBusy:false,chatTimer:null,guard:null,pendingSignals:[],devicePanel:false,
+ panel:'',pinned:null,chat:[],chatBusy:false,chatTimer:null,guard:null,pendingSignals:[],devicePanel:false,photoUrl:'',
  micDevice:'',camDevice:'',notice:'',noticeTimer:null,callStarted:0};
 const eligible=()=>typeof client!=='undefined'&&client&&typeof onlineUser!=='undefined'&&onlineUser?.id&&!onlineUser.is_anonymous;
 const group=id=>typeof dm!=='undefined'&&dm.rooms?.find(r=>r.id===id&&r.kind==='group');
@@ -41,9 +41,19 @@ async function roomPhoto(){
   try{const {data,error}=await client.storage.from('uentzoul-chat-media').createSignedUrl(path,900);if(!error)url=data?.signedUrl||'';}catch(_){}
  }
  if(!url||!S.overlay)return;
+ S.photoUrl=url;applyPhoto();
+}
+function applyPhoto(){
+ if(!S.photoUrl||!S.overlay)return;
  S.overlay.querySelectorAll('.gc-room-badge').forEach(node=>{
-  const img=document.createElement('img');img.src=url;img.alt='Foto do grupo';node.replaceChildren(img);
+  if(node.querySelector('img'))return;
+  const img=document.createElement('img');img.src=S.photoUrl;img.alt='Foto do grupo';node.replaceChildren(img);
  });
+}
+function fitViewport(){
+ if(!S.overlay)return;
+ const height=window.visualViewport?.height||window.innerHeight;
+ if(Number.isFinite(height)&&height>200)S.overlay.style.setProperty('--gc-visible-height',Math.round(height)+'px');
 }
 function shell(){
  const hue=getRoomColor(S.room);
@@ -57,7 +67,7 @@ function shell(){
  '<div class="gc-status" role="status" data-gc-status hidden></div>'+
  '<footer class="gc-footer"><div class="gc-controls" data-gc-controls></div></footer></div>'+
  '<aside class="gc-panel" data-gc-panel hidden></aside></div></section>';
- document.body.appendChild(S.overlay);draw();void roomPhoto();
+ document.body.appendChild(S.overlay);fitViewport();draw();void roomPhoto();
 }
 function draw(){
  if(!S.overlay)return;
@@ -90,7 +100,7 @@ function draw(){
    '<p>'+(joining?'Estabelecendo uma conexão segura com o grupo…':'Ao entrar, os membros do grupo poderão te ouvir e ver quando os dispositivos estiverem ligados.')+'</p>'+
    '<small>O microfone '+(S.mic?'será ligado':'ficará desligado')+' e a câmera '+(S.cam?'será ligada':'ficará desligada')+'.</small></div>';
  }else if(live){tiles();}
- panelDraw();
+ applyPhoto();panelDraw();
 }
 function tileNode(key){
  const outer=document.createElement('article');outer.className='gc-tile';outer.dataset.key=key;
@@ -422,7 +432,7 @@ async function leave(){
  for(const track of [S.audio,S.camera,S.display])try{track?.stop()}catch(_){}
  S.audio=null;S.camera=null;S.display=null;S.stream=null;S.screen=false;S.hand=false;
  S.presence.clear();S.pendingSignals=[];S.key='';S.stage='off';S.room=null;S.panel='';S.chat=[];S.pinned=null;
- S.overlay?.remove();S.overlay=null;
+ S.overlay?.remove();S.overlay=null;S.photoUrl='';
  try{if(typeof dmShow==='function')dmShow()}catch(_){}
 }
 function preview(room){
@@ -503,6 +513,8 @@ function init(){
   if(e.key==='Escape'&&S.stage==='preview'){e.preventDefault();void leave();}
  },true);
  window.addEventListener('pagehide',()=>{if(S.stage!=='off')void leave();});
+ window.addEventListener('resize',fitViewport,{passive:true});
+ window.visualViewport?.addEventListener('resize',fitViewport,{passive:true});
  const previousLogout=dmOnLogout;
  dmOnLogout=function(...args){void leave();return previousLogout.apply(this,args)};
  window.uentzoulMessenger.onLogout=dmOnLogout;
