@@ -79,7 +79,12 @@
  function refreshVisibleGuides(){
    document.querySelectorAll('[data-sd-subject]').forEach(node=>{
      const subj=node.getAttribute('data-sd-subject');
-     if(subj&&node.isConnected){const markup=window.renderStudyGuide(subj);if(node.outerHTML!==markup)node.outerHTML=markup;}
+     if(!subj||!node.isConnected)return;
+     // A sincronização de materiais jamais deve fechar uma explicação em leitura.
+     // Ao navegar novamente, a área será gerada com os dados atualizados.
+     if(node.contains(document.activeElement)||node.querySelector('details[open],input:focus,textarea:focus'))return;
+     const markup=window.renderStudyGuide(subj);
+     if(node.outerHTML!==markup)node.outerHTML=markup;
    });
  }
  async function refreshSources(force=false){
