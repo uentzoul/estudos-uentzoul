@@ -316,6 +316,7 @@ function tiles(){
   tile.classList.toggle('gc-featured',S.pinned?S.pinned===key:!!m.screen);
   tile.classList.toggle('gc-mini-featured',key===main);
   tile.classList.toggle('gc-mini-self',showSelf&&key===S.key);
+  tile.classList.toggle('gc-is-self',key===S.key);
   const name=m.name||person(m.userId).display_name||'Participante';
   tile.querySelector('[data-gc-name]').textContent=name+(key===S.key?' (você)':'');
   tile.querySelector('[data-gc-icons]').textContent=(m.mic?'🎙':'🔇')+(m.hand?' ✋':'')+(m.screen?' ▤':'');
@@ -781,34 +782,44 @@ async function join(){
    channel.on('postgres_changes',{event:'INSERT',schema:'public',table:'uentzoul_room_messages',filter:'room_id=eq.'+room.id},()=>{if(S.panel==='chat')void loadChat();});
   }
   channel.subscribe(async statusValue=>{
-   if(S.channel!==channel)return;
+   if(S.channel!==channel||S.generation!==generation)return;
    if(statusValue==='SUBSCRIBED'){
+    const returning=S.stage==='live';
     try{
-     const returning=S.stage==='live';
      clearTimeout(S.reconnectTimer);S.reconnectTimer=null;
      const current=channel.presenceState();
      const count=Object.values(current).reduce((n,items)=>n+(Array.isArray(items)?items.length:0),0);
-     if(!returning&&count>=(isPrivate(room)?2:6)){await leave();alert(isPrivate(room)?'Esta chamada privada já tem dois dispositivos conectados.':'Esta versão aceita até 6 participantes simultâneos para preservar a qualidade da call.');return;}
+     if(!returning&&count>=(isPrivate(room)?2:6)){
+      await leave();
+      alert(isPrivate(room)?'Esta chamada privada já tem dois dispositivos conectados.':'Esta versão aceita até 6 participantes simultâneos para preservar a qualidade da call.');
+      return;
+     }
      if(returning){
-      S.peers.forEach((p,key)=>{disposePeerAudio(key);clearTimeout(p.recoveryTimer);p.pc.close()});S.peers.clear();S.pendingSignals=[];S.presence.clear();
+      S.peers.forEach((p,key)=>{disposePeerAudio(key);clearTimeout(p.recoveryTimer);p.pc.close()});
+      S.peers.clear();S.pendingSignals=[];S.presence.clear();
      }
      await channel.track(meta());
-     if(S.generation!==generation||S.channel!==channel){return;}
-     S.stage='live';S.presence.set(S.key,meta());status('',0);draw();synchronize();
+     if(S.generation!==generation||S.channel!==channel)return;
+     S.stage='live';S.presence.set(S.key,meta());status('',0);
+     try{draw();synchronize()}
+     catch(e){console.warn('Falha visual sem encerrar a chamada',e);status('Falha visual temporária. A call continua aberta.',8)}
      clearInterval(S.guard);S.guard=setInterval(()=>{void checkMembership();void refreshCallAvatars();},15000);
      clearInterval(S.videoWatch);S.videoWatch=setInterval(checkVideoHealth,4500);
-    }catch(e){status('Não foi possível entrar na call. '+(e.message||''),10);await leave();}
-   }else if(['CHANNEL_ERROR','TIMED_OUT'].includes(statusValue)&&S.stage==='live'){
+    }catch(e){
+     console.warn('Falha de conexão na chamada',e);
+     if(S.stage==='joining')await leave();
+     else status('Conexão instável. A call permanece aberta.',0);
+    }
+   }else if(['CHANNEL_ERROR','TIMED_OUT','CLOSED'].includes(statusValue)){
+    if(S.stage==='joining'){await leave();return;}
+    if(S.stage!=='live')return;
     const label=S.overlay?.querySelector('[data-gc-connection]');
     if(label){label.textContent='Reconectando…';label.classList.remove('is-live');}
-    status('Conexão instável. Tentando restabelecer a call automaticamente…',0);
+    status('Conexão instável. A chamada continua aberta enquanto tenta reconectar.',0);
     if(!S.reconnectTimer)S.reconnectTimer=setTimeout(()=>{
-     if(S.channel===channel&&S.stage==='live'){
-      void leave().then(()=>{if(typeof toast==='function')toast('Não foi possível reconectar. Entre novamente na call.');});
-     }
+     S.reconnectTimer=null;
+     if(S.channel===channel&&S.stage==='live')status('Conexão ainda instável. Saia e entre novamente caso não retorne.',0);
     },30000);
-   }else if((statusValue==='CLOSED'||S.stage==='joining'&&['CHANNEL_ERROR','TIMED_OUT'].includes(statusValue))&&S.stage!=='off'){
-    await leave();if(typeof toast==='function')toast('A conexão da call foi interrompida. Entre novamente para reconectar.');
    }
   });
  }catch(e){if(S.generation!==generation)return;const message=e?.message||'Não foi possível entrar na chamada.';await leave();if(typeof toast==='function')toast(message);else alert(message);}
@@ -1057,7 +1068,12 @@ async function actions(event){
 }
 function init(){
  if(!bridge||!dm||!window.uentzoulMessenger)return false;
- document.addEventListener('click',e=>{void actions(e)},true);
+ document.addEventListener('click',e=>{
+  void actions(e).catch(err=>{
+   console.warn('Ação da call falhou sem encerrar a chamada',err);
+   if(S.stage!=='off')status('Não foi possível completar essa ação. A call continua aberta.',8);
+  });
+ },true);
  document.addEventListener('submit',e=>{
   const f=e.target;if(f instanceof HTMLFormElement&&f.matches('[data-gc-chat-form]')){
    e.preventDefault();void sendChat(f);
@@ -1069,7 +1085,7 @@ function init(){
   e.stopPropagation();setPeerVolume(input.dataset.gcUser,input.value);
  },true);
  document.addEventListener('change',e=>{
-  const el=e.target;if(el instanceof HTMLSelectElement&&el.dataset.gcDevice)void changeDevice(el.dataset.gcDevice,el.value);
+  const el=e.target;if(el instanceof HTMLSelectElement&&el.dataset.gcDevice)void changeDevice(el.dataset.gcDevice,el.value).catch(err=>{console.warn('Falha ao selecionar dispositivo',err);if(S.stage!=='off')status('Erro ao mudar dispositivo. A call continua aberta.',8)});
  },true);
  document.addEventListener('keydown',e=>{
   if(e.key==='Escape'&&S.stage==='preview'){e.preventDefault();void leave();}
