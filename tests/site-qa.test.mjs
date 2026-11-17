@@ -750,7 +750,11 @@ test('Calls de voz e vídeo aparecem apenas em grupos e têm carregamento isolad
  assert.match(html,/id="pm-group-call-js"[^>]*src="group-call\.js\?/,'script defer no HTML');
  assert.match(html,/id="pm-group-call-css"[^>]*href="group-call\.css\?/,'CSS no head');
  assert.doesNotThrow(()=>new vm.Script(call),'JavaScript de chamada válido');
- assert.match(call,/dm\.tab!=='groups'/,'nenhum botão para conversas privadas ou geral');
+ assert.match(html,/group&&room\\?\\.kind==='group'/,'botão exclusivo de grupos reais no renderizador');
+ assert.match(html,/data-gc-open/,'o botão é inserido diretamente no cabeçalho do grupo');
+ assert.match(html,/uentzoulGroupCallBridge/,'mensageiro expõe ponte segura para chamadas');
+ assert.match(call,/const bridge=window\\.uentzoulGroupCallBridge/,'módulo usa a ponte do mensageiro');
+ assert.match(call,/get is_anonymous/,'estado de autenticação é consultado pela ponte');
  assert.match(call,/data-gc-open/);
  assert.match(call,/Entrar na call/);
  assert.match(call,/getUserMedia/);
