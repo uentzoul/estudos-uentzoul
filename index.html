@@ -5577,6 +5577,15 @@ window.addEventListener('focus',()=>{if(onlineUser&&Date.now()-dm.lastFetch>4000
 window.addEventListener('online',()=>{if(onlineUser)dmLoad()});
 
 window.uentzoulMessenger={render:dmRender,afterRender:dmAfterRender,onLogin:dmOnLogin,onLogout:dmOnLogout,refresh:dmLoad};
+/* API controlada para o módulo de chamadas: variáveis do mensageiro vivem nesta closure. */
+window.uentzoulGroupCallBridge={
+ client:()=>client,
+ user:()=>onlineUser,
+ state:()=>dm,
+ group:id=>dmRoom(id),
+ person:id=>dmPrettyPerson(id),
+ refresh:()=>dmShow()
+};
 async function dmRespondExamInvite(id,decision){
  if(!client||!onlineUser)return;
  const invite=dm.invites.find(x=>x.id===id&&x.recipient_id===onlineUser.id&&x.status==='pending');
@@ -5882,7 +5891,7 @@ dmRender=function(){
  '<div class="dm-contacts" id="dmContacts">'+dmContactRows()+'</div></div>'+
  '<div class="dm-main"><header class="dm-chat-head"><button type="button" class="dm-back" data-dmw-back>‹ Voltar</button>'+
  (selected?'<button class="dm-chat-head-main" type="button" '+(peer?'data-dm-profile="'+esc(peer.user_id)+'"':group?'data-dmw-group':'')+'>'+heading+'</button>':'<span class="dm-chat-head-main">'+heading+'</span>')+
- (selected?'<div class="dm-chat-actions">'+(group?'<button type="button" class="dm-head-action" data-dmw-group title="Informações do grupo">ⓘ</button>':'')+
+ (selected?'<div class="dm-chat-actions">'+(group&&room?.kind==='group'?'<button type="button" class="gc-open-btn" data-gc-open="'+esc(room.id)+'" title="Entrar na call" aria-label="Entrar na call">◉ <span>Entrar na call</span></button>':'')+(group?'<button type="button" class="dm-head-action" data-dmw-group title="Informações do grupo">ⓘ</button>':'')+
  '<button type="button" class="dm-head-action" data-dmw-wallpaper title="Fundo da conversa">⋯</button></div>':'')+wallpapers+'</header>'+
  (dm.error?'<div class="dm-error" role="alert">'+esc(dm.error)+'</div>':'')+
  '<div class="dm-messages" id="dmMessages" data-wallpaper="'+esc(dmWWallpaper())+'">'+dmThreadHtml()+'</div>'+dmComposer()+
