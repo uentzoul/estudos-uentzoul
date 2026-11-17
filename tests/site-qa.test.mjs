@@ -756,7 +756,7 @@ test('Calls de voz e vídeo aparecem apenas em grupos e têm carregamento isolad
  assert.ok(call.includes("const bridge=window.uentzoulGroupCallBridge"),'módulo usa a ponte do mensageiro');
  assert.match(call,/get is_anonymous/,'estado de autenticação é consultado pela ponte');
  assert.match(call,/data-gc-open/);
- assert.match(call,/Entrar na call/);
+ assert.match(html,/Entrar na call/,'rótulo visível no cabeçalho dos grupos');
  assert.match(call,/getUserMedia/);
  assert.match(call,/getDisplayMedia/);
  assert.match(call,/RTCPeerConnection/);
