@@ -76,6 +76,7 @@ function draw(){
    (live?btn('chat','Mensagens',icon('chat'),S.panel==='chat'):'')+
    (live?btn('members','Participantes',icon('members'),S.panel==='members'):'')+
    (live?btn('settings','Dispositivos',icon('settings'),S.panel==='settings'):'')+
+   (live?btn('audio-play','Ativar som','🔊'):'')+
    (live?btn('fullscreen','Tela cheia',icon('full')):'')+
    (pre?'<button type="button" class="gc-join" data-gc-action="join">Participar da call</button>':'')+
    (joining?'<button type="button" class="gc-join" disabled>Entrando…</button>':'')+
@@ -236,7 +237,12 @@ function ensurePeer(key){
  pc.onnegotiationneeded=()=>{if(S.key<key)void offer(peer);};
  pc.onconnectionstatechange=()=>{
   if(pc.connectionState==='failed'&&peer.retries++<2&&S.key<key){void offer(peer,true);}
-  if(pc.connectionState==='connected'){peer.retries=0;tiles();}
+  if(pc.connectionState==='connected'){
+   peer.retries=0;const params=videoSender.getParameters?.();
+   if(params?.encodings?.length){params.encodings[0].maxBitrate=S.presence.size>4?270000:500000;
+    params.encodings[0].maxFramerate=15;void videoSender.setParameters(params).catch(()=>{});}
+   tiles();
+  }
   if(pc.connectionState==='closed'){tiles();}
  };
  return peer;
@@ -412,7 +418,7 @@ async function leave(){
  clearInterval(S.guard);S.guard=null;
  clearTimeout(S.noticeTimer);
  S.peers.forEach(p=>p.pc.close());S.peers.clear();
- if(channel){try{await channel.untrack()}catch(_){}try{await client.removeChannel(channel)}catch(_){}}
+ if(channel){try{void channel.untrack().catch(()=>{});}catch(_){}try{void client.removeChannel(channel).catch(()=>{});}catch(_){}}
  for(const track of [S.audio,S.camera,S.display])try{track?.stop()}catch(_){}
  S.audio=null;S.camera=null;S.display=null;S.stream=null;S.screen=false;S.hand=false;
  S.presence.clear();S.pendingSignals=[];S.key='';S.stage='off';S.room=null;S.panel='';S.chat=[];S.pinned=null;
@@ -461,6 +467,11 @@ async function actions(event){
  }
  case 'panel-close':S.panel='';draw();break;
  case 'pin':S.pinned=S.pinned===action.dataset.gcKey?null:action.dataset.gcKey;draw();break;
+ case 'audio-play':{
+  const videos=S.overlay?.querySelectorAll('.gc-tile video:not([muted])')||[];
+  for(const v of videos)try{await v.play()}catch(_){}
+  status('Tentativa de ativar o áudio dos participantes.',3);break;
+ }
  case 'fullscreen':{
   try{if(document.fullscreenElement)await document.exitFullscreen();else await S.overlay.querySelector('.gc-window').requestFullscreen();}catch(_){status('Tela cheia indisponível neste dispositivo.');}break;
  }
