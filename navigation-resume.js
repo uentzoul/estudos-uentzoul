@@ -73,6 +73,9 @@ function applyCore(state){
  const wanted=state?.screen?.page||'home',now=currentRoute();
  if(now?.page===wanted&&now?.semester===state.semester&&
   (wanted!=='subject'||now.subject===state.screen.subject&&now.subjectArea===state.screen.subjectArea)&&
+  (wanted!=='test'||history.state?.screen?.exam===state.screen.exam)&&
+  (wanted!=='audio'||history.state?.screen?.audioSubject===state.screen.audioSubject)&&
+  (wanted!=='calendar'||JSON.stringify(history.state?.agenda||null)===JSON.stringify(state.agenda||null))&&
   (wanted!=='messages'||JSON.stringify(window.uentzoulChatNavigation?.snapshot?.()||null)===JSON.stringify(state.chat||null))){
   return true;
  }
@@ -124,9 +127,24 @@ function schedule(){
  setTimeout(capture,100);
 }
 window.PSICO_REMEMBER_NAVIGATION=()=>{
- if(!pending){capture();write(UPDATE,'1');}
+ if(!pending)capture();
+ write(UPDATE,'1');
 };
-document.addEventListener('click',schedule,true);
+// Uma escolha real da pessoa sempre prevalece sobre a tela salva anteriormente.
+document.addEventListener('click',event=>{
+ if(pending&&event.isTrusted&&event.target?.closest?.(
+  '#nav [data-page],#navCadernoPreview,#navVacationReview,'+
+  '#subjectNav [data-action],[data-action^="subject:"],[data-action^="page:"],'+
+  '[data-action^="test:"],[data-action^="subjectArea:"],'+
+  '[data-dm-tab],[data-dm-peer],[data-dm-room],[data-pm-maintenance-open]'
+ )){
+  pending=null;captureAllowed=true;
+  setTimeout(capture,200);
+  return;
+ }
+ schedule();
+});
+setInterval(()=>{if(!pending)capture();},1600);
 window.addEventListener('uentzoul:route',schedule);
 window.addEventListener('uentzoul:semester',schedule);
 window.addEventListener('uentzoul:auth',schedule);
