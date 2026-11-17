@@ -1168,10 +1168,12 @@ async function reload(){
   if(subj.error)throw subj.error;
   if(week.error)throw week.error;
   const a=JSON.stringify(subj.data||[]),b=JSON.stringify(week.data||[]);
-  const changed=!loaded||a!==JSON.stringify(additional)||b!==JSON.stringify(weekRows);
+  const subjectsChanged=!loaded||a!==JSON.stringify(additional);
+  const weeksChanged=!loaded||b!==JSON.stringify(weekRows);
   additional=subj.data||[];weekRows=week.data||[];loaded=true;
-  bridge()?.applyExtraSubjects?.(additional);
-  if(changed)rerender();
+  // Consultas ao recuperar o foco não podem desmontar simulados/leituras do 1º semestre.
+  if(subjectsChanged)bridge()?.applyExtraSubjects?.(additional);
+  if(subjectsChanged||weeksChanged)rerender();
  }catch(e){console.warn('Catálogo de disciplinas e semanas indisponível:',e);}
 }
 function adminPanel(){
