@@ -93,21 +93,35 @@ function themeGroups(id,arr){
  }
  return groups.filter(g=>g.items.length);
 }
+
+function relatedFirstTopics(focus,all,t){
+ const index=all.findIndex(x=>x.title===t.title);
+ const source=new Set(String(t.title+' '+t.definition).toLocaleLowerCase('pt-BR')
+  .split(/[^\p{L}\p{N}]+/u).filter(x=>x.length>4));
+ return all.filter(x=>x!==t).map(x=>{
+  const distance=Math.abs(all.findIndex(t=>t.title===x.title)-index);
+  const common=String(x.title+' '+x.definition).toLocaleLowerCase('pt-BR')
+   .split(/[^\p{L}\p{N}]+/u).filter(w=>source.has(w)).length;
+  return {topic:x,score:(focus.some(y=>y.title===x.title)?45:0)+Math.min(20,common*3)+12/(1+distance)};
+ }).sort((a,b)=>b.score-a.score||all.indexOf(a.topic)-all.indexOf(b.topic)).map(e=>e.topic);
+}
 function optionQuestion(id,model,i,focus,all){
- const t=focus[(i+model-1)%focus.length],others=all.filter(x=>x.title!==t.title);
- const start=(model*3+i*2)%others.length;
- const entries=[t,...Array.from({length:3},(_,j)=>others[(start+j)%others.length])];
+ const t=focus[(i+model-1)%focus.length];
+ // Em vez de conceitos aleatórios de toda a disciplina, testar diferenças
+ // entre o tópico focal e seus vizinhos no mesmo módulo e referencial.
+ const near=relatedFirstTopics(focus,all,t);
+ const entries=[t,...near.slice(0,3)];
  const variants=entries.map((entry,j)=>({text:entry.title,why:j===0
-  ?'É a melhor resposta: '+entry.definition+' No exemplo: '+t.scenario
-  :'Este conceito se refere a '+entry.definition+' A questão destaca '+t.title+'.'}));
+  ?'É a melhor resposta para os elementos descritos: '+entry.definition+' No exemplo: '+t.scenario
+  :'O conceito '+entry.title+' pode ser relacionado ao tema, mas focaliza outro mecanismo: '+entry.definition+' A situação enfatiza '+t.title+'.'}));
  const shift=(model+i)%4,options=variants.slice(shift).concat(variants.slice(0,shift));
  const prompts=[
-  'Leia a situação:\n\n'+t.scenario+'\n\nQual conceito explica MELHOR o que acontece?',
-  'Qual conceito corresponde à definição abaixo?\n\n'+t.definition,
-  'Considere a situação:\n\n'+t.scenario+'\n\nUma análise equivocada sustenta:\n“'+t.myth+'”\n\nQual conceito permite criticar essa interpretação com maior precisão?',
-  'Analise a situação à luz dos materiais da disciplina:\n\n'+t.scenario+'\n\nQual tema deve orientar a análise?',
-  'Identifique o conceito central na descrição:\n\n'+t.definition,
-  'Ao relacionar teoria e prática, que conceito se destaca neste exemplo?\n\n'+t.scenario
+  'Analise a situação:\n\n'+t.scenario+'\n\nQual conceito identifica melhor o processo central descrito?',
+  'Compare os conceitos próximos da lista. Qual deles corresponde ao mecanismo abaixo?\n\n'+t.definition,
+  'Um aluno interpreta o caso assim:\n\n'+t.myth+'\n\nQual conceito é necessário para examinar criticamente essa hipótese?',
+  'Considerando o tema abordado no material, analise:\n\n'+t.scenario+'\n\nQual leitura conceitual é a mais específica?',
+  'A formulação abaixo se relaciona diretamente a qual conceito, e não apenas a uma noção próxima?\n\n'+t.definition,
+  'Uma situação de aplicação teórica:\n\n'+t.scenario+'\n\nQual dos conceitos apresentados tem melhor correspondência com o caso?'
  ];
  return {id:'s1-'+id+'-temas-'+model+'-obj-'+(i+1),type:'choice',
   prompt:prompts[i%prompts.length],options,answer:(4-shift)%4,concept:t.title,source:t.source};
