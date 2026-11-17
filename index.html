@@ -5583,6 +5583,12 @@ window.uentzoulGroupCallBridge={
  user:()=>onlineUser,
  state:()=>dm,
  group:id=>dmRoom(id),
+ // O usuário da própria call não precisa constar na lista de contatos.
+ // Usa diretamente o perfil autenticado, a mesma fonte da foto do site.
+ profile:id=>{
+  if(id===onlineUser?.id&&remoteProfile)return remoteProfile;
+  return dmPerson(id)||rankData.find(p=>p.user_id===id)||null;
+ },
  person:id=>dmPrettyPerson(id),
  refresh:()=>dmShow()
 };
