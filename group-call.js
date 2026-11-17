@@ -34,13 +34,14 @@ function roomBadge(room){
  return '<span class="gc-room-badge" aria-hidden="true">'+escCall(first)+'</span>';
 }
 async function roomPhoto(){
+ const roomId=S.room?.id;
  const path=S.room?.avatar_path;if(!path||!S.overlay)return;
  let url='';
  if(/^data:image\/(?:jpeg|png|webp);base64,[A-Za-z0-9+/=]+$/i.test(path))url=path;
  else if(/^[A-Za-z0-9._/-]+$/.test(path)){
   try{const {data,error}=await client.storage.from('uentzoul-chat-media').createSignedUrl(path,900);if(!error)url=data?.signedUrl||'';}catch(_){}
  }
- if(!url||!S.overlay)return;
+ if(!url||!S.overlay||S.room?.id!==roomId)return;
  S.photoUrl=url;applyPhoto();
 }
 function applyPhoto(){
@@ -214,10 +215,12 @@ async function toggleCam(){
  }else draw();
 }
 async function toggleScreen(){
+ const generation=S.generation;
  if(S.screen){await endScreen();return;}
  if(!navigator.mediaDevices?.getDisplayMedia){status('Compartilhamento de tela não está disponível neste navegador.');return;}
  try{
   const stream=await navigator.mediaDevices.getDisplayMedia({video:{frameRate:{ideal:15,max:20}},audio:false});
+  if(generation!==S.generation||S.stage!=='live'){stream.getTracks().forEach(t=>t.stop());return;}
   const track=stream.getVideoTracks()[0];if(!track)return;
   S.display=track;S.screen=true;track.addEventListener('ended',()=>{if(S.display===track)void endScreen();},{once:true});
   await replaceVideo();
@@ -326,6 +329,7 @@ async function checkMembership(){
   const room=S.room;
   const {data,error}=await client.from('uentzoul_chat_members').select('user_id').eq('room_id',room.id).eq('user_id',onlineUser.id).maybeSingle();
   if(error)throw error;
+  if(S.room?.id!==room.id)return;
   if(!data&&room.owner_id!==onlineUser.id){status('Você não faz mais parte deste grupo.');await leave(); }
  }catch(e){console.warn('Falha temporária ao conferir acesso à chamada',e);}
 }
@@ -336,6 +340,7 @@ async function join(){
   const room=S.room;
   const {data,error}=await client.from('uentzoul_chat_members').select('user_id').eq('room_id',room.id).eq('user_id',onlineUser.id).maybeSingle();
   if(error)throw error;
+  if(generation!==S.generation||S.stage!=='joining')return;
   if(!data&&room.owner_id!==onlineUser.id)throw Error('Somente membros deste grupo podem entrar na call.');
   S.key=onlineUser.id+':'+crypto.randomUUID();S.callStarted=Date.now();createStream();
   if(S.mic)try{await captureAudio(S.micDevice,generation);}catch(e){if(generation===S.generation){S.mic=false;status('Microfone indisponível. Você entrará apenas para ouvir.',8);}}
@@ -378,7 +383,7 @@ async function join(){
     await leave();if(typeof toast==='function')toast('A conexão da call foi interrompida. Entre novamente para reconectar.');
    }
   });
- }catch(e){const message=e?.message||'Não foi possível entrar na chamada.';await leave();if(typeof toast==='function')toast(message);else alert(message);}
+ }catch(e){if(S.generation!==generation)return;const message=e?.message||'Não foi possível entrar na chamada.';await leave();if(typeof toast==='function')toast(message);else alert(message);}
 }
 function reaction(emoji){
  const layer=S.overlay?.querySelector('[data-gc-reactions]');if(!layer)return;
@@ -386,11 +391,13 @@ function reaction(emoji){
 }
 async function loadChat(){
  if(!S.room||S.chatBusy||S.panel!=='chat')return;
+ const roomId=S.room.id,generation=S.generation;
  S.chatBusy=true;
  try{
   const {data,error}=await client.from('uentzoul_room_messages')
-   .select('id,sender_id,body,kind,created_at').eq('room_id',S.room.id)
+   .select('id,sender_id,body,kind,created_at').eq('room_id',roomId)
    .is('deleted_at',null).order('created_at',{ascending:false}).limit(60);
+  if(S.room?.id!==roomId||S.generation!==generation)return;
   if(error)throw error;S.chat=(data||[]).reverse();panelDraw();
  }catch(e){status('Falha ao carregar mensagens do grupo.');}
  finally{S.chatBusy=false;}
