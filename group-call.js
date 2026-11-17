@@ -6,7 +6,7 @@ const UUID=/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const escCall=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;','\'':'&#39;'}[c]));
 const S={room:null,stage:'off',overlay:null,channel:null,key:'',peers:new Map(),presence:new Map(),
  mic:true,cam:false,hand:false,screen:false,audio:null,camera:null,display:null,stream:null,
- panel:'',pinned:null,chat:[],chatBusy:false,chatTimer:null,guard:null,devicePanel:false,
+ panel:'',pinned:null,chat:[],chatBusy:false,chatTimer:null,guard:null,pendingSignals:[],devicePanel:false,
  micDevice:'',camDevice:'',notice:'',noticeTimer:null,callStarted:0};
 const eligible=()=>typeof client!=='undefined'&&client&&typeof onlineUser!=='undefined'&&onlineUser?.id&&!onlineUser.is_anonymous;
 const group=id=>typeof dm!=='undefined'&&dm.rooms?.find(r=>r.id===id&&r.kind==='group');
@@ -33,6 +33,18 @@ function roomBadge(room){
  const first=(room.name||'G').trim().slice(0,1).toUpperCase();
  return '<span class="gc-room-badge" aria-hidden="true">'+escCall(first)+'</span>';
 }
+async function roomPhoto(){
+ const path=S.room?.avatar_path;if(!path||!S.overlay)return;
+ let url='';
+ if(/^data:image\/(?:jpeg|png|webp);base64,[A-Za-z0-9+/=]+$/i.test(path))url=path;
+ else if(/^[A-Za-z0-9._/-]+$/.test(path)){
+  try{const {data,error}=await client.storage.from('uentzoul-chat-media').createSignedUrl(path,900);if(!error)url=data?.signedUrl||'';}catch(_){}
+ }
+ if(!url||!S.overlay)return;
+ S.overlay.querySelectorAll('.gc-room-badge').forEach(node=>{
+  const img=document.createElement('img');img.src=url;img.alt='Foto do grupo';node.replaceChildren(img);
+ });
+}
 function shell(){
  const hue=getRoomColor(S.room);
  S.overlay=document.createElement('div');S.overlay.className='gc-backdrop';
@@ -45,7 +57,7 @@ function shell(){
  '<div class="gc-status" role="status" data-gc-status hidden></div>'+
  '<footer class="gc-footer"><div class="gc-controls" data-gc-controls></div></footer></div>'+
  '<aside class="gc-panel" data-gc-panel hidden></aside></div></section>';
- document.body.appendChild(S.overlay);draw();
+ document.body.appendChild(S.overlay);draw();void roomPhoto();
 }
 function draw(){
  if(!S.overlay)return;
@@ -60,6 +72,7 @@ function draw(){
    btn('cam',S.cam?'Desligar câmera':'Ligar câmera',icon('cam'),S.cam)+
    (live?btn('screen',S.screen?'Parar apresentação':'Compartilhar tela',icon('screen'),S.screen,!navigator.mediaDevices?.getDisplayMedia):'')+
    (live?btn('hand',S.hand?'Abaixar mão':'Levantar mão',icon('hand'),S.hand):'')+
+   (live?btn('react','Reagir','❤',S.panel==='react'):'')+
    (live?btn('chat','Mensagens',icon('chat'),S.panel==='chat'):'')+
    (live?btn('members','Participantes',icon('members'),S.panel==='members'):'')+
    (live?btn('settings','Dispositivos',icon('settings'),S.panel==='settings'):'')+
@@ -86,10 +99,7 @@ function tileNode(key){
  return outer;
 }
 function mediaFor(key){
- if(key===S.key){
-  const track=S.screen&&S.display?S.display:S.camera;
-  return track?new MediaStream([track]):null;
- }
+ if(key===S.key)return S.stream;
  return S.peers.get(key)?.stream||null;
 }
 function tiles(){
@@ -148,6 +158,7 @@ async function captureCamera(deviceId=''){
 }
 async function replaceVideo(){
  const selected=S.display||S.camera||null;
+ if(S.stream){for(const t of S.stream.getVideoTracks())S.stream.removeTrack(t);if(selected)S.stream.addTrack(selected);}
  await Promise.all([...S.peers.values()].map(p=>p.videoSender.replaceTrack(selected).catch(e=>console.warn('Não foi possível atualizar vídeo',e))));
  if(S.stage==='live')await publish();else draw();
 }
@@ -231,7 +242,12 @@ function ensurePeer(key){
  return peer;
 }
 async function receiveSignal(msg){
- if(!msg||msg.to!==S.key||typeof msg.from!=='string'||!S.presence.has(msg.from)||msg.from===S.key)return;
+ if(!msg||msg.to!==S.key||typeof msg.from!=='string'||msg.from===S.key)return;
+ if(!S.presence.has(msg.from)){
+  const present=S.channel?.presenceState()?.[msg.from];
+  if(present?.[0])S.presence.set(msg.from,{...present[0]});
+  else{if(S.pendingSignals.length<64)S.pendingSignals.push(msg);return;}
+ }
  const p=ensurePeer(msg.from);if(!p)return;
  const pc=p.pc;
  try{
@@ -267,6 +283,7 @@ function synchronize(){
  S.presence=next;
  for(const [key,peer] of S.peers)if(!next.has(key)){peer.pc.close();S.peers.delete(key);}
  for(const key of next.keys())if(key!==S.key&&!S.peers.has(key))ensurePeer(key);
+ if(S.pendingSignals.length){const pending=S.pendingSignals.splice(0);pending.forEach(msg=>{if(next.has(msg.from))void receiveSignal(msg);});}
  if(S.pinned&&!next.has(S.pinned))S.pinned=null;
  tiles();panelDraw();
 }
@@ -302,14 +319,13 @@ async function join(){
     try{
      const current=channel.presenceState();
      const count=Object.values(current).reduce((n,items)=>n+(Array.isArray(items)?items.length:0),0);
-     if(count>=8){status('Esta versão aceita até 8 participantes simultâneos.');await leave();return;}
+     if(count>=6){await leave();if(typeof toast==='function')toast('Esta versão aceita até 6 participantes simultâneos para preservar a qualidade da call.');return;}
      await channel.track(meta());
      S.stage='live';S.presence.set(S.key,meta());draw();synchronize();
-     S.guard=setInterval(()=>{void checkMembership()},45000);
+     clearInterval(S.guard);S.guard=setInterval(()=>{void checkMembership()},45000);
     }catch(e){status('Não foi possível entrar na call. '+(e.message||''),10);await leave();}
    }else if(['CHANNEL_ERROR','TIMED_OUT','CLOSED'].includes(statusValue)&&S.stage!=='off'){
-    status('A conexão da chamada foi interrompida.',8);
-    await leave();
+    await leave();if(typeof toast==='function')toast('A conexão da call foi interrompida. Entre novamente para reconectar.');
    }
   });
  }catch(e){const message=e?.message||'Não foi possível entrar na chamada.';await leave();if(typeof toast==='function')toast(message);else alert(message);}
@@ -343,7 +359,7 @@ async function sendChat(form){
 function panelDraw(){
  const aside=S.overlay?.querySelector('[data-gc-panel]');if(!aside)return;
  aside.hidden=!S.panel;if(!S.panel){aside.innerHTML='';return;}
- const title=S.panel==='chat'?'Mensagens do grupo':S.panel==='members'?'Participantes':'Dispositivos';
+ const title=S.panel==='chat'?'Mensagens do grupo':S.panel==='members'?'Participantes':S.panel==='react'?'Reações':'Dispositivos';
  let body='';
  if(S.panel==='members'){
   body='<div class="gc-member-list">'+[...S.presence.entries()].map(([k,m])=>
@@ -353,6 +369,9 @@ function panelDraw(){
    '<div class="gc-chat-msg"><strong>'+escCall(person(m.sender_id).display_name||'Estudante')+'</strong><p>'+escCall(m.kind==='text'?m.body:'[Mídia compartilhada no grupo]')+'</p></div>').join('')+
    (!S.chat.length?'<p class="gc-chat-empty">Nenhuma mensagem recente.</p>':'')+'</div>'+
    '<form class="gc-chat-form" data-gc-chat-form><textarea maxlength="3000" rows="2" placeholder="Escreva no grupo…"></textarea><button type="submit" aria-label="Enviar mensagem">➤</button></form>';
+ }else if(S.panel==='react'){
+  body='<div class="gc-reaction-picker">'+['👏','❤️','😂','🎉','👍'].map(emoji=>
+   '<button type="button" data-gc-action="react-emoji" data-gc-emoji="'+emoji+'" aria-label="Reagir com '+emoji+'">'+emoji+'</button>').join('')+'</div>';
  }else{
   body='<div class="gc-device-section"><label>Microfone<select data-gc-device="audio"><option value="">Padrão do sistema</option></select></label>'+
   '<label>Câmera<select data-gc-device="video"><option value="">Padrão do sistema</option></select></label>'+
@@ -396,7 +415,7 @@ async function leave(){
  if(channel){try{await channel.untrack()}catch(_){}try{await client.removeChannel(channel)}catch(_){}}
  for(const track of [S.audio,S.camera,S.display])try{track?.stop()}catch(_){}
  S.audio=null;S.camera=null;S.display=null;S.stream=null;S.screen=false;S.hand=false;
- S.presence.clear();S.key='';S.stage='off';S.room=null;S.panel='';S.chat=[];S.pinned=null;
+ S.presence.clear();S.pendingSignals=[];S.key='';S.stage='off';S.room=null;S.panel='';S.chat=[];S.pinned=null;
  S.overlay?.remove();S.overlay=null;
  try{if(typeof dmShow==='function')dmShow()}catch(_){}
 }
@@ -426,9 +445,17 @@ async function actions(event){
  case 'cam':await toggleCam();break;
  case 'screen':await toggleScreen();break;
  case 'hand':S.hand=!S.hand;await publish();break;
+ case 'react-emoji':{
+  const emoji=action.dataset.gcEmoji;
+  if(['👏','❤️','😂','🎉','👍'].includes(emoji)){
+   reaction(emoji);
+   await S.channel?.send({type:'broadcast',event:'reaction',payload:{from:S.key,emoji}}).catch(()=>{});
+  }
+  S.panel='';draw();break;
+ }
  case 'join':await join();break;
  case 'cancel':case 'leave':await leave();break;
- case 'chat':case 'members':case 'settings':{
+ case 'chat':case 'members':case 'settings':case 'react':{
   S.panel=S.panel===action.dataset.gcAction?'':action.dataset.gcAction;
   draw();if(S.panel==='chat')void loadChat();break;
  }
@@ -464,12 +491,7 @@ function init(){
  document.addEventListener('keydown',e=>{
   if(e.key==='Escape'&&S.stage==='preview'){e.preventDefault();void leave();}
  },true);
- window.addEventListener('pagehide',()=>{
-  if(S.stage!=='off'){
-   for(const tr of [S.audio,S.camera,S.display])tr?.stop();
-   S.channel?.untrack?.().catch(()=>{});
-  }
- });
+ window.addEventListener('pagehide',()=>{if(S.stage!=='off')void leave();});
  const previousLogout=dmOnLogout;
  dmOnLogout=function(...args){void leave();return previousLogout.apply(this,args)};
  window.uentzoulMessenger.onLogout=dmOnLogout;
