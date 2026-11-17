@@ -195,7 +195,9 @@ async function refresh(force=false){
   const next=new Map((r.data||[]).map(x=>[placementKey(x.subject,x.resource_key,x.semester),x]));
   const changed=JSON.stringify([...placements])!==JSON.stringify([...next]);
   placements=next;lastFetch=Date.now();
-  if(changed&&!editing)repaint();
+  // Recebe a organização nova sem desmontar o material que alguém está lendo.
+  // Uma navegação ou edição explícita aplica os dados no próximo render.
+  if(changed&&editing)console.info('Organização atualizada em segundo plano; edição local preservada.');
  }catch(e){console.warn('Não foi possível atualizar a organização dos materiais:',e);}
  finally{fetching=false;}
 }
