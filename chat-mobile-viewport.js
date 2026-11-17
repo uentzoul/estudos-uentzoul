@@ -27,3 +27,18 @@ document.addEventListener('focusin',schedule,true);
 document.addEventListener('focusout',schedule,true);
 schedule();
 })();
+/* Carregamento modular das calls: não altera o HTML histórico nem os demais chats. */
+(()=>{
+ if(window.__uentzoulGroupCallLoader)return;
+ window.__uentzoulGroupCallLoader=true;
+ const stylesheet=document.createElement('link');
+ stylesheet.rel='stylesheet';
+ stylesheet.href='group-call.css?v=20261117-call-v1';
+ stylesheet.id='uentzoul-group-call-css';
+ document.head.appendChild(stylesheet);
+ const script=document.createElement('script');
+ script.src='group-call.js?v=20261117-call-v1';
+ script.id='uentzoul-group-call-js';
+ script.defer=true;
+ document.body.appendChild(script);
+})();
