@@ -151,7 +151,7 @@ function draw(){
    btn('leave','Sair da call','hangup'):
    btn('mic',S.mic?'Desativar microfone':'Ativar microfone',S.mic?'mic':'mic-off',S.mic,S.micBusy)+
    btn('cam',S.cam?'Desligar câmera':'Ligar câmera',S.cam?'cam':'cam-off',S.cam,S.camBusy)+
-   (live?btn('screen',S.screen?'Parar apresentação':'Compartilhar tela',S.screen?'screen-stop':'screen',S.screen,!navigator.mediaDevices?.getDisplayMedia):'')+
+   (live?btn('screen',S.screen?'Parar apresentação':'Compartilhar tela',S.screen?'screen-stop':'screen',S.screen,S.screenBusy||!navigator.mediaDevices?.getDisplayMedia):'')+
    (live?btn('react','Reagir','react',S.panel==='react'):'')+
    (live?btn('members','Participantes','members',S.panel==='members'):'')+
    (live?btn('settings','Áudio e vídeo','chevron-up',S.panel==='settings'):'')+
@@ -346,8 +346,12 @@ function tiles(){
 }
 function meta(){return {userId:onlineUser?.id||'',name:myName(),mic:S.mic&&!!S.audio,cam:S.cam&&!!S.camera,screen:S.screen&&!!S.display,hand:S.hand,joinedAt:S.callStarted};}
 async function publish(){
- if(S.channel&&S.stage==='live')try{await S.channel.track(meta());}catch(e){console.warn('Não foi possível atualizar presença da call',e);}
- S.presence.set(S.key,meta());draw();
+ if(S.stage!=='live'||!S.key)return;
+ const generation=S.generation,channel=S.channel;
+ if(channel)try{await channel.track(meta())}catch(e){console.warn('Não foi possível atualizar presença da call',e)}
+ if(generation!==S.generation||S.stage!=='live'||S.channel!==channel)return;
+ S.presence.set(S.key,meta());
+ try{draw()}catch(e){console.warn('Erro visual recuperável na call',e)}
 }
 /* Volume e mudo são locais por usuário: não modificam o áudio transmitido.
    Elemento de áudio isolado evita que a câmera ao ligar/desligar corte a voz. */
@@ -456,21 +460,24 @@ async function captureAudio(deviceId='',generation=S.generation){
  const settings={echoCancellation:true,noiseSuppression:true,autoGainControl:true,...(deviceId?{deviceId:{exact:deviceId}}:{})};
  const stream=await navigator.mediaDevices.getUserMedia({audio:settings,video:false});
  const next=stream.getAudioTracks()[0];
- if(!next)throw Error('Microfone indisponível.');
- if(generation!==S.generation||S.stage==='off'){next.stop();throw Error('Chamada encerrada');}
+ if(!next){stream.getTracks().forEach(t=>t.stop());throw Error('Microfone indisponível.');}
+ if(generation!==S.generation||S.stage==='off'){stream.getTracks().forEach(t=>t.stop());throw Error('Chamada encerrada');}
  const old=S.audio;S.audio=next;next.enabled=S.mic;
  if(S.stream){for(const t of S.stream.getAudioTracks())S.stream.removeTrack(t);S.stream.addTrack(next);}
- old?.stop();
- await Promise.all([...S.peers.values()].map(p=>p.audioSender.replaceTrack(next).catch(()=>{})));
+ try{
+  await Promise.all([...S.peers.values()].map(p=>p.audioSender.replaceTrack(next).catch(e=>console.warn('Falha ao trocar microfone',e))));
+ }finally{if(old&&old!==next)old.stop();}
 }
 async function captureCamera(deviceId='',generation=S.generation){
  const settings={width:{ideal:640,max:960},height:{ideal:360,max:540},frameRate:{ideal:15,max:20},...(deviceId?{deviceId:{exact:deviceId}}:{facingMode:'user'})};
  const stream=await navigator.mediaDevices.getUserMedia({video:settings,audio:false});
  const next=stream.getVideoTracks()[0];
- if(!next)throw Error('Câmera indisponível.');
- if(generation!==S.generation||S.stage==='off'){next.stop();throw Error('Chamada encerrada');}
- const old=S.camera;S.camera=next;old?.stop();
- await replaceVideo();
+ if(!next){stream.getTracks().forEach(t=>t.stop());throw Error('Câmera indisponível.');}
+ if(generation!==S.generation||S.stage==='off'){stream.getTracks().forEach(t=>t.stop());throw Error('Chamada encerrada');}
+ const old=S.camera;S.camera=next;
+ try{await replaceVideo();}
+ catch(e){S.camera=old;next.stop();await replaceVideo().catch(()=>{});throw e;}
+ if(old&&old!==next)old.stop();
 }
 async function tuneVideo(){
  const peers=[...S.peers.values()].filter(p=>p.pc.connectionState==='connected');
@@ -510,24 +517,39 @@ function replaceVideo(){
  return pending;
 }
 async function toggleMic(){
- S.mic=!S.mic;
- if(S.stage==='live'){
+ if(S.micBusy||!['preview','live'].includes(S.stage))return;
+ if(S.stage!=='live'){S.mic=!S.mic;draw();return;}
+ S.micBusy=true;draw();
+ const generation=S.generation;
+ try{
+  S.mic=!S.mic;
   if(S.mic&&!S.audio){
-   try{await captureAudio(S.micDevice);}catch(e){S.mic=false;status('Permissão de microfone negada ou dispositivo indisponível.');}
+   try{await captureAudio(S.micDevice,generation)}
+   catch(e){if(generation===S.generation){S.mic=false;status('Não foi possível ativar o microfone. Confira as permissões.');}}
   }else if(S.audio)S.audio.enabled=S.mic;
-  await publish();
- }else draw();
+  if(generation===S.generation&&S.stage==='live')await publish();
+ }finally{S.micBusy=false;if(S.stage==='live')draw();}
 }
 async function toggleCam(){
- S.cam=!S.cam;
- if(S.stage==='live'){
-  if(S.cam&&!S.camera){
-   try{await captureCamera(S.camDevice);}catch(e){S.cam=false;status('Não foi possível acessar a câmera. Verifique as permissões.');}
-  }else if(!S.cam&&S.camera){
-   const old=S.camera;S.camera=null;old.stop();await replaceVideo();
+ if(S.camBusy||!['preview','live'].includes(S.stage))return;
+ if(S.stage!=='live'){S.cam=!S.cam;draw();return;}
+ S.camBusy=true;draw();
+ const generation=S.generation;
+ try{
+  if(S.cam){
+   S.cam=false;
+   const old=S.camera;S.camera=null;
+   try{await replaceVideo();}finally{old?.stop();}
+  }else{
+   S.cam=true;
+   try{await captureCamera(S.camDevice,generation);}
+   catch(e){if(generation===S.generation){S.cam=false;status('Não foi possível ativar a câmera. Confira a permissão ou selecione outra câmera.');}}
   }
-  await publish();
- }else draw();
+  if(generation===S.generation&&S.stage==='live')draw();
+ }catch(e){
+  console.warn('Falha ao alternar a câmera sem encerrar a call',e);
+  if(generation===S.generation){S.cam=!!S.camera;status('Falha temporária ao trocar a câmera. A call continua ativa.');}
+ }finally{S.camBusy=false;if(generation===S.generation&&S.stage==='live')draw();}
 }
 async function toggleScreen(){
  if(S.screenBusy)return;
@@ -910,9 +932,28 @@ async function deviceList(){
  }catch(e){console.warn('Falha ao listar dispositivos',e);}
 }
 async function changeDevice(type,value){
- if(type==='audio'){S.micDevice=value;if(S.mic)try{await captureAudio(value);}catch(e){status('Não foi possível mudar o microfone.');}}
- if(type==='video'){S.camDevice=value;if(S.cam)try{await captureCamera(value);}catch(e){status('Não foi possível mudar a câmera.');}}
- await publish();
+ if(S.stage!=='live')return;
+ const generation=S.generation;
+ if(type==='audio'){
+  if(S.micBusy)return;
+  const before=S.micDevice;S.micDevice=value;
+  if(S.mic){
+   S.micBusy=true;draw();
+   try{await captureAudio(value,generation);}
+   catch(e){S.micDevice=before;if(generation===S.generation)status('Não foi possível selecionar esse microfone.');}
+   finally{S.micBusy=false;if(generation===S.generation)draw();}
+  }
+ }else if(type==='video'){
+  if(S.camBusy)return;
+  const before=S.camDevice;S.camDevice=value;
+  if(S.cam){
+   S.camBusy=true;draw();
+   try{await captureCamera(value,generation);}
+   catch(e){S.camDevice=before;if(generation===S.generation)status('Não foi possível selecionar essa câmera.');}
+   finally{S.camBusy=false;if(generation===S.generation)draw();}
+  }
+ }
+ if(generation===S.generation&&S.stage==='live')await publish();
 }
 async function leave(){
  ++S.generation;
