@@ -18,6 +18,21 @@ function allFiles(dir){
  });
 }
 
+test('Chat de Manutenção mantém chamada acessível no HTML publicado',()=>{
+ const maintenance=read('chat-admin-maintenance.js').trim();
+ const calls=read('group-call.js');
+ const start='/* Fonte: chat-admin-maintenance.js */\\n';
+ const end='\\n/* Fonte: chat-stickers.js */';
+ const begin=html.indexOf(start),finish=html.indexOf(end,begin+start.length);
+ assert.ok(begin>=0&&finish>begin,'o HTML embute o módulo de manutenção no escopo autenticado');
+ assert.equal(html.slice(begin+start.length,finish).trim(),maintenance,'a cópia publicada não pode ficar desatualizada');
+ assert.match(maintenance,/data-pm-maintenance-call/,'o cabeçalho exibe o botão');
+ assert.match(maintenance,/uentzoulGroupCalls\\.openMaintenance/,'o clique abre a chamada');
+ assert.match(calls,/openMaintenance:previewMaintenance/,'o controlador expõe a chamada de manutenção');
+ assert.match(calls,/if\\(isMaintenance\\(room\\)\\)\\{/,'a chamada tem uma sessão de teste própria');
+ assert.match(html,/<script[^>]+src="group-call\\.js\\?v=[^"]+"/,'o script de chamada está incluído na página');
+});
+
 test('Documento principal declara português brasileiro e viewport responsivo',()=>{
  assert.match(html,/<html[^>]*lang="pt-BR"/i);
  assert.match(html,/<meta[^>]+name="viewport"/i);
