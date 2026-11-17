@@ -31,12 +31,42 @@ const isPrivate=room=>room?.kind==='private';
 const callTopic=room=>isPrivate(room)?'uentzoul-dm-call:'+([room.selfId,room.peerId].sort().join(':')):'uentzoul-call:'+room.id;
 const person=id=>bridge.profile?.(id)|| (typeof dmPrettyPerson==='function'?dmPrettyPerson(id):{display_name:'Participante'});
 const myName=()=>person(onlineUser?.id).display_name||'Participante';
+/* Ícones vetoriais próprios da barra: independentes de emojis e fontes do sistema. */
 function icon(name){
- const icons={mic:'🎙',cam:'▣',screen:'▤',hangup:'☎',hand:'✋',chat:'☰',members:'♙',settings:'⚙',full:'⛶'};
- return icons[name]||'●';
+ const paths={
+  mic:'<rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 10v2a7 7 0 0 0 14 0v-2M12 19v3M8 22h8"/>',
+  'mic-off':'<path d="m2 2 20 20M9 9v3a3 3 0 0 0 5.12 2.12M15 9V5a3 3 0 0 0-5.52-1.64M5 10v2a7 7 0 0 0 12 4.9M19 10v2c0 .8-.14 1.58-.39 2.3M12 19v3M8 22h8"/>',
+  cam:'<rect x="2" y="5" width="15" height="14" rx="2"/><path d="m17 10 5-3v10l-5-3"/>',
+  'cam-off':'<path d="m2 2 20 20M10.5 5H15a2 2 0 0 1 2 2v3l5-3v10l-2.5-1.5M17 17a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V7a2 2 0 0 1 .7-1.5"/>',
+  screen:'<rect x="3" y="3" width="18" height="14" rx="2"/><path d="M8 21h8M12 17v4M12 13V7m-4 4 4-4 4 4"/>',
+  'screen-stop':'<rect x="3" y="3" width="18" height="14" rx="2"/><path d="M8 21h8M12 17v4"/><rect x="9" y="7" width="6" height="6" rx="1"/>',
+  hand:'<path d="M8 13V6a2 2 0 0 1 4 0v6-8a2 2 0 0 1 4 0v8-6a2 2 0 0 1 4 0v9a7 7 0 0 1-7 7h-2a7 7 0 0 1-4.8-1.9l-4-3.7a2 2 0 0 1 2.7-2.9L8 16"/>',
+  react:'<path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1.1-1.1a5.5 5.5 0 0 0-7.8 7.8L12 21l8.8-8.6a5.5 5.5 0 0 0 0-7.8Z"/>',
+  chat:'<path d="M21 11.5a8.4 8.4 0 0 1-8.5 8.3 9 9 0 0 1-4-.9L3 21l1.6-5A8.4 8.4 0 0 1 3 11.5a9 9 0 0 1 18 0Z"/><path d="M8 11.5h.01M12 11.5h.01M16 11.5h.01" stroke-width="3.1"/>',
+  members:'<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8ZM22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/>',
+  settings:'<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.5 1.5 0 0 0 .3 1.7l-2.1 2.1a1.5 1.5 0 0 0-1.7-.3 1.5 1.5 0 0 0-.9 1.4V21h-6v-1.1a1.5 1.5 0 0 0-.9-1.4 1.5 1.5 0 0 0-1.7.3l-2.1-2.1a1.5 1.5 0 0 0 .3-1.7 1.5 1.5 0 0 0-1.4-.9H3v-4h1.1a1.5 1.5 0 0 0 1.4-.9 1.5 1.5 0 0 0-.3-1.7l2.1-2.1a1.5 1.5 0 0 0 1.7.3 1.5 1.5 0 0 0 .9-1.4V3h4v1.1a1.5 1.5 0 0 0 .9 1.4 1.5 1.5 0 0 0 1.7-.3l2.1 2.1a1.5 1.5 0 0 0-.3 1.7 1.5 1.5 0 0 0 1.4.9H21v4h-1.1a1.5 1.5 0 0 0-1.4.9Z"/>',
+  audio:'<path d="M11 5 6 9H3v6h3l5 4V5ZM15.5 8.5a5 5 0 0 1 0 7M18.5 5.5a9 9 0 0 1 0 13"/>',
+  full:'<path d="M8 3H5a2 2 0 0 0-2 2v3M16 3h3a2 2 0 0 1 2 2v3M3 16v3a2 2 0 0 0 2 2h3M21 16v3a2 2 0 0 1-2 2h-3"/>',
+  'full-exit':'<path d="M3 9h6V3M21 9h-6V3M3 15h6v6M21 15h-6v6"/>',
+  restore:'<rect x="3" y="4" width="18" height="16" rx="3"/><path d="M8 15 16 7M10 7h6v6"/>',
+  hangup:'<path d="M3.5 15.4a2.1 2.1 0 0 1-1.4-2.7c1.4-4.3 5.1-6.5 9.9-6.5s8.5 2.2 9.9 6.5a2.1 2.1 0 0 1-1.4 2.7l-2.8.8a2 2 0 0 1-2.4-1.5l-.5-2.2a12 12 0 0 0-5.6 0l-.5 2.2a2 2 0 0 1-2.4 1.5l-2.8-.8Z"/>',
+  cancel:'<path d="M18 6 6 18M6 6l12 12"/>'
+ };
+ return '<svg class="gc-icon" viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">'+(paths[name]||paths.settings)+'</svg>';
 }
-function btn(action,label,short,active=false,disabled=false){
- return '<button type="button" class="gc-tool '+(active?'is-on ':'')+(action==='leave'?'is-leave':'')+'" data-gc-action="'+action+'" '+(disabled?'disabled':'')+' title="'+escCall(label)+'" aria-label="'+escCall(label)+'" aria-pressed="'+String(active)+'"><span aria-hidden="true">'+(short||'●')+'</span><small>'+escCall(label)+'</small></button>';
+function btn(action,label,glyph,active=false,disabled=false){
+ const toggle=['mic','cam','screen','hand','react','chat','members','settings'].includes(action);
+ return '<button type="button" class="gc-tool'+(active?' is-on':'')+(action==='leave'?' is-leave':'')+(action==='hand'?' is-hand':'')+'" data-gc-action="'+action+'" '+(disabled?'disabled ':'')+'title="'+escCall(label)+'" aria-label="'+escCall(label)+'"'+(toggle?' aria-pressed="'+String(active)+'"':'')+'><span class="gc-icon-wrap" aria-hidden="true">'+icon(glyph||action)+'</span><small>'+escCall(label)+'</small></button>';
+}
+function syncFullscreenControl(){
+ if(!S.overlay)return;
+ const control=S.overlay.querySelector('[data-gc-action="fullscreen"]');
+ if(!control)return;
+ const full=!!(document.fullscreenElement&&S.overlay.contains(document.fullscreenElement));
+ const label=full?'Sair da tela cheia':'Tela cheia';
+ control.title=label;control.setAttribute('aria-label',label);
+ const caption=control.querySelector('small');if(caption)caption.textContent=label;
+ const symbol=control.querySelector('.gc-icon-wrap');if(symbol)symbol.innerHTML=icon(full?'full-exit':'full');
 }
 function status(message,seconds=5){
  S.notice=message;const node=S.overlay?.querySelector('[data-gc-status]');
@@ -112,23 +142,23 @@ function draw(){
  const controls=S.overlay.querySelector('[data-gc-controls]');
  if(controls){
   controls.innerHTML=mini?
-   btn('mic',S.mic?'Desativar microfone':'Ativar microfone',S.mic?'🎙':'🔇',S.mic)+
-   btn('cam',S.cam?'Desligar câmera':'Ligar câmera',S.cam?'📷':'📷̸',S.cam)+
-   btn('restore','Abrir chamada completa','⛶')+
-   btn('leave','Sair da call','☎'):
-   btn('mic',S.mic?'Desativar microfone':'Ativar microfone',S.mic?'🎙':'🎙̸',S.mic)+
-   btn('cam',S.cam?'Desligar câmera':'Ligar câmera',icon('cam'),S.cam)+
-   (live?btn('screen',S.screen?'Parar apresentação':'Compartilhar tela',icon('screen'),S.screen,!navigator.mediaDevices?.getDisplayMedia):'')+
-   (live?btn('hand',S.hand?'Abaixar mão':'Levantar mão',icon('hand'),S.hand):'')+
-   (live?btn('react','Reagir','❤',S.panel==='react'):'')+
-   (live?btn('chat','Mensagens',icon('chat'),S.panel==='chat'):'')+
-   (live?btn('members','Participantes',icon('members'),S.panel==='members'):'')+
-   (live?btn('settings','Dispositivos',icon('settings'),S.panel==='settings'):'')+
-   (live?btn('audio-play','Ativar som','🔊'):'')+
-   (live?btn('fullscreen','Tela cheia',icon('full')):'')+
+   btn('mic',S.mic?'Desativar microfone':'Ativar microfone',S.mic?'mic':'mic-off',S.mic)+
+   btn('cam',S.cam?'Desligar câmera':'Ligar câmera',S.cam?'cam':'cam-off',S.cam)+
+   btn('restore','Abrir chamada completa','restore')+
+   btn('leave','Sair da call','hangup'):
+   btn('mic',S.mic?'Desativar microfone':'Ativar microfone',S.mic?'mic':'mic-off',S.mic)+
+   btn('cam',S.cam?'Desligar câmera':'Ligar câmera',S.cam?'cam':'cam-off',S.cam)+
+   (live?btn('screen',S.screen?'Parar apresentação':'Compartilhar tela',S.screen?'screen-stop':'screen',S.screen,!navigator.mediaDevices?.getDisplayMedia):'')+
+   (live?btn('hand',S.hand?'Abaixar mão':'Levantar mão','hand',S.hand):'')+
+   (live?btn('react','Reagir','react',S.panel==='react'):'')+
+   (live?btn('chat','Mensagens','chat',S.panel==='chat'):'')+
+   (live?btn('members','Participantes','members',S.panel==='members'):'')+
+   (live?btn('settings','Dispositivos','settings',S.panel==='settings'):'')+
+   (live?btn('audio-play','Ativar som','audio'):'')+
+   (live?btn('fullscreen',document.fullscreenElement?'Sair da tela cheia':'Tela cheia',document.fullscreenElement?'full-exit':'full'):'')+
    (pre?'<button type="button" class="gc-join" data-gc-action="join">Participar da call</button>':'')+
    (joining?'<button type="button" class="gc-join" disabled>Entrando…</button>':'')+
-   btn(pre?'cancel':'leave',pre?'Cancelar':'Sair da call',pre?'×':'☎');
+   btn(pre?'cancel':'leave',pre?'Cancelar':'Sair da call',pre?'cancel':'hangup');
  }
  if(pre||joining){
   const stage=S.overlay.querySelector('[data-gc-stage]');
@@ -796,6 +826,7 @@ function init(){
   if(e.key==='Escape'&&S.stage==='preview'){e.preventDefault();void leave();}
  },true);
  window.addEventListener('pagehide',()=>{if(S.stage!=='off')void leave();});
+ document.addEventListener('fullscreenchange',syncFullscreenControl);
  window.addEventListener('resize',fitViewport,{passive:true});
  window.visualViewport?.addEventListener('resize',fitViewport,{passive:true});
  const previousLogout=window.uentzoulMessenger.onLogout;
