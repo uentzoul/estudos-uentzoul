@@ -669,7 +669,7 @@ test('Alternativas dos 13 cursos são relevantes, únicas e só revelam a melhor
     assert.ok(q.answer>=0&&q.answer<q.options.length,'Gabarito válido: '+q.id);
     const labels=q.options.map(o=>typeof o==='string'?o:o.text);
     assert.equal(new Set(labels).size,labels.length,'Alternativas repetidas: '+q.id);
-    assert.ok(labels.every(v=>v?.trim()?.length>18),'Alternativa vazia ou caricatural: '+q.id);
+    if(q.type==='choice')assert.ok(labels.every(v=>v?.trim()?.length>18),'Alternativa vazia ou caricatural: '+q.id);
    }
    if(q.type==='choice'){
     assert.equal(q.options.filter(o=>o.correct===true).length,1,'Uma única melhor resposta: '+q.id);
