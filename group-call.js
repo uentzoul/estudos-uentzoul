@@ -1,4 +1,4 @@
-/* Estudos Uentzoul — chamadas de grupo WebRTC. Somente grupos cadastrados. */
+/* Estudos Uentzoul — chamadas WebRTC em grupos e conversas privadas, nunca no chat global. */
 (()=>{
 'use strict';
 if(window.uentzoulGroupCalls)return;
@@ -20,7 +20,14 @@ const S={room:null,stage:'off',overlay:null,channel:null,key:'',peers:new Map(),
  panel:'',pinned:null,chat:[],chatBusy:false,chatTimer:null,guard:null,pendingSignals:[],devicePanel:false,photoUrl:'',
  micDevice:'',camDevice:'',notice:'',noticeTimer:null,callStarted:0,generation:0,reconnectTimer:null};
 const eligible=()=>!!bridge.client()&&!!bridge.user()?.id&&!bridge.user()?.is_anonymous;
-const group=id=>typeof dm!=='undefined'&&dm.rooms?.find(r=>r.id===id&&r.kind==='group');
+const group=id=>UUID.test(id||'')&&dm.rooms?.find(r=>r.id===id&&r.kind==='group')||null;
+const direct=id=>{
+ if(!eligible()||dm.tab!=='private'||dm.peerId!==id||!UUID.test(id||'')||id===onlineUser.id)return null;
+ const peer=person(id);
+ return {id,kind:'private',peerId:id,selfId:onlineUser.id,name:peer.display_name||'Conversa privada',avatar_url:peer.avatar_url||''};
+};
+const isPrivate=room=>room?.kind==='private';
+const callTopic=room=>isPrivate(room)?'uentzoul-dm-call:'+([room.selfId,room.peerId].sort().join(':')):'uentzoul-call:'+room.id;
 const person=id=>typeof dmPrettyPerson==='function'?dmPrettyPerson(id):{display_name:'Participante'};
 const myName=()=>person(onlineUser?.id).display_name||'Participante';
 function icon(name){
@@ -46,7 +53,13 @@ function roomBadge(room){
 }
 async function roomPhoto(){
  const roomId=S.room?.id;
- const path=S.room?.avatar_path;if(!path||!S.overlay)return;
+ const path=S.room?.avatar_path;
+ if(isPrivate(S.room)){
+  const avatar=S.room.avatar_url||'';
+  if(/^https:\/\/[^\s"'<>]+$/i.test(avatar)){S.photoUrl=avatar;applyPhoto();}
+  return;
+ }
+ if(!path||!S.overlay)return;
  let url='';
  if(/^data:image\/(?:jpeg|png|webp);base64,[A-Za-z0-9+/=]+$/i.test(path))url=path;
  else if(/^[A-Za-z0-9._/-]+$/.test(path)){
@@ -59,7 +72,7 @@ function applyPhoto(){
  if(!S.photoUrl||!S.overlay)return;
  S.overlay.querySelectorAll('.gc-room-badge').forEach(node=>{
   if(node.querySelector('img'))return;
-  const img=document.createElement('img');img.src=S.photoUrl;img.alt='Foto do grupo';node.replaceChildren(img);
+  const img=document.createElement('img');img.src=S.photoUrl;img.alt=isPrivate(S.room)?'Foto do contato':'Foto do grupo';node.replaceChildren(img);
  });
 }
 function fitViewport(){
@@ -71,8 +84,8 @@ function shell(){
  const hue=getRoomColor(S.room);
  S.overlay=document.createElement('div');S.overlay.className='gc-backdrop';
  S.overlay.style.setProperty('--gc-hue',hue);
- S.overlay.innerHTML='<section class="gc-window" role="dialog" aria-modal="true" aria-label="Chamada do grupo">'+
- '<header class="gc-head">'+roomBadge(S.room)+'<div class="gc-head-copy"><strong>'+escCall(S.room.name)+'</strong><small data-gc-subtitle>Chamada do grupo</small></div>'+
+ S.overlay.innerHTML='<section class="gc-window" role="dialog" aria-modal="true" aria-label="'+(isPrivate(S.room)?'Chamada privada':'Chamada do grupo')+'">'+
+ '<header class="gc-head">'+roomBadge(S.room)+'<div class="gc-head-copy"><strong>'+escCall(S.room.name)+'</strong><small data-gc-subtitle>'+(isPrivate(S.room)?'Chamada privada':'Chamada do grupo')+'</small></div>'+
  '<span class="gc-connection" data-gc-connection>Preparando</span></header>'+
  '<div class="gc-body"><div class="gc-main"><div class="gc-stage" data-gc-stage></div>'+
  '<div class="gc-reactions" aria-live="polite" data-gc-reactions></div>'+
@@ -109,7 +122,7 @@ function draw(){
   stage.innerHTML='<div class="gc-preview">'+
    '<div class="gc-preview-art">'+roomBadge(S.room)+'</div>'+
    '<h2>'+escCall(S.room.name)+'</h2>'+
-   '<p>'+(joining?'Estabelecendo uma conexão segura com o grupo…':'Ao entrar, os membros do grupo poderão te ouvir e ver quando os dispositivos estiverem ligados.')+'</p>'+
+   '<p>'+(joining?'Estabelecendo a conexão da chamada…':isPrivate(S.room)?'Você e este contato podem entrar nesta chamada privada. O outro participante só ouvirá ou verá você quando os dispositivos estiverem ligados.':'Ao entrar, os membros do grupo poderão te ouvir e ver quando os dispositivos estiverem ligados.')+'</p>'+
    '<small>O microfone '+(S.mic?'será ligado':'ficará desligado')+' e a câmera '+(S.cam?'será ligada':'ficará desligada')+'.</small></div>';
  }else if(live){tiles();}
  applyPhoto();panelDraw();
@@ -321,7 +334,7 @@ function synchronize(){
  const snapshot=S.channel.presenceState();
  Object.entries(snapshot).forEach(([key,items])=>{
   const member=Array.isArray(items)?items[0]:null;
-  if(member&&UUID.test(member.userId||'')&&typeof key==='string'&&key.length<120){
+  if(member&&UUID.test(member.userId||'')&&typeof key==='string'&&key.length<120&&(!isPrivate(S.room)||[S.room.selfId,S.room.peerId].includes(member.userId))){
    next.set(key,{userId:member.userId,name:String(member.name||'Estudante').slice(0,80),
     mic:!!member.mic,cam:!!member.cam,screen:!!member.screen,hand:!!member.hand,joinedAt:member.joinedAt||0});
   }
@@ -338,6 +351,10 @@ async function checkMembership(){
  if(!S.room||!eligible()||!S.channel)return;
  try{
   const room=S.room;
+  if(isPrivate(room)){
+   if(room.selfId!==onlineUser.id||!UUID.test(room.peerId)||room.peerId===onlineUser.id)await leave();
+   return;
+  }
   const {data,error}=await client.from('uentzoul_chat_members').select('user_id').eq('room_id',room.id).eq('user_id',onlineUser.id).maybeSingle();
   if(error)throw error;
   if(S.room?.id!==room.id)return;
@@ -349,21 +366,31 @@ async function join(){
  S.stage='joining';const generation=++S.generation;draw();
  try{
   const room=S.room;
-  const {data,error}=await client.from('uentzoul_chat_members').select('user_id').eq('room_id',room.id).eq('user_id',onlineUser.id).maybeSingle();
-  if(error)throw error;
+  if(isPrivate(room)){
+   if(room.selfId!==onlineUser.id||!UUID.test(room.peerId)||room.peerId===onlineUser.id)throw Error('Esta chamada privada não corresponde à sua conta.');
+   if(!dm.people?.some(p=>p.user_id===room.peerId))throw Error('Contato indisponível. Abra novamente a conversa.');
+  }else{
+   const {data,error}=await client.from('uentzoul_chat_members').select('user_id').eq('room_id',room.id).eq('user_id',onlineUser.id).maybeSingle();
+   if(error)throw error;
+   if(!data&&room.owner_id!==onlineUser.id)throw Error('Somente membros deste grupo podem entrar na call.');
+  }
   if(generation!==S.generation||S.stage!=='joining')return;
-  if(!data&&room.owner_id!==onlineUser.id)throw Error('Somente membros deste grupo podem entrar na call.');
   S.key=onlineUser.id+':'+crypto.randomUUID();S.callStarted=Date.now();createStream();
   if(S.mic)try{await captureAudio(S.micDevice,generation);}catch(e){if(generation===S.generation){S.mic=false;status('Microfone indisponível. Você entrará apenas para ouvir.',8);}}
   if(generation!==S.generation||S.stage!=='joining')return;
   if(S.cam)try{await captureCamera(S.camDevice,generation);}catch(e){if(generation===S.generation){S.cam=false;status('Câmera indisponível. Você entrará sem vídeo.',8);}}
   if(generation!==S.generation||S.stage!=='joining')return;
-  const channel=client.channel('uentzoul-call:'+room.id,{config:{private:true,presence:{key:S.key}}});
+  const channel=client.channel(callTopic(room),{config:{private:true,presence:{key:S.key}}});
   S.channel=channel;
   channel.on('broadcast',{event:'webrtc'},({payload})=>{void receiveSignal(payload);});
   channel.on('broadcast',{event:'reaction'},({payload})=>{if(S.stage==='live'&&S.presence.has(payload?.from)&&['👏','❤️','😂','🎉','👍'].includes(payload?.emoji))reaction(payload.emoji);});
+  channel.on('broadcast',{event:'chat-updated'},()=>{if(S.stage==='live'&&S.panel==='chat')void loadChat();});
   channel.on('presence',{event:'sync'},()=>synchronize());
-  channel.on('postgres_changes',{event:'INSERT',schema:'public',table:'uentzoul_room_messages',filter:'room_id=eq.'+room.id},()=>{if(S.panel==='chat')void loadChat();});
+  if(isPrivate(room)){
+   channel.on('postgres_changes',{event:'INSERT',schema:'public',table:'uentzoul_messages',filter:'recipient_id=eq.'+onlineUser.id},()=>{if(S.panel==='chat')void loadChat();});
+  }else{
+   channel.on('postgres_changes',{event:'INSERT',schema:'public',table:'uentzoul_room_messages',filter:'room_id=eq.'+room.id},()=>{if(S.panel==='chat')void loadChat();});
+  }
   channel.subscribe(async statusValue=>{
    if(S.channel!==channel)return;
    if(statusValue==='SUBSCRIBED'){
@@ -372,7 +399,7 @@ async function join(){
      clearTimeout(S.reconnectTimer);S.reconnectTimer=null;
      const current=channel.presenceState();
      const count=Object.values(current).reduce((n,items)=>n+(Array.isArray(items)?items.length:0),0);
-     if(!returning&&count>=6){await leave();if(typeof toast==='function')toast('Esta versão aceita até 6 participantes simultâneos para preservar a qualidade da call.');return;}
+     if(!returning&&count>=(isPrivate(room)?2:6)){await leave();alert(isPrivate(room)?'Esta chamada privada já tem dois dispositivos conectados.':'Esta versão aceita até 6 participantes simultâneos para preservar a qualidade da call.');return;}
      if(returning){
       S.peers.forEach(p=>p.pc.close());S.peers.clear();S.pendingSignals=[];S.presence.clear();
      }
