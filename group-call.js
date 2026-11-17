@@ -29,7 +29,7 @@ const direct=id=>{
 };
 const isPrivate=room=>room?.kind==='private';
 const callTopic=room=>isPrivate(room)?'uentzoul-dm-call:'+([room.selfId,room.peerId].sort().join(':')):'uentzoul-call:'+room.id;
-const person=id=>typeof dmPrettyPerson==='function'?dmPrettyPerson(id):{display_name:'Participante'};
+const person=id=>bridge.profile?.(id)|| (typeof dmPrettyPerson==='function'?dmPrettyPerson(id):{display_name:'Participante'});
 const myName=()=>person(onlineUser?.id).display_name||'Participante';
 function icon(name){
  const icons={mic:'🎙',cam:'▣',screen:'▤',hangup:'☎',hand:'✋',chat:'☰',members:'♙',settings:'⚙',full:'⛶'};
@@ -147,8 +147,10 @@ function profileAvatarUrl(value){
  return '';
 }
 function callAvatarUrl(userId){
- const stored=S.avatarProfiles.has(userId)?S.avatarProfiles.get(userId):person(userId)?.avatar_url;
- return profileAvatarUrl(stored);
+ // Prefere a foto do perfil exibido no próprio site. A consulta separada
+ // ao banco fica como alternativa, não deve ocultar uma foto já conhecida.
+ const siteAvatar=profileAvatarUrl(bridge.profile?.(userId)?.avatar_url||person(userId)?.avatar_url);
+ return siteAvatar||profileAvatarUrl(S.avatarProfiles.get(userId));
 }
 function avatarBubble(userId,name,cls){
  return '<span class="'+cls+'" data-gc-avatar-user="'+escCall(userId||'')+'">'+
@@ -190,7 +192,11 @@ async function refreshCallAvatars(){
   if(error)throw error;
   if(generation!==S.generation||S.room!==room||S.stage!=='live')return;
   const found=new Map((data||[]).map(p=>[p.user_id,profileAvatarUrl(p.avatar_url)]));
-  for(const id of users)S.avatarProfiles.set(id,found.get(id)||'');
+  for(const id of users){
+   const avatar=found.get(id);
+   if(avatar)S.avatarProfiles.set(id,avatar);
+   else S.avatarProfiles.delete(id);
+  }
   tiles();
   if(S.panel==='members')panelDraw();
  }catch(e){console.warn('Não foi possível carregar as fotos dos participantes da call',e);}
