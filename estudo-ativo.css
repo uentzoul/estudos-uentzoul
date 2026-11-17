@@ -87,3 +87,18 @@
 .as-flash-nav button:disabled{opacity:.35;cursor:not-allowed}
 @media(max-width:520px){.as-flash-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.as-flash-tile{min-height:114px;padding:12px}.as-flash-nav{align-items:stretch}.as-flash-nav button{flex:1}}
 @media(prefers-reduced-motion:reduce){.as-flash-tile{transition:none}.as-flash-tile:hover{transform:none}}
+
+
+/* Caso abre pelo cartão; visto é uma ação independente, sem botões aninhados. */
+.as-case-row{display:flex;align-items:stretch;min-width:0;border:1px solid var(--line);border-radius:15px;background:var(--paper);overflow:hidden}
+.as-case-row:hover{border-color:var(--as-accent)}
+.as-case-row.is-done,.as-case-row:has(.as-case-mark input:checked){border-color:#a6d3bc}
+.as-case-row .as-case-tile{flex:1 1 auto;min-width:0;min-height:110px;border:0;border-radius:0;padding-right:8px;background:transparent}
+.as-case-row .as-case-tile:hover{border-color:transparent}
+.as-case-row .as-case-mark{align-self:center;flex:none;margin:10px 14px 10px 0;font-size:10.5px;max-width:150px}
+.as-case-complete-mark{display:flex;justify-content:center;margin:0 0 18px}
+@media(max-width:580px){
+ .as-case-row{flex-wrap:wrap}
+ .as-case-row .as-case-tile{flex-basis:100%;min-height:86px}
+ .as-case-row .as-case-mark{margin:0 12px 12px auto;min-height:40px}
+}
