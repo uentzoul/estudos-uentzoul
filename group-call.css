@@ -90,3 +90,6 @@
 .gc-reaction-picker button{display:grid;place-items:center;min-height:66px;border:1px solid #ffffff25;background:#37394b;color:white;border-radius:12px;font-size:26px;cursor:pointer}
 .gc-reaction-picker button:hover{background:#4e496f}
 @media(max-width:620px){.gc-reaction-picker{grid-template-columns:repeat(5,minmax(0,1fr));gap:5px}.gc-reaction-picker button{min-height:54px;font-size:24px}}
+
+/* Usa a altura realmente visível quando o teclado móvel aparece. */
+@media(max-width:900px){.gc-window{height:var(--gc-visible-height,100dvh);max-height:var(--gc-visible-height,100dvh)}}
