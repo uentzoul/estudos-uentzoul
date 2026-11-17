@@ -176,12 +176,26 @@ function profileAvatarUrl(value){
  if(/^data:image\/(?:jpeg|png|webp);base64,[A-Za-z0-9+/=]+$/i.test(value))return value;
  return '';
 }
-function callAvatarUrl(userId){
- // Prefere a foto do perfil exibido no próprio site. A consulta separada
- // ao banco fica como alternativa, não deve ocultar uma foto já conhecida.
- const siteAvatar=profileAvatarUrl(bridge.profile?.(userId)?.avatar_url||person(userId)?.avatar_url);
- return siteAvatar||profileAvatarUrl(S.avatarProfiles.get(userId));
+// A foto do perfil é gravada no bucket público como <user_id>/avatar.jpg.
+// O URL direto continua disponível mesmo se o perfil ainda não entrou na lista do chat.
+function directAvatarUrl(userId){
+ if(!UUID.test(userId||''))return '';
+ try{
+  const link=client.storage.from('uentzoul-avatars').getPublicUrl(userId+'/avatar.jpg')?.data?.publicUrl;
+  return profileAvatarUrl(link);
+ }catch(_){return '';}
 }
+function callAvatarCandidates(userId){
+ const profile=bridge.profile?.(userId)||person(userId)||{};
+ const candidates=[
+  directAvatarUrl(userId),
+  profileAvatarUrl(profile.avatar_url),
+  profileAvatarUrl(person(userId)?.avatar_url),
+  profileAvatarUrl(S.avatarProfiles.get(userId))
+ ];
+ return [...new Set(candidates.filter(Boolean))];
+}
+function callAvatarUrl(userId){return callAvatarCandidates(userId)[0]||'';}
 function avatarBubble(userId,name,cls){
  return '<span class="'+cls+'" data-gc-avatar-user="'+escCall(userId||'')+'">'+
   '<span class="gc-avatar-initial">'+escCall((name||'?').trim().slice(0,1).toUpperCase()||'?')+'</span>'+
@@ -193,21 +207,47 @@ function syncAvatarBubble(node,userId,name){
  const img=node.querySelector('img.gc-avatar-photo');
  if(!fallback||!img)return;
  fallback.textContent=(name||'?').trim().slice(0,1).toUpperCase()||'?';
- const url=callAvatarUrl(userId);
- if(img.dataset.gcAvatarUrl===url)return;
- img.dataset.gcAvatarUrl=url;
+ node.dataset.gcAvatarUser=userId||'';
+ const urls=callAvatarCandidates(userId);
+ const signature=urls.join('|');
+ const lastFailed=Number(node.dataset.gcAvatarFailedAt)||0;
+ // Repetir tentativas após falha, mas não recriar a imagem a cada render do vídeo.
+ if(node.dataset.gcAvatarSignature===signature&&!(lastFailed&&Date.now()-lastFailed>30000))return;
+ node.dataset.gcAvatarSignature=signature;
+ node.dataset.gcAvatarFailedAt='';
  img.hidden=true;fallback.hidden=false;
- if(!url){img.removeAttribute('src');return;}
- img.onload=()=>{
-  if(img.dataset.gcAvatarUrl!==url)return;
+ node.classList.remove('gc-has-photo');
+ if(!urls.length){
+  img.removeAttribute('src');
+  img.dataset.gcAvatarUrl='';
+  return;
+ }
+ const token=String(Date.now())+Math.random();
+ img.dataset.gcAvatarToken=token;
+ const display=()=>{
+  if(img.dataset.gcAvatarToken!==token)return;
   img.hidden=false;fallback.hidden=true;
+  node.classList.add('gc-has-photo');
+  node.dataset.gcAvatarFailedAt='';
  };
- img.onerror=()=>{
-  if(img.dataset.gcAvatarUrl!==url)return;
-  img.hidden=true;fallback.hidden=false;
+ const loadCandidate=(index)=>{
+  if(img.dataset.gcAvatarToken!==token)return;
+  const url=urls[index];
+  if(!url){
+   node.dataset.gcAvatarFailedAt=String(Date.now());
+   img.hidden=true;fallback.hidden=false;
+   node.classList.remove('gc-has-photo');
+   img.dataset.gcAvatarUrl='';
+   img.removeAttribute('src');
+   return;
+  }
+  img.dataset.gcAvatarUrl=url;
+  img.onload=()=>{if(img.dataset.gcAvatarUrl===url)display()};
+  img.onerror=()=>{if(img.dataset.gcAvatarUrl===url)loadCandidate(index+1)};
+  img.src=url;
+  if(img.complete&&img.naturalWidth>0)display();
  };
- img.src=url;
- if(img.complete&&img.naturalWidth>0){img.hidden=false;fallback.hidden=true;}
+ loadCandidate(0);
 }
 async function refreshCallAvatars(){
  if(S.stage!=='live'||!S.room||!eligible()||S.avatarLoading)return;
