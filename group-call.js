@@ -2,13 +2,24 @@
 (()=>{
 'use strict';
 if(window.uentzoulGroupCalls)return;
+const bridge=window.uentzoulGroupCallBridge;
+if(!bridge){console.warn('Chamadas: ponte do mensageiro não encontrada.');return;}
+/* O mensageiro está num escopo privado; acessar seu estado somente pela ponte. */
+const client={
+ from:(...a)=>bridge.client()?.from(...a),
+ channel:(...a)=>bridge.client()?.channel(...a),
+ removeChannel:(...a)=>bridge.client()?.removeChannel(...a),
+ storage:{from:(...a)=>bridge.client()?.storage.from(...a)}
+};
+const onlineUser={get id(){return bridge.user()?.id},get is_anonymous(){return bridge.user()?.is_anonymous}};
+const dm=bridge.state(),dmPrettyPerson=id=>bridge.person(id),dmShow=()=>bridge.refresh();
 const UUID=/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const escCall=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;','\'':'&#39;'}[c]));
 const S={room:null,stage:'off',overlay:null,channel:null,key:'',peers:new Map(),presence:new Map(),
  mic:true,cam:false,hand:false,screen:false,audio:null,camera:null,display:null,stream:null,
  panel:'',pinned:null,chat:[],chatBusy:false,chatTimer:null,guard:null,pendingSignals:[],devicePanel:false,photoUrl:'',
  micDevice:'',camDevice:'',notice:'',noticeTimer:null,callStarted:0,generation:0,reconnectTimer:null};
-const eligible=()=>typeof client!=='undefined'&&client&&typeof onlineUser!=='undefined'&&onlineUser?.id&&!onlineUser.is_anonymous;
+const eligible=()=>!!bridge.client()&&!!bridge.user()?.id&&!bridge.user()?.is_anonymous;
 const group=id=>typeof dm!=='undefined'&&dm.rooms?.find(r=>r.id===id&&r.kind==='group');
 const person=id=>typeof dmPrettyPerson==='function'?dmPrettyPerson(id):{display_name:'Participante'};
 const myName=()=>person(onlineUser?.id).display_name||'Participante';
@@ -537,18 +548,7 @@ async function actions(event){
  }
 }
 function init(){
- if(typeof dmRender!=='function'||typeof dmShow!=='function'||!window.uentzoulMessenger)return false;
- const original=dmRender;
- dmRender=function(...args){
-  let html=original.apply(this,args);
-  if(typeof html!=='string'||typeof dm==='undefined'||dm.tab!=='groups'||!UUID.test(dm.roomId||''))return html;
-  const room=group(dm.roomId);if(!room||!html.includes('class="dm-chat-actions"'))return html;
-  const current=S.room?.id===room.id&&S.stage!=='off';
-  const label=current?'Voltar à call':'Entrar na call';
-  return html.replace('<div class="dm-chat-actions">','<div class="dm-chat-actions">'+
-   '<button type="button" class="gc-open-btn" data-gc-open="'+escCall(room.id)+'" title="'+label+'">◉ <span>'+label+'</span></button>');
- };
- window.uentzoulMessenger.render=dmRender;
+ if(!bridge||!dm||!window.uentzoulMessenger)return false;
  document.addEventListener('click',e=>{void actions(e)},true);
  document.addEventListener('submit',e=>{
   const f=e.target;if(f instanceof HTMLFormElement&&f.matches('[data-gc-chat-form]')){
@@ -564,9 +564,9 @@ function init(){
  window.addEventListener('pagehide',()=>{if(S.stage!=='off')void leave();});
  window.addEventListener('resize',fitViewport,{passive:true});
  window.visualViewport?.addEventListener('resize',fitViewport,{passive:true});
- const previousLogout=dmOnLogout;
- dmOnLogout=function(...args){void leave();return previousLogout.apply(this,args)};
- window.uentzoulMessenger.onLogout=dmOnLogout;
+ const previousLogout=window.uentzoulMessenger.onLogout;
+ window.uentzoulMessenger.onLogout=function(...args){void leave();return previousLogout?.apply(this,args);};
+ window.addEventListener('uentzoul:auth',()=>{if(!bridge.user()?.id)void leave();});
  window.uentzoulGroupCalls={open:id=>preview(group(id)),leave:()=>leave(),get active(){return S.stage==='live'},get roomId(){return S.room?.id||null}};
  return true;
 }
