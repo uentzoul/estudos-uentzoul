@@ -93,3 +93,14 @@
 
 /* Usa a altura realmente visível quando o teclado móvel aparece. */
 @media(max-width:900px){.gc-window{height:var(--gc-visible-height,100dvh);max-height:var(--gc-visible-height,100dvh)}}
+
+/* Prioriza o botão da call no cabeçalho compacto sem deslocar o chat. */
+.dm-shell .dm-chat-actions .gc-open-btn{flex:0 0 auto;visibility:visible;opacity:1}
+@media(max-width:620px){
+ .dm-shell .gc-open-btn{height:32px;padding:0 7px;gap:4px;font-size:10px}
+ .dm-shell .dm-chat-head-main{min-width:0;flex:1 1 auto}
+}
+@media(max-width:380px){
+ .dm-shell .gc-open-btn span{display:inline;font-size:0}
+ .dm-shell .gc-open-btn span::after{content:'Call';font-size:10px}
+}
