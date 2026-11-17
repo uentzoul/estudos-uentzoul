@@ -642,3 +642,80 @@ test('Revisão do primeiro semestre preserva números dos simulados e o banco de
  assert.deepEqual(db.exams.map(e=>e.id),ids,'Não duplicar IDs nem reiniciar progresso');
  assert.ok(db.exams.every(e=>e.id.startsWith('relembrar-2026-1-')));
 });
+
+
+test('Alternativas dos 13 cursos são relevantes, únicas e só revelam a melhor hipótese após a escolha',()=>{
+ const raw=JSON.parse(html.match(/<script id="dataset" type="application\/json">([\s\S]*?)<\/script>/)[1]);
+ const content=read('psicomoodle-new-content.js');
+ const social=JSON.parse(content.match(/const DATA=(\{[\s\S]*?\});\s*\n/)[1]).social;
+ const runtime={window:{PSICOMOODLE_NEW_CONTENT:{social}}};
+ vm.runInNewContext(read('simulados-finais-2026.js'),runtime);
+ vm.runInNewContext(read('simulados-grupos-filme-2026.js'),runtime);
+ runtime.window.PSICO_FINAL_EXAMS.apply(raw);
+ const current=['tcc','familia','meta','grupos','social','avaliacao'].flatMap(subject=>{
+  const revision=subject==='grupos'?
+   runtime.window.PSICO_FINAL_EXAMS.groupVersion:runtime.window.PSICO_FINAL_EXAMS.version;
+  const exams=raw.exams.filter(e=>e.subject===subject&&e.final2026&&e.revision===revision);
+  assert.equal(exams.length,5,'Cinco simulados de '+subject);
+  return exams;
+ });
+ assert.equal(current.length,30);
+ assert.equal(current.reduce((n,e)=>n+e.questions.length,0),400);
+ for(const e of current){
+  assert.equal(new Set(e.questions.map(q=>q.id)).size,e.questions.length,'IDs únicos: '+e.id);
+  for(const q of e.questions){
+   if(e.subject==='meta')assert.doesNotMatch(JSON.stringify(q),/ang[uú]sti/i,'Sem angústia no recorte P2');
+   if(q.type==='choice'||q.type==='combo'){
+    assert.ok(q.answer>=0&&q.answer<q.options.length,'Gabarito válido: '+q.id);
+    const labels=q.options.map(o=>typeof o==='string'?o:o.text);
+    assert.equal(new Set(labels).size,labels.length,'Alternativas repetidas: '+q.id);
+    assert.ok(labels.every(v=>v?.trim()?.length>18),'Alternativa vazia ou caricatural: '+q.id);
+   }
+   if(q.type==='choice'){
+    assert.equal(q.options.filter(o=>o.correct===true).length,1,'Uma única melhor resposta: '+q.id);
+    assert.equal(q.answer,q.options.findIndex(o=>o.correct===true),'Gabarito sincronizado: '+q.id);
+   }
+   if(q.type==='combo'){
+    assert.equal(q.assertions.filter(a=>a.truth).length,3,'Três assertivas corretas: '+q.id);
+    assert.deepEqual(Array.from(q.correct),Array.from(q.assertions.filter(a=>a.truth).map(a=>a.l)),'Combinação coerente: '+q.id);
+   }
+  }
+ }
+ const active={window:{PSICO_CASES:{}}};
+ for(const name of ['estudos-casos-data.js','casos-act-social.js','casos-finais-2026.js'])
+  vm.runInNewContext(read(name),active);
+ const firstData=JSON.parse(read('primeiro-semestre-dados.js').split('window.PSICO_FIRST_SEM_DATA=')[1].replace(/;\s*$/,''));
+ const first={PSICO_FIRST_SEM_DATA:firstData,PSICO_FIRST_SEM_SOURCES:{}};
+ vm.runInNewContext(read('primeiro-semestre-relembrar.js'),{window:first});
+ const firstDB={topics:{},exams:[]};first.PSICO_FIRST_SEMESTER.apply(firstDB);
+ assert.equal(firstDB.exams.length,35);
+ assert.equal(firstDB.exams.reduce((n,e)=>n+e.questions.length,0),420);
+ for(const e of firstDB.exams)for(const q of e.questions)if(q.type==='choice'){
+  assert.equal(new Set(q.options.map(o=>o.text)).size,q.options.length,'Simulado do 1º semestre sem repetição: '+q.id);
+  assert.ok(q.options[q.answer],'Gabarito do 1º semestre: '+q.id);
+ }
+ Object.assign(active.window.PSICO_CASES,first.PSICO_CASES);
+ const cases=Object.values(active.window.PSICO_CASES).flat();
+ assert.equal(cases.length,46,'Todos os estudos de caso preservados');
+ const positions=[0,0,0];let stages=0;
+ for(const c of cases)for(const [i,stage] of c.stages.entries()){
+  stages++;
+  assert.equal(stage.choices.length,3,'Três alternativas no caso: '+c.id+'/'+i);
+  assert.equal(new Set(stage.choices.map(o=>o.label)).size,3,'Sem duplicatas: '+c.id+'/'+i);
+  assert.ok(stage.choices.every(o=>o.label&&o.reason&&o.outcome),'Feedback para cada hipótese');
+  const best=stage.choices.filter(o=>o.best===true);
+  assert.equal(best.length,1,'Uma melhor hipótese identificada: '+c.id+'/'+i);
+  positions[stage.choices.findIndex(o=>o.best===true)]++;
+  assert.ok(stage.choices.every(o=>o.label.length>=45),'Respostas fundamentadas e não caricatas: '+c.id+'/'+i);
+  assert.doesNotMatch(stage.choices.map(o=>o.label).join(' '),
+   /afirmar que ela tem um transtorno apenas pelo relato|pedir que ela simplesmente pare de pensar|concluir que o adolescente é responsável pela recuperação/i);
+ }
+ assert.equal(stages,92,'As duas decisões de cada estudo foram preservadas');
+ assert.ok(positions.every(n=>n>=15),'Não entregar gabarito pela posição fixa: '+positions.join('/'));
+ assert.match(read('estudo-ativo.js'),/strongest=st\.choices\.findIndex\(option=>option\.best===true\)/);
+ assert.match(read('estudo-ativo.js'),/s\.chosen<0\?'':/,'A resposta só aparece depois da escolha');
+ const begin=html.indexOf('<section id="offline-simulados">'),end=html.indexOf('</section>',begin);
+ const offline=html.slice(begin,end);
+ assert.equal((offline.match(/<summary>Questão \d+/g)||[]).length,400,'Leitura offline corresponde às provas atuais');
+ assert.doesNotMatch(offline,/ang[uú]stia/i,'Não reintroduzir angústia na leitura de Metapsicologia');
+});
