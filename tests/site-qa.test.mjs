@@ -762,26 +762,3 @@ test('Calls de voz e vídeo aparecem apenas em grupos e têm carregamento isolad
  assert.match(call,/case 'leave'/);
  assert.match(css,/max-width:620px/,'layout móvel adaptado');
 });
-
-
-test('Chamada de vídeo é exclusiva de grupos e não interfere nas conversas privadas',()=>{
- const js=read('group-call.js');
- const css=read('group-call.css');
- const loader=read('chat-mobile-viewport.js');
- assert.match(loader,/group-call\\.js\\?v=/,'carregador usa arquivo modular do recurso');
- assert.match(loader,/group-call\\.css\\?v=/,'estilo próprio do recurso');
- assert.match(js,/dm\\.tab!=='groups'/,'atalho exibido somente quando o grupo está selecionado');
- assert.match(js,/room\\.kind==='group'/,'acesso limitado aos grupos');
- assert.match(js,/Entrar na call/);
- assert.match(js,/data-gc-open/);
- assert.match(js,/private:true,presence:/,'sinalização autenticada com autorização do Supabase');
- assert.match(js,/uentzoul-call:/,'canal de chamada exclusivo por grupo');
- assert.match(js,/getDisplayMedia/,'compartilhamento de tela');
- assert.match(js,/getUserMedia/,'microfone e câmera');
- assert.match(js,/RTCPeerConnection/,'transporte WebRTC');
- assert.match(js,/generation!==S\\.generation/,'capturas atrasadas não reabrem chamadas encerradas');
- assert.match(js,/panelDraw\\(/,'painel de conversa integrado');
- assert.match(js,/\.stop\\(\\)/,'mídia é desligada ao sair');
- assert.match(css,/@media\\(max-width:620px\\)/,'layout em telas pequenas');
- assert.doesNotMatch(js,/service_role|supabase_service_key/i,'não leva credenciais do servidor ao navegador');
-});
