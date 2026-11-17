@@ -793,11 +793,39 @@ test('Call minimizada mantém a sessão e permite navegar pelo restante do site'
  assert.ok(css.includes('.gc-backdrop.is-mini'),'estilo da janela flutuante');
  assert.ok(css.includes('pointer-events:none'),'miniatura libera cliques no restante do site');
  assert.ok(css.includes('pointer-events:auto'),'somente a janela captura seus controles');
- assert.ok(html.includes('if(window.uentzoulGroupCalls?.active)return true;'),'atualização automática não pode derrubar uma call');
+ assert.ok(!html.includes('location.reload();'),'nenhum recarregamento automático do site pode derrubar a call');
  assert.ok(html.includes('group-call.js?v=20261117-mini-call-v8'),'cache de script atualizado');
  assert.ok(html.includes('group-call.css?v=20261117-mini-call-v8'),'cache CSS atualizado');
  const start=call.indexOf('function setMinimized(value)');
  const end=call.indexOf('function preview(room)',start);
  const handler=call.slice(start,end);
  assert.ok(!handler.includes('S.peers.clear()')&&!handler.includes('track.stop()')&&!handler.includes('removeChannel('),'minimizar não deve interromper os canais de mídia');
+});
+
+
+test('Auditoria de atualização protege estudo, modais e leitura do primeiro semestre',()=>{
+ const version=read('site-version.js');
+ const course=read('course-week-manager.js');
+ const study=read('estudos-dirigidos.js');
+ assert.doesNotThrow(()=>new vm.Script(version),'notificação de versão válida');
+ assert.doesNotThrow(()=>new vm.Script(course),'catálogo de disciplinas válido');
+ assert.doesNotThrow(()=>new vm.Script(study),'roteiros de estudo válidos');
+ // Antes o HTML verificava uma nova versão e chamava reload mesmo com um estudante lendo.
+ assert.ok(!html.includes('function applyVersion()'),'mecanismo de atualização silenciosa removido');
+ assert.ok(!html.includes('setInterval(applyVersion,5000)'),'checagem invasiva de 5 segundos removida');
+ assert.ok(!html.includes('location.reload();'),'HTML não recarrega a página por conta própria');
+ assert.ok(version.includes("action.addEventListener('click',()=>reload(version))"),'atualização depende de clique');
+ assert.ok(version.includes('promptUpdate(latest)'),'nova publicação gera aviso, sem recarregar');
+ // Uma consulta de simulados não pode remontar explicações, provas ou trilhas.
+ const geStart=html.indexOf('async function geLoad(forceRender=false)');
+ const geEnd=html.indexOf('async function geCreate()',geStart);
+ assert.ok(geStart>0&&geEnd>geStart,'função de sincronização dos simulados encontrada');
+ const geBlock=html.slice(geStart,geEnd);
+ assert.ok(!geBlock.includes("if(current.page==='exams'||current.page==='subject')render()"),'sem redraw no início da sincronização');
+ assert.ok(geBlock.includes("semester!=='2026/1'"),'explicações do primeiro semestre protegidas');
+ assert.ok(geBlock.includes('(forceRender||!wasLoaded)'),'atualizações periódicas só atualizam dados');
+ assert.ok(geBlock.includes('userReading'),'modal, detalhes e edição preservados');
+ assert.ok(html.includes("geLoad(true);return"),'botão atualizar simulados continua funcional');
+ assert.ok(course.includes('if(subjectsChanged)bridge()?.applyExtraSubjects?.(additional)'),'catálogo sem alterações não remonta o primeiro semestre');
+ assert.ok(study.includes("node.querySelector('details[open],input:focus,textarea:focus')"),'estudo dirigido aberto não é substituído ao sincronizar');
 });
