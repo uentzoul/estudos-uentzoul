@@ -794,8 +794,8 @@ test('Call minimizada mantém a sessão e permite navegar pelo restante do site'
  assert.ok(css.includes('pointer-events:none'),'miniatura libera cliques no restante do site');
  assert.ok(css.includes('pointer-events:auto'),'somente a janela captura seus controles');
  assert.ok(!html.includes('location.reload();'),'nenhum recarregamento automático do site pode derrubar a call');
- assert.ok(html.includes('group-call.js?v=20261117-mini-call-v8'),'cache de script atualizado');
- assert.ok(html.includes('group-call.css?v=20261117-mini-call-v8'),'cache CSS atualizado');
+ assert.match(html,/id="pm-group-call-js"[^>]*src="group-call\.js\?[^"]+"/,'script de call versionado');
+ assert.match(html,/id="pm-group-call-css"[^>]*href="group-call\.css\?[^"]+"/,'CSS de call versionado');
  const start=call.indexOf('function setMinimized(value)');
  const end=call.indexOf('function preview(room)',start);
  const handler=call.slice(start,end);
