@@ -555,10 +555,8 @@ function setMinimized(value){
  S.minimized=!!value;
  if(value)S.panel='';
  draw();
- if(!value){
-  const focus=S.overlay.querySelector('.gc-minimize');
-  focus?.focus({preventScroll:true});
- }
+ const focus=S.overlay.querySelector(value?'[data-gc-action="restore"]':'.gc-minimize');
+ focus?.focus({preventScroll:true});
 }
 function preview(room){
  if(!room||!eligible())return;
