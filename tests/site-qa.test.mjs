@@ -743,14 +743,17 @@ test('Recuperação de senha preserva login e troca de senha por e-mail',()=>{
  assert.match(authScript,/client\.auth\.signOut\(\)/,'Encerra sessão após troca de senha');
 });
 
-test('Calls de voz e vídeo aparecem apenas em grupos e têm carregamento isolado',()=>{
+test('Calls de voz e vídeo aparecem em grupos e privadas, jamais no global',()=>{
  const bootstrap=read('chat-mobile-viewport.js');
  const call=read('group-call.js');
  const css=read('group-call.css');
  assert.match(html,/id="pm-group-call-js"[^>]*src="group-call\.js\?/,'script defer no HTML');
  assert.match(html,/id="pm-group-call-css"[^>]*href="group-call\.css\?/,'CSS no head');
  assert.doesNotThrow(()=>new vm.Script(call),'JavaScript de chamada válido');
- assert.ok(html.includes("group&&room?.kind==='group'"),'botão exclusivo de grupos reais no renderizador');
+ assert.ok(html.includes("group&&room?.kind==='group'"),'botão de grupos reais preservado');
+ assert.ok(html.includes("dm.tab==='private'&&peer"),'chamadas privadas só aparecem ao selecionar um contato');
+ assert.match(html,/data-gc-private/,'botão de call privada presente no HTML');
+ assert.ok(!html.includes("dm.tab==='global'&&peer"),'chat global não recebe botão de chamada');
  assert.match(html,/data-gc-open/,'o botão é inserido diretamente no cabeçalho do grupo');
  assert.match(html,/uentzoulGroupCallBridge/,'mensageiro expõe ponte segura para chamadas');
  assert.ok(call.includes("const bridge=window.uentzoulGroupCallBridge"),'módulo usa a ponte do mensageiro');
@@ -762,6 +765,12 @@ test('Calls de voz e vídeo aparecem apenas em grupos e têm carregamento isolad
  assert.match(call,/RTCPeerConnection/);
  assert.match(call,/private:true/,'sinalização exige canal privado');
  assert.match(call,/uentzoul-call:/,'canal separado por grupo');
+ assert.match(call,/uentzoul-dm-call:/,'canal próprio de chamada privada');
+ assert.match(call,/room\.selfId,room\.peerId\]\.sort\(\)/,'mesma sala para ambas as contas');
+ assert.match(call,/data-gc-private/,'botão privado atendido pelo módulo');
+ assert.match(call,/uentzoul_messages/,'painel da chamada usa mensagens diretas');
+ assert.match(call,/isPrivate\(room\)\?2:6/,'call privada limitada a dois dispositivos');
+ assert.match(call,/openPrivate:/,'API para chamada privada');
  assert.match(call,/presence/);
  assert.match(call,/case 'leave'/);
  assert.match(css,/max-width:620px/,'layout móvel adaptado');
