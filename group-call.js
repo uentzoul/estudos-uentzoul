@@ -28,6 +28,8 @@ const direct=id=>{
  return {id,kind:'private',peerId:id,selfId:onlineUser.id,name:peer.display_name||'Conversa privada',avatar_url:peer.avatar_url||''};
 };
 const isPrivate=room=>room?.kind==='private';
+const isMaintenance=room=>room?.kind==='maintenance';
+const maintenanceAllowed=()=>eligible()&&window.uentzoulMaintenance?.isAuthorized?.()===true;
 const callTopic=room=>isPrivate(room)?'uentzoul-dm-call:'+([room.selfId,room.peerId].sort().join(':')):'uentzoul-call:'+room.id;
 const person=id=>bridge.profile?.(id)|| (typeof dmPrettyPerson==='function'?dmPrettyPerson(id):{display_name:'Participante'});
 const myName=()=>person(onlineUser?.id).display_name||'Participante';
@@ -85,8 +87,8 @@ function roomBadge(room){
 async function roomPhoto(){
  const roomId=S.room?.id;
  const path=S.room?.avatar_path;
- if(isPrivate(S.room)){
-  const avatar=S.room.avatar_url||'';
+ if(isPrivate(S.room)||isMaintenance(S.room)){
+  const avatar=isMaintenance(S.room)?(person(onlineUser.id)?.avatar_url||''):(S.room.avatar_url||'');
   if(/^https:\/\/[^\s"'<>]+$/i.test(avatar)){S.photoUrl=avatar;applyPhoto();}
   return;
  }
@@ -165,7 +167,7 @@ function draw(){
   stage.innerHTML='<div class="gc-preview">'+
    '<div class="gc-preview-art">'+roomBadge(S.room)+'</div>'+
    '<h2>'+escCall(S.room.name)+'</h2>'+
-   '<p>'+(joining?'Estabelecendo a conexão da chamada…':isPrivate(S.room)?'Você e este contato podem entrar nesta chamada privada. O outro participante só ouvirá ou verá você quando os dispositivos estiverem ligados.':'Ao entrar, os membros do grupo poderão te ouvir e ver quando os dispositivos estiverem ligados.')+'</p>'+
+   '<p>'+(joining?'Estabelecendo a conexão da chamada…':isMaintenance(S.room)?'Call pessoal do Chat de Manutenção. Teste microfone, câmera, compartilhamento de tela e outros controles. Ninguém mais entra nesta chamada.':isPrivate(S.room)?'Você e este contato podem entrar nesta chamada privada. O outro participante só ouvirá ou verá você quando os dispositivos estiverem ligados.':'Ao entrar, os membros do grupo poderão te ouvir e ver quando os dispositivos estiverem ligados.')+'</p>'+
    '<small>O microfone '+(S.mic?'será ligado':'ficará desligado')+' e a câmera '+(S.cam?'será ligada':'ficará desligada')+'.</small></div>';
  }else if(live){tiles();}
  applyPhoto();panelDraw();
@@ -608,10 +610,20 @@ async function checkMembership(){
  }catch(e){console.warn('Falha temporária ao conferir acesso à chamada',e);}
 }
 async function join(){
- if(S.stage!=='preview'||!eligible()||!navigator.mediaDevices||!window.RTCPeerConnection){status('Este navegador não oferece os recursos necessários para esta chamada.');return;}
+ if(S.stage!=='preview'||!eligible()||!navigator.mediaDevices||(!isMaintenance(S.room)&&!window.RTCPeerConnection)){status('Este navegador não oferece os recursos necessários para esta chamada.');return;}
  S.stage='joining';const generation=++S.generation;draw();
  try{
   const room=S.room;
+  if(isMaintenance(room)){
+   if(!maintenanceAllowed()||room.userId!==onlineUser.id)throw Error('Somente o administrador pode entrar na call de manutenção.');
+   S.key=onlineUser.id+':'+crypto.randomUUID();S.callStarted=Date.now();createStream();
+   if(S.mic)try{await captureAudio(S.micDevice,generation);}catch(e){if(generation===S.generation){S.mic=false;status('Microfone indisponível. Você ainda pode testar os outros controles.',8);}}
+   if(generation!==S.generation||S.stage!=='joining')return;
+   if(S.cam)try{await captureCamera(S.camDevice,generation);}catch(e){if(generation===S.generation){S.cam=false;status('Não foi possível acessar a câmera.',8);}}
+   if(generation!==S.generation||S.stage!=='joining')return;
+   S.stage='live';S.presence.set(S.key,meta());draw();void refreshCallAvatars();
+   return;
+  }
   if(isPrivate(room)){
    if(room.selfId!==onlineUser.id||!UUID.test(room.peerId)||room.peerId===onlineUser.id)throw Error('Esta chamada privada não corresponde à sua conta.');
    if(!dm.people?.some(p=>p.user_id===room.peerId))throw Error('Contato indisponível. Abra novamente a conversa.');
@@ -679,6 +691,13 @@ async function loadChat(){
  const roomId=S.room.id,generation=S.generation;
  S.chatBusy=true;
  try{
+  if(isMaintenance(S.room)){
+   if(!maintenanceAllowed())throw Error('Sem permissão para ler anotações.');
+   const {data,error}=await client.from('uentzoul_admin_notes').select('id,user_id,body,kind,created_at').eq('user_id',onlineUser.id).order('created_at',{ascending:false}).limit(60);
+   if(S.room?.id!==roomId||S.generation!==generation)return;
+   if(error)throw error;
+   S.chat=(data||[]).reverse().map(n=>({...n,sender_id:n.user_id}));panelDraw();return;
+  }
   const privateCall=isPrivate(S.room);
   const query=client.from(privateCall?'uentzoul_messages':'uentzoul_room_messages')
    .select('id,sender_id,body,kind,created_at');
@@ -695,6 +714,14 @@ async function sendChat(form){
  const button=form.querySelector('button[type="submit"]');button.disabled=true;
  try{
   const room=S.room;
+  if(isMaintenance(room)){
+   if(!maintenanceAllowed())throw Error('Sem permissão para salvar anotações.');
+   const {error}=await client.from('uentzoul_admin_notes').insert({user_id:onlineUser.id,body:value,kind:'text'});
+   if(error)throw error;
+   textarea.value='';await loadChat();
+   void window.uentzoulMaintenance?.refresh?.();
+   return;
+  }
   const privateCall=isPrivate(room);
   const {error}=await client.from(privateCall?'uentzoul_messages':'uentzoul_room_messages')
    .insert(privateCall?{recipient_id:room.peerId,sender_id:onlineUser.id,body:value,kind:'text'}:{room_id:room.id,sender_id:onlineUser.id,body:value,kind:'text'});
@@ -706,7 +733,7 @@ async function sendChat(form){
 function panelDraw(){
  const aside=S.overlay?.querySelector('[data-gc-panel]');if(!aside)return;
  aside.hidden=!S.panel;if(!S.panel){aside.innerHTML='';aside.dataset.gcSignature='';return;}
- const title=S.panel==='chat'?(isPrivate(S.room)?'Mensagens privadas':'Mensagens do grupo'):S.panel==='members'?'Participantes':S.panel==='react'?'Reações':'Dispositivos';
+ const title=S.panel==='chat'?(isMaintenance(S.room)?'Anotações de manutenção':isPrivate(S.room)?'Mensagens privadas':'Mensagens do grupo'):S.panel==='members'?'Participantes':S.panel==='react'?'Reações':'Dispositivos';
  let body='';
  if(S.panel==='members'){
   body='<div class="gc-member-list">'+[...S.presence.entries()].map(([k,m])=>
@@ -715,7 +742,7 @@ function panelDraw(){
   body='<div class="gc-chat-list" data-gc-chat-list>'+S.chat.map(m=>
    '<div class="gc-chat-msg"><strong>'+escCall(person(m.sender_id).display_name||'Estudante')+'</strong><p>'+escCall(m.kind==='text'?m.body:'[Mídia compartilhada na conversa]')+'</p></div>').join('')+
    (!S.chat.length?'<p class="gc-chat-empty">Nenhuma mensagem recente.</p>':'')+'</div>'+
-   '<form class="gc-chat-form" data-gc-chat-form><textarea maxlength="3000" rows="2" placeholder="'+(isPrivate(S.room)?'Escreva na conversa…':'Escreva no grupo…')+'"></textarea><button type="submit" aria-label="Enviar mensagem">➤</button></form>';
+   '<form class="gc-chat-form" data-gc-chat-form><textarea maxlength="3000" rows="2" placeholder="'+(isMaintenance(S.room)?'Anotação pessoal…':isPrivate(S.room)?'Escreva na conversa…':'Escreva no grupo…')+'"></textarea><button type="submit" aria-label="Enviar mensagem">➤</button></form>';
  }else if(S.panel==='react'){
   body='<div class="gc-reaction-picker">'+['👏','❤️','😂','🎉','👍'].map(emoji=>
    '<button type="button" data-gc-action="react-emoji" data-gc-emoji="'+emoji+'" aria-label="Reagir com '+emoji+'">'+emoji+'</button>').join('')+'</div>';
@@ -792,7 +819,7 @@ function setMinimized(value){
  focus?.focus({preventScroll:true});
 }
 function preview(room){
- if(!room||!eligible())return;
+ if(!room||!eligible()||(isMaintenance(room)&&!maintenanceAllowed()))return;
  if(S.stage!=='off'){
   if(S.room?.id===room.id&&S.room?.kind===room.kind){
     if(S.minimized)setMinimized(false);
@@ -804,6 +831,10 @@ function preview(room){
  }
  S.room=room;S.stage='preview';S.minimized=false;++S.generation;S.mic=true;S.cam=false;S.hand=false;S.notice='';
  shell();
+}
+function previewMaintenance(){
+ if(!maintenanceAllowed())return;
+ preview({id:'maintenance:'+onlineUser.id,kind:'maintenance',userId:onlineUser.id,name:'Chat de Manutenção'});
 }
 async function actions(event){
  const target=event.target;
@@ -872,7 +903,7 @@ function init(){
  const previousLogout=window.uentzoulMessenger.onLogout;
  window.uentzoulMessenger.onLogout=function(...args){void leave();return previousLogout?.apply(this,args);};
  window.addEventListener('uentzoul:auth',()=>{if(!bridge.user()?.id)void leave();});
- window.uentzoulGroupCalls={open:id=>preview(group(id)),openPrivate:id=>preview(direct(id)),minimize:()=>setMinimized(true),restore:()=>setMinimized(false),leave:()=>leave(),get minimized(){return S.minimized},get active(){return S.stage==='live'},get roomId(){return S.room?.id||null},get kind(){return S.room?.kind||null}};
+ window.uentzoulGroupCalls={open:id=>preview(group(id)),openPrivate:id=>preview(direct(id)),openMaintenance:previewMaintenance,minimize:()=>setMinimized(true),restore:()=>setMinimized(false),leave:()=>leave(),get minimized(){return S.minimized},get active(){return S.stage==='live'},get roomId(){return S.room?.id||null},get kind(){return S.room?.kind||null}};
  return true;
 }
 if(!init()){
