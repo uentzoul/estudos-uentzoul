@@ -5,6 +5,15 @@
  const fmt=s=>esc(String(s??'').replace(/\s*\n\s*/g,' ').replace(/\s+/g,' ').trim());
 
 
+ // Reutiliza o progresso por conta e semestre já mantido pelo núcleo do site.
+ const wasSeen=id=>!!window.uentzoulProfileBridge?.progress?.()?.completed?.[id];
+ function seenControl(id){
+   const checked=wasSeen(id);
+   return '<label class="donecontrol sd-seen-control '+(checked?'is-checked':'')+'" title="Marcação pessoal de estudo">'+
+     '<input type="checkbox" data-complete="'+esc(id)+'" aria-label="Marcar estudo dirigido como visto" '+(checked?'checked':'')+'>'+
+     '<span>'+(checked?'✓ Visto':'Marcar como visto')+'</span></label>';
+ }
+
  const OFFICIAL_TAG='psicomoodle:estudo-dirigido:professor';
  const UPLOAD_TABLE='uentzoul_library_uploads',GUIDES_TABLE='uentzoul_study_guides';
  const TARGETS=Object.freeze({familia:'P2',tcc:'P2',meta:'P2',grupos:'P2',social:'P3',avaliacao:'P3'});
@@ -190,7 +199,7 @@
    const exam=TARGETS[subject],items=Array.isArray(guide.questions)?guide.questions:[];
    if(!items.length)return '<div class="sd-empty" data-sd-subject="'+esc(subject)+'">O roteiro ainda não contém questões suficientes para exibição.</div>';
    return '<section class="sd-root" data-sd-subject="'+esc(subject)+'" aria-label="Estudos dirigidos da disciplina">'+
-    '<header class="sd-header"><span class="sd-kicker">'+(generated?'REVISÃO AUTORAL':'ROTEIRO DO PROFESSOR')+' · '+esc(exam)+'</span>'+
+    '<header class="sd-header"><div class="sd-header-top"><span class="sd-kicker">'+(generated?'REVISÃO AUTORAL':'ROTEIRO DO PROFESSOR')+' · '+esc(exam)+'</span>'+seenControl('guided:'+subject+':'+exam)+'</div>'+
     '<h2>Estudos dirigidos</h2><p>'+(generated?
     'Não foi encontrado um estudo dirigido oficial desta avaliação. Este roteiro foi preparado como alternativa de revisão.':
     'Questões do roteiro do professor, com respostas-modelo comentadas para consulta e estudo.')+'</p></header>'+
