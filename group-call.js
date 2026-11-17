@@ -171,10 +171,26 @@ async function captureCamera(deviceId='',generation=S.generation){
  const old=S.camera;S.camera=next;old?.stop();
  await replaceVideo();
 }
+async function tuneVideo(){
+ const peers=[...S.peers.values()].filter(p=>p.pc.connectionState==='connected');
+ const outgoing=Math.max(1,peers.length);
+ const bitrate=S.screen?Math.max(650000,Math.min(1400000,Math.floor(4200000/outgoing))):
+  Math.max(220000,Math.min(560000,Math.floor(1900000/outgoing)));
+ await Promise.all(peers.map(async p=>{
+  try{
+   const sender=p.videoSender,params=sender.getParameters?.();
+   if(!params?.encodings?.length)return;
+   params.encodings[0].maxBitrate=bitrate;
+   params.encodings[0].maxFramerate=S.screen?12:15;
+   await sender.setParameters(params);
+  }catch(_){/* Alguns dispositivos ignoram parâmetros avançados. */}
+ }));
+}
 async function replaceVideo(){
  const selected=S.display||S.camera||null;
  if(S.stream){for(const t of S.stream.getVideoTracks())S.stream.removeTrack(t);if(selected)S.stream.addTrack(selected);}
  await Promise.all([...S.peers.values()].map(p=>p.videoSender.replaceTrack(selected).catch(e=>console.warn('Não foi possível atualizar vídeo',e))));
+ void tuneVideo();
  if(S.stage==='live')await publish();else draw();
 }
 async function toggleMic(){
@@ -204,13 +220,13 @@ async function toggleScreen(){
   const stream=await navigator.mediaDevices.getDisplayMedia({video:{frameRate:{ideal:15,max:20}},audio:false});
   const track=stream.getVideoTracks()[0];if(!track)return;
   S.display=track;S.screen=true;track.addEventListener('ended',()=>{if(S.display===track)void endScreen();},{once:true});
-  await replaceVideo();await publish();
+  await replaceVideo();
  }catch(e){if(e?.name!=='NotAllowedError')status('Não foi possível iniciar a apresentação da tela.');}
 }
 async function endScreen(){
  const old=S.display;S.display=null;S.screen=false;
  if(old){old.onended=null;old.stop();}
- await replaceVideo();await publish();
+ await replaceVideo();
 }
 function iceConfig(){
  const defaults=[{urls:'stun:stun.l.google.com:19302'},{urls:'stun:stun1.l.google.com:19302'}];
@@ -252,10 +268,7 @@ function ensurePeer(key){
  pc.onconnectionstatechange=()=>{
   if(pc.connectionState==='failed'&&peer.retries++<2&&S.key<key){void offer(peer,true);}
   if(pc.connectionState==='connected'){
-   peer.retries=0;const params=videoSender.getParameters?.();
-   if(params?.encodings?.length){params.encodings[0].maxBitrate=S.presence.size>4?270000:500000;
-    params.encodings[0].maxFramerate=15;void videoSender.setParameters(params).catch(()=>{});}
-   tiles();
+   peer.retries=0;void tuneVideo();tiles();
   }
   if(pc.connectionState==='closed'){tiles();}
  };
@@ -305,7 +318,7 @@ function synchronize(){
  for(const key of next.keys())if(key!==S.key&&!S.peers.has(key))ensurePeer(key);
  if(S.pendingSignals.length){const pending=S.pendingSignals.splice(0);pending.forEach(msg=>{if(next.has(msg.from))void receiveSignal(msg);});}
  if(S.pinned&&!next.has(S.pinned))S.pinned=null;
- tiles();panelDraw();
+ void tuneVideo();tiles();panelDraw();
 }
 async function checkMembership(){
  if(!S.room||!eligible()||!S.channel)return;
