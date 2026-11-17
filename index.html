@@ -3936,11 +3936,15 @@ function geRenderExam(){
   '<div class="ge-submit"><span>Respondido em '+new Date(submission.created_at).toLocaleString('pt-BR')+'</span><button class="btn light" data-action="print">Imprimir correção</button></div>')+
   share;
 }
-async function geLoad(){
+async function geLoad(forceRender=false){
  if(!geClient()||!geUser())return;
  if(ge.loading||ge.busy){ge.pending=true;return;}
- const userId=geUser().id;ge.loading=true;ge.owner=userId;ge.error='';
- if(current.page==='exams'||current.page==='subject')render();
+ const userId=geUser().id;
+ const wasLoaded=ge.loaded;
+ ge.loading=true;ge.owner=userId;ge.error='';
+ // A consulta em segundo plano não recria a tela nem reinicia leituras ou exercícios.
+ // Apenas a primeira carga na aba de simulados gerados, ou atualização solicitada,
+ // pode reconstruir a lista após receber os dados.
  try{
   const [exams,submissions,shares,profiles,hidden,invites]=await Promise.all([
    geClient().from('uentzoul_generated_exams').select('id,creator_id,semester,subject,difficulty,title,questions,created_at').neq('semester','personal').order('created_at',{ascending:false}).limit(1000),
@@ -3954,7 +3958,14 @@ async function geLoad(){
   if(geUser()?.id!==userId)return;
   ge.exams=exams.data||[];ge.submissions=submissions.data||[];ge.shares=shares.data||[];ge.profiles=profiles.data||[];ge.hidden=hidden.data||[];ge.invites=invites.data||[];ge.loaded=true;
  }catch(e){ge.error='Não foi possível carregar os simulados: '+(e?.message||'erro de conexão');ge.loaded=true}
- finally{ge.loading=false;ge.lastFetch=Date.now();if(geUser()?.id===userId&&(current.page==='exams'||current.page==='subject')&&!document.activeElement?.matches('.ge-essay,.ge-option input'))render();if(ge.pending&&geUser()?.id===userId){ge.pending=false;queueMicrotask(geLoad)}}
+ finally{
+  ge.loading=false;ge.lastFetch=Date.now();
+  const showGeneratedList=current.page==='exams'&&semester!=='2026/1'&&ge.tab==='ai'&&!ge.selected;
+  const userReading=document.activeElement?.matches('input,textarea,select,[contenteditable="true"]')||
+   document.querySelector('dialog[open],[role="dialog"]:not([hidden]),details[open]');
+  if(geUser()?.id===userId&&showGeneratedList&&(forceRender||!wasLoaded)&&!userReading)render();
+  if(ge.pending&&geUser()?.id===userId){ge.pending=false;queueMicrotask(geLoad)}
+ }
 }
 async function geCreate(){
  if(ge.busy||!geUser()||!DB.subjects[ge.subject]||!['2026/1','2026/2'].includes(semester))return;
@@ -4197,7 +4208,7 @@ document.addEventListener('click',e=>{
  if(e.target.closest('[data-ge-create]')){geCreate();return}
  if(e.target.closest('[data-ge-submit]')){geSubmit();return}
  if(e.target.closest('[data-ge-share]')){geShare();return}
- if(e.target.closest('[data-ge-refresh]')){ge.loaded=false;geLoad();return}
+ if(e.target.closest('[data-ge-refresh]')){ge.loaded=false;geLoad(true);return}
 });
 document.addEventListener('change',e=>{
  if(e.target.id==='geSubject'){ge.subject=e.target.value;if(ge.subject==='grupos'){ge.questionCount=5;ge.includeEssays=true;}render();return}
