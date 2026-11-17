@@ -719,3 +719,26 @@ test('Alternativas dos 13 cursos são relevantes, únicas e só revelam a melhor
  assert.equal((offline.match(/<summary>Questão \d+/g)||[]).length,400,'Leitura offline corresponde às provas atuais');
  assert.doesNotMatch(offline,/ang[uú]stia/i,'Não reintroduzir angústia na leitura de Metapsicologia');
 });
+
+
+test('Recuperação de senha preserva login e troca de senha por e-mail',()=>{
+ const start=html.indexOf('/* Perfis e ranking online');
+ assert.ok(start>0,'Controlador de contas existente');
+ const end=html.indexOf('</script>',start);
+ assert.ok(end>start,'Script de contas completo');
+ const authScript=html.slice(start,end);
+ assert.doesNotThrow(()=>new vm.Script(authScript),'Sintaxe do login e da recuperação válida');
+ for(const key of [
+  'data-account-action="forgot-password-view"',
+  "id=\"recoveryEmailForm\"",
+  "id=\"recoveryPasswordForm\"",
+  'resetPasswordForEmail(email,{redirectTo:CONFIRMATION_RETURN_URL})',
+  "auth.updateUser({password})",
+  "event==='PASSWORD_RECOVERY'",
+  'recoveryLinkError',
+  "modalView='recovery-done'"
+ ])assert.ok(authScript.includes(key),'Recuperação incompleta: '+key);
+ assert.match(authScript,/password!==confirmation/,'Nova senha confirmada antes de salvar');
+ assert.match(authScript,/client\.auth\.getUser\(\)/,'Validação da sessão antes da atualização');
+ assert.match(authScript,/client\.auth\.signOut\(\)/,'Encerra sessão após troca de senha');
+});
