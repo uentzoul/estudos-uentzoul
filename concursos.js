@@ -19,7 +19,7 @@ let store=defaultState(),rights={id:null,admin:false,concurso:false},active=fals
 let view='inicio',subject='todos',noteSubject='portugues',dayIndex=0,session=null,cardFilter='todos',cardIndex=0,cardFlipped=false,roleList=[],roleSet=new Set();
 const NAV_KEY='uentzoul:concursos:nav:v1';
 function rememberView(){try{sessionStorage.setItem(NAV_KEY,JSON.stringify({view,dayIndex,subject,noteSubject}))}catch(e){}}
-function restoreView(){try{const v=JSON.parse(sessionStorage.getItem(NAV_KEY)||'null');if(v&&['inicio','configurar','dia','materias','materia','banco','simulados','flashcards','caderno'].includes(v.view)){view=v.view;dayIndex=Math.max(0,Math.min(23,Number(v.dayIndex)||0));if(subjects[v.subject])subject=v.subject;if(subjects[v.noteSubject])noteSubject=v.noteSubject;}}catch(e){}}
+function restoreView(){try{const v=JSON.parse(sessionStorage.getItem(NAV_KEY)||'null');if(v&&['inicio','configurar','dia','materias','materia','banco','simulados','flashcards','caderno'].includes(v.view)){view=v.view==='caderno'&&onlyContest()?'inicio':v.view;dayIndex=Math.max(0,Math.min(23,Number(v.dayIndex)||0));if(subjects[v.subject])subject=v.subject;if(subjects[v.noteSubject])noteSubject=v.noteSubject;}}catch(e){}}
 let saveJob=0,renderJob=0;
 const allowed=()=>!!rights.id&&(rights.admin||rights.concurso);
 const onlyContest=()=>rights.concurso&&!rights.admin;
@@ -114,7 +114,14 @@ function syncChrome(){
   }
   const label=$('semesterCurrentLabel');if(label&&label.textContent!=='Concursos')label.textContent='Concursos';
   if(!external)document.querySelectorAll('#nav [data-page]').forEach(n=>n.classList.toggle('active',n.dataset.page===(view==='simulados'?'exams':'home')));
-  $('navConcursoNotebook')?.classList.toggle('active',view==='caderno');
+  const notebookButton=$('navConcursoNotebook');
+  if(notebookButton){
+   const locked=onlyContest();
+   notebookButton.disabled=locked;
+   notebookButton.setAttribute('aria-disabled',String(locked));
+   notebookButton.title=locked?'Caderno indisponível para contas de Concursos':'Abrir meu caderno de Concursos';
+   notebookButton.classList.toggle('active',!locked&&view==='caderno');
+  }
   const side=$('subjectNav');
   if(side&&!side.querySelector('[data-concurso-subject]')){
    for(const s of D.subjects){const b=document.createElement('button');b.type='button';b.className='sidebtn';b.dataset.concursoSubject=s.id;b.textContent=s.name;side.appendChild(b);}
@@ -127,6 +134,7 @@ function syncChrome(){
 function enter(restored=false){
  if(!allowed())return;
  if(!active){view='inicio';subject='todos';if(restored)restoreView();}
+ if(onlyContest()&&view==='caderno')view='inicio';
  active=true;external=false;
  if(onlyContest()||!restored){
   try{history.replaceState(onlyContest()?null:history.state,'',location.pathname+location.search+'#concursos');}catch(e){}
@@ -459,13 +467,14 @@ async function toggleRole(id,yes){
  toast('Permissão atualizada.');await adminLoad();
 }
 function go(dest){
- if(!active||!allowed())return;
+ if(!active||!allowed()||onlyContest()&&dest==='caderno')return;
  external=false;view=dest;rememberView();
  if(dest==='admin'&&rights.admin)void adminLoad();
  render();
 }
 function render(){
  if(!active||external||working)return;
+ if(onlyContest()&&view==='caderno'){view='inicio';rememberView();}
  if(view==='inicio')home();
  else if(view==='configurar')setup();
  else if(view==='dia')day();
@@ -497,7 +506,11 @@ document.addEventListener('click',e=>{
  }
  if(!active)return;
  const notebookButton=e.target.closest('#navConcursoNotebook,#navCadernoPreview');
- if(notebookButton){e.preventDefault();e.stopImmediatePropagation();go('caderno');window.pmMobileDrawer?.close?.();return;}
+ if(notebookButton){
+  e.preventDefault();e.stopImmediatePropagation();
+  if(onlyContest())return;
+  go('caderno');window.pmMobileDrawer?.close?.();return;
+ }
  const sub=e.target.closest('[data-concurso-subject]');
  if(sub){e.preventDefault();e.stopImmediatePropagation();subject=sub.dataset.concursoSubject;go('materia');window.pmMobileDrawer?.close?.();return;}
  const nav=e.target.closest('#nav [data-page]');
@@ -538,9 +551,9 @@ document.addEventListener('change',e=>{
  if(t.matches('[data-concurso-priority]')){store.settings[t.dataset.concursoPriority]=t.value;scheduleSave();}
  if(t.matches('[data-co-filter="subject"]'))subject=t.value;
  if(t.matches('[data-co-filter="cards"]')){cardFilter=t.value;cardIndex=0;cardFlipped=false;flashcards();}
- if(t.matches('[data-co-filter="notes"]')){noteSubject=t.value;rememberView();notebook();}
+ if(t.matches('[data-co-filter="notes"]')&&!onlyContest()){noteSubject=t.value;rememberView();notebook();}
 });
-document.addEventListener('input',e=>{if(e.target?.id==='coNotebookText'&&active){store.notes[noteSubject]=e.target.value;scheduleSave();}});
+document.addEventListener('input',e=>{if(e.target?.id==='coNotebookText'&&active&&!onlyContest()){store.notes[noteSubject]=e.target.value;scheduleSave();}});
 window.addEventListener('uentzoul:auth',()=>void refreshAccess(true));
 window.addEventListener('focus',()=>void refreshAccess(true));
 window.addEventListener('hashchange',()=>{
