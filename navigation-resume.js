@@ -26,6 +26,8 @@ const account=()=>{
  try{const u=window.uentzoulAIAuth?.user?.();return u?.id&&!u.is_anonymous?u.id:null}catch(_){return null}
 };
 const currentRoute=()=>{try{return window.uentzoulCurrentRoute?.()||null}catch(_){return null}};
+const onlyContest=()=>window.uentzoulContestAccess?.isOnlyContest?.()===true;
+const isContestPage=()=>location.hash==='#concursos'||document.documentElement.classList.contains('pm-concurso-mode');
 const validSnap=v=>v&&v[HISTORY]===true&&v.screen&&typeof v.screen.page==='string';
 function surface(){
  if(window.PSICO_NOTEBOOK_ACTIVE?.()&&document.getElementById('uentzoulCadernoFrame'))return 'notebook';
@@ -34,6 +36,8 @@ function surface(){
  return 'core';
 }
 function capture(){
+ // Concursos possui navegação própria: jamais registrar um semestre de fundo.
+ if(onlyContest()||isContestPage()){remove(KEY);return;}
  if(!captureAllowed||restoring||authFragment)return;
  const route=currentRoute();
  if(!route)return;
@@ -91,6 +95,10 @@ function applyCore(state){
 }
 function tryRestore(){
  if(!pending)return;
+ // A restauração acadêmica não pode sobrepor Concursos, nem para administradores.
+ if(onlyContest()||isContestPage()){
+  pending=null;restoring=false;captureAllowed=true;remove(KEY);return;
+ }
  const info=pending,state=info.history,page=state.screen.page;
  const who=account();
  if(info.owner&&who&&who!==info.owner){fallback();return;}
