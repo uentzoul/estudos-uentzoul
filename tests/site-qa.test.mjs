@@ -1048,3 +1048,50 @@ test('Cargo exclusivo de Concursos fica na modalidade após atualização, hist�
  assert.equal(stopped,false,'administrador continua livre para usar semestres');
  assert.equal(location.hash,'#outro-semestre');
 });
+
+
+test('Usuário Concurso é oculto da lateral até para administradores',async()=>{
+ const sidebarStart=html.indexOf('let concursoHiddenIds=new Set();');
+ const sidebarEnd=html.indexOf('function showModal(',sidebarStart);
+ const queryStart=html.indexOf('async function hiddenConcursoProfiles(',sidebarEnd);
+ const queryEnd=html.indexOf('window.uentzoulRefreshParticipants=',queryStart);
+ assert.ok(sidebarStart>0&&sidebarEnd>sidebarStart&&queryStart>sidebarEnd&&queryEnd>queryStart,'código da lista e filtro disponível');
+ const side=html.slice(sidebarStart,sidebarEnd),query=html.slice(queryStart,queryEnd);
+ const panel={innerHTML:''};
+ const profileId='11111111-1111-4111-8111-111111111111';
+ const hiddenId='22222222-2222-4222-8222-222222222222';
+ const profiles=[
+  {user_id:profileId,display_name:'Administrador',avatar_url:''},
+  {user_id:hiddenId,display_name:'Conta reservada de concurso',avatar_url:''}
+ ];
+ const seenTables=[];
+ const mockClient={
+  from(table){
+   seenTables.push(table);
+   return {select(){
+    return {
+     limit:async()=>({data:[{user_id:hiddenId}],error:null}),
+     order:()=>({limit:async()=>({data:profiles,error:null})})
+    };
+   }};
+  }
+ };
+ const sandbox={
+  onlineUser:{id:profileId},client:mockClient,rankData:[],rankBusy:false,rankError:'',
+  current:()=>({id:profileId,name:'Administrador',avatar:''}),$:id=>id==='profileSidebar'?panel:null,
+  esc:s=>String(s),avatar:()=>'',bridge:{semester:()=>'2026/2'},
+  window:{uentzoulAdminConfig:{isAdmin:()=>true}},console
+ };
+ const source='let rankData=[],rankBusy=false,rankError="",rankingSemester=null;\n'+side+'\n'+query+'\nloadRanking();';
+ await vm.runInNewContext(source,sandbox);
+ assert.ok(seenTables.includes('uentzoul_profiles'));
+ assert.ok(seenTables.includes('uentzoul_concurso_users'));
+ assert.match(panel.innerHTML,/Administrador/);
+ assert.doesNotMatch(panel.innerHTML,/Conta reservada de concurso/);
+ assert.match(panel.innerHTML,/1 perfil/,'contagem exclui concursos');
+ assert.match(html,/ge\.profiles=\(profiles\.data\|\|\[\]\)\.filter\(p=>!contestUsers\.has\(p\.user_id\)\)/,'compartilhamentos ocultam concursos');
+ assert.match(html,/dm\.people=\(people\.data\|\|\[\]\)\.filter\(p=>!contestUsers\.has\(p\.user_id\)\)/,'contatos do chat ocultam concursos');
+ assert.match(html,/if\(!dmValid\(id\)\|\|id===onlineUser\.id\|\|concursoHiddenIds\.has\(id\)\)return/,'concurso não pode ser aberto por contato direto');
+ const contests=read('concursos.js');
+ assert.match(contests,/uentzoulRefreshParticipants\?\.\(\)/,'mudanças de cargo atualizam a lateral');
+});
