@@ -2171,8 +2171,6 @@ html[data-theme="dark"] .tz-library-download{background:#26374c;border-color:#45
 <link id="pm-chat-stickers-css" rel="stylesheet" href="chat-stickers.css?v=20261114-stickers-v2">
 <link id="pm-chat-sticker-personal-css" rel="stylesheet" href="chat-sticker-personal.css?v=20261116-pacotes-pessoais-v1">
 <link rel="stylesheet" href="member-since.css?v=20261114-member-v1">
-<link rel="stylesheet" href="materiais-textos-visual.css?v=20261118-layout-v1">
-<script src="materiais-textos-titulos.js?v=20261118-titulos-v1"></script>
 </head>
 <body>
 <section id="staticFallback" class="static-fallback" aria-label="Central de Estudos — modo de leitura compatível com celular">
@@ -2852,18 +2850,16 @@ function examCard(e){
 }
 function docCard(m){
  if(!m.available)return '';
- const info=materialPresentation(m);
  const key='material:'+(m._libraryLegacyUrl||m.source||m._libraryKey||m.url);
  const href=m._libraryUpload?'#':m.url,attr=m._libraryUpload?' data-library-file="'+esc(m._libraryKey)+'"':'';
- const markers=(isCurrentExamMaterial(m)?'<span class="pm-exam-badge">Cai na prova</span>':'')+
-  (adminScheduledMaterial(m)?'<span class="pm-scheduled-file-label">🔒 Aguardando liberação</span>':'');
- const body='<span class="docicon" aria-hidden="true">'+info.glyph+'</span>'+
-  '<span class="doc-copy"><small class="doc-type">'+esc(info.type)+'</small>'+
-  '<strong class="docname">'+esc(info.title)+'</strong>'+
-  (markers?'<span class="doc-markers">'+markers+'</span>':'')+'</span>'+
-  '<span class="doc-open-arrow" aria-hidden="true">↗</span>';
- const main='<a class="doc-full-link" href="'+esc(href)+'"'+attr+' target="_blank" rel="noopener noreferrer" aria-label="Abrir '+esc(info.title)+'">'+body+'</a>';
- return '<div class="doc doc-compact is-available">'+main+'<div class="doc-check">'+doneBox(key)+'</div></div>';
+ const kind=m._libraryUpload?.filename?.toLowerCase().endsWith('.docx')?'DOC':m.kind==='Vídeo'?'▶':m.kind==='PDF'?'PDF':m.kind==='Página HTML'?'WEB':'TXT';
+ const body='<span class="docicon" aria-hidden="true">'+kind+'</span><span class="docname">'+esc(m.title)+'</span>'+
+  (isCurrentExamMaterial(m)?'<span class="pm-exam-badge">Cai na prova</span>':'')+
+  (adminScheduledMaterial(m)?'<span class="pm-scheduled-file-label">🔒 Aguardando liberação</span>':'')+
+  (m.available?'<span class="doc-open-arrow" aria-hidden="true">↗</span>':'');
+ const main=m.available?'<a class="doc-full-link" href="'+esc(href)+'"'+attr+' target="_blank" rel="noopener noreferrer" aria-label="Abrir '+esc(m.title)+'">'+body+'</a>':
+  '<div class="doc-full-link doc-not-ready">'+body+'<span class="pill">Aguardando arquivo</span></div>';
+ return '<div class="doc doc-compact '+(m.available?'is-available':'is-pending')+'">'+main+(m.available?'<div class="doc-check">'+doneBox(key)+'</div>':'')+'</div>';
 }
 
 /* Cartões da Biblioteca: o próprio cartão é o link, com "Visto" independente. */
@@ -2901,21 +2897,28 @@ function docCard(m){
 
 function libraryResourceCard(m,i=0){
  if(!m.available)return '';
- const info=materialPresentation(m);
- const type=info.type==='Vídeo'?'video':info.type==='Link'?'link':info.glyph==='DOC'?'doc':info.glyph==='PDF'?'pdf':'text';
- const name=esc(info.title);
- const content='<span class="library-resource-icon" aria-hidden="true">'+info.glyph+'</span>'+
-  '<span class="library-resource-copy"><small class="library-resource-type">'+esc(info.type)+'</small>'+
-  '<strong class="docname">'+name+'</strong>'+
+ const rawKind=String(m.kind||'Arquivo');
+ const kind=rawKind.toLocaleLowerCase('pt-BR');
+ const type=kind.includes('vídeo')?'video':kind.includes('pdf')?'pdf':(kind.includes('doc')||kind.includes('html'))?'doc':kind.includes('link')?'link':'text';
+ const typeLabel=/slides|apresenta/i.test(rawKind)?'Slides':/texto|artigo|bibliografia/i.test(rawKind)?'Texto-base':/atividade/i.test(rawKind)?'Atividade':type==='video'?'Vídeo':type==='pdf'?'PDF':type==='doc'?'Documento':type==='link'?'Link':'Material';
+ const glyph=type==='video'?'▶':type==='pdf'?'PDF':type==='doc'?'DOC':type==='link'?'↗':'▤';
+ const isAvailable=!!m.available;
+ const name=esc(m.title||'Material sem título');
+ const content='<span class="library-resource-icon" aria-hidden="true">'+glyph+'</span>'+
+  '<span class="library-resource-copy"><strong class="docname">'+name+'</strong>'+
   (isCurrentExamMaterial(m)?'<small class="pm-exam-badge">Cai na prova</small>':'')+
   (adminScheduledMaterial(m)?'<small class="pm-scheduled-file-label">🔒 Aguardando liberação</small>':'')+'</span>'+
-  '<span class="library-resource-arrow" aria-hidden="true">↗</span>';
+  (isAvailable?'<span class="library-resource-arrow" aria-hidden="true">↗</span>':'');
  const url=m._libraryUpload?'#':m.url;
  const uploadAttr=m._libraryUpload?' data-library-file="'+esc(m._libraryKey)+'"':'';
- const body='<a class="library-resource-main" href="'+esc(url)+'"'+uploadAttr+' target="_blank" rel="noopener noreferrer" aria-label="Abrir '+name+'">'+content+'</a>';
+ const body=isAvailable?
+  '<a class="library-resource-main" href="'+esc(url)+'"'+uploadAttr+' target="_blank" rel="noopener noreferrer" aria-label="Abrir '+name+'">'+content+'</a>':
+  '<div class="library-resource-main">'+content+'</div>';
  const key='material:'+(m._libraryLegacyUrl||m.source||m._libraryKey||m.url);
- return '<article class="doc library-resource is-available type-'+type+'" style="--library-seq:'+(i%8)+'">'+
-  body+'<div class="library-resource-bottom"><span class="library-resource-progress">'+doneBox(key)+'</span></div></article>';
+ return '<article class="doc library-resource '+(isAvailable?'is-available':'is-pending')+' type-'+type+'" style="--library-seq:'+(i%8)+'">'+
+  body+'<div class="library-resource-bottom"><span class="library-resource-status">'+
+  (isAvailable?'':'Aguardando arquivo')+'</span>'+
+  (isAvailable?'<span class="library-resource-progress">'+doneBox(key)+'</span>':'')+'</div></article>';
 }
 
 function materialGroup(m){
