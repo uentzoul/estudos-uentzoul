@@ -77,7 +77,11 @@ const browser=await chromium.launch({headless:true,args:[
 ]});
 const context=await browser.newContext({permissions:['camera','microphone']});
 const a=await context.newPage(),b=await context.newPage(),errors=[];
-for(const [p,name] of [[a,'A'],[b,'B']])p.on('console',m=>{if(m.type()==='warning'||m.type()==='error')errors.push(name+':'+m.text());});
+for(const [p,name] of [[a,'A'],[b,'B']]){
+ p.on('console',m=>{if(m.type()==='warning'||m.type()==='error')errors.push(name+':'+m.text());});
+ p.on('pageerror',e=>errors.push(name+': PAGE ERROR: '+e.message));
+ p.on('dialog',dialog=>{errors.push(name+': DIALOG '+dialog.message());void dialog.dismiss();});
+}
 async function waitFor(p,fn,msg,timeout=22000){
  await p.waitForFunction(fn,{timeout}).catch(e=>{throw Error(msg+' | '+e.message);});
 }
@@ -92,5 +96,14 @@ try{
  await a.locator('[data-gc-action="screen"]').click();
  await waitFor(b,()=>[...document.querySelectorAll('.gc-tile:not(.gc-is-self) video')].some(v=>v.videoWidth>0&&v.videoHeight>0),'B não recebeu a tela de A');
  console.log('PASS: câmera e tela recebidas por outro navegador via WebRTC real');
-}catch(e){console.error('FAIL:',e.message);console.error(errors.join('\\n'));process.exitCode=1;}
+}catch(e){
+ console.error('FAIL:',e.message);
+ for(const [p,label] of [[a,'A'],[b,'B']]){
+  console.error('STATE '+label,await p.evaluate(()=>{
+   const S=window.__callInspect?.S;
+   return {active:window.uentzoulGroupCalls?.active,dialog:document.querySelector('.gc-window')?.innerText.slice(0,700),status:document.querySelector('[data-gc-status]')?.textContent,stats:S?{stage:S.stage,peers:S.peers.size}:null};
+  }).catch(err=>'Page exception: '+err.message));
+ }
+ console.error(errors.join('\n'));process.exitCode=1;
+}
 finally{await browser.close();server.close();}
