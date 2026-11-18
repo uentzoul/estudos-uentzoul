@@ -2171,6 +2171,164 @@ html[data-theme="dark"] .tz-library-download{background:#26374c;border-color:#45
 <link id="pm-chat-stickers-css" rel="stylesheet" href="chat-stickers.css?v=20261114-stickers-v2">
 <link id="pm-chat-sticker-personal-css" rel="stylesheet" href="chat-sticker-personal.css?v=20261116-pacotes-pessoais-v1">
 <link rel="stylesheet" href="member-since.css?v=20261114-member-v1">
+<style id="pm-materials-refresh-20261118">
+/* Materiais e Textos: decoração somente, sem tocar nas rotas, listas ou ações. */
+:root{--mt-border:#e5e6ed;--mt-ink:#2c3040;--mt-muted:#747988;--mt-paper:#fff;--mt-soft:#faf9fc;--mt-icon:#f1eef8;--mt-icon-ink:#6e5d9e}
+html[data-theme=dark]{--mt-border:#41455e;--mt-ink:#f3f1fa;--mt-muted:#b7bdd0;--mt-paper:#25283c;--mt-soft:#2c3045;--mt-icon:#3d3856;--mt-icon-ink:#d4c8f5}
+/* Cabeçalhos de categoria, sem caixas externas competindo com os arquivos. */
+.subject-hub-area #docs .library-group{margin:0!important;padding:0!important;background:transparent!important;border:0!important;box-shadow:none!important}
+.subject-hub-area #docs .sectiontop{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px;margin-bottom:20px}
+.subject-hub-area #docs .sectiontop h2{font-size:clamp(18px,2.1vw,22px);font-weight:820;letter-spacing:-.4px}
+.subject-hub-area #docs .material-block,.library-page .course-detail-resources .material-block,.s1-library-organized .material-block{margin:0 0 27px!important;min-width:0}
+.subject-hub-area #docs .material-block+.material-block,.library-page .course-detail-resources .material-block+.material-block,.s1-library-organized .material-block+.material-block{border-top:1px solid var(--mt-border);padding-top:19px!important}
+.subject-hub-area #docs .material-block h3,.library-page .course-detail-resources .material-block h3,.s1-library-organized .material-block h3{
+ display:flex!important;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;
+ margin:0 0 12px!important;padding:0 2px!important;color:var(--mt-ink);
+ font-size:12px;line-height:1.5;font-weight:810;letter-spacing:0
+}
+.subject-hub-area #docs .material-block h3 span,.library-page .course-detail-resources .material-block h3 span,.s1-library-organized .material-block h3 span{
+ margin:0!important;padding:3px 9px!important;background:var(--mt-soft);border:1px solid var(--mt-border);
+ border-radius:20px;color:var(--mt-muted);font-size:10px;line-height:1.5;font-weight:660;white-space:nowrap
+}
+.subject-hub-area #docs .doclist,.library-page .course-detail-resources .doclist,.s1-library-organized .doclist{
+ display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;
+ min-width:0;align-items:stretch;gap:10px!important
+}
+/* Cartões originais mantidos intactos: link do arquivo e marcação de visto separados. */
+.subject-hub-area #docs .doc-compact,.s1-library-organized .doc-compact{
+ position:relative;isolation:isolate;display:flex;align-items:stretch;box-sizing:border-box;
+ width:100%;min-width:0;min-height:86px;height:100%;padding:0!important;margin:0!important;
+ border:1px solid var(--mt-border)!important;border-radius:13px!important;overflow:hidden;
+ background:var(--mt-paper)!important;box-shadow:none!important;
+ transition:background-color .18s,border-color .18s,box-shadow .18s
+}
+.subject-hub-area #docs .doc-compact.is-available:hover,.subject-hub-area #docs .doc-compact:focus-within,
+.s1-library-organized .doc-compact.is-available:hover,.s1-library-organized .doc-compact:focus-within{
+ transform:none!important;background:var(--mt-soft)!important;border-color:#aaa0cb!important;box-shadow:0 4px 14px #2721410c!important
+}
+.subject-hub-area #docs .doc-compact .doc-full-link,.s1-library-organized .doc-compact .doc-full-link{
+ display:flex;align-items:center;gap:11px;flex:1;min-width:0;max-width:100%;padding:13px 8px 13px 13px;
+ color:var(--mt-ink);text-decoration:none
+}
+.subject-hub-area #docs .doc-compact .docicon,.s1-library-organized .doc-compact .docicon{
+ display:grid;place-items:center;flex:0 0 39px;width:39px;height:44px;min-width:39px;margin:0;
+ background:var(--mt-icon);color:var(--mt-icon-ink);border-radius:10px;font-weight:860;font-size:10px
+}
+.subject-hub-area #docs .doc-compact .docname,.s1-library-organized .doc-compact .docname{
+ flex:1;min-width:0;margin:0;color:var(--mt-ink);font-size:13px;font-weight:745;
+ line-height:1.43;letter-spacing:-.12px;overflow-wrap:anywhere;word-break:normal;white-space:normal
+}
+.subject-hub-area #docs .doc-compact .doc-open-arrow,.s1-library-organized .doc-compact .doc-open-arrow{
+ flex:0 0 18px;margin-left:auto;font-size:17px;color:var(--mt-muted);transition:transform .2s
+}
+.subject-hub-area #docs .doc-compact:hover .doc-open-arrow,.s1-library-organized .doc-compact:hover .doc-open-arrow{transform:translate(2px,-2px)}
+.subject-hub-area #docs .doc-compact .doc-check,.s1-library-organized .doc-compact .doc-check{
+ flex:0 0 auto;display:flex;align-items:center;justify-content:center;min-width:48px;position:relative;z-index:3;padding:7px 10px 7px 0
+}
+.subject-hub-area #docs .doc-compact .doc-check .donecontrol,.s1-library-organized .doc-compact .doc-check .donecontrol{
+ min-height:36px;margin:0;padding:7px 8px;border-radius:9px;font-size:10px;white-space:nowrap
+}
+.subject-hub-area #docs .doc-compact .pm-exam-badge,.s1-library-organized .doc-compact .pm-exam-badge{font-size:9px;max-width:100%;white-space:normal}
+.subject-hub-area #docs .doc-compact .pm-scheduled-file-label,.s1-library-organized .doc-compact .pm-scheduled-file-label{font-size:9px;max-width:100%;white-space:normal}
+/* Acervo geral: ocupa metade da altura anterior e conserva o mesmo link clicável. */
+.library-page .course-detail-resources .doc.library-resource{
+ position:relative;isolation:isolate;box-sizing:border-box;display:flex;flex-direction:row;align-items:stretch;
+ min-width:0;width:100%;min-height:88px;height:100%;padding:0!important;overflow:hidden;
+ border:1px solid var(--mt-border)!important;border-radius:13px!important;
+ background:var(--mt-paper)!important;box-shadow:none!important;transition:background-color .18s,border-color .18s,box-shadow .18s
+}
+.library-page .course-detail-resources .library-resource::before{display:none}
+.library-page .course-detail-resources .library-resource.is-available:hover,.library-page .course-detail-resources .library-resource.is-available:focus-within{
+ transform:none!important;background:var(--mt-soft)!important;border-color:#aaa0cb!important;box-shadow:0 4px 14px #2721410c!important
+}
+.library-page .course-detail-resources .library-resource-main{
+ display:flex;align-items:center;gap:11px;min-width:0;flex:1;padding:13px 8px 13px 13px;color:var(--mt-ink);text-decoration:none
+}
+.library-page .course-detail-resources .library-resource-icon{
+ display:grid;place-items:center;flex:0 0 39px;width:39px;height:44px;min-width:39px;margin:0;
+ background:var(--mt-icon);color:var(--mt-icon-ink);border-radius:10px;font-weight:860;font-size:10px;transform:none!important
+}
+.library-page .course-detail-resources .library-resource-copy{display:flex;min-width:0;flex:1;justify-content:center;gap:4px;overflow-wrap:anywhere}
+.library-page .course-detail-resources .library-resource .docname{
+ font-size:13px;font-weight:745;line-height:1.43;letter-spacing:-.12px;color:var(--mt-ink);
+ overflow-wrap:anywhere;word-break:normal
+}
+.library-page .course-detail-resources .library-resource-arrow{
+ flex:0 0 18px;margin-left:auto;font-size:17px;color:var(--mt-muted);transform:none
+}
+.library-page .course-detail-resources .library-resource-bottom{
+ display:flex;align-items:center;justify-content:center;flex:0 0 auto;
+ position:relative;z-index:3;pointer-events:none;min-width:48px;min-height:0;
+ margin:0;padding:7px 10px 7px 0;border:0
+}
+.library-page .course-detail-resources .library-resource-progress{pointer-events:auto;display:flex;align-items:center;justify-content:center;min-width:0}
+.library-page .course-detail-resources .library-resource-progress .donecontrol{min-height:36px;padding:7px 8px;border-radius:9px;font-size:10px}
+/* Guias por semana: accordions mantêm sua estrutura e seus controles. */
+.subject-hub-area #docs .pm-material-tabs,.s1-library-organized .pm-material-tabs{
+ padding:5px;max-width:580px;margin:12px 0 18px;border-radius:13px;border-color:var(--mt-border);background:var(--mt-soft)
+}
+.subject-hub-area #docs .pm-material-tabs button,.s1-library-organized .pm-material-tabs button{min-height:42px;font-size:12px;border-radius:9px}
+.subject-hub-area #docs .pm-material-tabs button[aria-selected=true],.s1-library-organized .pm-material-tabs button[aria-selected=true]{
+ background:var(--mt-paper);border-color:var(--mt-border);color:var(--mt-ink);box-shadow:0 2px 8px #251a3610
+}
+.subject-hub-area #docs .pm-weeks-intro,.s1-library-organized .pm-weeks-intro{
+ margin:0 0 16px;padding:13px 16px;border:1px solid var(--mt-border);border-radius:12px;background:var(--mt-soft)
+}
+.subject-hub-area #docs .pm-weeks-intro strong,.s1-library-organized .pm-weeks-intro strong{font-size:13px}
+.subject-hub-area #docs .pm-weeks-intro p,.s1-library-organized .pm-weeks-intro p{font-size:11.5px;line-height:1.6}
+.subject-hub-area #docs .pm-week-group,.s1-library-organized .pm-week-group{
+ border:1px solid var(--mt-border);border-radius:14px;background:var(--mt-paper);box-shadow:none
+}
+.subject-hub-area #docs .pm-week-group>summary,.s1-library-organized .pm-week-group>summary{min-height:62px;padding:14px 16px;gap:10px}
+.subject-hub-area #docs .pm-week-group>summary strong,.s1-library-organized .pm-week-group>summary strong{font-size:13px;line-height:1.4}
+.subject-hub-area #docs .pm-week-group>summary small,.s1-library-organized .pm-week-group>summary small{font-size:10px;color:var(--mt-muted)}
+.subject-hub-area #docs .pm-week-number,.s1-library-organized .pm-week-number{
+ border-radius:8px;background:var(--mt-icon);color:var(--mt-icon-ink);font-size:10px;letter-spacing:0
+}
+.subject-hub-area #docs .pm-week-content,.s1-library-organized .pm-week-content{
+ display:grid;grid-template-columns:repeat(2,minmax(0,1fr));align-items:stretch;
+ gap:10px;padding:13px 15px 16px;border-color:var(--mt-border)
+}
+.subject-hub-area #docs .pm-week-row,.s1-library-organized .pm-week-row{min-width:0;margin:0;padding:0;gap:7px}
+.subject-hub-area #docs .pm-week-empty,.s1-library-organized .pm-week-empty{grid-column:1/-1}
+.subject-hub-area #docs .pm-week-row>.doc,.s1-library-organized .pm-week-row>.doc{min-width:0;max-width:100%}
+/* Regras móveis: nenhum arquivo sai da tela, nem o botão de visto. */
+@media(max-width:1120px){
+ .subject-hub-area #docs .doclist,.library-page .course-detail-resources .doclist,.s1-library-organized .doclist,
+ .subject-hub-area #docs .pm-week-content,.s1-library-organized .pm-week-content{grid-template-columns:minmax(0,1fr)!important}
+}
+@media(max-width:600px){
+ .subject-hub-area #docs .doclist,.library-page .course-detail-resources .doclist,.s1-library-organized .doclist,
+ .subject-hub-area #docs .pm-week-content,.s1-library-organized .pm-week-content{gap:8px!important}
+ .subject-hub-area #docs .doc-compact,.library-page .course-detail-resources .doc.library-resource,.s1-library-organized .doc-compact{
+  min-height:84px!important;border-radius:12px!important
+ }
+ .subject-hub-area #docs .doc-compact .doc-full-link,.library-page .course-detail-resources .library-resource-main,
+ .s1-library-organized .doc-compact .doc-full-link{gap:9px;padding:11px 7px 11px 10px}
+ .subject-hub-area #docs .doc-compact .docicon,.library-page .course-detail-resources .library-resource-icon,
+ .s1-library-organized .doc-compact .docicon{width:35px;height:39px;min-width:35px;flex-basis:35px;border-radius:9px;font-size:9px}
+ .subject-hub-area #docs .doc-compact .docname,.library-page .course-detail-resources .library-resource .docname,
+ .s1-library-organized .doc-compact .docname{font-size:12px;line-height:1.38}
+ .subject-hub-area #docs .doc-compact .doc-check,.library-page .course-detail-resources .library-resource-bottom,
+ .s1-library-organized .doc-compact .doc-check{min-width:42px;padding-right:7px}
+ .subject-hub-area #docs .doc-compact .donecontrol,.library-page .course-detail-resources .donecontrol,
+ .s1-library-organized .doc-compact .donecontrol{min-height:38px;padding:7px 6px;gap:4px;font-size:10px}
+ .subject-hub-area #docs .pm-week-group>summary,.s1-library-organized .pm-week-group>summary{padding:12px;min-height:58px}
+ .subject-hub-area #docs .pm-week-content,.s1-library-organized .pm-week-content{padding:10px 9px 12px}
+}
+@media(max-width:360px){
+ .subject-hub-area #docs .doc-compact .doc-open-arrow,.library-page .course-detail-resources .library-resource-arrow,
+ .s1-library-organized .doc-compact .doc-open-arrow{display:none}
+}
+@media(hover:none){
+ .subject-hub-area #docs .doc-compact:hover,.library-page .course-detail-resources .doc.library-resource:hover,
+ .s1-library-organized .doc-compact:hover{transform:none!important;box-shadow:none!important}
+}
+@media(prefers-reduced-motion:reduce){
+ .subject-hub-area #docs .doc-compact,.library-page .course-detail-resources .doc.library-resource,
+ .s1-library-organized .doc-compact{animation:none!important;transition:none!important}
+}
+</style>
 </head>
 <body>
 <section id="staticFallback" class="static-fallback" aria-label="Central de Estudos — modo de leitura compatível com celular">
