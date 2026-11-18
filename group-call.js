@@ -703,8 +703,10 @@ async function recoverHandshake(peer,urgent=false){
  if(pc.connectionState==='connected'||pc.iceConnectionState==='connected'||pc.iceConnectionState==='completed')return;
  if(S.key>peer.key){announcePeerReady(peer);return;}
  if(peer.busy)return;
+ let discardedOffer=false;
  if(pc.signalingState==='have-local-offer'){
   if(now-(peer.lastOfferAt||0)<(urgent?900:6500))return;
+  discardedOffer=true;
   peer.busy=true;
   try{await pc.setLocalDescription({type:'rollback'});}
   catch(e){console.warn('Falha ao recuperar oferta WebRTC',e);return;}
@@ -713,7 +715,9 @@ async function recoverHandshake(peer,urgent=false){
  if(S.stage!=='live'||S.peers.get(peer.key)!==peer||pc.signalingState!=='stable')return;
  if(peer.lastAnswerAt&&now-peer.lastAnswerAt<13000)return;
  if(!urgent&&now-(peer.lastOfferAt||0)<3500)return;
- await offer(peer,!!peer.lastAnswerAt);
+ // Se a primeira oferta (e seus candidatos ICE) se perdeu, reiniciar ICE
+ // para retransmitir candidatos utilizáveis depois que o outro entrou.
+ await offer(peer,discardedOffer||!!peer.lastAnswerAt);
 }
 function checkPeerConnections(){
  if(S.stage!=='live'||!S.channel)return;
