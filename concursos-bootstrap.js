@@ -97,7 +97,20 @@
     throw Error('Material do concurso indisponível ou incompleto');
    }
    window.CONCURSO_DATA=data;
-   await script('pm-concursos-app','concursos.js?v=20261118-hcpa5');
+   // A nova folha de estilos e o código do diário precisam ignorar a versão em cache.
+   const css=Array.from(document.querySelectorAll('link[rel="stylesheet"]')).find(el=>{
+    try{return new URL(el.href,location.href).pathname.endsWith('/concursos.css');}catch(_){return false;}
+   });
+   if(css){
+    const url=new URL(css.href,location.href);
+    url.searchParams.set('v','20261118-daily7');
+    css.href=url.toString();
+   }else{
+    const link=document.createElement('link');
+    link.rel='stylesheet';link.href='concursos.css?v=20261118-daily7';
+    document.head.appendChild(link);
+   }
+   await script('pm-concursos-app','concursos.js?v=20261118-daily7');
    loaded=true;
   }catch(error){console.warn('Concursos: acesso ainda indisponível',error);if(onlyContest())lockRoute();}
   finally{loading=false;}
