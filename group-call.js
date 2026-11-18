@@ -669,8 +669,9 @@ function iceConfig(){
  return {iceServers:[...defaults,...extra],bundlePolicy:'max-bundle'};
 }
 function signal(to,body){
- if(!S.channel||S.stage!=='live')return Promise.resolve();
+ if(!S.channel?.send||S.stage!=='live')return Promise.resolve();
  return S.channel.send({type:'broadcast',event:'webrtc',payload:{from:S.key,to,...body}})
+ .then(result=>{if(result==='error'||result==='timed out')throw Error('Falha no Broadcast: '+result);})
  .catch(e=>console.warn('Falha de sinalização',e));
 }
 async function offer(peer,iceRestart=false){
