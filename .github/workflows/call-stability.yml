@@ -6,11 +6,13 @@ on:
     paths:
       - 'group-call.js'
       - 'tests/group-call-*.test.mjs'
+      - 'tests/group-call-e2e.mjs'
       - '.github/workflows/call-stability.yml'
   pull_request:
     paths:
       - 'group-call.js'
       - 'tests/group-call-*.test.mjs'
+      - 'tests/group-call-e2e.mjs'
       - '.github/workflows/call-stability.yml'
   workflow_dispatch:
 
