@@ -776,6 +776,39 @@ async function recoverHandshake(peer,urgent=false){
  // para retransmitir candidatos utilizáveis depois que o outro entrou.
  await offer(peer,discardedOffer||!!peer.lastAnswerAt);
 }
+async function callDiagnostics(){
+ const peers=await Promise.all([...S.peers.values()].map(async(peer,i)=>{
+  let selectedType='desconhecido',remoteType='desconhecido';
+  try{
+   const stats=await peer.pc.getStats();
+   let pair=null;
+   stats.forEach(s=>{
+    if(s.type==='transport'&&s.selectedCandidatePairId)pair=stats.get(s.selectedCandidatePairId)||pair;
+    if(!pair&&s.type==='candidate-pair'&&s.nominated&&s.state==='succeeded')pair=s;
+   });
+   const local=pair?.localCandidateId?stats.get(pair.localCandidateId):null;
+   const remote=pair?.remoteCandidateId?stats.get(pair.remoteCandidateId):null;
+   selectedType=local?.candidateType||'não selecionado';
+   remoteType=remote?.candidateType||'não selecionado';
+  }catch(_){}
+  return {
+   participant:i+1,connection:peer.pc.connectionState,
+   ice:peer.pc.iceConnectionState,signaling:peer.pc.signalingState,
+   localCandidateType:selectedType,remoteCandidateType:remoteType,
+   cameraSender:peer.videoSender?.track?.readyState||'nenhuma',
+   incomingVideoTracks:peer.stream.getVideoTracks().map(t=>({ready:t.readyState,muted:t.muted})),
+   iceErrorCodes:(peer.iceErrors||[]).slice(-5)
+  };
+ }));
+ return {
+  date:new Date().toISOString(),
+  relayConfigured:hasTurn(),
+  turnServiceStatus:S.turnStatus,
+  callState:S.stage,
+  participantCount:S.presence.size,
+  peers
+ };
+}
 function checkPeerConnections(){
  if(S.stage!=='live'||!S.channel)return;
  const now=Date.now();
@@ -860,7 +893,7 @@ function ensurePeer(key){
  const initiator=S.key<key;
  const audioSender=initiator?pc.addTransceiver('audio',{direction:'sendrecv'}).sender:null;
  const videoSender=initiator?pc.addTransceiver('video',{direction:'sendrecv'}).sender:null;
- const peer={key,pc,audioSender,videoSender,stream:new MediaStream(),audioStream:new MediaStream(),candidates:[],busy:false,retries:0,recoveryTimer:null,departTimer:null,mediaTimer:null,lastMediaRequestAt:0,videoMissingSince:0,lastVideoRecoverAt:0,lastOfferAt:0,lastAnswerAt:0,lastReadyAt:0,missingSince:0,lastConnectionNotice:0};
+ const peer={key,pc,audioSender,videoSender,stream:new MediaStream(),audioStream:new MediaStream(),candidates:[],iceErrors:[],busy:false,retries:0,recoveryTimer:null,departTimer:null,mediaTimer:null,lastMediaRequestAt:0,videoMissingSince:0,lastVideoRecoverAt:0,lastOfferAt:0,lastAnswerAt:0,lastReadyAt:0,missingSince:0,lastConnectionNotice:0};
  S.peers.set(key,peer);
  if(audioSender&&S.audio)void audioSender.replaceTrack(S.audio).catch(e=>console.warn('Falha ao associar microfone ao iniciador',e));
  if(videoSender&&(S.display||S.camera))void videoSender.replaceTrack(S.display||S.camera)
@@ -876,6 +909,11 @@ function ensurePeer(key){
   tiles();
  };
  pc.onicecandidate=event=>{if(event.candidate)void signal(key,{candidate:event.candidate.toJSON?.()||event.candidate});};
+ pc.onicecandidateerror=event=>{
+  if(!S.peers.has(key))return;
+  if(peer.iceErrors.length>=12)peer.iceErrors.shift();
+  peer.iceErrors.push(Number(event.errorCode)||0);
+ };
  pc.onnegotiationneeded=()=>{if(S.key<key)void offer(peer);};
  pc.onconnectionstatechange=()=>{
   if(pc.connectionState==='failed'||pc.connectionState==='disconnected')schedulePeerRecovery(peer);
@@ -1177,7 +1215,9 @@ function panelDraw(){
  }else{
   body='<div class="gc-device-section"><p>Escolha o microfone e a câmera desta chamada.</p>'+
    '<label>Selecionar microfone<select data-gc-device="audio" aria-label="Selecionar microfone"><option value="">Padrão do sistema</option></select></label>'+
-   '<label>Selecionar câmera<select data-gc-device="video" aria-label="Selecionar câmera"><option value="">Padrão do sistema</option></select></label></div>';
+   '<label>Selecionar câmera<select data-gc-device="video" aria-label="Selecionar câmera"><option value="">Padrão do sistema</option></select></label>'+
+   '<div class="gc-network-diagnostic"><small>'+ (hasTurn()?'Relay de rede disponível':'Relay de rede não configurado') +'</small>'+
+   '<button type="button" data-gc-action="copy-diagnostics">Copiar diagnóstico da conexão</button></div></div>';
  }
  const signature=S.panel+'|'+(S.panel==='chat'?S.chat.map(m=>m.id).join(','):
   S.panel==='members'?JSON.stringify([...S.presence.entries()].map(([k,m])=>[k,m.mic,m.cam,m.hand,m.screen,callAvatarUrl(m.userId)])):
@@ -1336,6 +1376,21 @@ async function actions(event){
  case 'audio-play':{
   enablePeerSounds();
   status('Áudio dos participantes ativado quando permitido pelo navegador.',3);
+  break;
+ }
+ case 'copy-diagnostics':{
+  const summary=JSON.stringify(await callDiagnostics(),null,2);
+  try{
+   await navigator.clipboard.writeText(summary);
+   status('Diagnóstico de rede copiado. Ele não inclui IP nem identificação dos participantes.',7);
+  }catch(_){
+   const input=document.createElement('textarea');
+   input.value=summary;input.style.position='fixed';input.style.left='-10000px';
+   document.body.appendChild(input);input.select();
+   let copied=false;try{copied=document.execCommand('copy')}catch(_){}
+   input.remove();
+   status(copied?'Diagnóstico de rede copiado.':'Cópia bloqueada pelo navegador.',7);
+  }
   break;
  }
  case 'fullscreen':{
