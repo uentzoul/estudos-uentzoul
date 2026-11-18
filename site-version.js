@@ -257,6 +257,7 @@ setTimeout(check,15000);
  let previewOpen=false,lastExplicitNav=0,permissionLostSince=0,pendingOpenAfterLogin=false;
  const account=()=>{const u=window.uentzoulAIAuth?.user?.();return u?.id&&u.is_anonymous!==true?u:null;};
  const loggedIn=()=>!!account();
+ const contestLocked=()=>window.uentzoulContestAccess?.isOnlyContest?.()===true;
  // A restrição é pelo tipo de aparelho, não apenas pela largura da janela.
  // iPad e tablets Android continuam disponíveis, mesmo com viewport estreito.
  function isNotebookPhone(){
@@ -325,6 +326,7 @@ setTimeout(check,15000);
  // Chamado apenas por navegação real; atualizações em segundo plano não fecham o caderno.
  window.PSICO_NOTEBOOK_CLOSE=deactivate;
  function restoreNotebookIfStolen(){
+  if(contestLocked()){if(previewOpen)deactivate();return;}
   if(!previewOpen||document.getElementById(FRAME_ID))return;
   if(performance.now()-lastExplicitNav<1500){deactivate();return;}
   // Atualização de outro painel não pode substituir silenciosamente o Caderno.
@@ -335,6 +337,8 @@ setTimeout(check,15000);
   }
  }
  function openPreview(){
+  // Acesso negado ao Caderno acadêmico para contas exclusivas de Concursos.
+  if(contestLocked()){pendingOpenAfterLogin=false;deactivate();return;}
   // Bloqueio efetivo, inclusive após autenticação ou chamadas diretas.
   if(isNotebookPhone())return;
   if(!loggedIn()){
@@ -397,24 +401,28 @@ setTimeout(check,15000);
   if(button.parentNode!==el||exam?.nextElementSibling!==button){
    if(exam)exam.after(button);else el.appendChild(button);
   }
-  const phone=isNotebookPhone();
+  const phone=isNotebookPhone(),locked=contestLocked(),unavailable=phone||locked;
   document.documentElement.dataset.pmNotebookPhone=String(phone);
-  const allowed=loggedIn();
+  const allowed=loggedIn()&&!locked;
+  if(locked&&previewOpen)deactivate();
   if(previewOpen)fitNotebookHeight();
   // O item aparece desde o primeiro instante; visitas sem conta abrem o login.
   button.hidden=false;
   if(button.style.display)button.style.removeProperty('display');
   if(button.style.visibility)button.style.removeProperty('visibility');
-  button.disabled=phone;
+  button.disabled=unavailable;
   button.classList.toggle('nb-phone-locked',phone);
+  button.classList.toggle('nb-contest-locked',locked);
   button.querySelector('.nb-preview-label')?.remove();
-  const label=phone?'Caderno indisponível no celular. Use um computador ou tablet.':
+  const label=locked?'Caderno indisponível para contas de Concursos':
+    phone?'Caderno indisponível no celular. Use um computador ou tablet.':
     allowed?'Abrir meus cadernos de '+selectedSemester():
     'Caderno: entre ou crie uma conta para salvar anotações';
   if(button.getAttribute('aria-label')!==label)button.setAttribute('aria-label',label);
-  if(button.getAttribute('aria-disabled')!==String(phone))button.setAttribute('aria-disabled',String(phone));
+  if(button.getAttribute('aria-disabled')!==String(unavailable))button.setAttribute('aria-disabled',String(unavailable));
   if(button.hasAttribute('aria-hidden'))button.removeAttribute('aria-hidden');
-  const title=phone?'Caderno disponível somente em computador ou tablet':
+  const title=locked?'Caderno indisponível para contas de Concursos':
+    phone?'Caderno disponível somente em computador ou tablet':
     allowed?'Caderno · minhas anotações':'Caderno · entre ou crie sua conta';
   if(button.title!==title)button.title=title;
   if(previewOpen&&!allowed){
