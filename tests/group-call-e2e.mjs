@@ -71,7 +71,7 @@ const server=createServer((req,res)=>{
 });
 server.listen(0,'127.0.0.1');await once(server,'listening');
 const root='http://127.0.0.1:'+server.address().port;
-const browser=await chromium.launch({headless:true,args:[
+const browser=await chromium.launch({channel:'chrome',headless:true,args:[
  '--use-fake-ui-for-media-stream','--use-fake-device-for-media-stream',
  '--autoplay-policy=no-user-gesture-required','--no-sandbox'
 ]});
