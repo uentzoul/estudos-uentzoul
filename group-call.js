@@ -672,7 +672,7 @@ async function endScreen(){
 function validTurnServer(server){
  if(!server||typeof server!=='object')return false;
  const urls=Array.isArray(server.urls)?server.urls:[server.urls];
- return urls.some(u=>typeof u==='string'&&/^turns?:[^\\s]+$/i.test(u))&&
+ return urls.some(u=>typeof u==='string'&&/^turns?:\S+$/i.test(u))&&
   typeof server.username==='string'&&!!server.username&&typeof server.credential==='string'&&!!server.credential;
 }
 function iceConfig(){
