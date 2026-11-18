@@ -28,7 +28,7 @@ const dateOf=i=>new Date(Date.UTC(2026,10,19+i)).toISOString().slice(0,10);
 const shortDate=s=>s.slice(8)+'/'+s.slice(5,7);
 const shuffle=a=>a.map(v=>({v,r:Math.random()})).sort((a,b)=>a.r-b.r).map(x=>x.v);
 const doneCount=()=>Object.values(store.completed).filter(Boolean).length;
-const acc=()=>{const a=Object.values(store.answers);return a.length?Math.round(a.filter(x=>x.correct).length/a.length*100):0;};
+const acc=()=>{const a=Object.entries(store.answers).filter(([id])=>!!qById[id]).map(([,v])=>v);return a.length?Math.round(a.filter(x=>x.correct).length/a.length*100):0;};
 function toast(message){
  let el=$('concursosToast');
  if(!el){el=document.createElement('div');el.id='concursosToast';el.style.cssText='position:fixed;z-index:100000;bottom:18px;right:16px;max-width:320px;padding:13px 17px;background:#302b46;color:#fff;border-radius:12px;box-shadow:0 8px 28px #0004;font:600 13px system-ui';document.body.append(el);}
@@ -42,6 +42,11 @@ async function load(){
  store={...defaultState(),...d};
  if(!Array.isArray(store.plan))store.plan=[];
  for(const k of ['settings','completed','answers','flashcards','notes'])if(!store[k]||Array.isArray(store[k])||typeof store[k]!=='object')store[k]={};
+ // Amplia planos antigos sem apagar dias concluídos, respostas, flashcards ou anotações.
+ if(store.plan.length===24&&store.plan.some(d=>!Array.isArray(d.topics)||d.topics.length<6)){
+  store.plan=plan(store.plan);
+  await save();
+ }
 }
 async function save(){
  const c=client(),id=rights.id;if(!c||!id||!allowed())return;
@@ -139,7 +144,7 @@ function heading(title,subtitle){
 }
 function header(){
  const percent=Math.round(doneCount()/24*100);
- return '<section class="co-hero"><div class="co-hero-top"><div><p class="co-kicker">Prova · 13 de dezembro de 2026</p><h1>Assistente Administrativo II</h1><p class="co-muted">19/11 a 12/12 · 24 dias · até 1 hora por dia</p></div><span class="co-pill">HCPA</span></div><div class="co-stats"><div class="co-stat"><strong>'+doneCount()+'/24</strong><small>Dias concluídos</small></div><div class="co-stat"><strong>'+percent+'%</strong><small>Progresso diário</small></div><div class="co-stat"><strong>'+acc()+'%</strong><small>Acertos registrados</small></div><div class="co-stat"><strong>200</strong><small>Questões disponíveis</small></div></div><div class="co-progress-track"><span style="width:'+percent+'%"></span></div></section>';
+ return '<section class="co-hero"><div class="co-hero-top"><div><p class="co-kicker">Prova · 13 de dezembro de 2026</p><h1>Assistente Administrativo II</h1><p class="co-muted">19/11 a 12/12 · 24 dias · cerca de 1h40 por dia</p></div><span class="co-pill">HCPA</span></div><div class="co-stats"><div class="co-stat"><strong>'+doneCount()+'/24</strong><small>Dias concluídos</small></div><div class="co-stat"><strong>'+percent+'%</strong><small>Progresso diário</small></div><div class="co-stat"><strong>'+acc()+'%</strong><small>Acertos registrados</small></div><div class="co-stat"><strong>200</strong><small>Questões disponíveis</small></div></div><div class="co-progress-track"><span style="width:'+percent+'%"></span></div></section>';
 }
 function tabs(){
  return '<nav class="co-tabs" aria-label="Ferramentas Concursos">'+
@@ -149,11 +154,11 @@ function tabs(){
 function home(){
  let content=header()+tabs();
  if(!store.plan.length){
-  content+='<section class="co-card"><p class="co-kicker">Primeiro acesso</p><h2>Crie seu plano de estudo personalizado</h2><p>Indique em quais assuntos você já tem segurança e quais exigem mais atenção. O cronograma ajusta a prioridade dos temas ao peso da prova e limita cada dia a 60 minutos.</p>'+b('tab','Escolher minhas prioridades','data-tab="configurar"','co-btn co-btn-primary')+'</section>';
+  content+='<section class="co-card"><p class="co-kicker">Primeiro acesso</p><h2>Crie seu plano de estudo personalizado</h2><p>Indique em quais assuntos você já tem segurança e quais exigem mais atenção. Cada dia reúne seis assuntos, questões e flashcards na mesma página, com cerca de 1h40 de estudo.</p>'+b('tab','Escolher minhas prioridades','data-tab="configurar"','co-btn co-btn-primary')+'</section>';
  }else{
-  content+='<div class="co-row co-between"><div><h2>Seu cronograma de estudos</h2><p class="co-muted">Clique em qualquer cartão para abrir o estudo completo do dia.</p></div>'+b('tab','Alterar prioridades','data-tab="configurar"')+'</div>';
+  content+='<div class="co-row co-between"><div><h2>Seu cronograma de estudos</h2><p class="co-muted">Abra um dia para estudar seis assuntos, responder questões e revisar flashcards sem sair da página.</p></div>'+b('tab','Alterar prioridades','data-tab="configurar"')+'</div>';
   content+='<div class="co-grid">'+store.plan.map((day,i)=>
-   '<button type="button" data-co="open-day" data-day="'+i+'" class="co-card co-day '+(store.completed[day.date]?'co-done':'')+'"><span class="co-day-number">Dia '+(i+1)+'</span><span class="co-day-date">'+shortDate(day.date)+'</span><span class="co-day-label">'+esc(day.topics.map(t=>topics[t]?.title||t).join(' + '))+'</span><span class="co-day-status">'+(store.completed[day.date]?'✓ Concluído':'Abrir · 60 min')+'</span></button>').join('')+'</div>';
+   '<button type="button" data-co="open-day" data-day="'+i+'" class="co-card co-day '+(store.completed[day.date]?'co-done':'')+'"><span class="co-day-number">Dia '+(i+1)+'</span><span class="co-day-date">'+shortDate(day.date)+'</span><span class="co-day-label">'+esc(day.topics.map(t=>topics[t]?.title||t).join(' + '))+'</span><span class="co-day-status">'+(store.completed[day.date]?'✓ Concluído':'Abrir · cerca de 1h40')+'</span></button>').join('')+'</div>';
  }
  renderHTML(content);
 }
@@ -171,23 +176,36 @@ function setup(){
  html+='<div class="co-row co-between"><p class="co-muted">Reconfigurar o cronograma reinicia os cartões concluídos, mas mantém respostas e flashcards.</p>'+b('generate','Gerar meu plano de estudos','','co-btn co-btn-primary')+'</div>';
  renderHTML(html);
 }
-function plan(){
- const permitted=D.topics.filter(t=>settingsFor(t.id)!=='domino'),pool=permitted.length?permitted:D.topics;
+function plan(previous=[]){
+ const permitted=D.topics.filter(t=>settingsFor(t.id)!=='domino');
+ const pool=permitted.length?permitted:D.topics;
  const usage=Object.fromEntries(pool.map(t=>[t.id,0]));
  const out=[];
  for(let d=0;d<24;d++){
-  const picked=[];
-  for(let slot=0;slot<2;slot++){
+  // Conservar os assuntos que já estavam previstos nos planos antigos.
+  const old=Array.isArray(previous[d]?.topics)?previous[d].topics.filter(id=>pool.some(t=>t.id===id)):[];
+  const picked=[...new Set(old)].slice(0,6);
+  picked.forEach(id=>{usage[id]++;});
+  while(picked.length<6){
    let candidates=pool.filter(t=>!picked.includes(t.id));
-   if(slot===0&&candidates.some(t=>t.subject==='especificos'))candidates=candidates.filter(t=>t.subject==='especificos');
-   candidates.sort((a,b)=>{
-    const score=t=>(priorities[settingsFor(t.id)]||.1)*(t.subject==='especificos'?2.2:1)/(1+.6*usage[t.id]);
-    return score(b)-score(a)||a.id.localeCompare(b.id);
+   if(!candidates.length)break;
+   // Quatro temas específicos e dois básicos, respeitando prioridades pessoais.
+   const specificCount=picked.filter(id=>topics[id]?.subject==='especificos').length;
+   const generalCount=picked.length-specificCount;
+   const desired=specificCount<4&&(generalCount>=2||picked.length%3!==1)?'especificos':'geral';
+   let group=candidates.filter(t=>desired==='especificos'?t.subject==='especificos':t.subject!=='especificos');
+   if(!group.length)group=candidates;
+   group.sort((a,b)=>{
+    const score=t=>(priorities[settingsFor(t.id)]||.1)/(1+.72*usage[t.id]);
+    return score(b)-score(a)||((d+picked.length)%3===0?a.id.localeCompare(b.id):b.id.localeCompare(a.id));
    });
-   const choice=candidates[0];if(!choice)break;
-   picked.push(choice.id);usage[choice.id]++;
+   picked.push(group[0].id);usage[group[0].id]++;
   }
-  out.push({day:d+1,date:dateOf(d),topics:picked,minutes:d>=21?[15,35,10]:[25,25,10],review:d>=21?'Revisão final':(d+1)%5===0?'Revisão de consolidação':'Estudo orientado'});
+  out.push({
+   day:d+1,date:previous[d]?.date||dateOf(d),topics:picked,
+   minutes:d>=21?[25,55,20]:[35,45,20],
+   review:d>=21?'Revisão final':(d+1)%5===0?'Revisão de consolidação':'Estudo orientado'
+  });
  }
  return out;
 }
@@ -195,8 +213,8 @@ async function generate(){
  if(working)return;
  if(store.plan.length&&!confirm('Criar novo cronograma? Dias já concluídos serão reiniciados.'))return;
  working=true;
- renderHTML('<section class="co-loading" role="status" aria-live="polite"><p class="co-kicker">Planejamento personalizado</p><h1>Montando seus 24 dias</h1><p class="co-muted">Até 60 minutos por dia, de 19 de novembro a 12 de dezembro.</p><div class="co-progress-track"><span id="coLoadFill" style="width:0%"></span></div><div class="co-loading-log" id="coLoadLines"></div></section>');
- const steps=['Identificando os assuntos prioritários','Distribuindo matérias pelo peso da prova','Reservando tempo para questões e revisões','Organizando os 24 dias até a prova','Salvando o plano na sua conta'];
+ renderHTML('<section class="co-loading" role="status" aria-live="polite"><p class="co-kicker">Planejamento personalizado</p><h1>Montando seus 24 dias</h1><p class="co-muted">Seis assuntos, questões e flashcards por dia · cerca de 1h40.</p><div class="co-progress-track"><span id="coLoadFill" style="width:0%"></span></div><div class="co-loading-log" id="coLoadLines"></div></section>');
+ const steps=['Identificando os assuntos prioritários','Distribuindo seis assuntos por dia','Selecionando questões e flashcards para revisão','Organizando os 24 dias até a prova','Salvando o plano na sua conta'];
  for(let i=0;i<steps.length;i++){
   const el=document.createElement('p');el.className='current';el.textContent='◌ '+steps[i];$('coLoadLines')?.appendChild(el);
   await new Promise(resolve=>setTimeout(resolve,350));
@@ -215,15 +233,118 @@ function guide(topic){
   t.check.map(q=>'<li style="margin:7px 0">'+esc(q)+'</li>').join('')+'</ol></section>':'';
  return '<div class="co-guide">'+reading+glossary+check+'</div>';
 }
+// Conjuntos determinísticos: avançam pelo banco ao longo dos dias e não mudam a cada render.
+function dailyItems(items,topicIds,count,number){
+ return topicIds.flatMap((topic,index)=>{
+  const pool=items.filter(item=>item.topic===topic);
+  if(!pool.length)return [];
+  const start=((number-1)*count+index)%pool.length;
+  return Array.from({length:Math.min(count,pool.length)},(_,i)=>pool[(start+i)%pool.length]);
+ });
+}
+const dailyAnswerKey=(d,q)=>'daily:'+d.date+':'+q.id;
+const dailyCardKey=(d,c)=>'daily:'+d.date+':'+c.id;
+const dayFlipped=new Set();
+function dailyQuestion(q,index,total,d){
+ const key=dailyAnswerKey(d,q),a=store.answers[key],selected=Number.isInteger(a?.answer)?a.answer:null;
+ return '<article class="co-day-question" data-co-question="'+esc(q.id)+'" data-co-index="'+index+'">'+
+ '<div class="co-day-item-top"><span class="co-day-counter">Questão '+(index+1)+' de '+total+'</span><span class="co-day-tag">'+esc(topics[q.topic]?.title||'Assunto')+'</span></div>'+
+ '<h3>'+esc(q.stem)+'</h3>'+
+ '<div class="co-choices">'+q.options.map((option,i)=>
+ '<button type="button" data-co="daily-answer" data-question="'+esc(q.id)+'" data-choice="'+i+'" class="co-choice '+(selected===null?'':i===q.answer?'co-correct':i===selected?'co-wrong':'')+'"'+(selected!==null?' disabled':'')+'>'+
+ '<span>'+String.fromCharCode(65+i)+'</span><span>'+esc(option)+'</span></button>').join('')+'</div>'+
+ (selected===null?'<p class="co-muted co-day-hint">Selecione uma alternativa para ver a correção.</p>':
+ '<section class="co-feedback" role="status"><strong>'+(selected===q.answer?'✓ Resposta correta':'Resposta incorreta · correta: '+String.fromCharCode(65+q.answer))+'</strong>'+
+ '<ol class="co-day-explanations">'+q.options.map((x,i)=>
+ '<li><strong>'+String.fromCharCode(65+i)+'. '+esc(x)+'</strong><p class="co-muted">'+esc(q.feedback[i]||'')+'</p></li>').join('')+'</ol></section>')+
+ '</article>';
+}
+function dailyFlashcard(c,index,total,d){
+ const key=dailyCardKey(d,c),flipped=dayFlipped.has(key);
+ const known=store.flashcards[key],rated=known===true||known===false;
+ return '<article class="co-day-flashcard" data-co-card="'+esc(c.id)+'" data-co-index="'+index+'">'+
+ '<div class="co-day-item-top"><span class="co-day-counter">Flashcard '+(index+1)+' de '+total+'</span><span class="co-day-tag">'+esc(topics[c.topic]?.title||'Assunto')+'</span></div>'+
+ '<button type="button" class="co-day-flip" data-co="daily-flip" data-card="'+esc(c.id)+'" aria-label="'+(flipped?'Mostrar pergunta':'Revelar resposta')+'">'+
+ '<small>'+(flipped?'RESPOSTA':'PERGUNTA')+'</small><strong>'+esc(flipped?c.back:c.front)+'</strong>'+
+ '<span>'+(flipped?'Toque para voltar à pergunta':'Toque para revelar a resposta')+'</span></button>'+
+ '<div class="co-day-flash-actions">'+
+ '<button type="button" class="co-btn'+(rated&&known===false?' co-day-chosen':'')+'" data-co="daily-rating" data-card="'+esc(c.id)+'" data-known="false" aria-pressed="'+(rated&&known===false)+'">Preciso revisar</button>'+
+ '<button type="button" class="co-btn'+(rated&&known===true?' co-day-chosen':'')+'" data-co="daily-rating" data-card="'+esc(c.id)+'" data-known="true" aria-pressed="'+(rated&&known===true)+'">Já sei</button>'+
+ '</div></article>';
+}
+function dailyProgress(d,qs,cs){
+ const answered=qs.filter(q=>Number.isInteger(store.answers[dailyAnswerKey(d,q)]?.answer)).length;
+ const rated=cs.filter(c=>typeof store.flashcards[dailyCardKey(d,c)]==='boolean').length;
+ const correct=qs.filter(q=>store.answers[dailyAnswerKey(d,q)]?.correct===true).length;
+ return {answered,rated,correct};
+}
+function refreshDailyProgress(){
+ if(view!=='dia')return;
+ const d=store.plan[dayIndex];if(!d)return;
+ const qs=dailyItems(D.questions,d.topics,3,d.day),cs=dailyItems(D.flashcards,d.topics,2,d.day);
+ const p=dailyProgress(d,qs,cs);
+ for(const [id,txt] of [['coDayAnswered',p.answered+' / '+qs.length],['coDayReviewed',p.rated+' / '+cs.length],['coDayCorrect',p.correct+' acertos']]){
+  const el=$(id);if(el)el.textContent=txt;
+ }
+ for(const [id,count,total] of [['coDayQuestionProgress',p.answered,qs.length],['coDayCardProgress',p.rated,cs.length]]){
+  const el=$(id);if(el)el.style.width=(total?count/total*100:0)+'%';
+ }
+}
+function updateDailyAnswer(id,choice){
+ const d=store.plan[dayIndex],q=qById[id];
+ if(!d||!q||!dailyItems(D.questions,d.topics,3,d.day).some(item=>item.id===id))return;
+ if(!Number.isInteger(choice)||choice<0||choice>=q.options.length)return;
+ const key=dailyAnswerKey(d,q);
+ if(Number.isInteger(store.answers[key]?.answer))return;
+ const entry={answer:choice,correct:choice===q.answer,at:new Date().toISOString()};
+ store.answers[key]=entry;
+ store.answers[q.id]=entry; // Também alimenta o histórico geral e a revisão de erros.
+ scheduleSave();
+ const el=Array.from(document.querySelectorAll('#main .co-day-question')).find(x=>x.dataset.coQuestion===id);
+ if(el)el.outerHTML=dailyQuestion(q,Number(el.dataset.coIndex),dailyItems(D.questions,d.topics,3,d.day).length,d);
+ refreshDailyProgress();
+}
+function updateDailyCard(id,type,known){
+ const d=store.plan[dayIndex],c=D.flashcards.find(item=>item.id===id);
+ if(!d||!c||!dailyItems(D.flashcards,d.topics,2,d.day).some(item=>item.id===id))return;
+ const key=dailyCardKey(d,c);
+ if(type==='flip'){
+  if(dayFlipped.has(key))dayFlipped.delete(key);else dayFlipped.add(key);
+ }else if(type==='rating'){
+  store.flashcards[key]=known;
+  store.flashcards[c.id]=known; // Sincroniza com a aba geral de flashcards.
+  scheduleSave();
+ }
+ const el=Array.from(document.querySelectorAll('#main .co-day-flashcard')).find(x=>x.dataset.coCard===id);
+ if(el)el.outerHTML=dailyFlashcard(c,Number(el.dataset.coIndex),dailyItems(D.flashcards,d.topics,2,d.day).length,d);
+ refreshDailyProgress();
+}
 function day(){
  const d=store.plan[dayIndex];if(!d)return go('inicio');
- const html=heading('Dia '+d.day+' · '+shortDate(d.date),d.review+' · 1 hora no máximo')+
- '<div class="co-grid" style="margin-bottom:15px">'+
- [['1. Ler e compreender',d.minutes[0]+' minutos'],['2. Resolver questões',d.minutes[1]+' minutos'],['3. Revisar flashcards',d.minutes[2]+' minutos']].map(([title,time])=>
- '<article class="co-card"><h3>'+title+'</h3><p class="co-muted">'+time+'</p></article>').join('')+'</div>'+
- d.topics.map(t=>'<section class="co-card" style="margin-bottom:12px"><h2>'+esc(topics[t]?.title||t)+'</h2>'+guide(t)+'</section>').join('')+
- '<div class="co-row">'+b('day-questions','Praticar questões','','co-btn co-btn-primary')+b('day-flashcards','Revisar flashcards')+b('complete-day',store.completed[d.date]?'✓ Concluído · desfazer':'✓ Concluir este dia')+'</div><p class="co-muted" style="margin-top:12px">Quando concluído, o cartão ficará verde no cronograma.</p>';
- renderHTML(html);
+ const qs=dailyItems(D.questions,d.topics,3,d.day),cs=dailyItems(D.flashcards,d.topics,2,d.day),p=dailyProgress(d,qs,cs);
+ const intro=heading('Dia '+d.day+' · '+shortDate(d.date),d.review+' · cerca de 1h40 de estudo, no seu ritmo');
+ const summary='<div class="co-day-overview" aria-label="Progresso do estudo do dia">'+
+ '<div><span>Assuntos</span><strong>'+d.topics.length+'</strong></div>'+
+ '<div><span>Questões respondidas</span><strong id="coDayAnswered">'+p.answered+' / '+qs.length+'</strong></div>'+
+ '<div><span>Flashcards revisados</span><strong id="coDayReviewed">'+p.rated+' / '+cs.length+'</strong></div>'+
+ '<div><span>Desempenho</span><strong id="coDayCorrect">'+p.correct+' acertos</strong></div></div>';
+ const theory='<section class="co-day-stage" aria-labelledby="coDayTheoryTitle">'+
+ '<div class="co-day-stage-head"><span class="co-day-stage-number">01</span><div><h2 id="coDayTheoryTitle">Ler e compreender</h2><p>Tempo sugerido: '+d.minutes[0]+' min · '+d.topics.length+' assuntos com conceitos, exemplos e perguntas de revisão.</p></div></div>'+
+ d.topics.map((id,i)=>'<article class="co-card co-day-reading"><div class="co-day-reading-head"><span>Assunto '+(i+1)+' de '+d.topics.length+'</span><span>'+esc(subjects[topics[id]?.subject]?.name||'')+'</span></div>'+
+ '<h3>'+esc(topics[id]?.title||id)+'</h3>'+guide(id)+'</article>').join('')+'</section>';
+ const questions='<section class="co-day-stage" aria-labelledby="coDayQuestionsTitle">'+
+ '<div class="co-day-stage-head"><span class="co-day-stage-number">02</span><div><h2 id="coDayQuestionsTitle">Resolver questões</h2>'+
+ '<p>Tempo sugerido: '+d.minutes[1]+' min · '+qs.length+' questões aqui mesmo. Responda e confira a explicação de cada alternativa.</p></div></div>'+
+ '<div class="co-day-progress-track"><span id="coDayQuestionProgress" style="width:'+(qs.length?p.answered/qs.length*100:0)+'%"></span></div>'+
+ '<div class="co-day-question-list">'+qs.map((q,i)=>dailyQuestion(q,i,qs.length,d)).join('')+'</div></section>';
+ const flash='<section class="co-day-stage" aria-labelledby="coDayFlashTitle">'+
+ '<div class="co-day-stage-head"><span class="co-day-stage-number">03</span><div><h2 id="coDayFlashTitle">Revisar flashcards</h2>'+
+ '<p>Tempo sugerido: '+d.minutes[2]+' min · '+cs.length+' cartões. Revele as respostas e marque o que já sabe.</p></div></div>'+
+ '<div class="co-day-progress-track"><span id="coDayCardProgress" style="width:'+(cs.length?p.rated/cs.length*100:0)+'%"></span></div>'+
+ '<div class="co-day-card-list">'+cs.map((c,i)=>dailyFlashcard(c,i,cs.length,d)).join('')+'</div></section>';
+ const footer='<section class="co-card co-day-finish"><div><h2>Concluir o estudo do dia</h2><p class="co-muted">O progresso de questões e flashcards é salvo automaticamente. Marque o dia como concluído quando terminar.</p></div>'+
+ b('complete-day',store.completed[d.date]?'✓ Dia concluído · desfazer':'✓ Marcar dia como concluído','','co-btn co-btn-primary')+'</section>';
+ renderHTML(intro+summary+theory+questions+flash+footer);
 }
 function notebook(){
  const selector='<select class="co-select" data-co-filter="notes" aria-label="Matéria do caderno">'+D.subjects.map(s=>'<option value="'+s.id+'" '+(noteSubject===s.id?'selected':'')+'>'+esc(s.name)+'</option>').join('')+'</select>';
@@ -387,14 +508,10 @@ document.addEventListener('click',e=>{
  if(cmd==='generate')void generate();
  if(cmd==='open-day'){dayIndex=Number(button.dataset.day)||0;go('dia');}
  if(cmd==='matter'){subject=button.dataset.subject;go('materia');}
- if(cmd==='complete-day'){const d=store.plan[dayIndex];if(d){store.completed[d.date]=!store.completed[d.date];scheduleSave();day();}}
- if(cmd==='day-questions'){
-  const d=store.plan[dayIndex];if(!d)return;
-  const ids=shuffle(D.questions.filter(q=>d.topics.includes(q.topic))).slice(0,12).map(q=>q.id);
-  if(!ids.length)return toast('Nenhuma questão encontrada neste dia.');
-  session={ids,index:0,selected:null,good:0,mode:'banco'};go('question');
- }
- if(cmd==='day-flashcards'){cardFilter=store.plan[dayIndex]?.topics[0]||'todos';cardIndex=0;cardFlipped=false;go('flashcards');}
+ if(cmd==='complete-day'){const d=store.plan[dayIndex];if(d){store.completed[d.date]=!store.completed[d.date];scheduleSave();const el=document.querySelector('#main .co-day-finish [data-co="complete-day"]');if(el)el.textContent=store.completed[d.date]?'✓ Dia concluído · desfazer':'✓ Marcar dia como concluído';}}
+ if(cmd==='daily-answer'){updateDailyAnswer(button.dataset.question,Number(button.dataset.choice));return;}
+ if(cmd==='daily-flip'){updateDailyCard(button.dataset.card,'flip');return;}
+ if(cmd==='daily-rating'){updateDailyCard(button.dataset.card,'rating',button.dataset.known==='true');return;}
  if(cmd==='questions')startQuestions(button.dataset.subject||subject,button.dataset.topic||null);
  if(cmd==='wrong')startQuestions('todos',null,true);
  if(cmd==='mini')mini(Number(button.dataset.size));
