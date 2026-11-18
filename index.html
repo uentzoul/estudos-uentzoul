@@ -2820,7 +2820,10 @@ window.uentzoulLibraryApp={
   const next=flag===true;
   if(libraryAdminEnabled===next)return;
   libraryAdminEnabled=next;
-  if(['2026/1','2026/2'].includes(semester)&&(current.page==='home'||current.page==='library'||current.page==='admin'||(current.page==='subject'&&current.subjectArea==='docs')))render();
+  if(['2026/1','2026/2'].includes(semester)){
+   if(current.page==='subject'&&current.subjectArea==='docs')scheduleDocsRefresh();
+   else if(['home','library','admin'].includes(current.page))render();
+  }
  },
  applyRows:rows=>{
   const next=new Map((rows||[]).map(r=>[r.resource_key,r]));
@@ -2881,13 +2884,9 @@ window.uentzoulLibraryApp={
   // Um upload pode terminar depois que a pessoa já entrou em Materiais e textos.
   // Repintar a tela em que ela está evita categorias falsamente vazias após
   // carregar, atualizar ou retornar diretamente para essa rota.
-  const inSubjectDocs=current.page==='subject'&&current.subjectArea==='docs';
-  const refreshDocs=inSubjectDocs&&!window.PSICO_MATERIAL_EDITOR?.isEditing?.();
-  if(changed&&['2026/1','2026/2'].includes(semester)&&
-    (current.page==='home'||current.page==='library'||refreshDocs)){
-   const previousScroll=window.scrollY;
-   render();
-   if(refreshDocs)requestAnimationFrame(()=>window.scrollTo({top:previousScroll,behavior:'instant'}));
+  if(changed&&['2026/1','2026/2'].includes(semester)){
+   if(current.page==='subject'&&current.subjectArea==='docs')scheduleDocsRefresh();
+   else if(current.page==='home'||current.page==='library')render();
   }
  },
  refresh:()=>{if(['2026/1','2026/2'].includes(semester)&&(current.page==='home'||current.page==='library'||current.page==='admin'))render()}
@@ -4808,7 +4807,7 @@ window.uentzoulAdminBridge={
   if(current.page==='subject'&&current.subjectArea==='topics')render();
  },
  adminLibrary:()=>libraryAdminPanel(),
- refreshNav:()=>{renderNav();if(current.page==='subject'&&current.subjectArea==='docs')render()},
+ refreshNav:()=>{renderNav();if(current.page==='subject'&&current.subjectArea==='docs')scheduleDocsRefresh()},
  rerenderAdmin:()=>{if(current.page==='admin')render()},
  goHome:()=>go('home')
 };
@@ -4899,6 +4898,36 @@ function renderThirdSemester(){
   '<section class="section"><div class="subject-hub-empty">Ainda não há podcasts disponíveis para '+period+'.</div></section>';
  return courseCards();
 }
+/* Atualização localizada de Materiais e textos.
+   Fontes assíncronas (uploads, categorias e semanas) podem responder juntas.
+   Coalescer as respostas evita reconstruir o <main> e causar piscadas. */
+let docsRefreshTimer=null;
+let docsRefreshCount=0;
+function scheduleDocsRefresh(){
+ if(current.page!=='subject'||current.subjectArea!=='docs')return;
+ if(window.PSICO_MATERIAL_EDITOR?.isEditing?.())return;
+ if(docsRefreshTimer!==null)clearTimeout(docsRefreshTimer);
+ const subject=current.subject,period=semester;
+ docsRefreshTimer=setTimeout(()=>{
+  docsRefreshTimer=null;
+  if(current.page!=='subject'||current.subjectArea!=='docs'||
+     current.subject!==subject||semester!==period||
+     window.PSICO_MATERIAL_EDITOR?.isEditing?.())return;
+  const existing=document.querySelector('#main #docs');
+  if(!existing)return;
+  try{
+   // Preparar o HTML fora da árvore visível para preservar todo o restante da página.
+   const stage=document.createElement('div');
+   stage.innerHTML=period==='2026/2'?renderSubject(subject):renderThirdSemester();
+   const next=stage.querySelector('#docs');
+   if(!next||existing.isEqualNode(next))return;
+   existing.replaceWith(next);
+   docsRefreshCount++;
+  }catch(error){console.warn('Falha ao sincronizar materiais sem recarregar a página:',error);}
+ },140);
+}
+window.addEventListener('uentzoul:material-placements-updated',scheduleDocsRefresh);
+window.PSICO_LIBRARY_RENDER_DIAGNOSTICS=()=>({replacements:docsRefreshCount,pending:docsRefreshTimer!==null});
 function render(){
  // Não desmontar o iframe do Caderno quando outras seções atualizarem em segundo plano.
  if(window.PSICO_NOTEBOOK_ACTIVE?.()&&document.getElementById('uentzoulCadernoFrame'))return;
