@@ -474,3 +474,25 @@ setTimeout(check,15000);
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',setup,{once:true});
  else setup();
 })();
+
+
+/* Concursos HCPA: carrega a modalidade somente quando o banco de conteúdo está pronto. */
+(()=>{
+ 'use strict';
+ function load(){
+  if(document.getElementById('pm-concursos-loader'))return;
+  const css=document.createElement('link');
+  css.id='pm-concursos-style';css.rel='stylesheet';
+  css.href='concursos.css?v=20261118-hcpa1';document.head.appendChild(css);
+  const data=document.createElement('script');
+  data.id='pm-concursos-loader';data.src='concursos-dados.js?v=20261118-hcpa1';
+  data.onload=()=>{
+   const app=document.createElement('script');
+   app.id='pm-concursos-app';app.src='concursos.js?v=20261118-hcpa1';
+   document.head.appendChild(app);
+  };
+  data.onerror=()=>console.warn('Não foi possível carregar o conteúdo da modalidade Concursos.');
+  document.head.appendChild(data);
+ }
+ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',load,{once:true});else load();
+})();
