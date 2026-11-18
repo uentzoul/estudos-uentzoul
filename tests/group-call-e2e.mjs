@@ -7,7 +7,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const dir=path.dirname(fileURLToPath(import.meta.url));
-const script=readFileSync(path.resolve(dir,'../group-call.js'));
+const script=readFileSync(path.resolve(dir,'../group-call.js'),'utf8').replace('if(!init()){','window.__callInspect={S,receiveSignal,offer,synchronize};if(!init()){');
 const html=String.raw`<!doctype html><html><head><meta charset="utf-8"></head><body>
 <script>
 const U=new URL(location.href).searchParams.get('u');
@@ -18,7 +18,7 @@ const usersState={rooms:[room]};
 window.uentzoulMessenger={onLogout:()=>{}};
 window.uentzoulGroupCallBridge={
   client:()=>({
-    from:()=>({select(){return this},eq(){return this},maybeSingle:async()=>({data:{user_id:id},error:null})}),
+    from:()=>({select(){return this},eq(){return this},in:async()=>({data:[],error:null}),maybeSingle:async()=>({data:{user_id:id},error:null})}),
     channel:(topic,config)=>makeChannel(topic,config),
     removeChannel:async c=>{c._close();return 'ok'},
     storage:{from:()=>({getPublicUrl:()=>({data:{publicUrl:''}})})}
@@ -101,7 +101,7 @@ try{
  for(const [p,label] of [[a,'A'],[b,'B']]){
   console.error('STATE '+label,await p.evaluate(()=>{
    const S=window.__callInspect?.S;
-   return {active:window.uentzoulGroupCalls?.active,dialog:document.querySelector('.gc-window')?.innerText.slice(0,700),status:document.querySelector('[data-gc-status]')?.textContent,stats:S?{stage:S.stage,peers:S.peers.size}:null};
+   return {active:window.uentzoulGroupCalls?.active,dialog:document.querySelector('.gc-window')?.innerText.slice(0,700),status:document.querySelector('[data-gc-status]')?.textContent,stats:S?{stage:S.stage,key:S.key,presence:[...S.presence].map(([k,v])=>({key:k,cam:v.cam,screen:v.screen})),peers:[...S.peers].map(([k,p])=>({key:k,connection:p.pc.connectionState,ice:p.pc.iceConnectionState,signaling:p.pc.signalingState,local:!!p.pc.localDescription,remote:!!p.pc.remoteDescription,videoSender:!!p.videoSender.track,videoTracks:p.stream.getVideoTracks().map(t=>({id:t.id,muted:t.muted,ready:t.readyState})),candidates:p.candidates.length,offers:p.lastOfferAt,answer:p.lastAnswerAt})),lastPresence:S.lastPresenceSignature}:null,video:[...document.querySelectorAll('.gc-tile')].map(t=>({name:t.querySelector('[data-gc-name]')?.textContent,videoWidth:t.querySelector('video')?.videoWidth,videoReady:t.querySelector('video')?.readyState,videoSrc:!!t.querySelector('video')?.srcObject}))};
   }).catch(err=>'Page exception: '+err.message));
  }
  console.error(errors.join('\n'));process.exitCode=1;
