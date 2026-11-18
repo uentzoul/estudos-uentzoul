@@ -30,7 +30,7 @@ window.uentzoulGroupCallBridge={
 function makeChannel(topic,config){
  const handlers=[],states=new Map();
  let bus=null;
- const key=config.presence.key;
+ const key=config.config.presence.key;
  function sync(){for(const h of handlers)if(h.type==='presence'&&h.event==='sync')h.fn();}
  function sendBus(data){bus?.postMessage(data);}
  const chan={
