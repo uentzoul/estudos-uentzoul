@@ -7,14 +7,12 @@ on:
       - 'group-call.js'
       - 'tests/group-call-*.test.mjs'
       - 'tests/group-call-e2e.mjs'
-      - 'tests/group-call-turn-probe.mjs'
       - '.github/workflows/call-stability.yml'
   pull_request:
     paths:
       - 'group-call.js'
       - 'tests/group-call-*.test.mjs'
       - 'tests/group-call-e2e.mjs'
-      - 'tests/group-call-turn-probe.mjs'
       - '.github/workflows/call-stability.yml'
   workflow_dispatch:
 
@@ -37,7 +35,7 @@ jobs:
       - name: Verificar sintaxe do módulo de chamada
         run: node --check group-call.js
       - name: Verificar recuperação de negociação, mídia e presença
-        run: node --test tests/group-call-stability.test.mjs tests/group-call-signaling.test.mjs
+        run: node --test tests/group-call-stability.test.mjs tests/group-call-signaling.test.mjs tests/group-call-turn.test.mjs
 
   webrtc-real:
     runs-on: ubuntu-latest
@@ -52,16 +50,3 @@ jobs:
           npm install --no-save --no-package-lock playwright@1.64.1
       - name: Testar câmera e compartilhamento de tela WebRTC entre duas abas
         run: node tests/group-call-e2e.mjs
-
-  webrtc-turn-probe:
-    runs-on: ubuntu-latest
-    timeout-minutes: 6
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '22'
-      - name: Preparar Chrome e Playwright
-        run: npm install --no-save --no-package-lock playwright@1.64.1
-      - name: Testar relay TURN via rede externa com ICE relay-only
-        run: node tests/group-call-turn-probe.mjs
