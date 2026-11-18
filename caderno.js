@@ -290,10 +290,18 @@ function setEditEnabled(value){
 function animateShelfTransition(kind,change,from,to){
  const style=document.documentElement;
  const flag=kind==='open'?'nb-opening-book':'nb-closing-book';
+ // A cor do verso deve acompanhar a cor real de cada caderno, inclusive no retorno.
+ const coverColor=kind==='open'
+  ?getComputedStyle(from).getPropertyValue('--nb-book-cover').trim()
+  :bookColor(activeBook());
+ style.style.setProperty('--nb-flipping-cover',/^#[0-9a-fA-F]{6}$/.test(coverColor)?coverColor:'#79689b');
  style.classList.remove('nb-opening-book','nb-closing-book');
  style.classList.add(flag);
  transitionView(change,from,to);
- setTimeout(()=>style.classList.remove(flag),1150);
+ setTimeout(()=>{
+  style.classList.remove(flag);
+  style.style.removeProperty('--nb-flipping-cover');
+ },1150);
 }
 function showShelf(animate=true){
  closeFormatMenus();
