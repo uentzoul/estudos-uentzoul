@@ -3006,65 +3006,117 @@ function examCard(e){
    '<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14m-6-6 6 6-6 6"/></svg>'+
   '</button></article>';
 }
-/* Normalização de títulos APENAS visual. Preserva URL, origem, ID, marcação
-   e as nomenclaturas personalizadas no editor administrativo. */
-function materialDisplayTitle(m){
- const raw=String(m?.title||'').trim();
- if(!raw)return 'Material sem título';
- const names={
-  'Caderno Integrado — versão completa':'Caderno Integrado de Psicologia — versão completa',
-  'Caderno Integrado — exercícios e citações':'Caderno Integrado de Psicologia — exercícios e citações',
-  'Cronograma de TCC':'Cronograma da disciplina',
-  'Terapia do Esquema — 41 slides':'Terapia do Esquema',
-  'TCCs de Terceira Onda — 39 slides':'TCCs de terceira onda',
-  'Roteiro A2 — leituras anteriores':'Roteiro de estudos para a A2',
-  'Apostila de TREC e Beck':'TREC e Terapia Cognitiva de Beck',
-  'Plano de ensino de TCC':'Plano de ensino da disciplina',
-  'Plano de ensino de Psicologia da Família':'Plano de ensino da disciplina',
-  'Cronograma de Psicologia da Família':'Cronograma da disciplina',
-  'Plano de ensino e cronograma de Metapsicologia':'Plano de ensino e cronograma',
-  'Segunda Tópica — slides':'Segunda tópica do aparelho psíquico',
-  'Édipo — slides':'Complexo de Édipo',
-  'Pulsão — slides':'Teoria das pulsões',
-  'Estudo Dirigido P2':'Estudo dirigido para a P2',
-  'Leitura das aulas 19 e 26 de outubro':'Leituras das aulas de 19 e 26 de outubro',
-  'Plano de ensino e cronograma de Psicologia Social I':'Plano de ensino e cronograma',
-  'Seminário sobre algoritmos e polarização':'Algoritmos e polarização social — trabalho escrito',
-  'Cronograma de Avaliação Psicológica':'Cronograma da disciplina',
-  'Entrevista de devolução — slides':'Entrevista de devolução',
-  'Avaliação Psicológica — matéria da prova anterior':'Avaliação Psicológica — conteúdo da prova anterior',
-  'Entrevista de Anamnese':'Entrevista de anamnese',
-  'Elaboração de documentos — slides':'Elaboração de documentos psicológicos',
-  'Rovinski e Lago — documentos':'Elaboração de documentos — Rovinski e Lago',
-  'Validade e Precisão — slides':'Validade e precisão dos testes psicológicos',
-  'Padronização e normas — Rabelo e colaboradores':'Padronização e normatização — Rabelo e colaboradores',
-  'Pasquali — elaboração de escalas':'Elaboração de escalas psicológicas — Pasquali',
-  'Adaptação de Instrumentos':'Adaptação de instrumentos',
-  'Bateria de Testes — slides':'Bateria de testes psicológicos',
-  'Entrevista simulada de devolução — vídeo':'Entrevista simulada de devolução',
-  'Plano de ensino de Avaliação Psicológica':'Plano de ensino da disciplina',
-  'Plano de ensino e cronograma de Psicologia dos Grupos I':'Plano de ensino e cronograma',
-  'Escritores da Liberdade — guia de estudo (PDF)':'Escritores da Liberdade — guia de estudo'
- };
- if(Object.prototype.hasOwnProperty.call(names,raw))return names[raw];
- // Não inventa temas para uploads. Limpa somente artefatos de nomes de arquivos.
- if(!/[_]{2,}|\.(?:pdf|docx?|pptx?|html?)$|\(\d+\)\s*$/i.test(raw))return raw;
- const clean=raw.replace(/\.(?:pdf|docx?|pptx?|html?)$/i,'').replace(/_/g,' ')
-  .replace(/\s*\(\d+\)\s*$/,'').replace(/\s{2,}/g,' ').trim();
- return clean||raw;
+function materialFold(value){
+ return String(value||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLocaleLowerCase('pt-BR');
 }
+/* Só para o acervo visível: guarda todos os arquivos antigos e suas marcações.
+   Comparação de atualidade por updated_at do registro do arquivo, nunca publish_at. */
+function materialDocumentRole(m){
+ const name=materialFold([m?.title,m?._libraryUpload?.filename,m?.source].filter(Boolean).join(' '));
+ const plan=/\bplano(?:s)?(?:\s+de)?\s+ensino\b|\bplano\s+e\s+cronograma\b/.test(name);
+ const calendar=/\bcronograma\b|\bcalendario\s+da\s+disciplina\b/.test(name);
+ return plan&&calendar?'both':plan?'plan':calendar?'calendar':'';
+}
+function visibleMaterialVersions(materials){
+ if(!Array.isArray(materials)||materials.length<2)return materials||[];
+ const best=new Map();
+ const score=(m,index)=>{
+  const date=Date.parse(m?._libraryUpload?.updated_at||m?.updated_at||m?.created_at||'');
+  return [Number.isFinite(date)?date:0,m?._libraryUpload?1:0,index];
+ };
+ const later=(a,b)=>a[0]!==b[0]?a[0]>b[0]:a[1]!==b[1]?a[1]>b[1]:a[2]>b[2];
+ materials.forEach((m,index)=>{
+  if(!m?.available)return;
+  const kind=materialDocumentRole(m);
+  if(!kind)return;
+  const subject=String(m.subject||'');
+  const rank=score(m,index);
+  for(const part of(kind==='both'?['plan','calendar']:[kind])){
+   const key=subject+'::'+part;
+   const prev=best.get(key);
+   if(!prev||later(rank,prev.rank))best.set(key,{m,rank});
+  }
+ });
+ const winners=new Set(Array.from(best.values(),entry=>entry.m));
+ return materials.filter(m=>!materialDocumentRole(m)||winners.has(m));
+}
+/* Títulos padronizados só na interface: sem mudar URL, chave de arquivo
+   ou título salvo na edição administrativa. */
+function materialDisplayTitle(m){
+ const raw=String(m?.title||m?._libraryUpload?.display_title||m?.source||'').normalize('NFC').trim();
+ if(!raw)return 'Material sem título';
+ const role=materialDocumentRole(m);
+ if(role==='both')return 'Plano de ensino e cronograma';
+ if(role==='plan')return 'Plano de ensino';
+ if(role==='calendar')return 'Cronograma';
+ const normalized=materialFold(raw);
+ const editorial={
+  'caderno integrado — versao completa':'Caderno Integrado de Psicologia — versão completa',
+  'caderno integrado — exercicios e citacoes':'Caderno Integrado de Psicologia — exercícios e citações',
+  'terapia do esquema — 41 slides':'Terapia do Esquema',
+  'tccs de terceira onda — 39 slides':'TCCs de terceira onda',
+  'roteiro a2 — leituras anteriores':'Roteiro de estudos para a A2',
+  'apostila de trec e beck':'TREC e terapia cognitiva de Beck',
+  'segunda topica — slides':'Segunda tópica do aparelho psíquico',
+  'edipo — slides':'Complexo de Édipo',
+  'pulsao — slides':'Teoria das pulsões',
+  'estudo dirigido p2':'Estudo dirigido para a P2',
+  'leitura das aulas 19 e 26 de outubro':'Leituras das aulas de 19 e 26 de outubro',
+  'seminario sobre algoritmos e polarizacao':'Algoritmos e polarização social — trabalho escrito',
+  'entrevista de devolucao — slides':'Entrevista de devolução',
+  'avaliacao psicologica — materia da prova anterior':'Avaliação Psicológica — conteúdo da prova anterior',
+  'entrevista de anamnese':'Entrevista de anamnese',
+  'elaboracao de documentos — slides':'Elaboração de documentos psicológicos',
+  'rovinski e lago — documentos':'Elaboração de documentos — Rovinski e Lago',
+  'validade e precisao — slides':'Validade e precisão dos testes psicológicos',
+  'padronizacao e normas — rabelo e colaboradores':'Padronização e normatização — Rabelo e colaboradores',
+  'pasquali — elaboracao de escalas':'Elaboração de escalas psicológicas — Pasquali',
+  'adaptacao de instrumentos':'Adaptação de instrumentos',
+  'bateria de testes — slides':'Bateria de testes psicológicos',
+  'entrevista simulada de devolucao — video':'Entrevista simulada de devolução',
+  'escritores da liberdade — guia de estudo (pdf)':'Escritores da Liberdade — guia de estudo',
+  'trec.pptx':'TREC',
+  'terapia cognitiva de beck - compactado':'Terapia cognitiva de Beck',
+  'cognitivismo aspectos historicos e bases filosoficas':'Cognitivismo — aspectos históricos e bases filosóficas',
+  'behaviorismo metodologico e radical.pptx':'Behaviorismo metodológico e radical'
+ };
+ if(editorial[normalized])return editorial[normalized];
+ let title=raw.replace(/^(?:c[oó]pia\s+de\s+)+/i,'')
+  .replace(/(?:\.(?:pdf|pptx?|docx?|html?))+$/i,'')
+  .replace(/\s*\(\d+\)\s*$/,'')
+  .replace(/\s*[-–—]\s*compactad[oa]\s*$/i,'')
+  .replace(/[_]+/g,' ')
+  .replace(/\s{2,}/g,' ').trim();
+ const fallback=materialFold(title);
+ if(/^introducao tcc\s*[-–—]\s*aulas?\s*1\s*e\s*2$/.test(fallback))return 'Introdução à TCC — aulas 1 e 2';
+ if(fallback==='behaviorismo metodologico e radical')return 'Behaviorismo metodológico e radical';
+ if(fallback==='trec')return 'TREC';
+ if(fallback==='adaptacao de instrumentos')return 'Adaptação de instrumentos';
+ if(fallback==='terapia cognitiva de beck')return 'Terapia cognitiva de Beck';
+ return title||raw;
+}
+function materialFileGlyph(m){
+ const text=materialFold([m?.kind,m?._libraryUpload?.filename,m?.source].filter(Boolean).join(' '));
+ if(/\bvideo\b|youtube|youtu\.be/.test(text))return '<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="5" width="17" height="14" rx="3"/><path d="m10 9 5 3-5 3z"/></svg>';
+ if(m?.kind==='Link'||/https?:\/\//.test(text))return '<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M10 14a4 4 0 0 0 5.6 0l3-3a4 4 0 0 0-5.6-5.6l-1.8 1.8"/><path d="M14 10a4 4 0 0 0-5.6 0l-3 3a4 4 0 0 0 5.6 5.6l1.8-1.8"/></svg>';
+ return '<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M7 2.5h6l5 5V20a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V4.5a2 2 0 0 1 2-2z"/><path d="M13 2.5v5h5M8 12h8M8 16h7"/></svg>';
+}
+
 function docCard(m){
  if(!m.available)return '';
  const key='material:'+(m._libraryLegacyUrl||m.source||m._libraryKey||m.url);
- const href=m._libraryUpload?'#':m.url,attr=m._libraryUpload?' data-library-file="'+esc(m._libraryKey)+'"':'';
- const kind=m._libraryUpload?.filename?.toLowerCase().endsWith('.docx')?'DOC':m.kind==='Vídeo'?'▶':m.kind==='PDF'?'PDF':m.kind==='Página HTML'?'WEB':'TXT';
- const body='<span class="docicon" aria-hidden="true">'+kind+'</span><span class="docname">'+esc(materialDisplayTitle(m))+'</span>'+
-  (isCurrentExamMaterial(m)?'<span class="pm-exam-badge">Cai na prova</span>':'')+
-  (adminScheduledMaterial(m)?'<span class="pm-scheduled-file-label">🔒 Aguardando liberação</span>':'')+
-  (m.available?'<span class="doc-open-arrow" aria-hidden="true">↗</span>':'');
- const main=m.available?'<a class="doc-full-link" href="'+esc(href)+'"'+attr+' target="_blank" rel="noopener noreferrer" aria-label="Abrir '+esc(materialDisplayTitle(m))+'">'+body+'</a>':
-  '<div class="doc-full-link doc-not-ready">'+body+'<span class="pill">Aguardando arquivo</span></div>';
- return '<div class="doc doc-compact '+(m.available?'is-available':'is-pending')+'">'+main+(m.available?'<div class="doc-check">'+doneBox(key)+'</div>':'')+'</div>';
+ const href=m._libraryUpload?'#':m.url;
+ const attr=m._libraryUpload?' data-library-file="'+esc(m._libraryKey)+'"':'';
+ const title=esc(materialDisplayTitle(m));
+ const badges=(isCurrentExamMaterial(m)?'<span class="pm-exam-badge">Cai na prova</span>':'')+
+  (adminScheduledMaterial(m)?'<span class="pm-scheduled-file-label">🔒 Aguardando liberação</span>':'');
+ const body='<span class="docicon" aria-hidden="true">'+materialFileGlyph(m)+'</span>'+
+  '<span class="pm-file-copy"><strong class="docname">'+title+'</strong>'+
+  (badges?'<span class="pm-file-meta">'+badges+'</span>':'')+'</span>';
+ const main='<a class="doc-full-link" href="'+esc(href)+'"'+attr+
+  ' target="_blank" rel="noopener noreferrer" aria-label="Abrir '+title+'">'+body+'</a>';
+ return '<div class="doc doc-compact is-available">'+main+
+  '<div class="doc-check">'+doneBox(key)+'</div></div>';
 }
 
 /* Cartões da Biblioteca: o próprio cartão é o link, com "Visto" independente. */
@@ -3102,28 +3154,19 @@ function docCard(m){
 
 function libraryResourceCard(m,i=0){
  if(!m.available)return '';
- const rawKind=String(m.kind||'Arquivo');
- const kind=rawKind.toLocaleLowerCase('pt-BR');
- const type=kind.includes('vídeo')?'video':kind.includes('pdf')?'pdf':(kind.includes('doc')||kind.includes('html'))?'doc':kind.includes('link')?'link':'text';
- const typeLabel=/slides|apresenta/i.test(rawKind)?'Slides':/texto|artigo|bibliografia/i.test(rawKind)?'Texto-base':/atividade/i.test(rawKind)?'Atividade':type==='video'?'Vídeo':type==='pdf'?'PDF':type==='doc'?'Documento':type==='link'?'Link':'Material';
- const glyph=type==='video'?'▶':type==='pdf'?'PDF':type==='doc'?'DOC':type==='link'?'↗':'▤';
- const isAvailable=!!m.available;
+ const type=materialFold(m.kind||'arquivo').includes('video')?'video':m.kind==='Link'?'link':'doc';
  const name=esc(materialDisplayTitle(m));
- const content='<span class="library-resource-icon" aria-hidden="true">'+glyph+'</span>'+
+ const content='<span class="library-resource-icon" aria-hidden="true">'+materialFileGlyph(m)+'</span>'+
   '<span class="library-resource-copy"><strong class="docname">'+name+'</strong>'+
   (isCurrentExamMaterial(m)?'<small class="pm-exam-badge">Cai na prova</small>':'')+
-  (adminScheduledMaterial(m)?'<small class="pm-scheduled-file-label">🔒 Aguardando liberação</small>':'')+'</span>'+
-  (isAvailable?'<span class="library-resource-arrow" aria-hidden="true">↗</span>':'');
+  (adminScheduledMaterial(m)?'<small class="pm-scheduled-file-label">🔒 Aguardando liberação</small>':'')+'</span>';
  const url=m._libraryUpload?'#':m.url;
  const uploadAttr=m._libraryUpload?' data-library-file="'+esc(m._libraryKey)+'"':'';
- const body=isAvailable?
-  '<a class="library-resource-main" href="'+esc(url)+'"'+uploadAttr+' target="_blank" rel="noopener noreferrer" aria-label="Abrir '+name+'">'+content+'</a>':
-  '<div class="library-resource-main">'+content+'</div>';
+ const body='<a class="library-resource-main" href="'+esc(url)+'"'+uploadAttr+
+  ' target="_blank" rel="noopener noreferrer" aria-label="Abrir '+name+'">'+content+'</a>';
  const key='material:'+(m._libraryLegacyUrl||m.source||m._libraryKey||m.url);
- return '<article class="doc library-resource '+(isAvailable?'is-available':'is-pending')+' type-'+type+'" style="--library-seq:'+(i%8)+'">'+
-  body+'<div class="library-resource-bottom"><span class="library-resource-status">'+
-  (isAvailable?'':'Aguardando arquivo')+'</span>'+
-  (isAvailable?'<span class="library-resource-progress">'+doneBox(key)+'</span>':'')+'</div></article>';
+ return '<article class="doc library-resource is-available type-'+type+'" style="--library-seq:'+(i%8)+'">'+
+  body+'<div class="library-resource-bottom"><span class="library-resource-progress">'+doneBox(key)+'</span></div></article>';
 }
 
 function materialGroup(m){
@@ -3237,7 +3280,7 @@ function renderSubject(k){
    '</div></section></div></div>';
  }
  if(area==='docs'){
-  const archiveDocs=DB.materials.filter(x=>x.subject===k&&x.available);
+  const archiveDocs=visibleMaterialVersions(DB.materials.filter(x=>x.subject===k&&x.available));
   const organizer=window.PSICO_COURSE_MANAGER?.weeklyView?.(semester,k,archiveDocs,docCard);
   const weekly=organizer?.weekly;
   const focusCount=archiveDocs.filter(isCurrentExamMaterial).length;
@@ -3307,7 +3350,7 @@ function libraryAdminPanel(){
 }
 function libraryExamMaterials(k){
  // Integra arquivos disponíveis e referências do exame na mesma lista, sem uma aba 'novos'.
- return DB.materials.filter(m=>m.subject===k&&m.available);
+ return visibleMaterialVersions(DB.materials.filter(m=>m.subject===k&&m.available));
 }
 function libraryExamProgress(k){
  const docs=libraryExamMaterials(k).filter(m=>m.available);
@@ -4537,7 +4580,7 @@ function renderThirdSemester(){
   // em todos os períodos; as outras áreas mantêm os materiais do semestre.
   if(current.subjectArea==='tests')return renderSubject(subjectId);
   if(firstSemester&&window.PSICO_FIRST_SEMESTER){
-   const docs=DB.materials.filter(m=>m.subject===subjectId&&m.available);
+   const docs=visibleMaterialVersions(DB.materials.filter(m=>m.subject===subjectId&&m.available));
    return window.PSICO_FIRST_SEMESTER.renderSubject({id:subjectId,subject:subj,area:current.subjectArea,
     topics:DB.topics[subjectId]||[],docs,exams:DB.exams.filter(e=>e.subject===subjectId),doneBox,topicProgressKey,docCard,classify:materialGroup});
   }
@@ -4549,7 +4592,7 @@ function renderThirdSemester(){
    '<div class="subject-hub-heading"><span class="subject-hub-kicker">'+period+(subj.code?' · '+esc(subj.code):'')+(subj.hours?' · '+subj.hours+'h':'')+'</span>'+
    '<h1>'+esc(subj.name)+'</h1><p class="subject-hub-date">Calendário da disciplina ainda não cadastrado.</p></div></header>';
   if(area==='docs'){
-   const docs=DB.materials.filter(m=>m.subject===subjectId&&m.available&&m._libraryUpload?.exam_scope!==false);
+   const docs=visibleMaterialVersions(DB.materials.filter(m=>m.subject===subjectId&&m.available&&m._libraryUpload?.exam_scope!==false));
    return top+'<div class="subject-hub-area">'+
     '<button type="button" class="subject-hub-back" data-action="subjectArea:home">← Voltar às opções</button>'+
     '<section class="section" id="docs"><div class="sectiontop"><h2>Materiais e textos</h2></div>'+
