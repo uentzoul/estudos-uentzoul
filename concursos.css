@@ -99,7 +99,7 @@ html[data-theme="dark"] .concursos-shell .co-choice.co-wrong{background:#431e26;
 html.pm-concurso-mode #navCadernoPreview{display:none!important}
 html.pm-concurso-mode #navConcursoNotebook{display:flex!important;align-items:center;gap:9px}
 html.pm-concurso-user #semesterDropdown [data-semester]{display:none!important}
-html.pm-concurso-user #nav [data-page]:not([data-page="home"]):not([data-page="exams"]):not([data-page="ai"]){display:none!important}
+html.pm-concurso-user #nav [data-page]:not([data-page="home"]):not([data-page="exams"]){display:none!important}
 html.pm-concurso-user #siteSidebar .nav-report-button{display:none!important}
 html.pm-concurso-mode #subjectNav [data-concurso-subject]{display:flex!important}
 
@@ -163,3 +163,12 @@ html.pm-concurso-mode #subjectNav [data-concurso-subject]{display:flex!important
  .concursos-shell .co-day-finish .co-btn{width:100%}
 }
 @media(prefers-reduced-motion:reduce){.concursos-shell .co-day-progress-track>span{transition:none}}
+
+/* Conta com cargo exclusivo: Concursos é uma modalidade fixa, não uma escolha de semestre. */
+html.pm-concurso-user #semesterCurrent{pointer-events:none!important;cursor:default!important}
+html.pm-concurso-user #semesterDropdown{display:none!important}
+html.pm-concurso-user #semesterCurrent svg{display:none!important}
+html.pm-concurso-user #subjectNav [data-action]{display:none!important}
+.concursos-pending{max-width:650px;margin:44px auto;padding:28px;border:1px solid var(--line,#ddd9e6);border-radius:16px;background:var(--paper,#fff);color:var(--ink,#28233d);font:inherit}
+.concursos-pending h1{margin:0 0 10px;font-size:25px}
+.concursos-pending p{margin:0;color:var(--muted,#727085)}
