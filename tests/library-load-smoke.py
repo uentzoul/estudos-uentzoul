@@ -45,6 +45,7 @@ with sync_playwright() as p:
                    storage_path:'materials/qa-aula.pdf',updated_at:'2026-11-18T15:00:00Z',
                    exam_scope:false,publish_at:null,library_public:true}
                 ];
+                window.__qaStartingReplacements=window.PSICO_LIBRARY_RENDER_DIAGNOSTICS?.().replacements||0;
                 window.__qaMaterialHero=document.querySelector('.subject-hub-hero');
                 window.__qaMaterialMain=document.getElementById('main');
                 window.uentzoulLibraryApp.applyRows(fake);
@@ -68,7 +69,7 @@ with sync_playwright() as p:
                 return {after,width,stillDocs:!!document.querySelector('#docs'),
                         heroPreserved:window.__qaMaterialHero===document.querySelector('.subject-hub-hero'),
                         mainPreserved:window.__qaMaterialMain===document.getElementById('main'),
-                        replacements:window.PSICO_LIBRARY_RENDER_DIAGNOSTICS?.().replacements||0};
+                        replacements:(window.PSICO_LIBRARY_RENDER_DIAGNOSTICS?.().replacements||0)-(window.__qaStartingReplacements||0)};
             }""")
             assert state["heroPreserved"] and state["mainPreserved"],(
                 f"{name}: a sincronização desmontou a tela inteira: {state}")
@@ -83,14 +84,17 @@ with sync_playwright() as p:
                 f"{name}: cartão do cronograma ocupa apenas meia linha: {state}")
             page.screenshot(path=str(OUT/("material_load_"+name+".png")),full_page=True)
             # A organização por semanas não pode esconder arquivos públicos fora da prova.
-            week=page.evaluate("""() => {
+            page.evaluate("""() => {
                 const button=document.querySelector('#docs [data-pm-material-tab="weeks"]');
                 if(!button)throw Error('Aba Por semanas não encontrada');
                 button.click();
-                return {isWeeks:!!document.querySelector('#docs .pm-weeks-intro'),
-                  titles:[...document.querySelectorAll('#docs .pm-week-unassigned .docname')]
-                    .map(e=>e.textContent.trim())};
             }""")
+            page.wait_for_function("Boolean(document.querySelector('#docs .pm-weeks-intro'))",timeout=8000)
+            week=page.evaluate("""() => ({
+                isWeeks:!!document.querySelector('#docs .pm-weeks-intro'),
+                titles:[...document.querySelectorAll('#docs .pm-week-unassigned .docname')]
+                    .map(e=>e.textContent.trim())
+            })""")
             assert week["isWeeks"],f"{name}: a aba Por semanas não abriu: {week}"
             assert "Aula de validação de materiais" in week["titles"],(
                 f"{name}: material público fora da prova sumiu em Por semanas: {week}")
