@@ -457,17 +457,46 @@ function createStream(){
  const stream=new MediaStream();
  S.stream=stream;return stream;
 }
+/* Trocas de mídia transacionais: se algum participante rejeitar o novo
+   dispositivo, restauramos o anterior antes de liberar a captura antiga. */
+async function swapSenderTracks(kind,next,generation=S.generation){
+ const senderKey=kind==='audio'?'audioSender':'videoSender';
+ const entries=[...S.peers.values()]
+  .filter(peer=>peer.pc?.signalingState!=='closed'&&peer[senderKey])
+  .map(peer=>({peer,sender:peer[senderKey],before:peer[senderKey].track||null}))
+  .filter(entry=>entry.before!==next);
+ if(!entries.length)return;
+ const results=await Promise.allSettled(entries.map(entry=>entry.sender.replaceTrack(next)));
+ const failed=results.find(item=>item.status==='rejected');
+ const stale=generation!==S.generation||S.stage==='off';
+ if(failed||stale){
+  const restored=await Promise.allSettled(entries.map((entry,index)=>
+   results[index].status==='fulfilled'&&entry.peer.pc?.signalingState!=='closed'
+    ?entry.sender.replaceTrack(entry.before):Promise.resolve()
+  ));
+  restored.forEach((result,index)=>{
+   if(result.status==='rejected'){
+    console.warn('Não foi possível restaurar a faixa anterior em um participante',result.reason);
+    if(S.stage==='live')schedulePeerRecovery(entries[index].peer);
+   }
+  });
+  throw failed?.reason||Error('Chamada mudou durante a troca do dispositivo.');
+ }
+}
 async function captureAudio(deviceId='',generation=S.generation){
  const settings={echoCancellation:true,noiseSuppression:true,autoGainControl:true,...(deviceId?{deviceId:{exact:deviceId}}:{})};
  const stream=await navigator.mediaDevices.getUserMedia({audio:settings,video:false});
  const next=stream.getAudioTracks()[0];
  if(!next){stream.getTracks().forEach(t=>t.stop());throw Error('Microfone indisponível.');}
  if(generation!==S.generation||S.stage==='off'){stream.getTracks().forEach(t=>t.stop());throw Error('Chamada encerrada');}
- const old=S.audio;S.audio=next;next.enabled=S.mic;
- if(S.stream){for(const t of S.stream.getAudioTracks())S.stream.removeTrack(t);S.stream.addTrack(next);}
+ const old=S.audio;next.enabled=S.mic;
  try{
-  await Promise.all([...S.peers.values()].map(p=>p.audioSender.replaceTrack(next).catch(e=>console.warn('Falha ao trocar microfone',e))));
- }finally{if(old&&old!==next)old.stop();}
+  await swapSenderTracks('audio',next,generation);
+  if(generation!==S.generation||S.stage==='off')throw Error('Chamada encerrada');
+  S.audio=next;
+  if(S.stream){for(const t of S.stream.getAudioTracks())S.stream.removeTrack(t);S.stream.addTrack(next);}
+  if(old&&old!==next)old.stop();
+ }catch(e){next.stop();throw e;}
 }
 async function captureCamera(deviceId='',generation=S.generation){
  const settings={width:{ideal:640,max:960},height:{ideal:360,max:540},frameRate:{ideal:15,max:20},...(deviceId?{deviceId:{exact:deviceId}}:{facingMode:'user'})};
@@ -476,9 +505,11 @@ async function captureCamera(deviceId='',generation=S.generation){
  if(!next){stream.getTracks().forEach(t=>t.stop());throw Error('Câmera indisponível.');}
  if(generation!==S.generation||S.stage==='off'){stream.getTracks().forEach(t=>t.stop());throw Error('Chamada encerrada');}
  const old=S.camera;S.camera=next;
- try{await replaceVideo();}
- catch(e){S.camera=old;next.stop();await replaceVideo().catch(()=>{});throw e;}
- if(old&&old!==next)old.stop();
+ try{
+  await replaceVideo();
+  if(generation!==S.generation||S.stage==='off')throw Error('Chamada encerrada');
+  if(old&&old!==next)old.stop();
+ }catch(e){if(generation===S.generation)S.camera=old;next.stop();throw e;}
 }
 async function tuneVideo(){
  const peers=[...S.peers.values()].filter(p=>p.pc.connectionState==='connected');
@@ -500,19 +531,16 @@ function replaceVideo(){
  const update=async()=>{
   if(generation!==S.generation||S.stage==='off')return;
   const selected=(S.display?.readyState==='live'?S.display:null)||(S.camera?.readyState==='live'?S.camera:null);
+  // A stream local só muda depois da troca bem-sucedida para os peers.
+  await swapSenderTracks('video',selected,generation);
+  if(generation!==S.generation||S.stage==='off')return;
   if(S.stream){
    for(const track of S.stream.getVideoTracks())S.stream.removeTrack(track);
    if(selected)S.stream.addTrack(selected);
   }
-  await Promise.all([...S.peers.values()].map(peer=>{
-   if(peer.pc.signalingState==='closed')return Promise.resolve();
-   return peer.videoSender.replaceTrack(selected).catch(e=>console.warn('Erro ao substituir vídeo',e));
-  }));
-  if(generation!==S.generation||S.stage==='off')return;
   void tuneVideo();
   if(S.stage==='live')await publish();else draw();
  };
- // Evita que duas trocas concorrentes deixem a faixa antiga ativa.
  const pending=videoReplaceQueue.then(update,update);
  videoReplaceQueue=pending.catch(()=>{});
  return pending;
@@ -540,7 +568,8 @@ async function toggleCam(){
   if(S.cam){
    S.cam=false;
    const old=S.camera;S.camera=null;
-   try{await replaceVideo();}finally{old?.stop();}
+   try{await replaceVideo();old?.stop();}
+   catch(e){S.camera=old;S.cam=true;throw e;}
   }else{
    S.cam=true;
    try{await captureCamera(S.camDevice,generation);}
