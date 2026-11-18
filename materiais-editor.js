@@ -199,7 +199,8 @@ async function refresh(force=false){
   // Uma navegação ou edição explícita aplica os dados no próximo render.
   if(changed){
    if(editing)console.info('Organização atualizada em segundo plano; edição local preservada.');
-   else rerender(); // Reorganiza categorias quando o banco responde após a navegação.
+   else window.dispatchEvent(new Event('uentzoul:material-placements-updated'));
+   // Alterações recebidas do banco nunca executam repaint() da página inteira.
   }
  }catch(e){console.warn('Não foi possível atualizar a organização dos materiais:',e);}
  finally{fetching=false;}
