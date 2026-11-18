@@ -1,0 +1,32 @@
+name: Testes de estabilidade das chamadas
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'group-call.js'
+      - 'tests/group-call-*.test.mjs'
+      - '.github/workflows/call-stability.yml'
+  pull_request:
+    paths:
+      - 'group-call.js'
+      - 'tests/group-call-*.test.mjs'
+      - '.github/workflows/call-stability.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verificar-webrtc:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verificar sintaxe do módulo de chamada
+        run: node --check group-call.js
+      - name: Verificar recuperação de negociação, mídia e presença
+        run: node --test tests/group-call-stability.test.mjs tests/group-call-signaling.test.mjs
