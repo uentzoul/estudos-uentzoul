@@ -18,7 +18,7 @@ const escCall=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>
 const S={room:null,stage:'off',overlay:null,channel:null,key:'',peers:new Map(),presence:new Map(),
  mic:true,cam:false,hand:false,screen:false,audio:null,camera:null,display:null,stream:null,
  panel:'',pinned:null,chat:[],chatBusy:false,chatTimer:null,guard:null,pendingSignals:[],devicePanel:false,photoUrl:'',
- micDevice:'',camDevice:'',notice:'',noticeTimer:null,callStarted:0,generation:0,reconnectTimer:null,presenceTimer:null,connectionWatch:null,lastPresenceAt:0,lastPresenceSignature:'',lastPresenceChannel:null,minimized:false,screenBusy:false,screenMuteTimer:null,videoWatch:null,avatarProfiles:new Map(),avatarLoading:false,avatarRefreshAt:0,camBusy:false,micBusy:false,audioLevels:new Map(),audioNodes:new Map(),audioContext:null};
+ micDevice:'',camDevice:'',notice:'',noticeTimer:null,turnServers:[],turnStatus:'none',turnError:'',callStarted:0,generation:0,reconnectTimer:null,presenceTimer:null,connectionWatch:null,lastPresenceAt:0,lastPresenceSignature:'',lastPresenceChannel:null,minimized:false,screenBusy:false,screenMuteTimer:null,videoWatch:null,avatarProfiles:new Map(),avatarLoading:false,avatarRefreshAt:0,camBusy:false,micBusy:false,audioLevels:new Map(),audioNodes:new Map(),audioContext:null};
 let videoReplaceQueue=Promise.resolve();
 const eligible=()=>!!bridge.client()&&!!bridge.user()?.id&&!bridge.user()?.is_anonymous;
 const group=id=>UUID.test(id||'')&&dm.rooms?.find(r=>r.id===id&&r.kind==='group')||null;
@@ -669,10 +669,45 @@ async function endScreen(){
   throw e;
  }
 }
+function validTurnServer(server){
+ if(!server||typeof server!=='object')return false;
+ const urls=Array.isArray(server.urls)?server.urls:[server.urls];
+ return urls.some(u=>typeof u==='string'&&/^turns?:[^\\s]+$/i.test(u))&&
+  typeof server.username==='string'&&!!server.username&&typeof server.credential==='string'&&!!server.credential;
+}
 function iceConfig(){
  const defaults=[{urls:'stun:stun.l.google.com:19302'},{urls:'stun:stun1.l.google.com:19302'}];
- const extra=Array.isArray(window.UENTZOUL_CALL_ICE_SERVERS)?window.UENTZOUL_CALL_ICE_SERVERS.filter(s=>s&&typeof s.urls==='string'&&/^turns?:/.test(s.urls)):[];
- return {iceServers:[...defaults,...extra],bundlePolicy:'max-bundle'};
+ // TURN credentials are short-lived and obtained from an authenticated
+ // Supabase Edge Function. Never publish long-term provider keys in JS.
+ const legacy=Array.isArray(window.UENTZOUL_CALL_ICE_SERVERS)?
+  window.UENTZOUL_CALL_ICE_SERVERS.filter(validTurnServer):[];
+ return {iceServers:[...defaults,...S.turnServers,...legacy],bundlePolicy:'max-bundle'};
+}
+function hasTurn(){return iceConfig().iceServers.some(validTurnServer);}
+async function loadTurnServers(generation){
+ S.turnServers=[];S.turnStatus='none';S.turnError='';
+ const functions=bridge.client()?.functions;
+ if(!functions||typeof functions.invoke!=='function')return;
+ S.turnStatus='loading';
+ let timeout;
+ try{
+  const result=await Promise.race([
+   functions.invoke('call-ice',{body:{}}),
+   new Promise((_,reject)=>{timeout=setTimeout(()=>reject(Error('TURN timeout')),4000);})
+  ]);
+  if(generation!==S.generation||S.stage!=='joining')return;
+  if(result?.error){
+   S.turnStatus=result.error?.context?.status===503?'unconfigured':'unavailable';
+   S.turnError=String(result.error?.message||'Erro TURN').slice(0,100);return;
+  }
+  const servers=(Array.isArray(result?.data?.iceServers)?result.data.iceServers:[])
+   .filter(validTurnServer).slice(0,8);
+  if(servers.length){S.turnServers=servers;S.turnStatus='ready';}
+  else S.turnStatus='unavailable';
+ }catch(e){
+  if(generation!==S.generation)return;
+  S.turnStatus='unavailable';S.turnError=String(e?.message||e).slice(0,100);
+ }finally{clearTimeout(timeout);}
 }
 function signal(to,body){
  if(!S.channel?.send||S.stage!=='live')return Promise.resolve();
@@ -744,17 +779,26 @@ async function recoverHandshake(peer,urgent=false){
 function checkPeerConnections(){
  if(S.stage!=='live'||!S.channel)return;
  const now=Date.now();
+ let withoutMedia=0;
  for(const peer of S.peers.values()){
   const pc=peer.pc;
   if(pc.connectionState==='connected'||pc.iceConnectionState==='connected'||pc.iceConnectionState==='completed'){
    peer.missingSince=0;continue;
   }
+  withoutMedia++;
   if(!peer.missingSince)peer.missingSince=now;
   void recoverHandshake(peer);
   if(now-peer.missingSince>18000&&now-(peer.lastConnectionNotice||0)>30000){
    peer.lastConnectionNotice=now;
-   status('A conexão de mídia com outro participante não foi estabelecida. Algumas redes exigem servidor TURN.',10);
+   status(hasTurn()?
+    'A mídia não conseguiu conectar, mesmo com TURN disponível. Copie o diagnóstico em Áudio e vídeo.':
+    'A mídia não conectou: o site ainda está sem relay TURN ativo. A call pode aparecer aberta sem transmitir câmera e tela.',12);
   }
+ }
+ const label=S.overlay?.querySelector('[data-gc-connection]');
+ if(label){
+  label.textContent=withoutMedia?'Sem mídia: '+withoutMedia+' conexão(ões)':'Ao vivo';
+  label.classList.toggle('is-live',withoutMedia===0);
  }
 }
 function requestPeerRecovery(peer){
@@ -988,6 +1032,9 @@ async function join(){
    if(!data&&room.owner_id!==onlineUser.id)throw Error('Somente membros deste grupo podem entrar na call.');
   }
   if(generation!==S.generation||S.stage!=='joining')return;
+  // Fetch ephemeral relay credentials before creating any RTCPeerConnection.
+  await loadTurnServers(generation);
+  if(generation!==S.generation||S.stage!=='joining')return;
   S.key=onlineUser.id+':'+crypto.randomUUID();S.callStarted=Date.now();createStream();
   if(S.mic)try{await captureAudio(S.micDevice,generation);}catch(e){if(generation===S.generation){S.mic=false;status('Microfone indisponível. Você entrará apenas para ouvir.',8);}}
   if(generation!==S.generation||S.stage!=='joining')return;
@@ -1199,7 +1246,7 @@ async function leave(){
  clearInterval(S.guard);S.guard=null;
  clearTimeout(S.reconnectTimer);S.reconnectTimer=null;
  clearTimeout(S.presenceTimer);S.presenceTimer=null;
- S.lastPresenceAt=0;S.lastPresenceSignature='';S.lastPresenceChannel=null;
+ S.lastPresenceAt=0;S.lastPresenceSignature='';S.lastPresenceChannel=null;S.turnServers=[];S.turnStatus='none';S.turnError='';
  clearTimeout(S.noticeTimer);
  clearInterval(S.videoWatch);S.videoWatch=null;
  clearInterval(S.connectionWatch);S.connectionWatch=null;
