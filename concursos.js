@@ -70,13 +70,18 @@ async function refreshAccess(force=false){
   if(r.error)throw r.error;if(user()?.id!==u.id)return;
   const changed=rights.id!==u.id;
   rights={id:u.id,admin:r.data?.admin===true,concurso:r.data?.concurso===true};
+  window.uentzoulContestAccess?.setVerified?.(rights.id,rights.admin,rights.concurso);
   if(allowed()){
    if(changed)await load();
    if(!active&&(onlyContest()||location.hash==='#concursos'&&rights.admin)){enter(true);}
   }else{
    active=false;external=false;
   }
- }catch(e){console.warn('Concursos: falha na autenticação do cargo',e);rights={id:u.id,admin:false,concurso:false};active=false;}
+ }catch(e){
+  console.warn('Concursos: falha na autenticação do cargo',e);
+  // Uma falha temporária na RPC não deve desbloquear os semestres de um cargo já confirmado.
+  if(rights.id!==u.id){rights={id:u.id,admin:false,concurso:false};active=false;}
+ }
  finally{checking=false;syncChrome();}
 }
 function syncChrome(){
@@ -123,7 +128,9 @@ function enter(restored=false){
  if(!allowed())return;
  if(!active){view='inicio';subject='todos';if(restored)restoreView();}
  active=true;external=false;
- if(!restored){try{history.replaceState(history.state,'',location.pathname+location.search+'#concursos');}catch(e){}}
+ if(onlyContest()||!restored){
+  try{history.replaceState(onlyContest()?null:history.state,'',location.pathname+location.search+'#concursos');}catch(e){}
+ }
  render();syncChrome();window.pmMobileDrawer?.close?.();
 }
 function exit(){
@@ -498,7 +505,10 @@ document.addEventListener('click',e=>{
   if(['home','exams'].includes(nav.dataset.page)){
    e.preventDefault();e.stopImmediatePropagation();go(nav.dataset.page==='exams'?'simulados':'inicio');window.pmMobileDrawer?.close?.();return;
   }
-  if(nav.dataset.page==='ai'){external=true;return;}
+  if(nav.dataset.page==='ai'){
+   if(onlyContest()){e.preventDefault();e.stopImmediatePropagation();return;}
+   external=true;return;
+  }
   if(onlyContest()){e.preventDefault();e.stopImmediatePropagation();return;}
  }
  const button=e.target.closest('[data-co]');if(!button)return;
@@ -533,7 +543,14 @@ document.addEventListener('change',e=>{
 document.addEventListener('input',e=>{if(e.target?.id==='coNotebookText'&&active){store.notes[noteSubject]=e.target.value;scheduleSave();}});
 window.addEventListener('uentzoul:auth',()=>void refreshAccess(true));
 window.addEventListener('focus',()=>void refreshAccess(true));
-window.addEventListener('hashchange',()=>{if(location.hash==='#concursos'&&allowed()&&!active)enter(true);});
+window.addEventListener('hashchange',()=>{
+ if(onlyContest()){
+  window.uentzoulContestAccess?.lock?.();
+  if(!active)enter(true);
+  return;
+ }
+ if(location.hash==='#concursos'&&allowed()&&!active)enter(true);
+});
 function boot(){
  syncChrome();void refreshAccess();
  const root=$('main');
