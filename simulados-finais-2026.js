@@ -8,7 +8,7 @@ const LEGACY_CURRENT='rev-final-20261113-r2';
 const PREVIOUS_VERSION='rev-final-20261113';
 const LETTERS=['I','II','III','IV','V'];
 const familyExtra=[
-{title:'Mitos, rituais e lealdades familiares',definition:'Mitos familiares são narrativas e expectativas compartilhadas que participam da organização das relações; os rituais podem expressar pertencimento, valores e regras, com sentidos diferentes entre os integrantes.',scenario:'Uma família debate se deve manter uma celebração tradicional: algumas pessoas a vivenciam como apoio, outras como obrigação.',myth:'Em um ritual familiar, o significado compartilhado pelo grupo define sua função principal, enquanto interpretações divergentes entre integrantes têm pouca relevância para compreender o vínculo.'},
+{title:'Mitos, rituais e lealdades familiares',definition:'Mitos familiares são narrativas e expectativas compartilhadas que participam da organização das relações; os rituais podem expressar pertencimento, valores e regras, com sentidos diferentes entre os integrantes.',scenario:'Uma família debate se deve manter uma celebração tradicional: algumas pessoas a vivenciam como apoio, outras como obrigação.',myth:'Em um ritual familiar, o significado compartilhado pelo grupo define sua função principal, enquanto interpretações diferentes entre integrantes têm pouca relevância para compreender o vínculo.'},
 {title:'Ritos de passagem e transgeracionalidade',definition:'Ritos de passagem marcam transições do ciclo vital; a perspectiva transgeracional investiga transmissão e transformação de valores, papéis e padrões entre gerações, sem supor determinismo.',scenario:'Quando a filha sai de casa, familiares percebem expectativas sobre autonomia herdadas de outras gerações e começam a negociá-las.',myth:'Na perspectiva transgeracional, padrões recebidos de gerações anteriores tendem a determinar os papéis atuais, e a renegociação familiar é apenas uma adaptação superficial.'}
 ];
 const evalScope=new Set(['Entrevista de devolução','Linguagem e comunicação na devolução','Sigilo e compartilhamento ético','Avaliação no contexto organizacional','Avaliação hospitalar','Avaliação forense','Atendimento a pessoas trans','Ética na avaliação psicológica','Resolução CFP 31/2022 e fontes de informação','Resolução CFP 06/2019 e documentos','Laudo e parecer','Bateria e escolha de instrumentos']);
@@ -157,7 +157,7 @@ const CLOSE_TOPICS={
  social:[
  ['Psicologia Sócio-Histórica','Psicologia da Libertação','Desideologização','Fatalismo','Democracia'],
  ['Epistemicídio','genocídios/epistemicídios','Racismo e sexismo epistêmicos'],
- ['Gênero','Feminismos','Interseccionalidade','Categorias de articulação','migração'],
+ ['Gênero','Feminismos','Interseccionalidade','Categorias de relação','migração'],
  ['Infância','Políticas públicas de infância'],
  ['Tecnologias da informação','Viés de confirmação','Identidade social','Polarização','Bolha','Câmara de eco','algorítmica','consenso','Publicidade','feeds']
  ],
@@ -263,8 +263,8 @@ function questionEssay(topics,model,idx,a,b,qid){
  ?'Explique o conceito central, aplique-o ao caso e diferencie-o de um segundo conceito pertinente. Fundamente a análise sem deduzir um diagnóstico a partir de um exemplo isolado.'
  :'Analise a situação relacionando teoria, contexto e possibilidades de atuação. Discuta um limite da interpretação e justifique sua conclusão com elementos do caso.';
  return {type:'essay',id:qid,concept:a.title,
-  prompt:'Estudo de caso:\n'+context(a)+'\n\n'+task+'\n\nNa resposta, articule '+a.title+' e '+b.title+'.',
-  criteria:['Definir '+a.title+' com precisão conceitual.','Diferenciar e articular '+b.title+'.',
+  prompt:'Estudo de caso:\n'+context(a)+'\n\n'+task+'\n\nNa resposta, relacione '+a.title+' e '+b.title+'.',
+  criteria:['Definir '+a.title+' com precisão conceitual.','Diferenciar e relacionar '+b.title+'.',
    'Utilizar os elementos efetivamente descritos no caso.','Apresentar justificativa e reconhecer limites ou cuidados éticos.'],
   model:'A situação pode ser discutida com base em '+a.title+': '+definition(a)+'. O relato descreve: '+context(a)+
   ' É importante diferenciá-lo de '+b.title+': '+definition(b)+
