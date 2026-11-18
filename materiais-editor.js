@@ -197,7 +197,10 @@ async function refresh(force=false){
   placements=next;lastFetch=Date.now();
   // Recebe a organização nova sem desmontar o material que alguém está lendo.
   // Uma navegação ou edição explícita aplica os dados no próximo render.
-  if(changed&&editing)console.info('Organização atualizada em segundo plano; edição local preservada.');
+  if(changed){
+   if(editing)console.info('Organização atualizada em segundo plano; edição local preservada.');
+   else rerender(); // Reorganiza categorias quando o banco responde após a navegação.
+  }
  }catch(e){console.warn('Não foi possível atualizar a organização dos materiais:',e);}
  finally{fetching=false;}
 }
