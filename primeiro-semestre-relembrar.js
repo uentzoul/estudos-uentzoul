@@ -113,15 +113,15 @@ function optionQuestion(id,model,i,focus,all){
  const entries=[t,...near.slice(0,3)];
  const variants=entries.map((entry,j)=>({text:entry.title,why:j===0
   ?'É a melhor resposta para os elementos descritos: '+entry.definition+' No exemplo: '+t.scenario
-  :'O conceito '+entry.title+' pode ser relacionado ao tema, mas focaliza outro mecanismo: '+entry.definition+' A situação enfatiza '+t.title+'.'}));
+  :'O conceito '+entry.title+' pode ser relacionado ao tema, mas focaliza outro mecanismo: '+entry.definition+' O ponto central do caso é '+t.title+'.'}));
  const shift=(model+i)%4,options=variants.slice(shift).concat(variants.slice(0,shift));
  const prompts=[
-  'Analise a situação:\n\n'+t.scenario+'\n\nQual conceito identifica melhor o processo central descrito?',
-  'Compare os conceitos próximos da lista. Qual deles corresponde ao mecanismo abaixo?\n\n'+t.definition,
-  'Um aluno interpreta o caso assim:\n\n'+t.myth+'\n\nQual conceito é necessário para examinar criticamente essa hipótese?',
-  'Considerando o tema abordado no material, analise:\n\n'+t.scenario+'\n\nQual leitura conceitual é a mais específica?',
-  'A formulação abaixo se relaciona diretamente a qual conceito, e não apenas a uma noção próxima?\n\n'+t.definition,
-  'Uma situação de aplicação teórica:\n\n'+t.scenario+'\n\nQual dos conceitos apresentados tem melhor correspondência com o caso?'
+  'Leia a situação:\n\n'+t.scenario+'\n\nQual conceito explica melhor a situação?',
+  'Qual conceito corresponde à explicação abaixo?\n\n'+t.definition,
+  'Um aluno interpreta o caso assim:\n\n'+t.myth+'\n\nQual conceito ajuda a avaliar essa interpretação?',
+  'Considere o exemplo:\n\n'+t.scenario+'\n\nQual conceito explica melhor o que aconteceu?',
+  'Qual conceito é descrito a seguir?\n\n'+t.definition,
+  'Exemplo:\n\n'+t.scenario+'\n\nQual conceito é mais adequado ao caso?'
  ];
  return {id:'s1-'+id+'-temas-'+model+'-obj-'+(i+1),type:'choice',
   prompt:prompts[i%prompts.length],options,answer:(4-shift)%4,concept:t.title,source:t.source};
@@ -136,9 +136,9 @@ function essayQuestion(id,model,i,focus){
  const t=focus[(i+model-1)%focus.length],other=focus[(i+model)%focus.length];
  return {id:'s1-'+id+'-temas-'+model+'-disc-'+(i+1),type:'essay',concept:t.title,
   prompt:'A partir do conteúdo de '+names[id]+', explique '+t.title+'.\n\nSituação: '+t.scenario+
-   '\n\nArticule sua resposta com '+other.title+' e discuta os limites de uma interpretação simplificadora.',
-  criteria:['Definir corretamente '+t.title,'Analisar a situação concreta sem apenas repetir uma definição',
-   'Estabelecer uma relação fundamentada com '+other.title,'Evitar inferências excessivas e a interpretação incorreta apresentada nos materiais'],
+   '\n\nRelacione sua resposta com '+other.title+' e explique que conclusões não podem ser tiradas apenas desse exemplo.',
+  criteria:['Definir corretamente '+t.title,'Explicar o caso com informações concretas',
+   'Explicar a relação com '+other.title,'Não tirar conclusões além dos dados do caso'],
   model:t.definition+' '+t.scenario+' Relaciona-se com '+other.title+': '+other.definition+
   ' Não se deve concluir que '+t.myth,
   source:'Questão autoral com base em '+t.source+' e '+other.source};
@@ -189,12 +189,12 @@ function makeCase(id,t,other,i){
   options.splice(offset,0,options.shift());
   return {prompt:j===0?
    'A partir do exemplo, qual formulação corresponde melhor ao mecanismo estudado?':
-   'Ao aprofundar o caso, qual comparação entre os conceitos da disciplina está teoricamente correta?',
+   'Qual comparação entre os conceitos está correta?',
    choices:options};
  });
  return {id:'relembrar-2026-1-'+id+'-'+i,title:'Caso '+i+' — '+t.title,
   area:'Aplicação e pensamento crítico',
-  intro:t.scenario+' A equipe discute hipóteses alternativas apoiadas em conceitos próximos do material.',
+  intro:t.scenario+' Há mais de uma hipótese possível, e a equipe precisa compará-las.',
   stages,
   wrapUp:'Síntese: '+t.definition+' Leitura indicada: '+t.source+'. Articulação: '+other.source+'.'};
 }
