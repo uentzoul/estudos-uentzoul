@@ -40,12 +40,12 @@ function choices(all,t,level,slot,id,version=LEGACY_CURRENT){
  ]){if(wrongs.length===4)break;if(!wrongs.some(x=>x.text===o.text))wrongs.push(o);}
  const right={text:t.title+': '+definition(t)+'.',correct:true,why:(version===LEGACY_CURRENT?'A situação exemplifica '+t.title+'. '+definition(t)+'. Interprete os elementos do caso considerando o contexto e os limites dos dados apresentados.':definition(t)+'. Na situação: '+context(t))};
  const answer=(level*2+slot)%5,options=wrongs.slice(0,4);options.splice(answer,0,right);
- const commands=version===LEGACY_CURRENT?['Qual interpretação é mais coerente com o material da disciplina?','Que conceito ajuda a compreender melhor o caso apresentado?','Qual alternativa relaciona corretamente teoria, situação e contexto?','Qual alternativa define o conceito mais compatível com a situação?','Qual formulação conceitual é mais consistente com os elementos apresentados?']:['Qual interpretação é mais coerente com o material da disciplina?','Que conceito ajuda a compreender melhor o caso apresentado?','Qual alternativa relaciona corretamente teoria, situação e contexto?','Qual análise profissional evita inferências indevidas nesse caso?','Qual formulação integra melhor conceito, aplicação e limites da conclusão?'];
+ const commands=version===LEGACY_CURRENT?['Qual interpretação está mais de acordo com a matéria?','Qual conceito explica melhor o caso?','Qual alternativa relaciona a teoria ao caso?','Qual alternativa define o conceito mais compatível com a situação?','Qual explicação combina melhor com o que foi apresentado?']:['Qual interpretação está mais de acordo com a matéria?','Qual conceito explica melhor o caso?','Qual alternativa relaciona a teoria ao caso?','Qual alternativa evita conclusões sem dados suficientes?','Qual formulação integra melhor conceito, aplicação e limites da conclusão?'];
  return {type:'choice',id,concept:t.title,prompt:'Situação: '+context(t)+'\n\n'+commands[level-1],options,answer,source:'Material de revisão da disciplina'};
 }
 function trueFalse(t,level,slot,id){
  const truth=(level+slot)%2===0;
- return {type:'tf',id,concept:t.title,prompt:'Julgue a seguinte afirmação sobre '+t.title+':\n\n'+(truth?definition(t):invalid(t))+'.',
+ return {type:'tf',id,concept:t.title,prompt:'A afirmação a seguir sobre '+t.title+':\n\n'+(truth?definition(t):invalid(t))+'.',
  answer:truth,explanation:(truth?'Verdadeiro. ':'Falso. ')+definition(t)+'.'};
 }
 function assertions(a,b,c,level,slot,id){
@@ -64,13 +64,13 @@ function assertions(a,b,c,level,slot,id){
  const unique=[],seen=new Set();
  for(const list of sets){const key=list.join('|');if(!seen.has(key)){seen.add(key);unique.push(list);}}
  const answer=(level+slot*2)%5,options=unique.slice(1,5);options.splice(answer,0,correct);
- return {type:'combo',id,concept:a.title,prompt:'Analise as afirmações abaixo sobre '+a.title+', '+b.title+' e '+c.title+'.\n\nAssinale a alternativa que contém somente as afirmações corretas.',
+ return {type:'combo',id,concept:a.title,prompt:'Leia as afirmações sobre '+a.title+', '+b.title+' e '+c.title+'.\n\nMarque a opção com apenas as afirmações corretas.',
  assertions:shifted,options:options.map(x=>'Apenas '+x.join(', ')+'.'),answer,correct,answerSets:options};
 }
 function discursive(a,b,level,id){
- const tasks=['Defina os conceitos e apresente um exemplo aplicado.','Compare os conceitos e identifique diferenças e aproximações.','Relacione os conceitos à situação, justificando sua interpretação.','Analise criticamente o caso e indique limites da intervenção.','Desenvolva uma argumentação fundamentada, considerando contexto, teoria e implicações éticas.'];
+ const tasks=['Defina os conceitos e apresente um exemplo aplicado.','Compare os conceitos e mostre semelhanças e diferenças.','Relacione os conceitos ao caso e explique por quê.','Analise o caso e explique os limites da intervenção.','Justifique sua resposta usando a teoria, o contexto e os cuidados éticos.'];
  return {type:'essay',id,concept:a.title,
- prompt:'Considere a situação: '+context(a)+'\n\n'+tasks[level-1]+'\n\nArticule '+a.title+' com '+b.title+' e justifique as conclusões sem ultrapassar os dados apresentados.',
+ prompt:'Considere a situação: '+context(a)+'\n\n'+tasks[level-1]+'\n\nRelacione '+a.title+' com '+b.title+'. Use as informações do caso para justificar a resposta.',
  criteria:['Explicar corretamente '+a.title+'.','Relacionar o caso a '+b.title+' sem confundir os conceitos.','Utilizar elementos concretos da situação apresentada.','Considerar limites de interpretação, contexto e implicações éticas.'],
  model:'O conceito de '+a.title+' pode ser entendido assim: '+definition(a)+'. No caso, '+context(a)+' A análise também dialoga com '+b.title+': '+definition(b)+'. Uma resposta adequada diferencia as duas formulações e considera as características específicas da situação, evitando conclusões universais ou estigmatizantes.',
  source:'Resposta orientativa de estudo; confira os documentos originais.'};
