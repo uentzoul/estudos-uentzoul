@@ -1,0 +1,92 @@
+/* Concursos — área independente e responsiva; controle de acesso também no Supabase. */
+html.pm-concurso-user #nav [data-page="calendar"],
+html.pm-concurso-user #nav [data-page="messages"],
+html.pm-concurso-user #nav #navVacationReview,
+html.pm-concurso-user #nav .nav-upcoming,
+html.pm-concurso-user #nav [data-page="personal"],
+html.pm-concurso-user #nav [data-page="library"],
+html.pm-concurso-user #nav [data-page="schedule"],
+html.pm-concurso-user #nav [data-page="work"],
+html.pm-concurso-user #nav [data-page="admin"],
+html.pm-concurso-user #nav #navAdminConfig,
+html.pm-concurso-user #nav [data-page="maintenance"],
+html.pm-concurso-user #siteSidebar [data-pm-maintenance-open],
+html.pm-concurso-user #profileSidebar,
+html.pm-concurso-user #pmRightHandle,
+html.pm-concurso-user #membersBackdrop,
+html.pm-concurso-user #nav .dm-nav-badge {display:none!important}
+html.pm-concurso-user .app{grid-template-columns:minmax(190px,240px) minmax(0,1fr)!important}
+html.pm-concurso-user #main{max-width:none!important}
+html.pm-concurso-user .mobile-subject-slot{display:none}
+html.pm-concurso-user #subjectNav [data-action^="subject:"]{display:none!important}
+html.pm-concurso-mode #subjectNav [data-action^="subject:"]{display:none!important}
+#semesterDropdown .concurso-semester-option{display:flex;align-items:center;justify-content:space-between}
+html.pm-concurso-mode #semesterCurrent .semester-current-caption{font-size:0}
+html.pm-concurso-mode #semesterCurrent .semester-current-caption:after{content:"MODALIDADE";font-size:10px}
+.concursos-shell{width:min(1200px,100%);margin:0 auto;color:var(--ink,#28233d);padding:26px 15px 68px;box-sizing:border-box;line-height:1.48}
+.concursos-shell *, .concursos-shell *:before,.concursos-shell *:after{box-sizing:border-box}
+.concursos-shell .co-kicker{font-size:11px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--muted,#69637f);margin:0 0 6px}
+.concursos-shell h1{font-size:clamp(25px,3vw,35px);line-height:1.2;margin:0 0 10px;letter-spacing:-.03em}
+.concursos-shell h2{font-size:20px;line-height:1.25;margin:0 0 12px}
+.concursos-shell h3{font-size:16px;line-height:1.3;margin:0 0 7px}
+.concursos-shell p{margin:0 0 12px}
+.concursos-shell .co-muted{color:var(--muted,#727085);font-size:13px}
+.concursos-shell .co-hero{padding:27px;border:1px solid var(--line,#dedbea);border-radius:19px;background:var(--paper,#fff);margin-bottom:20px}
+.concursos-shell .co-hero-top{display:flex;justify-content:space-between;gap:15px;flex-wrap:wrap;align-items:flex-start}
+.concursos-shell .co-stats{display:flex;flex-wrap:wrap;gap:10px;margin-top:18px}
+.concursos-shell .co-stat{min-width:130px;border:1px solid var(--line,#e1deed);border-radius:12px;padding:12px 14px;flex:1}
+.concursos-shell .co-stat strong{font-size:20px;display:block}
+.concursos-shell .co-stat small{color:var(--muted,#75738a);font-size:12px}
+.concursos-shell .co-tabs{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 20px}
+.concursos-shell .co-tabs button,.concursos-shell .co-btn,.concursos-shell .co-select{border:1px solid var(--line,#d6d0e4);border-radius:11px;background:var(--paper,#fff);color:inherit;padding:10px 15px;font:inherit;font-size:13px;font-weight:750;cursor:pointer;min-height:42px}
+.concursos-shell .co-tabs button[aria-current="page"],.concursos-shell .co-btn-primary{background:#584a92;color:white;border-color:#584a92}
+.concursos-shell .co-btn:disabled{opacity:.5;cursor:not-allowed}
+.concursos-shell .co-btn:hover:not(:disabled),.concursos-shell .co-tabs button:hover{filter:brightness(.96)}
+.concursos-shell .co-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,255px),1fr));gap:12px}
+.concursos-shell .co-card{border:1px solid var(--line,#dedbea);border-radius:15px;padding:18px;background:var(--paper,#fff);min-width:0}
+.concursos-shell .co-day{display:flex;flex-direction:column;text-align:left;width:100%;color:inherit;cursor:pointer;min-height:142px;transition:border-color .15s,background .15s,transform .15s}
+.concursos-shell .co-day:hover{border-color:#887ac1;transform:translateY(-1px)}
+.concursos-shell .co-day.co-done{background:#e6f5e9;border-color:#65b77c;color:#183a22}
+.concursos-shell .co-day .co-day-number{font-weight:850;font-size:16px}
+.concursos-shell .co-day .co-day-date{font-size:12px;opacity:.75}
+.concursos-shell .co-day .co-day-label{font-size:13px;margin-top:13px;flex:1}
+.concursos-shell .co-day .co-day-status{font-size:11px;font-weight:850;margin-top:13px}
+.concursos-shell .co-progress-track{height:8px;background:#e8e4f0;border-radius:15px;overflow:hidden;margin:15px 0 0}
+.concursos-shell .co-progress-track span{display:block;background:#638cba;height:100%;transition:width .3s}
+.concursos-shell .co-row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.concursos-shell .co-between{justify-content:space-between}
+.concursos-shell .co-spacer{height:18px}
+.concursos-shell .co-topic-list{display:grid;gap:10px}
+.concursos-shell .co-topic{display:grid;grid-template-columns:minmax(0,1fr) minmax(165px,215px);align-items:center;gap:16px;padding:13px;border:1px solid var(--line,#dedbea);background:var(--paper,#fff);border-radius:12px}
+.concursos-shell .co-topic strong{display:block;font-size:13px}
+.concursos-shell .co-topic small{color:var(--muted,#7a728b);font-size:12px}
+.concursos-shell .co-topic select{width:100%;max-width:100%;font:inherit;color:inherit;background:var(--paper,#fff);border:1px solid var(--line,#cac3dc);border-radius:9px;padding:10px;font-size:12px}
+.concursos-shell .co-question{max-width:790px;margin:0 auto}
+.concursos-shell .co-question h2{font-size:clamp(17px,2.5vw,23px)}
+.concursos-shell .co-choices{display:grid;gap:9px;margin:18px 0}
+.concursos-shell .co-choice{width:100%;border:1px solid var(--line,#d4cfdf);border-radius:11px;padding:13px 15px;display:flex;gap:10px;align-items:flex-start;text-align:left;background:var(--paper,#fff);color:inherit;font:inherit;font-size:14px;cursor:pointer}
+.concursos-shell .co-choice span:first-child{border:1px solid currentColor;border-radius:7px;min-width:23px;height:23px;display:grid;place-items:center;font-size:11px;font-weight:900;opacity:.7}
+.concursos-shell .co-choice[disabled]{cursor:default}
+.concursos-shell .co-choice.co-correct{border-color:#42a565;background:#e7f7eb;color:#235f38}
+.concursos-shell .co-choice.co-wrong{border-color:#d78087;background:#fff0f0;color:#923c46}
+.concursos-shell .co-feedback{border-left:3px solid #7288b3;padding:13px 16px;background:var(--paper-soft,#f7f7fb);border-radius:0 12px 12px 0}
+.concursos-shell .co-feedback strong{display:block;margin-bottom:7px}
+.concursos-shell .co-feedback li{margin-bottom:9px;font-size:13px}
+.concursos-shell .co-flash{border:1px solid var(--line,#d3cede);width:min(100%,600px);min-height:225px;margin:14px auto;display:grid;place-items:center;padding:35px 25px;text-align:center;border-radius:17px;background:var(--paper,#fff);color:inherit;font:inherit;cursor:pointer}
+.concursos-shell .co-flash strong{font-size:19px}
+.concursos-shell .co-flash small{font-size:12px;color:var(--muted,#7a728b)}
+.concursos-shell .co-step{padding:15px;border-left:3px solid #8372bd;background:var(--paper,#fff);border-radius:0 12px 12px 0;margin-bottom:9px}
+.concursos-shell .co-guide{background:var(--paper-soft,#f7f7fb);border:1px solid var(--line,#ddd9e6);border-radius:12px;padding:16px;margin:12px 0}
+.concursos-shell .co-loading{max-width:640px;margin:50px auto;padding:30px;border-radius:20px;background:var(--paper,#fff);border:1px solid var(--line,#dcd6ec)}
+.concursos-shell .co-loading-log{display:grid;gap:8px;margin-top:18px}
+.concursos-shell .co-loading-log p{display:flex;gap:9px;align-items:center;margin:0;color:var(--muted,#7a728b);font-size:13px}
+.concursos-shell .co-loading-log p.done{color:#42805a}
+.concursos-shell .co-loading-log p.current{font-weight:800;color:var(--ink,#302741)}
+.concursos-shell .co-pill{border-radius:100px;padding:4px 9px;background:#ebe7f5;font-weight:750;font-size:11px;color:#574982}
+.concursos-shell .co-admin-table{width:100%;border-collapse:collapse}
+.concursos-shell .co-admin-table th,.concursos-shell .co-admin-table td{text-align:left;border-bottom:1px solid var(--line,#dedbea);padding:10px 8px;font-size:13px}
+.concursos-shell .co-admin-table button{min-width:96px}
+html[data-theme="dark"] .concursos-shell .co-day.co-done{background:#173724;color:#d4f2dd}
+html[data-theme="dark"] .concursos-shell .co-choice.co-correct{background:#163521;color:#c6f1d3}
+html[data-theme="dark"] .concursos-shell .co-choice.co-wrong{background:#431e26;color:#ffe0e2}
+@media(max-width:760px){html.pm-concurso-user .app{display:block!important} .concursos-shell{padding:15px 9px 38px}.concursos-shell .co-hero{padding:20px}.concursos-shell .co-topic{grid-template-columns:minmax(0,1fr)}.concursos-shell .co-stats{gap:7px}.concursos-shell .co-stat{min-width:0;flex:1 1 42%}}
