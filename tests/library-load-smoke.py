@@ -65,7 +65,19 @@ with sync_playwright() as p:
             assert state["width"] and state["width"]["card"]>=state["width"]["list"]-5,(
                 f"{name}: cartão do cronograma ocupa apenas meia linha: {state}")
             page.screenshot(path=str(OUT/("material_load_"+name+".png")),full_page=True)
-            RESULTS.append({"device":name,"visible":state["after"],"width":state["width"]})
+            # A organização por semanas não pode esconder arquivos públicos fora da prova.
+            week=page.evaluate("""() => {
+                const button=document.querySelector('#docs [data-pm-material-tab="weeks"]');
+                if(!button)throw Error('Aba Por semanas não encontrada');
+                button.click();
+                return {isWeeks:!!document.querySelector('#docs .pm-weeks-intro'),
+                  titles:[...document.querySelectorAll('#docs .pm-week-unassigned .docname')]
+                    .map(e=>e.textContent.trim())};
+            }""")
+            assert week["isWeeks"],f"{name}: a aba Por semanas não abriu: {week}"
+            assert "Aula de validação de materiais" in week["titles"],(
+                f"{name}: material público fora da prova sumiu em Por semanas: {week}")
+            RESULTS.append({"device":name,"visible":state["after"],"width":state["width"],"week":week})
         finally:
             context.close()
             browser.close()
