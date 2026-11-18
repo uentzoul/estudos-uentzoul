@@ -601,19 +601,26 @@ async function toggleScreen(){
   if(!track){stream.getTracks().forEach(t=>t.stop());throw Error('Não há vídeo');}
   try{track.contentHint='detail';}catch(_){}
   S.display=track;S.screen=true;
-  track.addEventListener('ended',()=>{if(S.display===track)void endScreen();},{once:true});
+  track.addEventListener('ended',()=>{
+   if(S.display===track)void endScreen().catch(e=>console.warn('Falha ao restaurar a câmera após encerrar a apresentação',e));
+  },{once:true});
   track.addEventListener('mute',()=>{
    if(S.display!==track)return;
    clearTimeout(S.screenMuteTimer);
    S.screenMuteTimer=setTimeout(()=>{
     if(S.display===track&&track.muted&&S.stage==='live'&&document.visibilityState==='visible'){
      status('A tela parou de enviar imagem. Compartilhe novamente para retomar.',10);
-     void endScreen();
+     void endScreen().catch(e=>console.warn('Falha ao parar o compartilhamento sem vídeo',e));
     }
    },12000);
   });
   track.addEventListener('unmute',()=>clearTimeout(S.screenMuteTimer));
-  await replaceVideo();
+  try{await replaceVideo();}
+  catch(e){
+   // A tela não entra no lugar da câmera se algum sender rejeitar a troca.
+   if(S.display===track){S.display=null;S.screen=false;track.stop();}
+   throw e;
+  }
  }catch(e){if(e?.name!=='NotAllowedError'&&generation===S.generation)status('Não foi possível iniciar a apresentação da tela.');}
  finally{S.screenBusy=false;if(S.stage==='live')draw();}
 }
@@ -622,8 +629,21 @@ async function endScreen(){
  if(!old&&!S.screen)return;
  S.display=null;S.screen=false;
  clearTimeout(S.screenMuteTimer);S.screenMuteTimer=null;
- // Primeiro substitui a faixa remota, depois encerra a antiga.
- try{await replaceVideo();}finally{if(old)try{old.stop()}catch(_){}}
+ // Primeiro substitui a faixa remota; se houver erro, mantém a tela ativa
+ // quando ela ainda estiver disponível, sem interromper microfone ou call.
+ try{
+  await replaceVideo();
+  if(old)try{old.stop()}catch(_){}
+ }catch(e){
+  if(old?.readyState==='live'&&S.stage==='live'){
+   S.display=old;S.screen=true;
+   status('Falha temporária ao parar a apresentação. A call continua ativa.',7);
+  }else if(old){
+   try{old.stop()}catch(_){}
+   status('A apresentação terminou, mas houve falha ao retomar a câmera.',7);
+  }
+  throw e;
+ }
 }
 function iceConfig(){
  const defaults=[{urls:'stun:stun.l.google.com:19302'},{urls:'stun:stun1.l.google.com:19302'}];
