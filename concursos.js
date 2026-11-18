@@ -1,0 +1,404 @@
+
+(()=>{
+'use strict';
+if(window.__uentzoulConcursoLoaded)return;
+window.__uentzoulConcursoLoaded=true;
+const D=window.CONCURSO_DATA;
+if(!D){console.error('Conteúdo de Concursos indisponível');return;}
+const $=id=>document.getElementById(id);
+const esc=x=>String(x??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const client=()=>window.uentzoulAIAuth?.client?.();
+const user=()=>{const u=window.uentzoulAIAuth?.user?.();return u?.id&&!u.is_anonymous?u:null;};
+const subjects=Object.fromEntries(D.subjects.map(x=>[x.id,x]));
+const topics=Object.fromEntries(D.topics.map(x=>[x.id,x]));
+const qById=Object.fromEntries(D.questions.map(x=>[x.id,x]));
+const priorities={domino:0,revisar:1,estudar:2.25,prioridade:3.75};
+const pLabels={domino:'Já domino · dispensar',revisar:'Revisão rápida',estudar:'Preciso estudar',prioridade:'Tenho dificuldade · priorizar'};
+const defaultState=()=>({settings:{},plan:[],completed:{},answers:{},flashcards:{}});
+let store=defaultState(),rights={id:null,admin:false,concurso:false},active=false,external=false,checking=false,working=false;
+let view='inicio',subject='todos',dayIndex=0,session=null,cardFilter='todos',cardIndex=0,cardFlipped=false,roleList=[],roleSet=new Set();
+let saveJob=0,renderJob=0;
+const allowed=()=>!!rights.id&&(rights.admin||rights.concurso);
+const onlyContest=()=>rights.concurso&&!rights.admin;
+const settingsFor=id=>store.settings[id]||'revisar';
+const dateOf=i=>new Date(Date.UTC(2026,10,19+i)).toISOString().slice(0,10);
+const shortDate=s=>s.slice(8)+'/'+s.slice(5,7);
+const shuffle=a=>a.map(v=>({v,r:Math.random()})).sort((a,b)=>a.r-b.r).map(x=>x.v);
+const doneCount=()=>Object.values(store.completed).filter(Boolean).length;
+const acc=()=>{const a=Object.values(store.answers);return a.length?Math.round(a.filter(x=>x.correct).length/a.length*100):0;};
+function toast(message){
+ let el=$('concursosToast');
+ if(!el){el=document.createElement('div');el.id='concursosToast';el.style.cssText='position:fixed;z-index:100000;bottom:18px;right:16px;max-width:320px;padding:13px 17px;background:#302b46;color:#fff;border-radius:12px;box-shadow:0 8px 28px #0004;font:600 13px system-ui';document.body.append(el);}
+ el.textContent=message;clearTimeout(el.timer);el.timer=setTimeout(()=>el.remove(),4600);
+}
+async function load(){
+ const c=client();if(!c||!rights.id)return;
+ const r=await c.from('uentzoul_concurso_progress').select('settings,plan,completed,answers,flashcards').eq('user_id',rights.id).maybeSingle();
+ if(r.error){console.warn('Concursos: falha ao carregar dados',r.error);return;}
+ const d=r.data||{};
+ store={...defaultState(),...d};
+ if(!Array.isArray(store.plan))store.plan=[];
+ for(const k of ['settings','completed','answers','flashcards'])if(!store[k]||Array.isArray(store[k])||typeof store[k]!=='object')store[k]={};
+}
+async function save(){
+ const c=client(),id=rights.id;if(!c||!id||!allowed())return;
+ const r=await c.from('uentzoul_concurso_progress').upsert({
+  user_id:id,settings:store.settings,plan:store.plan,completed:store.completed,
+  answers:store.answers,flashcards:store.flashcards,updated_at:new Date().toISOString()
+ },{onConflict:'user_id'});
+ if(r.error){console.warn('Concursos: falha ao salvar',r.error);toast('Não foi possível salvar. Verifique a conexão.');}
+}
+function scheduleSave(){clearTimeout(saveJob);saveJob=setTimeout(save,400);}
+async function refreshAccess(force=false){
+ const u=user();
+ if(!u){
+  if(rights.id){rights={id:null,admin:false,concurso:false};store=defaultState();active=false;external=false;}
+  syncChrome();return;
+ }
+ if(checking||(!force&&rights.id===u.id))return;
+ checking=true;
+ try{
+  const r=await client().rpc('uentzoul_concurso_access');
+  if(r.error)throw r.error;if(user()?.id!==u.id)return;
+  const changed=rights.id!==u.id;
+  rights={id:u.id,admin:r.data?.admin===true,concurso:r.data?.concurso===true};
+  if(allowed()){
+   if(changed)await load();
+   if(onlyContest()||location.hash==='#concursos'&&rights.admin){enter(true);}
+  }else{
+   active=false;external=false;
+  }
+ }catch(e){console.warn('Concursos: falha na autenticação do cargo',e);rights={id:u.id,admin:false,concurso:false};active=false;}
+ finally{checking=false;syncChrome();}
+}
+function syncChrome(){
+ document.documentElement.classList.toggle('pm-concurso-user',onlyContest());
+ document.documentElement.classList.toggle('pm-concurso-mode',active);
+ const menu=$('semesterDropdown');
+ if(menu){
+  let b=menu.querySelector('[data-concurso-select]');
+  if(allowed()){
+   if(!b){
+    b=document.createElement('button');b.type='button';b.className='semester-option concurso-semester-option';
+    b.dataset.concursoSelect='true';b.innerHTML='<span>Concursos</span><span class="semester-option-check" aria-hidden="true">✓</span>';
+    menu.appendChild(b);
+   }
+   b.hidden=false;
+  }else if(b)b.remove();
+  menu.querySelectorAll('[data-semester]').forEach(el=>{
+   if(el.hidden!==onlyContest())el.hidden=onlyContest();
+   if(active){el.classList.remove('active');el.removeAttribute('aria-current');}
+  });
+  if(active&&b){b.classList.add('active');b.setAttribute('aria-current','true');}
+ }
+ if(active){
+  const label=$('semesterCurrentLabel');if(label&&label.textContent!=='Concursos')label.textContent='Concursos';
+  if(!external)document.querySelectorAll('#nav [data-page]').forEach(n=>n.classList.toggle('active',n.dataset.page===(view==='simulados'?'exams':'home')));
+  const side=$('subjectNav');
+  if(side&&!side.querySelector('[data-concurso-subject]')){
+   for(const s of D.subjects){const b=document.createElement('button');b.type='button';b.className='sidebtn';b.dataset.concursoSubject=s.id;b.textContent=s.name;side.appendChild(b);}
+  }
+ }else{
+  document.querySelectorAll('#subjectNav [data-concurso-subject]').forEach(n=>n.remove());
+ }
+}
+function enter(restored=false){
+ if(!allowed())return;
+ if(!active){view='inicio';subject='todos';}
+ active=true;external=false;
+ if(!restored){try{history.replaceState(history.state,'',location.pathname+location.search+'#concursos');}catch(e){}}
+ render();syncChrome();window.pmMobileDrawer?.close?.();
+}
+function exit(){
+ if(onlyContest())return;
+ active=false;external=false;
+ try{if(location.hash==='#concursos')history.replaceState(history.state,'',location.pathname+location.search);}catch(e){}
+ syncChrome();
+}
+function renderHTML(content){
+ if(!active||external)return;
+ const root=$('main');if(!root)return;
+ root.classList.remove('nb-shell-active');root.innerHTML='<div class="concursos-shell">'+content+'</div>';
+ syncChrome();
+}
+const b=(action,title,extra='',style='co-btn')=>'<button type="button" class="'+style+'" data-co="'+action+'" '+extra+'>'+title+'</button>';
+function heading(title,subtitle){
+ return '<div class="co-row co-between" style="margin-bottom:18px"><div><p class="co-kicker">Concursos · HCPA 2026</p><h1>'+esc(title)+'</h1><p class="co-muted">'+esc(subtitle)+'</p></div>'+b('tab','Voltar ao início','data-tab="inicio"')+'</div>';
+}
+function header(){
+ const percent=Math.round(doneCount()/24*100);
+ return '<section class="co-hero"><div class="co-hero-top"><div><p class="co-kicker">Prova · 13 de dezembro de 2026</p><h1>Assistente Administrativo II</h1><p class="co-muted">19/11 a 12/12 · 24 dias · até 1 hora por dia</p></div><span class="co-pill">HCPA</span></div><div class="co-stats"><div class="co-stat"><strong>'+doneCount()+'/24</strong><small>Dias concluídos</small></div><div class="co-stat"><strong>'+percent+'%</strong><small>Progresso diário</small></div><div class="co-stat"><strong>'+acc()+'%</strong><small>Acertos registrados</small></div><div class="co-stat"><strong>200</strong><small>Questões disponíveis</small></div></div><div class="co-progress-track"><span style="width:'+percent+'%"></span></div></section>';
+}
+function tabs(){
+ return '<nav class="co-tabs" aria-label="Ferramentas Concursos">'+
+ [['inicio','Plano diário'],['materias','Matérias'],['banco','Banco de questões'],['simulados','Mini simulados'],['flashcards','Flashcards']].concat(rights.admin?[['admin','Gerenciar cargo']]:[]).map(([id,t])=>
+ '<button type="button" data-co="tab" data-tab="'+id+'" aria-current="'+(view===id?'page':'false')+'">'+t+'</button>').join('')+'</nav>';
+}
+function home(){
+ let content=header()+tabs();
+ if(!store.plan.length){
+  content+='<section class="co-card"><p class="co-kicker">Primeiro acesso</p><h2>Crie seu plano de estudo personalizado</h2><p>Indique em quais assuntos você já tem segurança e quais exigem mais atenção. O cronograma ajusta a prioridade dos temas ao peso da prova e limita cada dia a 60 minutos.</p>'+b('tab','Escolher minhas prioridades','data-tab="configurar"','co-btn co-btn-primary')+'</section>';
+ }else{
+  content+='<div class="co-row co-between"><div><h2>Seu cronograma de estudos</h2><p class="co-muted">Clique em qualquer cartão para abrir o estudo completo do dia.</p></div>'+b('tab','Alterar prioridades','data-tab="configurar"')+'</div>';
+  content+='<div class="co-grid">'+store.plan.map((day,i)=>
+   '<button type="button" data-co="open-day" data-day="'+i+'" class="co-card co-day '+(store.completed[day.date]?'co-done':'')+'"><span class="co-day-number">Dia '+(i+1)+'</span><span class="co-day-date">'+shortDate(day.date)+'</span><span class="co-day-label">'+esc(day.topics.map(t=>topics[t]?.title||t).join(' + '))+'</span><span class="co-day-status">'+(store.completed[day.date]?'✓ Concluído':'Abrir · 60 min')+'</span></button>').join('')+'</div>';
+ }
+ renderHTML(content);
+}
+function setup(){
+ let html=heading('O que você já conhece?','Escolha o grau de domínio em cada assunto para montar os 24 dias.');
+ html+='<div class="co-guide">Os assuntos marcados como <strong>Já domino</strong> ficam fora do estudo principal. <strong>Preciso estudar</strong> e <strong>Tenho dificuldade</strong> ganham mais tempo e reaparecem nas revisões.</div>';
+ for(const s of D.subjects){
+  html+='<section style="margin:22px 0"><h2>'+esc(s.name)+'</h2><div class="co-topic-list">';
+  for(const t of D.topics.filter(t=>t.subject===s.id)){
+   html+='<label class="co-topic"><span><strong>'+esc(t.title)+'</strong><small>'+esc(t.summary)+'</small></span><select aria-label="Domínio de '+esc(t.title)+'" data-concurso-priority="'+t.id+'">'+
+    Object.entries(pLabels).map(([v,l])=>'<option value="'+v+'" '+(settingsFor(t.id)===v?'selected':'')+'>'+l+'</option>').join('')+'</select></label>';
+  }
+  html+='</div></section>';
+ }
+ html+='<div class="co-row co-between"><p class="co-muted">Reconfigurar o cronograma reinicia os cartões concluídos, mas mantém respostas e flashcards.</p>'+b('generate','Gerar meu plano de estudos','','co-btn co-btn-primary')+'</div>';
+ renderHTML(html);
+}
+function plan(){
+ const permitted=D.topics.filter(t=>settingsFor(t.id)!=='domino'),pool=permitted.length?permitted:D.topics;
+ const usage=Object.fromEntries(pool.map(t=>[t.id,0]));
+ const out=[];
+ for(let d=0;d<24;d++){
+  const picked=[];
+  for(let slot=0;slot<2;slot++){
+   let candidates=pool.filter(t=>!picked.includes(t.id));
+   if(slot===0&&candidates.some(t=>t.subject==='especificos'))candidates=candidates.filter(t=>t.subject==='especificos');
+   candidates.sort((a,b)=>{
+    const score=t=>(priorities[settingsFor(t.id)]||.1)*(t.subject==='especificos'?2.2:1)/(1+.6*usage[t.id]);
+    return score(b)-score(a)||a.id.localeCompare(b.id);
+   });
+   const choice=candidates[0];if(!choice)break;
+   picked.push(choice.id);usage[choice.id]++;
+  }
+  out.push({day:d+1,date:dateOf(d),topics:picked,minutes:d>=21?[15,35,10]:[25,25,10],review:d>=21?'Revisão final':(d+1)%5===0?'Revisão de consolidação':'Estudo orientado'});
+ }
+ return out;
+}
+async function generate(){
+ if(working)return;
+ if(store.plan.length&&!confirm('Criar novo cronograma? Dias já concluídos serão reiniciados.'))return;
+ working=true;
+ renderHTML('<section class="co-loading" role="status" aria-live="polite"><p class="co-kicker">Planejamento personalizado</p><h1>Montando seus 24 dias</h1><p class="co-muted">Até 60 minutos por dia, de 19 de novembro a 12 de dezembro.</p><div class="co-progress-track"><span id="coLoadFill" style="width:0%"></span></div><div class="co-loading-log" id="coLoadLines"></div></section>');
+ const steps=['Identificando os assuntos prioritários','Distribuindo matérias pelo peso da prova','Reservando tempo para questões e revisões','Organizando os 24 dias até a prova','Salvando o plano na sua conta'];
+ for(let i=0;i<steps.length;i++){
+  const el=document.createElement('p');el.className='current';el.textContent='◌ '+steps[i];$('coLoadLines')?.appendChild(el);
+  await new Promise(resolve=>setTimeout(resolve,350));
+  el.textContent='✓ '+steps[i];el.className='done';
+  if($('coLoadFill'))$('coLoadFill').style.width=((i+1)*20)+'%';
+ }
+ store.plan=plan();store.completed={};await save();
+ working=false;view='inicio';render();
+}
+function guide(topic){
+ const t=topics[topic];if(!t)return '';
+ return '<div class="co-guide">'+t.notes.map(n=>'<p><strong>'+esc(n.term)+':</strong> '+esc(n.explanation)+'</p>').join('')+'</div>';
+}
+function day(){
+ const d=store.plan[dayIndex];if(!d)return go('inicio');
+ const html=heading('Dia '+d.day+' · '+shortDate(d.date),d.review+' · 1 hora no máximo')+
+ '<div class="co-grid" style="margin-bottom:15px">'+
+ [['1. Ler e compreender',d.minutes[0]+' minutos'],['2. Resolver questões',d.minutes[1]+' minutos'],['3. Revisar flashcards',d.minutes[2]+' minutos']].map(([title,time])=>
+ '<article class="co-card"><h3>'+title+'</h3><p class="co-muted">'+time+'</p></article>').join('')+'</div>'+
+ d.topics.map(t=>'<section class="co-card" style="margin-bottom:12px"><h2>'+esc(topics[t]?.title||t)+'</h2>'+guide(t)+'</section>').join('')+
+ '<div class="co-row">'+b('day-questions','Praticar questões','','co-btn co-btn-primary')+b('day-flashcards','Revisar flashcards')+b('complete-day',store.completed[d.date]?'✓ Concluído · desfazer':'✓ Concluir este dia')+'</div><p class="co-muted" style="margin-top:12px">Quando concluído, o cartão ficará verde no cronograma.</p>';
+ renderHTML(html);
+}
+function matters(){
+ renderHTML(header()+tabs()+'<h2>Disciplinas e assuntos</h2><div class="co-grid">'+D.subjects.map(s=>
+ '<button type="button" class="co-card co-day" data-co="matter" data-subject="'+s.id+'"><span class="co-kicker">'+s.examQuestions+' questões na prova</span><span class="co-day-number">'+esc(s.name)+'</span><span class="co-day-label">'+D.topics.filter(t=>t.subject===s.id).length+' grupos de estudo</span><span class="co-day-status">Abrir conteúdo</span></button>').join('')+'</div>');
+}
+function matter(){
+ const s=subjects[subject]||D.subjects[0];
+ renderHTML(heading(s.name,'Leitura estruturada por assunto, com prática específica.')+
+ b('questions','Resolver questões da matéria','data-subject="'+s.id+'"','co-btn co-btn-primary')+
+ D.topics.filter(t=>t.subject===s.id).map(t=>'<section class="co-card" style="margin-top:12px"><h2>'+esc(t.title)+'</h2><p class="co-muted">'+esc(t.summary)+'</p>'+guide(t.id)+b('questions','Praticar este assunto','data-topic="'+t.id+'"')+'</section>').join(''));
+}
+function filterBox(){
+ return '<select class="co-select" data-co-filter="subject" aria-label="Matéria"><option value="todos">Todas as matérias</option>'+
+ D.subjects.map(s=>'<option value="'+s.id+'" '+(subject===s.id?'selected':'')+'>'+esc(s.name)+'</option>').join('')+'</select>';
+}
+function bank(){
+ const wrong=D.questions.filter(q=>store.answers[q.id]&&!store.answers[q.id].correct).length;
+ renderHTML(header()+tabs()+'<section class="co-card"><h2>Banco de 200 questões</h2><p>Escolha uma matéria ou pratique todas. Uma questão por vez, com correção imediata e explicação de cada alternativa.</p><div class="co-row">'+filterBox()+b('questions','Começar questões','','co-btn co-btn-primary')+b('wrong','Refazer erros ('+wrong+')',wrong?'':'disabled')+'</div></section>'+
+ '<div class="co-grid" style="margin-top:12px">'+D.subjects.map(s=>'<article class="co-card"><strong>'+esc(s.name)+'</strong><p class="co-muted">'+D.questions.filter(q=>q.subject===s.id).length+' questões disponíveis</p>'+b('questions','Praticar','data-subject="'+s.id+'"')+'</article>').join('')+'</div>');
+}
+function startQuestions(filter='todos',topic=null,incorrect=false){
+ let questions=D.questions.filter(q=>(filter==='todos'||q.subject===filter)&&(!topic||q.topic===topic));
+ if(incorrect)questions=questions.filter(q=>store.answers[q.id]&&!store.answers[q.id].correct);
+ if(!questions.length)return toast('Não há questões nesse filtro.');
+ questions=shuffle(questions).sort((a,b)=>(priorities[settingsFor(b.topic)]||0)-(priorities[settingsFor(a.topic)]||0));
+ session={ids:questions.map(q=>q.id),index:0,selected:null,good:0,mode:'banco'};
+ go('question');
+}
+function mini(n){
+ const sizes=n===40?{especificos:25,portugues:5,informatica:5,logica:5}:n===20?{especificos:13,portugues:3,informatica:2,logica:2}:{especificos:6,portugues:2,informatica:1,logica:1};
+ const selected=Object.entries(sizes).flatMap(([id,count])=>shuffle(D.questions.filter(q=>q.subject===id)).sort((a,b)=>(priorities[settingsFor(b.topic)]||0)-(priorities[settingsFor(a.topic)]||0)).slice(0,count));
+ session={ids:shuffle(selected).map(q=>q.id),index:0,selected:null,good:0,mode:'simulado'};
+ go('question');
+}
+function simulations(){
+ renderHTML(header()+tabs()+'<h2>Escolha um simulado</h2><p class="co-muted">Depois de responder, aparece a alternativa certa com explicações; os resultados ficam no histórico de respostas.</p><div class="co-grid">'+
+ [[10,'Treino rápido'],[20,'Mini simulado'],[40,'Simulado completo']].map(([n,label])=>
+ '<article class="co-card"><p class="co-kicker">'+n+' questões</p><h3>'+label+'</h3><p class="co-muted">Questões selecionadas conforme suas prioridades e a composição da prova.</p>'+b('mini','Começar','data-size="'+n+'"','co-btn co-btn-primary')+'</article>').join('')+'</div>');
+}
+function question(){
+ if(!session)return go('banco');
+ if(session.index>=session.ids.length)return go('result');
+ const q=qById[session.ids[session.index]],selected=session.selected;
+ let html=heading(session.mode==='simulado'?'Simulado em andamento':'Banco de questões',subjects[q.subject]?.name+' · '+topics[q.topic]?.title)+
+ '<section class="co-card co-question"><div class="co-row co-between"><span class="co-pill">Questão '+(session.index+1)+' de '+session.ids.length+'</span><span class="co-muted">'+session.good+' acertos nesta sessão</span></div>'+
+ '<div class="co-progress-track"><span style="width:'+(session.index/session.ids.length*100)+'%"></span></div><div class="co-spacer"></div><h2>'+esc(q.stem)+'</h2>'+
+ '<div class="co-choices">'+q.options.map((option,i)=>'<button type="button" data-co="answer" data-choice="'+i+'" class="co-choice '+(selected===null?'':i===q.answer?'co-correct':i===selected?'co-wrong':'')+'" '+(selected!==null?'disabled':'')+'><span>'+String.fromCharCode(65+i)+'</span><span>'+esc(option)+'</span></button>').join('')+'</div>';
+ if(selected!==null){
+  html+='<section class="co-feedback" role="status"><strong>'+(selected===q.answer?'✓ Resposta correta':'Resposta incorreta. Correta: '+String.fromCharCode(65+q.answer))+'</strong><ol style="list-style:none;padding:0">'+q.options.map((x,i)=>
+   '<li><strong>'+String.fromCharCode(65+i)+'. '+esc(x)+'</strong><p class="co-muted">'+esc(q.feedback[i])+'</p></li>').join('')+'</ol></section>';
+ }
+ html+='<div class="co-row co-between" style="margin-top:18px">'+b('cancel','Encerrar sessão')+
+ (selected===null?'<span class="co-muted">Escolha a resposta para corrigir.</span>':b('next',session.index===session.ids.length-1?'Ver resultado':'Próxima questão','','co-btn co-btn-primary'))+'</div></section>';
+ renderHTML(html);
+}
+function answer(i){
+ if(!session||session.selected!==null)return;
+ const q=qById[session.ids[session.index]];
+ if(!q||i<0||i>=q.options.length)return;
+ session.selected=i;
+ if(i===q.answer)session.good++;
+ store.answers[q.id]={answer:i,correct:i===q.answer,at:new Date().toISOString()};
+ scheduleSave();question();
+}
+function result(){
+ if(!session)return go('banco');
+ const pct=Math.round(session.good/session.ids.length*100);
+ renderHTML(heading('Sessão concluída','As respostas e erros ficam registrados na sua conta.')+
+ '<section class="co-card" style="text-align:center;max-width:600px;margin:auto"><p class="co-kicker">'+session.mode+'</p><h1>'+session.good+' de '+session.ids.length+' acertos</h1><p class="co-muted">'+pct+'% nesta sessão</p><div class="co-row" style="justify-content:center">'+b('tab','Banco de questões','data-tab="banco"','co-btn co-btn-primary')+b('wrong','Rever as erradas')+b('tab','Cronograma','data-tab="inicio"')+'</div></section>');
+}
+const cards=()=>D.flashcards.filter(c=>cardFilter==='todos'||c.subject===cardFilter||c.topic===cardFilter).sort((a,b)=>Number(store.flashcards[a.id]===true)-Number(store.flashcards[b.id]===true));
+function flashcards(){
+ const list=cards();if(cardIndex>=list.length)cardIndex=0;
+ const c=list[cardIndex],known=list.filter(c=>store.flashcards[c.id]===true).length;
+ const filter='<select class="co-select" data-co-filter="cards"><option value="todos">Todas as matérias</option>'+D.subjects.map(s=>
+ '<option value="'+s.id+'" '+(cardFilter===s.id?'selected':'')+'>'+esc(s.name)+'</option>').join('')+'</select>';
+ renderHTML(header()+tabs()+'<div class="co-row co-between"><div><h2>Flashcards</h2><p class="co-muted">Toque no cartão e marque o que já domina.</p></div>'+filter+'</div>'+
+ (!c?'<p>Sem cartões nesse filtro.</p>':'<div style="text-align:center"><p class="co-muted">'+(cardIndex+1)+' / '+list.length+' · '+known+' dominados</p><button type="button" class="co-flash" data-co="flip"><div><small>'+esc(subjects[c.subject]?.name)+'</small><p style="margin:12px 0"><strong>'+esc(cardFlipped?c.back:c.front)+'</strong></p><small>'+(cardFlipped?'Toque para voltar à pergunta':'Toque para revelar a resposta')+'</small></div></button><div class="co-row" style="justify-content:center">'+b('card-rating','Preciso revisar','data-known="false"')+b('card-rating','Já sei','data-known="true"','co-btn co-btn-primary')+b('next-card','Próximo')+'</div></div>'));
+}
+async function adminLoad(){
+ if(!rights.admin)return;
+ const c=client();if(!c)return;
+ const [a,b]=await Promise.all([c.from('uentzoul_profiles').select('user_id,display_name').order('display_name').limit(500),
+  c.from('uentzoul_concurso_users').select('user_id').limit(500)]);
+ if(a.error||b.error)return toast('Não foi possível carregar as contas.');
+ roleList=a.data||[];roleSet=new Set((b.data||[]).map(u=>u.user_id));if(active&&view==='admin')admin();
+}
+function admin(){
+ renderHTML(header()+tabs()+'<section class="co-card"><h2>Conceder cargo Concursos</h2><p class="co-muted">Depois que a pessoa criar a conta, conceda aqui o cargo. O cadastro ficará oculto da comunidade e sem acesso às mensagens.</p><div style="overflow:auto"><table class="co-admin-table"><thead><tr><th>Usuário</th><th>Permissão atual</th><th>Alterar</th></tr></thead><tbody>'+
+ roleList.map(u=>'<tr><td>'+esc(u.display_name)+'</td><td>'+(roleSet.has(u.user_id)?'Concursos':'Conta comum')+'</td><td>'+b('role',roleSet.has(u.user_id)?'Revogar':'Conceder','data-user="'+u.user_id+'" data-enable="'+(!roleSet.has(u.user_id))+'" '+(u.user_id===rights.id?'disabled':''))+'</td></tr>').join('')+'</tbody></table></div></section>');
+}
+async function toggleRole(id,yes){
+ if(!rights.admin||!id||id===rights.id)return;
+ const p=roleList.find(x=>x.user_id===id);if(!p)return;
+ if(!confirm((yes?'Conceder':'Revogar')+' cargo Concursos para '+p.display_name+'?'))return;
+ const r=await client().rpc('uentzoul_set_concurso_role',{p_user_id:id,p_enabled:yes});
+ if(r.error)return toast('Permissão não alterada: '+r.error.message);
+ toast('Permissão atualizada.');await adminLoad();
+}
+function go(dest){
+ if(!active||!allowed())return;
+ external=false;view=dest;
+ if(dest==='admin'&&rights.admin)void adminLoad();
+ render();
+}
+function render(){
+ if(!active||external||working)return;
+ if(view==='inicio')home();
+ else if(view==='configurar')setup();
+ else if(view==='dia')day();
+ else if(view==='materias')matters();
+ else if(view==='materia')matter();
+ else if(view==='banco')bank();
+ else if(view==='simulados')simulations();
+ else if(view==='question')question();
+ else if(view==='result')result();
+ else if(view==='flashcards')flashcards();
+ else if(view==='admin')admin();
+ else home();
+}
+document.addEventListener('click',e=>{
+ if(!(e.target instanceof Element))return;
+ const competition=e.target.closest('#semesterDropdown [data-concurso-select]');
+ if(competition){
+  e.preventDefault();e.stopImmediatePropagation();
+  if(allowed())enter();$('semesterDropdown').hidden=true;$('semesterCurrent')?.setAttribute('aria-expanded','false');return;
+ }
+ const ordinary=e.target.closest('#semesterDropdown [data-semester]');
+ if(ordinary&&active){
+  if(onlyContest()){e.preventDefault();e.stopImmediatePropagation();return;}
+  exit();return;
+ }
+ if(onlyContest()&&e.target.closest('#nav [data-page="messages"],#nav [data-page="calendar"],#nav #navVacationReview,[data-dm-peer],[data-dm-room],[data-dm-tab],[data-action^="messages:"]')){
+  e.preventDefault();e.stopImmediatePropagation();return;
+ }
+ if(!active)return;
+ const sub=e.target.closest('[data-concurso-subject]');
+ if(sub){e.preventDefault();e.stopImmediatePropagation();subject=sub.dataset.concursoSubject;go('materia');window.pmMobileDrawer?.close?.();return;}
+ const nav=e.target.closest('#nav [data-page]');
+ if(nav){
+  if(['home','exams'].includes(nav.dataset.page)){
+   e.preventDefault();e.stopImmediatePropagation();go(nav.dataset.page==='exams'?'simulados':'inicio');window.pmMobileDrawer?.close?.();return;
+  }
+  if(nav.dataset.page==='ai'){external=true;return;}
+  if(onlyContest()){e.preventDefault();e.stopImmediatePropagation();return;}
+ }
+ if(e.target.closest('#navCadernoPreview')){external=true;return;}
+ const button=e.target.closest('[data-co]');if(!button)return;
+ e.preventDefault();e.stopImmediatePropagation();
+ const cmd=button.dataset.co;
+ if(cmd==='tab')go(button.dataset.tab);
+ if(cmd==='generate')void generate();
+ if(cmd==='open-day'){dayIndex=Number(button.dataset.day)||0;go('dia');}
+ if(cmd==='matter'){subject=button.dataset.subject;go('materia');}
+ if(cmd==='complete-day'){const d=store.plan[dayIndex];if(d){store.completed[d.date]=!store.completed[d.date];scheduleSave();day();}}
+ if(cmd==='day-questions'){
+  const d=store.plan[dayIndex];if(!d)return;
+  const ids=shuffle(D.questions.filter(q=>d.topics.includes(q.topic))).slice(0,12).map(q=>q.id);
+  if(!ids.length)return toast('Nenhuma questão encontrada neste dia.');
+  session={ids,index:0,selected:null,good:0,mode:'banco'};go('question');
+ }
+ if(cmd==='day-flashcards'){cardFilter=store.plan[dayIndex]?.topics[0]||'todos';cardIndex=0;cardFlipped=false;go('flashcards');}
+ if(cmd==='questions')startQuestions(button.dataset.subject||subject,button.dataset.topic||null);
+ if(cmd==='wrong')startQuestions('todos',null,true);
+ if(cmd==='mini')mini(Number(button.dataset.size));
+ if(cmd==='answer')answer(Number(button.dataset.choice));
+ if(cmd==='next'&&session){session.index++;session.selected=null;go(session.index>=session.ids.length?'result':'question');}
+ if(cmd==='cancel')go(session?.mode==='simulado'?'simulados':'banco');
+ if(cmd==='flip'){cardFlipped=!cardFlipped;flashcards();}
+ if(cmd==='next-card'){cardIndex++;cardFlipped=false;flashcards();}
+ if(cmd==='card-rating'){const c=cards()[cardIndex];if(c){store.flashcards[c.id]=button.dataset.known==='true';scheduleSave();}cardIndex++;cardFlipped=false;flashcards();}
+ if(cmd==='role')void toggleRole(button.dataset.user,button.dataset.enable==='true');
+},true);
+document.addEventListener('change',e=>{
+ const t=e.target;if(!active||!(t instanceof Element))return;
+ if(t.matches('[data-concurso-priority]')){store.settings[t.dataset.concursoPriority]=t.value;scheduleSave();}
+ if(t.matches('[data-co-filter="subject"]'))subject=t.value;
+ if(t.matches('[data-co-filter="cards"]')){cardFilter=t.value;cardIndex=0;cardFlipped=false;flashcards();}
+});
+window.addEventListener('uentzoul:auth',()=>void refreshAccess(true));
+window.addEventListener('focus',()=>void refreshAccess(true));
+window.addEventListener('hashchange',()=>{if(location.hash==='#concursos'&&allowed()&&!active)enter(true);});
+function boot(){
+ syncChrome();void refreshAccess();
+ const root=$('main');
+ if(root){new MutationObserver(()=>{
+  if(active&&!external&&!working&&!root.querySelector('.concursos-shell')&&!renderJob){
+   renderJob=requestAnimationFrame(()=>{renderJob=0;render();});
+  }
+ }).observe(root,{childList:true});}
+ setInterval(()=>{syncChrome();if((user()?.id||null)!==rights.id)void refreshAccess(true);},1700);
+ setInterval(()=>{if(user())void refreshAccess(true);},60000);
+}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});else boot();
+})();
