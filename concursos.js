@@ -67,7 +67,7 @@ async function refreshAccess(force=false){
   rights={id:u.id,admin:r.data?.admin===true,concurso:r.data?.concurso===true};
   if(allowed()){
    if(changed)await load();
-   if(onlyContest()||location.hash==='#concursos'&&rights.admin){enter(true);}
+   if(!active&&(onlyContest()||location.hash==='#concursos'&&rights.admin)){enter(true);}
   }else{
    active=false;external=false;
   }
