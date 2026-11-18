@@ -30,3 +30,18 @@ jobs:
         run: node --check group-call.js
       - name: Verificar recuperação de negociação, mídia e presença
         run: node --test tests/group-call-stability.test.mjs tests/group-call-signaling.test.mjs
+
+  webrtc-real:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Instalar navegador real para teste entre dois participantes
+        run: |
+          npm install --no-save --no-package-lock playwright@1.64.1
+          npx playwright install --with-deps chromium
+      - name: Testar câmera e compartilhamento de tela WebRTC entre duas abas
+        run: node tests/group-call-e2e.mjs
