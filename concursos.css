@@ -90,3 +90,11 @@ html[data-theme="dark"] .concursos-shell .co-day.co-done{background:#173724;colo
 html[data-theme="dark"] .concursos-shell .co-choice.co-correct{background:#163521;color:#c6f1d3}
 html[data-theme="dark"] .concursos-shell .co-choice.co-wrong{background:#431e26;color:#ffe0e2}
 @media(max-width:760px){html.pm-concurso-user .app{display:block!important} .concursos-shell{padding:15px 9px 38px}.concursos-shell .co-hero{padding:20px}.concursos-shell .co-topic{grid-template-columns:minmax(0,1fr)}.concursos-shell .co-stats{gap:7px}.concursos-shell .co-stat{min-width:0;flex:1 1 42%}}
+
+
+html.pm-concurso-mode #navCadernoPreview{display:none!important}
+html.pm-concurso-mode #navConcursoNotebook{display:flex!important;align-items:center;gap:9px}
+html.pm-concurso-user #semesterDropdown [data-semester]{display:none!important}
+html.pm-concurso-user #nav [data-page]:not([data-page="home"]):not([data-page="exams"]):not([data-page="ai"]){display:none!important}
+html.pm-concurso-user #siteSidebar .nav-report-button{display:none!important}
+html.pm-concurso-mode #subjectNav [data-concurso-subject]{display:flex!important}
