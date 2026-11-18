@@ -104,14 +104,14 @@
    });
    if(css){
     const url=new URL(css.href,location.href);
-    url.searchParams.set('v','20261118-daily7');
+    url.searchParams.set('v','20261118-daily8-caderno');
     css.href=url.toString();
    }else{
     const link=document.createElement('link');
-    link.rel='stylesheet';link.href='concursos.css?v=20261118-daily7';
+    link.rel='stylesheet';link.href='concursos.css?v=20261118-daily8-caderno';
     document.head.appendChild(link);
    }
-   await script('pm-concursos-app','concursos.js?v=20261118-daily7');
+   await script('pm-concursos-app','concursos.js?v=20261118-daily8-caderno');
    loaded=true;
   }catch(error){console.warn('Concursos: acesso ainda indisponível',error);if(onlyContest())lockRoute();}
   finally{loading=false;}
