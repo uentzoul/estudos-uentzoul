@@ -304,7 +304,7 @@ function trailView(ctx){
  return '<div class="s1-trail"><header><small>REVISÃO DO 1º SEMESTRE</small><h2>Trilha de Estudos para Relembrar</h2>'+
  '<p>Reveja um assunto por vez. Leia, vire os flashcards, pratique com os exemplos e faça os simulados.</p></header>'+list+'</div>';
 }
-document.addEventListener('click',event=>{
+if(typeof document!=='undefined')document.addEventListener('click',event=>{
  const trigger=event.target.closest?.('[data-s1-flip],[data-s1-prev],[data-s1-next]');
  if(!trigger||!trigger.closest('.s1-trail'))return;
  event.preventDefault();
