@@ -33,27 +33,35 @@ function readings(ctx,docs,topics){
 }
 
 
+
 function podcasts(ctx,episodes){
  if(!episodes.length)return '';
- return '<section class="ti-block">'+heading('Podcasts específicos','Reproduza nesta página')+
+ return '<section class="ti-block ti-block-audio">'+heading('Podcasts','Ouça aqui, sem sair da trilha')+
  '<div class="ti-podcast-list">'+episodes.map(e=>
- '<article class="ti-podcast"><div class="ti-podcast-title"><span>♫</span><div><small>EPISÓDIO '+String(e.n).padStart(2,'0')+'</small><strong>'+esc(e.title)+'</strong></div></div>'+
- '<audio controls preload="none" playsinline src="'+esc(e.src)+'" aria-label="Ouvir podcast '+esc(e.title)+'"></audio>'+
+ '<article class="ti-podcast"><div class="ti-podcast-title"><span aria-hidden="true">♫</span><div><small>EPISÓDIO '+String(e.n).padStart(2,'0')+'</small><strong>'+esc(e.title)+'</strong></div></div>'+
+ '<audio preload="metadata" playsinline src="'+esc(e.src)+'" aria-label="Ouvir podcast '+esc(e.title)+'"></audio>'+
+ '<div class="ti-audio-controls"><button type="button" data-ti-skip="-10" aria-label="Voltar 10 segundos">−10</button>'+
+ '<button type="button" class="ti-audio-play" data-ti-play aria-label="Reproduzir podcast">▶</button>'+
+ '<button type="button" data-ti-skip="10" aria-label="Avançar 10 segundos">+10</button>'+
+ '<span data-ti-current class="ti-audio-time">0:00</span><input type="range" data-ti-seek min="0" max="1000" value="0" aria-label="Posição do episódio">'+
+ '<span data-ti-duration class="ti-audio-time">--:--</span></div>'+
  '<div class="ti-podcast-tools"><label>Velocidade <select data-ti-speed aria-label="Velocidade de reprodução">'+
- ['0.5','0.75','1','1.25','1.5','2'].map(v=>'<option value="'+v+'"'+(v==='1'?' selected':'')+'>'+v.replace('.',',')+'×</option>').join('')+
+ ['0.75','1','1.25','1.5','1.75','2'].map(v=>'<option value="'+v+'"'+(v==='1'?' selected':'')+'>'+v.replace('.',',')+'×</option>').join('')+
  '</select></label><button type="button" data-ti-download="'+esc(e.src)+'" data-ti-filename="'+esc(e.title)+'">↓ Baixar</button></div></article>').join('')+'</div></section>';
 }
 function flashcards(ctx,topics){
  let cards=window.PSICO_PRACTICE?.focusCards?.(ctx.subject,ctx.topics||[],topics.map(t=>t.title),4)||[];
  if(!cards.length)cards=topics.slice(0,4).map(t=>({key:'fallback:'+ctx.subject+':'+norm(t.title),tag:'Compreensão',front:'Explique '+t.title+'.',back:t.definition}));
- return '<section class="ti-block">'+heading('Flashcards específicos','Vire os cartões para conferir')+
- '<div class="ti-flash-grid">'+cards.map((c,i)=>
- '<article class="ti-flash-card"><small>'+esc(c.tag||'Recordação ativa')+' · '+(i+1)+'</small>'+
- '<button type="button" data-ti-flip aria-expanded="false"><span class="ti-flash-front">'+esc(c.front).replace(/\n/g,' ')+'</span>'+
- '<span class="ti-flash-back" hidden>'+esc(c.back).replace(/\n/g,' ')+'</span><em>Clique para revelar a resposta</em></button>'+
- '<button class="ti-flash-mark" type="button" data-ti-mark="'+esc(c.key)+'" data-ti-subject="'+esc(ctx.subject)+'"'+(c.remembered?' disabled':'')+'>'+(c.remembered?'✓ Lembrado':'✓ Lembrei')+'</button></article>').join('')+'</div></section>';
+ return '<section class="ti-block ti-block-flash">'+heading('Flashcards','Pense na resposta antes de virar')+
+ '<div class="ti-flash-viewer"><div class="ti-flash-topline"><span data-ti-flash-status>Cartão 1 de '+cards.length+'</span><span>Toque para virar</span></div>'+
+ '<div class="ti-flash-deck">'+cards.map((c,i)=>
+ '<article class="ti-flash-card'+(i===0?' is-active':'')+'"'+(i===0?'':' hidden')+'><small>'+esc(c.tag||'Revisão')+' · '+(i+1)+'</small>'+
+ '<button type="button" data-ti-flip aria-pressed="false" aria-label="Mostrar resposta"><span class="ti-flash-inner">'+
+ '<span class="ti-flash-face ti-flash-front">'+esc(c.front).replace(/\n/g,' ')+'</span>'+
+ '<span class="ti-flash-face ti-flash-back">'+esc(c.back).replace(/\n/g,' ')+'</span></span></button>'+
+ '<button class="ti-flash-mark" type="button" data-ti-mark="'+esc(c.key)+'" data-ti-subject="'+esc(ctx.subject)+'"'+(c.remembered?' disabled':'')+'>'+(c.remembered?'✓ Lembrado':'✓ Já sei')+'</button></article>').join('')+'</div>'+
+ '<div class="ti-flash-nav"><button type="button" data-ti-prev disabled>← Anterior</button><div class="ti-flash-dots" aria-hidden="true">'+cards.map((_,i)=>'<i'+(i===0?' class="active"':'')+'></i>').join('')+'</div><button type="button" data-ti-next'+(cards.length<=1?' disabled':'')+'>Próximo →</button></div></div></section>';
 }
-
 
 function guidedQuestions(ctx,topics){
  const result=[],seen=new Set(),words=new Set(topics.flatMap(t=>norm(t.title).split(/[^a-z0-9]+/).filter(w=>w.length>5)));
@@ -69,7 +77,7 @@ function guidedQuestions(ctx,topics){
   if(result.length>=2)break;
  }
  if(!result.length)for(const t of topics.slice(0,2))result.push({
-  q:{question:'Explique '+t.title+' e mostre por que esta afirmação está incorreta: '+(t.myth||'o contexto nunca importa.'),
+  q:{question:'Explique '+t.title+'. O que há de errado nesta afirmação: '+(t.myth||'o contexto nunca importa.'),
    explanation:t.definition+' '+(t.myth?(window.PSICO_REVIEW_ERRORS?.explain?.(ctx.subject,t)||''):'')},
   origin:'Questão de revisão elaborada para a trilha'
  });
@@ -127,17 +135,17 @@ function render(ctx){
    concepts(ctx,topics)+readings(ctx,docsFor(ctx,entry[3]),topics)+
    podcasts(ctx,audioFor(ctx,entry[4]))+flashcards(ctx,topics)+guided(ctx,topics)+cases(ctx,topics)+
    (ctx.subject==='meta'&&i===0?'<a class="ti-timeline" href="metapsicologia-p2.html"><span>▶</span><span><strong>Linha do Tempo das Aulas Gravadas</strong><small>Veja capítulos e minutagens das explicações do professor</small></span><span>↗</span></a>':'')+
-   '<div class="ti-stage-footer"><span>Ao terminar, registre a conclusão desta etapa.</span>'+ctx.doneBox(key,'Concluir etapa')+'</div></section>');
+   '<div class="ti-stage-footer"><span>Marque a etapa quando terminar.</span>'+ctx.doneBox(key,'Concluir etapa')+'</div></section>');
  }
  if(!pieces.length)return originalRender(ctx);
  const pct=Math.round(finished/pieces.length*100);
  return '<div class="ti-trail" style="--ti-accent:'+esc(ctx.color||'#7866b8')+'">'+
-  '<header class="ti-intro"><div><span>ROTEIRO TEMÁTICO · '+esc(ctx.subjectName||'Psicologia')+'</span><h1>Trilha de Estudos para a Prova</h1>'+
-  '<p>Estude cada tema com explicações, leituras selecionadas, podcasts, flashcards e questões comentadas. Os materiais de apoio não precisam ser lidos integralmente para começar.</p></div>'+
+  '<header class="ti-intro"><div><span>TRILHA DA DISCIPLINA · '+esc(ctx.subjectName||'Psicologia')+'</span><h1>Trilha de Estudos para a Prova</h1>'+
+  '<p>Siga as etapas no seu ritmo. Cada uma reúne explicações, áudios e exercícios sobre o mesmo assunto.</p></div>'+
   '<div class="ti-progress"><strong>'+finished+' de '+pieces.length+' etapas</strong><div role="progressbar" aria-label="Progresso na trilha" aria-valuenow="'+pct+'" aria-valuemin="0" aria-valuemax="100"><i style="width:'+pct+'%"></i></div><small>'+pct+'% concluído</small></div></header>'+
   '<nav class="ti-quick-nav" aria-label="Etapas desta trilha">'+plan.map((x,i)=>'<button type="button" data-ti-jump="ti-stage-'+esc(ctx.subject)+'-'+i+'">'+String(i+1).padStart(2,'0')+' · '+esc(x[0])+'</button>').join('')+'</nav>'+
   '<div class="ti-stages">'+pieces.join('')+'</div>'+finalTests(ctx)+
-  '<p class="ti-note">Este roteiro sintetiza os conteúdos cadastrados. Consulte os documentos originais para aprofundamento e verifique as orientações do professor.</p></div>';
+  '<p class="ti-note">Esta trilha ajuda a revisar. Para a prova, confira também os materiais e as orientações do professor.</p></div>';
 }
 trail.render=render;
 trail.integrated=true;
@@ -167,17 +175,42 @@ document.addEventListener('click',event=>{
   event.preventDefault();document.getElementById(jump.dataset.tiJump)?.scrollIntoView({behavior:'smooth',block:'start'});
   return;
  }
- const flip=event.target.closest('[data-ti-flip]');
- if(flip){
-  event.preventDefault();
-  const front=flip.querySelector('.ti-flash-front'),back=flip.querySelector('.ti-flash-back'),hint=flip.querySelector('em');
-  if(!front||!back)return;
-  const showing=flip.getAttribute('aria-expanded')!=='true';
-  flip.setAttribute('aria-expanded',String(showing));front.hidden=showing;back.hidden=!showing;
-  if(hint)hint.textContent=showing?'Clique para voltar à pergunta':'Clique para revelar a resposta';
-  return;
- }
- const mark=event.target.closest('[data-ti-mark]');
+ 
+const flashNav=event.target.closest('[data-ti-prev],[data-ti-next]');
+  if(flashNav){
+   event.preventDefault();
+   const viewer=flashNav.closest('.ti-flash-viewer'),cards=[...(viewer?.querySelectorAll('.ti-flash-card')||[])];
+   const current=cards.findIndex(card=>!card.hidden);
+   const next=Math.max(0,Math.min(cards.length-1,current+(flashNav.hasAttribute('data-ti-next')?1:-1)));
+   if(!cards.length||current===next)return;
+   cards.forEach((card,i)=>{card.hidden=i!==next;card.classList.toggle('is-active',i===next);});
+   viewer.querySelector('[data-ti-flash-status]').textContent='Cartão '+(next+1)+' de '+cards.length;
+   viewer.querySelector('[data-ti-prev]').disabled=next===0;
+   viewer.querySelector('[data-ti-next]').disabled=next===cards.length-1;
+   viewer.querySelectorAll('.ti-flash-dots i').forEach((dot,i)=>dot.classList.toggle('active',i===next));
+   return;
+  }
+  const flip=event.target.closest('[data-ti-flip]');
+  if(flip){
+   event.preventDefault();
+   const card=flip.closest('.ti-flash-card'),showing=!card.classList.contains('is-flipped');
+   card.classList.toggle('is-flipped',showing);
+   flip.setAttribute('aria-pressed',String(showing));
+   flip.setAttribute('aria-label',showing?'Mostrar pergunta':'Mostrar resposta');
+   return;
+  }
+  const control=event.target.closest('[data-ti-play],[data-ti-skip]');
+  if(control){
+   event.preventDefault();
+   const audio=control.closest('.ti-podcast')?.querySelector('audio');
+   if(!audio)return;
+   if(control.hasAttribute('data-ti-skip')){
+    if(Number.isFinite(audio.duration))audio.currentTime=Math.max(0,Math.min(audio.duration,(audio.currentTime||0)+Number(control.dataset.tiSkip||0)));
+   }else if(audio.paused){audio.play().catch(()=>{});}else audio.pause();
+   return;
+  }
+  
+const mark=event.target.closest('[data-ti-mark]');
  if(mark){
   event.preventDefault();
   if(window.PSICO_PRACTICE?.markCard?.(mark.dataset.tiSubject,mark.dataset.tiMark)){mark.disabled=true;mark.textContent='✓ Lembrado';}
@@ -203,10 +236,36 @@ document.addEventListener('change',event=>{
  const audio=selection.closest('.ti-podcast')?.querySelector('audio');
  if(audio)audio.playbackRate=Number(selection.value)||1;
 });
+
+const tiClock=value=>{
+ const s=Math.max(0,Math.floor(Number(value)||0));
+ return Math.floor(s/60)+':'+String(s%60).padStart(2,'0');
+};
+function tiAudioSync(audio){
+ const box=audio.closest('.ti-podcast');if(!box)return;
+ const time=box.querySelector('[data-ti-current]'),duration=box.querySelector('[data-ti-duration]'),seek=box.querySelector('[data-ti-seek]'),button=box.querySelector('[data-ti-play]');
+ const total=audio.duration,valid=Number.isFinite(total)&&total>0;
+ if(time)time.textContent=tiClock(audio.currentTime);
+ if(duration)duration.textContent=valid?tiClock(total):'--:--';
+ if(seek&&!seek.matches(':active')){seek.value=valid?String(Math.round(audio.currentTime/total*1000)):'0';seek.disabled=!valid;}
+ if(button){button.textContent=audio.paused?'▶':'❚❚';button.setAttribute('aria-label',audio.paused?'Reproduzir podcast':'Pausar podcast');}
+}
+document.addEventListener('input',event=>{
+ const seeker=event.target.closest?.('[data-ti-seek]');if(!seeker)return;
+ const audio=seeker.closest('.ti-podcast')?.querySelector('audio');
+ if(audio&&Number.isFinite(audio.duration)&&audio.duration>0){audio.currentTime=audio.duration*Number(seeker.value)/1000;tiAudioSync(audio);}
+});
+for(const name of ['timeupdate','loadedmetadata','pause','ended']){
+ document.addEventListener(name,event=>{
+  const audio=event.target;
+  if(audio instanceof HTMLAudioElement&&audio.closest('.ti-trail'))tiAudioSync(audio);
+ },true);
+}
+
 document.addEventListener('play',event=>{
  const audio=event.target;
  if(!(audio instanceof HTMLAudioElement)||!audio.closest('.ti-trail'))return;
- document.querySelectorAll('audio').forEach(other=>{if(other!==audio&&!other.paused)other.pause();});
+ document.querySelectorAll('audio').forEach(other=>{if(other!==audio&&!other.paused)other.pause();});tiAudioSync(audio);
 },true);
 
 window.PSICO_TRAIL_STATUS='carregado';})();
