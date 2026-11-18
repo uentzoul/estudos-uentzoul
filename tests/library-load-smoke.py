@@ -45,7 +45,18 @@ with sync_playwright() as p:
                    storage_path:'materials/qa-aula.pdf',updated_at:'2026-11-18T15:00:00Z',
                    exam_scope:false,publish_at:null,library_public:true}
                 ];
+                window.__qaMaterialHero=document.querySelector('.subject-hub-hero');
+                window.__qaMaterialMain=document.getElementById('main');
                 window.uentzoulLibraryApp.applyRows(fake);
+                // Simula outras notificações do banco no mesmo carregamento.
+                for(let i=0;i<8;i++)
+                    window.dispatchEvent(new Event('uentzoul:material-placements-updated'));
+                return {before:first};
+            }""")
+            page.wait_for_function("""() =>
+              [...document.querySelectorAll('#docs .docname')].some(e =>
+                 e.textContent.trim()==='Aula de validação de materiais')""",timeout=15000)
+            state=page.evaluate("""() => {
                 const after=[...document.querySelectorAll('#docs .docname')].map(e=>e.textContent.trim());
                 const plan=document.querySelector('#docs [data-pm-group="plans"] > .doclist');
                 const firstCard=plan?.querySelector('.doc-compact');
@@ -54,9 +65,15 @@ with sync_playwright() as p:
                   card:firstCard.getBoundingClientRect().width,
                   grid:getComputedStyle(plan).gridTemplateColumns
                 }:null;
-                return {before:first,after,width,stillDocs:!!document.querySelector('#docs'),
-                        categories:[...document.querySelectorAll('#docs [data-pm-group]')].map(x=>x.dataset.pmGroup)};
+                return {after,width,stillDocs:!!document.querySelector('#docs'),
+                        heroPreserved:window.__qaMaterialHero===document.querySelector('.subject-hub-hero'),
+                        mainPreserved:window.__qaMaterialMain===document.getElementById('main'),
+                        replacements:window.PSICO_LIBRARY_RENDER_DIAGNOSTICS?.().replacements||0};
             }""")
+            assert state["heroPreserved"] and state["mainPreserved"],(
+                f"{name}: a sincronização desmontou a tela inteira: {state}")
+            assert state["replacements"]==1,(
+                f"{name}: notificações repetidas reconstruíram os materiais: {state}")
             assert state["stillDocs"],f"{name}: saiu da aba após carregar registros: {state}"
             assert "Cronograma" in state["after"],f"{name}: cronograma não visível: {state}"
             assert "Plano de ensino" in state["after"],f"{name}: plano não visível: {state}"
