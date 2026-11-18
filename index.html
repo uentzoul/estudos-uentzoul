@@ -3948,17 +3948,18 @@ async function geLoad(forceRender=false){
  // Apenas a primeira carga na aba de simulados gerados, ou atualização solicitada,
  // pode reconstruir a lista após receber os dados.
  try{
-  const [exams,submissions,shares,profiles,hidden,invites]=await Promise.all([
+  const [exams,submissions,shares,profiles,hidden,invites,contestUsers]=await Promise.all([
    geClient().from('uentzoul_generated_exams').select('id,creator_id,semester,subject,difficulty,title,questions,created_at').neq('semester','personal').order('created_at',{ascending:false}).limit(1000),
    geClient().from('uentzoul_generated_exam_submissions').select('exam_id,user_id,answers,feedback,created_at').order('created_at',{ascending:false}).limit(150),
    geClient().from('uentzoul_generated_exam_shares').select('exam_id,sender_id,recipient_id,created_at').order('created_at',{ascending:false}).limit(300),
    geClient().from('uentzoul_profiles').select('user_id,display_name').order('display_name',{ascending:true}).limit(300),
    geClient().from('uentzoul_generated_exam_hidden').select('exam_id,user_id').eq('user_id',userId).limit(1000),
-   geClient().from('uentzoul_exam_invites').select('id,exam_id,sender_id,recipient_id,status,created_at').limit(1000)
+   geClient().from('uentzoul_exam_invites').select('id,exam_id,sender_id,recipient_id,status,created_at').limit(1000),
+   hiddenConcursoProfiles(geClient())
   ]);
   for(const item of [exams,submissions,shares,profiles,hidden,invites])if(item.error)throw item.error;
   if(geUser()?.id!==userId)return;
-  ge.exams=exams.data||[];ge.submissions=submissions.data||[];ge.shares=shares.data||[];ge.profiles=profiles.data||[];ge.hidden=hidden.data||[];ge.invites=invites.data||[];ge.loaded=true;
+  ge.exams=exams.data||[];ge.submissions=submissions.data||[];ge.shares=shares.data||[];ge.profiles=(profiles.data||[]).filter(p=>!contestUsers.has(p.user_id));ge.hidden=hidden.data||[];ge.invites=invites.data||[];ge.loaded=true;
  }catch(e){ge.error='Não foi possível carregar os simulados: '+(e?.message||'erro de conexão');ge.loaded=true}
  finally{
   ge.loading=false;ge.lastFetch=Date.now();
@@ -4904,7 +4905,7 @@ function renderAside(){
  if(mobile)mobile.innerHTML=p?avatar(p.name,p.avatar,true):'👤';
  const mini=$('compactProfileButton');
  if(mini){mini.innerHTML=avatar(p?.name||'Visitante',p?.avatar,true)+'<span class="compact-profile-name">'+esc(p?.name||'Visitante')+'</span>';mini.title=p?'Abrir meu perfil':'Entrar / Cadastrar';mini.setAttribute('aria-label',mini.title);}
- const rows=logged?rankData:[];
+ const rows=logged?rankData.filter(p=>!concursoHiddenIds.has(p.user_id)):[];
  const members=rows.length?rows.map(x=>'<div class="rank-entry '+(p?.id===x.user_id?'me':'')+'">'+
   '<button type="button" class="rank-user-trigger" data-dm-profile="'+esc(x.user_id)+'" title="Ver perfil de '+esc(x.display_name)+'">'+
   avatar(x.display_name,x.avatar_url,true)+'<span class="rank-person"><strong>'+esc(x.display_name)+'</strong><span>'+
@@ -5117,15 +5118,29 @@ window.addEventListener('uentzoul:ranking-refresh',()=>loadRanking());
 /* Atualiza a lista de perfis da turma sem recarregar a página. */
 window.addEventListener('focus',()=>{if(onlineUser)loadRanking().catch(console.warn)});
 setInterval(()=>{if(onlineUser&&document.visibilityState==='visible')loadRanking().catch(console.warn)},45000);
+// Administradores gerenciam cargos, mas não veem essas contas nas listas sociais.
+let concursoHiddenIds=new Set();
+async function hiddenConcursoProfiles(connection){
+ if(!connection)throw Error('Conexão indisponível');
+ const {data,error}=await connection.from('uentzoul_concurso_users').select('user_id').limit(500);
+ if(error)throw error;
+ concursoHiddenIds=new Set((data||[]).map(row=>row.user_id).filter(Boolean));
+ return concursoHiddenIds;
+}
 async function loadRanking(){
  if(!onlineUser||!client||rankBusy)return;
  rankBusy=true;rankError='';renderAside();
  try{
-  const {data,error}=await client.from('uentzoul_profiles').select('user_id,display_name,avatar_url').order('display_name',{ascending:true}).limit(400);
-  if(error)throw error;
-  rankData=(data||[]).filter(p=>p.user_id&&p.display_name);
+  const [profiles,hiddenIds]=await Promise.all([
+   client.from('uentzoul_profiles').select('user_id,display_name,avatar_url').order('display_name',{ascending:true}).limit(400),
+   hiddenConcursoProfiles(client)
+  ]);
+  if(profiles.error)throw profiles.error;
+  if(!onlineUser)return;
+  rankData=(profiles.data||[]).filter(p=>p.user_id&&p.display_name&&!hiddenIds.has(p.user_id));
   rankingSemester=bridge.semester();
  }catch(e){
+  rankData=[]; // Falhar fechado evita mostrar uma lista antiga.
   rankError='Não foi possível carregar os participantes. Tente atualizar.';
   console.warn('Lista da turma indisponível',e);
  }finally{rankBusy=false;renderAside();}
@@ -5457,10 +5472,11 @@ async function dmLoad(){
  const id=onlineUser.id;dm.loading=true;dm.error='';
  dm.loadPromise=(async()=>{
  try{
-  const [messages,people,rooms]=await Promise.all([
+  const [messages,people,rooms,contestUsers]=await Promise.all([
    client.from('uentzoul_messages').select('id,sender_id,recipient_id,body,created_at,read_at,kind,media_path,deleted_at').or('sender_id.eq.'+id+',recipient_id.eq.'+id).order('created_at',{ascending:false}).limit(800),
    client.from('uentzoul_profiles').select('user_id,display_name,avatar_url,bio').order('display_name',{ascending:true}).limit(300),
-   client.from('uentzoul_chat_rooms').select('id,kind,name,owner_id,created_at').order('created_at',{ascending:false}).limit(200)
+   client.from('uentzoul_chat_rooms').select('id,kind,name,owner_id,created_at').order('created_at',{ascending:false}).limit(200),
+   hiddenConcursoProfiles(client)
   ]);
   if(messages.error)throw messages.error;
   if(people.error)throw people.error;
@@ -5469,11 +5485,14 @@ async function dmLoad(){
   const groupMsgs=ids.length?await client.from('uentzoul_room_messages').select('id,room_id,sender_id,body,created_at,kind,media_path,deleted_at').in('room_id',ids).order('created_at',{ascending:false}).limit(1000):{data:[]};
   if(groupMsgs.error)throw groupMsgs.error;
   if(onlineUser?.id!==id)return;
-  dm.messages=messages.data||[];dm.people=people.data||[];dm.rooms=rooms.data||[];
+  dm.messages=(messages.data||[]).filter(m=>!contestUsers.has(m.sender_id)&&!contestUsers.has(m.recipient_id));
+  dm.people=(people.data||[]).filter(p=>!contestUsers.has(p.user_id));dm.rooms=rooms.data||[];
   if(dm.isAdmin){const reports=await client.rpc('uentzoul_list_error_reports');if(!reports.error)dm.reports=reports.data||[];else console.warn('Falha ao carregar relatos',reports.error);}
 
   const invitationRows=await client.from('uentzoul_exam_invites').select('id,exam_id,sender_id,recipient_id,status,created_at').limit(1000);
-  if(!invitationRows.error)dm.invites=invitationRows.data||[];dm.roomMessages=groupMsgs.data||[];
+  if(!invitationRows.error)dm.invites=invitationRows.data||[];
+  dm.roomMessages=(groupMsgs.data||[]).filter(m=>!contestUsers.has(m.sender_id));
+  if(dm.peerId&&contestUsers.has(dm.peerId))dm.peerId=null;
   dm.owner=id;dm.ready=true;dm.lastFetch=Date.now();
   dmBadge();dmShow();if(dm.tab==='private'&&dm.peerId)await dmMarkRead();
  }catch(e){dm.error=e?.message||'Não foi possível carregar as conversas.';dmShow()}
@@ -5518,7 +5537,7 @@ async function dmAfterRender(peerId){
 }
 function dmOpenPeer(id){
  if(!onlineUser){showModal('login');return}
- if(!dmValid(id)||id===onlineUser.id)return;
+ if(!dmValid(id)||id===onlineUser.id||concursoHiddenIds.has(id))return;
  dm.tab='private';dm.peerId=id;dm.draft='';dm.stickerOpen=false;dm.mediaFile=null;
  window.uentzoulOpenMessages?.(id);
 }
@@ -5561,7 +5580,7 @@ function dmCloseProfile(){
  dm.profileOpen=null;
 }
 async function dmOpenProfile(id){
- if(!dmValid(id))return;
+ if(!dmValid(id)||(concursoHiddenIds.has(id)&&id!==onlineUser?.id))return;
  if(!onlineUser){showModal('login');return}
  const panel=document.getElementById('dmProfileOverlay'),body=document.getElementById('dmProfileContent');
  if(!panel||!body)return;
