@@ -4899,6 +4899,7 @@ function clearRecoveryUrl(){
 const initials=name=>(name||'?').trim().split(/\s+/).slice(0,2).map(x=>x[0]||'').join('').toUpperCase();
 function avatar(name,src,small=false){const safe=typeof src==='string'&&(/^(data:image\/(jpeg|png|webp);base64,)/.test(src)||/^https:\/\//.test(src))?src:'';return `<div class="profile-avatar${small?' sm':''}">${safe?`<img alt="" src="${esc(safe)}">`:esc(initials(name))}</div>`;}
 function current(){return onlineUser?{name:remoteProfile?.display_name||onlineUser.email||'Estudante',avatar:remoteProfile?.avatar_url||'',online:true,id:onlineUser.id}:null}
+let concursoHiddenIds=new Set();
 function renderAside(){
  const el=$('profileSidebar');if(!el)return;
  const p=current(),logged=!!onlineUser,mobile=$('mobileProfileButton');
@@ -5119,7 +5120,6 @@ window.addEventListener('uentzoul:ranking-refresh',()=>loadRanking());
 window.addEventListener('focus',()=>{if(onlineUser)loadRanking().catch(console.warn)});
 setInterval(()=>{if(onlineUser&&document.visibilityState==='visible')loadRanking().catch(console.warn)},45000);
 // Administradores gerenciam cargos, mas não veem essas contas nas listas sociais.
-let concursoHiddenIds=new Set();
 async function hiddenConcursoProfiles(connection){
  if(!connection)throw Error('Conexão indisponível');
  const {data,error}=await connection.from('uentzoul_concurso_users').select('user_id').limit(500);
