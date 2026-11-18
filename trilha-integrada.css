@@ -118,3 +118,110 @@ html[data-theme="dark"] .ti-podcast audio{color-scheme:dark}
 html[data-theme="dark"] .ti-case{border-color:#48465f;background:#2b2a42}
 html[data-theme="dark"] .ti-case-choices button{color:#f0ecf7;background:#29273f;border-color:#504966}
 html[data-theme="dark"] .ti-case-feedback{background:#27253a;border-color:#504966}
+
+
+/* Revisão visual: leitura em uma coluna, menos cartões e ferramentas com controles próprios. */
+.ti-trail{max-width:980px;margin:0 auto 48px;min-width:0}
+.ti-intro{align-items:center;border:0;border-left:4px solid var(--ti-accent);border-radius:18px;padding:27px 30px;background:color-mix(in srgb,var(--ti-accent) 5%,var(--paper));box-shadow:none}
+.ti-intro h1{font-size:clamp(24px,2.7vw,32px)}
+.ti-intro p{font-size:13.5px;line-height:1.65}
+.ti-progress{width:165px}
+.ti-quick-nav{gap:9px;padding:16px 0 22px;scroll-snap-type:x proximity}
+.ti-quick-nav button{scroll-snap-align:start;padding:11px 15px;border-radius:999px;font-size:12px;background:var(--paper)}
+.ti-stages{gap:30px}
+.ti-stage{background:transparent;border:0;border-radius:0;padding:0 0 28px;box-shadow:none;border-bottom:1px solid var(--line)}
+.ti-stage-heading{align-items:center;gap:18px;margin:0 0 24px;padding:0 0 18px}
+.ti-step-no{flex-basis:49px;height:49px;border-radius:50%;font-size:14px}
+.ti-stage-heading h2{font-size:clamp(19px,2.1vw,23px)}
+.ti-stage-heading p{font-size:13px;max-width:740px;line-height:1.6}
+.ti-block{margin:24px 0}
+.ti-block-heading{margin:0 0 13px;align-items:center}
+.ti-block-heading h3{font-size:16px}
+.ti-block-heading span{font-size:12px}
+.ti-concept-grid{grid-template-columns:minmax(0,1fr);gap:0}
+.ti-concept{background:var(--paper);border:0;border-left:2px solid color-mix(in srgb,var(--ti-accent) 25%,var(--line));border-bottom:1px solid var(--line);border-radius:0;padding:16px 18px}
+.ti-concept:first-child{border-top:1px solid var(--line)}
+.ti-concept>strong{font-size:13.5px;margin-bottom:5px}
+.ti-concept>p{font-size:13px;line-height:1.65}
+.ti-concept details summary{font-size:12px}
+.ti-concept details p{font-size:12.5px}
+.ti-reading-list{gap:6px}
+.ti-reading{border-radius:12px;min-height:68px;padding:12px 16px}
+.ti-reading strong{font-size:13px}
+.ti-reading small{font-size:11.5px}
+.ti-podcast-list{grid-template-columns:minmax(0,1fr);gap:12px}
+.ti-podcast{display:grid;grid-template-columns:minmax(0,1fr);padding:16px 18px;border-radius:16px;gap:11px;background:var(--paper)}
+.ti-podcast-title{margin:0}
+.ti-podcast-title>span{width:42px;height:42px;border-radius:12px}
+.ti-podcast-title small{font-size:10px}
+.ti-podcast-title strong{font-size:13.5px}
+.ti-podcast audio{position:absolute;width:1px;height:1px;opacity:0;pointer-events:none}
+.ti-audio-controls{display:flex;align-items:center;gap:10px;min-width:0}
+.ti-audio-controls button{display:grid;place-items:center;flex:none;min-width:36px;min-height:36px;border-radius:50%;border:1px solid var(--line);background:var(--soft);color:var(--ink);font-size:12px;font-weight:750;cursor:pointer}
+.ti-audio-controls button:hover{border-color:var(--ti-accent)}
+.ti-audio-controls button.ti-audio-play{width:43px;height:43px;background:var(--ti-accent);color:white;border-color:var(--ti-accent);font-size:17px}
+.ti-audio-controls input[type=range]{flex:1;min-width:45px;width:100%;accent-color:var(--ti-accent);cursor:pointer}
+.ti-audio-time{font-size:11px;color:var(--muted);font-variant-numeric:tabular-nums;white-space:nowrap}
+.ti-podcast-tools{margin:0;justify-content:flex-end;gap:13px}
+.ti-podcast-tools label{font-size:12px}
+.ti-podcast-tools select{font-size:12px;padding:6px 9px}
+.ti-podcast-tools button{font-size:12px;padding:8px 12px}
+.ti-flash-viewer{max-width:720px;margin:auto;padding:16px 20px 18px;background:var(--paper);border:1px solid var(--line);border-radius:18px}
+.ti-flash-topline{display:flex;justify-content:space-between;gap:14px;margin-bottom:15px;font-size:11.5px;color:var(--muted)}
+.ti-flash-topline span:first-child{font-weight:750;color:var(--ti-accent)}
+.ti-flash-deck{display:block;min-height:270px}
+.ti-flash-card{min-height:270px;border:0;border-radius:0;background:transparent;box-shadow:none;padding:0}
+.ti-flash-card>small{font-size:11px;letter-spacing:0;margin-bottom:12px}
+.ti-flash-card>[data-ti-flip]{display:block;position:relative;flex:1;min-height:205px;width:100%;padding:0;border:0;perspective:1400px;cursor:pointer;border-radius:15px}
+.ti-flash-card>[data-ti-flip]:focus-visible,.ti-audio-controls button:focus-visible,.ti-flash-nav button:focus-visible{outline:3px solid var(--ti-accent);outline-offset:3px}
+.ti-flash-inner{display:block;position:relative;width:100%;min-height:205px;transform-style:preserve-3d;transition:transform .48s cubic-bezier(.2,.7,.25,1)}
+.ti-flash-card.is-flipped .ti-flash-inner{transform:rotateY(180deg)}
+.ti-flash-face{display:flex;align-items:center;justify-content:center;position:absolute;inset:0;padding:25px;min-width:0;overflow:auto;white-space:normal;overflow-wrap:anywhere;text-align:center;border-radius:15px;border:1px solid var(--line);backface-visibility:hidden;-webkit-backface-visibility:hidden;background:color-mix(in srgb,var(--ti-accent) 5%,var(--paper));font-size:clamp(14px,2vw,17px);font-weight:650;line-height:1.55}
+.ti-flash-front{color:var(--ink)}
+.ti-flash-back{transform:rotateY(180deg);background:color-mix(in srgb,var(--ti-accent) 10%,var(--paper));color:var(--ink);font-weight:600}
+.ti-flash-mark{margin-top:11px;align-self:flex-end;cursor:pointer;padding:8px 13px;font-size:12px}
+.ti-flash-nav{display:flex;align-items:center;justify-content:space-between;gap:14px;margin-top:15px}
+.ti-flash-nav button{border:1px solid var(--line);border-radius:10px;background:var(--paper);color:var(--ink);padding:9px 12px;font-size:12px;font-weight:750;cursor:pointer}
+.ti-flash-nav button:disabled{opacity:.35;cursor:default}
+.ti-flash-dots{display:flex;justify-content:center;gap:6px;flex:1}
+.ti-flash-dots i{width:7px;height:7px;border-radius:99px;background:var(--line);transition:width .2s,background .2s}
+.ti-flash-dots i.active{width:19px;background:var(--ti-accent)}
+.ti-guided,.ti-case{border:1px solid var(--line);border-radius:15px;background:var(--paper)}
+.ti-guided>summary,.ti-case>summary{min-height:64px;padding:16px 18px}
+.ti-guided>summary strong,.ti-case>summary strong{font-size:13px}
+.ti-guided-content,.ti-case-content{padding:18px;gap:12px}
+.ti-question{border:0;border-bottom:1px solid var(--line);border-radius:0;padding:13px 5px 17px}
+.ti-question:last-child{border-bottom:0}
+.ti-question>p,.ti-case-content>p{font-size:13px;line-height:1.7}
+.ti-question ol,.ti-case-choices button{font-size:12.5px}
+.ti-question details>div{font-size:12.5px}
+.ti-case-choices button{padding:13px 15px;border-radius:11px}
+.ti-tests{border:0;border-left:4px solid var(--ti-accent);background:color-mix(in srgb,var(--ti-accent) 4%,var(--paper));border-radius:14px;padding:24px 28px}
+.ti-tests button{font-size:12.5px}
+.ti-stage-footer{margin-top:23px}
+html[data-theme="dark"] .ti-intro,html[data-theme="dark"] .ti-tests{background:color-mix(in srgb,var(--ti-accent) 8%,#25243c)}
+html[data-theme="dark"] .ti-stage{background:transparent;border-color:#48465f}
+html[data-theme="dark"] .ti-flash-viewer{background:#25243c;border-color:#48465f}
+html[data-theme="dark"] .ti-flash-card{background:transparent;border:0}
+html[data-theme="dark"] .ti-concept{background:#25243c;border-color:#48465f}
+html[data-theme="dark"] .ti-flash-face{background:#302e49;color:#f1ecfa;border-color:#514b66}
+html[data-theme="dark"] .ti-flash-back{background:#3a3154}
+@media(max-width:650px){
+ .ti-trail{margin-bottom:26px}
+ .ti-intro{padding:20px 18px}
+ .ti-stage{padding:0 0 25px}
+ .ti-step-no{flex-basis:40px;height:40px}
+ .ti-block{margin:20px 0}
+ .ti-concept{padding:15px 13px}
+ .ti-podcast{padding:14px 12px}
+ .ti-audio-controls{gap:6px}
+ .ti-audio-controls button{min-width:30px;min-height:34px}
+ .ti-audio-controls button.ti-audio-play{width:39px;height:39px}
+ .ti-audio-time{font-size:10px}
+ .ti-flash-viewer{padding:13px}
+ .ti-flash-topline span:last-child{display:none}
+ .ti-flash-face{padding:19px}
+ .ti-guided-content,.ti-case-content{padding:12px}
+ .ti-quick-nav button{font-size:11px}
+}
+@media(prefers-reduced-motion:reduce){.ti-flash-inner{transition:none!important}.ti-flash-dots i{transition:none!important}}
