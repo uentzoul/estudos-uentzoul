@@ -620,18 +620,38 @@ html[data-theme="dark"] .nb-edit-toggle{background:#574882;border-color:#8b76b5}
 html.nb-opening-book::view-transition-group(nb-shared-sheet),
 html.nb-closing-book::view-transition-group(nb-shared-sheet){
  animation-duration:.92s;animation-timing-function:cubic-bezier(.18,.72,.22,1)}
+/* O snapshot da capa é plano: no verso mostramos a cor opaca do caderno,
+   não o título da frente espelhado. */
+html.nb-opening-book::view-transition-old(nb-shared-sheet),
+html.nb-closing-book::view-transition-new(nb-shared-sheet){
+ background-color:var(--nb-flipping-cover,#79689b);
+ object-fit:none;
+}
 html.nb-opening-book::view-transition-old(nb-shared-sheet){
- transform-origin:left center;animation:nb-book-cover-open .92s cubic-bezier(.22,.65,.15,1) both}
+ transform-origin:left center;
+ animation:nb-book-cover-open .92s cubic-bezier(.22,.65,.15,1) both,
+           nb-book-front-to-back .92s linear both}
 html.nb-opening-book::view-transition-new(nb-shared-sheet){
  animation:nb-book-pages-enter .92s cubic-bezier(.15,.75,.2,1) both}
 html.nb-closing-book::view-transition-old(nb-shared-sheet){
  animation:nb-book-pages-exit .68s ease both}
 html.nb-closing-book::view-transition-new(nb-shared-sheet){
- transform-origin:left center;animation:nb-book-cover-close .68s ease both}
+ transform-origin:left center;
+ animation:nb-book-cover-close .68s ease both,
+           nb-book-back-to-front .68s linear both}
 @keyframes nb-book-cover-open{
  0%{opacity:1;transform:perspective(1250px) rotateY(0deg);filter:brightness(1)}
  48%{opacity:1;transform:perspective(1250px) rotateY(-98deg);filter:brightness(.77)}
  100%{opacity:0;transform:perspective(1250px) rotateY(-172deg)}
+}
+/* Troca a imagem frontal pela cor do verso ao cruzar 90 graus. */
+@keyframes nb-book-front-to-back{
+ 0%,22.7%{object-position:center center}
+ 22.8%,100%{object-position:10000px 10000px}
+}
+@keyframes nb-book-back-to-front{
+ 0%,20.4%{object-position:10000px 10000px}
+ 20.6%,100%{object-position:center center}
 }
 @keyframes nb-book-pages-enter{
  0%{opacity:0;transform:scale(.85);filter:blur(3px)}
