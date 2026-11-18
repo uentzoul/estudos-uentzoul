@@ -1048,3 +1048,19 @@ test('Cargo exclusivo de Concursos fica na modalidade após atualização, hist�
  assert.equal(stopped,false,'administrador continua livre para usar semestres');
  assert.equal(location.hash,'#outro-semestre');
 });
+
+
+test('Caderno fica cinza e inacessível para o cargo exclusivo Concursos, sem bloquear administradores',()=>{
+ const contest=read('concursos.js'),bootstrap=read('concursos-bootstrap.js'),css=read('concursos.css'),notebook=read('site-version.js');
+ assert.match(css,/html\.pm-concurso-user #navConcursoNotebook:disabled/,'Caderno de Concursos precisa aparecer cinza quando bloqueado');
+ assert.match(css,/pointer-events:none!important/,'Caderno bloqueado não recebe cliques');
+ assert.match(contest,/notebookButton\.disabled=locked/,'botão desativado apenas para conta exclusiva');
+ assert.match(contest,/notebookButton\.setAttribute\('aria-disabled',String\(locked\)\)/,'estado acessível do botão');
+ assert.match(contest,/if\(!active\|\|!allowed\(\)\|\|onlyContest\(\)&&dest==='caderno'\)return/,'navegação por função não pode abrir o Caderno');
+ assert.match(contest,/if\(onlyContest\(\)&&view==='caderno'\)\{view='inicio';rememberView\(\);\}/,'histórico interno antigo não pode restaurar o Caderno');
+ assert.match(contest,/if\(onlyContest\(\)\)return;\s*go\('caderno'\)/,'cliques em ambos os cadernos precisam ser bloqueados');
+ assert.match(bootstrap,/#navCadernoPreview,#navConcursoNotebook/,'interceptar acesso antes do carregamento de Concursos');
+ assert.match(notebook,/if\(contestLocked\(\)\)\{pendingOpenAfterLogin=false;deactivate\(\);return;\}/,'caderno acadêmico não pode abrir por chamada direta');
+ assert.match(notebook,/button\.disabled=unavailable/,'caderno acadêmico respeita acesso e restrição por dispositivo');
+ assert.match(contest,/const onlyContest=\(\)=>rights\.concurso&&!rights\.admin/,'administrador continua com acesso');
+});
