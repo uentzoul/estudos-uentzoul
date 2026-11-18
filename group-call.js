@@ -18,7 +18,7 @@ const escCall=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>
 const S={room:null,stage:'off',overlay:null,channel:null,key:'',peers:new Map(),presence:new Map(),
  mic:true,cam:false,hand:false,screen:false,audio:null,camera:null,display:null,stream:null,
  panel:'',pinned:null,chat:[],chatBusy:false,chatTimer:null,guard:null,pendingSignals:[],devicePanel:false,photoUrl:'',
- micDevice:'',camDevice:'',notice:'',noticeTimer:null,callStarted:0,generation:0,reconnectTimer:null,presenceTimer:null,minimized:false,screenBusy:false,screenMuteTimer:null,videoWatch:null,avatarProfiles:new Map(),avatarLoading:false,avatarRefreshAt:0,camBusy:false,micBusy:false,audioLevels:new Map(),audioNodes:new Map(),audioContext:null};
+ micDevice:'',camDevice:'',notice:'',noticeTimer:null,callStarted:0,generation:0,reconnectTimer:null,presenceTimer:null,lastPresenceAt:0,lastPresenceSignature:'',lastPresenceChannel:null,minimized:false,screenBusy:false,screenMuteTimer:null,videoWatch:null,avatarProfiles:new Map(),avatarLoading:false,avatarRefreshAt:0,camBusy:false,micBusy:false,audioLevels:new Map(),audioNodes:new Map(),audioContext:null};
 let videoReplaceQueue=Promise.resolve();
 const eligible=()=>!!bridge.client()&&!!bridge.user()?.id&&!bridge.user()?.is_anonymous;
 const group=id=>UUID.test(id||'')&&dm.rooms?.find(r=>r.id===id&&r.kind==='group')||null;
@@ -350,17 +350,30 @@ function meta(){return {userId:onlineUser?.id||'',name:myName(),mic:S.mic&&!!S.a
 async function publish(){
  if(S.stage!=='live'||!S.key)return;
  const generation=S.generation,channel=S.channel;
- // Reflete o estado na interface imediatamente; agrupa eventos rápidos.
+ // A interface local reage imediatamente. O servidor recebe somente o estado
+ // final do conjunto de cliques, no máximo uma atualização por segundo.
  S.presence.set(S.key,meta());
  try{draw()}catch(e){console.warn('Erro visual recuperável na call',e)}
  clearTimeout(S.presenceTimer);
  if(!channel)return;
+ const signature=JSON.stringify(meta());
+ if(S.lastPresenceChannel===channel&&signature===S.lastPresenceSignature)return;
+ const delay=Math.max(350,1100-(Date.now()-S.lastPresenceAt));
  S.presenceTimer=setTimeout(async()=>{
   S.presenceTimer=null;
   if(generation!==S.generation||S.stage!=='live'||S.channel!==channel)return;
-  try{await channel.track(meta())}
-  catch(e){console.warn('Falha temporária ao atualizar presença da call',e)}
- },260);
+  const payload=meta(),currentSignature=JSON.stringify(payload);
+  if(S.lastPresenceChannel===channel&&currentSignature===S.lastPresenceSignature)return;
+  try{
+   const outcome=await channel.track(payload);
+   if(outcome==='error'||outcome==='timed out')throw Error(String(outcome));
+   if(generation===S.generation&&S.channel===channel){
+    S.lastPresenceAt=Date.now();
+    S.lastPresenceSignature=currentSignature;
+    S.lastPresenceChannel=channel;
+   }
+  }catch(e){console.warn('Falha recuperável ao atualizar presença da call',e)}
+ },delay);
 }
 /* Volume e mudo são locais por usuário: não modificam o áudio transmitido.
    Elemento de áudio isolado evita que a câmera ao ligar/desligar corte a voz. */
@@ -886,6 +899,9 @@ async function join(){
      // funcionam. Apenas ressincronizar as presenças e a sinalização futura.
      if(returning){clearTimeout(S.presenceTimer);S.presenceTimer=null;}
      await channel.track(meta());
+     S.lastPresenceAt=Date.now();
+     S.lastPresenceSignature=JSON.stringify(meta());
+     S.lastPresenceChannel=channel;
      if(S.generation!==generation||S.channel!==channel)return;
      S.stage='live';S.presence.set(S.key,meta());status('',0);
      try{draw();synchronize()}
@@ -1059,6 +1075,7 @@ async function leave(){
  clearInterval(S.guard);S.guard=null;
  clearTimeout(S.reconnectTimer);S.reconnectTimer=null;
  clearTimeout(S.presenceTimer);S.presenceTimer=null;
+ S.lastPresenceAt=0;S.lastPresenceSignature='';S.lastPresenceChannel=null;
  clearTimeout(S.noticeTimer);
  clearInterval(S.videoWatch);S.videoWatch=null;
  clearTimeout(S.screenMuteTimer);S.screenMuteTimer=null;
