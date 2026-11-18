@@ -5,12 +5,14 @@ on:
     branches: [main]
     paths:
       - 'group-call.js'
+      - 'supabase/functions/call-ice/**'
       - 'tests/group-call-*.test.mjs'
       - 'tests/group-call-e2e.mjs'
       - '.github/workflows/call-stability.yml'
   pull_request:
     paths:
       - 'group-call.js'
+      - 'supabase/functions/call-ice/**'
       - 'tests/group-call-*.test.mjs'
       - 'tests/group-call-e2e.mjs'
       - '.github/workflows/call-stability.yml'
@@ -50,3 +52,14 @@ jobs:
           npm install --no-save --no-package-lock playwright@1.64.1
       - name: Testar câmera e compartilhamento de tela WebRTC entre duas abas
         run: node tests/group-call-e2e.mjs
+
+  verificar-funcao-turn:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.x
+      - name: Conferir sintaxe e tipos da função TURN protegida
+        run: deno check supabase/functions/call-ice/index.ts
