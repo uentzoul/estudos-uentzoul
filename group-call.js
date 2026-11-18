@@ -18,7 +18,7 @@ const escCall=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>
 const S={room:null,stage:'off',overlay:null,channel:null,key:'',peers:new Map(),presence:new Map(),
  mic:true,cam:false,hand:false,screen:false,audio:null,camera:null,display:null,stream:null,
  panel:'',pinned:null,chat:[],chatBusy:false,chatTimer:null,guard:null,pendingSignals:[],devicePanel:false,photoUrl:'',
- micDevice:'',camDevice:'',notice:'',noticeTimer:null,callStarted:0,generation:0,reconnectTimer:null,presenceTimer:null,lastPresenceAt:0,lastPresenceSignature:'',lastPresenceChannel:null,minimized:false,screenBusy:false,screenMuteTimer:null,videoWatch:null,avatarProfiles:new Map(),avatarLoading:false,avatarRefreshAt:0,camBusy:false,micBusy:false,audioLevels:new Map(),audioNodes:new Map(),audioContext:null};
+ micDevice:'',camDevice:'',notice:'',noticeTimer:null,callStarted:0,generation:0,reconnectTimer:null,presenceTimer:null,connectionWatch:null,lastPresenceAt:0,lastPresenceSignature:'',lastPresenceChannel:null,minimized:false,screenBusy:false,screenMuteTimer:null,videoWatch:null,avatarProfiles:new Map(),avatarLoading:false,avatarRefreshAt:0,camBusy:false,micBusy:false,audioLevels:new Map(),audioNodes:new Map(),audioContext:null};
 let videoReplaceQueue=Promise.resolve();
 const eligible=()=>!!bridge.client()&&!!bridge.user()?.id&&!bridge.user()?.is_anonymous;
 const group=id=>UUID.test(id||'')&&dm.rooms?.find(r=>r.id===id&&r.kind==='group')||null;
@@ -674,13 +674,61 @@ function signal(to,body){
  .catch(e=>console.warn('Falha de sinalização',e));
 }
 async function offer(peer,iceRestart=false){
- if(peer.busy||peer.pc.signalingState!=='stable'||S.stage!=='live')return;
+ if(peer.busy||peer.pc.signalingState!=='stable'||S.stage!=='live'||S.peers.get(peer.key)!==peer)return;
  peer.busy=true;
  try{
   const description=await peer.pc.createOffer(iceRestart?{iceRestart:true}:{});
+  if(S.peers.get(peer.key)!==peer||S.stage!=='live')return;
   await peer.pc.setLocalDescription(description);
+  // A primeira oferta pode ser enviada antes de o outro navegador terminar
+  // sua inscrição no Realtime. Guardamos o instante para recuperá-la.
+  peer.lastOfferAt=Date.now();
   await signal(peer.key,{description:peer.pc.localDescription?.toJSON?.()||peer.pc.localDescription});
  }catch(e){console.warn('Negociação WebRTC',e);}finally{peer.busy=false;}
+}
+function announcePeerReady(peer){
+ if(S.stage!=='live'||S.key<peer.key||S.peers.get(peer.key)!==peer)return;
+ const now=Date.now();
+ if(now-(peer.lastReadyAt||0)<3200)return;
+ peer.lastReadyAt=now;
+ void signal(peer.key,{ready:true});
+}
+// Uma oferta perdida deixa o originador em have-local-offer para sempre.
+// O participante que entrou depois confirma que está pronto, e o originador
+// refaz a oferta; o monitor também recupera a situação se o aviso se perder.
+async function recoverHandshake(peer,urgent=false){
+ if(S.stage!=='live'||S.peers.get(peer.key)!==peer||peer.pc.signalingState==='closed')return;
+ const pc=peer.pc,now=Date.now();
+ if(pc.connectionState==='connected'||pc.iceConnectionState==='connected'||pc.iceConnectionState==='completed')return;
+ if(S.key>peer.key){announcePeerReady(peer);return;}
+ if(peer.busy)return;
+ if(pc.signalingState==='have-local-offer'){
+  if(now-(peer.lastOfferAt||0)<(urgent?900:6500))return;
+  peer.busy=true;
+  try{await pc.setLocalDescription({type:'rollback'});}
+  catch(e){console.warn('Falha ao recuperar oferta WebRTC',e);return;}
+  finally{peer.busy=false;}
+ }
+ if(S.stage!=='live'||S.peers.get(peer.key)!==peer||pc.signalingState!=='stable')return;
+ if(peer.lastAnswerAt&&now-peer.lastAnswerAt<13000)return;
+ if(!urgent&&now-(peer.lastOfferAt||0)<3500)return;
+ await offer(peer,!!peer.lastAnswerAt);
+}
+function checkPeerConnections(){
+ if(S.stage!=='live'||!S.channel)return;
+ const now=Date.now();
+ for(const peer of S.peers.values()){
+  const pc=peer.pc;
+  if(pc.connectionState==='connected'||pc.iceConnectionState==='connected'||pc.iceConnectionState==='completed'){
+   peer.missingSince=0;continue;
+  }
+  if(!peer.missingSince)peer.missingSince=now;
+  void recoverHandshake(peer);
+  if(now-peer.missingSince>18000&&now-(peer.lastConnectionNotice||0)>30000){
+   peer.lastConnectionNotice=now;
+   status('A conexão de mídia com outro participante não foi estabelecida. Algumas redes exigem servidor TURN.',10);
+  }
+ }
 }
 function requestPeerRecovery(peer){
  if(S.stage!=='live'||S.peers.get(peer.key)!==peer||peer.pc.signalingState==='closed')return;
@@ -730,7 +778,7 @@ function ensurePeer(key){
  const pc=new RTCPeerConnection(iceConfig());
  const audioSender=pc.addTransceiver('audio',{direction:'sendrecv'}).sender;
  const videoSender=pc.addTransceiver('video',{direction:'sendrecv'}).sender;
- const peer={key,pc,audioSender,videoSender,stream:new MediaStream(),audioStream:new MediaStream(),candidates:[],busy:false,retries:0,recoveryTimer:null,departTimer:null,videoMissingSince:0,lastVideoRecoverAt:0};
+ const peer={key,pc,audioSender,videoSender,stream:new MediaStream(),audioStream:new MediaStream(),candidates:[],busy:false,retries:0,recoveryTimer:null,departTimer:null,videoMissingSince:0,lastVideoRecoverAt:0,lastOfferAt:0,lastAnswerAt:0,lastReadyAt:0,missingSince:0,lastConnectionNotice:0};
  S.peers.set(key,peer);
  if(S.audio)void audioSender.replaceTrack(S.audio).catch(()=>{});
  if(S.display||S.camera)void videoSender.replaceTrack(S.display||S.camera).catch(()=>{});
@@ -748,6 +796,7 @@ function ensurePeer(key){
  pc.onconnectionstatechange=()=>{
   if(pc.connectionState==='failed'||pc.connectionState==='disconnected')schedulePeerRecovery(peer);
   if(pc.connectionState==='connected'){
+   peer.missingSince=0;
    clearTimeout(peer.recoveryTimer);peer.recoveryTimer=null;
    peer.retries=0;peer.videoMissingSince=0;void tuneVideo();restartTile(key);
   }
@@ -768,6 +817,12 @@ async function receiveSignal(msg){
  const p=ensurePeer(msg.from);if(!p)return;
  const pc=p.pc;
  try{
+  if(msg.ready){
+   // O outro navegador já está inscrito no canal. Não confiar que a oferta
+   // disparada pelo onnegotiationneeded tenha chegado até ele.
+   if(S.key<msg.from)await recoverHandshake(p,true);
+   return;
+  }
   if(msg.restartVideo){if(S.key<msg.from)void offer(p,true);return;}
   if(msg.description){
    const description=msg.description;
@@ -778,6 +833,7 @@ async function receiveSignal(msg){
     await signal(msg.from,{description:pc.localDescription?.toJSON?.()||pc.localDescription});
    }else if(description.type==='answer'&&pc.signalingState==='have-local-offer'){
     await pc.setRemoteDescription(description);
+    p.lastAnswerAt=Date.now();
    }
    while(p.candidates.length&&pc.remoteDescription)await pc.addIceCandidate(p.candidates.shift()).catch(()=>{});
   }else if(msg.candidate){
@@ -823,7 +879,12 @@ function synchronize(){
  }
  S.presence=next;
  void refreshCallAvatars();
- for(const key of next.keys())if(key!==S.key&&!S.peers.has(key))ensurePeer(key);
+ for(const key of next.keys()){
+  if(key===S.key)continue;
+  let peer=S.peers.get(key);
+  if(!peer)peer=ensurePeer(key);
+  if(peer&&S.key>key)announcePeerReady(peer);
+ }
  if(S.pendingSignals.length){const pending=S.pendingSignals.splice(0);pending.forEach(msg=>{if(next.has(msg.from))void receiveSignal(msg);});}
  if(S.pinned&&!next.has(S.pinned))S.pinned=null;
  void tuneVideo();tiles();panelDraw();
@@ -908,6 +969,8 @@ async function join(){
      catch(e){console.warn('Falha visual sem encerrar a chamada',e);status('Falha visual temporária. A call continua aberta.',8)}
      clearInterval(S.guard);S.guard=setInterval(()=>{void checkMembership();void refreshCallAvatars();},15000);
      clearInterval(S.videoWatch);S.videoWatch=setInterval(checkVideoHealth,4500);
+     clearInterval(S.connectionWatch);S.connectionWatch=setInterval(checkPeerConnections,3500);
+     checkPeerConnections();
     }catch(e){
      console.warn('Falha de conexão na chamada',e);
      if(S.stage==='joining')await leave();
@@ -1078,6 +1141,7 @@ async function leave(){
  S.lastPresenceAt=0;S.lastPresenceSignature='';S.lastPresenceChannel=null;
  clearTimeout(S.noticeTimer);
  clearInterval(S.videoWatch);S.videoWatch=null;
+ clearInterval(S.connectionWatch);S.connectionWatch=null;
  clearTimeout(S.screenMuteTimer);S.screenMuteTimer=null;
  S.peers.forEach((p,key)=>{disposePeerAudio(key);clearTimeout(p.recoveryTimer);clearTimeout(p.departTimer);p.pc.close()});S.peers.clear();
  if(channel){try{void channel.untrack().catch(()=>{});}catch(_){}try{void client.removeChannel(channel).catch(()=>{});}catch(_){}}
