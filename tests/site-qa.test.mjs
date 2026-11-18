@@ -1012,7 +1012,8 @@ test('Cargo exclusivo de Concursos fica na modalidade após atualização, hist�
   readyState:'complete',hidden:false
  };
  const user={id:'concursista-1',is_anonymous:false};
- const client={rpc:async()=>({data:{admin:false,concurso:true}}),from:()=>({
+ let roleReply={admin:false,concurso:true};
+ const client={rpc:async()=>({data:roleReply}),from:()=>({
   select:()=>({eq:()=>({single:async()=>({data:{payload:{questions:Array(200).fill({})}}})})})
  })};
  const window={uentzoulAIAuth:{user:()=>user,client:()=>client},addEventListener(name,fn){
@@ -1034,4 +1035,15 @@ test('Cargo exclusivo de Concursos fica na modalidade após atualização, hist�
  let blocked=false;
  handlers.click[0]({target:new MockElement('#semesterCurrent'),preventDefault(){blocked=true;},stopImmediatePropagation(){}});
  assert.equal(blocked,true,'clique no seletor não abre semestres');
+ // O administrador não fica preso a Concursos, mesmo possuindo também esse cargo.
+ roleReply={admin:true,concurso:true};
+ handlers['uentzoul:auth'][0]();
+ await new Promise(resolve=>setImmediate(resolve));
+ assert.equal(window.uentzoulContestAccess.isOnlyContest(),false);
+ assert.ok(!classes.has('pm-concurso-user'));
+ assert.equal(semester.attributes['aria-disabled'],undefined);
+ stopped=false;location.hash='#outro-semestre';
+ handlers.popstate[0]({stopImmediatePropagation(){stopped=true;}});
+ assert.equal(stopped,false,'administrador continua livre para usar semestres');
+ assert.equal(location.hash,'#outro-semestre');
 });
