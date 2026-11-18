@@ -83,7 +83,7 @@ for(const [p,name] of [[a,'A'],[b,'B']]){
  p.on('dialog',dialog=>{errors.push(name+': DIALOG '+dialog.message());void dialog.dismiss();});
 }
 async function waitFor(p,fn,msg,timeout=22000){
- await p.waitForFunction(fn,{timeout}).catch(e=>{throw Error(msg+' | '+e.message);});
+ await p.waitForFunction(fn,null,{timeout}).catch(e=>{throw Error(msg+' | '+e.message);});
 }
 try{
  await Promise.all([a.goto(root+'/?u=a'),b.goto(root+'/?u=b')]);
