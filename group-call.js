@@ -255,6 +255,7 @@ async function refreshCallAvatars(){
  const users=[...new Set([...S.presence.values()].map(m=>m.userId).filter(id=>UUID.test(id||'')))];
  if(!users.length)return;
  const now=Date.now();
+ if(now-S.avatarRefreshAt<15000)return;
  if(users.every(id=>S.avatarProfiles.has(id))&&now-S.avatarRefreshAt<120000)return;
  const generation=S.generation,room=S.room;
  S.avatarLoading=true;S.avatarRefreshAt=now;
@@ -523,14 +524,18 @@ async function tuneVideo(){
  const outgoing=Math.max(1,peers.length);
  const bitrate=S.screen?Math.max(650000,Math.min(1400000,Math.floor(4200000/outgoing))):
   Math.max(220000,Math.min(560000,Math.floor(1900000/outgoing)));
+ const fps=S.screen?12:15;
  await Promise.all(peers.map(async p=>{
+  // Não reaplicar setParameters em toda sincronização de presença.
+  if(p.videoBitrate===bitrate&&p.videoFps===fps)return;
   try{
    const sender=p.videoSender,params=sender.getParameters?.();
    if(!params?.encodings?.length)return;
    params.encodings[0].maxBitrate=bitrate;
-   params.encodings[0].maxFramerate=S.screen?12:15;
+   params.encodings[0].maxFramerate=fps;
    await sender.setParameters(params);
-  }catch(_){/* Alguns dispositivos ignoram parâmetros avançados. */}
+   p.videoBitrate=bitrate;p.videoFps=fps;
+  }catch(_){/* Alguns dispositivos não suportam parâmetros avançados. */}
  }));
 }
 function replaceVideo(){
@@ -1179,7 +1184,17 @@ function init(){
  window.visualViewport?.addEventListener('resize',fitViewport,{passive:true});
  const previousLogout=window.uentzoulMessenger.onLogout;
  window.uentzoulMessenger.onLogout=function(...args){void leave();return previousLogout?.apply(this,args);};
- window.addEventListener('uentzoul:auth',()=>{if(!bridge.user()?.id)void leave();});
+ // Refresh de token pode sinalizar sessão ausente por poucos instantes.
+ // Logout explícito continua saindo imediatamente pelo onLogout.
+ let authGraceTimer=null;
+ window.addEventListener('uentzoul:auth',()=>{
+  clearTimeout(authGraceTimer);
+  if(bridge.user()?.id||S.stage==='off')return;
+  authGraceTimer=setTimeout(()=>{
+   authGraceTimer=null;
+   if(!bridge.user()?.id&&S.stage!=='off')void leave();
+  },5000);
+ });
  window.uentzoulGroupCalls={open:id=>preview(group(id)),openPrivate:id=>preview(direct(id)),openMaintenance:previewMaintenance,minimize:()=>setMinimized(true),restore:()=>setMinimized(false),leave:()=>leave(),get minimized(){return S.minimized},get active(){return S.stage==='live'},get roomId(){return S.room?.id||null},get kind(){return S.room?.kind||null}};
  return true;
 }
