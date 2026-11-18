@@ -1229,7 +1229,7 @@ function weeklyView(semester,subject,materials,card){
  '<button type="button" role="tab" aria-selected="'+(mode==='general')+'" data-pm-material-tab="general" data-pm-sem="'+esc(semester)+'" data-pm-subject="'+esc(subject)+'">▤ Acervo geral</button>'+
  '<button type="button" role="tab" aria-selected="'+(mode==='weeks')+'" data-pm-material-tab="weeks" data-pm-sem="'+esc(semester)+'" data-pm-subject="'+esc(subject)+'">▦ Por semanas</button></div>';
  if(mode==='general')return {tabs:base,weekly:false};
- const items=(materials||[]).filter(m=>m.available&&m._libraryUpload?.exam_scope!==false);
+ const items=(materials||[]).filter(m=>m.available); // Modo por semanas inclui também o acervo fora da prova atual.
  const map=new Map(items.map(m=>[resourceKey(m),m]));
  const context=tabKey(semester,subject);
  const editing=admin()&&weekEditState?.context===context;
@@ -1254,7 +1254,7 @@ function weeklyView(semester,subject,materials,card){
   '</div></details>';
  }).join('');
  // Material agendado sem correspondência segura não desaparece do painel.
- // A listagem já foi filtrada por RLS no upload: alunos só a verão após 27/11.
+ // Materiais disponíveis sem vínculo semanal continuam visíveis para consulta.
  const pending=items.filter(m=>!assigned.some(r=>r.resource_key===resourceKey(m)));
  const pendingBlock=pending.length?'<details class="pm-week-group pm-week-unassigned" open><summary><span class="pm-week-number">REVISAR</span><strong>Aguardando seção do Moodle</strong><small>'+pending.length+' '+(pending.length===1?'material':'materiais')+'</small><span class="pm-week-chevron" aria-hidden="true">⌄</span></summary>'+
  '<div class="pm-week-content"><p class="pm-week-empty">Estes arquivos já estão no acervo, mas ainda precisam ser associados a uma seção. O administrador pode usar Editar para organizá-los.</p>'+
@@ -1266,7 +1266,7 @@ function weeklyView(semester,subject,materials,card){
   '<label>Semana<input type="number" name="week_number" min="1" max="30" value="1" required></label>')+
  '<button type="submit" '+(!items.length?'disabled':'')+'>Adicionar à semana</button></form>':'';
  const toolbar=admin()?'<div class="pm-week-toolbar">'+
-  (editing?'<span class="pm-week-edit-message">Modo de edição · escolha os arquivos e suas semanas. Ao salvar, os materiais agendados continuarão privados até a data definida.</span>'+
+  (editing?'<span class="pm-week-edit-message">Modo de edição · escolha os arquivos e suas semanas. Ao salvar, os materiais fora da prova continuam disponíveis para consulta.</span>'+
    '<div class="pm-week-toolbar-actions"><button type="button" class="pm-cancel" data-pm-week-cancel>Cancelar</button><button type="button" class="pm-save" data-pm-week-save '+(saving?'disabled':'')+'>Salvar organização</button></div>':
    '<button type="button" class="pm-edit-button" data-pm-week-edit="'+esc(context)+'">✎ Editar</button>')+'</div>':'';
  return {tabs:base,weekly:true,body:'<div class="pm-weeks-intro"><strong>Organização conforme o Moodle</strong><p>Seções por semana, data ou assunto, com os títulos mostrados no Moodle. Os mesmos arquivos também podem ser consultados no Acervo geral.</p></div>'+toolbar+
@@ -1338,7 +1338,7 @@ async function saveWeekEdit(){
   if(verify.error)throw verify.error;
   const actual=new Set((verify.data||[]).map(key));
   if(actual.size!==desired.size||[...desired].some(k=>!actual.has(k)))throw Error('Nem todos os vínculos foram confirmados. Confira e salve novamente.');
-  weekEditState=null;weekNotice='Organização por seções salva. Arquivos agendados continuam ocultos para alunos até 27/11.';
+  weekEditState=null;weekNotice='Organização por seções salva. Arquivos fora da prova permanecem disponíveis no acervo.';
   await reload();
  }catch(e){weekNotice='Não foi possível salvar: '+(e.message||e);}
  finally{saving=false;bridge()?.refreshNav?.();}
