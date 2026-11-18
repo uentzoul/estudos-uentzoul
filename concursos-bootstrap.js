@@ -51,7 +51,8 @@
   const blocked=event.target.closest(
    '#semesterCurrent,#semesterDropdown,'+
    '#subjectNav [data-action],#nav [data-page]:not([data-page="home"]):not([data-page="exams"]),'+
-   '#navVacationReview,#navAdminConfig,[data-dm-tab],[data-dm-peer],[data-dm-room]'
+   '#navVacationReview,#navAdminConfig,#navCadernoPreview,#navConcursoNotebook,'+
+   '[data-dm-tab],[data-dm-peer],[data-dm-room]'
   );
   if(!blocked)return;
   event.preventDefault();event.stopImmediatePropagation();lockRoute();
