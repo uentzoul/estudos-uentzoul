@@ -971,6 +971,6 @@ test('Questões didáticas mais claras preservam estrutura e gabaritos',()=>{
  const questions=data.exams.flatMap(exam=>exam.questions||[]);
  assert.ok(questions.length>=295,'questões existentes não foram apagadas');
  assert.ok(questions.every(question=>typeof question.id==='string'&&question.id.length>0),'IDs das questões são preservados');
- assert.ok(questions.every(question=>question.answer!==undefined),'cada questão mantém seu gabarito');
+ assert.ok(questions.every(question=>question.type==='essay'?Boolean(question.model):question.answer!==undefined),'questões objetivas mantêm gabaritos e dissertativas mantêm respostas-modelo');
  assert.ok(!questions.some(question=>/com precisão conceitual/i.test(question.prompt||'')),'enunciados antigos e desnecessariamente longos foram reescritos');
 });
