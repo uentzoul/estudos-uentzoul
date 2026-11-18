@@ -155,7 +155,7 @@ window.PSICO_TRAIL_CURRICULUM={
     ],
     [
       "Escola, território e rede de apoio",
-      "A atuação familiar também envolve escola, assistência social e rede de proteção. Vulnerabilidade econômica não equivale automaticamente a negligência. Não há arquivo de aula específico identificado para esta etapa; utilize o estudo dirigido e os exercícios integrados.",
+      "A atuação familiar também envolve escola, assistência social e rede de proteção. Vulnerabilidade econômica não significa, por si só, negligência. Não há arquivo de aula específico identificado para esta etapa; utilize o estudo dirigido e os exercícios integrados.",
       [
         "Atendimento familiar escolar",
         "Assistência social e território"
@@ -165,7 +165,7 @@ window.PSICO_TRAIL_CURRICULUM={
     ],
     [
       "Mitos, rituais e transgeracionalidade",
-      "Examine narrativas familiares, ritos de passagem, lealdades e transmissão entre gerações sem pressupor que os padrões sejam imutáveis. Use as aulas recentes de rituais e a atividade prática para exemplificar.",
+      "Examine narrativas familiares, ritos de passagem, lealdades e transmissão entre gerações sem supor que os padrões sejam imutáveis. Use as aulas recentes de rituais e a atividade prática para exemplificar.",
       [
         "Mitos, rituais e lealdades familiares",
         "Ritos de passagem e transgeracionalidade"
@@ -329,9 +329,9 @@ window.PSICO_TRAIL_CURRICULUM={
       [
         "Gênero como categoria analítica",
         "Feminismos, produção do conhecimento e crítica",
-        "Interseccionalidade: articulação de relações de poder",
+        "Interseccionalidade: relação de relações de poder",
         "Interseccionalidade e processos de subjetivação",
-        "Categorias de articulação e migração brasileira"
+        "Categorias de relação e migração brasileira"
       ],
       [
         "interseccionalidade",
@@ -437,7 +437,7 @@ window.PSICO_TRAIL_CURRICULUM={
     ],
     [
       "Contextos organizacional, hospitalar e forense",
-      "Analise como finalidade, sigilo e limites mudam conforme o contexto. A psicologia não deve atuar como defensora de interesses particulares em perícias.",
+      "Analise como finalidade, sigilo e limites mudam conforme o contexto. A psicologia não deve atuar como defensora de interesses prelacionares em perícias.",
       [
         "Avaliação no contexto organizacional",
         "Avaliação hospitalar",
