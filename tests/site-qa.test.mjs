@@ -757,22 +757,22 @@ test('Recuperação de senha preserva login e troca de senha por e-mail',()=>{
 });
 
 test('Chamadas ficam desativadas em grupos e conversas privadas, sem afetar mensagens',()=>{
- assert.doesNotMatch(html,/<script[^>]+(?:group-call\\.js|id="pm-group-call-js")/,'controlador de chamadas não pode ser carregado');
- assert.doesNotMatch(html,/<link[^>]+(?:group-call\\.css|id="pm-group-call-css")/,'estilos exclusivos da call não podem ser carregados');
+ assert.ok(!html.includes('pm-group-call-js')&&!html.includes('group-call.js'),'controlador de chamadas não pode ser carregado');
+ assert.ok(!html.includes('pm-group-call-css')&&!html.includes('group-call.css'),'estilos exclusivos da call não podem ser carregados');
  assert.doesNotMatch(html,/data-gc-open|data-gc-private|data-pm-maintenance-call/,'nenhum botão de call para grupo, privado ou manutenção');
  assert.doesNotMatch(html,/uentzoulGroupCallBridge|uentzoulGroupCalls/,'API de chamadas não pode ficar acessível no HTML');
  assert.doesNotMatch(html,/Entrar na call|Entrar na call privada/,'mensagens sem convites para call');
  assert.match(html,/data-dmw-group/,'informações dos grupos preservadas');
  assert.match(html,/data-dm-profile/,'perfil das conversas privadas preservado');
- assert.match(html,/dmThreadHtml\\(\\)/,'visualização do histórico de mensagens preservada');
- assert.match(html,/dmComposer\\(\\)/,'compositor de mensagens preservado');
+ assert.ok(html.includes('dmThreadHtml()'),'visualização do histórico de mensagens preservada');
+ assert.ok(html.includes('dmComposer()'),'compositor de mensagens preservado');
 });
 
 test('A desativação de calls mantém navegação e chats, sem scripts WebRTC no HTML',()=>{
- assert.doesNotMatch(html,/group-call\\.js\\?v=|group-call\\.css\\?v=/,'nenhum carregamento de módulo antigo');
+ assert.ok(!html.includes('group-call.js')&&!html.includes('group-call.css'),'nenhum carregamento de módulo antigo');
  assert.doesNotMatch(html,/data-gc-action|data-gc-open|data-gc-private/,'interface sem controles de chamada');
- assert.match(html,/window\\.uentzoulMessenger=\\{render:dmRender/,'sistema normal de mensagens segue disponível');
- assert.match(html,/chat-mobile-viewport\\.js/,'layout móvel do chat permanece ativo');
+ assert.ok(html.includes('window.uentzoulMessenger={render:dmRender'),'sistema normal de mensagens segue disponível');
+ assert.ok(html.includes('chat-mobile-viewport.js'),'layout móvel do chat permanece ativo');
 });
 
 test('Auditoria de atualização protege estudo, modais e leitura do primeiro semestre',()=>{
