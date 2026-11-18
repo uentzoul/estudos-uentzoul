@@ -981,3 +981,51 @@ test('Usuário Concurso é oculto da lateral até para administradores',async()=
  const contests=read('concursos.js');
  assert.match(contests,/uentzoulRefreshParticipants\?\.\(\)/,'mudanças de cargo atualizam a lateral');
 });
+
+test('Biblioteca sincroniza documentos sem reconstruir a tela inteira e sem piscar',()=>{
+ const editor=read('materiais-editor.js');
+ assert.match(editor,/window\.dispatchEvent\(new Event\('uentzoul:material-placements-updated'\)\)/);
+ const begin=html.indexOf('let docsRefreshTimer=null;');
+ const end=html.indexOf("window.addEventListener('uentzoul:material-placements-updated'",begin);
+ assert.ok(begin>0&&end>begin,'mecanismo localizado existe');
+ const code=html.slice(begin,end);
+ assert.match(code,/existing\.replaceWith\(next\)/);
+ assert.doesNotMatch(code,/document\.getElementById\('main'\)\.innerHTML\s*=/);
+ let active={page:'subject',subjectArea:'docs',subject:'tcc'};
+ let isEditing=false,replacements=0,calls=0,id=0;
+ const pending=new Map();
+ let displayed;
+ function node(mark){
+  return {mark,isEqualNode(other){return this.mark===other?.mark},
+   replaceWith(other){displayed=other;replacements++}};
+ }
+ displayed=node('anterior');
+ const fake={
+  current:active,semester:'2026/2',
+  window:{PSICO_MATERIAL_EDITOR:{isEditing:()=>isEditing}},
+  setTimeout(fn){const n=++id;pending.set(n,fn);return n},
+  clearTimeout(n){pending.delete(n)},
+  document:{
+   querySelector(){return displayed},
+   createElement(){return {set innerHTML(value){this.markup=value},
+    querySelector(){return node(this.markup)}}}
+  },
+  renderSubject(){calls++;return 'conteudo-atualizado'},
+  renderThirdSemester(){return 'conteudo-atualizado'},
+  console
+ };
+ const run=vm.runInNewContext(code+'\n;({scheduleDocsRefresh})',fake).scheduleDocsRefresh;
+ const flush=()=>{const jobs=[...pending.values()];pending.clear();jobs.forEach(job=>job())};
+ for(let i=0;i<12;i++)run();
+ assert.equal(pending.size,1,'12 notificações devem produzir uma só atualização');
+ flush();
+ assert.equal(replacements,1);
+ assert.equal(calls,1);
+ for(let i=0;i<10;i++)run();
+ flush();
+ assert.equal(replacements,1,'conteúdo igual não deve tocar no DOM');
+ isEditing=true;run();
+ assert.equal(pending.size,0,'edição não pode ser interrompida');
+ isEditing=false;active.page='home';run();
+ assert.equal(pending.size,0,'outras páginas não devem atualizar materiais');
+});
