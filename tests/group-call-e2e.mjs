@@ -92,9 +92,9 @@ try{
  await waitFor(a,()=>window.uentzoulGroupCalls.active,'Pessoa A não entrou');
  await waitFor(b,()=>window.uentzoulGroupCalls.active,'Pessoa B não entrou');
  await b.locator('[data-gc-action="cam"]').click();
- await waitFor(a,()=>[...document.querySelectorAll('.gc-tile:not(.gc-is-self) video')].some(v=>v.videoWidth>0&&v.videoHeight>0),'A não recebeu câmera de B');
+ await waitFor(a,()=>[...document.querySelectorAll('.gc-tile:not(.gc-is-self) video')].some(v=>v.classList.contains('is-visible')&&v.videoWidth>0&&v.videoHeight>0),'A não recebeu câmera de B');
  await a.locator('[data-gc-action="screen"]').click();
- await waitFor(b,()=>[...document.querySelectorAll('.gc-tile:not(.gc-is-self) video')].some(v=>v.videoWidth>0&&v.videoHeight>0),'B não recebeu a tela de A');
+ await waitFor(b,()=>[...document.querySelectorAll('.gc-tile:not(.gc-is-self) video')].some(v=>v.classList.contains('is-visible')&&v.videoWidth>0&&v.videoHeight>0),'B não recebeu a tela de A');
  console.log('PASS: câmera e tela recebidas por outro navegador via WebRTC real');
 }catch(e){
  console.error('FAIL:',e.message);
