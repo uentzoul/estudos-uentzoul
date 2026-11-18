@@ -34,7 +34,7 @@
     throw Error('Material do concurso indisponível ou incompleto');
    }
    window.CONCURSO_DATA=data;
-   await script('pm-concursos-app','concursos.js?v=20261118-hcpa3');
+   await script('pm-concursos-app','concursos.js?v=20261118-hcpa4');
    loaded=true;
   }catch(error){console.warn('Concursos: acesso ainda indisponível',error);}
   finally{loading=false;}
