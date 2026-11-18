@@ -1,13 +1,11 @@
 // Verifica TURN público usando ICE relay-only, em vez de confundir STUN com retransmissão.
 import { chromium } from 'playwright';
+import { createHmac } from 'node:crypto';
 const browser=await chromium.launch({channel:'chrome',headless:true,args:['--no-sandbox']});
 const page=await browser.newPage();
-const result=await page.evaluate(async()=>{
- const expiry=String(Math.floor(Date.now()/1000)+3600)+':uentzoul-probe';
- const secret='openrelayprojectsecret'; // Chave divulgada pela documentação oficial do Open Relay para static-auth.
- const key=await crypto.subtle.importKey('raw',new TextEncoder().encode(secret),{name:'HMAC',hash:'SHA-1'},false,['sign']);
- const digest=await crypto.subtle.sign('HMAC',key,new TextEncoder().encode(expiry));
- const password=btoa(String.fromCharCode(...new Uint8Array(digest)));
+const expiry=String(Math.floor(Date.now()/1000)+3600)+':uentzoul-probe';
+const password=createHmac('sha1','openrelayprojectsecret').update(expiry).digest('base64');
+const result=await page.evaluate(async({expiry,password})=>{
  const iceServers=[{urls:[
    'turn:staticauth.openrelay.metered.ca:80?transport=udp',
    'turn:staticauth.openrelay.metered.ca:80?transport=tcp',
@@ -39,7 +37,7 @@ const result=await page.evaluate(async()=>{
    selectedProtocol:[...relaySeen],iceA:first.iceConnectionState,iceB:second.iceConnectionState,errors:errors.slice(0,7)};
   return summary;
  }finally{first.close();second.close();}
-});
+},{expiry,password});
 console.log(JSON.stringify(result));
 await browser.close();
 if(!result.connected||!result.relayCandidatesA||!result.relayCandidatesB)process.exitCode=1;
