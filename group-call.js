@@ -809,12 +809,17 @@ function checkVideoHealth(){
 function ensurePeer(key){
  if(!key||key===S.key||S.peers.has(key)||S.stage!=='live')return S.peers.get(key);
  const pc=new RTCPeerConnection(iceConfig());
- const audioSender=pc.addTransceiver('audio',{direction:'sendrecv'}).sender;
- const videoSender=pc.addTransceiver('video',{direction:'sendrecv'}).sender;
+ // Apenas o iniciador cria as transceivers antes da primeira oferta.
+ // No respondedor, setRemoteDescription(offer) cria as transceivers já
+ // associadas aos m-lines do SDP. Criá-las antes gera DUPLICATAS com
+ // mid=null, fazendo replaceTrack enviar vídeo por uma faixa NÃO negociada.
+ const initiator=S.key<key;
+ const audioSender=initiator?pc.addTransceiver('audio',{direction:'sendrecv'}).sender:null;
+ const videoSender=initiator?pc.addTransceiver('video',{direction:'sendrecv'}).sender:null;
  const peer={key,pc,audioSender,videoSender,stream:new MediaStream(),audioStream:new MediaStream(),candidates:[],busy:false,retries:0,recoveryTimer:null,departTimer:null,mediaTimer:null,lastMediaRequestAt:0,videoMissingSince:0,lastVideoRecoverAt:0,lastOfferAt:0,lastAnswerAt:0,lastReadyAt:0,missingSince:0,lastConnectionNotice:0};
  S.peers.set(key,peer);
- if(S.audio)void audioSender.replaceTrack(S.audio).catch(()=>{});
- if(S.display||S.camera)void videoSender.replaceTrack(S.display||S.camera)
+ if(audioSender&&S.audio)void audioSender.replaceTrack(S.audio).catch(e=>console.warn('Falha ao associar microfone ao iniciador',e));
+ if(videoSender&&(S.display||S.camera))void videoSender.replaceTrack(S.display||S.camera)
   .then(()=>{if(S.stage==='live')requestMediaRenegotiation(peer);})
   .catch(e=>console.warn('Falha ao conectar vídeo ao participante',e));
  pc.ontrack=event=>{
@@ -842,6 +847,21 @@ function ensurePeer(key){
  };
  return peer;
 }
+async function bindAnswererMedia(peer){
+ // O SDP recebido cria uma transceiver para cada mídia. É nessas faixas
+ // negociadas (mid !== null), não em transceivers locais soltas, que o
+ // respondedor precisa colocar microfone, câmera e apresentação.
+ const pc=peer.pc;
+ for(const kind of ['audio','video']){
+  const transceiver=pc.getTransceivers().find(t=>t.mid!==null&&t.receiver?.track?.kind===kind&&!t.stopped);
+  if(!transceiver)continue;
+  if(transceiver.direction!=='sendrecv')transceiver.direction='sendrecv';
+  const sender=transceiver.sender;
+  peer[kind==='audio'?'audioSender':'videoSender']=sender;
+  const track=kind==='audio'?S.audio:(S.display||S.camera);
+  if(sender.track!==track)await sender.replaceTrack(track||null);
+ }
+}
 async function receiveSignal(msg){
  if(!msg||msg.to!==S.key||typeof msg.from!=='string'||msg.from===S.key)return;
  if(!S.presence.has(msg.from)){
@@ -868,6 +888,7 @@ async function receiveSignal(msg){
    if(description.type==='offer'){
     if(pc.signalingState!=='stable'&&S.key<msg.from)return;
     await pc.setRemoteDescription(description);
+    if(S.key>msg.from)await bindAnswererMedia(p);
     await pc.setLocalDescription(await pc.createAnswer());
     await signal(msg.from,{description:pc.localDescription?.toJSON?.()||pc.localDescription});
    }else if(description.type==='answer'&&pc.signalingState==='have-local-offer'){
