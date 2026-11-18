@@ -456,7 +456,12 @@ async function toggleRole(id,yes){
  if(!confirm((yes?'Conceder':'Revogar')+' cargo Concursos para '+p.display_name+'?'))return;
  const r=await client().rpc('uentzoul_set_concurso_role',{p_user_id:id,p_enabled:yes});
  if(r.error)return toast('Permissão não alterada: '+r.error.message);
- toast('Permissão atualizada.');await adminLoad();
+ toast('Permissão atualizada.');
+ await adminLoad();
+ // Atualiza a privacidade das áreas sociais no mesmo instante.
+ window.uentzoulRefreshParticipants?.();
+ window.uentzoulMessenger?.refresh?.();
+ window.dispatchEvent(new Event('uentzoul:ranking-refresh'));
 }
 function go(dest){
  if(!active||!allowed())return;
