@@ -208,7 +208,12 @@ async function generate(){
 }
 function guide(topic){
  const t=topics[topic];if(!t)return '';
- return '<div class="co-guide">'+t.notes.map(n=>'<p><strong>'+esc(n.term)+':</strong> '+esc(n.explanation)+'</p>').join('')+'</div>';
+ const reading=(t.study||[]).map(section=>'<section style="margin-bottom:19px"><h3>'+esc(section.title)+'</h3><p>'+esc(section.body)+'</p></section>').join('');
+ const glossary='<details style="margin-top:17px"><summary style="font-weight:750;cursor:pointer">Relembrar os conceitos essenciais</summary><div style="padding:12px 0">'+
+  t.notes.map(n=>'<p><strong>'+esc(n.term)+':</strong> '+esc(n.explanation)+'</p>').join('')+'</div></details>';
+ const check=(t.check||[]).length?'<section class="co-step"><h3>Confira se entendeu</h3><ol style="padding-left:20px;margin:7px 0">'+
+  t.check.map(q=>'<li style="margin:7px 0">'+esc(q)+'</li>').join('')+'</ol></section>':'';
+ return '<div class="co-guide">'+reading+glossary+check+'</div>';
 }
 function day(){
  const d=store.plan[dayIndex];if(!d)return go('inicio');
