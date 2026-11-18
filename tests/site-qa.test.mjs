@@ -368,7 +368,7 @@ test('Caderno abre para contas registradas e mantém anotações privadas',()=>{
  assert.match(loader,/navCadernoPreview/);
  assert.match(loader,/const loggedIn=\(\)=>!!account\(\)/);
  assert.match(loader,/button\.hidden=false/,'botão fica visível para visitantes desde a abertura');
- assert.match(loader,/button\.disabled=phone/,'botão fica desabilitado apenas em celulares');
+ assert.match(loader,/button\.disabled=unavailable/,'botão desativado no celular ou para cargo exclusivo Concursos');
  assert.match(loader,/if\(!loggedIn\(\)\)\{/,'acesso solicita conta quando não autenticado');
  const siteMarkup=read('index.html');
  assert.match(siteMarkup,/id="navCadernoPreview"\s+aria-label="Caderno/,'botão público desde o primeiro paint');
@@ -394,11 +394,11 @@ test('Caderno abre para contas registradas e mantém anotações privadas',()=>{
 test('Celular mostra o Caderno em cinza e bloqueado, enquanto tablet/desktop mantêm acesso',()=>{
  const loader=read('site-version.js'),app=read('caderno.js'),site=read('index.html');
  assert.match(loader,/window\.PSICO_NOTEBOOK_IS_PHONE=isNotebookPhone/);
- assert.match(loader,/button\.disabled=phone/);
+ assert.match(loader,/button\.disabled=unavailable/);
  assert.match(loader,/button\.classList\.toggle\('nb-phone-locked',phone\)/);
  assert.match(loader,/if\(isNotebookPhone\(\)\)return;/);
  assert.match(loader,/nb-phone-locked\{opacity:\.52!important/);
- assert.match(loader,/button\.setAttribute\('aria-disabled',String\(phone\)\)/);
+ assert.match(loader,/button\.setAttribute\('aria-disabled',String\(unavailable\)\)/);
  assert.match(loader,/Caderno disponível somente em computador ou tablet/);
  assert.match(app,/if\(isNotebookPhone\(\)\)\{/);
  assert.match(app,/Caderno indisponível no celular/);
