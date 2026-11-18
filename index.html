@@ -2788,7 +2788,7 @@ const LIBRARY_MATERIALS=LIBRARY_CATALOG;
 let libraryAdminEnabled=false,libraryRecords=new Map(),currentExamKeys=new Set(),examBadgeKeys=new Set();
 function adminScheduledMaterial(m){
  const release=Date.parse(m?._libraryUpload?.publish_at||'');
- return libraryAdminEnabled&&Number.isFinite(release)&&Date.now()<release;
+ return libraryAdminEnabled&&m?._libraryUpload?.library_public!==true&&Number.isFinite(release)&&Date.now()<release;
 }
 const libraryKey=m=>String(m.subject||'geral')+'::'+String(m.title||'');
 function isCurrentExamMaterial(m){
