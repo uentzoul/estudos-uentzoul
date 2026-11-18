@@ -172,3 +172,20 @@ html.pm-concurso-user #subjectNav [data-action]{display:none!important}
 .concursos-pending{max-width:650px;margin:44px auto;padding:28px;border:1px solid var(--line,#ddd9e6);border-radius:16px;background:var(--paper,#fff);color:var(--ink,#28233d);font:inherit}
 .concursos-pending h1{margin:0 0 10px;font-size:25px}
 .concursos-pending p{margin:0;color:var(--muted,#727085)}
+
+/* Caderno permanece visível, mas indisponível no cargo exclusivo Concursos. */
+html.pm-concurso-user #navConcursoNotebook,
+html.pm-concurso-user #navConcursoNotebook:disabled,
+html.pm-concurso-user #navConcursoNotebook:hover{
+ display:flex!important;
+ align-items:center;
+ gap:9px;
+ opacity:.43!important;
+ filter:grayscale(1)!important;
+ pointer-events:none!important;
+ cursor:not-allowed!important;
+ background:transparent!important;
+ box-shadow:none!important;
+ transform:none!important;
+}
+html.pm-concurso-user #navConcursoNotebook svg{opacity:.72}
