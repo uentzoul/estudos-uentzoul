@@ -941,3 +941,36 @@ test('Call reduzida e áudio individual preservam a sessão, inclusive com câme
  assert.equal(audioB.muted,false,'outro participante não foi silenciado');
  assert.equal(S.stage,'live','nenhum desses controles encerra a call');
 });
+
+
+test('Trilhas têm flashcards com animação e podcast integrado sem trocar marcadores',()=>{
+ const trail=read('trilha-integrada.js');
+ const visual=read('trilha-integrada.css');
+ const first=read('primeiro-semestre-relembrar.js');
+ const firstVisual=read('primeiro-semestre-relembrar.css');
+ assert.match(trail,/data-ti-play/,'podcast permite reproduzir e pausar');
+ assert.match(trail,/data-ti-seek/,'podcast permite buscar um trecho');
+ assert.match(trail,/data-ti-skip/,'podcast permite pular segundos');
+ assert.match(trail,/data-ti-flip/,'flashcards da trilha são interativos');
+ assert.match(trail,/data-ti-prev/,'flashcards permitem voltar');
+ assert.match(trail,/data-ti-next/,'flashcards permitem avançar');
+ assert.match(visual,/rotateY\(180deg\)/,'flashcards usam animação tridimensional');
+ assert.match(first,/data-s1-flip/,'revisão do primeiro semestre incorpora flashcards');
+ assert.match(firstVisual,/rotateY\(180deg\)/,'primeiro semestre também usa animação');
+ assert.match(trail,/trail:'\+ctx\.subject\+':'\+i\+':0/,'marcador original das etapas do segundo semestre é mantido');
+ assert.match(first,/trail:relembrar:'\+ctx\.id\+':'\+i/,'marcador original do primeiro semestre é mantido');
+});
+
+test('Questões didáticas mais claras preservam estrutura e gabaritos',()=>{
+ const match=html.match(/<script id="dataset" type="application\/json">([\s\S]*?)<\/script>/);
+ assert.ok(match,'banco de questões continua no HTML');
+ const data=JSON.parse(match[1]);
+ const subjects=['tcc','familia','meta','grupos','social','avaliacao'];
+ assert.deepEqual(Object.keys(data.topics).sort(),subjects.sort());
+ assert.ok(data.exams.length>=30,'as provas anteriores continuam cadastradas');
+ const questions=data.exams.flatMap(exam=>exam.questions||[]);
+ assert.ok(questions.length>=295,'questões existentes não foram apagadas');
+ assert.ok(questions.every(question=>typeof question.id==='string'&&question.id.length>0),'IDs das questões são preservados');
+ assert.ok(questions.every(question=>question.answer!==undefined),'cada questão mantém seu gabarito');
+ assert.ok(!questions.some(question=>/com precisão conceitual/i.test(question.prompt||'')),'enunciados antigos e desnecessariamente longos foram reescritos');
+});
