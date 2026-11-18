@@ -564,7 +564,13 @@ function replaceVideo(){
    if(selected)S.stream.addTrack(selected);
   }
   void tuneVideo();
-  if(S.stage==='live')await publish();else draw();
+  if(S.stage==='live'){
+   // replaceTrack NÃO renegocia SDP. Uma chamada criada com câmera desligada
+   // pode ficar com a direção de vídeo recvonly/inactive; nesse caso a faixa
+   // existe no sender mas não chega ao receptor até uma nova oferta/resposta.
+   for(const peer of S.peers.values())requestMediaRenegotiation(peer);
+   await publish();
+  }else draw();
  };
  const pending=videoReplaceQueue.then(update,update);
  videoReplaceQueue=pending.catch(()=>{});
@@ -687,6 +693,22 @@ async function offer(peer,iceRestart=false){
   await signal(peer.key,{description:peer.pc.localDescription?.toJSON?.()||peer.pc.localDescription});
  }catch(e){console.warn('Negociação WebRTC',e);}finally{peer.busy=false;}
 }
+function requestMediaRenegotiation(peer){
+ if(S.stage!=='live'||S.peers.get(peer.key)!==peer||peer.pc.signalingState==='closed')return;
+ clearTimeout(peer.mediaTimer);
+ peer.mediaTimer=setTimeout(()=>{
+  peer.mediaTimer=null;
+  if(S.stage!=='live'||S.peers.get(peer.key)!==peer||peer.pc.signalingState==='closed')return;
+  if(S.key<peer.key){
+   // Somente um lado gera SDP, evitando glare entre dois offerers.
+   if(peer.pc.signalingState!=='stable'||peer.busy){requestMediaRenegotiation(peer);return;}
+   void offer(peer);
+  }else{
+   // O peer de maior chave nunca cria oferta; pede ao originador.
+   void signal(peer.key,{mediaChanged:true});
+  }
+ },420);
+}
 function announcePeerReady(peer){
  if(S.stage!=='live'||S.key<peer.key||S.peers.get(peer.key)!==peer)return;
  const now=Date.now();
@@ -770,6 +792,12 @@ function checkVideoHealth(){
   if(now-peer.videoMissingSince<9000||now-peer.lastVideoRecoverAt<18000)continue;
   peer.lastVideoRecoverAt=now;
   restartTile(key);
+  // ICE pode estar conectado e ainda assim não existir faixa de vídeo,
+  // porque a câmera foi ligada após o SDP inicial sem renegociação.
+  if((!track||track.muted)&&now-(peer.lastMediaRequestAt||0)>15000){
+   peer.lastMediaRequestAt=now;
+   requestMediaRenegotiation(peer);
+  }
   // A câmera pode trocar de faixa sem que a conexão de rede esteja falhando.
   // Reiniciar ICE por ausência temporária de vídeo também corta o áudio.
   if(now-peer.videoMissingSince>=18000&&
@@ -783,10 +811,12 @@ function ensurePeer(key){
  const pc=new RTCPeerConnection(iceConfig());
  const audioSender=pc.addTransceiver('audio',{direction:'sendrecv'}).sender;
  const videoSender=pc.addTransceiver('video',{direction:'sendrecv'}).sender;
- const peer={key,pc,audioSender,videoSender,stream:new MediaStream(),audioStream:new MediaStream(),candidates:[],busy:false,retries:0,recoveryTimer:null,departTimer:null,videoMissingSince:0,lastVideoRecoverAt:0,lastOfferAt:0,lastAnswerAt:0,lastReadyAt:0,missingSince:0,lastConnectionNotice:0};
+ const peer={key,pc,audioSender,videoSender,stream:new MediaStream(),audioStream:new MediaStream(),candidates:[],busy:false,retries:0,recoveryTimer:null,departTimer:null,mediaTimer:null,lastMediaRequestAt:0,videoMissingSince:0,lastVideoRecoverAt:0,lastOfferAt:0,lastAnswerAt:0,lastReadyAt:0,missingSince:0,lastConnectionNotice:0};
  S.peers.set(key,peer);
  if(S.audio)void audioSender.replaceTrack(S.audio).catch(()=>{});
- if(S.display||S.camera)void videoSender.replaceTrack(S.display||S.camera).catch(()=>{});
+ if(S.display||S.camera)void videoSender.replaceTrack(S.display||S.camera)
+  .then(()=>{if(S.stage==='live')requestMediaRenegotiation(peer);})
+  .catch(e=>console.warn('Falha ao conectar vídeo ao participante',e));
  pc.ontrack=event=>{
   const track=event.track;
   if(!peer.stream.getTracks().some(t=>t.id===track.id))peer.stream.addTrack(track);
@@ -826,6 +856,10 @@ async function receiveSignal(msg){
    // O outro navegador já está inscrito no canal. Não confiar que a oferta
    // disparada pelo onnegotiationneeded tenha chegado até ele.
    if(S.key<msg.from)await recoverHandshake(p,true);
+   return;
+  }
+  if(msg.mediaChanged){
+   if(S.key<msg.from)requestMediaRenegotiation(p);
    return;
   }
   if(msg.restartVideo){if(S.key<msg.from)void offer(p,true);return;}
@@ -877,6 +911,7 @@ function synchronize(){
      S.presence.delete(key);
      disposePeerAudio(key);
      clearTimeout(peer.recoveryTimer);
+     clearTimeout(peer.mediaTimer);
      peer.pc.close();S.peers.delete(key);tiles();panelDraw();
     },6000);
    }
@@ -1148,7 +1183,7 @@ async function leave(){
  clearInterval(S.videoWatch);S.videoWatch=null;
  clearInterval(S.connectionWatch);S.connectionWatch=null;
  clearTimeout(S.screenMuteTimer);S.screenMuteTimer=null;
- S.peers.forEach((p,key)=>{disposePeerAudio(key);clearTimeout(p.recoveryTimer);clearTimeout(p.departTimer);p.pc.close()});S.peers.clear();
+ S.peers.forEach((p,key)=>{disposePeerAudio(key);clearTimeout(p.recoveryTimer);clearTimeout(p.departTimer);clearTimeout(p.mediaTimer);p.pc.close()});S.peers.clear();
  if(channel){try{void channel.untrack().catch(()=>{});}catch(_){}try{void client.removeChannel(channel).catch(()=>{});}catch(_){}}
  for(const track of [S.audio,S.camera,S.display])try{track?.stop()}catch(_){}
  S.audio=null;S.camera=null;S.display=null;S.stream=null;S.screen=false;S.screenBusy=false;S.hand=false;S.camBusy=false;S.micBusy=false;
