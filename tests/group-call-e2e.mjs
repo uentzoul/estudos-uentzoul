@@ -99,10 +99,10 @@ try{
 }catch(e){
  console.error('FAIL:',e.message);
  for(const [p,label] of [[a,'A'],[b,'B']]){
-  console.error('STATE '+label,await p.evaluate(()=>{
+  console.error('STATE '+label,JSON.stringify(await p.evaluate(()=>{
    const S=window.__callInspect?.S;
    return {active:window.uentzoulGroupCalls?.active,dialog:document.querySelector('.gc-window')?.innerText.slice(0,700),status:document.querySelector('[data-gc-status]')?.textContent,stats:S?{stage:S.stage,key:S.key,presence:[...S.presence].map(([k,v])=>({key:k,cam:v.cam,screen:v.screen})),peers:[...S.peers].map(([k,p])=>({key:k,connection:p.pc.connectionState,ice:p.pc.iceConnectionState,signaling:p.pc.signalingState,local:!!p.pc.localDescription,remote:!!p.pc.remoteDescription,videoSender:!!p.videoSender.track,videoTracks:p.stream.getVideoTracks().map(t=>({id:t.id,muted:t.muted,ready:t.readyState})),candidates:p.candidates.length,offers:p.lastOfferAt,answer:p.lastAnswerAt})),lastPresence:S.lastPresenceSignature}:null,video:[...document.querySelectorAll('.gc-tile')].map(t=>({name:t.querySelector('[data-gc-name]')?.textContent,videoWidth:t.querySelector('video')?.videoWidth,videoReady:t.querySelector('video')?.readyState,videoSrc:!!t.querySelector('video')?.srcObject}))};
-  }).catch(err=>'Page exception: '+err.message));
+  }).catch(err=>'Page exception: '+err.message),null,2));
  }
  console.error(errors.join('\n'));process.exitCode=1;
 }
