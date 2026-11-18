@@ -49,6 +49,9 @@ jobs:
       - name: Verificar cartões de PDF em iPhone e Android (320px e 390px)
         if: ${{ !cancelled() }}
         run: python tests/material-card-smoke.py
+      - name: Verificar carregamento tardio do acervo e cartões de largura inteira
+        if: ${{ !cancelled() }}
+        run: python tests/library-load-smoke.py
       - name: Verificar entrada limpa da IA Tzoul em iPhone e Android
         if: ${{ !cancelled() }}
         run: python tests/ai-mobile-composer-smoke.py
