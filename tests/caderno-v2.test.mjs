@@ -600,7 +600,8 @@ test('Caderno permite computador e tablet, mas bloqueia telefone mesmo autentica
  assert.match(nav,/const loggedIn=\(\)=>!!account\(\)/);
  assert.match(nav,/if\(!loggedIn\(\)\)\{/);
  assert.match(nav,/window\.uentzoulAIAuth\?\.openLogin\?\.\(\)/);
- assert.match(nav,/button\.disabled=phone/);
+ assert.match(nav,/button\.disabled=unavailable/);
+ assert.match(nav,/const phone=isNotebookPhone\(\),locked=contestLocked\(\),unavailable=phone\|\|locked/);
  assert.match(nav,/if\(isNotebookPhone\(\)\)return;/);
  assert.match(nav,/nb-phone-locked/);
  assert.match(script,/if\(isNotebookPhone\(\)\)\{/);
