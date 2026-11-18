@@ -14,9 +14,12 @@ const topics=Object.fromEntries(D.topics.map(x=>[x.id,x]));
 const qById=Object.fromEntries(D.questions.map(x=>[x.id,x]));
 const priorities={domino:0,revisar:1,estudar:2.25,prioridade:3.75};
 const pLabels={domino:'Já domino · dispensar',revisar:'Revisão rápida',estudar:'Preciso estudar',prioridade:'Tenho dificuldade · priorizar'};
-const defaultState=()=>({settings:{},plan:[],completed:{},answers:{},flashcards:{}});
+const defaultState=()=>({settings:{},plan:[],completed:{},answers:{},flashcards:{},notes:{}});
 let store=defaultState(),rights={id:null,admin:false,concurso:false},active=false,external=false,checking=false,working=false;
-let view='inicio',subject='todos',dayIndex=0,session=null,cardFilter='todos',cardIndex=0,cardFlipped=false,roleList=[],roleSet=new Set();
+let view='inicio',subject='todos',noteSubject='portugues',dayIndex=0,session=null,cardFilter='todos',cardIndex=0,cardFlipped=false,roleList=[],roleSet=new Set();
+const NAV_KEY='uentzoul:concursos:nav:v1';
+function rememberView(){try{sessionStorage.setItem(NAV_KEY,JSON.stringify({view,dayIndex,subject,noteSubject}))}catch(e){}}
+function restoreView(){try{const v=JSON.parse(sessionStorage.getItem(NAV_KEY)||'null');if(v&&['inicio','configurar','dia','materias','materia','banco','simulados','flashcards','caderno'].includes(v.view)){view=v.view;dayIndex=Math.max(0,Math.min(23,Number(v.dayIndex)||0));if(subjects[v.subject])subject=v.subject;if(subjects[v.noteSubject])noteSubject=v.noteSubject;}}catch(e){}}
 let saveJob=0,renderJob=0;
 const allowed=()=>!!rights.id&&(rights.admin||rights.concurso);
 const onlyContest=()=>rights.concurso&&!rights.admin;
@@ -33,18 +36,18 @@ function toast(message){
 }
 async function load(){
  const c=client();if(!c||!rights.id)return;
- const r=await c.from('uentzoul_concurso_progress').select('settings,plan,completed,answers,flashcards').eq('user_id',rights.id).maybeSingle();
+ const r=await c.from('uentzoul_concurso_progress').select('settings,plan,completed,answers,flashcards,notes').eq('user_id',rights.id).maybeSingle();
  if(r.error){console.warn('Concursos: falha ao carregar dados',r.error);return;}
  const d=r.data||{};
  store={...defaultState(),...d};
  if(!Array.isArray(store.plan))store.plan=[];
- for(const k of ['settings','completed','answers','flashcards'])if(!store[k]||Array.isArray(store[k])||typeof store[k]!=='object')store[k]={};
+ for(const k of ['settings','completed','answers','flashcards','notes'])if(!store[k]||Array.isArray(store[k])||typeof store[k]!=='object')store[k]={};
 }
 async function save(){
  const c=client(),id=rights.id;if(!c||!id||!allowed())return;
  const r=await c.from('uentzoul_concurso_progress').upsert({
   user_id:id,settings:store.settings,plan:store.plan,completed:store.completed,
-  answers:store.answers,flashcards:store.flashcards,updated_at:new Date().toISOString()
+  answers:store.answers,flashcards:store.flashcards,notes:store.notes,updated_at:new Date().toISOString()
  },{onConflict:'user_id'});
  if(r.error){console.warn('Concursos: falha ao salvar',r.error);toast('Não foi possível salvar. Verifique a conexão.');}
 }
@@ -92,19 +95,28 @@ function syncChrome(){
   if(active&&b){b.classList.add('active');b.setAttribute('aria-current','true');}
  }
  if(active){
+  const nav=$('nav'),existing=$('navConcursoNotebook');
+  if(nav&&!existing){
+   const btn=document.createElement('button');btn.type='button';btn.className='sidebtn';
+   btn.id='navConcursoNotebook';btn.dataset.coNotebook='true';
+   btn.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><path d="M5 3h14v18H5zM9 3v18M12 8h4M12 12h4M12 16h4"/></svg><span class="nav-label">Caderno</span>';
+   (nav.querySelector('[data-page="exams"]')||nav.lastElementChild)?.after(btn);
+  }
   const label=$('semesterCurrentLabel');if(label&&label.textContent!=='Concursos')label.textContent='Concursos';
   if(!external)document.querySelectorAll('#nav [data-page]').forEach(n=>n.classList.toggle('active',n.dataset.page===(view==='simulados'?'exams':'home')));
+  $('navConcursoNotebook')?.classList.toggle('active',view==='caderno');
   const side=$('subjectNav');
   if(side&&!side.querySelector('[data-concurso-subject]')){
    for(const s of D.subjects){const b=document.createElement('button');b.type='button';b.className='sidebtn';b.dataset.concursoSubject=s.id;b.textContent=s.name;side.appendChild(b);}
   }
  }else{
   document.querySelectorAll('#subjectNav [data-concurso-subject]').forEach(n=>n.remove());
+  $('navConcursoNotebook')?.remove();
  }
 }
 function enter(restored=false){
  if(!allowed())return;
- if(!active){view='inicio';subject='todos';}
+ if(!active){view='inicio';subject='todos';if(restored)restoreView();}
  active=true;external=false;
  if(!restored){try{history.replaceState(history.state,'',location.pathname+location.search+'#concursos');}catch(e){}}
  render();syncChrome();window.pmMobileDrawer?.close?.();
@@ -208,6 +220,13 @@ function day(){
  '<div class="co-row">'+b('day-questions','Praticar questões','','co-btn co-btn-primary')+b('day-flashcards','Revisar flashcards')+b('complete-day',store.completed[d.date]?'✓ Concluído · desfazer':'✓ Concluir este dia')+'</div><p class="co-muted" style="margin-top:12px">Quando concluído, o cartão ficará verde no cronograma.</p>';
  renderHTML(html);
 }
+function notebook(){
+ const selector='<select class="co-select" data-co-filter="notes" aria-label="Matéria do caderno">'+D.subjects.map(s=>'<option value="'+s.id+'" '+(noteSubject===s.id?'selected':'')+'>'+esc(s.name)+'</option>').join('')+'</select>';
+ renderHTML(heading('Meu caderno','Anotações particulares de Concursos, separadas por matéria e salvas na conta.')+
+ '<section class="co-card"><div class="co-row co-between"><h2>Anotações</h2>'+selector+'</div>'+
+ '<textarea id="coNotebookText" rows="14" spellcheck="true" aria-label="Anotações do concurso" placeholder="Escreva aqui seu resumo, dúvidas e observações da matéria..." style="display:block;resize:vertical;width:100%;min-height:330px;background:var(--paper,#fff);color:inherit;border:1px solid var(--line,#d8d3e5);border-radius:12px;padding:16px;font:400 15px/1.65 system-ui;margin:16px 0">'+esc(store.notes[noteSubject]||'')+'</textarea>'+
+ '<p class="co-muted">As anotações são privadas. As alterações são salvas automaticamente.</p></section>');
+}
 function matters(){
  renderHTML(header()+tabs()+'<h2>Disciplinas e assuntos</h2><div class="co-grid">'+D.subjects.map(s=>
  '<button type="button" class="co-card co-day" data-co="matter" data-subject="'+s.id+'"><span class="co-kicker">'+s.examQuestions+' questões na prova</span><span class="co-day-number">'+esc(s.name)+'</span><span class="co-day-label">'+D.topics.filter(t=>t.subject===s.id).length+' grupos de estudo</span><span class="co-day-status">Abrir conteúdo</span></button>').join('')+'</div>');
@@ -308,7 +327,7 @@ async function toggleRole(id,yes){
 }
 function go(dest){
  if(!active||!allowed())return;
- external=false;view=dest;
+ external=false;view=dest;rememberView();
  if(dest==='admin'&&rights.admin)void adminLoad();
  render();
 }
@@ -324,6 +343,7 @@ function render(){
  else if(view==='question')question();
  else if(view==='result')result();
  else if(view==='flashcards')flashcards();
+ else if(view==='caderno')notebook();
  else if(view==='admin')admin();
  else home();
 }
@@ -343,6 +363,8 @@ document.addEventListener('click',e=>{
   e.preventDefault();e.stopImmediatePropagation();return;
  }
  if(!active)return;
+ const notebookButton=e.target.closest('#navConcursoNotebook,#navCadernoPreview');
+ if(notebookButton){e.preventDefault();e.stopImmediatePropagation();go('caderno');window.pmMobileDrawer?.close?.();return;}
  const sub=e.target.closest('[data-concurso-subject]');
  if(sub){e.preventDefault();e.stopImmediatePropagation();subject=sub.dataset.concursoSubject;go('materia');window.pmMobileDrawer?.close?.();return;}
  const nav=e.target.closest('#nav [data-page]');
@@ -353,7 +375,6 @@ document.addEventListener('click',e=>{
   if(nav.dataset.page==='ai'){external=true;return;}
   if(onlyContest()){e.preventDefault();e.stopImmediatePropagation();return;}
  }
- if(e.target.closest('#navCadernoPreview')){external=true;return;}
  const button=e.target.closest('[data-co]');if(!button)return;
  e.preventDefault();e.stopImmediatePropagation();
  const cmd=button.dataset.co;
@@ -385,7 +406,9 @@ document.addEventListener('change',e=>{
  if(t.matches('[data-concurso-priority]')){store.settings[t.dataset.concursoPriority]=t.value;scheduleSave();}
  if(t.matches('[data-co-filter="subject"]'))subject=t.value;
  if(t.matches('[data-co-filter="cards"]')){cardFilter=t.value;cardIndex=0;cardFlipped=false;flashcards();}
+ if(t.matches('[data-co-filter="notes"]')){noteSubject=t.value;rememberView();notebook();}
 });
+document.addEventListener('input',e=>{if(e.target?.id==='coNotebookText'&&active){store.notes[noteSubject]=e.target.value;scheduleSave();}});
 window.addEventListener('uentzoul:auth',()=>void refreshAccess(true));
 window.addEventListener('focus',()=>void refreshAccess(true));
 window.addEventListener('hashchange',()=>{if(location.hash==='#concursos'&&allowed()&&!active)enter(true);});
