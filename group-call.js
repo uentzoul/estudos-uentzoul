@@ -720,7 +720,23 @@ async function loadTurnServers(generation,refresh=false){
     if(peer.pc.signalingState==='closed')continue;
     try{peer.pc.setConfiguration(iceConfig());}
     catch(e){console.warn('Não foi possível atualizar ICE em um participante',e);}
-    if(['failed','disconnected'].includes(peer.pc.connectionState))requestPeerRecovery(peer);
+    // Credenciais TURN antigas expiram: se este peer realmente usa relay,
+    // renovar o caminho ICE sem encerrar a chamada ou recapturar câmera.
+    let usingRelay=false;
+    try{
+     const report=await peer.pc.getStats();
+     let selected=null;
+     report.forEach(stat=>{
+      if(stat.type==='transport'&&stat.selectedCandidatePairId)
+       selected=report.get(stat.selectedCandidatePairId)||selected;
+      if(!selected&&stat.type==='candidate-pair'&&stat.nominated&&stat.state==='succeeded')selected=stat;
+     });
+     const local=selected?.localCandidateId?report.get(selected.localCandidateId):null;
+     const remote=selected?.remoteCandidateId?report.get(selected.remoteCandidateId):null;
+     usingRelay=local?.candidateType==='relay'||remote?.candidateType==='relay';
+    }catch(_){}
+    if(usingRelay||['failed','disconnected'].includes(peer.pc.connectionState))
+     requestPeerRecovery(peer);
    }
   }
   scheduleTurnRefresh(generation,Math.max(60000,(ttl-600)*1000));
