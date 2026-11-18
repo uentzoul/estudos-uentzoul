@@ -14,14 +14,14 @@ function rig(invoke){
    state:()=>({rooms:[]}),person:()=>({display_name:'Participante'}),
    profile:()=>null,refresh:()=>{}
   }},
-  console, setTimeout, clearTimeout, setInterval, clearInterval,
+  console, setTimeout:()=>1, clearTimeout:()=>{}, setInterval:()=>1, clearInterval:()=>{},
   document:{},navigator:{},localStorage:{getItem:()=>null,setItem(){}}
  };
  const injected=source.replace('if(!init()){','window.__turnTests={S,iceConfig,hasTurn,loadTurnServers};if(false){');
  assert.notEqual(injected,source);
  vm.runInNewContext(injected,context,{filename:'group-call.js'});
  const api=context.window.__turnTests;
- api.S.stage='joining';api.S.generation=7;
+ api.S.stage='joining';api.S.generation=7;api.S.room={id:'abcdefab-1234-4567-8def-0123456789ab',kind:'group'};
  return api;
 }
 test('credenciais temporárias ficam disponíveis para RTCPeerConnection antes de entrar na call',async()=>{
