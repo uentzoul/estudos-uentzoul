@@ -2171,7 +2171,6 @@ html[data-theme="dark"] .tz-library-download{background:#26374c;border-color:#45
 <link id="pm-chat-stickers-css" rel="stylesheet" href="chat-stickers.css?v=20261114-stickers-v2">
 <link id="pm-chat-sticker-personal-css" rel="stylesheet" href="chat-sticker-personal.css?v=20261116-pacotes-pessoais-v1">
 <link rel="stylesheet" href="member-since.css?v=20261114-member-v1">
-<link id="pm-group-call-css" rel="stylesheet" href="group-call.css?v=20261118-turn-diagnostic-v14">
 </head>
 <body>
 <section id="staticFallback" class="static-fallback" aria-label="Central de Estudos — modo de leitura compatível com celular">
@@ -5610,21 +5609,6 @@ window.addEventListener('focus',()=>{if(onlineUser&&Date.now()-dm.lastFetch>4000
 window.addEventListener('online',()=>{if(onlineUser)dmLoad()});
 
 window.uentzoulMessenger={render:dmRender,afterRender:dmAfterRender,onLogin:dmOnLogin,onLogout:dmOnLogout,refresh:dmLoad};
-/* API controlada para o módulo de chamadas: variáveis do mensageiro vivem nesta closure. */
-window.uentzoulGroupCallBridge={
- client:()=>client,
- user:()=>onlineUser,
- state:()=>dm,
- group:id=>dmRoom(id),
- // O usuário da própria call não precisa constar na lista de contatos.
- // Usa diretamente o perfil autenticado, a mesma fonte da foto do site.
- profile:id=>{
-  if(id===onlineUser?.id&&remoteProfile)return remoteProfile;
-  return dmPerson(id)||rankData.find(p=>p.user_id===id)||null;
- },
- person:id=>dmPrettyPerson(id),
- refresh:()=>dmShow()
-};
 async function dmRespondExamInvite(id,decision){
  if(!client||!onlineUser)return;
  const invite=dm.invites.find(x=>x.id===id&&x.recipient_id===onlineUser.id&&x.status==='pending');
@@ -5930,7 +5914,7 @@ dmRender=function(){
  '<div class="dm-contacts" id="dmContacts">'+dmContactRows()+'</div></div>'+
  '<div class="dm-main"><header class="dm-chat-head"><button type="button" class="dm-back" data-dmw-back>‹ Voltar</button>'+
  (selected?'<button class="dm-chat-head-main" type="button" '+(peer?'data-dm-profile="'+esc(peer.user_id)+'"':group?'data-dmw-group':'')+'>'+heading+'</button>':'<span class="dm-chat-head-main">'+heading+'</span>')+
- (selected?'<div class="dm-chat-actions">'+(group&&room?.kind==='group'?'<button type="button" class="gc-open-btn" data-gc-open="'+esc(room.id)+'" title="Entrar na call" aria-label="Entrar na call">📹 <span>Entrar na call</span></button>':'')+(dm.tab==='private'&&peer?'<button type="button" class="gc-open-btn" data-gc-private="'+esc(peer.user_id)+'" title="Entrar na call privada" aria-label="Entrar na call privada">📹 <span>Entrar na call</span></button>':'')+(group?'<button type="button" class="dm-head-action" data-dmw-group title="Informações do grupo">ⓘ</button>':'')+
+ (selected?'<div class="dm-chat-actions">'+(group?'<button type="button" class="dm-head-action" data-dmw-group title="Informações do grupo">ⓘ</button>':'')+
  '<button type="button" class="dm-head-action" data-dmw-wallpaper title="Fundo da conversa">⋯</button></div>':'')+wallpapers+'</header>'+
  (dm.error?'<div class="dm-error" role="alert">'+esc(dm.error)+'</div>':'')+
  '<div class="dm-messages" id="dmMessages" data-wallpaper="'+esc(dmWWallpaper())+'">'+dmThreadHtml()+'</div>'+dmComposer()+
@@ -7494,7 +7478,6 @@ bridge.switchTo('guest-session',{answers:{},results:{},bookmarks:{},completed:{}
 if(window.__pmMaintChatLoaded||!window.uentzoulMessenger||typeof dm==='undefined')return;
 window.__pmMaintChatLoaded=true;
 const st=document.createElement('style');st.id='pm-maintenance-style';st.textContent="\n.dm-shell{min-width:0;box-sizing:border-box;overflow:hidden}\n.dm-shell .dm-list,.dm-shell .dm-main{min-width:0;min-height:0}\n.dm-shell .dm-list-head{display:flex;align-items:center;justify-content:space-between;gap:8px}\n.dm-shell .dm-list-actions{display:flex;align-items:center;gap:6px}\n.dm-shell .dm-soft-button,.dm-shell .dm-head-action{display:inline-flex;align-items:center;justify-content:center;min-height:35px;min-width:35px;gap:5px;padding:6px 10px;border:1px solid var(--line);border-radius:9px;background:var(--soft);color:var(--ink);font-size:12px;font-weight:700;cursor:pointer}\n.dm-shell .dm-contact{min-width:0;border-radius:11px}\n.dm-shell .dm-contact-open{min-width:0;width:100%}\n.dm-shell .dm-contact-text{min-width:0}\n.dm-shell .dm-contacts{min-height:0;overflow-y:auto;overscroll-behavior:contain}\n.dm-shell .dm-chat-head,.dm-shell .dm-chat-head-main{min-width:0}\n.dm-shell .dm-composer-wrap{position:relative}\n.dm-shell .dm-tools-menu{z-index:75}\n.dm-shell .dm-message-popup{z-index:85}\n.pm-maintenance-shortcut{font-size:12px!important;font-weight:780;gap:6px;white-space:nowrap;background:#eee8fb!important;color:#62489e!important;border:1px solid #d8cbea!important;padding:0 10px!important}\n.pm-maintenance-shortcut:hover{background:#e0d6f7!important;color:#51348b!important}\nhtml[data-theme=dark] .pm-maintenance-shortcut{background:#493a63!important;color:#eadcfc!important;border-color:#685783!important}\n@media(max-width:1000px){.pm-maintenance-shortcut span{display:none}}\n.pm-maintenance-contact{margin:3px 3px 10px!important;border:1px solid #d9cdef!important;background:#f6f2ff!important}\n.pm-maintenance-contact.selected{background:#eae2ff!important}\n.pm-maintenance-contact .dm-contact-open{gap:9px;padding:9px!important;align-items:center}\n.pm-maintenance-icon{display:grid;place-items:center;width:42px;height:42px;flex:0 0 42px;border-radius:12px;background:#e4dafa;color:#62489e;font-size:23px}\n.pm-maintenance-icon.small{width:36px;height:36px;flex-basis:36px;font-size:19px}\n.pm-maintenance-contact strong{color:#63499f}\n.pm-maintenance-lock{margin-left:auto;font-size:14px}\n.pm-maintenance-shell .dm-chat-head{display:flex;align-items:center;gap:9px}\n.pm-maintenance-heading{min-width:0;flex:1}\n.pm-maintenance-heading strong,.pm-maintenance-heading small{display:block;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}\n.pm-maintenance-private{font-size:10px;border-radius:99px;border:1px solid #d7c8eb;color:#644c9e;padding:5px 9px;background:#f4efff}\n.pm-maintenance-thread{display:flex;flex-direction:column;gap:7px}\n.pm-maintenance-thread .pm-maintenance-message .dm-message-bubble{max-width:min(80%,560px);overflow-wrap:anywhere}\n.pm-maintenance-delete{border:0;background:transparent;color:inherit;text-decoration:underline;font-size:10px;cursor:pointer;opacity:.75}\n.pm-maintenance-composer .dm-composer{display:flex;align-items:center;gap:8px}\n.pm-maintenance-composer .dm-composer textarea{box-sizing:border-box;min-width:0;flex:1;width:100%;min-height:45px;padding:11px;resize:vertical;font-size:14px}\n.pm-maintenance-composer .dm-send-button{flex:0 0 43px}\n.pm-maintenance-hint{display:block;color:var(--muted);font-size:10px;margin:6px 5px 0}\nhtml[data-theme=dark] .pm-maintenance-contact{background:#332b46!important;border-color:#66567e!important}\nhtml[data-theme=dark] .pm-maintenance-contact strong{color:#dccafa}\nhtml[data-theme=dark] .pm-maintenance-icon{background:#47345f;color:#eadbff}\nhtml[data-theme=dark] .pm-maintenance-private{background:#403050;border-color:#725d88;color:#e0ccfb}\n@media(max-width:760px){\n.dm-shell .dm-list-head{padding:12px!important}\n.dm-shell .dm-contacts{padding:4px 8px 12px!important}\n.dm-shell .dm-head-action{padding:6px 9px;min-height:33px;font-size:11px}\n.dm-shell .dm-composer-wrap .dm-composer{grid-template-columns:repeat(5,minmax(0,1fr))!important;grid-template-rows:auto 42px!important}\n.dm-shell .dm-composer-wrap .dm-composer textarea{grid-column:1/-1!important;grid-row:1!important}\n.dm-shell .dm-composer-wrap .dm-composer>[data-dmw-emoji]{grid-column:1!important;grid-row:2!important}\n.dm-shell .dm-composer-wrap .dm-composer>[data-dmv-share-open]{grid-column:2!important;grid-row:2!important}\n.dm-shell .dm-composer-wrap .dm-composer>[data-dmw-tools]{grid-column:3!important;grid-row:2!important}\n.dm-shell .dm-composer-wrap .dm-composer>[data-dmw-record]{grid-column:4!important;grid-row:2!important}\n.dm-shell .dm-composer-wrap .dm-composer>.dm-send-button{grid-column:5!important;grid-row:2!important}\n.dm-shell .dm-composer-wrap .dm-composer>.pm-sticker-trigger{grid-column:1!important;grid-row:2!important}\n.dm-shell .pm-maintenance-composer .dm-composer{display:grid!important;grid-template-columns:40px minmax(0,1fr) 43px!important;grid-template-rows:auto!important;gap:6px!important}\n.dm-shell .pm-maintenance-composer .dm-composer .pm-sticker-trigger{grid-column:1!important;grid-row:1!important;width:40px!important;min-width:0!important}\n.dm-shell .pm-maintenance-composer .dm-composer textarea{grid-column:2!important;grid-row:1!important;min-width:0!important}\n.dm-shell .pm-maintenance-composer .dm-composer .dm-send-button{grid-column:3!important;grid-row:1!important}\n.pm-maintenance-shell .pm-maintenance-private{font-size:9px;padding:4px 6px}\n.pm-maintenance-thread .pm-maintenance-message .dm-message-bubble{max-width:90%}\n}\n@media(max-width:360px){.pm-maintenance-private,.pm-group-label{display:none}}\n";document.head.appendChild(st);
-st.textContent += "\n.pm-maintenance-call-btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;flex:0 0 auto;min-height:35px;padding:7px 12px;border-radius:10px;border:1px solid #9983d3;background:#463b67;color:#fff;font-family:inherit;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap;transition:background .15s,border-color .15s}\n.pm-maintenance-call-btn:hover{background:#5c4b85;border-color:#b4a1e9}\n.pm-maintenance-call-btn:focus-visible{outline:2px solid #a184ec;outline-offset:2px}\n.pm-maintenance-call-btn svg{display:block;flex:none;width:17px;height:17px}\n@media(max-width:620px){.pm-maintenance-call-btn{padding:7px 9px;font-size:11px;gap:5px}.pm-maintenance-shell .dm-chat-head{gap:6px}.pm-maintenance-shell .pm-maintenance-heading{min-width:0}}\n@media(max-width:380px){.pm-maintenance-call-btn{padding:8px}.pm-maintenance-call-btn .pm-maintenance-call-label{font-size:0}.pm-maintenance-call-btn .pm-maintenance-call-label::after{content:'Call';font-size:11px}}\n";
 const memo={id:null,rows:[],draft:'',loading:false,loaded:false,saving:false,error:''};
 /* A permissão é consultada também de forma independente: a carga de conversas
    pode falhar antes de sincronizar dm.owner/dm.isAdmin. O banco mantém a RLS. */
@@ -7554,8 +7537,6 @@ function notesPage(){
  '<div class="dm-contacts" id="dmContacts">'+dmContactRows()+'</div></div><div class="dm-main">'+
  '<header class="dm-chat-head"><button type="button" class="dm-back" data-pm-maintenance-back>‹ Voltar</button>'+
  '<span class="pm-maintenance-icon small" aria-hidden="true">✎</span><span class="dm-chat-head-main pm-maintenance-heading"><strong>Chat de Manutenção</strong><small>Conversa pessoal de '+who+'</small></span>'+
- '<button type="button" class="pm-maintenance-call-btn" data-pm-maintenance-call title="Entrar na call de manutenção" aria-label="Entrar na call de manutenção">'+
- '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="5" width="15" height="14" rx="2"/><path d="m17 10 5-3v10l-5-3"/></svg><span class="pm-maintenance-call-label">Entrar na call</span></button>'+
  '<span class="pm-maintenance-private">Privado</span></header>'+
  '<div class="dm-messages pm-maintenance-thread" id="dmMessages">'+messages()+'</div>'+
  '<form id="pmMaintenanceForm" class="dm-composer-wrap pm-maintenance-composer"><div class="dm-composer">'+
@@ -7626,14 +7607,6 @@ async function erase(id){
  memo.rows=memo.rows.filter(x=>x.id!==id);dmShow();
 }
 document.addEventListener('click',function(e){
- const maintenanceCall=e.target.closest('[data-pm-maintenance-call]');
- if(maintenanceCall){
-  e.preventDefault();e.stopImmediatePropagation();
-  if(!active())return;
-  if(typeof window.uentzoulGroupCalls?.openMaintenance==='function')window.uentzoulGroupCalls.openMaintenance();
-  else toast('A chamada está indisponível. Recarregue o site e tente novamente.');
-  return;
- }
  const open=e.target.closest('[data-pm-maintenance-open]');
  if(open){
   e.preventDefault();e.stopImmediatePropagation();
@@ -8109,7 +8082,6 @@ document.addEventListener("click",e=>{if(!e.target.closest("[data-theme-toggle]"
 <script src="admin-config.js?v=20261115-device-log-v3"></script>
 <script id="pm-mobile-drawer-js" src="mobile-drawer.js?v=20261114-smooth-locked-v18" defer></script>
 <script id="pm-chat-mobile-js" src="chat-mobile-viewport.js?v=20261117-group-call-v5" defer></script>
-<script id="pm-group-call-js" src="group-call.js?v=20261118-cloudflare-turn-v20" defer></script>
 <!-- Extensão integrada ao núcleo de mensagens. -->
 <!-- Extensão integrada ao núcleo de mensagens. -->
 <!-- Extensão integrada ao núcleo de mensagens. -->
