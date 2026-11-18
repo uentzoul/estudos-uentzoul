@@ -102,3 +102,64 @@ html.pm-concurso-user #semesterDropdown [data-semester]{display:none!important}
 html.pm-concurso-user #nav [data-page]:not([data-page="home"]):not([data-page="exams"]):not([data-page="ai"]){display:none!important}
 html.pm-concurso-user #siteSidebar .nav-report-button{display:none!important}
 html.pm-concurso-mode #subjectNav [data-concurso-subject]{display:flex!important}
+
+
+/* Plano diário integrado: teoria, questões e flashcards na mesma página. */
+.concursos-shell .co-day-overview{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin:0 0 20px}
+.concursos-shell .co-day-overview>div{min-width:0;border:1px solid var(--line,#dedbea);border-radius:13px;padding:13px 15px;background:var(--paper,#fff);display:flex;flex-direction:column;gap:5px}
+.concursos-shell .co-day-overview span{font-size:11px;color:var(--muted,#737084);font-weight:650}
+.concursos-shell .co-day-overview strong{font-size:20px;line-height:1.3;font-weight:850;font-variant-numeric:tabular-nums}
+.concursos-shell .co-day-stage{border:1px solid var(--line,#dedbea);border-radius:18px;padding:clamp(15px,2.6vw,26px);background:var(--paper,#fff);margin-bottom:18px;min-width:0}
+.concursos-shell .co-day-stage-head{display:flex;gap:13px;align-items:flex-start;margin-bottom:21px}
+.concursos-shell .co-day-stage-number{display:grid;place-items:center;flex:0 0 38px;height:38px;border-radius:11px;background:color-mix(in srgb,#8471bd 17%,var(--paper,#fff));color:var(--ink,#29283d);font-size:13px;font-weight:850;font-variant-numeric:tabular-nums}
+.concursos-shell .co-day-stage-head h2{margin:1px 0 5px;font-size:clamp(18px,2.5vw,23px)}
+.concursos-shell .co-day-stage-head p{margin:0;color:var(--muted,#737084);font-size:12.5px;line-height:1.55}
+.concursos-shell .co-day-reading{margin:0 0 13px;padding:clamp(13px,2.1vw,19px);border-radius:14px}
+.concursos-shell .co-day-reading:last-child{margin-bottom:0}
+.concursos-shell .co-day-reading-head{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;margin-bottom:8px;color:var(--muted,#737084);font-size:10px;font-weight:800;letter-spacing:.025em}
+.concursos-shell .co-day-reading>h3{font-size:17px;margin:0 0 12px;line-height:1.35}
+.concursos-shell .co-day-reading .co-guide{margin:0;padding:clamp(12px,2.2vw,18px);font-size:13px;line-height:1.7}
+.concursos-shell .co-day-reading .co-guide h3{font-size:14px;margin:0 0 5px}
+.concursos-shell .co-day-reading .co-guide p{margin:0 0 9px}
+.concursos-shell .co-day-reading .co-guide section:last-child{margin-bottom:0!important}
+.concursos-shell .co-day-reading .co-step{margin:12px 0 0;background:var(--paper,#fff);color:var(--ink,#29283d)}
+.concursos-shell .co-day-progress-track{height:7px;background:color-mix(in srgb,var(--muted,#737084) 16%,var(--paper,#fff));border-radius:20px;overflow:hidden;margin:0 0 18px}
+.concursos-shell .co-day-progress-track>span{display:block;height:100%;border-radius:20px;background:#8b79c2;transition:width .2s ease}
+.concursos-shell .co-day-question-list,.concursos-shell .co-day-card-list{display:grid;gap:13px}
+.concursos-shell .co-day-question,.concursos-shell .co-day-flashcard{padding:clamp(14px,2vw,20px);border:1px solid var(--line,#dedbea);border-radius:14px;background:var(--paper,#fff);min-width:0}
+.concursos-shell .co-day-item-top{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:13px}
+.concursos-shell .co-day-counter{font-size:11px;font-weight:850;color:var(--ink,#29283d);font-variant-numeric:tabular-nums}
+.concursos-shell .co-day-tag{font-size:10px;font-weight:700;color:var(--muted,#737084)}
+.concursos-shell .co-day-question>h3{font-size:14px;line-height:1.65;margin:0}
+.concursos-shell .co-day-question .co-choices{margin:14px 0 0;gap:8px}
+.concursos-shell .co-day-question .co-choice{font-size:13px;line-height:1.55;padding:11px 12px}
+.concursos-shell .co-day-question .co-feedback{margin-top:12px;font-size:12.5px;line-height:1.6}
+.concursos-shell .co-day-explanations{list-style:none;margin:8px 0 0;padding:0}
+.concursos-shell .co-day-explanations li{padding:8px 0;border-top:1px solid var(--line,#dedbea)}
+.concursos-shell .co-day-explanations li:first-child{border-top:0}
+.concursos-shell .co-day-explanations p{margin:4px 0 0;line-height:1.55}
+.concursos-shell .co-day-hint{font-size:11px;margin:9px 0 0}
+.concursos-shell .co-day-flip{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;width:100%;min-height:150px;padding:20px;border:1px solid var(--line,#dedbea);border-radius:12px;background:var(--co-inset-bg,#f7f7fb);color:var(--ink,#29283d);text-align:center;font:inherit;cursor:pointer}
+.concursos-shell .co-day-flip small{font-size:10px;font-weight:850;letter-spacing:.1em;color:var(--muted,#737084)}
+.concursos-shell .co-day-flip strong{font-size:15px;line-height:1.55;max-width:550px}
+.concursos-shell .co-day-flip span{font-size:11px;color:var(--muted,#737084)}
+.concursos-shell .co-day-flip:hover{border-color:#8b79c2}
+.concursos-shell .co-day-flash-actions{display:flex;gap:9px;justify-content:center;flex-wrap:wrap;margin-top:12px}
+.concursos-shell .co-day-flash-actions .co-btn{min-width:135px}
+.concursos-shell .co-day-flash-actions .co-day-chosen{border-color:#8b79c2;background:color-mix(in srgb,#8978c1 17%,var(--paper,#fff));color:var(--ink,#29283d)}
+.concursos-shell .co-day-finish{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;padding:23px;margin-bottom:20px}
+.concursos-shell .co-day-finish h2{margin:0 0 6px}
+.concursos-shell .co-day-finish p{margin:0;max-width:620px}
+.concursos-shell .co-day-flip:focus-visible,.concursos-shell .co-day-question .co-choice:focus-visible,.concursos-shell .co-day-flash-actions .co-btn:focus-visible{outline:3px solid #8b79c2;outline-offset:2px}
+@media(max-width:760px){
+ .concursos-shell .co-day-overview{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .concursos-shell .co-day-overview strong{font-size:17px}
+ .concursos-shell .co-day-stage{padding:13px}
+ .concursos-shell .co-day-stage-head{gap:10px}
+ .concursos-shell .co-day-stage-number{flex-basis:34px;height:34px}
+ .concursos-shell .co-day-question,.concursos-shell .co-day-flashcard{padding:12px}
+ .concursos-shell .co-day-question .co-choice{font-size:12px}
+ .concursos-shell .co-day-flip{padding:15px;min-height:135px}
+ .concursos-shell .co-day-finish .co-btn{width:100%}
+}
+@media(prefers-reduced-motion:reduce){.concursos-shell .co-day-progress-track>span{transition:none}}
