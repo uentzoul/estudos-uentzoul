@@ -18,7 +18,7 @@ const escCall=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>
 const S={room:null,stage:'off',overlay:null,channel:null,key:'',peers:new Map(),presence:new Map(),
  mic:true,cam:false,hand:false,screen:false,audio:null,camera:null,display:null,stream:null,
  panel:'',pinned:null,chat:[],chatBusy:false,chatTimer:null,guard:null,pendingSignals:[],devicePanel:false,photoUrl:'',
- micDevice:'',camDevice:'',notice:'',noticeTimer:null,turnServers:[],turnStatus:'none',turnError:'',callStarted:0,generation:0,reconnectTimer:null,presenceTimer:null,connectionWatch:null,lastPresenceAt:0,lastPresenceSignature:'',lastPresenceChannel:null,minimized:false,screenBusy:false,screenMuteTimer:null,videoWatch:null,avatarProfiles:new Map(),avatarLoading:false,avatarRefreshAt:0,camBusy:false,micBusy:false,audioLevels:new Map(),audioNodes:new Map(),audioContext:null};
+ micDevice:'',camDevice:'',notice:'',noticeTimer:null,turnServers:[],turnStatus:'none',turnError:'',turnExpiresAt:0,turnRefreshTimer:null,callStarted:0,generation:0,reconnectTimer:null,presenceTimer:null,connectionWatch:null,lastPresenceAt:0,lastPresenceSignature:'',lastPresenceChannel:null,minimized:false,screenBusy:false,screenMuteTimer:null,videoWatch:null,avatarProfiles:new Map(),avatarLoading:false,avatarRefreshAt:0,camBusy:false,micBusy:false,audioLevels:new Map(),audioNodes:new Map(),audioContext:null};
 let videoReplaceQueue=Promise.resolve();
 const eligible=()=>!!bridge.client()&&!!bridge.user()?.id&&!bridge.user()?.is_anonymous;
 const group=id=>UUID.test(id||'')&&dm.rooms?.find(r=>r.id===id&&r.kind==='group')||null;
@@ -684,30 +684,61 @@ function iceConfig(){
  return {iceServers:[...defaults,...S.turnServers,...legacy],bundlePolicy:'max-bundle'};
 }
 function hasTurn(){return iceConfig().iceServers.some(validTurnServer);}
-async function loadTurnServers(generation){
- S.turnServers=[];S.turnStatus='none';S.turnError='';
+async function loadTurnServers(generation,refresh=false){
+ if(!refresh){S.turnServers=[];S.turnStatus='none';S.turnError='';S.turnExpiresAt=0;}
  const functions=bridge.client()?.functions;
- if(!functions||typeof functions.invoke!=='function')return;
- S.turnStatus='loading';
+ if(!functions||typeof functions.invoke!=='function')return false;
+ const room=S.room;
+ if(!room||isMaintenance(room))return false;
+ const roomPayload=isPrivate(room)?{kind:'private',peerId:room.peerId}:{kind:'group',id:room.id};
+ if(!refresh)S.turnStatus='loading';
  let timeout;
  try{
   const result=await Promise.race([
-   functions.invoke('call-ice',{body:{}}),
-   new Promise((_,reject)=>{timeout=setTimeout(()=>reject(Error('TURN timeout')),4000);})
+   functions.invoke('call-ice',{body:{room:roomPayload}}),
+   new Promise((_,reject)=>{timeout=setTimeout(()=>reject(Error('TURN timeout')),8500);})
   ]);
-  if(generation!==S.generation||S.stage!=='joining')return;
+  if(generation!==S.generation||!['joining','live'].includes(S.stage)||S.room!==room)return false;
   if(result?.error){
    S.turnStatus=result.error?.context?.status===503?'unconfigured':'unavailable';
-   S.turnError=String(result.error?.message||'Erro TURN').slice(0,100);return;
+   S.turnError=String(result.error?.message||'Erro TURN').slice(0,100);
+   if(refresh&&S.turnExpiresAt>Date.now()+90000)scheduleTurnRefresh(generation,60000);
+   return false;
   }
   const servers=(Array.isArray(result?.data?.iceServers)?result.data.iceServers:[])
    .filter(validTurnServer).slice(0,8);
-  if(servers.length){S.turnServers=servers;S.turnStatus='ready';}
-  else S.turnStatus='unavailable';
+  if(!servers.length){
+   S.turnStatus='unavailable';
+   if(refresh&&S.turnExpiresAt>Date.now()+90000)scheduleTurnRefresh(generation,60000);
+   return false;
+  }
+  S.turnServers=servers;S.turnStatus='ready';S.turnError='';
+  const ttl=Math.max(600,Math.min(86400,Number(result?.data?.expiresIn)||3600));
+  S.turnExpiresAt=Date.now()+ttl*1000;
+  if(refresh){
+   for(const peer of S.peers.values()){
+    if(peer.pc.signalingState==='closed')continue;
+    try{peer.pc.setConfiguration(iceConfig());}
+    catch(e){console.warn('Não foi possível atualizar ICE em um participante',e);}
+    if(['failed','disconnected'].includes(peer.pc.connectionState))requestPeerRecovery(peer);
+   }
+  }
+  scheduleTurnRefresh(generation,Math.max(60000,(ttl-600)*1000));
+  return true;
  }catch(e){
-  if(generation!==S.generation)return;
+  if(generation!==S.generation)return false;
   S.turnStatus='unavailable';S.turnError=String(e?.message||e).slice(0,100);
+  if(refresh&&S.turnExpiresAt>Date.now()+90000)scheduleTurnRefresh(generation,60000);
+  return false;
  }finally{clearTimeout(timeout);}
+}
+function scheduleTurnRefresh(generation,delay){
+ clearTimeout(S.turnRefreshTimer);
+ S.turnRefreshTimer=setTimeout(()=>{
+  S.turnRefreshTimer=null;
+  if(generation!==S.generation||S.stage!=='live')return;
+  void loadTurnServers(generation,true);
+ },delay);
 }
 function signal(to,body){
  if(!S.channel?.send||S.stage!=='live')return Promise.resolve();
@@ -1286,7 +1317,7 @@ async function leave(){
  clearInterval(S.guard);S.guard=null;
  clearTimeout(S.reconnectTimer);S.reconnectTimer=null;
  clearTimeout(S.presenceTimer);S.presenceTimer=null;
- S.lastPresenceAt=0;S.lastPresenceSignature='';S.lastPresenceChannel=null;S.turnServers=[];S.turnStatus='none';S.turnError='';
+ clearTimeout(S.turnRefreshTimer);S.turnRefreshTimer=null;S.lastPresenceAt=0;S.lastPresenceSignature='';S.lastPresenceChannel=null;S.turnServers=[];S.turnStatus='none';S.turnError='';S.turnExpiresAt=0;
  clearTimeout(S.noticeTimer);
  clearInterval(S.videoWatch);S.videoWatch=null;
  clearInterval(S.connectionWatch);S.connectionWatch=null;
