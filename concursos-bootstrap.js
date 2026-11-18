@@ -25,8 +25,16 @@
    const r=await client().rpc('uentzoul_concurso_access');
    if(r.error)throw r.error;
    if(active()?.id!==id||!r.data?.admin&&!r.data?.concurso)return;
-   await script('pm-concursos-data','concursos-dados.js?v=20261118-hcpa2');
-   await script('pm-concursos-app','concursos.js?v=20261118-hcpa2');
+   const material=await client().from('uentzoul_concurso_materials')
+    .select('payload').eq('material_key','hcpa-2026-assistente-administrativo-ii').single();
+   if(material.error)throw material.error;
+   if(active()?.id!==id)return;
+   const data=material.data?.payload;
+   if(!data||!Array.isArray(data.questions)||data.questions.length!==200){
+    throw Error('Material do concurso indisponível ou incompleto');
+   }
+   window.CONCURSO_DATA=data;
+   await script('pm-concursos-app','concursos.js?v=20261118-hcpa3');
    loaded=true;
   }catch(error){console.warn('Concursos: acesso ainda indisponível',error);}
   finally{loading=false;}
