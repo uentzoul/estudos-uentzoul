@@ -23,9 +23,9 @@ class Stream {
  removeTrack(t){this.tracks=this.tracks.filter(x=>x!==t);}
 }
 class PeerConnection {
- constructor(){this.signalingState='stable';this.connectionState='new';this.iceConnectionState='new';this.offerCount=0;this.rollbackCount=0;}
+ constructor(){this.signalingState='stable';this.connectionState='new';this.iceConnectionState='new';this.offerCount=0;this.rollbackCount=0;this.lastOfferOptions=null;}
  addTransceiver(){return {sender:{track:null,async replaceTrack(t){this.track=t;},getParameters(){return {encodings:[]};}}};}
- async createOffer(){return {type:'offer',sdp:'offer-'+(++this.offerCount)};}
+ async createOffer(options={}){this.lastOfferOptions=options;return {type:'offer',sdp:'offer-'+(++this.offerCount)};}
  async setLocalDescription(desc){
   if(desc.type==='rollback'){this.rollbackCount++;this.signalingState='stable';this.localDescription=null;}
   else{this.localDescription=desc;this.signalingState='have-local-offer';}
@@ -79,6 +79,7 @@ test('uma oferta perdida é refeita quando o navegador remoto fica pronto',async
  peer.lastOfferAt=Date.now()-7000;
  await methods.receiveSignal({from:remoteKey,to:S.key,ready:true});
  assert.equal(peer.pc.rollbackCount,1,'a oferta anterior é cancelada');
+ assert.equal(peer.pc.lastOfferOptions.iceRestart,true,'candidatos ICE também são renovados');
  assert.equal(sent.filter(x=>x.description?.type==='offer').length,2,'nova oferta é enviada');
  assert.equal(S.stage,'live','a recuperação não derruba a chamada');
 });
