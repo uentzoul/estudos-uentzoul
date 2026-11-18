@@ -974,3 +974,64 @@ test('Questões didáticas mais claras preservam estrutura e gabaritos',()=>{
  assert.ok(questions.every(question=>question.type==='essay'?Boolean(question.model):question.answer!==undefined),'questões objetivas mantêm gabaritos e dissertativas mantêm respostas-modelo');
  assert.ok(!questions.some(question=>/com precisão conceitual/i.test(question.prompt||'')),'enunciados antigos e desnecessariamente longos foram reescritos');
 });
+
+
+test('Cargo exclusivo de Concursos fica na modalidade após atualização, histórico e cliques de semestres',async()=>{
+ const bootstrap=read('concursos-bootstrap.js'),contest=read('concursos.js'),resume=read('navigation-resume.js'),css=read('concursos.css');
+ assert.match(resume,/if\(onlyContest\(\)\|\|isContestPage\(\)\)/,'restauração geral não pode sobrepor concursos');
+ assert.match(contest,/onlyContest\(\)\?null:history\.state/,'conta exclusiva limpa histórico acadêmico');
+ assert.match(contest,/if\(onlyContest\(\)\)\{e\.preventDefault\(\);e\.stopImmediatePropagation\(\);return;\}/,'IA não abre seção externa');
+ assert.match(css,/html\.pm-concurso-user #semesterDropdown\{display:none!important\}/,'seletor não exibe semestres');
+ assert.match(css,/html\.pm-concurso-user #nav \[data-page\]:not\(\[data-page="home"\]\):not\(\[data-page="exams"\]\)/);
+ const handlers={},classes=new Set();
+ class MockElement{
+  constructor(selector){this.selector=selector;}
+  closest(selector){return selector.includes(this.selector)?this:null;}
+ }
+ const location={pathname:'/estudos/',search:'',hash:'#semestre'};
+ const history={state:{screen:{page:'home'},semester:'2026/2'},replaceState(state,_,url){
+  this.state=state;location.hash=url.includes('#')?url.slice(url.indexOf('#')):'';
+ }};
+ const main={innerHTML:'<div>Semestres</div>',querySelector(selector){
+  if(selector==='.concursos-pending'&&this.innerHTML.includes('concursos-pending'))return {};
+  if(selector==='.concursos-shell'&&this.innerHTML.includes('concursos-shell'))return {};
+  return null;
+ }};
+ const label={textContent:'2º semestre'};
+ const semester={attributes:{},setAttribute(k,v){this.attributes[k]=v;},removeAttribute(k){delete this.attributes[k];},tabIndex:0};
+ const dropdown={hidden:false};
+ const nodes={main,semesterCurrentLabel:label,semesterCurrent:semester,semesterDropdown:dropdown};
+ const document={
+  documentElement:{classList:{
+   add(...keys){keys.forEach(k=>classes.add(k));},
+   remove(...keys){keys.forEach(k=>classes.delete(k));}
+  }},
+  getElementById:id=>nodes[id]||null,
+  createElement:tag=>({tagName:tag,remove(){},onload:null}),
+  head:{appendChild(node){node.onload?.();}},
+  readyState:'complete',hidden:false
+ };
+ const user={id:'concursista-1',is_anonymous:false};
+ const client={rpc:async()=>({data:{admin:false,concurso:true}}),from:()=>({
+  select:()=>({eq:()=>({single:async()=>({data:{payload:{questions:Array(200).fill({})}}})})})
+ })};
+ const window={uentzoulAIAuth:{user:()=>user,client:()=>client},addEventListener(name,fn){
+  (handlers[name]||=[]).push(fn);
+ }};
+ vm.runInNewContext(bootstrap,{window,document,history,location,Element:MockElement,setInterval(){},console,Date,Promise});
+ await new Promise(resolve=>setImmediate(resolve));
+ assert.equal(window.uentzoulContestAccess.isOnlyContest(),true);
+ assert.equal(location.hash,'#concursos');
+ assert.equal(history.state,null,'histórico de semestre descartado');
+ assert.equal(label.textContent,'Concursos');
+ assert.equal(dropdown.hidden,true);
+ assert.ok(classes.has('pm-concurso-user'));
+ let stopped=false;location.hash='#semestre';history.state={semester:'2026/1'};
+ handlers.popstate[0]({stopImmediatePropagation(){stopped=true;}});
+ assert.equal(stopped,true,'histórico anterior é barrado');
+ assert.equal(location.hash,'#concursos');
+ assert.equal(history.state,null);
+ let blocked=false;
+ handlers.click[0]({target:new MockElement('#semesterCurrent'),preventDefault(){blocked=true;},stopImmediatePropagation(){}});
+ assert.equal(blocked,true,'clique no seletor não abre semestres');
+});
