@@ -18,19 +18,17 @@ function allFiles(dir){
  });
 }
 
-test('Chat de Manutenção mantém chamada acessível no HTML publicado',()=>{
+test('Chat de Manutenção permanece disponível sem chamada de voz ou vídeo',()=>{
  const maintenance=read('chat-admin-maintenance.js').trim();
- const calls=read('group-call.js');
  const start='/* Fonte: chat-admin-maintenance.js */\n';
  const end='\n/* Fonte: chat-stickers.js */';
  const begin=html.indexOf(start),finish=html.indexOf(end,begin+start.length);
- assert.ok(begin>=0&&finish>begin,'o HTML embute o módulo de manutenção no escopo autenticado');
- assert.equal(html.slice(begin+start.length,finish).trim(),maintenance,'a cópia publicada não pode ficar desatualizada');
- assert.match(maintenance,/data-pm-maintenance-call/,'o cabeçalho exibe o botão');
- assert.match(maintenance,/uentzoulGroupCalls\.openMaintenance/,'o clique abre a chamada');
- assert.match(calls,/openMaintenance:previewMaintenance/,'o controlador expõe a chamada de manutenção');
- assert.match(calls,/if\(isMaintenance\(room\)\)\{/,'a chamada tem uma sessão de teste própria');
- assert.match(html,/<script[^>]+src="group-call\.js\?v=[^"]+"/,'o script de chamada está incluído na página');
+ assert.ok(begin>=0&&finish>begin,'o HTML continua incluindo o chat de manutenção');
+ assert.equal(html.slice(begin+start.length,finish).trim(),maintenance,'o módulo integrado continua sincronizado');
+ assert.doesNotMatch(maintenance,/data-pm-maintenance-call|uentzoulGroupCalls|Entrar na call/,'nenhuma entrada para chamadas no chat de manutenção');
+ assert.match(maintenance,/data-pm-maintenance-open/,'atalho de manutenção segue disponível');
+ assert.match(maintenance,/data-pm-maintenance-back/,'navegação do chat preservada');
+ assert.match(maintenance,/pmMaintenanceForm/,'envio de mensagens segue disponível');
 });
 
 test('Documento principal declara português brasileiro e viewport responsivo',()=>{
@@ -758,65 +756,24 @@ test('Recuperação de senha preserva login e troca de senha por e-mail',()=>{
  assert.match(authScript,/client\.auth\.signOut\(\)/,'Encerra sessão após troca de senha');
 });
 
-test('Calls de voz e vídeo aparecem em grupos e privadas, jamais no global',()=>{
- const bootstrap=read('chat-mobile-viewport.js');
- const call=read('group-call.js');
- const css=read('group-call.css');
- assert.match(html,/id="pm-group-call-js"[^>]*src="group-call\.js\?/,'script defer no HTML');
- assert.match(html,/id="pm-group-call-css"[^>]*href="group-call\.css\?/,'CSS no head');
- assert.doesNotThrow(()=>new vm.Script(call),'JavaScript de chamada válido');
- assert.ok(html.includes("group&&room?.kind==='group'"),'botão de grupos reais preservado');
- assert.ok(html.includes("dm.tab==='private'&&peer"),'chamadas privadas só aparecem ao selecionar um contato');
- assert.match(html,/data-gc-private/,'botão de call privada presente no HTML');
- assert.ok(!html.includes("dm.tab==='global'&&peer"),'chat global não recebe botão de chamada');
- assert.match(html,/data-gc-open/,'o botão é inserido diretamente no cabeçalho do grupo');
- assert.match(html,/uentzoulGroupCallBridge/,'mensageiro expõe ponte segura para chamadas');
- assert.ok(call.includes("const bridge=window.uentzoulGroupCallBridge"),'módulo usa a ponte do mensageiro');
- assert.match(call,/get is_anonymous/,'estado de autenticação é consultado pela ponte');
- assert.match(call,/data-gc-open/);
- assert.match(html,/Entrar na call/,'rótulo visível no cabeçalho dos grupos');
- assert.match(call,/getUserMedia/);
- assert.match(call,/getDisplayMedia/);
- assert.match(call,/RTCPeerConnection/);
- assert.match(call,/private:true/,'sinalização exige canal privado');
- assert.match(call,/uentzoul-call:/,'canal separado por grupo');
- assert.match(call,/uentzoul-dm-call:/,'canal próprio de chamada privada');
- assert.match(call,/room\.selfId,room\.peerId\]\.sort\(\)/,'mesma sala para ambas as contas');
- assert.match(call,/data-gc-private/,'botão privado atendido pelo módulo');
- assert.match(call,/uentzoul_messages/,'painel da chamada usa mensagens diretas');
- assert.match(call,/isPrivate\(room\)\?2:6/,'call privada limitada a dois dispositivos');
- assert.match(call,/openPrivate:/,'API para chamada privada');
- assert.match(call,/presence/);
- assert.match(call,/case 'leave'/);
- assert.match(css,/max-width:620px/,'layout móvel adaptado');
+test('Chamadas ficam desativadas em grupos e conversas privadas, sem afetar mensagens',()=>{
+ assert.doesNotMatch(html,/<script[^>]+(?:group-call\\.js|id="pm-group-call-js")/,'controlador de chamadas não pode ser carregado');
+ assert.doesNotMatch(html,/<link[^>]+(?:group-call\\.css|id="pm-group-call-css")/,'estilos exclusivos da call não podem ser carregados');
+ assert.doesNotMatch(html,/data-gc-open|data-gc-private|data-pm-maintenance-call/,'nenhum botão de call para grupo, privado ou manutenção');
+ assert.doesNotMatch(html,/uentzoulGroupCallBridge|uentzoulGroupCalls/,'API de chamadas não pode ficar acessível no HTML');
+ assert.doesNotMatch(html,/Entrar na call|Entrar na call privada/,'mensagens sem convites para call');
+ assert.match(html,/data-dmw-group/,'informações dos grupos preservadas');
+ assert.match(html,/data-dm-profile/,'perfil das conversas privadas preservado');
+ assert.match(html,/dmThreadHtml\\(\\)/,'visualização do histórico de mensagens preservada');
+ assert.match(html,/dmComposer\\(\\)/,'compositor de mensagens preservado');
 });
 
-test('Call minimizada mantém a sessão e permite navegar pelo restante do site',()=>{
- const call=read('group-call.js');
- const css=read('group-call.css');
- assert.doesNotThrow(()=>new vm.Script(call),'Javascript da call continua válido');
- assert.ok(call.includes('minimized:false'),'estado inicial mantém a sala completa');
- assert.ok(call.includes("data-gc-action=\"minimize\""),'controle visível para minimizar');
- assert.ok(call.includes("btn('restore'"),'janela pequena possui botão para restaurar');
- for(const control of ["btn('mic'","btn('cam'","btn('leave'"])
-  assert.ok(call.includes(control),'controle essencial ausente '+control);
- assert.match(call,/case 'minimize':setMinimized\(true\)/,'miniatura acionável');
- assert.match(call,/case 'restore':setMinimized\(false\)/,'restauração acionável');
- assert.ok(call.includes("classList.toggle('is-mini',mini)"),'miniatura troca de layout sem recriar a chamada');
- assert.ok(call.includes('document.body.appendChild(S.overlay)'),'janela fica fora do conteúdo principal que sofre navegação');
- assert.ok(call.includes("const showSelf=main!==S.key&&S.cam&&!!S.camera"),'câmera própria em miniatura');
- assert.ok(css.includes('.gc-backdrop.is-mini'),'estilo da janela flutuante');
- assert.ok(css.includes('pointer-events:none'),'miniatura libera cliques no restante do site');
- assert.ok(css.includes('pointer-events:auto'),'somente a janela captura seus controles');
- assert.ok(!html.includes('location.reload();'),'nenhum recarregamento automático do site pode derrubar a call');
- assert.match(html,/id="pm-group-call-js"[^>]*src="group-call\.js\?[^"]+"/,'script de call versionado');
- assert.match(html,/id="pm-group-call-css"[^>]*href="group-call\.css\?[^"]+"/,'CSS de call versionado');
- const start=call.indexOf('function setMinimized(value)');
- const end=call.indexOf('function preview(room)',start);
- const handler=call.slice(start,end);
- assert.ok(!handler.includes('S.peers.clear()')&&!handler.includes('track.stop()')&&!handler.includes('removeChannel('),'minimizar não deve interromper os canais de mídia');
+test('A desativação de calls mantém navegação e chats, sem scripts WebRTC no HTML',()=>{
+ assert.doesNotMatch(html,/group-call\\.js\\?v=|group-call\\.css\\?v=/,'nenhum carregamento de módulo antigo');
+ assert.doesNotMatch(html,/data-gc-action|data-gc-open|data-gc-private/,'interface sem controles de chamada');
+ assert.match(html,/window\\.uentzoulMessenger=\\{render:dmRender/,'sistema normal de mensagens segue disponível');
+ assert.match(html,/chat-mobile-viewport\\.js/,'layout móvel do chat permanece ativo');
 });
-
 
 test('Auditoria de atualização protege estudo, modais e leitura do primeiro semestre',()=>{
  const version=read('site-version.js');
@@ -850,98 +807,11 @@ test('Auditoria de atualização protege estudo, modais e leitura do primeiro se
 
 // Regressão: mudanças rápidas de mídia não podem terminar a chamada.
 // Cada participante tem um elemento de áudio separado e controle local próprio.
-test('Call reduzida e áudio individual preservam a sessão, inclusive com câmera alternada',async()=>{
- const source=read('group-call.js');
- const css=read('group-call.css');
- assert.doesNotMatch(source,/\(live\?btn\('hand'/,'sem botão levantar mão');
- assert.doesNotMatch(source,/\(live\?btn\('chat'/,'sem botão de mensagens');
- assert.match(source,/btn\('settings','Áudio e vídeo','chevron-up'/);
- assert.match(source,/data-gc-volume/);
- assert.match(source,/data-gc-peer-audio/);
- assert.match(source,/audioStream:new MediaStream\(\)/);
- assert.match(source,/gc-is-self/);
- assert.match(css,/\.gc-member-volume/);
- assert.match(css,/\.gc-volume-open/);
- assert.match(css,/\.gc-tile\.gc-is-self:not\(\.gc-is-presenting\)/,'espelhamento somente do próprio vídeo');
- assert.doesNotMatch(source,/void leave\(\)\.then\(\(\)=>\{if\(typeof toast/,'não derruba call ao tentar reconectar');
- const token='if(!init()){';
- assert.equal(source.split(token).length-1,1,'ponto de inicialização único');
- const instrumented=source.replace(token,'window.__qa={S,toggleCam,setPeerVolume,togglePeerMute};if(false){');
- class Track{
-  constructor(id,kind){this.id=id;this.kind=kind;this.readyState='live';this.enabled=true;}
-  stop(){this.readyState='ended'}
- }
- class MediaStream{
-  constructor(tracks=[]){this.tracks=[...tracks]}
-  getTracks(){return [...this.tracks]}
-  getVideoTracks(){return this.tracks.filter(x=>x.kind==='video')}
-  getAudioTracks(){return this.tracks.filter(x=>x.kind==='audio')}
-  addTrack(track){this.tracks.push(track)}
-  removeTrack(track){this.tracks=this.tracks.filter(x=>x!==track)}
- }
- class AudioContext{
-  constructor(){this.state='running';this.destination={}}
-  createMediaElementSource(){return {connect(){},disconnect(){}}}
-  createGain(){return {gain:{value:1},connect(){},disconnect(){}}}
-  close(){return Promise.resolve()}
-  resume(){return Promise.resolve()}
- }
- const me='12345678-1234-1234-1234-123456789abc';
- const p1='87654321-4321-4321-4321-cba987654321';
- const p2='11111111-2222-3333-4444-555555555555';
- let acquired=0;
- const ctx={window:{uentzoulGroupCallBridge:{
-  client:()=>null,user:()=>({id:me,is_anonymous:false}),state:()=>({rooms:[]}),
-  person:()=>({display_name:'Estudante'}),profile:()=>null,refresh:()=>{}
- },AudioContext},navigator:{mediaDevices:{getUserMedia:async()=>new MediaStream([new Track('cam-'+(++acquired),'video')])}},
-  document:{},MediaStream,localStorage:{getItem:()=>null,setItem(){}},
-  setTimeout:()=>0,clearTimeout(){},setInterval:()=>0,clearInterval(){},console
- };
- vm.runInNewContext(instrumented,ctx,{filename:'group-call.js'});
- const {S,toggleCam,setPeerVolume,togglePeerMute}=ctx.window.__qa;
- S.stage='live';S.generation=1;S.room={id:'room'};S.key='self';S.stream=new MediaStream();S.presence.set('self',{userId:me});
- await toggleCam();
- assert.equal(S.stage,'live','ao ligar a câmera a chamada continua');
- assert.equal(S.camera.readyState,'live');
- await toggleCam();
- assert.equal(S.stage,'live','ao desligar a câmera a chamada continua');
- assert.equal(S.camera,null);
- assert.equal(S.stream.getVideoTracks().length,0);
- ctx.navigator.mediaDevices.getUserMedia=async()=>{throw Error('Permissão negada')};
- await toggleCam();
- assert.equal(S.stage,'live','permissão negada não pode finalizar a chamada');
- assert.equal(S.cam,false,'estado da câmera permanece desligado após erro');
- let completeCapture,pendingCount=0;
- ctx.navigator.mediaDevices.getUserMedia=()=>{
-  pendingCount++;
-  return new Promise(resolve=>{completeCapture=()=>resolve(new MediaStream([new Track('camera-rapid','video')]))});
- };
- const first=toggleCam(),second=toggleCam();
- assert.equal(pendingCount,1,'cliques simultâneos não solicitam duas câmeras');
- completeCapture();
- await Promise.all([first,second]);
- assert.equal(S.stage,'live','cliques rápidos não finalizam a chamada');
- assert.equal(S.cam,true);
- await toggleCam();
- const audioA={volume:1,muted:false},audioB={volume:1,muted:false};
- const tiles=[
-  {dataset:{key:'a'},querySelector:()=>audioA},
-  {dataset:{key:'b'},querySelector:()=>audioB}
- ];
- S.overlay={querySelectorAll(q){return q==='.gc-tile'?tiles:[]},querySelector(){return null}};
- S.peers.set('a',{});S.peers.set('b',{});
- S.presence.set('a',{userId:p1});S.presence.set('b',{userId:p2});
- setPeerVolume(p1,50);
- assert.equal(audioA.volume,.5);
- assert.equal(audioB.volume,1,'outro participante não é alterado');
- setPeerVolume(p1,150);
- assert.equal(S.audioNodes.get('a').gain.gain.value,1.5,'amplificação até 200%');
- togglePeerMute(p1);
- assert.equal(S.audioNodes.get('a').gain.gain.value,0,'mudo individual');
- assert.equal(audioB.muted,false,'outro participante não foi silenciado');
- assert.equal(S.stage,'live','nenhum desses controles encerra a call');
+test('Nenhuma função WebRTC é inicializada pela página de mensagens',()=>{
+ assert.doesNotMatch(html,/new RTCPeerConnection|navigator\\.mediaDevices\\.getDisplayMedia/,'código de chamada não está embutido');
+ assert.doesNotMatch(html,/uentzoulGroupCallBridge|uentzoulGroupCalls/,'módulo de call não está habilitado');
+ assert.match(html,/uentzoulMessenger/,'mensageiro continua funcionando');
 });
-
 
 test('Trilhas têm flashcards com animação e podcast integrado sem trocar marcadores',()=>{
  const trail=read('trilha-integrada.js');
