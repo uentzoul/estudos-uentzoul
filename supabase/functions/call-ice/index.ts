@@ -34,7 +34,7 @@ const cors={
   'Access-Control-Allow-Headers':'authorization, x-client-info, apikey, content-type, x-retry-count, traceparent, tracestate, baggage',
   'Access-Control-Allow-Methods':'POST, OPTIONS'
 };
-const json=(data,status=200)=>new Response(JSON.stringify(data),{
+const json=(data:unknown,status=200)=>new Response(JSON.stringify(data),{
  status,headers:{...cors,'Content-Type':'application/json','Cache-Control':'no-store'}
 });
 Deno.serve(async(req:Request)=>{
