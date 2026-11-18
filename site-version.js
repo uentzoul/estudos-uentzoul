@@ -482,9 +482,9 @@ setTimeout(check,15000);
  function load(){
   if(document.getElementById('pm-concursos-loader'))return;
   const css=document.createElement('link');css.id='pm-concursos-style';css.rel='stylesheet';
-  css.href='concursos.css?v=20261118-hcpa2';document.head.appendChild(css);
+  css.href='concursos.css?v=20261118-hcpa5';document.head.appendChild(css);
   const js=document.createElement('script');js.id='pm-concursos-loader';
-  js.src='concursos-bootstrap.js?v=20261118-hcpa4';
+  js.src='concursos-bootstrap.js?v=20261118-hcpa5';
   document.head.appendChild(js);
  }
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',load,{once:true});else load();
