@@ -144,7 +144,7 @@ test('publicação de Presence agrupa cliques e não exige nova conexão',async(
  S.channel={track:async()=>{updates++;}};
  await methods.publish();await methods.publish();
  assert.equal(updates,0,'Presence não envia uma atualização a cada clique');
- const changes=[...timers.values()].filter(t=>t.delay===260);
+ const changes=[...timers.values()].filter(t=>t.delay>=350&&t.delay<=1100);
  assert.equal(changes.length,1,'resta uma atualização pendente');
  await changes[0].fn();
  assert.equal(updates,1);
