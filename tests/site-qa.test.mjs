@@ -1007,6 +1007,7 @@ test('Cargo exclusivo de Concursos fica na modalidade após atualização, hist�
    remove(...keys){keys.forEach(k=>classes.delete(k));}
   }},
   getElementById:id=>nodes[id]||null,
+  querySelectorAll:()=>[],
   createElement:tag=>({tagName:tag,remove(){},onload:null}),
   head:{appendChild(node){node.onload?.();}},
   readyState:'complete',hidden:false
