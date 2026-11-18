@@ -57,3 +57,29 @@ test('TURN sem senha é rejeitado',async()=>{
  assert.equal(api.hasTurn(),false);
  assert.equal(api.S.turnStatus,'unavailable');
 });
+
+test('emite credenciais apenas para a sala atual e atualiza configuração nas chamadas longas',async()=>{
+ const seen=[];let requestCount=0;
+ const api=rig(async (name,options)=>{
+  seen.push({name,room:options?.body?.room});
+  requestCount++;
+  return {data:{iceServers:[{urls:'turns:turn.cloudflare.com:443?transport=tcp',
+   username:'short-lived-'+requestCount,credential:'temporary'}],expiresIn:3600}};
+ });
+ assert.equal(await api.loadTurnServers(7),true);
+ assert.equal(seen[0].name,'call-ice');
+ assert.equal(seen[0].room.kind,'group');
+ assert.equal(seen[0].room.id,'abcdefab-1234-4567-8def-0123456789ab');
+ assert.ok(api.S.turnExpiresAt>Date.now()+3500000);
+ const configs=[];
+ api.S.stage='live';
+ api.S.peers.set('participant',{pc:{
+  signalingState:'stable',connectionState:'connected',
+  setConfiguration:config=>configs.push(config),getStats:async()=>new Map()
+ }});
+ assert.equal(await api.loadTurnServers(7,true),true);
+ assert.equal(seen.length,2);
+ assert.equal(configs.length,1);
+ assert.equal(configs[0].iceServers.find(x=>x.username==='short-lived-2').credential,'temporary');
+ assert.equal(api.S.turnStatus,'ready');
+});
