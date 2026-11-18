@@ -8,7 +8,7 @@ function makeQuestion(topic,i){
  const scenario=String(topic.scenario||'Analise como o conceito se aplica a uma situação real, respeitando o contexto.').trim();
  const idea=String(topic.definition||'').trim();
  const myth=String(topic.myth||'').trim();
- return {n:i+1,topic:topic.title,section:'Revisão final por conceito',
+ return {n:i+1,topic:topic.title,section:'Revisão por assunto',
  question:'Explique '+topic.title+'.\n\nSituação: '+scenario+'\n\nComo esse conceito ajuda a entender o caso? O que ainda seria preciso saber antes de concluir?',
  options:[],answer:null,
  explanation:'Definição: '+idea+'\n\nSituação para análise: '+scenario+'\n\nUse os fatos do caso para explicar o conceito. Pense também em outras explicações possíveis. Um exemplo sozinho não permite concluir um diagnóstico ou uma causa.',
