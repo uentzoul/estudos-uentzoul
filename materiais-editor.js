@@ -25,9 +25,37 @@ const user=()=>auth()?.user?.();
 const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const key=m=>String(m._libraryKey||(m.subject+'::'+m.title));
 const placementKey=(s,k,sem=currentSemester())=>sem+'|'+s+'|'+k;
+// Os documentos administrativos usam sempre os mesmos títulos, mesmo quando
+// o PDF original ou um nome salvo no editor contém a turma ou a disciplina.
+function standardPlanName(value){
+ const name=String(value||'').toLocaleLowerCase('pt-BR').normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+ if(/\bcronogramas?\b/.test(name))return 'Cronograma';
+ if(/\bplanos?\s+de\s+ensino\b/.test(name))return 'Plano de ensino';
+ return '';
+}
 function titleFor(m){
  const row=placements.get(placementKey(m.subject,key(m)));
- return typeof row?.display_title==='string'&&row.display_title.trim()?row.display_title:m.title;
+ const label=typeof row?.display_title==='string'&&row.display_title.trim()?row.display_title:m.title;
+ return standardPlanName(label)||standardPlanName(m.title)||label;
+}
+// Nunca apagar uma versão antiga automaticamente: apenas mostrar a mais recente
+// quando houver mais de um plano ou cronograma disponível na mesma disciplina.
+function materialDate(m){
+ const values=[m.updated_at,m.updatedAt,m.uploaded_at,m.uploadedAt,m.modified_at,m.modifiedAt,m.created_at,m.createdAt];
+ for(const value of values){const time=Date.parse(value||'');if(Number.isFinite(time))return time;}
+ return -Infinity;
+}
+function latestAdministrativeDocuments(items){
+ const winners=new Map();
+ items.forEach((item,index)=>{
+  const type=standardPlanName(titleFor(item.material))||standardPlanName(item.material.title);
+  if(!type){winners.set('other:'+item.key,{item,index});return;}
+  const previous=winners.get(type),date=materialDate(item.material);
+  if(!previous||date>previous.date||(date===previous.date&&item.order>previous.item.order))
+   winners.set(type,{item,date,index});
+ });
+ const keep=new Set([...winners.values()].map(x=>x.item.key));
+ return items.filter(x=>keep.has(x.key));
 }
 const allowed=()=>!!user()?.id&&window.uentzoulAdminConfig?.isAdmin?.()===true;
 function category(m,classify){
@@ -74,7 +102,7 @@ function renderGroups(materials,opts){
  const options=selected=>CATEGORIES.map(c=>'<option value="'+c.id+'"'+(c.id===selected?' selected':'')+'>'+esc(c.title)+'</option>').join('');
  const pick=x=>'<label class="pm-edit-pick"><input type="checkbox" data-pm-select="'+esc(x.key)+'"'+(active.selected.has(x.key)?' checked':'')+' aria-label="Selecionar o material '+esc(x.material.title)+'"></label>';
  const sections=show.map(cat=>{
-  const list=groups[cat.id];
+  const list=!isEditing&&cat.id==='plans'?latestAdministrativeDocuments(groups[cat.id]):groups[cat.id];
   const cards=isEditing?list.map((x,i)=>
    '<div class="pm-edit-row" draggable="true" data-pm-file="'+esc(x.key)+'">'+
     pick(x)+
