@@ -82,7 +82,7 @@ grupos:[
  {title:'Analisar Escritores da Liberdade',goal:'Relacione a dinâmica grupal a vínculos, diferenças e transformação.',steps:[
  ['material','escritores da liberdade','Consulte o material de estudo do filme.'],
  ['audio',6,'Ouça uma síntese comparativa de Moreno e Rogers.'],
- ['guided',0,'Responda às perguntas dirigidas para articular teoria e filme.'],
+ ['guided',0,'Responda às perguntas dirigidas para relacionar teoria e filme.'],
  ['topics',0,'Revise os conceitos que aparecem na análise do grupo.']]},
  {title:'Treinar as aproximações e diferenças',goal:'Conclua passando do conceito à leitura crítica de situações.',steps:[
  ['exam',1,'Faça a primeira prova de verificação.'],
@@ -106,7 +106,7 @@ social:[
  ['audio',5,'Ouça a discussão sobre epistemicídio e neutralidade científica.'],
  ['material','infância e políticas públicas','Leia o material sobre infância e políticas públicas.'],
  ['audio',4,'Ouça a discussão crítica sobre infância, proteção e vigilância.']]},
- {title:'Fechar com articulação e prova',goal:'Transforme a leitura dos textos em respostas justificadas.',steps:[
+ {title:'Fechar com relação e prova',goal:'Transforme a leitura dos textos em respostas justificadas.',steps:[
  ['guided',0,'Responda às perguntas do estudo dirigido.'],
  ['flash',0,'Recupere autores, conceitos e exemplos.'],
  ['exam',1,'Faça o simulado inicial.'],
