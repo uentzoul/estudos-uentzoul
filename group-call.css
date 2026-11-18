@@ -333,3 +333,9 @@
  .gc-tool.gc-tool-devices{min-width:67px}
 }
 .gc-backdrop.is-mini .gc-volume-open{display:none!important}
+
+
+.gc-network-diagnostic{display:flex;flex-direction:column;align-items:flex-start;gap:9px;border-top:1px solid #ffffff20;padding-top:14px;margin-top:3px}
+.gc-network-diagnostic small{font-size:11px;color:#c5c8d6;line-height:1.4}
+.gc-network-diagnostic button{appearance:none;border:1px solid #797b9b;border-radius:10px;background:#3a3c55;color:#fff;padding:9px 12px;font-size:12px;font-weight:650;cursor:pointer;max-width:100%;text-align:center}
+.gc-network-diagnostic button:hover,.gc-network-diagnostic button:focus-visible{background:#4e5072;outline-offset:2px}
