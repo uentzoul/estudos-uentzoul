@@ -1,0 +1,245 @@
+/* Materiais e textos — apresentação editorial, sem alterar acervo, agrupamento ou ações.
+   Escopo: disciplina, acervo geral e organização semanal dos semestres. */
+:root{
+  --mt-row:#ffffff;
+  --mt-line:#e9e7ee;
+  --mt-hover:#faf9fd;
+  --mt-title:#282b3a;
+  --mt-sub:#74798b;
+  --mt-icon-bg:#f2f1f7;
+  --mt-icon-fg:#615c76;
+}
+html[data-theme="dark"]{
+  --mt-row:#23283a;
+  --mt-line:#394158;
+  --mt-hover:#2b3247;
+  --mt-title:#f1eff9;
+  --mt-sub:#bac1d2;
+  --mt-icon-bg:#343b52;
+  --mt-icon-fg:#d2c9ee;
+}
+/* Estrutura: os agrupamentos continuam separados como antes, sem caixas duplicadas. */
+.subject-hub-area #docs,
+.library-page .course-detail-resources,
+.s1-library-organized{min-width:0}
+.subject-hub-area #docs .sectiontop{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:18px}
+.subject-hub-area #docs .sectiontop h2{font-size:clamp(18px,2vw,22px);font-weight:800;letter-spacing:-.45px}
+.subject-hub-area #docs .library-group{padding:0!important;margin:0!important;background:transparent!important;border:0!important;box-shadow:none!important}
+.subject-hub-area #docs .material-block,
+.library-page .course-detail-resources .material-block,
+.s1-library-organized .material-block{margin:0 0 25px!important;min-width:0}
+.subject-hub-area #docs .material-block+.material-block,
+.library-page .course-detail-resources .material-block+.material-block,
+.s1-library-organized .material-block+.material-block{border-top:1px solid var(--mt-line);padding-top:20px}
+.subject-hub-area #docs .material-block h3,
+.library-page .course-detail-resources .material-block h3,
+.s1-library-organized .material-block h3{
+  display:flex!important;align-items:center;justify-content:space-between;
+  min-width:0;gap:10px;margin:0 0 13px!important;padding:0 2px!important;
+  font-size:12px;font-weight:790;line-height:1.45;letter-spacing:0;
+  color:var(--mt-title);
+}
+.subject-hub-area #docs .material-block h3 span,
+.library-page .course-detail-resources .material-block h3 span,
+.s1-library-organized .material-block h3 span{
+  flex:none;white-space:nowrap;border:1px solid var(--mt-line);border-radius:999px;
+  background:var(--mt-row);color:var(--mt-sub);padding:4px 9px;
+  font-size:10px;font-weight:700;letter-spacing:0;
+}
+/* Lista contínua de documentos: menos espaços mortos, ritmo regular e largura segura. */
+.subject-hub-area #docs .doclist,
+.library-page .course-detail-resources .doclist,
+.s1-library-organized .doclist,
+.library-page .material-block .doclist{
+  display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;
+  align-items:stretch;gap:10px!important;min-width:0;
+}
+/* Cartões de Materiais e textos (disciplinas). */
+.subject-hub-area #docs .doclist .doc-compact,
+.s1-library-organized .doclist .doc-compact{
+  box-sizing:border-box;display:flex;position:relative;isolation:isolate;
+  width:100%;min-width:0;min-height:88px;height:100%;align-items:stretch;
+  margin:0;padding:0!important;border:1px solid var(--mt-line)!important;
+  border-radius:13px!important;background:var(--mt-row)!important;
+  box-shadow:none!important;overflow:hidden;
+  transition:background-color .18s,border-color .18s,box-shadow .18s;
+}
+.subject-hub-area #docs .doclist .doc-compact.is-available:hover,
+.s1-library-organized .doclist .doc-compact.is-available:hover,
+.subject-hub-area #docs .doclist .doc-compact:focus-within,
+.s1-library-organized .doclist .doc-compact:focus-within{
+  background:var(--mt-hover)!important;border-color:#bab1d8!important;
+  transform:none!important;box-shadow:0 4px 13px #2924480b!important;
+}
+.subject-hub-area #docs .doclist .doc-compact .doc-full-link,
+.s1-library-organized .doclist .doc-compact .doc-full-link{
+  min-width:0;flex:1;align-items:center;gap:12px;padding:14px 10px 14px 14px;
+  color:var(--mt-title);text-decoration:none;overflow:hidden;
+}
+.subject-hub-area #docs .doclist .doc-compact .docicon,
+.s1-library-organized .doclist .doc-compact .docicon{
+  width:38px;height:43px;min-width:38px;flex:0 0 38px;
+  display:grid;place-items:center;margin:0;border-radius:10px;
+  background:var(--mt-icon-bg);color:var(--mt-icon-fg);
+  font-size:10px;font-weight:840;letter-spacing:.1px;box-shadow:none;
+}
+.subject-hub-area #docs .doclist .doc-compact .doc-copy,
+.s1-library-organized .doclist .doc-compact .doc-copy{
+  display:flex;flex-direction:column;align-items:flex-start;justify-content:center;
+  gap:4px;flex:1;min-width:0;overflow-wrap:anywhere;
+}
+.subject-hub-area #docs .doclist .doc-compact .doc-type,
+.s1-library-organized .doclist .doc-compact .doc-type{
+  display:block;margin:0;font-size:10px;line-height:1.2;
+  font-weight:780;color:var(--mt-sub);letter-spacing:.02em;
+}
+.subject-hub-area #docs .doclist .doc-compact .docname,
+.s1-library-organized .doclist .doc-compact .docname{
+  flex:none;width:100%;margin:0;color:var(--mt-title);
+  font-size:13px;font-weight:760;line-height:1.4;letter-spacing:-.1px;
+  overflow-wrap:anywhere;word-break:normal;white-space:normal;
+}
+.subject-hub-area #docs .doclist .doc-compact .doc-markers,
+.s1-library-organized .doclist .doc-compact .doc-markers{
+  display:flex;flex-wrap:wrap;align-items:center;gap:5px;
+}
+.subject-hub-area #docs .doclist .doc-compact .doc-open-arrow,
+.s1-library-organized .doclist .doc-compact .doc-open-arrow{
+  flex:0 0 18px;margin-left:auto;color:#85849d;font-size:17px;
+  transition:transform .18s,color .18s;
+}
+.subject-hub-area #docs .doclist .doc-compact:hover .doc-open-arrow,
+.s1-library-organized .doclist .doc-compact:hover .doc-open-arrow{
+  transform:translate(2px,-2px);color:#7665b6;
+}
+.subject-hub-area #docs .doclist .doc-compact .doc-check,
+.s1-library-organized .doclist .doc-compact .doc-check{
+  display:flex;align-items:center;justify-content:center;min-width:48px;
+  flex:0 0 auto;position:relative;z-index:3;
+  padding:8px 10px 8px 0;
+}
+.subject-hub-area #docs .doclist .doc-compact .doc-check .donecontrol,
+.s1-library-organized .doclist .doc-compact .doc-check .donecontrol{
+  margin:0;padding:7px 8px;min-height:35px;max-width:100%;
+  border-radius:9px;font-size:10px;white-space:nowrap;
+}
+/* Acervo geral — as mesmas linhas, mas com as ações e os links atuais. */
+.library-page .course-detail-resources .doc.library-resource{
+  display:flex;flex-direction:row;align-items:stretch;min-width:0;min-height:88px;
+  height:100%;border:1px solid var(--mt-line)!important;
+  border-radius:13px!important;background:var(--mt-row)!important;
+  box-shadow:none!important;overflow:hidden;transform:none;
+  transition:background-color .18s,border-color .18s,box-shadow .18s;
+}
+.library-page .course-detail-resources .doc.library-resource::before{display:none}
+.library-page .course-detail-resources .doc.library-resource.is-available:hover,
+.library-page .course-detail-resources .doc.library-resource.is-available:focus-within{
+  border-color:#bab1d8!important;background:var(--mt-hover)!important;
+  transform:none!important;box-shadow:0 4px 13px #2924480b!important;
+}
+.library-page .course-detail-resources .library-resource-main{
+  position:relative;display:flex;align-items:center;flex:1;gap:12px;
+  padding:14px 10px 14px 14px;min-width:0;text-decoration:none;
+}
+.library-page .course-detail-resources .library-resource-icon{
+  width:38px;height:43px;flex:0 0 38px;border-radius:10px;
+  display:grid;place-items:center;background:var(--mt-icon-bg);
+  color:var(--mt-icon-fg);font-weight:830;font-size:10px;
+  transform:none!important;
+}
+.library-page .course-detail-resources .library-resource-copy{
+  flex:1;min-width:0;gap:4px;justify-content:center;align-items:flex-start;
+}
+.library-page .course-detail-resources .library-resource-type{
+  display:block!important;margin:0;letter-spacing:.02em;
+  font-size:10px;line-height:1.2;font-weight:770;
+  color:var(--mt-sub);text-transform:none;
+}
+.library-page .course-detail-resources .library-resource .docname{
+  color:var(--mt-title);font-size:13px;font-weight:760;letter-spacing:-.1px;
+  line-height:1.4;overflow-wrap:anywhere;word-break:normal;
+}
+.library-page .course-detail-resources .library-resource-arrow{
+  flex:0 0 18px;margin-left:auto;width:18px;height:18px;
+  color:#85849d;font-size:17px;transform:none;
+}
+.library-page .course-detail-resources .library-resource-bottom{
+  position:relative;z-index:3;flex:0 0 auto;align-items:center;justify-content:center;
+  min-width:48px;margin:0;padding:8px 10px 8px 0;border:0;
+  min-height:0;pointer-events:none;
+}
+.library-page .course-detail-resources .library-resource-progress{
+  pointer-events:auto;min-width:0;justify-content:center;
+}
+.library-page .course-detail-resources .library-resource-progress .donecontrol{
+  min-height:35px;padding:7px 8px;border-radius:9px;
+  font-size:10px;white-space:nowrap;
+}
+.library-page .course-detail-resources .library-resource .pm-exam-badge,
+.subject-hub-area #docs .doclist .pm-exam-badge,
+.s1-library-organized .doclist .pm-exam-badge{
+  display:inline-flex;max-width:100%;font-size:9px;line-height:1.3;
+  padding:3px 7px;margin:2px 0 0;white-space:normal;
+}
+.subject-hub-area #docs .doclist .pm-scheduled-file-label,
+.library-page .course-detail-resources .pm-scheduled-file-label,
+.s1-library-organized .doclist .pm-scheduled-file-label{font-size:9px;line-height:1.3;white-space:normal}
+/* Os checks ficam acima da superfície clicável, inclusive no iPhone. */
+.subject-hub-area #docs .doc-compact .doc-full-link::after,
+.s1-library-organized .doc-compact .doc-full-link::after,
+.library-page .course-detail-resources .library-resource-main::after{z-index:1}
+.subject-hub-area #docs .doc-compact .doc-check,
+.s1-library-organized .doc-compact .doc-check,
+.library-page .course-detail-resources .library-resource-bottom{z-index:3}
+/* Pontos de quebra planejados: duas colunas só quando realmente couberem. */
+@media(max-width:1080px){
+  .subject-hub-area #docs .doclist,
+  .library-page .course-detail-resources .doclist,
+  .s1-library-organized .doclist,
+  .library-page .material-block .doclist{grid-template-columns:minmax(0,1fr)!important}
+}
+@media(max-width:600px){
+  .subject-hub-area #docs .sectiontop{margin-bottom:14px}
+  .subject-hub-area #docs .doclist,
+  .library-page .course-detail-resources .doclist,
+  .s1-library-organized .doclist{gap:8px!important}
+  .subject-hub-area #docs .doclist .doc-compact,
+  .library-page .course-detail-resources .doc.library-resource,
+  .s1-library-organized .doclist .doc-compact{min-height:84px;border-radius:12px!important}
+  .subject-hub-area #docs .doclist .doc-compact .doc-full-link,
+  .library-page .course-detail-resources .library-resource-main,
+  .s1-library-organized .doclist .doc-compact .doc-full-link{padding:12px 7px 12px 11px;gap:9px}
+  .subject-hub-area #docs .doclist .doc-compact .docicon,
+  .library-page .course-detail-resources .library-resource-icon,
+  .s1-library-organized .doclist .doc-compact .docicon{
+    width:34px;height:39px;flex-basis:34px;min-width:34px;border-radius:9px;font-size:9px;
+  }
+  .subject-hub-area #docs .doclist .doc-compact .docname,
+  .library-page .course-detail-resources .library-resource .docname,
+  .s1-library-organized .doclist .doc-compact .docname{font-size:12px;line-height:1.38}
+  .subject-hub-area #docs .doclist .doc-compact .doc-check,
+  .library-page .course-detail-resources .library-resource-bottom,
+  .s1-library-organized .doclist .doc-compact .doc-check{padding-right:8px;min-width:40px}
+  .subject-hub-area #docs .doclist .doc-compact .doc-check .donecontrol,
+  .library-page .course-detail-resources .library-resource-progress .donecontrol,
+  .s1-library-organized .doclist .doc-compact .doc-check .donecontrol{
+    padding:7px 6px;gap:4px;font-size:10px;min-height:38px;
+  }
+}
+/* Telas muito estreitas — seta secundária sai, sem ocultar título nem Visto. */
+@media(max-width:360px){
+  .subject-hub-area #docs .doclist .doc-compact .doc-open-arrow,
+  .library-page .course-detail-resources .library-resource-arrow,
+  .s1-library-organized .doclist .doc-compact .doc-open-arrow{display:none}
+}
+@media(hover:none){
+  .subject-hub-area #docs .doclist .doc-compact:hover,
+  .library-page .course-detail-resources .doc.library-resource:hover,
+  .s1-library-organized .doclist .doc-compact:hover{transform:none!important;box-shadow:none!important}
+}
+@media(prefers-reduced-motion:reduce){
+  .subject-hub-area #docs .doclist .doc-compact,
+  .library-page .course-detail-resources .doc.library-resource,
+  .s1-library-organized .doclist .doc-compact,
+  .subject-hub-area #docs .doc-open-arrow{animation:none!important;transition:none!important}
+}
