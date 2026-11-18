@@ -18,7 +18,7 @@ const escCall=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>
 const S={room:null,stage:'off',overlay:null,channel:null,key:'',peers:new Map(),presence:new Map(),
  mic:true,cam:false,hand:false,screen:false,audio:null,camera:null,display:null,stream:null,
  panel:'',pinned:null,chat:[],chatBusy:false,chatTimer:null,guard:null,pendingSignals:[],devicePanel:false,photoUrl:'',
- micDevice:'',camDevice:'',notice:'',noticeTimer:null,callStarted:0,generation:0,reconnectTimer:null,minimized:false,screenBusy:false,screenMuteTimer:null,videoWatch:null,avatarProfiles:new Map(),avatarLoading:false,avatarRefreshAt:0,camBusy:false,micBusy:false,audioLevels:new Map(),audioNodes:new Map(),audioContext:null};
+ micDevice:'',camDevice:'',notice:'',noticeTimer:null,callStarted:0,generation:0,reconnectTimer:null,presenceTimer:null,minimized:false,screenBusy:false,screenMuteTimer:null,videoWatch:null,avatarProfiles:new Map(),avatarLoading:false,avatarRefreshAt:0,camBusy:false,micBusy:false,audioLevels:new Map(),audioNodes:new Map(),audioContext:null};
 let videoReplaceQueue=Promise.resolve();
 const eligible=()=>!!bridge.client()&&!!bridge.user()?.id&&!bridge.user()?.is_anonymous;
 const group=id=>UUID.test(id||'')&&dm.rooms?.find(r=>r.id===id&&r.kind==='group')||null;
@@ -349,10 +349,17 @@ function meta(){return {userId:onlineUser?.id||'',name:myName(),mic:S.mic&&!!S.a
 async function publish(){
  if(S.stage!=='live'||!S.key)return;
  const generation=S.generation,channel=S.channel;
- if(channel)try{await channel.track(meta())}catch(e){console.warn('Não foi possível atualizar presença da call',e)}
- if(generation!==S.generation||S.stage!=='live'||S.channel!==channel)return;
+ // Reflete o estado na interface imediatamente; agrupa eventos rápidos.
  S.presence.set(S.key,meta());
  try{draw()}catch(e){console.warn('Erro visual recuperável na call',e)}
+ clearTimeout(S.presenceTimer);
+ if(!channel)return;
+ S.presenceTimer=setTimeout(async()=>{
+  S.presenceTimer=null;
+  if(generation!==S.generation||S.stage!=='live'||S.channel!==channel)return;
+  try{await channel.track(meta())}
+  catch(e){console.warn('Falha temporária ao atualizar presença da call',e)}
+ },260);
 }
 /* Volume e mudo são locais por usuário: não modificam o áudio transmitido.
    Elemento de áudio isolado evita que a câmera ao ligar/desligar corte a voz. */
@@ -672,7 +679,12 @@ function checkVideoHealth(){
   if(now-peer.videoMissingSince<9000||now-peer.lastVideoRecoverAt<18000)continue;
   peer.lastVideoRecoverAt=now;
   restartTile(key);
-  if(now-peer.videoMissingSince>=18000)requestPeerRecovery(peer);
+  // A câmera pode trocar de faixa sem que a conexão de rede esteja falhando.
+  // Reiniciar ICE por ausência temporária de vídeo também corta o áudio.
+  if(now-peer.videoMissingSince>=18000&&
+   (['failed','disconnected'].includes(peer.pc.connectionState)||
+    ['failed','disconnected'].includes(peer.pc.iceConnectionState)))
+   requestPeerRecovery(peer);
  }
 }
 function ensurePeer(key){
@@ -680,7 +692,7 @@ function ensurePeer(key){
  const pc=new RTCPeerConnection(iceConfig());
  const audioSender=pc.addTransceiver('audio',{direction:'sendrecv'}).sender;
  const videoSender=pc.addTransceiver('video',{direction:'sendrecv'}).sender;
- const peer={key,pc,audioSender,videoSender,stream:new MediaStream(),audioStream:new MediaStream(),candidates:[],busy:false,retries:0,recoveryTimer:null,videoMissingSince:0,lastVideoRecoverAt:0};
+ const peer={key,pc,audioSender,videoSender,stream:new MediaStream(),audioStream:new MediaStream(),candidates:[],busy:false,retries:0,recoveryTimer:null,departTimer:null,videoMissingSince:0,lastVideoRecoverAt:0};
  S.peers.set(key,peer);
  if(S.audio)void audioSender.replaceTrack(S.audio).catch(()=>{});
  if(S.display||S.camera)void videoSender.replaceTrack(S.display||S.camera).catch(()=>{});
@@ -748,9 +760,31 @@ function synchronize(){
   }
  });
  if(S.key)next.set(S.key,meta());
+ // Realtime Presence pode enviar saída e entrada simultâneas durante um sync.
+ // Preservamos o WebRTC por alguns segundos antes de remover quem realmente saiu.
+ const previous=S.presence;
+ for(const [key,peer] of S.peers){
+  if(next.has(key)){
+   clearTimeout(peer.departTimer);peer.departTimer=null;
+  }else{
+   if(previous.has(key))next.set(key,previous.get(key));
+   if(!peer.departTimer){
+    const generation=S.generation;
+    peer.departTimer=setTimeout(()=>{
+     peer.departTimer=null;
+     if(S.stage!=='live'||generation!==S.generation||S.peers.get(key)!==peer)return;
+     const snapshot=S.channel?.presenceState?.()||{};
+     if(snapshot[key]?.length)return;
+     S.presence.delete(key);
+     disposePeerAudio(key);
+     clearTimeout(peer.recoveryTimer);
+     peer.pc.close();S.peers.delete(key);tiles();panelDraw();
+    },6000);
+   }
+  }
+ }
  S.presence=next;
  void refreshCallAvatars();
- for(const [key,peer] of S.peers)if(!next.has(key)){disposePeerAudio(key);clearTimeout(peer.recoveryTimer);peer.pc.close();S.peers.delete(key);}
  for(const key of next.keys())if(key!==S.key&&!S.peers.has(key))ensurePeer(key);
  if(S.pendingSignals.length){const pending=S.pendingSignals.splice(0);pending.forEach(msg=>{if(next.has(msg.from))void receiveSignal(msg);});}
  if(S.pinned&&!next.has(S.pinned))S.pinned=null;
@@ -823,10 +857,9 @@ async function join(){
       alert(isPrivate(room)?'Esta chamada privada já tem dois dispositivos conectados.':'Esta versão aceita até 6 participantes simultâneos para preservar a qualidade da call.');
       return;
      }
-     if(returning){
-      S.peers.forEach((p,key)=>{disposePeerAudio(key);clearTimeout(p.recoveryTimer);p.pc.close()});
-      S.peers.clear();S.pendingSignals=[];S.presence.clear();
-     }
+     // WebSocket Realtime reconectado: manter as conexões P2P que ainda
+     // funcionam. Apenas ressincronizar as presenças e a sinalização futura.
+     if(returning){clearTimeout(S.presenceTimer);S.presenceTimer=null;}
      await channel.track(meta());
      if(S.generation!==generation||S.channel!==channel)return;
      S.stage='live';S.presence.set(S.key,meta());status('',0);
@@ -1000,10 +1033,11 @@ async function leave(){
  const channel=S.channel;S.channel=null;
  clearInterval(S.guard);S.guard=null;
  clearTimeout(S.reconnectTimer);S.reconnectTimer=null;
+ clearTimeout(S.presenceTimer);S.presenceTimer=null;
  clearTimeout(S.noticeTimer);
  clearInterval(S.videoWatch);S.videoWatch=null;
  clearTimeout(S.screenMuteTimer);S.screenMuteTimer=null;
- S.peers.forEach((p,key)=>{disposePeerAudio(key);clearTimeout(p.recoveryTimer);p.pc.close()});S.peers.clear();
+ S.peers.forEach((p,key)=>{disposePeerAudio(key);clearTimeout(p.recoveryTimer);clearTimeout(p.departTimer);p.pc.close()});S.peers.clear();
  if(channel){try{void channel.untrack().catch(()=>{});}catch(_){}try{void client.removeChannel(channel).catch(()=>{});}catch(_){}}
  for(const track of [S.audio,S.camera,S.display])try{track?.stop()}catch(_){}
  S.audio=null;S.camera=null;S.display=null;S.stream=null;S.screen=false;S.screenBusy=false;S.hand=false;S.camBusy=false;S.micBusy=false;
