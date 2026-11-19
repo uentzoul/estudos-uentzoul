@@ -282,3 +282,15 @@ start();
 window.PSICO_MATERIAL_EDITOR={render:renderGroups,editButton,setRerender,refresh,
  getMaterials:null,classify:null,categories:CATEGORIES,titleFor,isEditing:()=>!!editing};
 })();
+
+/* Carregamento independente da prévia de arquivos: não altera o render do acervo. */
+(()=>{
+ if(document.querySelector('script[data-material-preview]'))return;
+ const style=document.createElement('link');
+ style.rel='stylesheet';style.href='material-preview-popover.css?v=20261118-preview-v1';
+ document.head.appendChild(style);
+ const script=document.createElement('script');
+ script.src='material-preview-popover.js?v=20261118-preview-v1';
+ script.dataset.materialPreview='1';
+ document.head.appendChild(script);
+})();
