@@ -3,7 +3,7 @@
 (()=>{
 'use strict';
 const VERSION='rev-provas-equivalentes-20261113';
-const META_VERSION='rev-prova-foco-p2-20261116';
+const META_VERSION='rev-prova-foco-p2-28q-clareza-20261119-v1';
 const LEGACY_CURRENT='rev-final-20261113-r2';
 const PREVIOUS_VERSION='rev-final-20261113';
 const LETTERS=['I','II','III','IV','V'];
@@ -21,7 +21,7 @@ function curated(db,id){
  let items=id==='social'?[...(window.PSICOMOODLE_NEW_CONTENT?.social||[])]:[...(db.topics[id]||[])];
  if(id==='familia')for(const x of familyExtra)if(!items.some(t=>t.title===x.title))items.push(x);
  if(id==='avaliacao')items=items.filter(x=>evalScope.has(x.title));
-  if(id==='meta')items=items.filter(x=>!/ang[uú]sti/i.test(x.title||''));
+  if(id==='meta')items=items.filter(x=>!/^ang[uú]stia$/i.test(x.section||'')&&!/ang[uú]sti/i.test(x.title||''));
  return items.filter(x=>x.title&&x.definition);
 }
 function choices(all,t,level,slot,id,version=LEGACY_CURRENT){
@@ -271,7 +271,93 @@ function questionEssay(topics,model,idx,a,b,qid){
   '. Uma resposta bem fundamentada articula esses conceitos à situação, considera suas condições específicas e evita generalizações ou conclusões não autorizadas pelo caso.',
   source:'Resposta orientativa autoral; consulte os materiais da disciplina.'};
 }
+
+/* Metapsicologia P2: somente as 28 questões sobre segunda tópica, Édipo e pulsão.
+   As alternativas são afirmações completas, retiradas de conceitos relacionados do próprio roteiro.
+   Nenhuma alternativa é uma recomendação vaga do tipo "priorizar outro conceito". */
+function metaSectionPeers(topics,topic){
+ const peers=topics.filter(t=>t!==topic&&t.section===topic.section);
+ const ranked=similarTopics('meta',peers.concat([topic]),topic).filter(t=>t.section===topic.section&&t!==topic);
+ return ranked.length?ranked:peers;
+}
+function metaChoice(topics,model,slot,topic,id){
+ const peers=metaSectionPeers(topics,topic);
+ const options=[
+  {text:topic.definition+'.',correct:true,why:'Correto. '+topic.explanation},
+  {text:topic.myth+'.',correct:false,why:'Esta interpretação não corresponde ao conceito. '+topic.explanation},
+  ...peers.slice(0,3).map(other=>({
+   text:other.myth+'.',correct:false,
+   why:'A afirmação apresenta uma confusão sobre '+other.title+'. '+other.explanation
+  }))
+ ];
+ const distinct=new Set(options.map(o=>o.text));
+ if(distinct.size!==5)throw Error('Alternativas repetidas em '+topic.id);
+ const correctPosition=(model*3+slot*2)%5;
+ const correct=options.shift();
+ options.splice(correctPosition,0,correct);
+ return {type:'choice',id,concept:topic.title,
+  prompt:'Situação para análise: '+topic.scenario+'\n\nConsiderando a teoria freudiana, qual alternativa apresenta a interpretação conceitualmente correta?',
+  options,answer:correctPosition,source:'Questão autoral baseada no estudo dirigido P2 do professor Jefferson Krug.'};
+}
+function metaCombo(topics,model,slot,topic,id){
+ const peers=metaSectionPeers(topics,topic),b=peers[0],c=peers[1];
+ const statements=[
+  {text:topic.definition+'.',truth:true,why:topic.explanation},
+  {text:b.myth+'.',truth:false,why:b.explanation},
+  {text:b.definition+'.',truth:true,why:b.explanation},
+  {text:c.myth+'.',truth:false,why:c.explanation},
+  {text:c.definition+'.',truth:true,why:c.explanation}
+ ];
+ const rotation=(model+slot*2)%5;
+ const assertions=statements.map((_,i)=>statements[(i+rotation)%5]).map((x,i)=>({...x,l:LETTERS[i]}));
+ const indexes=assertions.map((x,i)=>x.truth?i:-1).filter(i=>i>=0);
+ const chosen=COMBOS_3.filter(set=>set.join(',')!==indexes.join(',')).slice((slot+model)%4,(slot+model)%4+4);
+ const answer=(model*2+slot)%5,sets=chosen.slice();
+ sets.splice(answer,0,indexes);
+ return {type:'combo',id,concept:topic.title,
+  prompt:'Sobre '+topic.section.toLowerCase()+', analise as cinco afirmações e assinale a combinação que contém somente as corretas.',
+  assertions,options:sets.map(set=>'Apenas '+set.map(i=>LETTERS[i]).join(', ')+'.'),
+  answer,correct:indexes.map(i=>LETTERS[i]),
+  answerSets:sets.map(set=>set.map(i=>LETTERS[i])),
+  source:'Assertivas autorais baseadas nas questões do estudo dirigido P2.'};
+}
+function metaTF(model,slot,topic,id){
+ const correct=(model+slot)%2===0;
+ return {type:'tf',id,concept:topic.title,
+  prompt:'Considere o conteúdo do estudo dirigido sobre '+topic.title.toLowerCase()+':\n'+
+   (correct?topic.definition:topic.myth)+'.\n\nA afirmação está correta ou incorreta?',
+  answer:correct,explanation:(correct?'Correta. ':'Incorreta. ')+topic.explanation,
+  source:'Afirmação autoral baseada no estudo dirigido P2.'};
+}
+function metaEssay(topics,model,index,topic,id){
+ const peer=metaSectionPeers(topics,topic)[0];
+ return {type:'essay',id,concept:topic.title,
+  prompt:'Questão do estudo dirigido:\n'+topic.question+
+   '\n\nAplique o conceito à seguinte situação: '+topic.scenario+
+   '\nExplique também sua relação ou diferença em comparação com '+peer.title.toLowerCase()+'.',
+  criteria:['Responder integralmente ao enunciado do professor.',
+   'Utilizar os conceitos de Freud com precisão e linguagem clara.',
+   'Relacionar a resposta ao caso sem fazer generalizações indevidas.',
+   'Diferenciar os conceitos indicados e justificar a conclusão.'],
+  model:topic.explanation+'\n\nRelação com '+peer.title+': '+peer.definition,
+  source:'Resposta-modelo didática, não gabarito oficial.'};
+}
+function generateMeta(model,topics){
+ const format=FORMATS.meta,selected=Array.from({length:15},(_,i)=>topics[((model-1)*3+i*9)%topics.length]);
+ const questions=selected.map((topic,i)=>{
+  const id='meta-'+META_VERSION+'-'+model+'-'+(i+1);
+  if(i>=13)return metaEssay(topics,model,i-13,topic,id);
+  if(format[i]==='combo')return metaCombo(topics,model,i,topic,id);
+  if(format[i]==='tf')return metaTF(model,i,topic,id);
+  return metaChoice(topics,model,i,topic,id);
+ });
+ return {id:'meta-'+META_VERSION+'-'+model,subject:'meta',model,title:'Simulado '+model,
+  final2026:true,revision:META_VERSION,difficulty:'Padrão da prova',
+  difficultyLevel:'equivalente',sameDifficulty:true,questions};
+}
 function generateEqual(id,model,topics){
+ if(id==='meta'&&Array.isArray(window.PSICO_META_P2_PRACTICE?.topics)&&topics.length===28)
+  return generateMeta(model,topics);
  const qs=[],format=FORMATS[id]||FORMATS.familia,version=id==='meta'?META_VERSION:VERSION;
  for(let i=0;i<13;i++){
   const a=pickPool(topics,model,i),b=pickPool(topics,model,i,1),c=pickPool(topics,model,i,2);
@@ -291,16 +377,12 @@ function generateEqual(id,model,topics){
 
 function apply(db){
  if(!db?.subjects||!db?.topics||!Array.isArray(db.exams))return;
- // Novo recorte da P2: o tema retirado da prova não pode reaparecer em
- // tópicos, alternativas, assertivas, flashcards ou modelos legados.
- if(Array.isArray(db.topics.meta)){
-   db.topics.meta=db.topics.meta.filter(t=>!/ang[uú]sti/i.test(t.title||'')).map(t=>({
-     ...t,
-     definition:String(t.definition||'').replace(/conflitos e angústia/gi,'conflitos e tensões psíquicas'),
-     scenario:String(t.scenario||'').replace(/angústia/gi,'tensão psíquica'),
-     myth:String(t.myth||'').replace(/angústia/gi,'tensão psíquica')
-   }));
- }
+ // O mesmo banco das 28 questões abastece simulados, flashcards e revisão.
+ const p2=window.PSICO_META_P2_PRACTICE?.topics;
+ if(Array.isArray(p2)&&p2.length===28)
+  db.topics.meta=p2.map(t=>({...t}));
+ else if(Array.isArray(db.topics.meta))
+  db.topics.meta=db.topics.meta.filter(t=>!/ang[uú]sti/i.test(t.title||''));
  db.archivedExams=db.archivedExams||[];
  for(const e of db.exams.filter(e=>e?.subject==='meta'))if(!db.archivedExams.some(a=>a.id===e.id))db.archivedExams.push(e);
  db.exams=db.exams.filter(e=>e?.subject!=='meta');
