@@ -88,7 +88,7 @@ function show(card){
  imageFor(m,expected);
 }
 function eligible(target){
- const card=target?.closest?.('#docs .doc-compact');
+ const card=target?.closest?.('#docs .doc-compact, .s1-library-organized .doc-compact, .library-page .course-detail-resources .doc-compact');
  if(!card||card.closest('.pm-is-editing')||!card.querySelector('a[href]'))return null;
  return card;
 }
