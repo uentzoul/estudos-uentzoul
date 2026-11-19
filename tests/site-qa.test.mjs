@@ -654,7 +654,7 @@ test('Revisão dos simulados mantém identificadores e exige conhecimento da dis
  const current=['tcc','familia','meta','grupos','social','avaliacao'].flatMap(subject=>{
   const ctrl=runtime.window.PSICO_FINAL_EXAMS;
   const revision=subject==='familia'?ctrl.familyVersion:subject==='meta'?ctrl.metaVersion:
-   subject==='grupos'?ctrl.groupVersion:subject==='social'?ctrl.socialVersion:ctrl.version;
+   subject==='grupos'?ctrl.groupVersion:subject==='social'?ctrl.socialVersion:subject==='avaliacao'?ctrl.evaluationVersion:ctrl.version;
   return original.exams.filter(e=>e.subject===subject&&e.final2026&&e.revision===revision);
  });
  assert.equal(current.length,30,'Cinco simulados por cada uma das seis disciplinas');
@@ -726,7 +726,7 @@ test('Alternativas dos 13 cursos são relevantes, únicas e só revelam a melhor
  const current=['tcc','familia','meta','grupos','social','avaliacao'].flatMap(subject=>{
   const ctrl=runtime.window.PSICO_FINAL_EXAMS;
   const revision=subject==='familia'?ctrl.familyVersion:subject==='meta'?ctrl.metaVersion:
-   subject==='grupos'?ctrl.groupVersion:subject==='social'?ctrl.socialVersion:ctrl.version;
+   subject==='grupos'?ctrl.groupVersion:subject==='social'?ctrl.socialVersion:subject==='avaliacao'?ctrl.evaluationVersion:ctrl.version;
   const exams=raw.exams.filter(e=>e.subject===subject&&e.final2026&&e.revision===revision);
   assert.equal(exams.length,5,'Cinco simulados de '+subject);
   return exams;
@@ -768,7 +768,7 @@ test('Alternativas dos 13 cursos são relevantes, únicas e só revelam a melhor
  }
  Object.assign(active.window.PSICO_CASES,first.PSICO_CASES);
  const cases=Object.values(active.window.PSICO_CASES).flat();
- assert.equal(cases.length,47,'Todos os estudos de caso preservados, incluindo o caso de Édipo');
+ assert.equal(cases.length,49,'Todos os estudos de caso preservados, incluindo os novos casos P3');
  const positions=[0,0,0];let stages=0;
  for(const c of cases)for(const [i,stage] of c.stages.entries()){
   stages++;
@@ -782,7 +782,7 @@ test('Alternativas dos 13 cursos são relevantes, únicas e só revelam a melhor
   assert.doesNotMatch(stage.choices.map(o=>o.label).join(' '),
    /afirmar que ela tem um transtorno apenas pelo relato|pedir que ela simplesmente pare de pensar|concluir que o adolescente é responsável pela recuperação/i);
  }
- assert.equal(stages,94,'As duas decisões de cada estudo foram preservadas');
+ assert.equal(stages,98,'As duas decisões de cada estudo foram preservadas');
  assert.ok(positions.every(n=>n>=15),'Não entregar gabarito pela posição fixa: '+positions.join('/'));
  assert.match(read('estudo-ativo.js'),/strongest=st\.choices\.findIndex\(option=>option\.best===true\)/);
  assert.match(read('estudo-ativo.js'),/s\.chosen<0\?'':/,'A resposta só aparece depois da escolha');
@@ -790,6 +790,64 @@ test('Alternativas dos 13 cursos são relevantes, únicas e só revelam a melhor
  const offline=html.slice(begin,end);
  assert.equal((offline.match(/<summary>Questão \d+/g)||[]).length,385,'Leitura offline corresponde às provas atuais');
  assert.doesNotMatch(offline,/ang[uú]stia/i,'Não reintroduzir angústia na leitura de Metapsicologia');
+});
+
+
+test('Avaliação Psicológica P3 mantém 21 tópicos, uma única correta e provas variadas',()=>{
+ const runtime={window:{},document:{addEventListener:()=>{},querySelector:()=>null,querySelectorAll:()=>[]}};
+ vm.runInNewContext(read('avaliacao-p3-pratica.js'),runtime);
+ const topics=runtime.window.PSICO_AVALIACAO_P3_PRACTICE?.topics;
+ assert.equal(topics?.length,21,'Banco P3 segue estudo dirigido docente de 21 itens');
+ assert.equal(new Set(topics.map(x=>x.title)).size,21,'Tópicos P3 sem repetição');
+ assert.ok(topics.every(x=>x.question&&x.explanation&&x.whyWrong&&x.distractors.length===4));
+ assert.deepEqual(topics.reduce((acc,t)=>(acc[t.section]=(acc[t.section]||0)+1,acc),{}),{
+  'PARTE I – ENTREVISTA DE DEVOLUÇÃO':3,
+  'PARTE II – AVALIAÇÃO PSICOLÓGICA ORGANIZACIONAL':4,
+  'PARTE III – AVALIAÇÃO PSICOLÓGICA NO CONTEXTO HOSPITALAR E COM PACIENTES TRANS':6,
+  'PARTE IV – PERÍCIA PSICOLÓGICA':3,
+  'PARTE V – ÉTICA NA AVALIAÇÃO PSICOLÓGICA':5
+ });
+ vm.runInNewContext(read('simulados-finais-2026.js'),runtime);
+ const db={subjects:{avaliacao:{}},topics:{avaliacao:[]},exams:[]};
+ runtime.window.PSICO_FINAL_EXAMS.apply(db);
+ assert.equal(db.topics.avaliacao.length,21,'A revisão recebe os 21 tópicos');
+ const version=runtime.window.PSICO_FINAL_EXAMS.evaluationVersion;
+ const exams=db.exams.filter(e=>e.revision===version);
+ assert.equal(exams.length,5);
+ assert.ok(exams.every(e=>e.questions.length===15));
+ for(const exam of exams){
+  assert.equal(exam.questions.filter(q=>q.type==='essay').length,2,'Duas dissertativas do roteiro P3');
+  assert.equal(exam.questions.filter(q=>(q.prompt||'').startsWith('Situação breve:')).length,1,'Um caso curto por simulado');
+  for(const q of exam.questions){
+   if(q.type==='choice'){
+    assert.equal(q.options.length,5);
+    assert.equal(new Set(q.options.map(o=>o.text)).size,5,'Alternativas exclusivas do mesmo assunto');
+    assert.ok(q.options.every(o=>o.text.length>60&&o.why?.length>80));
+    assert.equal(q.options.filter(o=>o.correct).length,1);
+    assert.equal(q.options[q.answer].correct,true);
+   }
+   if(q.type==='combo'){
+    assert.equal(q.assertions.length,5);
+    assert.equal(q.assertions.filter(x=>x.truth).length,3);
+    assert.equal(q.options[q.answer],'Apenas '+q.correct.join(', ')+'.');
+   }
+   if(q.type==='essay')assert.ok(q.model?.length>200,'Resposta-modelo extensa e explicativa');
+  }
+ }
+ vm.runInNewContext(read('revisao-erros.js'),runtime);
+ for(const t of topics){
+  const affirm=runtime.window.PSICO_REVIEW_ERRORS.affirmations('avaliacao',t);
+  assert.equal(affirm.correct,t.definition);
+  assert.equal(affirm.incorrect,t.myth);
+ }
+ vm.runInNewContext(read('estudo-ativo.js'),runtime);
+ runtime.window.PSICO_PRACTICE.flashcards('avaliacao',topics,'2026/2');
+ assert.equal(runtime.window.PSICO_PRACTICE.flashTutorialState('avaliacao').count,21);
+ const i=html.indexOf('<article id="offline-avaliacao"'),j=html.indexOf('</article>',i);
+ assert.ok(i>0&&j>i);
+ const offline=html.slice(i,j);
+ assert.equal((offline.match(/<strong>Conceito:/g)||[]).length,21,'Versão offline reflete a P3');
+ assert.match(html,/subject==='avaliacao'\?window\.PSICO_FINAL_EXAMS\?\.evaluationVersion/);
 });
 
 
