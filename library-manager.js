@@ -15,6 +15,7 @@ const FORMATS={
 };
 let client=null,user=null,isAdmin=false,isBusy=false,chosenFiles=[],logEntries=[],refreshing=false,adminCheckedFor=null,initialized=false;
 let lastRowsSignature='',lastAdmin=false,refreshPending=false;
+let previewRows=new Map();
 let reviewed=[],isAnalyzing=false,scanToken=0,reviewSemester='',batchSubjectValue='';
 const api=()=>window.uentzoulLibraryApp;
 const auth=()=>window.uentzoulAIAuth;
@@ -207,10 +208,12 @@ async function refresh(){
    }
   }
   if(isAdmin!==lastAdmin){lastAdmin=isAdmin;api().setAdmin(isAdmin);}
-  const {data,error}=await c.from(TABLE).select('resource_key,storage_path,filename,mime_type,size_bytes,updated_at,file_subject,display_title,content_summary,content_tags,exam_scope,scan_quality,publish_at,library_public').order('resource_key');
+  const {data,error}=await c.from(TABLE).select('resource_key,storage_path,filename,mime_type,size_bytes,updated_at,file_subject,display_title,content_summary,content_tags,exam_scope,scan_quality,publish_at,library_public,preview_path').order('resource_key');
   if(error)throw error;
   const rows=(data||[]).filter(r=>typeof r.storage_path==='string'&&r.storage_path.startsWith('materials/'));
-  const signature=JSON.stringify(rows);
+  previewRows=new Map(rows.map(row=>[row.resource_key,row]));
+  // Uma miniatura nova não desmonta os cartões nem interrompe a leitura.
+  const signature=JSON.stringify(rows.map(({preview_path,...row})=>row));
   if(signature!==lastRowsSignature){lastRowsSignature=signature;api().applyRows(rows);window.dispatchEvent(new Event('uentzoul:library-updated'));}
   const needsInitialPaint=!initialized;
   initialized=true;
@@ -465,18 +468,22 @@ async function submit(event){
     await transfer(file,path,fmt.mime,progress);
    }else progress(100);
    const {error}=await c.from(TABLE).upsert({
-    resource_key:key,storage_path:path,filename:file.name.slice(0,255),mime_type:fmt.mime,
+    resource_key:key,storage_path:path,preview_path:null,filename:file.name.slice(0,255),mime_type:fmt.mime,
     size_bytes:file.size,updated_by:u.id,updated_at:new Date().toISOString(),
     file_subject:sem==='2026/1'?'2026/1::'+subject:subject,display_title:title,content_summary:String(r.analysis?.summary||'').slice(0,600),
     content_tags:taggedTopics(r),exam_scope:scheduled?false:scope,scan_quality:r.analysis?.quality||'manual',library_public:true,
     publish_at:scheduled?SECOND_SEMESTER_RELEASE:null
    },{onConflict:'resource_key'});
    if(error)throw Error('Arquivo salvo, mas falhou ao associar ao acervo: '+error.message);
+   previewRows.set(key,{...previewRows.get(key),resource_key:key,storage_path:path,preview_path:null,filename:file.name,mime_type:fmt.mime,size_bytes:file.size,display_title:title,content_summary:r.analysis?.summary||''});
    const proof=await c.storage.from(BUCKET).createSignedUrl(path,120);
    if(proof.error)throw Error('Arquivo enviado, mas a abertura falhou: '+proof.error.message);
    // Seções e categorias são gravadas imediatamente e seu publish_at é replicado
    // por trigger/RLS: os arquivos do acervo ficam visíveis aos alunos imediatamente.
    const organizationWarnings=await saveOrganization(c,sem,{key,subject,sectionNumber,category});
+   try{
+    await window.UentzoulMaterialPreviews?.saveFromFile?.(file,{resourceKey:key,storagePath:path,title,summary:r.analysis?.summary||''});
+   }catch(previewError){console.warn('Documento enviado, mas sua prévia visual ainda está pendente:',previewError);}
    logEntries.push({ok:true,message:(recovered?'Cópia privada anterior reaproveitada · ':'')+(scheduled?'Publicado no acervo · fora da prova atual: ':(scope?'Publicado na revisão: ':'Guardado fora da revisão: '))+title+' ('+file.name+')'+(sectionNumber?' · seção '+sectionNumber:'')});
    if(organizationWarnings.length)logEntries.push({ok:false,message:'Arquivo salvo, mas é necessário revisar a organização: '+organizationWarnings.join('; ')});
    passed++;
@@ -592,6 +599,10 @@ function tryStart(){
  if(attempts++<35)setTimeout(tryStart,1000);
 }
 tryStart();
-window.uentzoulLibraryManager={refresh,ready:()=>initialized,isAdmin:()=>isAdmin,batchSubject:()=>batchSubjectValue};
+window.uentzoulLibraryManager={refresh,ready:()=>initialized,isAdmin:()=>isAdmin,batchSubject:()=>batchSubjectValue,
+ previewRecord:key=>previewRows.get(key)||null,
+ previewItems:()=>Array.from(previewRows.values()),
+ notePreview:(key,path)=>{const row=previewRows.get(key);if(row)row.preview_path=path||null;}
+};
 
 })();
