@@ -1998,7 +1998,7 @@ html[data-theme="dark"] .tz-pending-icon{background:#40375e;color:#d6c4ff}
 <link rel="stylesheet" href="library-manager.css?v=20261114-batch-recovery-v1">
 <link rel="stylesheet" href="biblioteca-moodle.css?v=20261112-3">
 <link rel="stylesheet" href="revisao-compacta.css?v=20261119-simple-examples-v2">
-<script src="revisao-erros.js?v=20261119-meta-p2-28q-v2"></script>
+<script src="revisao-erros.js?v=20261119-avaliacao-p3-v1"></script>
 <link rel="stylesheet" href="disciplina-clean.css?v=20261119-simetria-v2">
 <link rel="stylesheet" href="inicio-slogan.css?v=20261117-vistos-podcasts-1">
 <link rel="stylesheet" href="admin-config.css?v=20261115-device-log-v2">
@@ -2006,17 +2006,18 @@ html[data-theme="dark"] .tz-pending-icon{background:#40375e;color:#d6c4ff}
 <link rel="stylesheet" href="estudos-dirigidos.css?v=20261119-answer-tabs-v1">
 <link rel="stylesheet" href="estudo-ativo.css?v=20261117-vistos-casos-1">
 <script src="estudos-dirigidos-avaliacao.js?v=20261113-revisao-global-1"></script>
+<script src="avaliacao-p3-pratica.js?v=20261119-foco-p3-21-v1"></script>
 <script src="estudos-dirigidos-tcc.js?v=20261112-3"></script>
 <script src="estudos-dirigidos-meta.js?v=20261116-meta-p2"></script>
 <script src="metapsicologia-p2-pratica.js?v=20261119-28q-v1"></script>
 <script src="estudos-dirigidos.js?v=20261119-avaliacao-p3-accordion-v3"></script>
 <script src="estudos-casos-data.js?v=20261119-meta-p2-edipo-v3"></script>
-<script src="estudo-ativo.js?v=20261119-meta-p2-28q-v3"></script>
+<script src="estudo-ativo.js?v=20261119-avaliacao-p3-v1"></script>
 <link rel="stylesheet" href="primeiro-semestre-relembrar.css?v=20261117-clareza-v2">
 <script src="primeiro-semestre-dados.js?v=20261117-clareza-v2"></script>
 <script src="primeiro-semestre-relembrar.js?v=20261119-simetria-v2"></script>
 <script src="psicomoodle-new-content.js?v=20261117-clareza-v2"></script>
-<script src="simulados-finais-2026.js?v=20261119-social-p1-uma-discursiva-v2"></script>
+<script src="simulados-finais-2026.js?v=20261119-avaliacao-p3-21-v1"></script>
 <script src="simulados-grupos-filme-2026.js?v=20261119-grupos-p2-duas-discursivas-v3"></script>
 <script src="estudos-dirigidos-finais-2026.js?v=20261117-clareza-v2"></script>
 <link rel="stylesheet" href="simulados-finais-2026.css?v=20261114-grupos-info-v2">
@@ -3474,7 +3475,8 @@ function readyExamsFor(subject){
  const currentRevision=subject==='familia'?window.PSICO_FINAL_EXAMS?.familyVersion:
   subject==='meta'?window.PSICO_FINAL_EXAMS?.metaVersion:
   subject==='grupos'?window.PSICO_FINAL_EXAMS?.groupVersion:
-  subject==='social'?window.PSICO_FINAL_EXAMS?.socialVersion:window.PSICO_FINAL_EXAMS?.version;
+  subject==='social'?window.PSICO_FINAL_EXAMS?.socialVersion:
+  subject==='avaliacao'?window.PSICO_FINAL_EXAMS?.evaluationVersion:window.PSICO_FINAL_EXAMS?.version;
  const latest=base.filter(e=>e.final2026===true&&e.revision===currentRevision);
  if(latest.length===5)return [1,2,3,4,5].map(level=>latest.find(e=>Number(e.model)===level)).filter(Boolean);
  const first=subject==='social'?6:1;
