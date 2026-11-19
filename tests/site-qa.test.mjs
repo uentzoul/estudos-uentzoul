@@ -147,7 +147,7 @@ test('Histórico por visita: linhas clicáveis, percursos reais e registros anti
 
 test('Status de visita: ativa, fim registrado e fim estimado sem inventar logout',()=>{
  const admin=read('admin-config.js');
- const match=admin.match(/function visitDetail\\(row\\)\\{[\\s\\S]*?\\n\\}/);
+ const match=admin.match(/function visitDetail\(row\)\{[\s\S]*?\n\}/);
  assert.ok(match,'função de histórico localizada');
  const now=Date.parse('2026-11-19T14:00:00.000Z');
  const entry='2026-11-19T13:00:00.000Z';
