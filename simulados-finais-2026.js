@@ -434,7 +434,7 @@ function generateVaried(id,model,topics){
   // A primeira prova original completa não foi reproduzida nem atribuída ao professor.
   const a=pickPool(topics,model,13),b=pickPool(topics,model,14);
   const tf=questionTF(model,13,a,id+'-'+version+'-'+model+'-14');
-  tf.prompt='Julgue a afirmação sobre '+a.title.toLowerCase()+':\\n'+
+  tf.prompt='Julgue a afirmação sobre '+a.title.toLowerCase()+':\n'+
    (tf.answer?definition(a):invalid(a)).replace(/[.!?]+$/,'')+'.';
   questions.push(tf);
   questions.push(variedEssay(topics,model,0,a,b,id+'-'+version+'-'+model+'-15'));
