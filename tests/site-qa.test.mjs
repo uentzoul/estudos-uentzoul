@@ -642,26 +642,40 @@ test('Revisão dos simulados mantém identificadores e exige conhecimento da dis
  assert.equal(social.length,18);
  assert.doesNotMatch(social.map(t=>t.myth).join(' '),/assegura automaticamente igualdade|sem relação com pessoas ou poder/);
  const runtime={window:{PSICOMOODLE_NEW_CONTENT:{social}}};
+ vm.runInNewContext(read('estudos-dirigidos-meta.js'),runtime);
+ vm.runInNewContext(read('metapsicologia-p2-pratica.js'),runtime);
  vm.runInNewContext(read('simulados-finais-2026.js'),runtime);
+ vm.runInNewContext(read('simulados-grupos-filme-2026.js'),runtime);
  runtime.window.PSICO_FINAL_EXAMS.apply(original);
  const kept=original.exams.filter(e=>oldIDs.includes(e.id));
  assert.deepEqual(kept.map(e=>e.id),oldIDs,'IDs das provas anteriores de Família e demais disciplinas não são trocados');
  assert.deepEqual(kept.map(e=>e.questions.map(q=>q.id)),oldQuestionIds,
   'IDs das questões antigas permanecem intactos');
- const current=original.exams.filter(e=>e.final2026&&e.revision===runtime.window.PSICO_FINAL_EXAMS.version);
+ const current=['tcc','familia','meta','grupos','social','avaliacao'].flatMap(subject=>{
+  const ctrl=runtime.window.PSICO_FINAL_EXAMS;
+  const revision=subject==='familia'?ctrl.familyVersion:subject==='meta'?ctrl.metaVersion:
+   subject==='grupos'?ctrl.groupVersion:ctrl.version;
+  return original.exams.filter(e=>e.subject===subject&&e.final2026&&e.revision===revision);
+ });
  assert.equal(current.length,30,'Cinco simulados por cada uma das seis disciplinas');
  for(const subject of ['tcc','familia','meta','grupos','social','avaliacao']){
   const exams=current.filter(e=>e.subject===subject);
   assert.equal(exams.length,5,subject);
   for(const exam of exams){
-   assert.equal(exam.questions.length,15,'Treze objetivas e duas dissertativas: '+exam.id);
-   assert.equal(new Set(exam.questions.map(q=>q.id)).size,15,'IDs únicos');
+   assert.equal(exam.questions.length,subject==='grupos'?5:15,'Formato atual: '+exam.id);
+   assert.equal(new Set(exam.questions.map(q=>q.id)).size,exam.questions.length,'IDs únicos');
    for(const q of exam.questions){
     if(q.type==='choice'||q.type==='combo')assert.ok(q.answer>=0&&q.answer<q.options.length,q.id);
    }
   }
  }
  assert.ok(current.filter(e=>e.subject==='familia').every(e=>e.id.startsWith('familia-rev-provas-equivalentes-20261113-')));
+ assert.equal(current.reduce((sum,e)=>sum+e.questions.length,0),400,'Questões da revisão atual');
+ for(const e of current.filter(x=>x.subject!=='familia')){
+  const brief=e.questions.filter(q=>/^Situação breve:|^Uma situação do filme/i.test(q.prompt||''));
+  assert.equal(brief.length,e.subject==='meta'?0:1,'Quantidade de aplicações por prova: '+e.id);
+ }
+ assert.match(html,/subject==='familia'\?window\.PSICO_FINAL_EXAMS\?\.familyVersion/,'Família mantém revisão anterior');
  const meta=current.filter(e=>e.subject==='meta');
  assert.ok(meta.every(e=>!e.questions.some(q=>/ang[uú]sti/i.test(JSON.stringify(q)))));
  assert.ok(current.some(e=>e.questions.some(q=>q.type==='combo'&&q.assertions.some(a=>/esquema inicial desadaptativo de crenças intermediárias/.test(a.text)))),
@@ -694,12 +708,15 @@ test('Alternativas dos 13 cursos são relevantes, únicas e só revelam a melhor
  const content=read('psicomoodle-new-content.js');
  const social=JSON.parse(content.match(/const DATA=(\{[\s\S]*?\});\s*\n/)[1]).social;
  const runtime={window:{PSICOMOODLE_NEW_CONTENT:{social}}};
+ vm.runInNewContext(read('estudos-dirigidos-meta.js'),runtime);
+ vm.runInNewContext(read('metapsicologia-p2-pratica.js'),runtime);
  vm.runInNewContext(read('simulados-finais-2026.js'),runtime);
  vm.runInNewContext(read('simulados-grupos-filme-2026.js'),runtime);
  runtime.window.PSICO_FINAL_EXAMS.apply(raw);
  const current=['tcc','familia','meta','grupos','social','avaliacao'].flatMap(subject=>{
-  const revision=subject==='grupos'?
-   runtime.window.PSICO_FINAL_EXAMS.groupVersion:runtime.window.PSICO_FINAL_EXAMS.version;
+  const ctrl=runtime.window.PSICO_FINAL_EXAMS;
+  const revision=subject==='familia'?ctrl.familyVersion:subject==='meta'?ctrl.metaVersion:
+   subject==='grupos'?ctrl.groupVersion:ctrl.version;
   const exams=raw.exams.filter(e=>e.subject===subject&&e.final2026&&e.revision===revision);
   assert.equal(exams.length,5,'Cinco simulados de '+subject);
   return exams;
