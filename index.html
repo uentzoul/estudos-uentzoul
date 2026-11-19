@@ -3478,7 +3478,7 @@ function readyExamsFor(subject){
 }
 function renderSubject(k){
  const subj=getSubject(k),docs=DB.materials.filter(x=>x.subject===k&&x.available&&currentExamKeys.has(x._libraryKey)&&x._libraryUpload?.exam_scope!==false),topics=DB.topics[k]||[],tests=readyExamsFor(k);
- const area=['trail','topics','docs','tests','podcasts','guided','flash','cases'].includes(current.subjectArea)?current.subjectArea:null;
+ const area=['topics','docs','tests','podcasts','guided','flash','cases'].includes(current.subjectArea)?current.subjectArea:null;
  const top='<div class="subject-hub" style="--subject-accent:'+color(k)+'">'+
  '<div class="subject-hub-crumb"><button type="button" data-action="page:home">Início</button><span aria-hidden="true">/</span><span>'+esc(subj.name)+'</span></div>'+
  '<header class="subject-hub-hero"><span class="subject-hub-emblem" aria-hidden="true">Ψ</span>'+
@@ -3497,7 +3497,6 @@ function renderSubject(k){
   // Ordem editorial fixa, idêntica em todas as disciplinas e sem alterações
   // conforme a disponibilidade de conteúdos. As telas vazias explicam o estado.
   const choices=[
-   ['trail','✧','Trilha de Estudos para a Prova','Siga um roteiro guiado com os principais materiais, podcasts, exercícios e simulados'],
    ['docs','▤','Materiais e textos','Arquivos e leituras da disciplina'],
    ['guided','▣','Estudos dirigidos','Perguntas respondidas, exemplos e explicações passo a passo'],
    ['tests','✦','Simulados','Questões para praticar o que foi estudado'],
@@ -3506,9 +3505,9 @@ function renderSubject(k){
    ['podcasts','♫','Podcasts','Episódios da disciplina para escutar'],
    ['topics','☷','Conteúdos para revisar','Conceitos, exemplos e explicações dos assuntos da prova']
   ];
-  return top+'<p class="subject-hub-area-intro">Escolha a trilha guiada ou consulte cada tipo de material.</p>'+metaTrail+
+  return top+'<p class="subject-hub-area-intro">Escolha uma área para consultar os materiais.</p>'+metaTrail+
    '<nav class="subject-hub-menu" aria-label="Áreas de estudo de '+esc(subj.name)+'">'+
-   choices.map(item=>'<button type="button" class="subject-hub-card'+(item[0]==='trail'?' subject-trail-highlight':item[0]==='docs'?' subject-docs-full':'')+'" data-action="subjectArea:'+item[0]+'">'+
+   choices.map(item=>'<button type="button" class="subject-hub-card'+(item[0]==='docs'?' subject-docs-full':'')+'" data-action="subjectArea:'+item[0]+'">'+
     '<span class="subject-hub-card-icon" aria-hidden="true">'+item[1]+'</span>'+
     '<span class="subject-hub-card-copy"><strong class="subject-hub-card-title">'+item[2]+'</strong>'+
     '<span class="subject-hub-card-desc">'+item[3]+'</span></span>'+
@@ -3516,7 +3515,6 @@ function renderSubject(k){
    '</nav></div>'; 
  }
  const back='<button type="button" class="subject-hub-back" data-action="subjectArea:home">← Voltar às opções</button>';
- if(area==='trail')return top+'<div class="subject-hub-area">'+back+(window.PSICO_STUDY_TRAILS?.render({subject:k,subjectName:subj.name,color:color(k),materials:docs,topics,episodes:audioEpisodes(k),exams:readyExamsFor(k),isDone,doneBox,episodeAvailable:(i)=>episodeAvailable(k,i)})||'<p>A trilha não pôde ser carregada.</p>')+'</div></div>';
  if(area==='guided')return top+'<div class="subject-hub-area">'+back+(window.renderStudyGuide?.(k)||'<p>Não foi possível abrir os estudos dirigidos.</p>')+'</div></div>';
  if(area==='flash')return top+'<div class="subject-hub-area">'+back+(window.PSICO_PRACTICE?.flashcards(k,topics,semester)||'<p>Flashcards indisponíveis.</p>')+'</div></div>';
  if(area==='cases')return top+'<div class="subject-hub-area">'+back+(window.PSICO_PRACTICE?.cases(k)||'<p>Casos indisponíveis.</p>')+'</div></div>';
@@ -3548,7 +3546,7 @@ function renderSubject(k){
   const organizer=window.PSICO_COURSE_MANAGER?.weeklyView?.(semester,k,archiveDocs,docCard);
   const weekly=organizer?.weekly;
   const focusCount=archiveDocs.filter(isCurrentExamMaterial).length;
-  const examNotice='<div class="pm-exam-info" role="note"><strong>Materiais para consulta</strong><p>Os arquivos com a indicação <span class="pm-exam-badge">Cai na prova</span> são o foco das últimas avaliações. Os demais estão liberados no acervo, mas ainda não fazem parte dos flashcards, simulados ou trilhas atuais.</p></div>';
+  const examNotice='<div class="pm-exam-info" role="note"><strong>Materiais para consulta</strong><p>Os arquivos com a indicação <span class="pm-exam-badge">Cai na prova</span> são o foco das últimas avaliações. Os demais estão liberados no acervo, mas ainda não fazem parte dos flashcards, simulados atuais.</p></div>';
   const scheduledCount=archiveDocs.filter(adminScheduledMaterial).length;
   const adminNotice=scheduledCount?'<div class="pm-private-materials-notice" role="status">🔒 Prévia exclusiva da administração: '+scheduledCount+
    ' '+(scheduledCount===1?'material está oculto':'materiais estão ocultos')+
@@ -3634,12 +3632,6 @@ function renderLibrary(embedded=false){
   return '<div class="library-page"><button type="button" class="course-back" data-action="libraryBack">← Voltar às disciplinas</button>'+
    '<section class="course-detail-hero" style="--course-accent:'+color(selected)+'">'+
     '<div class="course-detail-banner" aria-hidden="true">Ψ</div>'+
-    (selected==='meta'?'<div class="course-video-trail"><a class="course-video-trail-link" href="metapsicologia-p2.html" aria-label="Abrir Linha do Tempo das Aulas Gravadas de Metapsicologia">'+
-    '<span class="course-video-trail-icon" aria-hidden="true">▶</span>'+
-    '<span class="course-video-trail-content"><span class="course-video-trail-kicker">Destaque para a prova · Metapsicologia</span>'+
-    '<strong class="course-video-trail-title">Linha do Tempo das Aulas Gravadas</strong>'+
-    '<span class="course-video-trail-description">Confira o que o professor falou em cada parte das aulas gravadas.</span></span>'+
-    '<span class="course-video-trail-cta">Acessar trilha →</span></a></div>':'')+
     '<div class="course-detail-body">'+
     '<span class="eyebrow">Psicologia PUCRS · 2026/2 · Acervo completo</span><h1 class="h1">'+esc(subj.name)+'</h1>'+
     '<p>Arquivos da disciplina para consulta, com destaque para os temas das últimas provas.</p>'+libraryProgressMarkup(p)+'</div></section>'+
@@ -4822,7 +4814,7 @@ function renderThirdSemester(){
  const countLabel=String(count);
  const activities=overallKeys(),completed=doneCount(activities),pct=fmtPct(completed,activities.length);
  const courseCards=()=>'<div class="library-page"><div class="course-intro"><div>'+
-  head('Psicologia PUCRS · '+period,'Disciplinas do '+ordinal+' semestre',countLabel+' disciplinas cadastradas. '+(firstSemester?'Trilhas de revisão, flashcards, estudos de caso e simulados para relembrar.':'Os conteúdos e materiais poderão ser adicionados posteriormente.'))+
+  head('Psicologia PUCRS · '+period,'Disciplinas do '+ordinal+' semestre',countLabel+' disciplinas cadastradas. '+(firstSemester?'Flashcards, estudos de caso e simulados para relembrar.':'Os conteúdos e materiais poderão ser adicionados posteriormente.'))+
   '</div></div>'+ '<div class="course-grid">'+ids.slice().sort((a,b)=>DB.subjects[a].name.localeCompare(DB.subjects[b].name,'pt-BR')).map(k=>{
     const s=DB.subjects[k];
     return '<article class="course-card" style="--course-accent:'+color(k)+'" data-course-search="'+esc((s.name+' '+(s.code||'')).toLocaleLowerCase('pt-BR'))+'">'+
@@ -4848,7 +4840,7 @@ function renderThirdSemester(){
    return window.PSICO_FIRST_SEMESTER.renderSubject({id:subjectId,subject:subj,area:current.subjectArea,
     topics:DB.topics[subjectId]||[],docs,exams:DB.exams.filter(e=>e.subject===subjectId),doneBox,topicProgressKey,docCard,classify:materialGroup});
   }
-  const titles={trail:'Trilha de Estudos para a Prova',guided:'Estudos dirigidos',tests:'Simulados',flash:'Flashcards',cases:'Estudos de casos',podcasts:'Podcasts',topics:'Conteúdos para revisar',docs:'Materiais e textos'};
+  const titles={guided:'Estudos dirigidos',tests:'Simulados',flash:'Flashcards',cases:'Estudos de casos',podcasts:'Podcasts',topics:'Conteúdos para revisar',docs:'Materiais e textos'};
   const area=current.subjectArea;
   const top='<div class="subject-hub" style="--subject-accent:'+color(subjectId)+'">'+
    '<div class="subject-hub-crumb"><button type="button" data-action="page:home">Início</button><span aria-hidden="true">/</span><span>'+esc(subj.name)+'</span></div>'+
@@ -4868,7 +4860,6 @@ function renderThirdSemester(){
     '<section class="section"><div class="sectiontop"><h2>'+esc(titles[area])+'</h2></div>'+
     '<div class="subject-hub-empty">Ainda não há registros nesta área para '+period+'.</div></section></div></div>';
   const sections=[
-   ['trail','✧','Trilha de Estudos para a Prova','Roteiro guiado quando os conteúdos forem publicados'],
    ['docs','▤','Materiais e textos','Arquivos e leituras'],
    ['guided','▣','Estudos dirigidos','Perguntas, respostas e explicações'],
    ['tests','✦','Simulados','Questões para praticar'],
@@ -4879,7 +4870,7 @@ function renderThirdSemester(){
   ];
   return top+'<p class="subject-hub-area-intro">Selecione uma área para consultar os materiais quando estiverem cadastrados.</p>'+
     '<nav class="subject-hub-menu" aria-label="Áreas de estudo de '+esc(subj.name)+'">'+
-    sections.map(([id,icon,title,desc])=>'<button type="button" class="subject-hub-card'+(id==='trail'?' subject-trail-highlight':id==='docs'?' subject-docs-full':'')+'" data-action="subjectArea:'+id+'">'+
+    sections.map(([id,icon,title,desc])=>'<button type="button" class="subject-hub-card'+(id==='docs'?' subject-docs-full':'')+'" data-action="subjectArea:'+id+'">'+
     '<span class="subject-hub-card-icon" aria-hidden="true">'+icon+'</span>'+
     '<span class="subject-hub-card-copy"><strong class="subject-hub-card-title">'+title+'</strong>'+
     '<span class="subject-hub-card-desc">'+desc+'</span></span><span class="subject-hub-card-arrow" aria-hidden="true">→</span></button>').join('')+'</nav></div>';
