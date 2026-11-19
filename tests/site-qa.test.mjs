@@ -845,22 +845,19 @@ test('Nenhuma função WebRTC é inicializada pela página de mensagens',()=>{
  assert.match(html,/uentzoulMessenger/,'mensageiro continua funcionando');
 });
 
-test('Trilhas têm flashcards com animação e podcast integrado sem trocar marcadores',()=>{
- const trail=read('trilha-integrada.js');
- const visual=read('trilha-integrada.css');
+test('Trilhas convencionais removidas, vídeos de Metapsicologia preservados',()=>{
+ const trail=read('trilhas-estudos.js');
+ const visual=read('trilhas-estudos.css');
+ const integrated=read('trilha-integrada.js');
  const first=read('primeiro-semestre-relembrar.js');
- const firstVisual=read('primeiro-semestre-relembrar.css');
- assert.match(trail,/data-ti-play/,'podcast permite reproduzir e pausar');
- assert.match(trail,/data-ti-seek/,'podcast permite buscar um trecho');
- assert.match(trail,/data-ti-skip/,'podcast permite pular segundos');
- assert.match(trail,/data-ti-flip/,'flashcards da trilha são interativos');
- assert.match(trail,/data-ti-prev/,'flashcards permitem voltar');
- assert.match(trail,/data-ti-next/,'flashcards permitem avançar');
- assert.match(visual,/rotateY\(180deg\)/,'flashcards usam animação tridimensional');
- assert.match(first,/data-s1-flip/,'revisão do primeiro semestre incorpora flashcards');
- assert.match(firstVisual,/rotateY\(180deg\)/,'primeiro semestre também usa animação');
- assert.match(trail,/trail:'\+ctx\.subject\+':'\+i\+':0/,'marcador original das etapas do segundo semestre é mantido');
- assert.match(first,/trail:relembrar:'\+ctx\.id\+':'\+i/,'marcador original do primeiro semestre é mantido');
+ const video=read('metapsicologia-p2.html');
+ assert.match(trail,/metapsicologia-p2\.html/,'atalho para vídeos continua acessível');
+ assert.match(trail,/video-trail-link/,'Metapsicologia mantém uma entrada específica');
+ assert.match(visual,/subjectArea:trail/,'ocultação prévia evita exibir cartões removidos');
+ assert.doesNotMatch(first,/function trailView\(/,'trilha do primeiro semestre foi retirada');
+ assert.doesNotMatch(first,/Trilha de Estudos para Relembrar/,'menu antigo foi retirado');
+ assert.doesNotMatch(integrated,/function render\(ctx\)/,'trilha integrada desativada');
+ assert.match(video,/progressNumber/,'página independente de aulas gravadas permanece');
 });
 
 test('Questões didáticas mais claras preservam estrutura e gabaritos',()=>{

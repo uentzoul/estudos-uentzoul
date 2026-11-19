@@ -222,7 +222,6 @@ function apply(db){
  }
 }
 const links=[
- ['trail','✧','Trilha de Estudos para Relembrar','Roteiro guiado para retomar o que foi estudado'],
  ['docs','▤','Materiais e textos','Textos originais enviados e referências utilizadas'],
  ['guided','▣','Estudos dirigidos','Perguntas com explicações por tema'],
  ['tests','✦','Simulados','Cinco temas diferentes, com dificuldade equilibrada'],
@@ -282,50 +281,8 @@ function examsView(ctx){
  'Cinco blocos de temas diferentes, com dificuldade equilibrada. Exercícios autorais: não são provas antigas nem gabaritos oficiais.');
 }
 
-function trailView(ctx){
- const arr=ctx.topics||[],chunks=[arr.slice(0,4),arr.slice(4,8),arr.slice(8,12),arr.slice(12)].filter(x=>x.length);
- const steps=['Rever os conceitos básicos','Ligar teoria e exemplos','Aplicar o que aprendeu','Treinar para relembrar'];
- const goals=['Leia os conceitos e confira se consegue explicá-los.','Veja como os conceitos aparecem em situações do dia a dia.','Compare explicações e pratique com exemplos.','Use as questões para descobrir o que ainda precisa revisar.'];
- const areas=[['topics','Ver todos os conceitos'],['guided','Abrir estudo dirigido'],['cases','Abrir estudos de casos'],['tests','Ver todos os simulados']];
- const list=chunks.map((chunk,i)=>{
-  const first=chunk[0];
-  const flash='<div class="s1-trail-flash"><div class="s1-trail-flash-top"><strong>Flashcards desta etapa</strong><span data-s1-status>1 de '+chunk.length+'</span></div>'+
-   '<div class="s1-trail-flash-deck">'+chunk.map((t,j)=>'<button type="button" class="s1-trail-flash-card'+(j===0?' is-current':'')+'" data-s1-flip'+(j?' hidden':'')+' aria-pressed="false" aria-label="Mostrar resposta"><span class="s1-trail-flash-inner"><span class="s1-trail-flash-face s1-trail-flash-front">Explique: '+esc(t.title)+'</span><span class="s1-trail-flash-face s1-trail-flash-back">'+esc(t.definition)+'</span></span></button>').join('')+'</div>'+
-   '<div class="s1-trail-flash-nav"><button type="button" data-s1-prev disabled>← Anterior</button><span>Toque no cartão para virar</span><button type="button" data-s1-next'+(chunk.length===1?' disabled':'')+'>Próximo →</button></div></div>';
-  const example='<details class="s1-trail-practice"><summary>Exemplo e resposta comentada</summary><div><p>'+esc(first.scenario)+'</p><strong>Qual conceito explica melhor essa situação?</strong><details><summary>Ver explicação</summary><p>'+esc(first.title)+': '+esc(first.definition)+'</p><p><b>Cuidado:</b> '+esc(first.myth)+'</p></details></div></details>';
-  const tests=i===chunks.length-1?'<div class="s1-trail-exams"><strong>Simulados para praticar</strong><div>'+
-   (ctx.exams||[]).map((e,j)=>'<button type="button" data-action="test:'+esc(e.id)+'">Simulado '+(j+1)+' →</button>').join('')+'</div></div>':'';
-  return '<section class="s1-step"><div class="s1-step-head"><span>'+String(i+1).padStart(2,'0')+'</span><div><h3>'+esc(steps[i])+'</h3><p>'+esc(goals[i])+'</p></div></div>'+
-   '<div class="s1-trail-concepts"><h4>Conceitos desta etapa</h4>'+chunk.map(t=>'<details><summary>'+esc(t.title)+'</summary><p>'+esc(t.definition)+'</p><p><b>Exemplo:</b> '+esc(t.scenario)+'</p></details>').join('')+'</div>'+
-   flash+example+tests+
-   '<div class="s1-actions"><button class="btn ghost" type="button" data-action="subjectArea:'+areas[i][0]+'">'+areas[i][1]+' →</button>'+
-   '<div class="s1-done">'+ctx.doneBox('trail:relembrar:'+ctx.id+':'+i,'Etapa concluída')+'</div></div></section>';
- }).join('');
- return '<div class="s1-trail"><header><small>REVISÃO DO 1º SEMESTRE</small><h2>Trilha de Estudos para Relembrar</h2>'+
- '<p>Reveja um assunto por vez. Leia, vire os flashcards, pratique com os exemplos e faça os simulados.</p></header>'+list+'</div>';
-}
-if(typeof document!=='undefined')document.addEventListener('click',event=>{
- const trigger=event.target.closest?.('[data-s1-flip],[data-s1-prev],[data-s1-next]');
- if(!trigger||!trigger.closest('.s1-trail'))return;
- event.preventDefault();
- if(trigger.hasAttribute('data-s1-flip')){
-  const flip=!trigger.classList.contains('is-flipped');
-  trigger.classList.toggle('is-flipped',flip);
-  trigger.setAttribute('aria-pressed',String(flip));
-  trigger.setAttribute('aria-label',flip?'Mostrar pergunta':'Mostrar resposta');
-  return;
- }
- const viewer=trigger.closest('.s1-trail-flash'),cards=[...viewer.querySelectorAll('[data-s1-flip]')],active=cards.findIndex(x=>!x.hidden);
- const next=Math.max(0,Math.min(cards.length-1,active+(trigger.hasAttribute('data-s1-next')?1:-1)));
- if(active===next||!cards.length)return;
- cards.forEach((card,i)=>{card.hidden=i!==next;card.classList.toggle('is-current',i===next);});
- viewer.querySelector('[data-s1-status]').textContent=(next+1)+' de '+cards.length;
- viewer.querySelector('[data-s1-prev]').disabled=next===0;
- viewer.querySelector('[data-s1-next]').disabled=next===cards.length-1;
-});
-
 function renderSubject(ctx){
- const id=ctx.id,area=ctx.area;
+ const id=ctx.id,area=ctx.area==='trail'?'home':ctx.area;
  if(!names[id])return '<div class="subject-hub-empty">Disciplina não encontrada.</div>';
  let output='';
  if(!area||area==='home'){
@@ -334,8 +291,7 @@ function renderSubject(ctx){
     '<button type="button" class="subject-hub-card'+(v[0]==='trail'?' subject-trail-highlight':'')+'" data-action="subjectArea:'+v[0]+'">'+
     '<span class="subject-hub-card-icon" aria-hidden="true">'+v[1]+'</span><span class="subject-hub-card-copy">'+
     '<strong class="subject-hub-card-title">'+v[2]+'</strong><span class="subject-hub-card-desc">'+v[3]+'</span></span><span class="subject-hub-card-arrow">→</span></button>').join('')+'</nav>';
- }else if(area==='trail')output=trailView(ctx);
- else if(area==='topics')output=topicsView(ctx);
+ }else if(area==='topics')output=topicsView(ctx);
  else if(area==='docs')output=docsView(ctx);
  else if(area==='flash')output=panel('Flashcards',window.PSICO_PRACTICE?.flashcards(id,ctx.topics,'2026/1')||'<p>Flashcards indisponíveis.</p>');
  else if(area==='cases')output=panel('Estudos de casos',window.PSICO_PRACTICE?.cases(id)||'<p>Casos indisponíveis.</p>');
