@@ -3,7 +3,8 @@
 (()=>{
 'use strict';
 const VERSION='rev-provas-equivalentes-20261113';
-const META_VERSION='rev-prova-foco-p2-28q-clareza-20261119-v1';
+const META_VERSION='rev-meta-p2-roteiro-variado-20261119-v2';
+const UPCOMING_VERSION='rev-provas-variadas-20261119-v1';
 const LEGACY_CURRENT='rev-final-20261113-r2';
 const PREVIOUS_VERSION='rev-final-20261113';
 const LETTERS=['I','II','III','IV','V'];
@@ -296,7 +297,7 @@ function metaChoice(topics,model,slot,topic,id){
  const correct=options.shift();
  options.splice(correctPosition,0,correct);
  return {type:'choice',id,concept:topic.title,
-  prompt:'Situação para análise: '+topic.scenario+'\n\nConsiderando a teoria freudiana, qual alternativa apresenta a interpretação conceitualmente correta?',
+  prompt:'Considere o assunto '+topic.title.toLowerCase()+', previsto no roteiro da P2.\n\nQual alternativa apresenta a definição teoricamente adequada?',
   options,answer:correctPosition,source:'Questão autoral baseada no estudo dirigido P2 do professor Jefferson Krug.'};
 }
 function metaCombo(topics,model,slot,topic,id){
@@ -333,8 +334,7 @@ function metaEssay(topics,model,index,topic,id){
  const peer=metaSectionPeers(topics,topic)[0];
  return {type:'essay',id,concept:topic.title,
   prompt:'Questão do estudo dirigido:\n'+topic.question+
-   '\n\nAplique o conceito à seguinte situação: '+topic.scenario+
-   '\nExplique também sua relação ou diferença em comparação com '+peer.title.toLowerCase()+'.',
+   '\n\nNa resposta, apresente o conceito com clareza e explique sua relação ou diferença em comparação com '+peer.title.toLowerCase()+'.',
   criteria:['Responder integralmente ao enunciado do professor.',
    'Utilizar os conceitos de Freud com precisão e linguagem clara.',
    'Relacionar a resposta ao caso sem fazer generalizações indevidas.',
@@ -355,9 +355,84 @@ function generateMeta(model,topics){
   final2026:true,revision:META_VERSION,difficulty:'Padrão da prova',
   difficultyLevel:'equivalente',sameDifficulty:true,questions};
 }
+
+/* Provas futuras: predominância de teoria, comparações e assertivas.
+   Uma aplicação breve por simulado em TCC, Psicologia Social e Avaliação;
+   Metapsicologia segue o roteiro teórico. O gerador anterior de Família não muda. */
+function variedChoice(subject,topics,model,slot,a,qid){
+ const peers=similarTopics(subject,topics,a),b=peers[0]||a,c=peers[1]||b,d=peers[2]||c;
+ const options=[
+  {text:definition(a).replace(/[.!?]+$/,'')+'.',correct:true,
+   why:'Esta é a definição compatível com '+a.title+'. '+definition(a)},
+  {text:invalid(a).replace(/[.!?]+$/,'')+'.',correct:false,
+   why:'Essa afirmação confunde um aspecto do conceito. '+definition(a)},
+  ...[b,c,d].map(t=>({
+   text:definition(t).replace(/[.!?]+$/,'')+'.',correct:false,
+   why:'Esta definição corresponde a '+t.title+', e não ao conceito solicitado. '+definition(a)
+  }))
+ ];
+ const used=new Set();
+ for(let i=0;i<options.length;i++){
+  if(used.has(options[i].text))options[i].text='A afirmação corresponde especificamente a '+[b,c,d][Math.max(0,i-2)].title.toLowerCase()+': '+options[i].text;
+  used.add(options[i].text);
+ }
+ const correctIndex=(model*3+slot*2)%5,correct=options.shift();options.splice(correctIndex,0,correct);
+ const questions=[
+  'Assinale a alternativa que define corretamente '+a.title+'.',
+  'Sobre '+a.title+', qual afirmação está de acordo com a teoria estudada?',
+  'Qual formulação conceitual é mais precisa para explicar '+a.title+'?',
+  'Em relação a '+a.title+', identifique a alternativa teoricamente adequada.'
+ ];
+ return {type:'choice',id:qid,concept:a.title,prompt:questions[(model+slot)%questions.length],
+  options,answer:correctIndex,source:'Questão teórica de revisão baseada nos materiais da disciplina.'};
+}
+function variedEssay(topics,model,index,a,b,qid){
+ const compare=index===0?
+ 'Diferencie esse assunto de '+b.title.toLowerCase()+' e indique duas consequências relevantes dessa distinção.':
+ 'Explique a relação entre '+a.title.toLowerCase()+' e '+b.title.toLowerCase()+', apontando uma aproximação e uma diferença.';
+ return {type:'essay',id:qid,concept:a.title,
+  prompt:'Responda de forma objetiva e fundamentada: o que caracteriza '+a.title+'?\n\n'+compare,
+  criteria:['Definir '+a.title+' corretamente.','Explicar '+b.title+' sem confundir os conceitos.',
+   'Apresentar uma comparação coerente e bem justificada.','Usar terminologia adequada e redação clara.'],
+  model:'O tema '+a.title+' é compreendido da seguinte forma: '+definition(a)+
+   '\n\nEm comparação, '+b.title+': '+definition(b)+
+   '\n\nA resposta deve estabelecer a distinção entre os conceitos sem atribuir ao primeiro as características exclusivas do segundo.',
+  source:'Resposta orientativa baseada nos textos e tópicos da disciplina.'};
+}
+function generateVaried(id,model,topics){
+ const format=FORMATS[id]||FORMATS.tcc,questions=[];
+ const choiceSlots=format.map((t,i)=>t==='choice'?i:-1).filter(i=>i>=0);
+ const caseSlot=choiceSlots[(model-1)%choiceSlots.length];
+ for(let i=0;i<13;i++){
+  const a=pickPool(topics,model,i),b=pickPool(topics,model,i,1),c=pickPool(topics,model,i,2);
+  const qid=id+'-'+UPCOMING_VERSION+'-'+model+'-'+(i+1);
+  if(format[i]==='combo'){
+   const q=questionCombo(topics,model,i,a,b,c,qid);
+   q.prompt='Analise as cinco afirmações a seguir sobre os conteúdos da disciplina e assinale a combinação que apresenta apenas as corretas.';
+   questions.push(q);
+  }else if(format[i]==='tf'){
+   const q=questionTF(model,i,a,qid);
+   const truth=q.answer===true;
+   q.prompt='Julgue a afirmação sobre '+a.title.toLowerCase()+':\n'+(truth?definition(a):invalid(a)).replace(/[.!?]+$/,'')+'.';
+   questions.push(q);
+  }else if(i===caseSlot){
+   const q=questionChoice(id,topics,model,i,a,qid);
+   q.prompt=q.prompt.replace(/^Leia o caso:\n/,'Situação breve:\n');
+   questions.push(q);
+  }else questions.push(variedChoice(id,topics,model,i,a,qid));
+ }
+ for(let i=0;i<2;i++){
+  const a=pickPool(topics,model,13+i*2),b=pickPool(topics,model,14+i*2);
+  questions.push(variedEssay(topics,model,i,a,b,id+'-'+UPCOMING_VERSION+'-'+model+'-'+(14+i)));
+ }
+ return {id:id+'-'+UPCOMING_VERSION+'-'+model,subject:id,model,
+  title:'Simulado '+model,final2026:true,revision:UPCOMING_VERSION,
+  difficulty:'Padrão da prova',difficultyLevel:'equivalente',sameDifficulty:true,questions};
+}
 function generateEqual(id,model,topics){
  if(id==='meta'&&Array.isArray(window.PSICO_META_P2_PRACTICE?.topics)&&topics.length===28)
   return generateMeta(model,topics);
+ if(id!=='familia')return generateVaried(id,model,topics);
  const qs=[],format=FORMATS[id]||FORMATS.familia,version=id==='meta'?META_VERSION:VERSION;
  for(let i=0;i<13;i++){
   const a=pickPool(topics,model,i),b=pickPool(topics,model,i,1),c=pickPool(topics,model,i,2);
@@ -403,5 +478,5 @@ function apply(db){
   }
  }
 }
-window.PSICO_FINAL_EXAMS={apply,curated,familyExtra,version:VERSION,metaVersion:META_VERSION,generateEqual,formats:FORMATS};
+window.PSICO_FINAL_EXAMS={apply,curated,familyExtra,version:UPCOMING_VERSION,familyVersion:VERSION,metaVersion:META_VERSION,generateEqual,formats:FORMATS};
 })();
