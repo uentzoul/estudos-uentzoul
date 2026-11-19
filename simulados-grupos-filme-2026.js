@@ -23,14 +23,14 @@ function generate(model){
  const id=i=>'grupos-'+VERSION+'-'+model+'-'+i;
  const morenoQuestion={
   id:id(1),type:'essay',concept:'Jacob Levy Moreno · relação com Escritores da Liberdade',
-  prompt:'Questão 1 — Jacob Levy Moreno\\n\\nLeia a situação do filme Escritores da Liberdade:\\n'+
-   moreno.scene+'\\n\\n'+moreno.prompt,
+  prompt:'Questão 1 — Jacob Levy Moreno\n\nLeia a situação do filme Escritores da Liberdade:\n'+
+   moreno.scene+'\n\n'+moreno.prompt,
   criteria:moreno.criteria.slice(),model:moreno.model,
   source:'Questão dissertativa autoral baseada em Moreno e no filme Escritores da Liberdade.'};
  const rogersQuestion={
   id:id(2),type:'essay',concept:'Carl Rogers · relação com Escritores da Liberdade',
-  prompt:'Questão 2 — Carl Rogers\\n\\nLeia a situação do filme Escritores da Liberdade:\\n'+
-   rogers.scene+'\\n\\n'+
+  prompt:'Questão 2 — Carl Rogers\n\nLeia a situação do filme Escritores da Liberdade:\n'+
+   rogers.scene+'\n\n'+
    (model===5?
     'Relacione a transformação das narrativas individuais em um projeto coletivo à compreensão empática, à autenticidade e à consideração positiva incondicional de Carl Rogers. Explique como o reconhecimento entre os estudantes pode favorecer confiança e expressão pessoal. Diferencie essa experiência educativa de uma psicoterapia de grupo.':
     rogers.prompt),
