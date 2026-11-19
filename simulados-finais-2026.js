@@ -6,6 +6,7 @@ const VERSION='rev-provas-equivalentes-20261113';
 const META_VERSION='rev-meta-p2-roteiro-variado-20261119-v2';
 const UPCOMING_VERSION='rev-provas-variadas-20261119-v1';
 const SOCIAL_VERSION='rev-social-primeira-prova-uma-dissertativa-20261119-v2';
+const EVAL_VERSION='rev-avaliacao-p3-21-questoes-20261119-v1';
 const LEGACY_CURRENT='rev-final-20261113-r2';
 const PREVIOUS_VERSION='rev-final-20261113';
 const LETTERS=['I','II','III','IV','V'];
@@ -22,7 +23,7 @@ const invalid=t=>norm(t.myth||'Uma única característica seria suficiente para 
 function curated(db,id){
  let items=id==='social'?[...(window.PSICOMOODLE_NEW_CONTENT?.social||[])]:[...(db.topics[id]||[])];
  if(id==='familia')for(const x of familyExtra)if(!items.some(t=>t.title===x.title))items.push(x);
- if(id==='avaliacao')items=items.filter(x=>evalScope.has(x.title));
+ if(id==='avaliacao'&&!window.PSICO_AVALIACAO_P3_PRACTICE?.topics?.length)items=items.filter(x=>evalScope.has(x.title));
   if(id==='meta')items=items.filter(x=>!/^ang[uú]stia$/i.test(x.section||'')&&!/ang[uú]sti/i.test(x.title||''));
  return items.filter(x=>x.title&&x.definition);
 }
@@ -448,9 +449,103 @@ function generateVaried(id,model,topics){
   title:'Simulado '+model,final2026:true,revision:version,
   difficulty:'Padrão da prova',difficultyLevel:'equivalente',sameDifficulty:true,questions};
 }
+/* Avaliação P3: questões específicas do roteiro docente.
+   Em vez de distratores de outros assuntos, as cinco opções tratam do mesmo tema.
+   Uma situação breve por prova; demais itens teóricos, combinados ou dissertativos. */
+function evalChoice(topic,model,slot,id,withCase=false){
+ const texts=[topic.definition,...topic.distractors];
+ const choices=texts.map((text,i)=>({
+  text:String(text).replace(/[.!?]+$/,'')+'.',
+  correct:i===0,
+  why:i===0?'Correto. '+topic.definition:
+   'Esta interpretação altera uma condição relevante do assunto. '+topic.whyWrong
+ }));
+ if(new Set(choices.map(x=>x.text)).size!==5)throw Error('Alternativas repetidas: '+topic.title);
+ const index=(model*3+slot*2)%5,correct=choices.shift();choices.splice(index,0,correct);
+ const prompts=[
+  'Sobre '+topic.title.toLowerCase()+', qual alternativa apresenta a interpretação mais adequada?',
+  'Considerando os fundamentos de '+topic.title.toLowerCase()+', assinale a afirmação correta.',
+  'Qual das alternativas descreve corretamente '+topic.title.toLowerCase()+'?',
+  'Na avaliação psicológica, qual afirmação sobre '+topic.title.toLowerCase()+' está de acordo com o roteiro de estudos?'
+ ];
+ return {type:'choice',id,concept:topic.title,answer:index,options:choices,
+  prompt:withCase?
+   'Situação breve: '+topic.scenario+'\n\nConsiderando os procedimentos de avaliação psicológica, qual alternativa é a mais adequada?':
+   prompts[(model+slot)%prompts.length],
+  source:'Questão autoral fundamentada no estudo dirigido da P3.'};
+}
+function evalCombo(topics,topic,model,slot,id){
+ const peers=topics.filter(x=>x.section===topic.section&&x!==topic);
+ if(peers.length<2)throw Error('P3 sem tópicos suficientes em '+topic.section);
+ const a=peers[(model+slot)%peers.length],b=peers[(model+slot+1)%peers.length];
+ const items=[
+  {text:topic.definition,truth:true,why:topic.definition},
+  {text:a.myth,truth:false,why:a.whyWrong},
+  {text:a.definition,truth:true,why:a.definition},
+  {text:b.myth,truth:false,why:b.whyWrong},
+  {text:b.definition,truth:true,why:b.definition}
+ ];
+ const rotation=(model+slot*2)%5;
+ const assertions=items.map((_,i)=>items[(i+rotation)%5]).map((x,i)=>({...x,l:LETTERS[i]}));
+ const correct=assertions.map((a,i)=>a.truth?i:-1).filter(i=>i>=0);
+ const decoys=COMBOS_3.filter(x=>x.join(',')!==correct.join(',')).slice((slot+model)%4,(slot+model)%4+4);
+ const answer=(model*2+slot)%5,sets=decoys.slice();sets.splice(answer,0,correct);
+ const prompts=[
+  'Analise as cinco proposições a seguir sobre conteúdos relacionados da avaliação psicológica e assinale a combinação correta.',
+  'Considere as afirmações I a V. Qual alternativa reúne apenas as proposições teoricamente adequadas?',
+  'Quais proposições sobre os procedimentos e conceitos estudados estão corretas?'
+ ];
+ return {type:'combo',id,concept:topic.title,prompt:prompts[(model+slot)%3],
+  assertions,options:sets.map(z=>'Apenas '+z.map(i=>LETTERS[i]).join(', ')+'.'),
+  answer,correct:correct.map(i=>LETTERS[i]),answerSets:sets.map(z=>z.map(i=>LETTERS[i])),
+  source:'Assertivas autorais sobre conceitos da mesma área do roteiro P3.'};
+}
+function evalTF(topic,model,slot,id){
+ const truth=(model+slot)%2===0;
+ return {type:'tf',id,concept:topic.title,
+  prompt:'Julgue a afirmação sobre '+topic.title.toLowerCase()+':\n'+(truth?topic.definition:topic.myth),
+  answer:truth,
+  explanation:(truth?'Verdadeiro. '+topic.definition:'Falso. '+topic.whyWrong),
+  source:'Afirmação elaborada para revisão da P3.'};
+}
+function evalEssay(topic,model,slot,id){
+ const criteria=[
+  'Responder ao enunciado da questão do roteiro docente.',
+  'Definir o conceito e explicar suas implicações de modo correto.',
+  'Distinguir condições, cuidados e limites envolvidos no procedimento.',
+  'Usar redação clara, objetiva e tecnicamente fundamentada.'
+ ];
+ return {type:'essay',id,concept:topic.title,
+  prompt:'Questão dissertativa do estudo dirigido da P3:\n'+topic.question,
+  criteria,model:topic.explanation,
+  source:'Enunciado do professor; resposta-modelo comentada, não gabarito oficial.'};
+}
+function generateEvaluation(model,topics){
+ if(topics.length!==21)throw Error('O roteiro de Avaliação P3 deve ter 21 temas');
+ const format=FORMATS.avaliacao;
+ const choiceSlots=format.map((x,i)=>x==='choice'?i:-1).filter(i=>i>=0);
+ const caseSlot=choiceSlots[(model-1)%choiceSlots.length];
+ const qs=[];
+ for(let i=0;i<13;i++){
+  const q=pickPool(topics,model,i);
+  const id='avaliacao-'+EVAL_VERSION+'-'+model+'-'+(i+1);
+  if(format[i]==='combo')qs.push(evalCombo(topics,q,model,i,id));
+  else if(format[i]==='tf')qs.push(evalTF(q,model,i,id));
+  else qs.push(evalChoice(q,model,i,id,i===caseSlot));
+ }
+ for(let i=0;i<2;i++){
+  const q=pickPool(topics,model,13+i*2);
+  qs.push(evalEssay(q,model,i,'avaliacao-'+EVAL_VERSION+'-'+model+'-'+(14+i)));
+ }
+ return {id:'avaliacao-'+EVAL_VERSION+'-'+model,subject:'avaliacao',model,
+  title:'Simulado '+model,final2026:true,revision:EVAL_VERSION,
+  difficulty:'P3 — roteiro docente',difficultyLevel:'equivalente',sameDifficulty:true,questions:qs};
+}
 function generateEqual(id,model,topics){
  if(id==='meta'&&Array.isArray(window.PSICO_META_P2_PRACTICE?.topics)&&topics.length===28)
   return generateMeta(model,topics);
+ if(id==='avaliacao'&&Array.isArray(window.PSICO_AVALIACAO_P3_PRACTICE?.topics)&&topics.length===21)
+  return generateEvaluation(model,topics);
  if(id!=='familia')return generateVaried(id,model,topics);
  const qs=[],format=FORMATS[id]||FORMATS.familia,version=id==='meta'?META_VERSION:VERSION;
  for(let i=0;i<13;i++){
@@ -471,12 +566,15 @@ function generateEqual(id,model,topics){
 
 function apply(db){
  if(!db?.subjects||!db?.topics||!Array.isArray(db.exams))return;
- // O mesmo banco das 28 questões abastece simulados, flashcards e revisão.
+ // Bancos docentes P2 e P3 compartilham os temas da prova com a revisão ativa.
  const p2=window.PSICO_META_P2_PRACTICE?.topics;
  if(Array.isArray(p2)&&p2.length===28)
   db.topics.meta=p2.map(t=>({...t}));
  else if(Array.isArray(db.topics.meta))
   db.topics.meta=db.topics.meta.filter(t=>!/ang[uú]sti/i.test(t.title||''));
+ const evaluationP3=window.PSICO_AVALIACAO_P3_PRACTICE?.topics;
+ if(Array.isArray(evaluationP3)&&evaluationP3.length===21)
+  db.topics.avaliacao=evaluationP3.map(t=>({...t}));
  db.archivedExams=db.archivedExams||[];
  for(const e of db.exams.filter(e=>e?.subject==='meta'))if(!db.archivedExams.some(a=>a.id===e.id))db.archivedExams.push(e);
  db.exams=db.exams.filter(e=>e?.subject!=='meta');
@@ -497,5 +595,5 @@ function apply(db){
   }
  }
 }
-window.PSICO_FINAL_EXAMS={apply,curated,familyExtra,version:UPCOMING_VERSION,familyVersion:VERSION,metaVersion:META_VERSION,socialVersion:SOCIAL_VERSION,generateEqual,formats:FORMATS};
+window.PSICO_FINAL_EXAMS={apply,curated,familyExtra,version:UPCOMING_VERSION,familyVersion:VERSION,metaVersion:META_VERSION,socialVersion:SOCIAL_VERSION,evaluationVersion:EVAL_VERSION,generateEqual,formats:FORMATS};
 })();
