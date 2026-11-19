@@ -2016,8 +2016,8 @@ html[data-theme="dark"] .tz-pending-icon{background:#40375e;color:#d6c4ff}
 <script src="primeiro-semestre-dados.js?v=20261117-clareza-v2"></script>
 <script src="primeiro-semestre-relembrar.js?v=20261119-simetria-v2"></script>
 <script src="psicomoodle-new-content.js?v=20261117-clareza-v2"></script>
-<script src="simulados-finais-2026.js?v=20261119-meta-p2-28q-v3"></script>
-<script src="simulados-grupos-filme-2026.js?v=20261117-clareza-v2"></script>
+<script src="simulados-finais-2026.js?v=20261119-variedade-v1"></script>
+<script src="simulados-grupos-filme-2026.js?v=20261119-variedade-v1"></script>
 <script src="estudos-dirigidos-finais-2026.js?v=20261117-clareza-v2"></script>
 <link rel="stylesheet" href="simulados-finais-2026.css?v=20261114-grupos-info-v2">
 <script src="casos-act-social.js?v=20261117-clareza-v2"></script>
@@ -3471,7 +3471,9 @@ function organizedSubjectMaterials(materials,libraryView=false,subjectId=''){
 // Uma prova publicada por nível; os registros extras continuam guardados sem aparecer nesta aba.
 function readyExamsFor(subject){
  const base=DB.exams.filter(e=>e.subject===subject);
- const currentRevision=subject==='grupos'?window.PSICO_FINAL_EXAMS?.groupVersion:window.PSICO_FINAL_EXAMS?.version;
+ const currentRevision=subject==='familia'?window.PSICO_FINAL_EXAMS?.familyVersion:
+  subject==='meta'?window.PSICO_FINAL_EXAMS?.metaVersion:
+  subject==='grupos'?window.PSICO_FINAL_EXAMS?.groupVersion:window.PSICO_FINAL_EXAMS?.version;
  const latest=base.filter(e=>e.final2026===true&&e.revision===currentRevision);
  if(latest.length===5)return [1,2,3,4,5].map(level=>latest.find(e=>Number(e.model)===level)).filter(Boolean);
  const first=subject==='social'?6:1;
