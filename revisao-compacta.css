@@ -133,3 +133,12 @@ html[data-theme="dark"] #topics.review-section .review-item .review-correct{back
 html[data-theme="dark"] #topics.review-section .review-item .review-correct-heading{color:#b4eccb}
 html[data-theme="dark"] #topics.review-section .review-item .review-correct-symbol{background:#3f8b66;color:#fff}
 html[data-theme="dark"] #topics.review-section .review-item .review-correct-statement{color:#edf5ef!important}
+
+
+/* Exemplo integrado ao quadro de afirmação correta. */
+#topics.review-section .review-item .review-correct-example{padding-top:10px;border-top:1px solid color-mix(in srgb,#428b6b 25%,var(--line,#ddd7e5));display:grid;gap:5px}
+#topics.review-section .review-item .review-correct-example strong{font-size:10px;line-height:1.35;color:#296d50;font-weight:850;letter-spacing:.15px}
+#topics.review-section .review-item .review-correct-example p{padding:0!important;margin:0!important;font-size:12px;line-height:1.65;font-weight:400;color:var(--ink,#302c42)!important}
+html[data-theme="dark"] #topics.review-section .review-item .review-correct-example{border-top-color:#4d6958}
+html[data-theme="dark"] #topics.review-section .review-item .review-correct-example strong{color:#b4eccb}
+html[data-theme="dark"] #topics.review-section .review-item .review-correct-example p{color:#e5eee8!important}
