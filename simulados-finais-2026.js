@@ -325,7 +325,7 @@ function metaTF(model,slot,topic,id){
  const correct=(model+slot)%2===0;
  return {type:'tf',id,concept:topic.title,
   prompt:'Considere o conteúdo do estudo dirigido sobre '+topic.title.toLowerCase()+':\n'+
-   (correct?topic.definition:topic.myth)+'.\n\nA afirmação está correta ou incorreta?',
+   (correct?topic.definition:topic.myth)+'\n\nA afirmação está correta ou incorreta?',
   answer:correct,explanation:(correct?'Correta. ':'Incorreta. ')+topic.explanation,
   source:'Afirmação autoral baseada no estudo dirigido P2.'};
 }
