@@ -283,10 +283,10 @@ function metaSectionPeers(topics,topic){
 function metaChoice(topics,model,slot,topic,id){
  const peers=metaSectionPeers(topics,topic);
  const options=[
-  {text:topic.definition+'.',correct:true,why:'Correto. '+topic.explanation},
-  {text:topic.myth+'.',correct:false,why:'Esta interpretação não corresponde ao conceito. '+topic.explanation},
+  {text:topic.definition,correct:true,why:'Correto. '+topic.explanation},
+  {text:topic.myth,correct:false,why:'Esta interpretação não corresponde ao conceito. '+topic.explanation},
   ...peers.slice(0,3).map(other=>({
-   text:other.myth+'.',correct:false,
+   text:other.myth,correct:false,
    why:'A afirmação apresenta uma confusão sobre '+other.title+'. '+other.explanation
   }))
  ];
@@ -302,11 +302,11 @@ function metaChoice(topics,model,slot,topic,id){
 function metaCombo(topics,model,slot,topic,id){
  const peers=metaSectionPeers(topics,topic),b=peers[0],c=peers[1];
  const statements=[
-  {text:topic.definition+'.',truth:true,why:topic.explanation},
-  {text:b.myth+'.',truth:false,why:b.explanation},
-  {text:b.definition+'.',truth:true,why:b.explanation},
-  {text:c.myth+'.',truth:false,why:c.explanation},
-  {text:c.definition+'.',truth:true,why:c.explanation}
+  {text:topic.definition,truth:true,why:topic.explanation},
+  {text:b.myth,truth:false,why:b.explanation},
+  {text:b.definition,truth:true,why:b.explanation},
+  {text:c.myth,truth:false,why:c.explanation},
+  {text:c.definition,truth:true,why:c.explanation}
  ];
  const rotation=(model+slot*2)%5;
  const assertions=statements.map((_,i)=>statements[(i+rotation)%5]).map((x,i)=>({...x,l:LETTERS[i]}));
@@ -315,7 +315,7 @@ function metaCombo(topics,model,slot,topic,id){
  const answer=(model*2+slot)%5,sets=chosen.slice();
  sets.splice(answer,0,indexes);
  return {type:'combo',id,concept:topic.title,
-  prompt:'Sobre '+topic.section.toLowerCase()+', analise as cinco afirmações e assinale a combinação que contém somente as corretas.',
+  prompt:'Sobre '+(topic.section==='Segunda tópica'?'a segunda tópica':topic.section==='Édipo'?'o complexo de Édipo':'a teoria das pulsões')+', analise as cinco afirmações e assinale a combinação que contém somente as corretas.',
   assertions,options:sets.map(set=>'Apenas '+set.map(i=>LETTERS[i]).join(', ')+'.'),
   answer,correct:indexes.map(i=>LETTERS[i]),
   answerSets:sets.map(set=>set.map(i=>LETTERS[i])),
