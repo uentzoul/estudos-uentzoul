@@ -1,4 +1,4 @@
-/* PsicoMoodle — Trilha de Estudos para Relembrar | 2026/1
+/* PsicoMoodle — Revisão do 1º Semestre | 2026/1
    Conteúdo autoral de estudo baseado nos arquivos recebidos no primeiro semestre.
    Respostas e simulados são exercícios didáticos, não provas oficiais. */
 (()=>{
