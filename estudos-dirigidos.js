@@ -224,6 +224,15 @@
      return '<div class="sd-empty" data-sd-subject="'+esc(subject)+'">Consultando os estudos dirigidos da avaliação '+TARGETS[subject]+'…</div>';
    }
    const doc=currentDoc(subject),saved=currentSaved(subject);
+   // Metapsicologia P2: priorizar o recorte conferido do roteiro original.
+   // O bloco de Angústia não integra a seleção solicitada para esta prova.
+   if(subject==='meta'){
+     const p2=(window.PSICO_GUIDES?.meta||[]).find(g=>g.id==='meta-p2-professor');
+     if(p2?.questions?.length){
+       const questions=p2.questions.filter(q=>!/^ang[uú]stia$/i.test(String(q.section||'').trim()));
+       return renderGuideHtml(subject,{...p2,questions},doc,false);
+     }
+   }
    if(doc&&saved?.resource_key===doc.resource_key&&saved.guide?.questions?.length)
      return renderGuideHtml(subject,saved.guide,doc,false);
    const embedded=inlineOriginal(subject);
