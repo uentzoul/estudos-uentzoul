@@ -5,8 +5,8 @@ if(window.UentzoulMaterialPreviews)return;
 const BUCKET='uentzoul-library-files',TABLE='uentzoul_library_uploads',DELAY=500;
 const auth=()=>window.uentzoulAIAuth, client=()=>auth()?.client?.(), admin=()=>window.uentzoulAdminConfig?.isAdmin?.()===true;
 const clean=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;','\'':'&#39;'}[c]));
-const cachedUrls=new Map(),attempted=new Set();
-let activeCard=null,timer=null,token=0,pop=null,pdfLoader=null,backfillRunning=false,backfillDelay=0;
+const cachedUrls=new Map(),cachedImages=new Map(),attempted=new Set();
+let activeCard=null,timer=null,warmTimer=null,token=0,pop=null,pdfLoader=null,backfillRunning=false,backfillDelay=0;
 function rowFor(key){return window.uentzoulLibraryManager?.previewRecord?.(key)||window.uentzoulLibraryApp?.record?.(key)||null;}
 function titleFor(card){return (card.querySelector('.docname,.doc-title,.file-title')?.textContent||card.querySelector('a[data-library-file]')?.textContent||card.textContent||'Material').trim().replace(/\s+/g,' ').slice(0,160);}
 function metadata(card){
@@ -33,7 +33,7 @@ function element(){
  return pop;
 }
 function hide(){
- clearTimeout(timer);timer=null;activeCard=null;token++;
+ clearTimeout(timer);clearTimeout(warmTimer);timer=null;warmTimer=null;activeCard=null;token++;
  if(pop){pop.hidden=true;pop.replaceChildren();}
 }
 function placement(card){
@@ -47,7 +47,7 @@ function placement(card){
 }
 function coverMarkup(m){
  return '<div class="pm-preview-cover"><span class="pm-preview-cover-type">'+clean(m.ext)+'</span><strong>'+clean(m.title)+'</strong>'+
- '<span class="pm-preview-cover-summary">'+clean(m.topics||m.excerpt||'Confira o documento para ver o conteúdo completo.').slice(0,190)+'</span>'+
+ '<span class="pm-preview-cover-summary">'+clean(m.excerpt||m.topics||'Confira o documento para ver o conteúdo completo.').slice(0,190)+'</span>'+
  '<small>Informações do arquivo</small></div>';
 }
 async function urlFor(path){
@@ -59,21 +59,29 @@ async function urlFor(path){
  cachedUrls.set(path,{url:response.data.signedUrl,until:Date.now()+45*60*1000});
  return response.data.signedUrl;
 }
+function warmImage(path){
+ if(!path)return Promise.resolve(null);
+ const existing=cachedImages.get(path);
+ if(existing)return existing;
+ const pending=urlFor(path).then(url=>new Promise(resolve=>{
+  if(!url){resolve(null);return;}
+  const img=new Image();
+  img.decoding='async';
+  img.onload=()=>resolve(img);
+  img.onerror=()=>{cachedImages.delete(path);resolve(null);};
+  img.src=url;
+ })).catch(()=>{cachedImages.delete(path);return null;});
+ cachedImages.set(path,pending);
+ if(cachedImages.size>22)cachedImages.delete(cachedImages.keys().next().value);
+ return pending;
+}
 async function imageFor(m,expected){
  if(!m.row?.preview_path)return;
- try{
-  const url=await urlFor(m.row.preview_path);
-  if(!url||expected!==token||!pop||pop.hidden)return;
-  const img=new Image();
-  img.alt='Imagem de uma página representativa do documento '+m.title;
-  img.decoding='async';
-  img.onload=()=>{
-   if(expected!==token||!activeCard?.isConnected||!pop||pop.hidden)return;
-   const surface=pop.querySelector('.pm-preview-visual');
-   if(surface){surface.replaceChildren(img);surface.classList.add('pm-preview-has-image');placement(activeCard);}
-  };
-  img.src=url;
- }catch(e){console.warn('Miniatura indisponível; mantendo resumo do arquivo.',e);}
+ const img=await warmImage(m.row.preview_path);
+ if(!img||expected!==token||!pop||pop.hidden||!activeCard?.isConnected)return;
+ img.alt=(m.ext==='PDF'?'Página representativa do documento ':'Resumo visual do material ')+m.title;
+ const surface=pop.querySelector('.pm-preview-visual');
+ if(surface){surface.replaceChildren(img);surface.classList.add('pm-preview-has-image');placement(activeCard);}
 }
 function show(card){
  if(activeCard!==card||!card.isConnected||document.hidden)return;
@@ -95,6 +103,7 @@ function eligible(target){
 function begin(card){
  if(activeCard===card)return;
  hide();activeCard=card;const expected=token;
+ warmTimer=setTimeout(()=>{if(activeCard===card){const m=metadata(card);if(m.row?.preview_path)warmImage(m.row.preview_path);}},140);
  timer=setTimeout(()=>{if(activeCard===card&&token===expected)show(card);},DELAY);
 }
 document.addEventListener('pointerover',e=>{
