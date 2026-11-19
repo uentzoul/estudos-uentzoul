@@ -290,7 +290,7 @@ window.PSICO_MATERIAL_EDITOR={render:renderGroups,editButton,setRerender,refresh
  style.rel='stylesheet';style.href='material-preview-popover.css?v=20261118-preview-v1';
  document.head.appendChild(style);
  const script=document.createElement('script');
- script.src='material-preview-popover.js?v=20261118-preview-v1';
+ script.src='material-preview-popover.js?v=20261118-preview-v2';
  script.dataset.materialPreview='1';
  document.head.appendChild(script);
 })();
