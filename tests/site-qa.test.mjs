@@ -654,7 +654,7 @@ test('Revisão dos simulados mantém identificadores e exige conhecimento da dis
  const current=['tcc','familia','meta','grupos','social','avaliacao'].flatMap(subject=>{
   const ctrl=runtime.window.PSICO_FINAL_EXAMS;
   const revision=subject==='familia'?ctrl.familyVersion:subject==='meta'?ctrl.metaVersion:
-   subject==='grupos'?ctrl.groupVersion:ctrl.version;
+   subject==='grupos'?ctrl.groupVersion:subject==='social'?ctrl.socialVersion:ctrl.version;
   return original.exams.filter(e=>e.subject===subject&&e.final2026&&e.revision===revision);
  });
  assert.equal(current.length,30,'Cinco simulados por cada uma das seis disciplinas');
@@ -662,7 +662,7 @@ test('Revisão dos simulados mantém identificadores e exige conhecimento da dis
   const exams=current.filter(e=>e.subject===subject);
   assert.equal(exams.length,5,subject);
   for(const exam of exams){
-   assert.equal(exam.questions.length,subject==='grupos'?5:15,'Formato atual: '+exam.id);
+   assert.equal(exam.questions.length,subject==='grupos'?2:15,'Formato atual: '+exam.id);
    assert.equal(new Set(exam.questions.map(q=>q.id)).size,exam.questions.length,'IDs únicos');
    for(const q of exam.questions){
     if(q.type==='choice'||q.type==='combo')assert.ok(q.answer>=0&&q.answer<q.options.length,q.id);
@@ -670,10 +670,20 @@ test('Revisão dos simulados mantém identificadores e exige conhecimento da dis
   }
  }
  assert.ok(current.filter(e=>e.subject==='familia').every(e=>e.id.startsWith('familia-rev-provas-equivalentes-20261113-')));
- assert.equal(current.reduce((sum,e)=>sum+e.questions.length,0),400,'Questões da revisão atual');
+ assert.equal(current.reduce((sum,e)=>sum+e.questions.length,0),385,'Questões da revisão atual');
  for(const e of current.filter(x=>x.subject!=='familia')){
   const brief=e.questions.filter(q=>/^Situação breve:|^Uma situação do filme/i.test(q.prompt||''));
-  assert.equal(brief.length,e.subject==='meta'?0:1,'Quantidade de aplicações por prova: '+e.id);
+  assert.equal(brief.length,e.subject==='meta'||e.subject==='grupos'?0:1,'Situações breves: '+e.id);
+  if(e.subject==='grupos'){
+   assert.equal(e.questions.length,2,'Duas questões por simulado de Grupos');
+   assert.ok(e.questions.every(q=>q.type==='essay'),'Grupos tem somente dissertativas');
+   assert.match(e.questions[0].concept,/Moreno/,'Primeira questão: Moreno');
+   assert.match(e.questions[1].concept,/Rogers/,'Segunda questão: Rogers');
+   assert.ok(e.questions.every(q=>/Escritores da Liberdade/.test(q.prompt)),'Ambas relacionadas ao filme');
+  }
+  if(e.subject==='social'){
+   assert.equal(e.questions.filter(q=>q.type==='essay').length,1,'Social tem uma dissertativa');
+  }
  }
  assert.match(html,/subject==='familia'\?window\.PSICO_FINAL_EXAMS\?\.familyVersion/,'Família mantém revisão anterior');
  const meta=current.filter(e=>e.subject==='meta');
@@ -716,13 +726,13 @@ test('Alternativas dos 13 cursos são relevantes, únicas e só revelam a melhor
  const current=['tcc','familia','meta','grupos','social','avaliacao'].flatMap(subject=>{
   const ctrl=runtime.window.PSICO_FINAL_EXAMS;
   const revision=subject==='familia'?ctrl.familyVersion:subject==='meta'?ctrl.metaVersion:
-   subject==='grupos'?ctrl.groupVersion:ctrl.version;
+   subject==='grupos'?ctrl.groupVersion:subject==='social'?ctrl.socialVersion:ctrl.version;
   const exams=raw.exams.filter(e=>e.subject===subject&&e.final2026&&e.revision===revision);
   assert.equal(exams.length,5,'Cinco simulados de '+subject);
   return exams;
  });
  assert.equal(current.length,30);
- assert.equal(current.reduce((n,e)=>n+e.questions.length,0),400);
+ assert.equal(current.reduce((n,e)=>n+e.questions.length,0),385);
  for(const e of current){
   assert.equal(new Set(e.questions.map(q=>q.id)).size,e.questions.length,'IDs únicos: '+e.id);
   for(const q of e.questions){
@@ -778,7 +788,7 @@ test('Alternativas dos 13 cursos são relevantes, únicas e só revelam a melhor
  assert.match(read('estudo-ativo.js'),/s\.chosen<0\?'':/,'A resposta só aparece depois da escolha');
  const begin=html.indexOf('<section id="offline-simulados">'),end=html.indexOf('</section>',begin);
  const offline=html.slice(begin,end);
- assert.equal((offline.match(/<summary>Questão \d+/g)||[]).length,400,'Leitura offline corresponde às provas atuais');
+ assert.equal((offline.match(/<summary>Questão \d+/g)||[]).length,385,'Leitura offline corresponde às provas atuais');
  assert.doesNotMatch(offline,/ang[uú]stia/i,'Não reintroduzir angústia na leitura de Metapsicologia');
 });
 
