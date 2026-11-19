@@ -644,6 +644,7 @@ test('Revisão dos simulados mantém identificadores e exige conhecimento da dis
  const runtime={window:{PSICOMOODLE_NEW_CONTENT:{social}}};
  vm.runInNewContext(read('estudos-dirigidos-meta.js'),runtime);
  vm.runInNewContext(read('metapsicologia-p2-pratica.js'),runtime);
+ vm.runInNewContext(read('avaliacao-p3-pratica.js'),runtime);
  vm.runInNewContext(read('simulados-finais-2026.js'),runtime);
  vm.runInNewContext(read('simulados-grupos-filme-2026.js'),runtime);
  runtime.window.PSICO_FINAL_EXAMS.apply(original);
@@ -720,6 +721,7 @@ test('Alternativas dos 13 cursos são relevantes, únicas e só revelam a melhor
  const runtime={window:{PSICOMOODLE_NEW_CONTENT:{social}}};
  vm.runInNewContext(read('estudos-dirigidos-meta.js'),runtime);
  vm.runInNewContext(read('metapsicologia-p2-pratica.js'),runtime);
+ vm.runInNewContext(read('avaliacao-p3-pratica.js'),runtime);
  vm.runInNewContext(read('simulados-finais-2026.js'),runtime);
  vm.runInNewContext(read('simulados-grupos-filme-2026.js'),runtime);
  runtime.window.PSICO_FINAL_EXAMS.apply(raw);
