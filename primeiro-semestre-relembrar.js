@@ -288,7 +288,7 @@ function renderSubject(ctx){
  if(!area||area==='home'){
   output='<p class="subject-hub-area-intro">Escolha uma forma de relembrar o conteúdo estudado no primeiro semestre.</p>'+
    '<nav class="subject-hub-menu" aria-label="Áreas de estudo de '+esc(ctx.subject.name)+'">'+links.map(v=>
-    '<button type="button" class="subject-hub-card'+(v[0]==='trail'?' subject-trail-highlight':'')+'" data-action="subjectArea:'+v[0]+'">'+
+    '<button type="button" class="subject-hub-card'+(v[0]==='docs'?' subject-docs-full':'')+'" data-action="subjectArea:'+v[0]+'">'+
     '<span class="subject-hub-card-icon" aria-hidden="true">'+v[1]+'</span><span class="subject-hub-card-copy">'+
     '<strong class="subject-hub-card-title">'+v[2]+'</strong><span class="subject-hub-card-desc">'+v[3]+'</span></span><span class="subject-hub-card-arrow">→</span></button>').join('')+'</nav>';
  }else if(area==='topics')output=topicsView(ctx);
