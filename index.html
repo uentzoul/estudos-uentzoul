@@ -12,7 +12,7 @@
 <meta property="og:url" content="https://estudospsico.com.br/">
 <meta name="twitter:card" content="summary">
 <meta name="color-scheme" content="light dark">
-<meta name="site-build" content="psicomoodle-call-controls-audio-20261117-v13">
+<meta name="site-build" content="psicomoodle-study-review-20261119-v1">
 <script>document.documentElement.classList.add("js-enabled");window.addEventListener("load",()=>{if(!document.documentElement.classList.contains("app-ready"))document.documentElement.classList.remove("js-enabled")},{once:true});try{document.documentElement.dataset.theme=localStorage.getItem("uentzoul_theme_v1")==="dark"?"dark":"light"}catch(e){document.documentElement.dataset.theme="light"}</script>
 <title>PsicoMoodle · Psicologia PUCRS</title>
 <style>
@@ -1997,18 +1997,18 @@ html[data-theme="dark"] .tz-pending-icon{background:#40375e;color:#d6c4ff}
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2064%2064%22%3E%3Crect%20width%3D%2264%22%20height%3D%2264%22%20rx%3D%2214%22%20fill%3D%22%23192d44%22%2F%3E%3Ctext%20x%3D%2232%22%20y%3D%2246%22%20fill%3D%22white%22%20font-size%3D%2246%22%20font-family%3D%22Georgia%2Cserif%22%20text-anchor%3D%22middle%22%3E%CE%A8%3C%2Ftext%3E%3C%2Fsvg%3E">
 <link rel="stylesheet" href="library-manager.css?v=20261114-batch-recovery-v1">
 <link rel="stylesheet" href="biblioteca-moodle.css?v=20261112-3">
-<link rel="stylesheet" href="revisao-compacta.css?v=20261113-errors-1">
+<link rel="stylesheet" href="revisao-compacta.css?v=20261119-assertions-v1">
 <script src="revisao-erros.js?v=20261117-clareza-v2"></script>
 <link rel="stylesheet" href="disciplina-clean.css?v=20261113-fullwidth-1">
 <link rel="stylesheet" href="inicio-slogan.css?v=20261117-vistos-podcasts-1">
 <link rel="stylesheet" href="admin-config.css?v=20261115-device-log-v2">
 <link rel="stylesheet" href="agenda-calendario.css?v=20261112-3">
-<link rel="stylesheet" href="estudos-dirigidos.css?v=20261117-vistos-guiados-1">
+<link rel="stylesheet" href="estudos-dirigidos.css?v=20261119-answer-tabs-v1">
 <link rel="stylesheet" href="estudo-ativo.css?v=20261117-vistos-casos-1">
 <script src="estudos-dirigidos-avaliacao.js?v=20261113-revisao-global-1"></script>
 <script src="estudos-dirigidos-tcc.js?v=20261112-3"></script>
 <script src="estudos-dirigidos-meta.js?v=20261116-meta-p2"></script>
-<script src="estudos-dirigidos.js?v=20261117-vistos-guiados-1"></script>
+<script src="estudos-dirigidos.js?v=20261119-answer-tabs-v1"></script>
 <script src="estudos-casos-data.js?v=20261117-clareza-v2"></script>
 <script src="estudo-ativo.js?v=20261117-clareza-v2"></script>
 <link rel="stylesheet" href="primeiro-semestre-relembrar.css?v=20261117-clareza-v2">
@@ -3531,8 +3531,9 @@ function renderSubject(k){
     '<article class="topicunit review-item '+(isDone(topicProgressKey(k,i))?'is-done':'')+'">'+
     '<details class="topic review-details"><summary><span class="review-index">'+String(i+1).padStart(2,'0')+'</span>'+
     '<span class="review-title">'+esc(t.title)+'</span><span class="review-chevron" aria-hidden="true"></span></summary>'+
-    '<div class="review-body"><div class="review-info"><span class="review-info-label">Conceito</span><p>'+esc(t.definition)+'</p></div>'+
-    '<div class="review-info"><span class="review-info-label">Exemplo</span><p>'+esc(t.scenario)+'</p></div>'+
+    '<div class="review-body"><div class="review-correct" aria-label="Afirmação correta">'+
+    '<div class="review-correct-heading"><span class="review-correct-symbol" aria-hidden="true">✓</span><strong>Afirmação correta</strong></div>'+
+    '<p class="review-correct-statement">'+esc(t.definition||t.scenario||'Consulte o material da disciplina para revisar o conceito.')+'</p></div>'+
     (t.myth?'<div class="review-mistake" aria-label="Afirmação incorreta com explicação">'+
     '<div class="review-mistake-heading"><span class="review-mistake-symbol" aria-hidden="true">×</span><strong>Afirmação incorreta</strong></div>'+
     '<p class="review-mistake-statement">'+esc(t.myth)+'</p>'+

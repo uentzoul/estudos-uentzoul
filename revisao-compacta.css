@@ -122,3 +122,14 @@ html[data-theme="dark"] #topics.review-section .review-item .review-mistake-expl
 }
 html[data-theme="dark"] #topics.review-section .review-item .review-mistake-explanation>strong{color:#f4eff8}
 html[data-theme="dark"] #topics.review-section .review-item .review-mistake-explanation>p{color:#d3cbde!important}
+
+
+/* Revisão: uma afirmação fundamentada, seguida da afirmação incorreta. */
+#topics.review-section .review-item .review-correct{display:grid;gap:9px;padding:13px 14px;border:1px solid #b6dccb;border-left:3px solid #428b6b;border-radius:11px;background:color-mix(in srgb,#d9efe3 35%,var(--paper,#fff));color:var(--ink,#302c42)}
+#topics.review-section .review-item .review-correct-heading{display:flex;align-items:center;gap:8px;color:#296d50;font-size:11px;font-weight:850;letter-spacing:.18px;line-height:1.3}
+#topics.review-section .review-item .review-correct-symbol{display:grid;place-items:center;flex:none;width:20px;height:20px;border-radius:6px;background:#347c5c;color:#fff;font-size:14px;font-weight:850}
+#topics.review-section .review-item .review-correct-statement{margin:0!important;padding:0!important;color:var(--ink,#302c42)!important;font-size:12px;line-height:1.65;font-weight:550}
+html[data-theme="dark"] #topics.review-section .review-item .review-correct{background:#26382f;border-color:#4a775c;border-left-color:#7ec7a1}
+html[data-theme="dark"] #topics.review-section .review-item .review-correct-heading{color:#b4eccb}
+html[data-theme="dark"] #topics.review-section .review-item .review-correct-symbol{background:#3f8b66;color:#fff}
+html[data-theme="dark"] #topics.review-section .review-item .review-correct-statement{color:#edf5ef!important}

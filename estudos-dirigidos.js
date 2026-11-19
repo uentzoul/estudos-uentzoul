@@ -182,17 +182,17 @@
  function renderItem(q,idx,guideId){
   const hasOptions=Array.isArray(q.options)&&q.options.length>0;
   const opts=hasOptions?'<div class="sd-options" aria-label="Alternativas comentadas">'+q.options.map(o=>
-   '<div class="sd-option'+(o.letter===q.answer?' sd-correct':'')+'"><span class="sd-option-letter">'+esc(o.letter)+'</span><div>'+fmt(o.text)+'</div>'+
-   (o.letter===q.answer?'<span class="sd-option-tag">Correta</span>':'')+'</div>'
+   '<div class="sd-option"><span class="sd-option-letter">'+esc(o.letter)+'</span><div>'+fmt(o.text)+'</div></div>'
   ).join('')+'</div>':'';
   const answer=hasOptions?(q.answer?'Resposta-modelo: alternativa '+q.answer:'Alternativa correta não confirmada'):'Resposta-modelo e explicação';
   const details=q.contrast?'<div class="sd-contrast"><strong>'+(hasOptions?'Por que as outras alternativas não servem':'Como organizar a resposta')+'</strong>'+paragraph(q.contrast)+'</div>':'';
   return '<article class="sd-question-block" id="sd-question-'+esc(guideId||'roteiro')+'-'+esc(q.n)+'">'+
     '<div class="sd-question-top"><span class="sd-question-number">'+String(q.n).padStart(2,'0')+'</span><div>'+
     '<span class="sd-question-topic">'+fmt(q.topic||'Questão comentada')+'</span><div class="sd-question-text">'+questionText(q.question)+'</div></div></div>'+
-    opts+'<div class="sd-response"><div class="sd-response-title"><span aria-hidden="true">✓</span><strong>'+esc(answer)+'</strong></div>'+paragraph(q.explanation)+'</div>'+
+    opts+'<details class="sd-answer-toggle"><summary class="sd-answer-summary"><span class="sd-answer-summary-icon" aria-hidden="true">⌄</span><span class="sd-answer-open-label">Ver resposta</span><span class="sd-answer-close-label">Ocultar resposta</span></summary><div class="sd-answer-content">'+
+    '<div class="sd-response"><div class="sd-response-title"><span aria-hidden="true">✓</span><strong>'+esc(answer)+'</strong></div>'+paragraph(q.explanation)+'</div>'+
     details+(q.points?.length?'<div class="sd-breakdown"><h4>Explicação parte por parte</h4><div class="sd-parts">'+q.points.map(part).join('')+'</div></div>':'')+
-  '</article>';
+  '</div></details></article>';
  }
 
  function renderGuideHtml(subject,guide,doc,generated){
@@ -210,7 +210,7 @@
     '<p>'+fmt(guide.source||'')+'</p><p>'+(generated?
       'Revisão gerada a partir dos materiais da disciplina. Não representa um roteiro fornecido pelo professor.':
       'As explicações e respostas-modelo são materiais de estudo; só o gabarito explicitamente fornecido pelo professor é oficial.')+'</p></div>'+
-    '<div class="sd-q-count">'+items.length+' questões respondidas e comentadas</div>'+
+    '<div class="sd-q-count">'+items.length+' questões · abra a resposta de cada uma quando quiser</div>'+
     '<div class="sd-items">'+items.map((q,i,all)=>
       (q.section&&(i===0||all[i-1].section!==q.section)?'<div class="sd-topic-divider"><span>'+fmt(q.section)+'</span></div>':'')+
       renderItem(q,i,guide.id)).join('')+'</div>'+openOriginalMarkup(doc)+'</div></details></section>';
