@@ -41,17 +41,17 @@ function generate(model){
   source:'Assertivas autorais de revisão da disciplina.'};
  const truth=model%2===0;
  const tf={id:id(3),type:'tf',concept:third.title,
-  prompt:'Julgue a afirmação sobre '+third.title.toLowerCase()+':\\n'+(truth?third.answer:third.wrong[2]),
+  prompt:'Julgue a afirmação sobre '+third.title.toLowerCase()+':\n'+(truth?third.answer:third.wrong[2]),
   answer:truth,explanation:(truth?'Verdadeiro. ':'Falso. ')+third.answer,
   source:'Afirmação de revisão de Moreno e Rogers.'};
  const essay={id:id(4),type:'essay',concept:fourth.title,
-  prompt:'Explique em suas palavras: '+fourth.question+'\\n\\nRelacione sua resposta à compreensão dos vínculos e das relações no grupo.',
+  prompt:'Explique em suas palavras: '+fourth.question+'\n\nRelacione sua resposta à compreensão dos vínculos e das relações no grupo.',
   criteria:['Definir os conceitos centrais corretamente.','Diferenciar ideias relacionadas.','Justificar os vínculos entre os conceitos.','Usar escrita clara e terminologia acadêmica adequada.'],
   model:fourth.answer,source:'Resposta orientativa autoral.'};
  const film=bank[((model-1)*2+4)%bank.length];
  const scene={id:id(5),type:'essay',concept:'Escritores da Liberdade · aplicação de conceitos',
-  prompt:'Uma situação do filme Escritores da Liberdade para analisar:\\n'+film.scene+
-   '\\n\\n'+film.prompt,
+  prompt:'Uma situação do filme Escritores da Liberdade para analisar:\n'+film.scene+
+   '\n\n'+film.prompt,
   criteria:film.criteria.slice(),model:film.model,source:sources};
  const questions=[choice,combo,tf,essay,scene];
  return {id:'grupos-'+VERSION+'-'+model,subject:'grupos',model,
