@@ -741,7 +741,7 @@ test('Alternativas dos 13 cursos são relevantes, únicas e só revelam a melhor
  }
  Object.assign(active.window.PSICO_CASES,first.PSICO_CASES);
  const cases=Object.values(active.window.PSICO_CASES).flat();
- assert.equal(cases.length,46,'Todos os estudos de caso preservados');
+ assert.equal(cases.length,47,'Todos os estudos de caso preservados, incluindo o caso de Édipo');
  const positions=[0,0,0];let stages=0;
  for(const c of cases)for(const [i,stage] of c.stages.entries()){
   stages++;
@@ -755,7 +755,7 @@ test('Alternativas dos 13 cursos são relevantes, únicas e só revelam a melhor
   assert.doesNotMatch(stage.choices.map(o=>o.label).join(' '),
    /afirmar que ela tem um transtorno apenas pelo relato|pedir que ela simplesmente pare de pensar|concluir que o adolescente é responsável pela recuperação/i);
  }
- assert.equal(stages,92,'As duas decisões de cada estudo foram preservadas');
+ assert.equal(stages,94,'As duas decisões de cada estudo foram preservadas');
  assert.ok(positions.every(n=>n>=15),'Não entregar gabarito pela posição fixa: '+positions.join('/'));
  assert.match(read('estudo-ativo.js'),/strongest=st\.choices\.findIndex\(option=>option\.best===true\)/);
  assert.match(read('estudo-ativo.js'),/s\.chosen<0\?'':/,'A resposta só aparece depois da escolha');
@@ -763,6 +763,49 @@ test('Alternativas dos 13 cursos são relevantes, únicas e só revelam a melhor
  const offline=html.slice(begin,end);
  assert.equal((offline.match(/<summary>Questão \d+/g)||[]).length,400,'Leitura offline corresponde às provas atuais');
  assert.doesNotMatch(offline,/ang[uú]stia/i,'Não reintroduzir angústia na leitura de Metapsicologia');
+});
+
+
+test('Metapsicologia P2 usa exatamente as 28 perguntas em simulados, flashcards e revisão',()=>{
+ const runtime={window:{},document:{addEventListener:()=>{},querySelector:()=>null,querySelectorAll:()=>[]}};
+ vm.runInNewContext(read('estudos-dirigidos-meta.js'),runtime);
+ vm.runInNewContext(read('metapsicologia-p2-pratica.js'),runtime);
+ const bank=runtime.window.PSICO_META_P2_PRACTICE?.topics;
+ assert.equal(bank?.length,28,'Banco único do roteiro P2');
+ assert.deepEqual(bank.reduce((a,q)=>(a[q.section]=(a[q.section]||0)+1,a),{}),
+  {'Segunda tópica':9,'Édipo':12,'Pulsão':7});
+ assert.ok(bank.every(q=>!/^ang[uú]stia$/i.test(q.section)));
+ vm.runInNewContext(read('simulados-finais-2026.js'),runtime);
+ const db={subjects:{meta:{}},topics:{meta:[]},exams:[]};
+ runtime.window.PSICO_FINAL_EXAMS.apply(db);
+ assert.equal(db.topics.meta.length,28,'A revisão utiliza o banco do professor');
+ assert.equal(db.exams.length,5,'Cinco simulados atuais de Metapsicologia');
+ assert.ok(db.exams.every(e=>e.questions.length===15),'Quinze questões por prova');
+ assert.ok(db.exams.every(e=>e.revision===runtime.window.PSICO_FINAL_EXAMS.metaVersion));
+ for(const exam of db.exams)for(const q of exam.questions){
+  assert.doesNotMatch(q.concept||'',/ang[uú]stia/i);
+  if(q.type==='choice'){
+   assert.equal(q.options.length,5);
+   assert.equal(new Set(q.options.map(o=>o.text)).size,5,'Alternativas distintas');
+   assert.ok(q.options.every(o=>o.text.length>=55),'Distratores desenvolvidos');
+   assert.equal(q.options.filter(o=>o.correct).length,1);
+   assert.equal(q.options[q.answer].correct,true);
+  }
+  if(q.type==='combo'){
+   assert.equal(q.assertions.length,5);
+   assert.equal(q.assertions.filter(a=>a.truth).length,3);
+   assert.equal(q.options[q.answer],'Apenas '+q.correct.join(', ')+'.');
+  }
+ }
+ vm.runInNewContext(read('revisao-erros.js'),runtime);
+ for(const topic of bank){
+  const affirm=runtime.window.PSICO_REVIEW_ERRORS.affirmations('meta',topic);
+  assert.equal(affirm.correct,topic.definition);
+  assert.equal(affirm.incorrect,topic.myth);
+ }
+ vm.runInNewContext(read('estudo-ativo.js'),runtime);
+ runtime.window.PSICO_PRACTICE.flashcards('meta',db.topics.meta,'2026/2');
+ assert.equal(runtime.window.PSICO_PRACTICE.flashTutorialState('meta').count,28,'Flashcards oficiais com respostas individuais');
 });
 
 
