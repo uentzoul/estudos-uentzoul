@@ -123,6 +123,7 @@ const indexed=Object.fromEntries(Object.entries(explanations).map(([subject,item
  subject,new Map(Object.entries(items).map(([title,reason])=>[normalize(title),reason]))
 ]));
 function explain(subject,topic){
+ if(subject==='meta'&&topic?.whyWrong)return String(topic.whyWrong);
  const explicit=String(topic?.whyWrong||topic?.explanationOfError||'').trim();
  if(explicit)return explicit;
  const mapped=indexed[subject]?.get(normalize(topic?.title));
@@ -139,8 +140,10 @@ const plainIndexed=Object.fromEntries(Object.entries(plainReview).map(([subject,
  subject,new Map(Object.entries(items).map(([title,statements])=>[normalize(title),statements]))
 ]));
 function affirmations(subject,topic){
+ if(subject==='meta'&&topic?.affirmation&&topic?.incorrect)
+  return {correct:topic.affirmation,incorrect:topic.incorrect};
  const found=plainIndexed[subject]?.get(normalize(topic?.title));
  return {correct:found?.[0]||topic?.definition||'',incorrect:found?.[1]||topic?.myth||''};
 }
-window.PSICO_REVIEW_ERRORS={explain,affirmations,count:{"tcc":32,"familia":8,"social":33,"grupos":3,"meta":15,"avaliacao":12}};
+window.PSICO_REVIEW_ERRORS={explain,affirmations,count:{"tcc":32,"familia":8,"social":33,"grupos":3,"meta":28,"avaliacao":12}};
 })();
