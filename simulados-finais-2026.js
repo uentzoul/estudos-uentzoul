@@ -5,6 +5,7 @@
 const VERSION='rev-provas-equivalentes-20261113';
 const META_VERSION='rev-meta-p2-roteiro-variado-20261119-v2';
 const UPCOMING_VERSION='rev-provas-variadas-20261119-v1';
+const SOCIAL_VERSION='rev-social-primeira-prova-uma-dissertativa-20261119-v2';
 const LEGACY_CURRENT='rev-final-20261113-r2';
 const PREVIOUS_VERSION='rev-final-20261113';
 const LETTERS=['I','II','III','IV','V'];
@@ -401,11 +402,12 @@ function variedEssay(topics,model,index,a,b,qid){
 }
 function generateVaried(id,model,topics){
  const format=FORMATS[id]||FORMATS.tcc,questions=[];
+ const version=id==='social'?SOCIAL_VERSION:UPCOMING_VERSION;
  const choiceSlots=format.map((t,i)=>t==='choice'?i:-1).filter(i=>i>=0);
  const caseSlot=choiceSlots[(model-1)%choiceSlots.length];
  for(let i=0;i<13;i++){
   const a=pickPool(topics,model,i),b=pickPool(topics,model,i,1),c=pickPool(topics,model,i,2);
-  const qid=id+'-'+UPCOMING_VERSION+'-'+model+'-'+(i+1);
+  const qid=id+'-'+version+'-'+model+'-'+(i+1);
   if(format[i]==='combo'){
    const q=questionCombo(topics,model,i,a,b,c,qid);
    const comboPrompts=[
@@ -427,12 +429,23 @@ function generateVaried(id,model,topics){
    questions.push(q);
   }else questions.push(variedChoice(id,topics,model,i,a,qid));
  }
- for(let i=0;i<2;i++){
-  const a=pickPool(topics,model,13+i*2),b=pickPool(topics,model,14+i*2);
-  questions.push(variedEssay(topics,model,i,a,b,id+'-'+UPCOMING_VERSION+'-'+model+'-'+(14+i)));
+ if(id==='social'){
+  // Modelo inspirado nas referências anteriores: 14 itens objetivos, 1 dissertativo.
+  // A primeira prova original completa não foi reproduzida nem atribuída ao professor.
+  const a=pickPool(topics,model,13),b=pickPool(topics,model,14);
+  const tf=questionTF(model,13,a,id+'-'+version+'-'+model+'-14');
+  tf.prompt='Julgue a afirmação sobre '+a.title.toLowerCase()+':\\n'+
+   (tf.answer?definition(a):invalid(a)).replace(/[.!?]+$/,'')+'.';
+  questions.push(tf);
+  questions.push(variedEssay(topics,model,0,a,b,id+'-'+version+'-'+model+'-15'));
+ }else{
+  for(let i=0;i<2;i++){
+   const a=pickPool(topics,model,13+i*2),b=pickPool(topics,model,14+i*2);
+   questions.push(variedEssay(topics,model,i,a,b,id+'-'+version+'-'+model+'-'+(14+i)));
+  }
  }
- return {id:id+'-'+UPCOMING_VERSION+'-'+model,subject:id,model,
-  title:'Simulado '+model,final2026:true,revision:UPCOMING_VERSION,
+ return {id:id+'-'+version+'-'+model,subject:id,model,
+  title:'Simulado '+model,final2026:true,revision:version,
   difficulty:'Padrão da prova',difficultyLevel:'equivalente',sameDifficulty:true,questions};
 }
 function generateEqual(id,model,topics){
@@ -484,5 +497,5 @@ function apply(db){
   }
  }
 }
-window.PSICO_FINAL_EXAMS={apply,curated,familyExtra,version:UPCOMING_VERSION,familyVersion:VERSION,metaVersion:META_VERSION,generateEqual,formats:FORMATS};
+window.PSICO_FINAL_EXAMS={apply,curated,familyExtra,version:UPCOMING_VERSION,familyVersion:VERSION,metaVersion:META_VERSION,socialVersion:SOCIAL_VERSION,generateEqual,formats:FORMATS};
 })();
