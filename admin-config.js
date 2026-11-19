@@ -317,12 +317,18 @@ function visitDetail(row){
  const last=steps[steps.length-1];
  let ending='';
  if(!last||last.kind!=='exit'){
-  const stamp=row.last_seen_at||row.entered_at;
-  const age=Date.now()-new Date(stamp).getTime();
-  const stillActive=steps.length>0&&age<150000;
-  ending='<li class="admin-visit-step admin-visit-uncertain"><time>'+esc(logDate(stamp))+'</time>'+
-   '<strong>'+(stillActive?'Sessão possivelmente ativa':'Saída não confirmada')+'</strong>'+
-   '<small>'+(stillActive?'A visita pode continuar em andamento.':'O encerramento não foi registrado; este horário é a última atividade conhecida.')+'</small></li>';
+  // Um fim registrado é confirmado. Sem ele, o fim é estimado pela inatividade,
+  // nunca apresentado como logout ou como horário exato de saída.
+  const endRecorded=!!row.ended_at;
+  const stamp=row.ended_at||row.last_seen_at||row.entered_at;
+  const lastSeenMs=Date.parse(row.last_seen_at||row.entered_at||'');
+  const stillActive=!endRecorded&&Number.isFinite(lastSeenMs)&&Date.now()-lastSeenMs<150000;
+  const status=stillActive?'Sessão possivelmente ativa':'Sessão encerrada';
+  const note=stillActive?'A visita pode continuar em andamento.':
+   endRecorded?'Encerramento registrado pelo sistema.':
+   'Encerramento estimado por inatividade. O horário exibido é da última atividade conhecida, não de uma saída confirmada.';
+  ending='<li class="admin-visit-step '+(endRecorded?'':'admin-visit-uncertain')+'"><time datetime="'+esc(stamp||'')+'">'+esc(logDate(stamp))+'</time>'+
+   '<strong>'+status+'</strong><small>'+note+'</small></li>';
  }
  const message=steps.length?'Sequência observada nesta visita. Apenas as seções acessadas são registradas.':
   'Registro anterior a este recurso. As páginas visitadas não eram armazenadas e não é possível reconstruir o percurso antigo.';
