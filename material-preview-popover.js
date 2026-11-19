@@ -238,6 +238,9 @@ async function backfill(){
  if(backfillRunning||!admin()||document.hidden)return;
  const rows=window.uentzoulLibraryManager?.previewItems?.()||[];
  if(!rows.length)return;
+ // Prioriza os documentos que o administrador está consultando agora.
+ const visible=new Set(Array.from(document.querySelectorAll('#docs a[data-library-file],.s1-library-organized a[data-library-file]'),node=>node.dataset.libraryFile));
+ rows.sort((a,b)=>Number(visible.has(b.resource_key))-Number(visible.has(a.resource_key)));
  backfillRunning=true;
  let processed=0,bytes=0;
  try{
@@ -257,7 +260,14 @@ async function backfill(){
    }catch(err){console.warn('Não foi possível gerar miniatura para',row.resource_key,err?.message||err);}
    await new Promise(resolve=>setTimeout(resolve,4500));
   }
- }finally{backfillRunning=false;}
+ }finally{
+  backfillRunning=false;
+  // Continua em pequenos lotes enquanto a aba administrativa estiver ativa.
+  if(admin()&&!document.hidden&&rows.some(row=>row?.storage_path&&!row.preview_path&&!attempted.has(row.resource_key))){
+   clearTimeout(backfillDelay);
+   backfillDelay=setTimeout(()=>{backfillDelay=0;backfill();},25000);
+  }
+ }
 }
 function planBackfill(){
  if(backfillDelay)clearTimeout(backfillDelay);
@@ -265,6 +275,7 @@ function planBackfill(){
 }
 window.addEventListener('uentzoul:library-updated',planBackfill);
 window.addEventListener('uentzoul:auth',planBackfill);
+document.addEventListener('visibilitychange',()=>{if(!document.hidden)planBackfill();});
 window.UentzoulMaterialPreviews={saveFromFile,backfill,previewRecord:rowFor};
 planBackfill();
 })();
