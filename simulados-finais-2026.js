@@ -297,7 +297,7 @@ function metaChoice(topics,model,slot,topic,id){
  const correct=options.shift();
  options.splice(correctPosition,0,correct);
  return {type:'choice',id,concept:topic.title,
-  prompt:'Considere o assunto '+topic.title.toLowerCase()+', previsto no roteiro da P2.\n\nQual alternativa apresenta a definição teoricamente adequada?',
+  prompt:'Questão do estudo dirigido:\n'+topic.question+'\n\nQual alternativa apresenta a resposta teoricamente adequada?',
   options,answer:correctPosition,source:'Questão autoral baseada no estudo dirigido P2 do professor Jefferson Krug.'};
 }
 function metaCombo(topics,model,slot,topic,id){
@@ -408,7 +408,13 @@ function generateVaried(id,model,topics){
   const qid=id+'-'+UPCOMING_VERSION+'-'+model+'-'+(i+1);
   if(format[i]==='combo'){
    const q=questionCombo(topics,model,i,a,b,c,qid);
-   q.prompt='Analise as cinco afirmações a seguir sobre os conteúdos da disciplina e assinale a combinação que apresenta apenas as corretas.';
+   const comboPrompts=[
+    'Analise as cinco afirmações e identifique a alternativa que reúne apenas as corretas.',
+    'Considere as proposições I a V sobre os conceitos estudados. Qual combinação é verdadeira?',
+    'Sobre os conteúdos da disciplina, assinale a alternativa que apresenta somente afirmações corretas.',
+    'Entre as proposições a seguir, quais estão de acordo com as definições e distinções teóricas estudadas?'
+   ];
+   q.prompt=comboPrompts[(model+i)%comboPrompts.length];
    questions.push(q);
   }else if(format[i]==='tf'){
    const q=questionTF(model,i,a,qid);
