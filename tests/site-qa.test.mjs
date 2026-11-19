@@ -132,7 +132,9 @@ test('Histórico por visita: linhas clicáveis, percursos reais e registros anti
  assert.match(admin,/data-admin-close-visit/);
  assert.match(admin,/uentzoul_visit_steps/);
  assert.match(admin,/Registro anterior a este recurso/);
- assert.match(admin,/Saída não confirmada/);
+ assert.doesNotMatch(admin,/Saída não confirmada/);
+ assert.match(admin,/Sessão encerrada/);
+ assert.match(admin,/Encerramento estimado por inatividade/);
  assert.match(admin,/Meu teste anônimo/);
  assert.match(tracker,/uentzoul_track_visit/);
  assert.match(tracker,/uentzoul:route/);
@@ -141,6 +143,36 @@ test('Histórico por visita: linhas clicáveis, percursos reais e registros anti
  assert.doesNotMatch(tracker,/document\.querySelector\(.*message.*textContent/);
  assert.match(read('site-version.js'),/visit-path\.js/);
  assert.match(html,/uentzoulCurrentRoute/);
+});
+
+test('Status de visita: ativa, fim registrado e fim estimado sem inventar logout',()=>{
+ const admin=read('admin-config.js');
+ const match=admin.match(/function visitDetail\\(row\\)\\{[\\s\\S]*?\\n\\}/);
+ assert.ok(match,'função de histórico localizada');
+ const now=Date.parse('2026-11-19T14:00:00.000Z');
+ const entry='2026-11-19T13:00:00.000Z';
+ const render=(row,steps=[])=>{
+  const fn=vm.runInNewContext('('+match[0]+')',{
+   visitLoading:false,visitError:'',visitSteps:steps,
+   esc:v=>String(v??''),logDate:v=>String(v??''),
+   visitTitle:s=>s.kind,deviceDetails:()=>'',Date:class extends Date{static now(){return now}}
+  });
+  return fn({name:'Visitante',entered_at:entry,...row});
+ };
+ const recent=render({last_seen_at:'2026-11-19T13:59:00.000Z'});
+ assert.match(recent,/Sessão possivelmente ativa/);
+ assert.doesNotMatch(recent,/Sessão encerrada/);
+ const inactive=render({last_seen_at:'2026-11-19T13:55:00.000Z'});
+ assert.match(inactive,/Sessão encerrada/);
+ assert.match(inactive,/Encerramento estimado por inatividade/);
+ assert.match(inactive,/não de uma saída confirmada/);
+ const ended=render({last_seen_at:'2026-11-19T13:59:00.000Z',ended_at:'2026-11-19T13:59:30.000Z'});
+ assert.match(ended,/Sessão encerrada/);
+ assert.match(ended,/Encerramento registrado pelo sistema/);
+ assert.doesNotMatch(ended,/estimado por inatividade/);
+ const exited=render({ended_at:'2026-11-19T13:59:30.000Z'},[{kind:'exit',happened_at:'2026-11-19T13:59:30.000Z'}]);
+ assert.match(exited,/>exit</);
+ assert.doesNotMatch(exited,/Sessão encerrada/,'saída explícita não ganha marcador estimado duplicado');
 });
 
 test('Auditoria oficial não infla visitantes e aparece separadamente no LOG',()=>{
