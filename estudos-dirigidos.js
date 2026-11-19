@@ -55,18 +55,20 @@
    return doc?'<div class="sd-original-file"><span>Arquivo original do professor</span>'+
     '<a href="#" class="sd-official-action" data-sd-official="'+esc(doc.resource_key)+'">Abrir documento ('+esc(docFormat(doc))+') ↗</a></div>':'';
  }
+ // Somente o estudo dirigido P3 de Avaliação Psicológica, confirmado pelo
+ // proprietário em 19/11/2026, pode iniciar esta preparação assistida.
+ // As outras disciplinas e provas continuam sem geração automática.
+ let avaliacaoP3AutoRequested=false;
  function prepareMissingGuides(){
-   // A confirmação da prova exige leitura do conteúdo e cruzamento com o cronograma.
-   // Nunca publica automaticamente um documento só porque tem "estudo dirigido" no nome.
-   return;
-   if(!sourcesReady||!isAdmin()||preparation.running)return;
-   const priority=['tcc','familia','meta','grupos','social','avaliacao'];
-   for(const subject of priority){
-     const doc=currentDoc(subject),saved=currentSaved(subject);
-     if(!doc||inlineOriginal(subject)||(saved?.resource_key===doc.resource_key&&saved?.guide?.questions?.length))continue;
-     void prepareGuide(subject);
-     break;
-   }
+   if(avaliacaoP3AutoRequested||!sourcesReady||!isAdmin()||preparation.running)return;
+   const doc=currentDoc('avaliacao'),saved=currentSaved('avaliacao');
+   if(!doc||doc.resource_key!=='avaliacao::Estudo dirigido para P3::27nov-66f091e7-018d-461d-b2cc-b78b51a6f575'|| 
+      !Array.isArray(doc.content_tags)||
+      !doc.content_tags.includes(OFFICIAL_TAG)||
+      !doc.content_tags.includes('psicomoodle:prova:P3')||
+      (saved?.resource_key===doc.resource_key&&saved.guide?.questions?.length))return;
+   avaliacaoP3AutoRequested=true;
+   void prepareGuide('avaliacao');
  }
  function sourceStatusMarkup(subject,doc){
    const exam=TARGETS[subject],error=preparation.errors[subject];
