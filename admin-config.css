@@ -237,3 +237,17 @@ html[data-theme="dark"] .admin-log-row-target:hover{background:#ffffff0b}
 .admin-visit-device dd{font-size:12px;font-weight:650;line-height:1.35;margin:0;overflow-wrap:anywhere}
 .admin-visit-device p{color:var(--muted);font-size:11px;line-height:1.5;margin:11px 0 0}
 @media(max-width:520px){.admin-visit-device dl{grid-template-columns:minmax(0,1fr)}}
+
+
+/* Acesso independente ao TetrisZoul, posicionado abaixo do LOG. */
+.admin-config-page .admin-tetriszoul-link{
+ display:flex;align-items:center;gap:13px;text-decoration:none;color:var(--ink);
+ transition:border-color .15s,background .15s;
+}
+.admin-config-page .admin-tetriszoul-link:hover{border-color:#9685d5;background:color-mix(in srgb,var(--soft) 65%,var(--paper))}
+.admin-tetriszoul-icon{height:40px;width:40px;flex:none;display:grid;place-items:center;border-radius:10px;background:color-mix(in srgb,#8b72d9 18%,var(--paper));color:#9274db;font-size:26px}
+.admin-tetriszoul-text{display:grid;gap:5px;min-width:0;flex:1}
+.admin-tetriszoul-text strong{font-size:14px;font-weight:780}
+.admin-tetriszoul-text small{font-size:11px;color:var(--muted)}
+.admin-tetriszoul-arrow{font-size:11px;font-weight:750;color:#8a73ce;white-space:nowrap}
+@media(max-width:480px){.admin-config-page .admin-tetriszoul-link{gap:10px}.admin-tetriszoul-icon{height:35px;width:35px}.admin-tetriszoul-arrow{font-size:10px}}
