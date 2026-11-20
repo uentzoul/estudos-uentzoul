@@ -142,3 +142,24 @@ html[data-theme="dark"] #topics.review-section .review-item .review-correct-stat
 html[data-theme="dark"] #topics.review-section .review-item .review-correct-example{border-top-color:#4d6958}
 html[data-theme="dark"] #topics.review-section .review-item .review-correct-example strong{color:#b4eccb}
 html[data-theme="dark"] #topics.review-section .review-item .review-correct-example p{color:#e5eee8!important}
+
+
+/* Revisão por capítulos e perguntas explicadas de Moreno, Rogers e Avaliação P3 */
+#topics.review-section .review-chapter-label{grid-column:1/-1;display:flex;align-items:center;gap:12px;min-width:0;margin:15px 0 3px;padding:0 2px;font-size:11px;letter-spacing:.04em;text-transform:uppercase;font-weight:820;line-height:1.45;color:var(--review-accent)}
+#topics.review-section .review-chapter-label:first-child{margin-top:2px}
+#topics.review-section .review-chapter-label:after{content:"";height:1px;flex:1;background:color-mix(in srgb,var(--review-accent) 24%,var(--line,#e5e0eb))}
+#topics.review-section .review-practice-question{min-width:0;background:color-mix(in srgb,var(--review-accent) 3%,var(--paper,#fff));border:1px solid color-mix(in srgb,var(--review-accent) 20%,var(--line,#e5e0eb));border-radius:9px;overflow:hidden}
+#topics.review-section .review-practice-question>summary{display:block!important;min-height:0!important;position:static!important;padding:11px 12px!important;font-size:12px!important;font-weight:750!important;line-height:1.5!important;color:var(--review-accent)!important;background:transparent!important;border:0!important;cursor:pointer;list-style:none}
+#topics.review-section .review-practice-question>summary::-webkit-details-marker{display:none}
+#topics.review-section .review-practice-question>summary:before{content:"?";display:inline-grid;place-items:center;width:20px;height:20px;margin-right:9px;border-radius:5px;background:color-mix(in srgb,var(--review-accent) 13%,var(--paper,#fff));font-size:11px}
+#topics.review-section .review-practice-question[open]>summary{border-bottom:1px solid var(--line,#e5e0eb)!important}
+#topics.review-section .review-practice-prompt{margin:0;padding:12px;font-size:12px;line-height:1.65;color:var(--ink,#302c42);white-space:pre-line;overflow-wrap:anywhere}
+#topics.review-section .review-practice-answer{padding:12px;border-top:1px solid var(--line,#e5e0eb);background:color-mix(in srgb,var(--review-accent) 4%,var(--paper,#fff))}
+#topics.review-section .review-practice-answer strong{display:block;font-size:11px;color:var(--review-accent);margin-bottom:7px}
+#topics.review-section .review-practice-answer p{font-size:11.7px;line-height:1.72;white-space:pre-line;margin:0;overflow-wrap:anywhere}
+#topics.review-section .review-practice-connection,#topics.review-section .review-practice-source{font-size:10px;line-height:1.55;color:var(--muted,#747083);margin:0}
+#topics.review-section .review-practice-source{border-top:1px solid var(--line,#e5e0eb);padding-top:8px}
+html[data-theme="dark"] #topics.review-section .review-practice-question{background:#272539;border-color:#49435e}
+html[data-theme="dark"] #topics.review-section .review-practice-question>summary{color:#d8c5f7!important}
+html[data-theme="dark"] #topics.review-section .review-practice-prompt,html[data-theme="dark"] #topics.review-section .review-practice-answer p{color:#ede8f8}
+html[data-theme="dark"] #topics.review-section .review-practice-answer{background:#302b41}

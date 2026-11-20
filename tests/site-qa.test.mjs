@@ -1272,3 +1272,38 @@ test('Biblioteca sincroniza documentos sem reconstruir a tela inteira e sem pisc
  isEditing=false;active.page='home';run();
  assert.equal(pending.size,0,'outras páginas não devem atualizar materiais');
 });
+
+
+test('Avaliação P3 oferece 21 conteúdos revisáveis baseados no roteiro detalhado',()=>{
+ const reviewModule=read('conteudos-revisao-p3-2026.js');
+ const source=read('avaliacao-p3-pratica.js');
+ const w={};
+ vm.runInNewContext(source,{window:w});
+ vm.runInNewContext(reviewModule,{window:w});
+ const topics=w.PSICO_DEEP_REVIEWS.get('avaliacao');
+ assert.equal(topics.length,21);
+ assert.ok(new Set(topics.map(x=>x.section)).size>=4);
+ for(const topic of topics)assert.ok(topic.title&&topic.definition&&topic.scenario&&topic.question&&topic.answer&&topic.source,topic.title);
+ assert.match(html,/DB\.topics\[key\]=expanded/);
+ assert.match(html,/conteudos-revisao-p3-2026\.js\?v=20261120-moreno-rogers-avaliacao-v1/);
+});
+
+test('Grupos contém 30+ conceitos de Moreno e Rogers conectados ao filme e preserva as duas questões P2',()=>{
+ const w={};
+ vm.runInNewContext(read('conteudos-revisao-p3-2026.js'),{window:w});
+ const topics=w.PSICO_DEEP_REVIEWS.get('grupos');
+ assert.ok(topics.length>=30);
+ assert.ok(topics.filter(x=>x.section.startsWith('Moreno')).length>=15);
+ assert.ok(topics.filter(x=>x.section.startsWith('Rogers')).length>=12);
+ for(const topic of topics)assert.ok(topic.title&&topic.definition&&topic.scenario&&topic.myth&&topic.question&&topic.answer,topic.title);
+ assert.ok(topics.some(x=>x.title.includes('Sociometria')));
+ assert.ok(topics.some(x=>x.title.includes('Inversão de papéis')));
+ assert.ok(topics.some(x=>x.title.includes('Tele:')));
+ assert.ok(topics.some(x=>x.title.includes('Congruência')));
+ assert.ok(topics.some(x=>x.title.includes('Feedback')));
+ assert.ok(topics.some(x=>x.title.includes('Jogo da linha')));
+ assert.match(read('simulados-grupos-filme-2026.js'),/questions:\[morenoQuestion,rogersQuestion\]/);
+ assert.match(html,/review-chapter-label/);
+ assert.match(html,/review-practice-question/);
+ assert.match(html,/review-practice-answer/);
+});

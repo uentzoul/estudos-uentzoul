@@ -2000,7 +2000,7 @@ html[data-theme="dark"] .tz-pending-icon{background:#40375e;color:#d6c4ff}
 <link rel="stylesheet" href="library-manager.css?v=20261114-batch-recovery-v1">
 <link rel="stylesheet" href="biblioteca-livros.css?v=20261120-review-v1">
 <link rel="stylesheet" href="biblioteca-moodle.css?v=20261112-3">
-<link rel="stylesheet" href="revisao-compacta.css?v=20261119-simple-examples-v2">
+<link rel="stylesheet" href="revisao-compacta.css?v=20261120-moreno-rogers-p3-v1">
 <script src="revisao-erros.js?v=20261119-avaliacao-p3-v1"></script>
 <link rel="stylesheet" href="disciplina-clean.css?v=20261119-simetria-v2">
 <link rel="stylesheet" href="inicio-slogan.css?v=20261117-vistos-podcasts-1">
@@ -2010,6 +2010,7 @@ html[data-theme="dark"] .tz-pending-icon{background:#40375e;color:#d6c4ff}
 <link rel="stylesheet" href="estudo-ativo.css?v=20261117-vistos-casos-1">
 <script src="estudos-dirigidos-avaliacao.js?v=20261113-revisao-global-1"></script>
 <script src="avaliacao-p3-pratica.js?v=20261119-foco-p3-21-v1"></script>
+<script src="conteudos-revisao-p3-2026.js?v=20261120-moreno-rogers-avaliacao-v1"></script>
 <script src="estudos-dirigidos-tcc.js?v=20261112-3"></script>
 <script src="estudos-dirigidos-meta.js?v=20261116-meta-p2"></script>
 <script src="metapsicologia-p2-pratica.js?v=20261119-28q-v1"></script>
@@ -2952,7 +2953,13 @@ const isDone=id=>!!store.completed[id];
 const doneBox=(id,label='Marcar como visto')=>`<label class="donecontrol ${isDone(id)?'is-checked':''}" title="Registro pessoal de leitura. É apenas um registro pessoal de estudo."><input type="checkbox" data-complete="${esc(id)}" aria-label="Marcar como visto" ${isDone(id)?'checked':''}><span>${isDone(id)?'✓ Visto':esc(label)}</span></label>`;
 const audioEpisodes=k=>DB.audio[k]?.episodes||[];
 const doneCount=(items)=>items.filter(i=>isDone(i)).length;
-const topicProgressKey=(k,i)=>k==='grupos'?`topic:grupos:foco-v3:${i}`:`topic:${k}:${i}`;
+/* Conteúdos para revisar da prova, sem modificar a prova simulada. */
+for(const key of ['avaliacao','grupos']){
+ const expanded=window.PSICO_DEEP_REVIEWS?.get?.(key);
+ if(Array.isArray(expanded)&&expanded.length>0)DB.topics[key]=expanded;
+}
+const topicProgressKey=(k,i)=>k==='grupos'?`topic:grupos:foco-v4:${i}`:
+ k==='avaliacao'?`topic:avaliacao:p3-integrada-v2:${i}`:`topic:${k}:${i}`;
 /* Os PDFs e textos não entram no progresso; somente atividades realizáveis. */
 const subjectKeys=k=>[
  ...(DB.topics[k]||[]).map((_,i)=>topicProgressKey(k,i)),
@@ -3594,6 +3601,7 @@ function renderSubject(k){
    '<div class="review-summary"><span class="review-count" id="reviewProgressCount"><strong>'+marked+'</strong> / '+topics.length+' vistos</span>'+
    '<span class="review-mini-track" aria-hidden="true"><span id="reviewProgressFill" style="width:'+fmtPct(marked,topics.length)+'%"></span></span></div></div>'+
    '<div class="topicgrid review-grid">'+topics.map((t,i)=>
+    ((t.section&&(i===0||topics[i-1]?.section!==t.section))?'<div class="review-chapter-label">'+esc(t.section)+'</div>':'')+
     '<article class="topicunit review-item '+(isDone(topicProgressKey(k,i))?'is-done':'')+'">'+
     '<details class="topic review-details"><summary><span class="review-index">'+String(i+1).padStart(2,'0')+'</span>'+
     '<span class="review-title">'+esc(t.title)+'</span><span class="review-chevron" aria-hidden="true"></span></summary>'+
@@ -3605,7 +3613,14 @@ function renderSubject(k){
     '<div class="review-mistake-heading"><span class="review-mistake-symbol" aria-hidden="true">×</span><strong>Afirmação incorreta</strong></div>'+
     '<p class="review-mistake-statement">'+esc(window.PSICO_REVIEW_ERRORS?.affirmations?.(k,t)?.incorrect||t.myth)+'</p>'+
     '<div class="review-mistake-explanation"><strong>Por que está errado?</strong><p>'+esc(window.PSICO_REVIEW_ERRORS?.explain?.(k,t)||t.definition||'Confira o conceito apresentado acima para compreender a distinção.')+'</p></div>'+
-    '</div>':'')+'</div></details>'+
+    '</div>':'')+
+    (t.question?'<details class="review-practice-question"><summary>Questão para lembrar na prova</summary>'+
+    '<p class="review-practice-prompt">'+esc(t.question)+'</p>'+
+    (t.answer?'<div class="review-practice-answer"><strong>Resposta orientativa e explicação</strong><p>'+esc(t.answer)+'</p></div>':'')+
+    '</details>':'')+
+    (t.connection?'<p class="review-practice-connection">'+esc(t.connection)+'</p>':'')+
+    (t.source?'<p class="review-practice-source">'+esc(t.source)+'</p>':'')+
+    '</div></details>'+
     '<div class="topicfoot review-actions">'+doneBox(topicProgressKey(k,i),'Visto')+'</div></article>').join('')+
    '</div></section></div></div>';
  }
