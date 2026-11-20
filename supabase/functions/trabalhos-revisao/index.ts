@@ -98,6 +98,7 @@ Deno.serve(async (request:Request)=>{
   const slides=asString(data?.slides,MAX_FILE_TEXT);
   const written=asString(data?.written,MAX_FILE_TEXT);
   const prompt=asString(data?.prompt,7000);
+  const promptTruncated=typeof data?.prompt==="string"&&data.prompt.trim().length>7000;
   if(!slides&&!written)return reply(400,{error:"Informe os slides, a parte escrita ou os dois para conferir."});
   if(slides.length<80&&written.length<80)return reply(400,{error:"O conteúdo fornecido é muito curto para realizar uma conferência consistente."});
   if((typeof data.slides==="string"&&data.slides.length>MAX_FILE_TEXT)||
@@ -149,6 +150,9 @@ Deno.serve(async (request:Request)=>{
   result.strengths=result.strengths.slice(0,3);
   result.next_steps=result.next_steps.slice(0,5);
   result.limitations=Array.isArray(result.limitations)?result.limitations.slice(0,5):[];
+  if(promptTruncated)result.limitations.push("O enunciado original excedeu 7.000 caracteres: apenas sua primeira parte foi considerada.");
+  if(data?.slidesTruncated===true)result.limitations.push("A apresentação excedeu o limite de extração: alguns slides ou páginas não entraram na análise.");
+  if(data?.writtenTruncated===true)result.limitations.push("O texto escrito excedeu o limite de extração: algumas páginas ou partes não entraram na análise.");
   if(!result.limitations.some((x:string)=>/visu|gráfic|imagem/i.test(x)))result.limitations.push("Análise baseada no texto extraído; não avalia visualmente imagens, gráficos, cores, posicionamento ou legibilidade real dos slides.");
   return reply(200,{review:result});
  }catch(err){
