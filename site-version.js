@@ -31,6 +31,7 @@ function setup(){
    nav.querySelector('[data-page="home"]'),
    nav.querySelector('[data-page="calendar"]'),
    nav.querySelector('[aria-label="Biblioteca — em breve"]'),
+   nav.querySelector('#navBookLibraryAdmin'),
    nav.querySelector('[data-page="exams"]'),
    nav.querySelector('#navCadernoPreview'),
    nav.querySelector('[data-page="messages"]'),
