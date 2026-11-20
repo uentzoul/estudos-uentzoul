@@ -49,7 +49,7 @@ function edit(patch){
  const rows=read(),i=rows.findIndex(x=>x.id===chosen);
  if(i<0)return;
  rows[i]={...rows[i],...patch,updatedAt:new Date().toISOString()};
- save(rows);
+ return save(rows);
 }
 function opt(value,label,current){return '<option value="'+esc(value)+'"'+(value===current?' selected':'')+'>'+esc(label)+'</option>';}
 function options(items,value){return items.map(x=>opt(x[0],x[1],value)).join('');}
@@ -64,8 +64,8 @@ function header(){
 }
 function navigation(){
  return '<nav class="pw-tabs" aria-label="Áreas de Trabalhos">'+
-  [['list','Meus trabalhos'],['new','Criar trabalho'],['route','Minha rota']].map(x=>
-  '<button type="button" data-pw-nav="'+x[0]+'" class="'+(view===x[0]?'is-active':'')+'"'+(x[0]==='route'&&!get()?' disabled':'')+'>'+x[1]+'</button>').join('')+
+  [['list','Meus trabalhos'],['new','Criar trabalho'],['route','Minha rota'],['review','Conferência']].map(x=>
+  '<button type="button" data-pw-nav="'+x[0]+'" class="'+(view===x[0]?'is-active':'')+'"'+((x[0]==='route'||x[0]==='review')&&!get()?' disabled':'')+'>'+x[1]+'</button>').join('')+
  '</nav>';
 }
 function listView(){
@@ -117,7 +117,7 @@ function routeView(){
  const done=progress(x),idx=Math.min(STAGES.length-1,Math.max(0,Number(x.stage)||0));
  const stage=STAGES[idx];
  const q=[...stage.questions,...(idx===3||idx===4?TYPE_QUESTIONS[x.type]||TYPE_QUESTIONS.outro:[])];
- return '<div class="pw-workbar"><div><button type="button" class="pw-back" data-pw-nav="list">‹ Voltar aos trabalhos</button><h2>'+esc(x.title)+'</h2><p>'+esc(TYPES.find(t=>t[0]===x.type)?.[1]||'Trabalho')+' · '+esc(dateLabel(x.due))+'</p></div><div class="pw-workbar-actions"><button type="button" class="pw-btn" data-pw-export>Exportar roteiro (.txt)</button><button type="button" class="pw-btn pw-danger" data-pw-delete>Excluir</button></div></div>'+
+ return '<div class="pw-workbar"><div><button type="button" class="pw-back" data-pw-nav="list">‹ Voltar aos trabalhos</button><h2>'+esc(x.title)+'</h2><p>'+esc(TYPES.find(t=>t[0]===x.type)?.[1]||'Trabalho')+' · '+esc(dateLabel(x.due))+'</p></div><div class="pw-workbar-actions"><button type="button" class="pw-btn pw-primary" data-pw-nav="review">Conferir arquivos</button><button type="button" class="pw-btn" data-pw-export>Exportar roteiro (.txt)</button><button type="button" class="pw-btn pw-danger" data-pw-delete>Excluir</button></div></div>'+
  '<section class="pw-flow"><div class="pw-flow-head"><strong>Minha rota</strong><span>'+done+' de 6 etapas concluídas</span></div><div class="pw-meter"><span style="width:'+Math.round(done/6*100)+'%"></span></div><div class="pw-steps">'+STAGES.map((s,i)=>'<button type="button" data-pw-stage="'+i+'" class="pw-step '+(i===idx?'is-selected':'')+(x.done?.[i]?' is-done':'')+'"><span class="pw-step-index">'+(x.done?.[i]?'✓':i+1)+'</span><span>'+esc(s.name)+'</span></button>').join('')+'</div></section>'+
  '<div class="pw-columns"><div class="pw-main-column">'+
  '<section class="pw-sheet"><div class="pw-section-head"><p class="pw-label">Etapa '+(idx+1)+' de 6</p><h2>'+esc(stage.name)+'</h2><p>'+esc(stage.hint)+'</p></div>'+
@@ -141,8 +141,8 @@ function routeView(){
 }
 function render(){
  if(!permitted())return '<section class="panel"><h2>Acesso restrito</h2><p>A área de Trabalhos está em desenvolvimento e ainda não está disponível para estudantes.</p></section>';
- if(view==='route'&&!get())view='list';
- return '<div id="pmWorks" class="pw-root">'+header()+navigation()+(notice?'<p class="pw-save-note" role="status">'+esc(notice)+'</p>':'')+(view==='new'?createView():view==='route'?routeView():listView())+'</div>';
+ if((view==='route'||view==='review')&&!get())view='list';
+ return '<div id="pmWorks" class="pw-root">'+header()+navigation()+(notice?'<p class="pw-save-note" role="status">'+esc(notice)+'</p>':'')+(view==='new'?createView():view==='route'?routeView():view==='review'?(window.PSICO_WORK_REVIEW?.render(get())||'<section class="pw-sheet"><h2>Carregando conferência…</h2></section>'):listView())+'</div>';
 }
 function afterRender(){}
 function open(id){chosen=id;view='route';notice='';rerenderWorks();}
@@ -198,5 +198,5 @@ document.addEventListener('change',e=>{
  const notes=e.target.closest('[data-pw-stage-notes]');
  if(notes){const i=Number(notes.dataset.pwStageNotes),arr=[...x.notes];if(i>=0&&i<6){arr[i]=notes.value;edit({notes:arr});}}
 });
-window.PSICO_WORKS={render,afterRender,hasAccess:permitted,forceRender:false};
+window.PSICO_WORKS={render,afterRender,hasAccess:permitted,getSelected:get,saveReview:patch=>{if(!permitted()||!get())return false;return edit(patch);},forceRender:false};
 })();
