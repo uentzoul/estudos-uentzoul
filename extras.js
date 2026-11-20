@@ -246,7 +246,7 @@ function initConnections(){
   chosen.push(group);unique.forEach(t=>seen.add(t));
  }
  if(chosen.length!==4)throw Error("Não foi possível montar quatro grupos exclusivos.");
- connectionGroups=chosen;
+ connectionGroups=chosen.map((g,i)=>({...g,level:i}));
  connectionTiles=shuffle(chosen.flatMap((group,i)=>group.terms.map((word,j)=>({id:i+"-"+j,word,group:i}))),ordinal*83293+101);
  const st=states.conexo;
  if(!Array.isArray(st.solved))st.solved=[];
