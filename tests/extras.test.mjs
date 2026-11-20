@@ -291,7 +291,7 @@ test('CONTEXTO colore barrinhas gradualmente do vermelho ao amarelo e verde pelo
  e.states().contexto.guesses=ranks.map(rank=>({word:ranked[rank-1][0]}));
  e.renderContexto();
  const markup=e.html();
- const colored=Array.from(markup.matchAll(/class="context-fill" style="width:(\\d+)%;--context-hue:(\\d+)"/g),
+ const colored=Array.from(markup.matchAll(/class="context-fill" style="width:([0-9]+)%;--context-hue:([0-9]+)"/g),
   m=>({width:Number(m[1]),hue:Number(m[2])}));
  assert.equal(colored.length,4,'uma barra colorida por tentativa');
  assert.ok(colored.every((row,i)=>i===0||colored[i-1].width>=row.width),
@@ -302,9 +302,11 @@ test('CONTEXTO colore barrinhas gradualmente do vermelho ao amarelo e verde pelo
  assert.ok(colored.at(-1).hue<45,'termos distantes em vermelho ou vermelho-alaranjado');
  assert.ok(colored.some(row=>row.hue>=45&&row.hue<=80),'intervalo intermediário amarelo');
  const styles=read('extras.css');
- assert.match(styles,/background:hsl\\(var\\(--context-hue,0\\) 82% 43% \\/ \\.64\\)/);
- assert.match(styles,/:root\\[data-theme=dark\\] \\.context-guess \\.context-fill/);
- assert.doesNotMatch(styles,/\\.context-guess\\.(?:far|mid|hot) \\.context-fill/);
+ assert.ok(styles.includes('background:hsl(var(--context-hue,0) 82% 43% / .64)'));
+ assert.ok(styles.includes(':root[data-theme=dark] .context-guess .context-fill'));
+ assert.ok(!styles.includes('.context-guess.far .context-fill'));
+ assert.ok(!styles.includes('.context-guess.mid .context-fill'));
+ assert.ok(!styles.includes('.context-guess.hot .context-fill'));
 });
 
 test('VÍNCULO tem tentativas ilimitadas, não encerra por erros e permite marcação',()=>{
