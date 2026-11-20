@@ -8,7 +8,8 @@ const $=id=>document.getElementById(id);
 const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const clean=s=>String(s??"").normalize("NFD").replace(/[\u0300-\u036f]/g,"").toUpperCase().trim();
 const cleanTerm=s=>clean(s).replace(/\s+/g," ");
-const GAMES=["tetris","psico","conexo","contexto"];
+const GAMES=["psico","contexto","conexo","tetris"];
+const ARCHIVE_START="2026-01-01";
 const CONTENT_GAMES=["psico","conexo","contexto"];
 const TARGETS=["memoria","empatia","recalque","familia","laudo","lideranca","ideologia","esquema","apego","pulsao","atencao","divorcio","polarizacao","inconsciente","cuidado","congruencia","reforco","ciclo vital","escuta","pensamento","normas","diagnostico","libertacao","preconceito","aprendizagem","avaliacao","cooperacao","desejo","comportamento","democracia"];
 const NEAR={
@@ -43,7 +44,8 @@ const NEAR={
  comportamento:["resposta","estimulo","reforco","aprendizagem"],
  democracia:["libertacao","poder","desigualdade","sociedade"]
 };
-let client=null,uid=null,approved=false,day="",ordinal=0,active="tetris",states={};
+let client=null,uid=null,approved=false,day="",ordinal=0,active="psico",states={};
+let archiveLoadToken=0, psicoFlippingRow=-1;
 let psicoBank=DATA.wordBank.slice().sort((a,b)=>clean(a.word).localeCompare(clean(b.word),"pt-BR"));
 let connectionGroups=[],connectionTiles=[],contextTerms=new Map(),contextRankings=null,contextTarget="";
 const persistTimers=Object.create(null),persistPromises=Object.create(null);
@@ -73,15 +75,60 @@ function gameStateDefault(game){
  game==="conexo"?{solved:[],mistakes:0,selected:[],wrong:[],shuffled:[],done:false,won:false}:
  {guesses:[],hint:false,done:false,won:false};
 }
-function localKey(game){return "psicomoodle-extras-v1:"+uid+":"+day+":"+game;}
-function localGet(game){try{const v=JSON.parse(localStorage.getItem(localKey(game)));return v&&typeof v==="object"?v:null;}catch(_){return null;}}
-function localSet(game){try{localStorage.setItem(localKey(game),JSON.stringify(states[game]));}catch(_){}}
-function initializeDay(){
- day=dateBrazil();ordinal=dayNumber(day);
- $("dayLabel").textContent=new Intl.DateTimeFormat("pt-BR",{timeZone:"America/Sao_Paulo",day:"2-digit",month:"short",year:"numeric"}).format(new Date(day+"T12:00:00Z"));
- for(const game of CONTENT_GAMES)states[game]=localGet(game)||gameStateDefault(game);
- initConnections();initContexto();
+function localKey(game,targetDay=day){return "psicomoodle-extras-v1:"+uid+":"+targetDay+":"+game;}
+function localGet(game,targetDay=day){
+ try{
+  const v=JSON.parse(localStorage.getItem(localKey(game,targetDay)));
+  return v&&typeof v==="object"?v:null;
+ }catch(_){return null;}
 }
+function localSet(game,targetDay=day){
+ try{localStorage.setItem(localKey(game,targetDay),JSON.stringify(states[game]));}catch(_){}
+}
+function dateLabel(value){
+ return new Intl.DateTimeFormat("pt-BR",{timeZone:"UTC",day:"2-digit",month:"short",year:"numeric"}).format(new Date(value+"T12:00:00Z"));
+}
+function updateArchiveControls(){
+ const input=$("archiveDate"),prev=$("archivePrev"),next=$("archiveNext"),todayBtn=$("archiveToday");
+ if(!input)return;
+ const today=dateBrazil();
+ input.min=ARCHIVE_START;input.max=today;input.value=day;
+ if(prev)prev.disabled=day<=ARCHIVE_START;
+ if(next)next.disabled=day>=today;
+ if(todayBtn)todayBtn.disabled=day===today;
+ $("dayLabel").textContent=dateLabel(day);
+ const calendar=$("extrasCalendar");
+ if(calendar)calendar.hidden=active==="tetris";
+}
+function initializeDay(selected=dateBrazil()){
+ day=selected;ordinal=dayNumber(day);psicoFlippingRow=-1;
+ feedback={game:"",message:"",kind:""};
+ for(const game of CONTENT_GAMES)states[game]=localGet(game)||gameStateDefault(game);
+ initConnections();initContexto();updateArchiveControls();
+}
+function validArchiveDay(value){
+ if(!/^\d{4}-\d\d-\d\d$/.test(value))return false;
+ const time=Date.parse(value+"T12:00:00Z");
+ return Number.isFinite(time)&&new Date(time).toISOString().slice(0,10)===value&&value>=ARCHIVE_START&&value<=dateBrazil();
+}
+function moveArchiveDay(offset){
+ if(!approved)return;
+ const time=Date.parse(day+"T12:00:00Z")+offset*86400000;
+ const value=new Date(time).toISOString().slice(0,10);
+ void selectArchiveDay(value);
+}
+async function selectArchiveDay(value){
+ if(!approved||!validArchiveDay(value)){updateArchiveControls();return;}
+ if(value===day){updateArchiveControls();return;}
+ const token=++archiveLoadToken;
+ // Cada dia possui seu próprio estado em cache e sua chave no Supabase.
+ initializeDay(value);
+ renderGame();
+ await loadCloud(value);
+ if(token!==archiveLoadToken||value!==day)return;
+ initConnections();initContexto();renderGame();
+}
+
 async function loadWordBank(){
  try{
   const {data,error}=await client.from("uentzoul_extras_word_bank")
@@ -91,44 +138,50 @@ async function loadWordBank(){
   if(valid.length>=20)psicoBank=valid.map(x=>({word:x.word,area:x.course_area,hint:x.hint}));
  }catch(e){console.warn("Extras: usando banco de palavras local.",e?.message||e);}
 }
-async function loadCloud(){
+async function loadCloud(targetDay=day){
  try{
-  const res=await client.from("uentzoul_extras_progress").select("game,state,updated_at").eq("user_id",uid).eq("challenge_day",day).limit(3);
+  const res=await client.from("uentzoul_extras_progress")
+   .select("game,state,updated_at").eq("user_id",uid).eq("challenge_day",targetDay).limit(3);
   if(res.error)throw res.error;
+  if(targetDay!==day)return;
   for(const row of res.data||[]){
    if(!CONTENT_GAMES.includes(row.game)||!row.state||typeof row.state!=="object")continue;
    const local=states[row.game];
    const localTime=Number(local?._savedAt)||0,remoteTime=Number(row.state._savedAt)||Date.parse(row.updated_at)||0;
-   if(remoteTime>=localTime){states[row.game]=row.state;localSet(row.game);}
-   else scheduleCloud(row.game);
+   if(remoteTime>=localTime){states[row.game]=row.state;localSet(row.game,targetDay);}
+   else scheduleCloud(row.game,targetDay);
   }
  }catch(e){
-  console.warn("Extras: leitura de progresso indisponível.",e?.message||e);
+  console.warn("Extras: leitura do progresso indisponível.",e?.message||e);
  }
 }
 function store(game,remote=true){
  if(!CONTENT_GAMES.includes(game))return;
  states[game]._savedAt=Date.now();
  localSet(game);
- if(remote)scheduleCloud(game);
+ if(remote)scheduleCloud(game,day);
 }
-function scheduleCloud(game){
+function scheduleCloud(game,targetDay=day){
  if(!approved||!uid||!client)return;
- clearTimeout(persistTimers[game]);
- persistTimers[game]=setTimeout(()=>{void flushCloud(game);},380);
+ const k=targetDay+"|"+game;
+ clearTimeout(persistTimers[k]);
+ persistTimers[k]=setTimeout(()=>{void flushCloud(game,targetDay);},380);
 }
-function flushCloud(game){
+function flushCloud(game,targetDay=day){
  if(!approved||!uid||!client)return Promise.resolve();
- const previous=persistPromises[game]||Promise.resolve();
- persistPromises[game]=previous.catch(()=>{}).then(async()=>{
-  const snapshot=JSON.parse(JSON.stringify(states[game]));
+ const snapshot=localGet(game,targetDay);
+ if(!snapshot?._savedAt)return Promise.resolve();
+ const key=targetDay+"|"+game;
+ const previous=persistPromises[key]||Promise.resolve();
+ persistPromises[key]=previous.catch(()=>{}).then(async()=>{
   const {error}=await client.from("uentzoul_extras_progress").upsert({
-   user_id:uid,game,challenge_day:day,state:snapshot,updated_at:new Date().toISOString()
+   user_id:uid,game,challenge_day:targetDay,state:snapshot,updated_at:new Date().toISOString()
   },{onConflict:"user_id,game,challenge_day"});
   if(error){console.warn("Extras: sincronização adiada.",error.message);return;}
-  if(states[game]._savedAt!==snapshot._savedAt)scheduleCloud(game);
+  const newest=localGet(game,targetDay);
+  if(newest?._savedAt!==snapshot._savedAt)scheduleCloud(game,targetDay);
  });
- return persistPromises[game];
+ return persistPromises[key];
 }
 function feedbackHtml(game){
  if(feedback.game!==game||!feedback.message)return '<p class="feedback" role="status"></p>';
@@ -145,7 +198,7 @@ function renderTabs(){
 function switchGame(game){
  if(!approved||!GAMES.includes(game))return;
  active=game;
- renderTabs();renderGame();
+ renderTabs();updateArchiveControls();renderGame();
  try{const url=new URL(location.href);url.searchParams.set("game",game);history.replaceState(null,"",url);}catch(_){}
 }
 function renderGame(){
@@ -266,8 +319,8 @@ function renderConexo(){
  const sorted=st.shuffled?.length?remaining.sort((a,b)=>st.shuffled.indexOf(a.id)-st.shuffled.indexOf(b.id)):remaining;
  const found=show.map(({group,i})=>'<div class="conexo-group l'+(group.level%4)+'"><strong>'+esc(group.title)+'</strong><small>'+group.terms.map(esc).join(" · ")+'</small></div>').join("");
  let end="";
- if(st.done)end='<div class="finish-box"><strong>'+(st.won?"Quatro grupos encontrados!":"Tentativas encerradas.")+'</strong><p>'+ (st.won?"Você resolveu o Conexo de hoje.":"As quatro conexões aparecem acima para revisão.")+' Volte amanhã para um novo desafio.</p></div>';
- $("gameHost").innerHTML='<div class="game-panel"><div class="game-head"><div><span class="game-tag">Conexões do dia · 16 palavras</span><h2>Conexo</h2><p>Selecione quatro termos que têm uma ligação. São quatro grupos de quatro; você pode errar até quatro vezes.</p></div><span class="game-stat">'+solved.length+' / 4 grupos</span></div>'+
+ if(st.done)end='<div class="finish-box"><strong>'+(st.won?"Quatro grupos encontrados!":"Tentativas encerradas.")+'</strong><p>'+ (st.won?"Você resolveu o VÍNCULO deste dia.":"As quatro conexões aparecem acima para revisão.")+' Escolha outra data para jogar novamente.</p></div>';
+ $("gameHost").innerHTML='<div class="game-panel"><div class="game-head"><div><span class="game-tag">Conexões do dia · 16 palavras</span><h2>VÍNCULO</h2><p>Selecione quatro termos que têm uma ligação. São quatro grupos de quatro; você pode errar até quatro vezes.</p></div><span class="game-stat">'+solved.length+' / 4 grupos</span></div>'+
   '<div class="conexo-solved">'+found+'</div>'+
   '<div class="conexo-grid">'+sorted.map(t=>'<button class="conexo-tile '+(st.selected.includes(t.id)?"selected":"")+'" data-tile="'+esc(t.id)+'" type="button" aria-pressed="'+String(st.selected.includes(t.id))+'">'+esc(t.word)+'</button>').join("")+'</div>'+
   '<div class="lives">Erros disponíveis: '+Array.from({length:4},(_,i)=>'<span class="life '+(i<st.mistakes?"lost":"")+'" aria-label="'+(i<st.mistakes?"Erro usado":"Tentativa disponível")+'"></span>').join("")+'</div>'+
@@ -370,9 +423,9 @@ function renderContexto(){
   return '<div class="context-guess '+grade+'"><span class="context-fill" style="width:'+closeness+'%"></span><b>'+esc(displayTerm(g.word))+'</b><small>#'+rank+' / '+all+'</small></div>';
  }).join("");
  const suggestions=[...contextTerms.values()].map(v=>v.label).sort((a,b)=>a.localeCompare(b,"pt-BR")).map(w=>'<option value="'+esc(w)+'"></option>').join("");
- const result=st.won?'<div class="finish-box"><strong>Você encontrou o termo!</strong><p>'+esc(displayTerm(contextTarget))+' · '+tries+' palpite'+(tries===1?"":"s")+'. Amanhã será outra palavra da Psicologia.</p></div>':"";
+ const result=st.won?'<div class="finish-box"><strong>Você encontrou o termo!</strong><p>'+esc(displayTerm(contextTarget))+' · '+tries+' palpite'+(tries===1?"":"s")+'. Escolha outra data para continuar jogando.</p></div>':"";
  $("gameHost").innerHTML=
-  '<div class="game-panel"><div class="game-head"><div><span class="game-tag">Contexto do dia · Associação semântica</span><h2>Contexto</h2><p>Tente descobrir um termo da Psicologia. Cada palpite recebe uma posição: quanto menor o número, mais perto do sentido da resposta.</p></div><span class="game-stat">'+(st.won?"Resolvido":"Melhor #"+(tries?best:"—"))+'</span></div>'+
+  '<div class="game-panel"><div class="game-head"><div><span class="game-tag">Contexto do dia · Associação semântica</span><h2>CONTEXTO</h2><p>Tente descobrir um termo da Psicologia. Cada palpite recebe uma posição: quanto menor o número, mais perto do sentido da resposta.</p></div><span class="game-stat">'+(st.won?"Resolvido":"Melhor #"+(tries?best:"—"))+'</span></div>'+
   '<div class="context-layout">'+
   (st.won?"":'<form id="contextForm" class="context-form" autocomplete="off"><input id="contextGuess" list="contextSuggest" aria-label="Palavra ou termo de Psicologia" placeholder="Digite uma palavra ou termo..." maxlength="60" required><datalist id="contextSuggest">'+suggestions+'</datalist><button class="primary-action" type="submit">Enviar</button></form>')+
   '<div class="context-help"><div class="explanation">O ranking considera <b>'+all+' termos cadastrados</b> e relações temáticas revisadas para este jogo. Não é o ranking do Contexto original nem uma inteligência semântica geral.</div>'+
@@ -413,7 +466,7 @@ async function start(){
   for(const game of CONTENT_GAMES)if(states[game]?._savedAt)void flushCloud(game);
   $("extrasGate").hidden=true;$("extrasApp").hidden=false;
   const requested=new URL(location.href).searchParams.get("game");
-  switchGame(GAMES.includes(requested)?requested:"tetris");
+  switchGame(GAMES.includes(requested)?requested:"psico");
   try{
    const theme=window.parent!==window?window.parent.document.documentElement.dataset.theme:localStorage.getItem("psicomoodle-theme");
    if(theme==="dark")document.documentElement.dataset.theme="dark";
@@ -432,6 +485,10 @@ async function start(){
  }finally{authBusy=false;}
 }
 document.addEventListener("click",e=>{
+ const arrowPrev=e.target.closest("#archivePrev"),arrowNext=e.target.closest("#archiveNext"),arrowToday=e.target.closest("#archiveToday");
+ if(arrowPrev){moveArchiveDay(-1);return;}
+ if(arrowNext){moveArchiveDay(1);return;}
+ if(arrowToday){void selectArchiveDay(dateBrazil());return;}
  const tab=e.target.closest("[data-game]");
  if(tab){switchGame(tab.dataset.game);return;}
  if(active==="psico"){
@@ -450,6 +507,7 @@ document.addEventListener("click",e=>{
   }
  }
 });
+document.addEventListener("change",e=>{if(e.target?.id==="archiveDate")void selectArchiveDay(e.target.value);});
 document.addEventListener("submit",e=>{
  if(e.target.id==="contextForm"){
   e.preventDefault();
