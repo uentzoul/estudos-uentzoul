@@ -136,7 +136,7 @@ async function selectFile(e,kind){
   const area=document.querySelector('#pmWorks [data-pw-review-text="'+kind+'"]');
   if(area){area.value=current.text;area.dispatchEvent(new Event('input',{bubbles:true}));}
  }catch(err){
-  current.status='Não foi possível ler '+file.name;
+  current.status='Não foi possível ler '+file.name+(current.text?' · o conteúdo anterior foi mantido':'');
   current.warning='Erro: '+(err?.message||'Falha na leitura do documento.');
  }finally{
   current.loading=false;input.value='';updateLabel(kind,s);
@@ -202,7 +202,9 @@ async function run(){
   const body={
    title:work.title,type:work.type,
    subject:work.subject,prompt:work.prompt||'',
-   slides,written
+   slides,written,
+   slidesTruncated:/Documento longo/.test(s.slides.warning),
+   writtenTruncated:/Documento longo/.test(s.written.warning)
   };
   const {data,error}=await client.functions.invoke('trabalhos-revisao',{body});
   if(error){
@@ -250,7 +252,7 @@ document.addEventListener('input',e=>{
  if(!s)return;
  const kind=area.dataset.pwReviewText;
  s[kind].text=area.value;
- s[kind].status=area.value.trim()?'Texto pronto para conferir · '+area.value.length.toLocaleString('pt-BR')+' caracteres':'';
+ s[kind].status=area.value.trim()?(s[kind].name?'Arquivo: '+s[kind].name+' · ':'Texto pronto para conferir · ')+area.value.length.toLocaleString('pt-BR')+' caracteres':'';
  if(s[kind].name&&!area.value.trim())s[kind].name='';
  updateLabel(kind,s);
  const button=document.querySelector('#pmWorks [data-pw-review-run]');
