@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow">
+<meta name="theme-color" content="#f4f1fa">
+<title>Extras · PsicoMoodle</title>
+<link rel="stylesheet" href="./extras.css?v=20261120-1">
+</head>
+<body>
+<main class="extras-wrap">
+ <section id="extrasGate" class="extras-gate" role="status">
+  <div class="gate-symbol">✦</div>
+  <h1>Extras</h1>
+  <p id="extrasGateStatus">Conferindo tua sessão de administrador…</p>
+  <a href="./index.html#home">Voltar ao PsicoMoodle</a>
+ </section>
+ <section id="extrasApp" hidden>
+  <header class="extras-hero">
+   <div class="eyebrow"><span class="live-dot"></span> Espaço de jogos · Acesso antecipado</div>
+   <div class="hero-row">
+    <div><h1>Extras</h1><p>Um intervalo entre as matérias. Quatro jogos, uma identidade: Psicologia.</p></div>
+    <div class="today-pill"><span>DESAFIOS DO DIA</span><strong id="dayLabel">—</strong></div>
+   </div>
+  </header>
+  <nav class="extras-tabs" aria-label="Jogos extras" role="tablist">
+   <button role="tab" type="button" data-game="tetris" aria-selected="true"><span class="tab-glyph" aria-hidden="true">▦</span><span><strong>TetrisZoul</strong><small>40 linhas</small></span></button>
+   <button role="tab" type="button" data-game="psico" aria-selected="false"><span class="tab-glyph" aria-hidden="true">▣</span><span><strong>Psico</strong><small>Cinco letras</small></span></button>
+   <button role="tab" type="button" data-game="conexo" aria-selected="false"><span class="tab-glyph" aria-hidden="true">◈</span><span><strong>Conexo</strong><small>Quatro conexões</small></span></button>
+   <button role="tab" type="button" data-game="contexto" aria-selected="false"><span class="tab-glyph" aria-hidden="true">◎</span><span><strong>Contexto</strong><small>Proximidade semântica</small></span></button>
+  </nav>
+  <section id="gameHost" role="tabpanel" aria-live="polite" aria-label="Jogo selecionado"></section>
+  <footer class="extras-footer">Jogos independentes, com temas de Psicologia dos 1º e 2º semestres. Prévia administrativa; outros usuários continuam vendo “Em breve”.</footer>
+ </section>
+</main>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="./extras-data.js?v=20261120-1"></script>
+<script src="./extras.js?v=20261120-1"></script>
+</body>
+</html>
