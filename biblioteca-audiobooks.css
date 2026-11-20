@@ -31,6 +31,7 @@
 #psbLibrary .psa-hero p{font-size:13px;color:var(--psa-muted);margin:4px 0}
 #psbLibrary .psa-hero small{color:var(--psa-muted);font-size:11px}
 #psbLibrary .psa-detail-columns{display:grid;grid-template-columns:minmax(0,1.45fr) minmax(245px,.75fr);gap:19px;align-items:start}
+#psbLibrary .psa-detail-columns:has(>div:only-child){grid-template-columns:minmax(0,1fr);max-width:800px}
 #psbLibrary .psa-player{background:linear-gradient(145deg,#25243d,#3b3155);color:#fff;border-radius:17px;padding:24px 26px;box-shadow:0 9px 22px #25243d26}
 #psbLibrary .psa-player-kicker{color:#c9b9ed}
 #psbLibrary .psa-player h3{color:#fff;font-size:17px;line-height:1.4;margin:9px 0 24px}
