@@ -299,7 +299,7 @@ function reset(){
 }
 function cell(c,x,y,size,color,ghost){
  var px=x*size,py=y*size;
- c.fillStyle=color;c.globalAlpha=ghost?.23:1;
+ c.fillStyle=color;c.globalAlpha=ghost?0.23:1;
  c.fillRect(px+1,py+1,size-2,size-2);
  if(!ghost){c.fillStyle="#ffffff30";c.fillRect(px+3,py+3,size-6,3);c.fillStyle="#00000029";c.fillRect(px+3,py+size-5,size-6,2);}
  c.globalAlpha=1;
@@ -403,7 +403,8 @@ document.querySelectorAll("[data-touch]").forEach(function(btn){
 byId("newGame").addEventListener("click",reset);
 byId("fullscreen").addEventListener("click",function(){
  if(document.fullscreenElement){document.exitFullscreen();return;}
- (byId("app").requestFullscreen||function(){}).call(byId("app")).catch?.(function(){});
+ var el=byId("app"),fn=el.requestFullscreen||el.webkitRequestFullscreen;
+ if(fn){var result=fn.call(el);if(result&&result.catch)result.catch(function(){});}
 });
 function settingsLoad(){
  var s=readJson("tetriszoul-settings-v1",{das:120,arr:20});
