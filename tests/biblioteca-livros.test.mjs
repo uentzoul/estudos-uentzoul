@@ -115,7 +115,7 @@ test('Capas editoriais substituem miniaturas e ocupam a moldura sem faixas branc
 
 test('Álbum de envios admin integra PDFs sem alterar obras antigas',()=>{
  const uploader=read('biblioteca-upload.js');
- assert.match(html,/biblioteca-upload\.js\?v=20261120-album-v1/);
+ assert.match(html,/biblioteca-upload\.js\?v=20261120-review-v1/);
  assert.match(main,/const allBooks=\(\)=>BOOKS\.concat\(window\.PSICO_BOOK_UPLOAD\?\.books\?\.\(\)\|\|\[\]\)/);
  assert.match(main,/data-psb-tab="upload"/);
  assert.match(main,/activeShelf==='upload'/);

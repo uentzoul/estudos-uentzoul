@@ -8,7 +8,7 @@ const normalize=s=>String(s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'')
 const forbidden=/^(untitled|sem t[ií]tulo|documento( \d+)?|microsoft word|adobe|scan(ned)?|pdf|livro)$/i;
 const stop=new Set(['de','da','do','das','dos','a','o','as','os','e','em','para','por','um','uma','the','of','and','an','to','volume','vol']);
 function cleanTitle(s){
- let t=String(s||'').replace(/\.pdf$/i,'').replace(/[_]+/g,' ').replace(/^(?:livro|ebook|e-book|pdf)[ -_:]+/i,'')
+ let t=String(s||'').replace(/\.pdf$/i,'').replace(/[_]+/g,' ').replace(/^(?:livro|ebook|e-book|pdf)[ \t_:\-]+/i,'')
   .replace(/\s*[\[(](?:c[oó]pia|copy|\d+)[\])]\s*$/i,'').replace(/\s+/g,' ').trim();
  if(t===t.toUpperCase()&&t.length>8)t=t.toLocaleLowerCase('pt-BR').replace(/^\p{L}/u,c=>c.toLocaleUpperCase('pt-BR'));
  return t.slice(0,180);
