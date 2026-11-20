@@ -3132,6 +3132,7 @@ function pmNavRestore(state){
   if(current.page==='subject'&&!DB.subjects[current.subject])current.page='home';
   if(current.page==='test'&&!DB.exams.some(x=>x.id===current.exam))current.page='exams';
   if(current.page==='admin'&&!window.uentzoulAdminConfig?.isAdmin?.())current.page='home';
+  if(current.page==='extras'&&!window.uentzoulAIAuth?.user?.())current.page='home';
   if(current.page==='calendar'&&!agendaAvailable())current.page='home';
   if(state.agenda){
    calendarView=['provas','horarios','conteudos'].includes(state.agenda.view)?state.agenda.view:'provas';
@@ -3164,6 +3165,10 @@ const go=(page,extra={})=>{
  if(page==='schedule'){calendarView='horarios';page='calendar';}
  if(page==='calendar'&&!agendaAvailable())return;
  if(page==='admin'&&!window.uentzoulAdminConfig?.isAdmin?.())page='home';
+ if(page==='extras'&&!window.uentzoulAIAuth?.user?.()){
+  window.uentzoulAIAuth?.openLogin?.();
+  return;
+ }
  const previousScroll=window.scrollY||0;
  if(page==='home')current.libraryCourse=null;
  current={...current,...extra,page};
