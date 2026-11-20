@@ -11,6 +11,13 @@ const cleanTerm=s=>clean(s).replace(/\s+/g," ");
 const GAMES=["psico","contexto","conexo","tetris"];
 const ARCHIVE_START="2026-11-20";
 const CONTENT_GAMES=["psico","conexo","contexto"];
+// Mantém as respostas do dia inaugural mesmo após ampliar os bancos editoriais.
+const LAUNCH_GROUPS=[
+ {title:"Elementos presentes no processo de avaliação psicológica",terms:["Testagem","Observação","Entrevistado","Relatório"]},
+ {title:"Elementos da dinâmica de grupos",terms:["Coesão","Liderança","Normas","Papéis"]},
+ {title:"Áreas de atuação da Psicologia",terms:["Hospitalar","Forense","Escolar","Organizacional"]},
+ {title:"Etapas do ciclo vital",terms:["Infância","Adolescência","Adultez","Velhice"]}
+];
 const TARGETS=["memoria","empatia","recalque","familia","laudo","lideranca","ideologia","esquema","apego","pulsao","atencao","divorcio","polarizacao","inconsciente","cuidado","congruencia","reforco","ciclo vital","escuta","pensamento","normas","diagnostico","libertacao","preconceito","aprendizagem","avaliacao","cooperacao","desejo","comportamento","democracia"];
 const NEAR={
  memoria:["atencao","percepcao","aprendizagem","linguagem"],
@@ -68,6 +75,7 @@ function shuffle(a,seed){
  return arr;
 }
 function getWord(){
+ if(day===ARCHIVE_START)return {word:"EXAME",area:"Avaliação Psicológica",hint:"Investigação ou procedimento avaliativo"};
  const list=psicoBank;
  return list[((ordinal*17+23)%list.length+list.length)%list.length];
 }
@@ -165,7 +173,11 @@ async function loadWordBank(){
     .select("word,course_area,hint").eq("enabled",true).order("word").limit(500);
   if(error)throw error;
   const valid=(data||[]).filter(x=>clean(x.word).length===5);
-  if(valid.length>=20)psicoBank=valid.map(x=>({word:x.word,area:x.course_area,hint:x.hint}));
+  if(valid.length>=20){
+   const merged=new Map(psicoBank.map(x=>[clean(x.word),x]));
+   valid.forEach(x=>merged.set(clean(x.word),{word:x.word,area:x.course_area,hint:x.hint}));
+   psicoBank=[...merged.values()].sort((a,b)=>clean(a.word).localeCompare(clean(b.word),"pt-BR"));
+  }
  }catch(e){console.warn("Extras: usando banco de palavras local.",e?.message||e);}
 }
 async function loadCloud(targetDay=day){
@@ -402,13 +414,25 @@ function inputPsico(key){
 }
 
 function initConnections(){
- const shuffledGroups=shuffle(DATA.connectionGroups,ordinal*104729+17);
  const chosen=[],seen=new Set();
- for(const group of shuffledGroups){
-  if(chosen.length>=4)break;
+ const canPick=group=>{
   const unique=group.terms.map(cleanTerm);
-  if(new Set(unique).size!==4||unique.some(t=>seen.has(t)))continue;
-  chosen.push(group);unique.forEach(t=>seen.add(t));
+  return new Set(unique).size===4&&!unique.some(t=>seen.has(t));
+ };
+ const add=group=>{chosen.push(group);group.terms.map(cleanTerm).forEach(term=>seen.add(term));};
+ if(day===ARCHIVE_START){
+  LAUNCH_GROUPS.forEach(add);
+ }else{
+  const pool=shuffle(DATA.connectionGroups,ordinal*104729+17);
+  const first=pool.find(canPick);
+  if(first){
+   add(first);
+   // Uma segunda categoria temática próxima provoca associações plausíveis,
+   // sem introduzir peças duplicadas ou soluções contraditórias.
+   const close=pool.find(g=>g!==first&&g.theme&&g.theme===first.theme&&canPick(g));
+   if(close)add(close);
+  }
+  for(const group of pool){if(chosen.length===4)break;if(!chosen.includes(group)&&canPick(group))add(group);}
  }
  if(chosen.length!==4)throw Error("Não foi possível montar quatro grupos exclusivos.");
  connectionGroups=chosen.map((g,i)=>({...g,level:i}));
