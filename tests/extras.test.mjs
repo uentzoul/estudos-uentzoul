@@ -86,7 +86,7 @@ test('Scripts extras são sintaticamente válidos',()=>{
 });
 function engine(){
  const expanded=script.replace(/\nstart\(\);\n\}\)\(\);\s*$/,
-  '\nwindow.__extTest={init:initializeDay,getWord,wordColors,inputPsico,conexoSubmit,contextSubmit,renderPsico,renderConexo,renderContexto,rank:()=>contextRankings,target:()=>contextTarget,groups:()=>connectionGroups,tiles:()=>connectionTiles,terms:()=>contextTerms,states:()=>states,setActive:v=>{active=v;},setBank:v=>{psicoBank=v;},setPsicoMode,getPsicoWords,psicoState,getAdminAnswersFor,getPsicoWordsFor,getPsicoDayWordsFor,psicoDeck:()=>PSICO_ANSWER_DECK,classicCore:()=>PSICO_CLASSIC_CORE,showAdminAnswers:()=>{adminAnswersOpen=true;updateAdminAnswers();},setAdmin:v=>{isAdmin=v;},node:document.getElementById,config:()=>PSICO_MODES[psicoMode],html:()=>document.getElementById("gameHost").innerHTML,mark:tileMark,rankTerm:contextRankTerm,validArchiveDay,dragStart:conexoDragStart,dragMove:conexoDragMove,dragEnd:conexoDragEnd,allow:()=>{approved=true;}};\n})();');
+  '\nwindow.__extTest={init:initializeDay,getWord,wordColors,inputPsico,conexoSubmit,contextSubmit,renderPsico,renderConexo,renderContexto,rank:()=>contextRankings,target:()=>contextTarget,groups:()=>connectionGroups,tiles:()=>connectionTiles,terms:()=>contextTerms,states:()=>states,setActive:v=>{active=v;},setBank:v=>{psicoBank=v;},setPsicoMode,getPsicoWords,psicoState,getAdminAnswersFor,getPsicoWordsFor,getPsicoDayWordsFor,psicoDeck:()=>PSICO_ANSWER_DECK,classicCore:()=>PSICO_CLASSIC_CORE,showAdminAnswers:()=>{adminAnswersOpen=true;updateAdminAnswers();},setAdmin:v=>{isAdmin=v;},node:document.getElementById,config:()=>PSICO_MODES[psicoMode],html:()=>document.getElementById("gameHost").innerHTML,mark:tileMark,rankTerm:contextRankTerm,targets:()=>TARGETS,near:()=>NEAR,wordValid:isContextWord,reinitContexto:initContexto,feedback:()=>feedback,validArchiveDay,dragStart:conexoDragStart,dragMove:conexoDragMove,dragEnd:conexoDragEnd,allow:()=>{approved=true;}};\n})();');
  assert.notEqual(expanded,script,'acesso de teste ao motor');
  const storage=new Map(),elements=new Map();
  const fakeElement=id=>{
@@ -307,6 +307,60 @@ test('CONTEXTO colore barrinhas gradualmente do vermelho ao amarelo e verde pelo
  assert.ok(!styles.includes('.context-guess.far .context-fill'));
  assert.ok(!styles.includes('.context-guess.mid .context-fill'));
  assert.ok(!styles.includes('.context-guess.hot .context-fill'));
+});
+
+test('CONTEXTO rejeita expressões com duas ou mais palavras sem atribuir ranking',()=>{
+ const e=engine();e.init('2026-11-20');e.setActive('contexto');
+ for(const phrase of ['redes sociais','saúde mental','ciclo vital','qualidade de vida','terapia do esquema','apoio social','redes-sociais','duas    palavras','rede2']){
+  const count=e.states().contexto.guesses.length;
+  assert.equal(e.wordValid(phrase),false,phrase);
+  assert.equal(e.rankTerm(phrase),Infinity,'não classificar '+phrase);
+  e.contextSubmit(phrase);
+  assert.equal(e.states().contexto.guesses.length,count,'não registrar '+phrase);
+  assert.equal(e.feedback().kind,'error','mostrar erro para '+phrase);
+ }
+ assert.match(e.feedback().message,/apenas uma palavra/i);
+ e.contextSubmit('atenção');
+ assert.equal(e.states().contexto.guesses.length,1,'palavra acentuada válida continua permitida');
+ assert.equal(e.wordValid('pulsão'),true);
+ assert.equal(e.wordValid('redes'),true);
+ assert.ok(e.rankTerm('redes')>=1,'uma palavra válida recebe ranking');
+});
+
+test('CONTEXTO não possui expressões nem nas respostas diárias nem no dicionário semântico',()=>{
+ const e=engine();e.init('2026-11-20');
+ assert.equal(e.targets().length,89,'preserva a quantidade e a rotação das respostas');
+ assert.ok(e.targets().every(e.wordValid),'todas as respostas têm somente uma palavra');
+ assert.ok(data.semanticDomains.every(domain=>domain.terms.every(e.wordValid)),
+  'todos os termos editoriais cadastrados são palavras únicas');
+ assert.ok(Object.entries(e.near()).every(([term,related])=>e.wordValid(term)&&related.every(e.wordValid)),
+  'todas as relações semânticas próximas usam palavras únicas');
+ assert.ok(!e.terms().has('REDES SOCIAIS'),'o antigo palpite #4 não existe mais');
+ assert.ok(e.terms().has('REDES'),'termo simples substitui a expressão');
+ assert.equal(e.target(),'POLARIZACAO','preserva resposta inaugural do jogo');
+ // O cálculo de datas circula por todas as 89 respostas (11 e 89 são coprimos).
+ for(let i=0;i<89;i++){
+  const day=new Date(Date.UTC(2026,10,20+i)).toISOString().slice(0,10);
+  e.init(day);
+  assert.ok(e.wordValid(e.target()),'resposta composta no dia '+day);
+  assert.ok(e.terms().has(e.target()),'resposta inexistente no dia '+day);
+ }
+});
+
+test('CONTEXTO limpa palpites compostos antigos sem perder palavras válidas nem dica',()=>{
+ const e=engine();e.init('2026-11-20');
+ const st=e.states().contexto;st.hint=true;
+ st.guesses=[{word:'redes sociais'},{word:'ALGORITMO'},{word:'ciclo vital'},{word:'algoritmo'},{word:'atenção'}];
+ st.done=true;st.won=true;
+ e.reinitContexto();
+ assert.deepEqual(Array.from(st.guesses,g=>g.word),['ALGORITMO','atenção']);
+ assert.equal(st.won,false,'vitória inválida deve ser desfeita');
+ assert.equal(st.done,false);
+ assert.equal(st.hint,true,'progresso válido permanece preservado');
+ e.renderContexto();
+ assert.doesNotMatch(e.html(),/redes sociais|ciclo vital/i);
+ assert.match(e.html(),/algoritmo/i);
+ assert.match(e.html(),/atenção/i);
 });
 
 test('VÍNCULO tem tentativas ilimitadas, não encerra por erros e permite marcação',()=>{
