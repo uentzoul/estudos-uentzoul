@@ -67,6 +67,17 @@ A Edge Function **ia-tzoul** valida a sessão e confere a titularidade da matér
 A Biblioteca foi alinhada com títulos, contadores e materiais distribuídos em grades estáveis para computador e celular. Em mensagens de grupos e no chat global, avisos destinados à coletividade utilizam tratamento no plural.
 
 
+
+## Biblioteca de Livros — prévia administrativa (20/11/2026)
+
+A aba **Biblioteca** no menu esquerdo foi preparada como recurso **somente do administrador**. Para os demais perfis, continua aparecendo o item informativo **Biblioteca — Em breve**, sem rota nem acesso. O projeto utiliza a verificação já existente \`uentzoul_is_admin\`, e a navegação bloqueia a rota \`books\` em todos os semestres. O carregador de interface também remove itens residuais de **Trabalhos** que eventualmente permaneçam em HTML antigo no cache.
+
+A Biblioteca possui duas áreas: **Biblioteca de livros** e **Biblioteca de audiobooks**. A primeira oferece estante padronizada, pesquisa por título/autor/assunto, autor identificado e marcação de trechos parciais; o catálogo inicial contém 18 obras/seleções academicamente reconhecíveis, cujos PDFs foram confirmados no bucket privado \`uentzoul-library-files\` e já existiam no acervo do projeto. A área de audiobooks fica apenas preparada visualmente para receber outra etapa de desenvolvimento; nenhum audiobook foi criado ou inventado.
+
+O leitor utiliza pdf.js sob demanda, com abertura animada da capa, carregamento exclusivamente no clique, navegação por setas, teclado, toque e campo de página, dupla página no tablet horizontal, zoom, download opcional e modo livro imersivo. O arquivo original é buscado por URL assinada de curta duração e armazenado *apenas no navegador da conta administradora* via IndexedDB quando houver espaço. A leitura não pré-carrega os demais livros. Em caso de falta de quota local, o leitor ainda funciona on-line, e a interface sinaliza que o arquivo não foi guardado. Capas editoriais são dimensionadas em moldura uniforme; imagens oficiais disponíveis são usadas quando verificadas, com arte tipográfica como alternativa. Depois da primeira abertura, uma miniatura da primeira página pode ser guardada localmente.
+
+**Observações:** a biblioteca é uma experiência de leitura de PDFs de arquivos já disponibilizados, não um programa de distribuição aberta de livros. Catálogos de arquivos e permissões anteriores das disciplinas não foram alterados. A leitura offline completa depende de o navegador ainda dispor do código do site e do pdf.js. PDFs inteiros e autores não são inferidos de meros números de páginas: trechos identificados permanecem marcados como parciais. O acesso dos demais estudantes à nova interface só poderá ser liberado por uma alteração posterior expressa.
+
 ## Política de preservação de dados (obrigatória nas atualizações)
 
 **Não apagar ou reinicializar mensagens, conversas, simulados, respostas, provas entregues, matérias pessoais, agenda, histórico ou progresso ao atualizar a aparência ou funcionalidades do site.** Fazer alterações incrementais no código e migrações não destrutivas. Não usar TRUNCATE, DROP TABLE, migrações que esvaziem registros, nem sobrescrever históricos com arrays vazios em atualização automática. Exclusão só pode ocorrer por ação explícita e confirmada da própria pessoa sobre o seu conteúdo. Testar antes de publicar.
