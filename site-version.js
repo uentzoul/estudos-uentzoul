@@ -2,6 +2,8 @@
 (()=>{
 'use strict';
 function setup(){
+ // Compatibilidade com HTML de cache antigo: não recriar a aba Trabalhos, já retirada do projeto.
+ for(const obsolete of document.querySelectorAll('#nav [aria-label="Trabalhos — em breve"], #nav [data-page="works"], #nav [id^="navTrabalhos"]'))obsolete.remove();
  // Restaura a seção aberta mesmo quando uma atualização altera a URL de versão.
  if(!document.getElementById('pm-navigation-resume')){
   const script=document.createElement('script');
