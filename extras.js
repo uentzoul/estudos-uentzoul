@@ -851,7 +851,29 @@ function followSiteTheme(){
   document.documentElement.dataset.theme=theme==="dark"?"dark":"light";
  }catch(_){document.documentElement.dataset.theme="light";}
 }
+// Entrada direta em extras.html também respeita a limitação para PC e tablet.
+function isExtrasPhone(){
+ try{
+  if(window.parent!==window&&window.parent.location.origin===location.origin&&
+     typeof window.parent.PSICO_NOTEBOOK_IS_PHONE==='function')
+   return Boolean(window.parent.PSICO_NOTEBOOK_IS_PHONE());
+ }catch(_){}
+ const nav=typeof navigator!=='undefined'?navigator:null;
+ if(!nav)return false;
+ const ua=String(nav.userAgent||''),platform=String(nav.platform||'');
+ const touches=Number(nav.maxTouchPoints)||0;
+ const display=typeof screen!=='undefined'?screen:null;
+ const shortSide=Math.min(display?.width||0,display?.height||0);
+ if(/iPhone|iPod|Windows Phone|IEMobile/i.test(ua))return true;
+ if(/iPad|Tablet|Kindle|Silk|PlayBook|Nexus 7|Nexus 10/i.test(ua)||
+    (/Android/i.test(ua)&&!/Mobile/i.test(ua)))return false;
+ if(nav.userAgentData?.mobile===true)return true;
+ if(/MacIntel|Macintosh/i.test(platform+' '+ua)&&touches>1)return shortSide>0&&shortSide<600;
+ if(/Android[^)]*Mobile|Mobile/i.test(ua))return true;
+ return !!(window.matchMedia?.('(pointer: coarse)')?.matches&&touches>0&&shortSide>0&&shortSide<600);
+}
 async function start(){
+ if(isExtrasPhone()){showAuthError('Extras disponível somente em computador ou tablet.');return;}
  if(authBusy||approved)return;
  authBusy=true;
  followSiteTheme();

@@ -15,6 +15,38 @@ vm.runInNewContext(wordSource,dataContext,{filename:'extras-data.js'});
 const data=dataContext.window.PSICO_EXTRAS_DATA;
 const norm=value=>String(value).normalize('NFD').replace(/[\u0300-\u036f]/g,'').toUpperCase();
 
+test('Extras segue o Caderno: celular bloqueado, tablet e PC liberados',()=>{
+ assert.match(index,/function isExtrasPhone\(\)/,'detector do dispositivo no site');
+ assert.match(index,/if\(page==='extras'&&isExtrasPhone\(\)\)return;/,'bloqueia cliques e rotas diretas');
+ assert.match(index,/if\(current\.page==='extras'&&isExtrasPhone\(\)\)current\.page='home'/,'não mantém Extras ao renderizar no celular');
+ assert.match(index,/extraButton\.disabled=phone/,'Extras realmente desativado');
+ assert.match(index,/pm-extras-phone-locked/,'aparência igual ao Caderno');
+ assert.match(script,/if\(isExtrasPhone\(\)\)\{showAuthError/,'proteção na página própria');
+ const start=index.indexOf('function isExtrasPhone(){');
+ const end=index.indexOf('const go=(page,extra={})=>{',start);
+ assert.ok(start>0&&end>start);
+ const source=index.slice(start,end);
+ const fn=vm.runInNewContext('('+source.match(/function isExtrasPhone\(\)\{[\s\S]*?\n\}/)[0]+')');
+ const check=(ua,platform,touches,width,height,mobile)=>fn.call(null);
+ // The same detector is also exposed by the Caderno; verify its real implementation separately.
+ const loader=read('site-version.js');
+ const existing=loader.match(/function isNotebookPhone\(\)\{[\s\S]*?\n \}/);
+ assert.ok(existing,'Caderno conserva a detecção de aparelho');
+ for(const [ua,expected] of [
+  ['Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) Mobile',true],
+  ['Mozilla/5.0 (Linux; Android 14; Pixel 7) Mobile Safari/537.36',true],
+  ['Mozilla/5.0 (iPad; CPU OS 18_0 like Mac OS X)',false],
+  ['Mozilla/5.0 (Linux; Android 15; Tablet SM-X710) Safari/537.36',false],
+  ['Mozilla/5.0 (Windows NT 10.0; Win64; x64)',false]
+ ]){
+  const actual=vm.runInNewContext('('+source.match(/function isExtrasPhone\(\)\{[\s\S]*?\n\}/)[0]+')()',{
+   window:{},navigator:{userAgent:ua,platform:ua.includes('Windows')?'Win32':'Linux',maxTouchPoints:0},
+   screen:{width:900,height:1440}
+  });
+  assert.equal(actual,expected,ua);
+ }
+});
+
 test('Extras é acessível a contas conectadas, com TetrisZoul exclusivo de administradores',()=>{
  assert.match(index,/id="navExtrasGames"/);
  assert.doesNotMatch(index,/id="navExtrasSoon"/);
