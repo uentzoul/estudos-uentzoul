@@ -187,6 +187,21 @@ async function mapBookPages(pdf,b,token){
  }
  return map;
 }
+// O módulo do sumário é carregado só na abertura de livros; não aumenta o consumo da estante.
+let tocModulePromise=null;
+function ensureTocModule(){
+ if(window.PSICO_BOOK_TOC)return Promise.resolve(window.PSICO_BOOK_TOC);
+ if(tocModulePromise)return tocModulePromise;
+ tocModulePromise=new Promise((resolve,reject)=>{
+  const node=document.createElement('script');
+  node.src='biblioteca-sumario.js?v=20261120-toc-v1';
+  node.async=true;
+  node.onload=()=>window.PSICO_BOOK_TOC?resolve(window.PSICO_BOOK_TOC):reject(Error('Módulo de sumário indisponível.'));
+  node.onerror=()=>reject(Error('Não foi possível carregar o sumário.'));
+  document.head.appendChild(node);
+ }).catch(err=>{tocModulePromise=null;console.warn(err);return null});
+ return tocModulePromise;
+}
 function pdfjs(){
  if(window.pdfjsLib)return Promise.resolve(window.pdfjsLib);
  if(pdfPromise)return pdfPromise;
@@ -293,7 +308,7 @@ function render(){
 }
 async function afterRender(){
  if(!allowed())return;
- if(activeBook&&documentPDF){await draw();return;}
+ if(activeBook&&documentPDF){await draw();void ensureTocModule().then(api=>api?.mount?.());return;}
  if(activeShelf==='books'){filterShelf();void restoreCovers();}
  void window.PSICO_BOOK_UPLOAD?.load?.(requestRender);
 }
@@ -399,6 +414,7 @@ function closeBook(silent=false){
  for(const job of renderTasks){try{job.cancel()}catch(_){}}
  renderTasks=[];
  documentPDF=null;documentBlob=null;activeBook=null;leafMap=[];focused=false;zoom=1;cachedForActive=false;
+ window.PSICO_BOOK_TOC?.close?.();
  if(document.fullscreenElement?.id==='psbReader'){try{document.exitFullscreen?.()}catch(_){}}
  document.documentElement.classList.remove('psb-mode-book');
  if(!silent){requestRender();requestAnimationFrame(()=>{const input=document.getElementById('psbSearch');if(input)input.value=query;filterShelf();restoreCovers();})}
@@ -425,6 +441,7 @@ async function draw(){
  if(spread)spread.classList.toggle('psb-single',ids.length===1);
  const pageInput=reader.querySelector('#psbPageInput');if(pageInput){pageInput.value=String(page);pageInput.max=bookPageCount();}
  const zoomText=reader.querySelector('#psbZoomCount');if(zoomText)zoomText.textContent=Math.round(zoom*100)+'%';
+ window.PSICO_BOOK_TOC?.sync?.();
  const noPrev=page<=1,noNext=ids[ids.length-1]>=bookPageCount();
  reader.querySelector('[data-psb-prev]')?.toggleAttribute('disabled',noPrev);
  reader.querySelector('[data-psb-next]')?.toggleAttribute('disabled',noNext);
@@ -536,6 +553,7 @@ document.addEventListener('click',e=>{
 });
 document.addEventListener('keydown',e=>{
  if(!allowed()||!activeBook||!document.getElementById('psbReader'))return;
+ if(e.key==='Escape'&&window.PSICO_BOOK_TOC?.isOpen?.()){e.preventDefault();window.PSICO_BOOK_TOC.closePanel();return;}
  if(e.target.closest?.('input,textarea,select,[contenteditable=true]'))return;
  if(e.key==='ArrowRight'||e.key==='PageDown'){e.preventDefault();turn(1);}
  if(e.key==='ArrowLeft'||e.key==='PageUp'){e.preventDefault();turn(-1);}
@@ -564,5 +582,5 @@ document.addEventListener('fullscreenchange',()=>{
 window.addEventListener('uentzoul:auth',()=>{
  if(!allowed()&&activeBook)closeBook(true);
 });
-window.PSICO_BOOK_LIBRARY={render,afterRender,hasAccess:allowed,books:()=>allBooks().map(({id,title,author,subject,pages,part})=>({id,title,author,subject,pages,part})),isOpen:()=>!!activeBook,reset:()=>{closeBook(true);activeShelf='home';query='';}};
+window.PSICO_BOOK_LIBRARY={render,afterRender,hasAccess:allowed,books:()=>allBooks().map(({id,title,author,subject,pages,part})=>({id,title,author,subject,pages,part})),isOpen:()=>!!activeBook,getReaderContext:()=>allowed()&&documentPDF&&activeBook?{pdf:documentPDF,book:activeBook,leafMap,total:bookPageCount(),currentPage:()=>page,goPage}:null,reset:()=>{closeBook(true);activeShelf='home';query='';}};
 })();
