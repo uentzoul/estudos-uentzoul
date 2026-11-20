@@ -383,12 +383,12 @@ test('VÍNCULO tem tentativas ilimitadas, não encerra por erros e permite marca
  assert.match(read('extras.js'),/function conexoDragMove\(/);
  assert.match(read('extras.js'),/contextmenu/);
 });
-test('CONTEXTO aceita palpites livres, sem autocomplete e sem texto sobre 141 termos',()=>{
+test('CONTEXTO aceita palavras individuais desconhecidas, sem autocomplete',()=>{
  const e=engine();e.init('2026-11-21');e.setActive('contexto');
- e.contextSubmit('uma palavra inventada que nao esta no dicionario');
+ e.contextSubmit('inexistencialidade');
  assert.equal(e.states().contexto.guesses.length,1);
  assert.equal(e.states().contexto.won,false);
- assert.ok(e.rankTerm('uma palavra inventada')>1);
+ assert.ok(e.rankTerm('inexistencialidade')>1);
  assert.doesNotMatch(page,/contextSuggest|<datalist/);
  assert.doesNotMatch(script,/ranking considera|termos cadastrados/i);
 });
