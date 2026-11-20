@@ -83,6 +83,7 @@ test('Inicialmente a biblioteca não oferece dados a alunos e mostra as duas cat
  const books=h.w.PSICO_BOOK_LIBRARY.books();
  assert.ok(books.length>=15,'um acervo inicial com obras realmente armazenadas');
  assert.equal(books.length,new Set(books.map(b=>b.id)).size,'sem obras duplicadas no catálogo');
+ assert.ok(!books.some(b=>b.id==='foucault-loucura'),'Slides da aula História da Loucura não são livro de Foucault');
  assert.ok(books.every(b=>b.title&&b.author&&b.subject),'títulos e autores identificados');
  const tab={
   dataset:{psbTab:'books'},
@@ -97,7 +98,7 @@ test('Inicialmente a biblioteca não oferece dados a alunos e mostra as duas cat
 });
 
 test('Capas editoriais substituem miniaturas e ocupam a moldura sem faixas brancas',()=>{
- const ids=['vygotsky-formacao','kuhn-revolucoes','popper-logica','laville-construcao','foucault-loucura','marcondes-filosofia','schultz-historia','rumos-percursos','bock-psicologias','piaget-seis-estudos','laplanche-vocabulario','roudinesco-dicionario','censo-1','censo-2','hall-identidade','collins-interseccionalidade','zimerman-grupos','aries-crianca-familia','cfp-verdade-revolucionaria'];
+ const ids=['vygotsky-formacao','kuhn-revolucoes','popper-logica','laville-construcao','marcondes-filosofia','schultz-historia','rumos-percursos','bock-psicologias','piaget-seis-estudos','laplanche-vocabulario','roudinesco-dicionario','censo-1','censo-2','hall-identidade','collins-interseccionalidade','zimerman-grupos','aries-crianca-familia','cfp-verdade-revolucionaria'];
  for(const id of ids){
   const item=main.split('\n').find(line=>line.startsWith(" {id:'"+id+"'"));
   const cover=item?.match(/cover:'([^']+)'/)?.[1]||'';
