@@ -96,29 +96,24 @@ test('Carregador mantém Biblioteca abaixo de Agenda e não recria áreas descon
  assert.match(html,/site-version\.js\?v=20\d{6}-[a-z0-9-]+/,'carregador do menu possui versão de cache explícita');
 });
 
-test('Biblioteca fica após Agenda e Trabalhos não existe mais no site',()=>{
+test('Biblioteca liberada após Agenda, sem reintroduzir Trabalhos',()=>{
  const navStart=html.indexOf('<nav class="menu" id="nav">');
  const navEnd=html.indexOf('</nav>',navStart);
  assert.ok(navStart>=0&&navEnd>navStart,'menu principal disponível');
  const nav=html.slice(navStart,navEnd);
  const agenda=nav.indexOf('data-page="calendar"');
- const biblioteca=nav.indexOf('aria-label="Biblioteca — em breve"');
- const adminBooks=nav.indexOf('id="navBookLibraryAdmin"');
+ const biblioteca=nav.indexOf('id="navBookLibraryAdmin"');
  const simulados=nav.indexOf('data-page="exams"');
  const caderno=nav.indexOf('id="navCadernoPreview"');
  const mensagens=nav.indexOf('data-page="messages"');
  const ferias=nav.indexOf('id="navVacationReview"');
  const extras=nav.indexOf('id="navExtrasGames"');
  const admin=nav.indexOf('id="navAdminConfig"');
- assert.ok(agenda>=0&&biblioteca>agenda&&adminBooks>biblioteca&&simulados>adminBooks&&caderno>simulados&&mensagens>caderno&&ferias>mensagens&&extras>ferias&&admin>extras,'ordem preservada');
- const pattern=/<span class="sidebtn nav-upcoming" role="note" tabindex="0" aria-disabled="true" aria-label="Biblioteca — em breve" title="Em breve">[\s\S]*?<span class="nav-upcoming-name">Biblioteca<\/span><span class="nav-upcoming-tip" aria-hidden="true">Em breve<\/span><\/span>/;
- assert.match(nav,pattern,'Biblioteca mantém o aviso informativo');
- assert.equal((nav.match(/class="sidebtn nav-upcoming"/g)||[]).length,1,'somente Biblioteca fica Em breve para os alunos');
- assert.match(nav,/id="navBookLibraryAdmin" data-page="books" hidden/,'nova biblioteca permanece bloqueada até a verificação de administrador');
+ assert.ok(agenda>=0&&biblioteca>agenda&&simulados>biblioteca&&caderno>simulados&&mensagens>caderno&&ferias>mensagens&&extras>ferias&&admin>extras,'ordem preservada');
+ assert.match(nav,/id="navBookLibraryAdmin" data-page="books" aria-label="Biblioteca — livros"/);
+ assert.doesNotMatch(nav,/aria-label="Biblioteca — em breve"|class="sidebtn nav-upcoming"/);
  assert.doesNotMatch(nav,/Trabalhos|trabalhos|data-page="works"/,'nenhum botão da antiga funcionalidade');
  assert.doesNotMatch(html,/navTrabalhos|PSICO_WORKS|PSICO_WORK_REVIEW|case 'works'|data-page="works"|trabalhos-conferencia\.(css|js)|trabalhos\.(css|js)/,'sem código ou referências do módulo removido');
- assert.match(html,/const targets=\[\.\.\.document\.querySelectorAll\('#nav \.nav-upcoming'\)\]/,'tooltip de Biblioteca no desktop');
- assert.match(html,/@media\(hover:none\)\{\s*#nav \.nav-upcoming/,'aviso de Biblioteca visível em telas touch');
 });
 
 test('Barra oval de busca, ordenação e visualização não retorna em nenhum semestre',()=>{

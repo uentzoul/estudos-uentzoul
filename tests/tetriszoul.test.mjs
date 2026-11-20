@@ -22,7 +22,8 @@ test('TetrisZoul possui página própria com regras 40 Lines',()=>{
  assert.doesNotMatch(html,/id="lobby"/);
  assert.match(html,/ARR \(ms\)/);
  assert.match(html,/data-touch="drop"/);
- assert.match(html,/uentzoul_is_admin/,'permite só acesso administrativo');
+ assert.doesNotMatch(html,/rpc\("uentzoul_is_admin"\)/,'somente exige autenticação');
+ assert.match(html,/client\.auth\.getUser\(\)/);
  assert.match(html,/uentzoul_tetriszoul_runs/,'recordes salvos na conta');
 });
 
@@ -33,8 +34,8 @@ test('TetrisZoul só aparece na última opção do Extras, não no Admin Config'
  assert.doesNotMatch(admin,/admin-tetriszoul-link|Jogar TetrisZoul/);
  assert.ok(extras.indexOf('data-game="tetris"')>extras.indexOf('data-game="conexo"'));
  assert.match(extras,/data-game="tetris" aria-selected="false" hidden/);
- assert.match(js,/if\(b.dataset.game==="tetris"\)b.hidden=!isAdmin/);
- assert.match(html,/rpc\("uentzoul_is_admin"\)/);
+ assert.match(js,/if\(b.dataset.game==="tetris"\)b.hidden=false/);
+ assert.doesNotMatch(html,/rpc\("uentzoul_is_admin"\)/);
  assert.doesNotMatch(html,/set_concurso_role|set_tetris_role|grant_role/);
 });
 

@@ -15,13 +15,12 @@ vm.runInNewContext(wordSource,dataContext,{filename:'extras-data.js'});
 const data=dataContext.window.PSICO_EXTRAS_DATA;
 const norm=value=>String(value).normalize('NFD').replace(/[\u0300-\u036f]/g,'').toUpperCase();
 
-test('Extras segue o Caderno: celular bloqueado, tablet e PC liberados',()=>{
+test('Extras funciona no celular, tablet e computador sem bloqueio administrativo',()=>{
  assert.match(index,/function isExtrasPhone\(\)/,'detector do dispositivo no site');
- assert.match(index,/if\(page==='extras'&&isExtrasPhone\(\)\)return;/,'bloqueia cliques e rotas diretas');
- assert.match(index,/if\(current\.page==='extras'&&isExtrasPhone\(\)\)current\.page='home'/,'não mantém Extras ao renderizar no celular');
- assert.match(index,/extraButton\.disabled=phone/,'Extras realmente desativado');
- assert.match(index,/pm-extras-phone-locked/,'aparência igual ao Caderno');
- assert.match(script,/if\(isExtrasPhone\(\)\)\{showAuthError/,'proteção na página própria');
+ assert.doesNotMatch(index,/if\(page==='extras'&&isExtrasPhone\(\)\)return;/,'não bloqueia rota no celular');
+ assert.doesNotMatch(index,/if\(current\.page==='extras'&&isExtrasPhone\(\)\)current\.page='home'/);
+ assert.match(index,/extraButton\.disabled=false/,'Extras habilitado em todos os dispositivos');
+ assert.doesNotMatch(script,/if\(isExtrasPhone\(\)\)\{showAuthError/,'Extras em página própria também está liberado');
  const start=index.indexOf('function isExtrasPhone(){');
  const end=index.indexOf('const go=(page,extra={})=>{',start);
  assert.ok(start>0&&end>start);
@@ -47,16 +46,17 @@ test('Extras segue o Caderno: celular bloqueado, tablet e PC liberados',()=>{
  }
 });
 
-test('Extras é acessível a contas conectadas, com TetrisZoul exclusivo de administradores',()=>{
+test('Todos os jogos são acessíveis a contas conectadas; respostas reservadas ao administrador',()=>{
  assert.match(index,/id="navExtrasGames"/);
  assert.doesNotMatch(index,/id="navExtrasSoon"/);
  assert.ok(index.indexOf('id="navExtrasGames"')<index.indexOf('id="navAdminConfig"'));
  assert.match(index,/case 'extras':body='<div class="psico-extras-embed">/);
  assert.match(page,/id="extrasGate"/);
  assert.match(script,/isAdmin=!role\?\.error&&role\?\.data===true/);
- assert.match(script,/if\(b.dataset.game==="tetris"\)b.hidden=!isAdmin/);
- assert.match(script,/game==="tetris"&&!isAdmin/);
- assert.match(read('tetriszoul.html'),/rpc\("uentzoul_is_admin"\)/);
+ assert.match(script,/if\(b.dataset.game==="tetris"\)b.hidden=false/);
+ assert.doesNotMatch(script,/game==="tetris"&&!isAdmin/);
+ assert.doesNotMatch(read('tetriszoul.html'),/rpc\("uentzoul_is_admin"\)/);
+ assert.match(script,/const allowed=approved&&isAdmin&&active!=="tetris"/);
  assert.doesNotMatch(read('admin-config.js'),/admin-tetriszoul-link/);
  for(const game of ['tetris','psico','conexo','contexto'])assert.match(page,new RegExp('data-game="'+game+'"'));
 });

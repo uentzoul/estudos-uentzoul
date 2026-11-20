@@ -56,26 +56,27 @@ test('Administrador continua vendo todas as obras e tem ferramentas exclusivas',
  assert.match(view,/Seis estudos de psicologia/);
  assert.match(view,/Iniciação à história da filosofia/);
 });
-test('Acesso público não libera catálogo de PDFs nem ferramentas administrativas',()=>{
- assert.match(html,/id="navBookLibraryAdmin" data-page="books" hidden/);
+test('Membros autenticados podem abrir a Biblioteca sem acesso às ferramentas administrativas',()=>{
+ assert.match(html,/id="navBookLibraryAdmin" data-page="books" aria-label="Biblioteca — livros"/);
  assert.doesNotMatch(html,/navAudiobooksMembers/);
  assert.doesNotMatch(html,/<span class="nav-label">Audiobooks<\/span>/);
  assert.match(html,/if\(page==='audiobooks'\)return/);
  assert.match(html,/if\(current.page==='audiobooks'\)current.page='home'/);
  assert.match(html,/case 'audiobooks':body=/);
- assert.match(html,/if\(page==='books'&&!window\.uentzoulAdminConfig\?\.isAdmin\?\.\(\)\)return/);
+ assert.match(html,/if\(page==='books'&&!window\.uentzoulAIAuth\?\.user\?\.\(\)\)/);
+ assert.doesNotMatch(html,/id="navBookLibraryAdmin" data-page="books" hidden/);
  assert.match(code,/if\(busy\|\|!isAdmin\(\)\|\|!selected\)return/);
  assert.match(code,/const bs=isAdmin\(\)\?books\(\):\[\.\.\.new Set\(rows\.filter/);
 });
 
-test('Cartão da Biblioteca também permanece cinza e não clicável para o administrador',()=>{
+test('Audiobooks da Biblioteca podem ser abertos; envio permanece sob controle do administrador',()=>{
  const books=fs.readFileSync(new URL('../biblioteca-livros.js',import.meta.url),'utf8');
  const css=fs.readFileSync(new URL('../biblioteca-livros.css',import.meta.url),'utf8');
- assert.match(books,/psb-category-audio psb-category-coming" disabled aria-disabled="true"/);
- assert.doesNotMatch(books,/<button class="psb-category psb-category-audio" data-psb-tab="audio"/);
- assert.match(books,/if\(tab\.dataset\.psbTab==='audio'\)return/);
- assert.match(books,/if\(activeShelf==='audio'\)activeShelf='home'/);
- assert.match(css,/\.psb-category-audio\.psb-category-coming/);
- assert.match(css,/\.psb-coming-badge/);
+ assert.match(books,/<button class="psb-category psb-category-audio" data-psb-tab="audio"/);
+ assert.doesNotMatch(books,/psb-category-audio psb-category-coming" disabled/);
+ assert.match(books,/if\(activeShelf==='audio'\)/);
+ assert.match(books,/data-psb-tab="upload"/);
+ assert.match(books,/isAdmin\(\)\?'<button type="button" class="psb-category psb-category-upload"/);
+ assert.match(css,/\.psb-category-audio/);
  assert.doesNotMatch(html,/pm-audio-soon-tag/);
 });

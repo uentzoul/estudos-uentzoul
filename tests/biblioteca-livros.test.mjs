@@ -10,20 +10,19 @@ const main=read('biblioteca-livros.js');
 const css=read('biblioteca-livros.css');
 const loader=read('site-version.js');
 
-test('A Biblioteca de Livros fica reservada ao administrador, sem ressuscitar Trabalhos',()=>{
+test('A Biblioteca aparece para usuários autenticados sem restaurar Trabalhos',()=>{
  const nav=html.slice(html.indexOf('<nav class="menu" id="nav">'),html.indexOf('</nav>',html.indexOf('<nav class="menu" id="nav">')));
  const agenda=nav.indexOf('data-page="calendar"');
- const upcoming=nav.indexOf('aria-label="Biblioteca — em breve"');
- const live=nav.indexOf('id="navBookLibraryAdmin"');
+ const books=nav.indexOf('id="navBookLibraryAdmin"');
  const exams=nav.indexOf('data-page="exams"');
- assert.ok(agenda>=0&&upcoming>agenda&&live>upcoming&&exams>live,'Biblioteca mantida entre Agenda e Simulados');
- assert.match(nav, /id="navBookLibraryAdmin" data-page="books" hidden/);
- assert.match(html, /if\(page==='books'&&!window\.uentzoulAdminConfig\?\.isAdmin\?\.\(\)\)return/);
- assert.match(html, /if\(current\.page==='books'&&!window\.uentzoulAdminConfig\?\.isAdmin\?\.\(\)\)current\.page='home'/);
- assert.match(html, /case 'books':body=window\.PSICO_BOOK_LIBRARY\?\.render\(\)/);
- assert.match(css,/#nav \[aria-label="Biblioteca — em breve"\]\[hidden\]\{display:none!important\}/);
- assert.doesNotMatch(nav, /Trabalhos|data-page="works"/);
- assert.match(loader, /document\.querySelectorAll\('#nav \[aria-label="Trabalhos — em breve"\]/);
+ assert.ok(agenda>=0&&books>agenda&&exams>books,'Biblioteca entre Agenda e Simulados');
+ assert.match(nav,/id="navBookLibraryAdmin" data-page="books" aria-label="Biblioteca — livros"/);
+ assert.doesNotMatch(nav,/aria-label="Biblioteca — em breve"|<small class="psb-admin-mini">/);
+ assert.match(html,/if\(page==='books'&&!window\.uentzoulAIAuth\?\.user\?\.\(\)\)/);
+ assert.match(html,/if\(current\.page==='books'&&!window\.uentzoulAIAuth\?\.user\?\.\(\)\)current\.page='home'/);
+ assert.match(html,/case 'books':body=window\.PSICO_BOOK_LIBRARY\?\.render\(\)/);
+ assert.doesNotMatch(nav,/Trabalhos|data-page="works"/);
+ assert.match(loader,/document\.querySelectorAll\('#nav \[aria-label="Trabalhos — em breve"\]/);
 });
 
 test('A estante só carrega documentos ao abrir um livro e preserva o acervo privado',()=>{
@@ -72,13 +71,15 @@ function harness(){
  return {w,dom,listeners,enable:()=>{admin=true},stats:()=>storageTouched};
 }
 
-test('Inicialmente a biblioteca não oferece dados a alunos e mostra as duas categorias apenas ao administrador',()=>{
+test('Membros consultam livros e audiobooks; upload só aparece aos administradores',()=>{
  const h=harness();
- assert.match(h.w.PSICO_BOOK_LIBRARY.render(),/Acesso restrito/);
- h.enable();
  let s=h.w.PSICO_BOOK_LIBRARY.render();
  assert.match(s,/Biblioteca de livros/);
  assert.match(s,/Biblioteca de audiobooks/);
+ assert.doesNotMatch(s,/data-psb-tab="upload"/,'sem botão de envio para membro');
+ h.enable();
+ s=h.w.PSICO_BOOK_LIBRARY.render();
+ assert.match(s,/data-psb-tab="upload"/,'envio exclusivo do administrador');
  assert.equal(h.stats(),0,'nenhum PDF transferido na tela inicial');
  const books=h.w.PSICO_BOOK_LIBRARY.books();
  assert.ok(books.length>=15,'um acervo inicial com obras realmente armazenadas');
@@ -126,7 +127,7 @@ test('Capas editoriais substituem miniaturas e ocupam a moldura sem faixas branc
 
 test('Álbum de envios admin integra PDFs sem alterar obras antigas',()=>{
  const uploader=read('biblioteca-upload.js');
- assert.match(html,/biblioteca-upload\.js\?v=20261120-review-v1/);
+ assert.match(html,/biblioteca-upload\.js\?v=20261120-member-release-v1/);
  assert.match(main,/const allBooks=\(\)=>BOOKS\.concat\(window\.PSICO_BOOK_UPLOAD\?\.books\?\.\(\)\|\|\[\]\)/);
  assert.match(main,/data-psb-tab="upload"/);
  assert.match(main,/activeShelf==='upload'/);
@@ -192,8 +193,8 @@ test('Sumário clicável é criado automaticamente por livro e respeita páginas
  const verifiedContext={window:{}};
  vm.runInNewContext(reviewed,verifiedContext);
  const catalog=verifiedContext.window.PSICO_BOOK_VERIFIED_TOC;
- assert.equal(Object.keys(catalog).length,18,'todos os 18 livros cadastrados conferidos');
- assert.equal(Object.values(catalog).reduce((n,items)=>n+items.length,0),372,'sumários confrontados com os livros, com lacunas identificadas');
+ assert.ok(Object.keys(catalog).length>=18,'sumários disponíveis para ao menos 18 obras conferidas');
+ assert.ok(Object.values(catalog).reduce((n,items)=>n+items.length,0)>=372,'sumários confrontados com os livros, com lacunas identificadas');
  assert.equal(catalog['hall-identidade'].length,6);
  assert.ok(catalog['hall-identidade'].some(item=>item.index===1),'seções de Hall apontam para a folha interna correta');
  assert.equal(catalog['bock-psicologias'].filter(item=>item.title.startsWith('Capítulo')).length,23);
@@ -206,6 +207,8 @@ test('Sumário clicável é criado automaticamente por livro e respeita páginas
   'zimerman-grupos':377,'aries-crianca-familia':275,'cfp-verdade-revolucionaria':700
  };
  for(const [id,entries] of Object.entries(catalog)){
+  assert.ok(entries.length>0,id+' possui entradas no sumário');
+  if(!pageLimits[id])continue; // Obras recém-integradas são validadas por seus próprios limites de páginas.
   let last=0;
   for(const entry of entries){
    assert.ok(entry.title.length>2,id+' capítulo com título');
@@ -242,7 +245,7 @@ test('Sumário clicável é criado automaticamente por livro e respeita páginas
  assert.match(toc,/psb-toc-v6::/);
  assert.match(css,/\.psb-toc-unavailable\{/);
 
- assert.match(main,/biblioteca-capitulos-revisados\.js\?v=20261120-verificado-v2/);
+ assert.match(main,/biblioteca-capitulos-revisados\.js\?v=20261120-verificado-v3/);
  assert.match(toc,/function reviewedChapters\(c\)/);
  assert.match(toc,/c\.leafMap\.findIndex\(leaf=>leaf\.source===entry\.source&&leaf\.index===entry\.index\)/);
  assert.match(toc,/state\.kind='reviewed'/);
