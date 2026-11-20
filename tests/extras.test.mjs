@@ -283,6 +283,30 @@ test('Contexto apresenta ranking semântico e aceita a palavra correta',()=>{
  assert.equal(e.states().contexto.guesses.length,1);
 });
 
+test('CONTEXTO colore barrinhas gradualmente do vermelho ao amarelo e verde pelo ranking',()=>{
+ const e=engine();e.init('2026-11-21');e.setActive('contexto');
+ const ranked=Array.from(e.rank()).sort((a,b)=>a[1]-b[1]);
+ assert.ok(ranked.length>100,'ranking semântico com gradação suficiente');
+ const ranks=[1,Math.floor(ranked.length/5),Math.floor(ranked.length/2),ranked.length];
+ e.states().contexto.guesses=ranks.map(rank=>({word:ranked[rank-1][0]}));
+ e.renderContexto();
+ const markup=e.html();
+ const colored=Array.from(markup.matchAll(/class="context-fill" style="width:(\\d+)%;--context-hue:(\\d+)"/g),
+  m=>({width:Number(m[1]),hue:Number(m[2])}));
+ assert.equal(colored.length,4,'uma barra colorida por tentativa');
+ assert.ok(colored.every((row,i)=>i===0||colored[i-1].width>=row.width),
+  'barras devem encolher quanto mais distante estiver a palavra');
+ assert.ok(colored.every((row,i)=>i===0||colored[i-1].hue>=row.hue),
+  'cores devem progredir sem saltos invertidos');
+ assert.equal(colored[0].hue,120,'resposta correta verde');
+ assert.ok(colored.at(-1).hue<45,'termos distantes em vermelho ou vermelho-alaranjado');
+ assert.ok(colored.some(row=>row.hue>=45&&row.hue<=80),'intervalo intermediário amarelo');
+ const styles=read('extras.css');
+ assert.match(styles,/background:hsl\\(var\\(--context-hue,0\\) 82% 43% \\/ \\.64\\)/);
+ assert.match(styles,/:root\\[data-theme=dark\\] \\.context-guess \\.context-fill/);
+ assert.doesNotMatch(styles,/\\.context-guess\\.(?:far|mid|hot) \\.context-fill/);
+});
+
 test('VÍNCULO tem tentativas ilimitadas, não encerra por erros e permite marcação',()=>{
  const e=engine();e.init('2026-11-21');e.setActive('conexo');
  const tiles=e.tiles();
