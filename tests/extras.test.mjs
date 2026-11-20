@@ -214,7 +214,8 @@ test('Iframe de conta autenticada abre Extras imediatamente com sessão do site,
    getUser:async()=>{requestedUser++;return {data:{user:null}}},
    onAuthStateChange(fn){authListener=fn;return {data:{subscription:{unsubscribe(){}}}};}
   },
-  rpc:()=>rolePromise,
+  // Retorno Supabase PostgrestBuilder: thenable sem metodo .catch.
+  rpc:()=>({then:(resolve,reject)=>rolePromise.then(resolve,reject)}),
   from:()=>({select:()=>({eq(){return this},order(){return this},limit:async()=>({data:[],error:null})})})
  };
  const els=new Map();
@@ -259,4 +260,6 @@ test('Iframe de conta autenticada abre Extras imediatamente com sessão do site,
  resolveRole({data:true,error:null});
  await loading;
  assert.equal(win.__authHarness.isAdmin(),true);
+ assert.equal(node('extrasApp').hidden,false,'RPC thenable não fecha a tela dos jogos');
+ assert.equal(node('extrasGate').hidden,true,'RPC thenable não mostra painel de erro');
 });
