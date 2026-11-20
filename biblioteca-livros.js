@@ -18,7 +18,7 @@ const BOOKS=[
  {id:'schultz-historia',title:'História da psicologia moderna',author:'Duane P. Schultz e Sydney E. Schultz',subject:'História da psicologia',pages:483,path:'materials/6d6e8461-0cfe-4ce7-9e9a-07b1ad6b4603.pdf',colors:['#5d3753','#a67985','#eac9bc'],cover:'https://martinsfontespaulista.vteximg.com.br/arquivos/ids/258309-800-800/861815_ampliada.jpg?v=637251623787600000',coverZoom:1},
  {id:'rumos-percursos',title:'História da psicologia: rumos e percursos',author:'Ana Maria Jacó-Vilela, Arthur A. L. Ferreira e Francisco T. Portugal (orgs.)',subject:'História da psicologia',pages:593,path:'materials/948311e3-11ea-4772-a0ea-d346bafed7b4.pdf',colors:['#675488','#a792b8','#eee1f5'],cover:'https://is1-ssl.mzstatic.com/image/thumb/Publication62/v4/03/90/d4/0390d4e7-2884-df82-6b76-9e792fa1cdeb/1024091637.jpg/1200x1200wz.jpg',coverZoom:1.1},
  {id:'bock-psicologias',title:'Psicologias: uma introdução ao estudo de psicologia',author:'Ana M. B. Bock, Odair Furtado e Maria de Lourdes T. Teixeira',subject:'Fundamentos da psicologia',pages:492,path:'materials/73921dd3-3416-44f3-baa7-416281d0374a.pdf',colors:['#8a5032','#be8663','#f0d0a3'],cover:'https://down-br.img.susercontent.com/file/sg-11134201-8260g-mjem5f5hdz42a4',coverZoom:1},
- {id:'piaget-seis-estudos',title:'Seis estudos de psicologia',author:'Jean Piaget',subject:'Teorias sociocognitivas',pages:69,part:true,path:'materials/5f1c6082-497a-42a2-945e-1c6a8c48ba96.pdf',colors:['#24504f','#4e9684','#d3ddc4'],cover:'https://www.doctorlivros.com.br/resources/products/300164/2019-09-17-18-49-24-264e024e.jpg',coverZoom:1.04},
+ {id:'piaget-seis-estudos',title:'Seis estudos de psicologia',author:'Jean Piaget',subject:'Teorias sociocognitivas',pages:138,part:true,path:'materials/5f1c6082-497a-42a2-945e-1c6a8c48ba96.pdf',colors:['#24504f','#4e9684','#d3ddc4'],cover:'https://www.doctorlivros.com.br/resources/products/300164/2019-09-17-18-49-24-264e024e.jpg',coverZoom:1.04},
  {id:'laplanche-vocabulario',title:'Vocabulário da psicanálise',author:'Jean Laplanche e Jean-Bertrand Pontalis',subject:'Psicanálise',path:'materials/8d645726-f77a-469b-b9c7-1196601a9f4f.pdf',colors:['#503e63','#8e749e','#e8cce9'],cover:'https://down-br.img.susercontent.com/file/sg-11134201-7rd71-lul553akanua1f',coverZoom:1},
  {id:'roudinesco-dicionario',title:'Dicionário de psicanálise',author:'Élisabeth Roudinesco e Michel Plon',subject:'Psicanálise',path:'materials/e50e2857-461b-479e-a336-30d0163378ba.pdf',colors:['#4e3446','#8b667f','#dfbdc6'],cover:'https://images.tcdn.com.br/img/img_prod/796789/180_dicionario_de_psicanalise_40703_1_9d0f2252568e67b710a78733a6ec42a3.jpg',coverZoom:1},
  {id:'censo-1',title:'Censo da Psicologia Brasileira — Volume 1',author:'Conselho Federal de Psicologia',subject:'Psicologia no Brasil',pages:272,path:'materials/5121236f-6052-47fb-81cb-43a39ab2174e.pdf',colors:['#32476f','#648ab0','#cfdeee'],cover:'https://censo.cfp.org.br/2022/img/capa-censo-vol-1.png',coverZoom:1},
@@ -80,7 +80,20 @@ let loadedKeys=new Set(),coverUrls=new Map(),slideDirection=1;
 let pdfPromise=null,lastError='',lastBookId=null,lastUserId='',downloadPct=0;
 let focused=false,gestureStart=null,cachedForActive=false,renderTasks=[];
 const cacheKey=b=>user()+'::'+b.id+'::'+b.path;
-const progressKey=b=>PAGE_STORE+user()+'_'+b.id;
+// O Piaget foi digitalizado com duas páginas físicas em cada folha do PDF.
+// Só este livro usa a visualização de páginas individuais, sem tocar no PDF armazenado.
+const isSplitScan=()=>activeBook?.id==='piaget-seis-estudos';
+const bookPageCount=()=>documentPDF?(isSplitScan()?documentPDF.numPages*2:documentPDF.numPages):(activeBook?.pages||0);
+function sourceForLeaf(leaf){
+ if(!isSplitScan())return {source:leaf,side:null};
+ const total=documentPDF.numPages*2;
+ // A capa frontal é a metade direita da primeira digitalização; a contracapa vai ao fim.
+ if(leaf===1)return {source:1,side:'right'};
+ if(leaf===total)return {source:1,side:'left'};
+ const pos=leaf-2;
+ return {source:2+Math.floor(pos/2),side:pos%2===0?'left':'right'};
+}
+const progressKey=b=>PAGE_STORE+(b.id==='piaget-seis-estudos'?'split-v1_':'')+user()+'_'+b.id;
 function getSavedPage(b){
  try{return Math.max(1,parseInt(localStorage.getItem(progressKey(b))||'1',10)||1)}catch(_){return 1}
 }
@@ -154,7 +167,7 @@ function isTwoPage(){
 }
 function spreadPages(){
  if(!documentPDF)return [page];
- const count=documentPDF.numPages;
+ const count=bookPageCount();
  if(!isTwoPage()||page===1)return [page];
  const base=page%2===0?page:page-1;
  return [base,base+1].filter(n=>n<=count);
@@ -162,7 +175,7 @@ function spreadPages(){
 function reader(){
  const b=activeBook;
  if(!b)return '';
- const count=documentPDF?.numPages||b.pages||'?';
+ const count=bookPageCount()||'?';
  return '<section class="psb-reader" id="psbReader" aria-label="Leitor de '+esc(b.title)+'">'+
  '<div class="psb-reader-top"><button type="button" class="psb-reader-exit" data-psb-close aria-label="Voltar à Biblioteca">‹ <span>Biblioteca</span></button>'+
  '<div class="psb-reader-title"><strong>'+esc(b.title)+'</strong><span>'+esc(b.author)+'</span></div>'+
@@ -321,38 +334,55 @@ async function draw(){
  }
  const spread=reader.querySelector('#psbPages');
  if(spread)spread.classList.toggle('psb-single',ids.length===1);
- const pageInput=reader.querySelector('#psbPageInput');if(pageInput){pageInput.value=String(page);pageInput.max=documentPDF.numPages;}
+ const pageInput=reader.querySelector('#psbPageInput');if(pageInput){pageInput.value=String(page);pageInput.max=bookPageCount();}
  const zoomText=reader.querySelector('#psbZoomCount');if(zoomText)zoomText.textContent=Math.round(zoom*100)+'%';
- const noPrev=page<=1,noNext=page>=documentPDF.numPages;
+ const noPrev=page<=1,noNext=page>=bookPageCount();
  reader.querySelector('[data-psb-prev]')?.toggleAttribute('disabled',noPrev);
  reader.querySelector('[data-psb-next]')?.toggleAttribute('disabled',noNext);
  const width=reader.querySelector('#psbReaderViewport')?.clientWidth||window.innerWidth;
  const height=reader.querySelector('#psbReaderViewport')?.clientHeight||window.innerHeight*0.7;
  const availableWidth=Math.max(220,(width-96)/(ids.length===2?2:1));
  const availableHeight=Math.max(300,height-32);
+ const pagesToCleanup=new Set();
  await Promise.all(ids.map(async(num,i)=>{
   try{
-   const pdfPage=await documentPDF.getPage(num);
+   const leaf=sourceForLeaf(num);
+   const pdfPage=await documentPDF.getPage(leaf.source);
    if(token!==pageToken||!allowed())return;
-   const base=pdfPage.getViewport({scale:1});
-   let factor=Math.min(availableWidth/base.width,availableHeight/base.height)*zoom;
+   // A digitalização do Piaget aparece invertida no leitor normal.
+   // Corrigimos 180 graus APENAS aqui; cada metade passa a ocupar um canvas próprio.
+   const rotation=leaf.side?(pdfPage.rotate+180)%360:pdfPage.rotate;
+   const base=pdfPage.getViewport({scale:1,rotation});
+   const leafWidth=leaf.side?base.width/2:base.width;
+   let factor=Math.min(availableWidth/leafWidth,availableHeight/base.height)*zoom;
    factor=Math.min(Math.max(factor,0.15),3.25);
    const renderScale=Math.min(window.devicePixelRatio||1,2);
-   const viewport=pdfPage.getViewport({scale:factor*renderScale});
-   const canvas=sheets[i].querySelector('canvas'),ctx=canvas.getContext('2d',{alpha:false});
+   const viewport=pdfPage.getViewport({scale:factor*renderScale,rotation});
+   const canvas=sheets[i].querySelector('canvas');
+   const ctx=canvas?.getContext('2d',{alpha:false});
    if(!canvas||!ctx)return;
-   canvas.width=Math.round(viewport.width);canvas.height=Math.round(viewport.height);
-   canvas.style.width=Math.round(base.width*factor)+'px';
+   canvas.width=Math.round(leaf.side?viewport.width/2:viewport.width);
+   canvas.height=Math.round(viewport.height);
+   canvas.style.width=Math.round(leafWidth*factor)+'px';
    canvas.style.height=Math.round(base.height*factor)+'px';
-   const job=pdfPage.render({canvasContext:ctx,viewport});renderTasks.push(job);
+   const offset=leaf.side==='right'?viewport.width/2:0;
+   const job=pdfPage.render({
+    canvasContext:ctx,viewport,
+    ...(leaf.side?{transform:[1,0,0,1,-offset,0]}:{})
+   });
+   renderTasks.push(job);
    await job.promise;
    if(token!==pageToken||!allowed())return;
+   pagesToCleanup.add(pdfPage);
    sheets[i].classList.remove('psb-sheet-transition');
    void sheets[i].offsetWidth;
    sheets[i].classList.add('psb-sheet-transition');
-   pdfPage.cleanup();
-  }catch(e){if(token===pageToken&&e?.name!=='RenderingCancelledException')showNote('Erro ao renderizar a página. Tente novamente.');}
+  }catch(e){
+   if(token===pageToken&&e?.name!=='RenderingCancelledException')showNote('Erro ao renderizar a página. Tente novamente.');
+  }
  }));
+ // As duas metades podem compartilhar o mesmo PDFPageProxy. Só limpar após ambas concluírem.
+ if(token===pageToken)for(const pdfPage of pagesToCleanup)pdfPage.cleanup();
 }
 function turn(next){
  if(!documentPDF||!activeBook)return;
@@ -360,14 +390,14 @@ function turn(next){
  let target=page;
  if(next>0)target=page+step;
  if(next<0)target=page===2?1:page-step;
- page=Math.max(1,Math.min(documentPDF.numPages,target));
+ page=Math.max(1,Math.min(bookPageCount(),target));
  if(isTwoPage()&&page>1&&page%2!==0)page=Math.max(2,page-1);
  savePage(activeBook,page);
  void draw();
 }
 function goPage(n){
  if(!documentPDF||!activeBook)return;
- page=Math.min(documentPDF.numPages,Math.max(1,Math.floor(Number(n)||1)));
+ page=Math.min(bookPageCount(),Math.max(1,Math.floor(Number(n)||1)));
  if(isTwoPage()&&page>1&&page%2!==0)page--;
  savePage(activeBook,page);void draw();
 }
@@ -411,7 +441,7 @@ document.addEventListener('click',e=>{
  if(e.target.closest('[data-psb-next]')){turn(1);return;}
  if(e.target.closest('[data-psb-prev]')){turn(-1);return;}
  if(e.target.closest('[data-psb-first]')){goPage(1);return;}
- if(e.target.closest('[data-psb-last]')){goPage(documentPDF?.numPages||1);return;}
+ if(e.target.closest('[data-psb-last]')){goPage(bookPageCount()||1);return;}
  const z=e.target.closest('[data-psb-zoom]');if(z){setZoom(Number(z.dataset.psbZoom));return;}
  if(e.target.closest('[data-psb-download]')){download();return;}
  if(e.target.closest('[data-psb-focus]')){void focusBook();return;}
@@ -422,7 +452,7 @@ document.addEventListener('keydown',e=>{
  if(e.key==='ArrowRight'||e.key==='PageDown'){e.preventDefault();turn(1);}
  if(e.key==='ArrowLeft'||e.key==='PageUp'){e.preventDefault();turn(-1);}
  if(e.key==='Home'){e.preventDefault();goPage(1);}
- if(e.key==='End'){e.preventDefault();goPage(documentPDF?.numPages||1);}
+ if(e.key==='End'){e.preventDefault();goPage(bookPageCount()||1);}
  if(e.key==='Escape'&&focused){e.preventDefault();void focusBook();}
 });
 document.addEventListener('pointerdown',e=>{
