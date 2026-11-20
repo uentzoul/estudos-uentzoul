@@ -247,6 +247,7 @@ function renderShelf(){
   '<button type="button" class="nb-shelf-tutorial-button" data-nb-tour-start aria-label="Abrir tutorial do Caderno">ⓘ Tutorial</button></div>'+
   '<div class="nb-shelf-heading"><span class="nb-shelf-eyebrow">PSICOMOODLE · '+SEMESTER_LABEL.toUpperCase()+'</span>'+
   '<h2>Meus cadernos</h2><p>Escolhe uma matéria para abrir o caderno e folhear suas páginas. Anotações sincronizadas com a sua conta.</p></div>'+
+  '<div id="nbImportNotice" class="nb-import-notice" hidden role="status" aria-live="polite"></div>'+
   '<div class="nb-shelf-grid">'+data.books.map((book,i)=>
    '<button class="nb-shelf-book" data-nb-shelf-book="'+esc(book.id)+'" aria-label="Abrir '+esc(book.name)+'">'+
     '<span class="nb-shelf-cover" style="--nb-book-cover:'+bookColor(book)+'" data-cover="'+i%6+'">'+
@@ -2402,6 +2403,11 @@ function restoredBookName(name,existing){
  }
  throw Error('Não foi possível identificar o caderno restaurado.');
 }
+function importFeedback(message,kind='success'){
+ status(message,kind);
+ const notice=$('nbImportNotice');
+ if(notice){notice.hidden=false;notice.dataset.state=kind;notice.textContent=message;}
+}
 async function importEditableBackup(file){
  if(!file)return;
  try{
@@ -2429,11 +2435,11 @@ async function importEditableBackup(file){
    throw Error('Não foi possível armazenar o caderno recuperado. Os originais foram preservados.');
   }
   renderAll();syncNotebookUI();
-  status(incoming.length===1?
+  importFeedback(incoming.length===1?
    'Caderno recuperado! Abra a nova capa na estante para continuar editando.':
    incoming.length+' cadernos recuperados em novas capas editáveis.','success');
  }catch(error){
-  status('Importação não concluída: '+String(error?.message||'arquivo inválido'),'error');
+  importFeedback('Importação não concluída: '+String(error?.message||'arquivo inválido'),'error');
  }
 }
 
@@ -2870,7 +2876,7 @@ root.addEventListener('keydown',event=>{
   if(plain&&collapsed&&
      ((event.key==='ArrowLeft'&&from===0)||
       (event.key==='ArrowRight'&&to===input.value.length)||
-      (event.key==='ArrowUp'&&!input.value.slice(0,from).includes('\n'))||
+      (event.key==='ArrowUp'&&from===0)||
       (event.key==='ArrowDown'&&!input.value.slice(to).includes('\n')&&to===input.value.length))){
    const direction=['ArrowLeft','ArrowUp'].includes(event.key)?-1:1;
    if(moveWritingCaret(direction,direction<0?'end':'start')){
@@ -2909,7 +2915,7 @@ root.addEventListener('keydown',event=>{
  if(event.target.id==='nbRenameBook'&&event.key==='Enter'){event.preventDefault();renameBook();}
 });
 document.addEventListener('keydown',event=>{
- if(event.key==='Escape'&&!$('nbExportMenu')?.hidden){
+ if(event.key==='Escape'&&$('nbExportMenu')?.hidden===false){
   toggleExportMenu(false);$('nbExportToggle')?.focus({preventScroll:true});
   event.preventDefault();event.stopPropagation();return;
  }
