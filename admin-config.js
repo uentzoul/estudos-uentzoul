@@ -542,17 +542,13 @@ function listMarkup(){
 }
 function render(){
  if(!isAdmin())return '<section class="panel"><h1>Acesso restrito</h1><p>Esta área é exclusiva do administrador.</p></section>';
- // Mantém os relatórios, a biblioteca e o LOG intactos. TetrisZoul fica imediatamente abaixo do LOG.
+ // Mantém os relatórios, a biblioteca e o LOG intactos.
  // Os conteúdos salvos continuam intactos no banco e nas disciplinas.
  return '<div class="admin-config-page" id="adminConfigPage">'+
  '<header class="admin-header"><span class="admin-kicker">Painel privado</span><h1>Admin Config</h1><p>Adicione e analise arquivos por semestre e acompanhe os registros da plataforma.</p></header>'+
  '<details class="admin-card admin-reports"><summary>Relatos de erros <span>Privado</span></summary><div id="adminErrorReports">'+reportsMarkup()+'</div></details>'+
  (bridge()?.adminLibrary?.()||'')+
  adminLogMarkup()+
- '<a class="admin-card admin-tetriszoul-link" href="./tetriszoul.html" aria-label="Jogar TetrisZoul, modo 40 linhas">'+
- '<span class="admin-tetriszoul-icon" aria-hidden="true">▦</span>'+
- '<span class="admin-tetriszoul-text"><strong>Jogar TetrisZoul</strong><small>Modo 40 linhas · Recordes pessoais</small></span>'+
- '<span class="admin-tetriszoul-arrow" aria-hidden="true">Abrir →</span></a>'+
  '</div>';
 }
 function afterRender(){
