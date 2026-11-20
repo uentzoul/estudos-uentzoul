@@ -873,15 +873,27 @@ function makeRoom(saved){
 function fallbackBasic(input){
  // Protege a tabulação real contra a normalização da revisão gramatical.
  const tabMarker='\uE000';
- let text=String(input||'').replace(/\t/g,tabMarker).replace(/ +/g,' ').replace(/\s+([,.;!?])/g,'$1')
-  .replace(/([,;!?])(?=\S)/g,'$1 ').trim();
+ let text=String(input||'').replace(/\t/g,tabMarker).replace(/ +/g,' ').replace(/\s+([,.;:!?])/g,'$1')
+  .replace(/([,;:!?])(?=[\p{L}\p{N}])/gu,'$1 ').trim();
  if(!text)return '';
  text=text.replace(/\bnao\b/gi,word=>word[0]==='N'?'Não':'não');
  text=text.replace(/^(bom dia|boa tarde|boa noite)\s+(rapaziada|pessoal|gente|galera|turma|professor(?:a)?|amigos)\b/iu,
   (_,saudacao,vocativo)=>saudacao+', '+vocativo);
  text=text.replace(/^(\uE000*)([\p{L}])/u,(_,tabs,first)=>tabs+first.toLocaleUpperCase('pt-BR'));
- if(!/[.!?…]$/.test(text))text+='.';
+ // Ponto e vírgula, dois-pontos e vírgula sinalizam continuação e não recebem ponto final.
+ text=text.replace(/([;:,])\s*\.(?=[”"'’)\]\}»]*$)/u,'$1');
+ if(!/[.!?…;:,][”"'’)\]\}»]*$/u.test(text))text+='.';
  return text.replace(/\uE000/g,'\t');
+}
+function preserveTypedEnding(original,corrected){
+ // Mantém a pontuação final que o aluno digitou mesmo se a IA responder com um ponto.
+ // Sem pontuação digitada, a IA continua podendo escolher um ponto, ? ou !.
+ const ending=String(original||'').trimEnd().match(/([;:,!?…])([”"'’)\]\}»]*)$/u);
+ if(!ending)return corrected;
+ let revised=String(corrected||'').trimEnd();
+ const revisedEnd=revised.match(/[.,;:!?…]+([”"'’)\]\}»]*)$/u);
+ if(revisedEnd)revised=revised.slice(0,revisedEnd.index);
+ return revised+ending[1]+(revisedEnd?.[1]||ending[2]);
 }
 function restoreTextTabs(original,corrected){
  // A IA revisa o conteúdo; os recuos feitos pelo aluno são preservados.
@@ -940,8 +952,9 @@ async function correctNote(noteId,raw,quiet=false){
   if(!valid(found?.n)||editing?.id===noteId)
    return {ok:false,temporary:false,reason:'Anotação editada durante a revisão.'};
   const n=found.n,before=n.text;
-  const finalText=list?list.prefix+fallbackBasic(restoreTextTabs(body,result.reviewed===true?revised:body)):
-   fallbackBasic(restoreTextTabs(original,result.reviewed===true?revised:original));
+  const chosen=result.reviewed===true?revised:body;
+  const reviewedText=preserveTypedEnding(body,restoreTextTabs(body,chosen));
+  const finalText=list?list.prefix+fallbackBasic(reviewedText):fallbackBasic(reviewedText);
   if(result.reviewed===true){
    if(finalText!==before&&!n.grammarBefore)n.grammarBefore=before;
    n.text=finalText;n.reviewed=true;n.grammarReviewVersion=GRAMMAR_REVIEW_VERSION;
