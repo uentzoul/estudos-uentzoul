@@ -353,8 +353,12 @@ function paintCell(c,px,py,size,color,ghost){
  if(style==="invisible"&&!ghost)return;
  c.save();
  if(ghost){
-  c.globalAlpha=style==="neon"?.52:.26;c.strokeStyle=base;c.lineWidth=style==="neon"?2:1;
-  c.strokeRect(px+1.5,py+1.5,size-3,size-3);c.restore();return;
+  // Peça-fantasma preenchida, translúcida e completa (mesma forma da peça ativa).
+  c.globalAlpha=style==="neon"?.43:.32;
+  c.fillStyle=base;c.fillRect(px+1,py+1,size-2,size-2);
+  c.fillStyle="#ffffff38";c.fillRect(px+3,py+3,size-6,Math.max(2,size*.10));
+  c.fillStyle="#00000030";c.fillRect(px+3,py+size-5,size-6,2);
+  c.restore();return;
  }
  var gap=style==="flat"||style==="solid"||style==="pastel"?0:1;
  if(style==="pastel")c.globalAlpha=.70;
