@@ -44,7 +44,8 @@ const NEAR={
  comportamento:["resposta","estimulo","reforco","aprendizagem"],
  democracia:["libertacao","poder","desigualdade","sociedade"]
 };
-let client=null,uid=null,approved=false,day="",ordinal=0,active="psico",states={};
+let client=null,uid=null,approved=false,isAdmin=false,day="",ordinal=0,active="psico",states={};
+let calendarViewMonth="",calendarOpen=false,conexoMarkMode=false,conexoDrag=null,suppressConexoClick=false;
 let archiveLoadToken=0, psicoFlippingRow=-1;
 let psicoBank=DATA.wordBank.slice().sort((a,b)=>clean(a.word).localeCompare(clean(b.word),"pt-BR"));
 let connectionGroups=[],connectionTiles=[],contextTerms=new Map(),contextRankings=null,contextTarget="";
@@ -88,20 +89,48 @@ function localSet(game,targetDay=day){
 function dateLabel(value){
  return new Intl.DateTimeFormat("pt-BR",{timeZone:"UTC",day:"2-digit",month:"short",year:"numeric"}).format(new Date(value+"T12:00:00Z"));
 }
+function calendarMonth(offset){
+ const current=calendarViewMonth||day.slice(0,7),year=Number(current.slice(0,4)),month=Number(current.slice(5,7));
+ const date=new Date(Date.UTC(year,month-1+offset,1));
+ const next=date.toISOString().slice(0,7);
+ if(next<ARCHIVE_START.slice(0,7)||next>dateBrazil().slice(0,7))return;
+ calendarViewMonth=next;renderCalendar();
+}
+function renderCalendar(){
+ const host=$("calendarDays");
+ if(!host)return;
+ const chosen=calendarViewMonth||day.slice(0,7);
+ const year=Number(chosen.slice(0,4)),month=Number(chosen.slice(5,7));
+ const first=new Date(Date.UTC(year,month-1,1)),count=new Date(Date.UTC(year,month,0)).getUTCDate();
+ const shift=(first.getUTCDay()+6)%7;
+ $("calendarMonthLabel").textContent=new Intl.DateTimeFormat("pt-BR",{timeZone:"UTC",month:"long",year:"numeric"}).format(first);
+ $("calendarMonthPrev").disabled=chosen<=ARCHIVE_START.slice(0,7);
+ $("calendarMonthNext").disabled=chosen>=dateBrazil().slice(0,7);
+ const entries=Array.from({length:shift},()=>'<span class="calendar-day-empty" aria-hidden="true"></span>');
+ for(let d=1;d<=count;d++){
+  const value=chosen+"-"+String(d).padStart(2,"0"),valid=validArchiveDay(value),selected=value===day,today=value===dateBrazil();
+  entries.push('<button type="button" class="calendar-day'+(selected?' is-selected':'')+(today?' is-today':'')+'" data-calendar-day="'+value+'" aria-label="'+esc(dateLabel(value))+'" aria-pressed="'+String(selected)+'"'+(valid?'':' disabled')+'>'+d+'</button>');
+ }
+ host.innerHTML=entries.join("");
+ const today=$("archiveToday");if(today)today.disabled=day===dateBrazil();
+}
+function setCalendarOpen(open){
+ calendarOpen=!!open&&active!=="tetris";
+ const pop=$("calendarPopup"),button=$("calendarToggle");
+ if(pop)pop.hidden=!calendarOpen;
+ if(button)button.setAttribute("aria-expanded",String(calendarOpen));
+ if(calendarOpen){calendarViewMonth=day.slice(0,7);renderCalendar();}
+}
 function updateArchiveControls(){
- const input=$("archiveDate"),prev=$("archivePrev"),next=$("archiveNext"),todayBtn=$("archiveToday");
- if(!input)return;
- const today=dateBrazil();
- input.min=ARCHIVE_START;input.max=today;input.value=day;
- if(prev)prev.disabled=day<=ARCHIVE_START;
- if(next)next.disabled=day>=today;
- if(todayBtn)todayBtn.disabled=day===today;
- $("dayLabel").textContent=dateLabel(day);
- const calendar=$("extrasCalendar");
- if(calendar)calendar.hidden=active==="tetris";
+ const label=$("dayLabel"),current=$("calendarSelectedLabel"),wrapper=$("extrasCalendar");
+ if(label)label.textContent=dateLabel(day);
+ if(current)current.textContent=dateLabel(day);
+ if(wrapper)wrapper.hidden=active==="tetris";
+ if(active==="tetris")setCalendarOpen(false);
+ else renderCalendar();
 }
 function initializeDay(selected=dateBrazil()){
- day=selected;ordinal=dayNumber(day);psicoFlippingRow=-1;
+ day=selected;ordinal=dayNumber(day);psicoFlippingRow=-1;calendarViewMonth=selected.slice(0,7);
  feedback={game:"",message:"",kind:""};
  for(const game of CONTENT_GAMES)states[game]=localGet(game)||gameStateDefault(game);
  initConnections();initContexto();updateArchiveControls();
@@ -123,6 +152,7 @@ async function selectArchiveDay(value){
  const token=++archiveLoadToken;
  // Cada dia possui seu próprio estado em cache e sua chave no Supabase.
  initializeDay(value);
+ setCalendarOpen(false);
  renderGame();
  await loadCloud(value);
  if(token!==archiveLoadToken||value!==day)return;
@@ -193,10 +223,14 @@ function setFeedback(game,message,kind=""){
  if(el&&game===active){el.className="feedback "+kind;el.textContent=message;}
 }
 function renderTabs(){
- document.querySelectorAll("[data-game]").forEach(b=>b.setAttribute("aria-selected",String(b.dataset.game===active)));
+ document.querySelectorAll("[data-game]").forEach(b=>{
+  if(b.dataset.game==="tetris")b.hidden=!isAdmin;
+  b.setAttribute("aria-selected",String(b.dataset.game===active));
+ });
+ document.querySelector(".extras-tabs")?.classList.toggle("three-games",!isAdmin);
 }
 function switchGame(game){
- if(!approved||!GAMES.includes(game))return;
+ if(!approved||!GAMES.includes(game)||(game==="tetris"&&!isAdmin))return;
  active=game;
  renderTabs();updateArchiveControls();renderGame();
  try{const url=new URL(location.href);url.searchParams.set("game",game);history.replaceState(null,"",url);}catch(_){}
@@ -204,7 +238,7 @@ function switchGame(game){
 function renderGame(){
  const host=$("gameHost");
  if(!host||!approved)return;
- if(active==="tetris"){
+ if(active==="tetris"&&isAdmin){
   host.innerHTML='<div class="game-panel"><div class="game-head"><div><span class="game-tag">Sprint · 40 Lines</span><h2>TetrisZoul</h2><p>O mesmo jogo independente que já existia no Admin Config, agora reunido com os outros Extras.</p></div><span class="game-stat">40 linhas</span></div>'+
    '<div class="tetris-tools"><span class="section-note">Configurações, skins e recordes permanecem no TetrisZoul.</span><a href="./tetriszoul.html" target="_blank" rel="noopener noreferrer">Abrir jogo em tela própria ↗</a></div>'+
    '<iframe class="tetris-frame" id="extrasTetrisFrame" src="./tetriszoul.html" title="TetrisZoul — 40 linhas" loading="lazy" allow="fullscreen"></iframe></div>';
@@ -537,7 +571,7 @@ async function start(){
   if(session.error||!session.data?.user?.id)throw Error("Faça login no PsicoMoodle para abrir o Extras.");
   uid=session.data.user.id;
   const role=await client.rpc("uentzoul_is_admin");
-  if(role.error||role.data!==true)throw Error("Extras está em prévia: somente administradores têm acesso.");
+  isAdmin=!role.error&&role.data===true;
   initializeDay();
   await Promise.all([loadWordBank(),loadCloud()]);
   initConnections();initContexto();
@@ -545,7 +579,7 @@ async function start(){
   for(const game of CONTENT_GAMES)if(states[game]?._savedAt)void flushCloud(game);
   $("extrasGate").hidden=true;$("extrasApp").hidden=false;
   const requested=new URL(location.href).searchParams.get("game");
-  switchGame(GAMES.includes(requested)?requested:"psico");
+  switchGame(GAMES.includes(requested)&&!(requested==="tetris"&&!isAdmin)?requested:"psico");
   try{
    const theme=window.parent!==window?window.parent.document.documentElement.dataset.theme:localStorage.getItem("psicomoodle-theme");
    if(theme==="dark")document.documentElement.dataset.theme="dark";
@@ -564,10 +598,13 @@ async function start(){
  }finally{authBusy=false;}
 }
 document.addEventListener("click",e=>{
- const arrowPrev=e.target.closest("#archivePrev"),arrowNext=e.target.closest("#archiveNext"),arrowToday=e.target.closest("#archiveToday");
- if(arrowPrev){moveArchiveDay(-1);return;}
- if(arrowNext){moveArchiveDay(1);return;}
- if(arrowToday){void selectArchiveDay(dateBrazil());return;}
+ const calendarToggle=e.target.closest("#calendarToggle"),calendarPrev=e.target.closest("#calendarMonthPrev"),calendarNext=e.target.closest("#calendarMonthNext"),calendarDay=e.target.closest("[data-calendar-day]"),todayButton=e.target.closest("#archiveToday");
+ if(calendarToggle){setCalendarOpen(!calendarOpen);return;}
+ if(calendarPrev){calendarMonth(-1);return;}
+ if(calendarNext){calendarMonth(1);return;}
+ if(calendarDay){void selectArchiveDay(calendarDay.dataset.calendarDay);setCalendarOpen(false);return;}
+ if(todayButton){void selectArchiveDay(dateBrazil());setCalendarOpen(false);return;}
+ if(calendarOpen&&!e.target.closest("#calendarPopup"))setCalendarOpen(false);
  const tab=e.target.closest("[data-game]");
  if(tab){switchGame(tab.dataset.game);return;}
  if(active==="psico"){
@@ -616,6 +653,7 @@ document.addEventListener("submit",e=>{
  }
 });
 document.addEventListener("keydown",e=>{
+ if(e.key==="Escape"&&calendarOpen){setCalendarOpen(false);return;}
  if(!approved||active!=="psico"||e.ctrlKey||e.altKey||e.metaKey)return;
  const isNative=e.target?.id==="psicoTypeBox";
  if(isNative){
