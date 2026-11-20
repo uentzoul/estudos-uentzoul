@@ -27,6 +27,12 @@ const BOOKS=[
  {id:'zimerman-grupos',title:'Como trabalhamos com grupos',author:'David E. Zimerman e Luiz Carlos Osório',subject:'Psicologia de grupos',path:'materials/scheduled/7a66839d-e75d-4dfe-af73-e5a09d6a0323.pdf',colors:['#475360','#879ba7','#d7dce0'],cover:'https://livrariadopsicologo.com.br/capas/128/9798573072128.jpg',coverZoom:1},
  {id:'aries-crianca-familia',title:'História social da criança e da família',author:'Philippe Ariès',subject:'Psicologia da família',path:'materials/scheduled/d27048a1-049d-4e5a-b315-47a764818ff4.pdf',colors:['#776041','#ba9a6a','#e8d6ab'],cover:'https://martinsfontespaulista.vteximg.com.br/arquivos/ids/1417487-1000-1000/968646.jpg?v=639111726552530000',coverZoom:1.02},
  {id:'cfp-verdade-revolucionaria',title:'A verdade é revolucionária',author:'Conselho Federal de Psicologia',subject:'Psicologia social e direitos',pages:700,path:'materials/0729a72e-f387-4bf8-b2dd-c236339821c0.pdf',colors:['#493950','#92768f','#e2d2d8'],cover:'https://site.cfp.org.br/wp-content/uploads/2013/12/capa-do-livro.jpg',coverZoom:1}
+ {id:'dongo-pensamento-linguagem',title:'Pensamento e linguagem: Vygotsky, Wallon, Chomsky e Piaget',author:'Adrian Oscar Dongo-Montoya',subject:'Teorias sociocognitivas',pages:161,path:'materials/1ef66337-af16-4be8-a68e-a88e297bca86.pdf',colors:['#841e23','#be3339','#191a1e'],cover:'https://books.scielo.org/id/5vwmw/cover/cover.jpeg',coverZoom:1},
+ {id:'freud-massas-vol15',title:'Psicologia das massas e análise do Eu e outros textos (1920–1923) — Obras completas, vol. 15',author:'Sigmund Freud',subject:'Psicologia de grupos',pages:300,path:'materials/scheduled/5502d9ef-c67a-4994-a81d-e75f430beae8.pdf',colors:['#71132f','#bb1846','#e9ced2'],cover:'https://americanas.vtexassets.com/arquivos/ids/30533196/7494222_1_xlarge.jpg?v=638794231500430000',coverZoom:1},
+ {id:'macedo-neurose',title:'Neurose: leituras psicanalíticas',author:'Mônica Medeiros Kother Macedo (org.)',subject:'Metapsicologia',path:'multipart:neurose-2016',paths:['materials/58281768-cab0-4552-b550-1b98d6176791.pdf','materials/7cdf4500-8713-4af7-bf70-8ad3201e3716.pdf','materials/9b2622fb-b29d-4057-9d8a-f99866fe7699.pdf'],colors:['#65146f','#aa238a','#dbb6d9'],cover:'https://imgv2-2-f.scribdassets.com/img/word_document/640747959/original/2279098431/1?v=1',coverZoom:1},
+ {id:'dessen-ciencia-desenvolvimento',title:'A ciência do desenvolvimento humano: tendências atuais e perspectivas futuras',author:'Maria Auxiliadora Dessen e Áderson Luiz Costa Junior (orgs.)',subject:'Psicologia do desenvolvimento',pages:267,pending:true,pendingReason:'PDF integral localizado na Biblioteca; falta transferir para o armazenamento privado do site.',colors:['#718b7a','#c7b6a0','#f5f0e8'],cover:'https://img.wook.pt/images/a-ciencia-do-desenvolvimento-humano-maria-auxiliadora-dessen/MXwxNzEyNTV8MjE4ODY0fDE0Mzc1MTk2MDAwMDA%3D/500x',coverZoom:1},
+ {id:'eizirik-ciclo-vida',title:'O ciclo da vida humana: uma perspectiva psicodinâmica',author:'Cláudio Laks Eizirik e Ana Margareth Siqueira Bassols (orgs.)',subject:'Psicologia do desenvolvimento',pending:true,pendingReason:'Livro identificado no Moodle; PDF integral ainda não localizado.',colors:['#74552b','#c98d51','#f5e5b8'],cover:'https://martinsfontespaulista.vteximg.com.br/arquivos/ids/653538-1000-1000/694830_ampliada.jpg?v=637261706550900000',coverZoom:1},
+ {id:'justica-adolescente',title:'Justiça, adolescente e ato infracional: socioeducação e responsabilização',author:'Obra coletiva',subject:'Psicologia e direitos humanos',pending:true,pendingReason:'Exemplar localizado começa na página 3; conferência e transferência do PDF integral pendentes.',colors:['#31506d','#6685a3','#e0e7ed'],coverZoom:1},
 ];
 const allBooks=()=>BOOKS.concat(window.PSICO_BOOK_UPLOAD?.books?.()||[]);
 const normalize=s=>String(s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLocaleLowerCase('pt-BR');
@@ -73,11 +79,11 @@ async function cachedPut(store,key,value){
   return true;
  }catch(_){return false;}
 }
-let activeShelf='home',query='',activeBook=null,documentPDF=null,documentBlob=null,page=1;
+let activeShelf='home',query='',activeBook=null,documentPDF=null,documentBlob=null,documentBlobs=[],page=1;
 let zoom=1,dragX=0,readerBusy=false,openToken=0,pageToken=0;
 let loadedKeys=new Set(),coverUrls=new Map(),slideDirection=1;
 let pdfPromise=null,lastError='',lastBookId=null,lastUserId='',downloadPct=0;
-let focused=false,gestureStart=null,cachedForActive=false,renderTasks=[];
+let focused=false,gestureStart=null,cachedForActive=false,renderTasks=[],downloadBusy=false;
 const cacheKey=b=>user()+'::'+b.id+'::'+b.path;
 // Reconstrói páginas escaneadas em 2, 3 ou 4 partes, sem modificar os PDFs originais.
 // Análise local apenas quando o livro é aberto; não há downloads adicionais na estante.
@@ -226,7 +232,7 @@ function pdfjs(){
  }).catch(e=>{pdfPromise=null;throw e});
  return pdfPromise;
 }
-function badgeLabel(b){return b.part?'Trecho disponibilizado':(b.pages?b.pages+' páginas':'PDF');}
+function badgeLabel(b){return b.pending?(b.id==='justica-adolescente'?'Exemplar incompleto · pendente':'Arquivo pendente'):b.part?'Trecho disponibilizado':b.paths?'18 capítulos · 3 partes reunidas':(b.pages?b.pages+' páginas':'PDF');}
 function cover(b,index){
  const colors=b.colors||['#49536a','#8691a7','#e2e3ed'];
  const image=b.cover||coverUrls.get(b.id)||'';
@@ -241,8 +247,8 @@ function cover(b,index){
 }
 function bookCard(b,i){
  const searchable=normalize([b.title,b.author,b.subject].join(' '));
- return '<article class="psb-book" data-psb-filter="'+esc(searchable)+'" data-psb-book-card="'+esc(b.id)+'">'+
- '<button type="button" data-psb-open="'+esc(b.id)+'" class="psb-book-button" aria-label="Abrir '+esc(b.title)+' — '+esc(b.author)+'">'+cover(b,i)+'</button>'+
+ return '<article class="psb-book" data-psb-filter="'+esc(searchable)+'" data-psb-book-card="'+esc(b.id)+'"'+(b.pending?' title="'+esc(b.pendingReason||'Arquivo ainda não disponível')+'"':'')+'>'+ 
+ '<button type="button" data-psb-open="'+esc(b.id)+'" class="psb-book-button'+(b.pending?' psb-book-pending':'')+'" aria-label="'+(b.pending?'Arquivo pendente: ':'Abrir ')+esc(b.title)+' — '+esc(b.author)+'"'+(b.pending?' disabled aria-disabled="true"':'')+'>'+cover(b,i)+'</button>'+
  '<div class="psb-book-meta"><h3>'+esc(b.title)+'</h3><p>'+esc(b.author)+'</p><span>'+esc(badgeLabel(b))+'</span></div></article>';
 }
 function categoryCards(){
@@ -266,7 +272,7 @@ function bookShelf(){
  '<input type="search" id="psbSearch" autocomplete="off" spellcheck="false" value="'+esc(query)+'" placeholder="Pesquisar título, autor ou assunto..." aria-label="Pesquisar livros"></label>'+
  '<div class="psb-shelf" id="psbShelf">'+allBooks().map(bookCard).join('')+'</div>'+
  '<div class="psb-empty" id="psbSearchEmpty" hidden>Nenhum livro encontrado. Experimente outra palavra.</div>'+
- '<p class="psb-shelf-note">Este catálogo inclui livros e trechos acadêmicos já disponibilizados no acervo. Quando o arquivo é parcial, ele é identificado. Novas obras poderão ser acrescentadas à coleção.</p>';
+ '<p class="psb-shelf-note">Livros disponíveis abrem no leitor integrado. Títulos com arquivo pendente aparecem desativados e não são apresentados como obras integrais disponíveis.</p>';
 }
 function audioShelf(){
  return window.PSICO_AUDIO_LIBRARY?.render?.()||
@@ -394,20 +400,41 @@ async function loadFile(b){
  cachedForActive=await cachedPut(CACHE_STORE,cacheKey(b),blob);
  return blob;
 }
+// Representa três PDFs de uma mesma obra como um livro contínuo, sem abrir páginas em outras abas.
+function virtualDocument(docs){
+ const offsets=[];let count=0;
+ for(const pdf of docs){offsets.push(count);count+=pdf.numPages;}
+ return {
+  numPages:count,
+  getPage(n){
+   if(!Number.isInteger(n)||n<1||n>count)return Promise.reject(Error('Página fora do livro.'));
+   let i=docs.length-1;while(i>0&&n<=offsets[i])i--;
+   return docs[i].getPage(n-offsets[i]);
+  },
+  getOutline:async()=>[],
+  destroy:()=>Promise.all(docs.map(x=>x.destroy().catch(()=>{})))
+ };
+}
 async function openBook(id){
  if(!allowed()||readerBusy)return;
- const b=allBooks().find(x=>x.id===id);if(!b)return;
+ const b=allBooks().find(x=>x.id===id);if(!b||b.pending||(!b.path&&!b.paths?.length))return;
  readerBusy=true;lastError='';downloadPct=0;cachedForActive=false;
  const myToken=++openToken;
  setCardLoading(b,true);
  try{
-  const [pdf,blob]=await Promise.all([pdfjs(),loadFile(b)]);
+  const pdf=await pdfjs();
+  const multiple=Array.isArray(b.paths)&&b.paths.length>1;
+  const blobs=multiple
+   ?await Promise.all(b.paths.map((path,i)=>loadFile({...b,path,id:b.id+'-parte-'+(i+1)})))
+   :[await loadFile(b)];
   if(myToken!==openToken||!allowed())return;
-  const next=await pdf.getDocument({data:new Uint8Array(await blob.arrayBuffer()),useSystemFonts:true}).promise;
+  const docs=await Promise.all(blobs.map(async blob=>
+   pdf.getDocument({data:new Uint8Array(await blob.arrayBuffer()),useSystemFonts:true}).promise));
+  const next=multiple?virtualDocument(docs):docs[0];
   if(myToken!==openToken||!allowed()){await next.destroy().catch(()=>{});return;}
   const newMap=await mapBookPages(next,b,myToken);
    if(myToken!==openToken||!allowed()||!newMap){await next.destroy().catch(()=>{});return;}
-   documentPDF=next;documentBlob=blob;activeBook=b;leafMap=newMap;lastBookId=b.id;
+   documentPDF=next;documentBlob=multiple?null:blobs[0];documentBlobs=blobs;activeBook=b;leafMap=newMap;lastBookId=b.id;
    b.pages=bookPageCount();page=Math.min(bookPageCount(),getSavedPage(b));zoom=1;
   const card=document.querySelector('#psbLibrary [data-psb-book-card="'+b.id+'"]');
   if(card){card.classList.add('is-opening');await new Promise(r=>setTimeout(r,310));}
@@ -437,7 +464,7 @@ function closeBook(silent=false){
  const old=documentPDF;
  for(const job of renderTasks){try{job.cancel()}catch(_){}}
  renderTasks=[];
- documentPDF=null;documentBlob=null;activeBook=null;leafMap=[];focused=false;zoom=1;cachedForActive=false;
+ documentPDF=null;documentBlob=null;documentBlobs=[];activeBook=null;leafMap=[];focused=false;zoom=1;cachedForActive=false;
  window.PSICO_BOOK_TOC?.close?.();
  if(document.fullscreenElement?.id==='psbReader'){try{document.exitFullscreen?.()}catch(_){}}
  document.documentElement.classList.remove('psb-mode-book');
@@ -546,11 +573,33 @@ async function focusBook(){
   void draw();
  }
 }
-function download(){
- if(!documentBlob||!activeBook)return;
- const url=URL.createObjectURL(documentBlob),link=document.createElement('a');
- link.href=url;link.download=(activeBook.title||'livro').normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^\w-]+/g,'-')+'.pdf';
- document.body.appendChild(link);link.click();link.remove();setTimeout(()=>URL.revokeObjectURL(url),4500);
+async function download(){
+ if(!activeBook||downloadBusy||!documentBlobs.length)return;
+ downloadBusy=true;
+ const book=activeBook;
+ const btn=document.querySelector('#psbReader [data-psb-download]');
+ if(btn){btn.disabled=true;btn.setAttribute('aria-busy','true');}
+ try{
+  let blob=documentBlob;
+  if(!blob&&documentBlobs.length>1){
+   if(!window.PDFLib)await loadBookModule('https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js');
+   if(!window.PDFLib)throw Error('Não foi possível preparar o PDF unificado.');
+   const merged=await window.PDFLib.PDFDocument.create();
+   for(const part of documentBlobs){
+    if(!allowed()||activeBook!==book)throw Error('Leitura encerrada.');
+    const source=await window.PDFLib.PDFDocument.load(await part.arrayBuffer());
+    const copied=await merged.copyPages(source,Array.from({length:source.getPageCount()},(_,i)=>i));
+    for(const copiedPage of copied)merged.addPage(copiedPage);
+   }
+   blob=new Blob([await merged.save()],{type:'application/pdf'});
+   if(activeBook===book)documentBlob=blob;
+  }
+  if(!blob||!allowed()||activeBook!==book)return;
+  const url=URL.createObjectURL(blob),link=document.createElement('a');
+  link.href=url;link.download=(book.title||'livro').normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^\w-]+/g,'-')+'.pdf';
+  document.body.appendChild(link);link.click();link.remove();setTimeout(()=>URL.revokeObjectURL(url),4500);
+ }catch(err){showNote(err?.message||'Não foi possível preparar o download.');}
+ finally{downloadBusy=false;if(btn?.isConnected){btn.disabled=false;btn.removeAttribute('aria-busy');}}
 }
 document.addEventListener('input',e=>{
  if(!allowed()||!e.target.closest('#psbLibrary'))return;
@@ -572,7 +621,7 @@ document.addEventListener('click',e=>{
  if(e.target.closest('[data-psb-first]')){goPage(1);return;}
  if(e.target.closest('[data-psb-last]')){goPage(bookPageCount()||1);return;}
  const z=e.target.closest('[data-psb-zoom]');if(z){setZoom(Number(z.dataset.psbZoom));return;}
- if(e.target.closest('[data-psb-download]')){download();return;}
+ if(e.target.closest('[data-psb-download]')){void download();return;}
  if(e.target.closest('[data-psb-focus]')){void focusBook();return;}
 });
 document.addEventListener('keydown',e=>{
@@ -606,5 +655,5 @@ document.addEventListener('fullscreenchange',()=>{
 window.addEventListener('uentzoul:auth',()=>{
  if(!allowed()&&activeBook)closeBook(true);
 });
-window.PSICO_BOOK_LIBRARY={render,afterRender,hasAccess:allowed,books:()=>allBooks().map(({id,title,author,subject,pages,part,cover,colors})=>({id,title,author,subject,pages,part,cover,colors})),isOpen:()=>!!activeBook,getReaderContext:()=>allowed()&&documentPDF&&activeBook?{pdf:documentPDF,book:activeBook,leafMap,total:bookPageCount(),currentPage:()=>page,goPage}:null,reset:()=>{closeBook(true);activeShelf='home';query='';}};
+window.PSICO_BOOK_LIBRARY={render,afterRender,hasAccess:allowed,books:()=>allBooks().map(({id,title,author,subject,pages,part,cover,colors,pending})=>({id,title,author,subject,pages,part,cover,colors,pending:!!pending})),isOpen:()=>!!activeBook,getReaderContext:()=>allowed()&&documentPDF&&activeBook?{pdf:documentPDF,book:activeBook,leafMap,total:bookPageCount(),currentPage:()=>page,goPage}:null,reset:()=>{closeBook(true);activeShelf='home';query='';}};
 })();
