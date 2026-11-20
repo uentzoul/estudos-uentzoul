@@ -277,7 +277,7 @@ function valid(p,x,y,rotation){
  });
 }
 function spawn(type){
- piece={type:type,x:3,y:0,r:0};
+ piece={type:type,x:3,y:2,r:0};
  if(!valid(piece,piece.x,piece.y,piece.r)){phase="lost";announce("Fim de jogo");}
 }
 function nextPiece(){fillQueue();spawn(queue.shift());fillQueue();}
@@ -664,7 +664,7 @@ async function verify(){
   var role=await client.rpc("uentzoul_is_admin");
   if(role.error||role.data!==true)throw Error("O TetrisZoul está disponível somente para administradores.");
   approved=true;gate.hidden=true;app.hidden=false;
-  settingsLoad();reset();storedList();requestAnimationFrame(frame);
+  reset();settingsLoad();storedList();requestAnimationFrame(frame);
   await loadRecords();await flushPending();
   client.auth.onAuthStateChange(function(event,session){
    if(event==="SIGNED_OUT"||!session?.user?.id||session.user.id!==uid){
