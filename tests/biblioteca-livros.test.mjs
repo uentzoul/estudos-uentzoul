@@ -71,11 +71,13 @@ function harness(){
  return {w,dom,listeners,enable:()=>{admin=true},stats:()=>storageTouched};
 }
 
-test('Membros consultam livros e audiobooks; upload só aparece aos administradores',()=>{
+test('Membros consultam livros; audiobooks ficam bloqueados e o envio continua administrativo',()=>{
  const h=harness();
  let s=h.w.PSICO_BOOK_LIBRARY.render();
  assert.match(s,/Biblioteca de livros/);
  assert.match(s,/Biblioteca de audiobooks/);
+ assert.match(s,/psb-category-audio psb-category-coming/,'audiobooks bloqueados');
+ assert.match(s,/Em breve/);
  assert.doesNotMatch(s,/data-psb-tab="upload"/,'sem botão de envio para membro');
  h.enable();
  s=h.w.PSICO_BOOK_LIBRARY.render();

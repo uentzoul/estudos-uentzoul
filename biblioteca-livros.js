@@ -256,9 +256,9 @@ function categoryCards(){
  return '<div class="psb-categories"><button class="psb-category psb-category-books" data-psb-tab="books">'+
  '<span class="psb-category-icon" aria-hidden="true"><svg viewBox="0 0 64 64"><path d="M32 13c-9-6-20-6-28-2v42c11-4 20-4 28 2 8-6 17-6 28-2V11c-8-4-19-4-28 2zm0 0v42"/></svg></span>'+
  '<span class="psb-category-text"><span class="psb-category-num">01 / ACERVO</span><strong>Biblioteca de livros</strong><small>Obras, dicionários e leituras de Psicologia em um leitor integrado.</small><span class="psb-category-action">Explorar '+allBooks().length+' livros <b>→</b></span></span></button>'+
- '<button type="button" class="psb-category psb-category-audio" data-psb-tab="audio">'+
+ '<button type="button" class="psb-category psb-category-audio psb-category-coming" disabled aria-disabled="true" title="Audiobooks — em breve">'+
  '<span class="psb-category-icon" aria-hidden="true"><svg viewBox="0 0 64 64"><rect x="10" y="20" width="44" height="32" rx="11"/><path d="M10 37H3V28c0-17 13-27 29-27s29 10 29 27v9h-7M20 29v15M44 29v15"/></svg></span>'+
- '<span class="psb-category-text"><span class="psb-category-num">02 / ESCUTA</span><strong>Biblioteca de audiobooks</strong><small>Um espaço próprio para os livros narrados e suas futuras coleções.</small><span class="psb-category-action">Abrir audiobooks <b>→</b></span></span></button>'+
+ '<span class="psb-category-text"><span class="psb-category-num">02 / ESCUTA</span><strong>Biblioteca de audiobooks</strong><small>Um espaço próprio para os livros narrados e suas futuras coleções.</small><span class="psb-category-action psb-coming-badge">Em breve</span></span></button>'+
  (isAdmin()?'<button type="button" class="psb-category psb-category-upload" data-psb-tab="upload" aria-label="Adicionar livros">'+
  '<span class="psb-category-icon" aria-hidden="true">↑</span><span class="psb-category-text"><span class="psb-category-num">03 / ADMIN</span>'+
  '<strong>Adicionar livros</strong><small>Álbum para enviar PDFs, cadastrar obras e completar a estante.</small><span class="psb-category-action">Abrir álbum de uploads <b>→</b></span></span></button>':'')+'</div>';
@@ -326,6 +326,7 @@ function reader(){
 function render(){
  if(!allowed())return '<section class="panel"><h2>Entre na conta para abrir a Biblioteca.</h2></section>';
  if(lastUserId!==user()){lastUserId=user();closeBook(true);activeShelf='home';query='';}
+ if(activeShelf==='audio')activeShelf='home';
  if(activeShelf==='upload'&&!isAdmin())activeShelf='home';
  return '<div class="psb-library" id="psbLibrary">'+
  (activeBook?reader():mainHeader()+
@@ -619,7 +620,7 @@ document.addEventListener('change',e=>{
 document.addEventListener('click',e=>{
  if(!allowed()||!e.target.closest('#psbLibrary'))return;
  const tab=e.target.closest('[data-psb-tab]');
- if(tab){e.preventDefault();if(tab.dataset.psbTab==='upload'&&!isAdmin())return;closeBook(true);activeShelf=tab.dataset.psbTab;lastError='';requestRender();return;}
+ if(tab){e.preventDefault();if(tab.dataset.psbTab==='audio')return;if(tab.dataset.psbTab==='upload'&&!isAdmin())return;closeBook(true);activeShelf=tab.dataset.psbTab;lastError='';requestRender();return;}
  const open=e.target.closest('[data-psb-open]');
  if(open){e.preventDefault();void openBook(open.dataset.psbOpen);return;}
  if(e.target.closest('[data-psb-close]')){closeBook();return;}

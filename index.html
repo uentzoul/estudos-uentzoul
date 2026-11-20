@@ -3197,6 +3197,7 @@ const go=(page,extra={})=>{
  if(page==='admin'&&!window.uentzoulAdminConfig?.isAdmin?.())page='home';
  if(page==='books'&&!window.uentzoulAIAuth?.user?.()){window.uentzoulAIAuth?.openLogin?.();return;}
  if(page==='audiobooks')return; // Audiobooks em breve para todos os perfis.
+ if(page==='extras'&&isExtrasPhone())return;
   if(page==='extras'&&!window.uentzoulAIAuth?.user?.()){
   window.uentzoulAIAuth?.openLogin?.();
   return;
@@ -3273,13 +3274,14 @@ function renderNav(){
  if(current.page==='books'&&!window.uentzoulAIAuth?.user?.()){window.PSICO_BOOK_LIBRARY?.reset?.();current.page='home';queueMicrotask(()=>render());}
  const extraButton=document.getElementById('navExtrasGames');
  if(extraButton){
+  const phone=isExtrasPhone();
   extraButton.hidden=false;
   extraButton.style.display='';
-  extraButton.disabled=false;
-  extraButton.classList.remove('pm-extras-phone-locked');
-  extraButton.setAttribute('aria-disabled','false');
-  extraButton.setAttribute('aria-label','Extras — jogos de Psicologia');
-  extraButton.title='Extras · jogos de Psicologia';
+  extraButton.disabled=phone;
+  extraButton.classList.toggle('pm-extras-phone-locked',phone);
+  extraButton.setAttribute('aria-disabled',String(phone));
+  extraButton.setAttribute('aria-label',phone?'Extras indisponível no celular. Use um computador ou tablet.':'Extras — jogos de Psicologia');
+  extraButton.title=phone?'Extras disponível somente em computador ou tablet':'Extras · jogos de Psicologia';
  }
 }
 function head(k,h,sub){return `<div class="eyebrow">${esc(k)}</div><h1 class="h1">${esc(h)}</h1>${sub?`<p class="lead">${esc(sub)}</p>`:''}`}
@@ -5005,6 +5007,7 @@ window.uentzoulAudioRefresh=()=>{if(current.page==='audiobooks')render()};
 window.uentzoulAudioGoHome=()=>go('home');
 function render(){
  if(current.page==='ai')current.page='home';
+ if(current.page==='extras'&&isExtrasPhone())current.page='home';
   // Não desmontar o iframe do Caderno quando outras seções atualizarem em segundo plano.
  if(window.PSICO_NOTEBOOK_ACTIVE?.()&&document.getElementById('uentzoulCadernoFrame'))return;
  // Evitar desmontar uma partida em andamento por atualizações do painel principal.
@@ -5025,7 +5028,7 @@ function render(){
   return;
  }
  let body='';switch(current.page){case 'home':body=renderHome();break;case 'subject':body=renderSubject(current.subject);break;case 'exams':body=renderExams();break;case 'test':body=renderTest(current.exam);break;case 'library':body=renderHome();break;case 'audio':body=renderAudio();break;case 'calendar':body=renderCalendar();break;case 'ai':body=renderHome();break;case 'messages':body=window.uentzoulMessenger?.render()||'<section class="panel">Carregando mensagens…</section>';break;case 'books':body=window.PSICO_BOOK_LIBRARY?.render()||'<section class="panel">Carregando Biblioteca…</section>';break;
-case 'audiobooks':body='<div class="psb-library" id="psbLibrary">'+(window.PSICO_AUDIO_LIBRARY?.render?.()||'<p>Carregando audiobooks…</p>')+'</div>';break;case 'extras':body='<div class="psico-extras-embed"><iframe id="psicoExtrasFrame" src="./extras.html?v=20261120-member-release-v1" title="Extras · jogos de Psicologia" loading="eager" allow="fullscreen"></iframe></div>';break;
+case 'audiobooks':body='<div class="psb-library" id="psbLibrary">'+(window.PSICO_AUDIO_LIBRARY?.render?.()||'<p>Carregando audiobooks…</p>')+'</div>';break;case 'extras':body='<div class="psico-extras-embed"><iframe id="psicoExtrasFrame" src="./extras.html?v=20261120-restrictions-restored-v1" title="Extras · jogos de Psicologia" loading="eager" allow="fullscreen"></iframe></div>';break;
  case 'admin':body=window.uentzoulAdminConfig?.render()||'<section class="panel">Acesso restrito.</section>';break;default:body=renderHome()};if(psAudioElement&&psAudioElement.isConnected&&$('main').contains(psAudioElement))document.body.appendChild(psAudioElement);
  $('main').innerHTML=body;if(current.page==='ai')queueMicrotask(tzHydrateThumbnails);if(isPodcastView())setupAudio();if(current.page==='messages')window.uentzoulMessenger?.afterRender(current.peerId||null);if(current.page==='admin')window.uentzoulAdminConfig?.afterRender();if(current.page==='books')queueMicrotask(()=>window.PSICO_BOOK_LIBRARY?.afterRender?.());if(current.page==='audiobooks')queueMicrotask(()=>window.PSICO_AUDIO_LIBRARY?.afterRender?.());}
 /* A camada de organização só altera categorias e posições, nunca os arquivos. */
@@ -8721,7 +8724,7 @@ window.addEventListener('message',function(event){
 <script src="admin-config.js?v=20261120-extras-access-v2"></script>
 <script src="biblioteca-review.js?v=20261120-review-v1" defer></script>
 <script src="biblioteca-upload.js?v=20261120-member-release-v1" defer></script>
-<script src="biblioteca-livros.js?v=20261120-member-release-v1" defer></script>
+<script src="biblioteca-livros.js?v=20261120-audiobooks-locked-v1" defer></script>
 <script src="biblioteca-audiobooks.js?v=20261120-members-v1" defer></script>
 <script id="pm-mobile-drawer-js" src="mobile-drawer.js?v=20261114-smooth-locked-v18" defer></script>
 <script id="pm-chat-mobile-js" src="chat-mobile-viewport.js?v=20261117-group-call-v5" defer></script>
