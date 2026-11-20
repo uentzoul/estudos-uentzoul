@@ -75,11 +75,47 @@ function shuffle(a,seed){
  for(let i=arr.length-1;i>0;i--){const j=Math.floor(rand()*(i+1));[arr[i],arr[j]]=[arr[j],arr[i]];}
  return arr;
 }
-function getWordFor(targetDay){
- if(targetDay===ARCHIVE_START)return {word:"EXAME",area:"Avaliação Psicológica",hint:"Investigação ou procedimento avaliativo"};
- const list=psicoBank,n=dayNumber(targetDay);
- return list[((n*17+23)%list.length+list.length)%list.length];
+
+const PSICO_NEW_DECK_START="2026-11-21";
+// A rodada de estreia é imutável para não invalidar tentativas e resultados já salvos.
+const PSICO_LAUNCH_WORDS={"classico":["EXAME"],"duplo":["LAUDO","CAUSA"],"quadruplo":["GANHO","NOÇÃO","MEDOS","RITMO"]};
+const PSICO_CLASSIC_CORE=new Set("ÉDIPO VÍCIO ÉTICA LAUDO MENTE FOCAR CHORO FOBIA HUMOR AFETO RAIVA GESTO VOZES RITOS CICLO SONHO GRUPO TESTE CULPA CRISE CASAL APEGO NORMA PODER IDEAL CORPO TRAÇO RITMO TÉDIO OLHAR OUVIR PERDA EXAME RISCO REGRA REDES MÍDIA SINAL APOIO MEDOS DADOS METAS SAÚDE RAZÃO NOÇÃO CALMA BRIGA LAÇOS TOQUE FUGIR TENSO JUÍZO NEGAR MEDIR ÂNIMO ÂNSIA MÁGOA CIÚME SUSTO PAVOR TEMOR FÚRIA ABUSO SURTO MANIA LUTOS AFAGO FREUD LACAN KLEIN ADLER LAPSO VISÃO TÁTIL AROMA SABOR OLHOS ROSTO DEDOS MAPAS BLOCO RETER NOTAR PENSA ERROS TEXTO VERBO CÓPIA RUÍDO NEXOS LÍDER COESO TURMA CLIMA PACTO ORDEM BOATO RUMOR CARGO CARGA PAUTA UNIDO IGUAL OUTRO DIGNO JUSTO FALSO LEAIS HONRA RENDA ETNIA DEVER CREDO MITOS MASSA BEBÊS IDOSO IDOSA FILHA PARTO FETOS JOGOS TEMPO TESES MÉDIA TAXAS FATOR ITENS RIGOR PROVA".split(" ").map(clean));
+function psicoEntry(word){
+ const answer=DATA.wordBank.find(item=>clean(item.word)===clean(word));
+ if(!answer)throw Error("Palavra do PSICO ausente do banco: "+word);
+ return answer;
 }
+function buildPsicoAnswerDeck(){
+ // O vocabulário é local e versionado; atualizações no banco remoto não trocam as respostas do dia.
+ const reserved=new Set(Object.values(PSICO_LAUNCH_WORDS).flat().map(clean));
+ const eligible=DATA.wordBank.filter(item=>clean(item.word).length===5&&!reserved.has(clean(item.word)))
+  .sort((a,b)=>clean(a.word).localeCompare(clean(b.word),"pt-BR"));
+ const core=shuffle(eligible.filter(item=>PSICO_CLASSIC_CORE.has(clean(item.word))),20261121);
+ const rest=shuffle(eligible.filter(item=>!PSICO_CLASSIC_CORE.has(clean(item.word))),20261122);
+ const result=[];
+ // Uma palavra central de Psicologia abre o Clássico; os demais tabuleiros misturam áreas.
+ // Cada posição é consumida uma única vez por rodada completa, sem duplicações entre modos/dias.
+ while(core.length||rest.length){
+  for(let slot=0;slot<7;slot++){
+   const useCore=slot===0||slot===2||slot===4;
+   const first=useCore?core:rest,second=useCore?rest:core;
+   const chosen=first.length?first.shift():second.length?second.shift():null;
+   if(chosen)result.push(chosen);
+  }
+ }
+ // Respostas usadas na estreia voltam apenas no fim da primeira rodada de vocabulário.
+ result.push(...Object.values(PSICO_LAUNCH_WORDS).flat().map(psicoEntry));
+ return result;
+}
+const PSICO_ANSWER_DECK=buildPsicoAnswerDeck();
+function getPsicoDayWordsFor(targetDay){
+ if(targetDay===ARCHIVE_START)return Object.values(PSICO_LAUNCH_WORDS).flat().map(psicoEntry);
+ const offset=Math.max(0,dayNumber(targetDay)-dayNumber(PSICO_NEW_DECK_START));
+ const from=(offset*7)%PSICO_ANSWER_DECK.length;
+ return Array.from({length:7},(_,i)=>PSICO_ANSWER_DECK[(from+i)%PSICO_ANSWER_DECK.length]);
+}
+
+function getWordFor(targetDay){return getPsicoDayWordsFor(targetDay)[0];}
 function getWord(){return getWordFor(day);}
 function gameStateDefault(game){
  return game==="psico"?{guesses:[],draft:"",done:false,won:false}:
@@ -339,10 +375,11 @@ function wordColors(guess,answer){
  return colors;
 }
 function getPsicoWordsFor(targetDay,mode){
- if(mode==="classico")return [getWordFor(targetDay)];
- // Lista editorial local: a atualização do banco remoto não altera partidas múltiplas em andamento.
- const pool=DATA.wordBank.filter(item=>clean(item.word).length===5);
- return shuffle(pool,dayNumber(targetDay)*7919+(mode==="duplo"?311:733)).slice(0,PSICO_MODES[mode].boards);
+ const list=getPsicoDayWordsFor(targetDay);
+ if(mode==="classico")return list.slice(0,1);
+ if(mode==="duplo")return list.slice(1,3);
+ if(mode==="quadruplo")return list.slice(3,7);
+ return [];
 }
 function getPsicoWords(){return getPsicoWordsFor(day,psicoMode);}
 function psicoState(){
