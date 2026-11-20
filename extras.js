@@ -190,7 +190,9 @@ async function loadCloud(targetDay=day){
    if(!CONTENT_GAMES.includes(row.game)||!row.state||typeof row.state!=="object")continue;
    const local=states[row.game];
    const localTime=Number(local?._savedAt)||0,remoteTime=Number(row.state._savedAt)||Date.parse(row.updated_at)||0;
-   if(remoteTime>=localTime){states[row.game]=row.state;localSet(row.game,targetDay);}
+   // Uma limpeza solicitada pelo dono prevalece sobre o cache antigo do navegador.
+   const resetChanged=row.state._resetRevision&&row.state._resetRevision!==local?._resetRevision;
+   if(resetChanged||remoteTime>=localTime){states[row.game]=row.state;localSet(row.game,targetDay);}
    else scheduleCloud(row.game,targetDay);
   }
  }catch(e){
