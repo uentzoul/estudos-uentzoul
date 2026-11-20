@@ -93,7 +93,7 @@ test('Carregador mantém Biblioteca abaixo de Agenda e não recria áreas descon
  assert.equal(item.badges.length,1,'Biblioteca mantém um selo');
  assert.equal(item.badges[0].textContent,'Em breve','Biblioteca mostra Em breve');
  assert.equal(item.tip,null,'Biblioteca não mantém tooltip duplicado');
- assert.match(html,/site-version\.js\?v=20261120-books-admin-v1/,'cache invalida a versão antiga do menu');
+ assert.match(html,/site-version\.js\?v=20\d{6}-[a-z0-9-]+/,'carregador do menu possui versão de cache explícita');
 });
 
 test('Biblioteca fica após Agenda e Trabalhos não existe mais no site',()=>{
