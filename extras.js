@@ -233,62 +233,140 @@ function wordColors(guess,answer){
  }
  return colors;
 }
-function renderPsico(){
- const answer=getWord(),st=states.psico;
+function normalizePsico(){
+ const st=states.psico;
  if(!Array.isArray(st.guesses))st.guesses=[];
- if(typeof st.draft!=="string")st.draft="";
- st.draft=clean(st.draft).replace(/[^A-Z]/g,"").slice(0,5);
+ st.guesses=st.guesses.filter(v=>typeof v==="string"&&clean(v).length===5).slice(0,6);
+ if(!Array.isArray(st.cells)||st.cells.length!==5){
+  const old=clean(st.draft||"").replace(/[^A-Z]/g,"").slice(0,5);
+  st.cells=Array.from({length:5},(_,i)=>old[i]||"");
+ }
+ st.cells=st.cells.map(v=>clean(v).replace(/[^A-Z]/g,"").slice(0,1));
+ st.cursor=Math.max(0,Math.min(4,Number.isInteger(st.cursor)?st.cursor:st.cells.findIndex(v=>!v)));
+ if(st.done)st.cursor=0;
+ return st;
+}
+function psicoNativeFocus(){
+ const input=$("psicoTypeBox");
+ if(!input)return;
+ input.focus({preventScroll:true});
+}
+function selectPsicoCell(index,shouldFocus=true){
+ const st=normalizePsico();
+ if(st.done||!Number.isInteger(index)||index<0||index>4)return;
+ st.cursor=index;
+ store("psico",false);
+ syncPsicoDraft();
+ if(shouldFocus)psicoNativeFocus();
+}
+function syncPsicoDraft(changedIndex=-1){
+ const st=normalizePsico();
+ document.querySelectorAll("[data-psico-cell]").forEach(node=>{
+  const index=Number(node.dataset.psicoCell);
+  const letter=st.cells[index]||"";
+  node.textContent=letter;
+  node.className="psico-cell editable"+(letter?" filled":"")+(index===st.cursor?" cursor-active":"");
+  node.setAttribute("aria-label","Posição "+(index+1)+": "+(letter||"vazia")+(index===st.cursor?", selecionada":""));
+  if(index===changedIndex){
+   node.classList.remove("psico-pop");
+   void node.offsetWidth;
+   node.classList.add("psico-pop");
+  }
+ });
+ const submit=$("psicoSubmit");
+ if(submit)submit.disabled=st.cells.some(v=>!v);
+ const info=$("psicoDraftHelp");
+ if(info)info.textContent="Posição "+(st.cursor+1)+" de 5 · Toque numa letra para editá-la; Enter envia a tentativa.";
+}
+function renderPsico(){
+ const answer=getWord(),st=normalizePsico();
  const rows=[];
  for(let r=0;r<6;r++){
-  let letters="",colors=[];
-  if(r<st.guesses.length){letters=st.guesses[r];colors=wordColors(letters,answer.word);}
-  else if(r===st.guesses.length&&!st.done){letters=st.draft;}
-  rows.push('<div class="psico-row" role="row">'+Array.from({length:5},(_,i)=>{
-   const l=letters[i]||"",status=colors[i]|| (l?"filled":"");
-   return '<div class="psico-cell '+status+(r===st.guesses.length&&!st.done?' current':'')+'" role="gridcell" aria-label="'+(l||"vazio")+' '+status+'">'+esc(l)+'</div>';
-  }).join("")+'</div>');
+  let letters=[],colors=[];
+  const locked=r<st.guesses.length;
+  const editable=r===st.guesses.length&&!st.done;
+  if(locked){letters=clean(st.guesses[r]).split("");colors=wordColors(st.guesses[r],answer.word);}
+  else if(editable)letters=st.cells;
+  rows.push('<div class="psico-row'+(r===psicoFlippingRow&&locked?' psico-revealing':'')+'" role="row" aria-label="Tentativa '+(r+1)+'">'+
+   Array.from({length:5},(_,i)=>{
+    const letter=letters[i]||"",status=colors[i]||(letter?"filled":"");
+    const selected=editable&&i===st.cursor;
+    const className="psico-cell "+status+(editable?" editable":"")+(selected?" cursor-active":"");
+    if(editable){
+     return '<button type="button" class="'+className+'" data-psico-cell="'+i+'" role="gridcell" aria-label="Posição '+(i+1)+': '+(letter||"vazia")+(selected?", selecionada":"")+'">'+esc(letter)+'</button>';
+    }
+    return '<div class="'+className+'" role="gridcell" aria-label="'+esc(letter||"vazio")+' '+esc(status)+'">'+esc(letter)+'</div>';
+   }).join("")+'</div>');
  }
- const grades={};
- st.guesses.forEach(guess=>wordColors(guess,answer.word).forEach((grade,i)=>{
-  const letter=guess[i],rank={absent:1,present:2,correct:3};
-  if(!grades[letter]||rank[grade]>rank[grades[letter]])grades[letter]=grade;
- }));
- const kb=[["Q","W","E","R","T","Y","U","I","O","P"],["A","S","D","F","G","H","J","K","L"],["ENTER","Z","X","C","V","B","N","M","BACK"]];
  let result="";
  if(st.done){
   const title=st.won?"Boa! Palavra encontrada.":"Fim das tentativas.";
-  result='<div class="finish-box"><strong>'+title+'</strong><p>A palavra era <b>'+esc(answer.word)+'</b>. '+esc(answer.hint)+' · '+esc(answer.area)+'. Amanhã tem um novo desafio.</p></div>';
+  result='<div class="finish-box"><strong>'+title+'</strong><p>A palavra era <b>'+esc(answer.word)+'</b>. '+esc(answer.hint)+' · '+esc(answer.area)+'. Escolha outro dia para jogar novamente.</p></div>';
  }
+ const editor=st.done?"":'<form id="psicoForm" class="psico-native-form" autocomplete="off">'+
+  '<label class="psico-input-visually-hidden" for="psicoTypeBox">Digite as letras usando o teclado do dispositivo</label>'+
+  '<input id="psicoTypeBox" type="text" inputmode="text" enterkeyhint="done" autocapitalize="characters" autocomplete="off" autocorrect="off" spellcheck="false" aria-label="Digite as letras na posição selecionada" maxlength="24">'+
+  '<button type="submit" class="primary-action" id="psicoSubmit" '+(st.cells.some(v=>!v)?"disabled":"")+'>Enviar palavra</button></form>'+
+  '<p class="psico-draft-help" id="psicoDraftHelp">Posição '+(st.cursor+1)+' de 5 · Toque numa letra para editá-la; Enter envia a tentativa.</p>';
  $("gameHost").innerHTML=
-  '<div class="game-panel"><div class="game-head"><div><span class="game-tag">Palavra do dia · 5 letras</span><h2>Psico</h2><p>Descubra um termo que aparece nos conteúdos dos dois primeiros semestres. Você tem até seis tentativas.</p></div><span class="game-stat">'+(st.done?(st.won?"Concluído":"Encerrado"):(st.guesses.length+1)+" / 6")+'</span></div>'+
+  '<div class="game-panel"><div class="game-head"><div><span class="game-tag">Palavra diária · cinco letras</span><h2>PSICO</h2><p>Seis tentativas. Toque numa posição e escreva com o teclado do dispositivo. Antes de enviar, você pode corrigir ou substituir qualquer letra.</p></div><span class="game-stat">'+(st.done?(st.won?"Concluído":"Encerrado"):(st.guesses.length+1)+" / 6")+'</span></div>'+
   '<div class="psico-board" role="grid" aria-label="Seis tentativas, cinco letras por linha">'+rows.join("")+'</div>'+
-  feedbackHtml("psico")+
-  '<div class="psico-keyboard" aria-label="Teclado do Psico">'+kb.map(row=>'<div class="psico-keyrow">'+row.map(key=>
-   '<button type="button" data-letter="'+esc(key)+'" class="psico-key '+(key.length>1?"special ":"")+(grades[key]||"")+'" '+(st.done?'disabled':'')+' aria-label="'+esc(key==="BACK"?"Apagar":key==="ENTER"?"Enviar":key)+'">'+esc(key==="BACK"?"⌫":key==="ENTER"?"↵":key)+'</button>'
-  ).join("")+'</div>').join("")+'</div>'+
-  result+
-  '<div class="explanation"><b>Como funciona:</b> verde indica letra na posição correta; amarelo significa letra presente em outra posição; cinza indica letra ausente ou repetida em excesso. Os acentos não precisam ser digitados. As soluções sempre vêm do banco de termos de Psicologia; os palpites podem ser quaisquer sequências de cinco letras.</div></div>';
+  feedbackHtml("psico")+editor+result+
+  '<div class="explanation"><b>Cores:</b> verde = letra correta e no lugar certo; amarelo = letra da palavra em outra posição; cinza = letra ausente. As tentativas já enviadas ficam bloqueadas. Setas para mover a seleção, Backspace ou Delete para corrigir e Enter para enviar. Os acentos são opcionais.</div></div>';
  requestHeight();
 }
 function inputPsico(key){
  if(active!=="psico")return;
- const st=states.psico;if(st.done)return;
- if(key==="BACK"){st.draft=st.draft.slice(0,-1);store("psico",false);}
- else if(key==="ENTER"){
-  if(st.draft.length!==5){setFeedback("psico","Digite cinco letras.","error");return;}
-  const guess=st.draft,correct=clean(getWord().word);
-  st.guesses.push(guess);st.draft="";
+ const st=normalizePsico();
+ if(st.done)return;
+ let changed=-1;
+ if(key==="BACK"||key==="DELETE"){
+  // Apaga a célula selecionada; se ela já está vazia, volta uma posição.
+  if(st.cells[st.cursor]){changed=st.cursor;st.cells[st.cursor]="";}
+  else if(st.cursor>0){st.cursor--;changed=st.cursor;st.cells[st.cursor]="";}
+  store("psico",false);syncPsicoDraft(changed);return;
+ }
+ if(key==="LEFT"||key==="RIGHT"||key==="HOME"||key==="END"){
+  st.cursor=key==="LEFT"?Math.max(0,st.cursor-1):key==="RIGHT"?Math.min(4,st.cursor+1):key==="HOME"?0:4;
+  store("psico",false);syncPsicoDraft();return;
+ }
+ if(key==="ENTER"){
+  if(st.cells.some(v=>!v)){
+   setFeedback("psico","Preencha as cinco posições antes de enviar.","error");
+   const row=document.querySelector(".psico-row .cursor-active")?.parentElement;
+   if(row){row.classList.remove("psico-shake");void row.offsetWidth;row.classList.add("psico-shake");}
+   return;
+  }
+  const guess=st.cells.join(""),correct=clean(getWord().word);
+  st.guesses.push(guess);
+  st.cells=Array(5).fill("");st.draft="";st.cursor=0;
   st.won=guess===correct;st.done=st.won||st.guesses.length>=6;
+  psicoFlippingRow=st.guesses.length-1;
   store("psico");
   feedback={game:"psico",message:st.won?"Acertou!":st.done?"As seis tentativas terminaram.":"Continue tentando.",kind:st.won?"ok":""};
- }else{
-  const letter=clean(key).replace(/[^A-Z]/g,"").slice(0,1);
-  if(!letter||st.draft.length>=5)return;
-  st.draft+=letter;store("psico",false);
-  feedback={game:"",message:"",kind:""};
+  renderPsico();
+  return;
  }
- renderPsico();
+ const chars=clean(key).replace(/[^A-Z]/g,"");
+ if(!chars)return;
+ for(const letter of chars){
+  changed=st.cursor;
+  st.cells[st.cursor]=letter;
+  let next=-1;
+  for(let offset=1;offset<=5;offset++){
+   const index=(changed+offset)%5;
+   if(!st.cells[index]){next=index;break;}
+  }
+  st.cursor=next>=0?next:Math.min(4,changed+1);
+ }
+ st.draft=st.cells.join("");
+ feedback={game:"",message:"",kind:""};
+ store("psico",false);
+ syncPsicoDraft(changed);
+ const message=document.querySelector(".feedback");
+ if(message){message.textContent="";message.className="feedback";}
 }
+
 function initConnections(){
  const shuffledGroups=shuffle(DATA.connectionGroups,ordinal*104729+17);
  const chosen=[],seen=new Set();
