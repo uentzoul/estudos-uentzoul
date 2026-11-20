@@ -69,7 +69,8 @@
   overlay.querySelector('[data-nb-tour-next]').textContent=index===steps.length-1?'Concluir':'Próxima ›';
   requestAnimationFrame(align);
   // A capa tem uma transição 3D. Atualizar o destaque ao final dela, sem reposicionar a página.
-  if(index===2||index===steps.length-1)setTimeout(()=>{if(active)align()},900);
+  if((index>0&&steps[index-1].view==='shelf'&&step.view!=='shelf')||index===steps.length-1)
+   setTimeout(()=>{if(active)align()},900);
  }
  function finish(){
   if(!active)return;
