@@ -44,6 +44,7 @@ const NEAR={
  democracia:["libertacao","poder","desigualdade","sociedade"]
 };
 let client=null,uid=null,approved=false,day="",ordinal=0,active="tetris",states={};
+let psicoBank=DATA.wordBank.slice().sort((a,b)=>clean(a.word).localeCompare(clean(b.word),"pt-BR"));
 let connectionGroups=[],connectionTiles=[],contextTerms=new Map(),contextRankings=null,contextTarget="";
 const persistTimers=Object.create(null),persistPromises=Object.create(null);
 let feedback={game:"",message:"",kind:""};
@@ -64,7 +65,7 @@ function shuffle(a,seed){
  return arr;
 }
 function getWord(){
- const list=DATA.wordBank;
+ const list=psicoBank;
  return list[((ordinal*17+23)%list.length+list.length)%list.length];
 }
 function gameStateDefault(game){
@@ -80,6 +81,15 @@ function initializeDay(){
  $("dayLabel").textContent=new Intl.DateTimeFormat("pt-BR",{timeZone:"America/Sao_Paulo",day:"2-digit",month:"short",year:"numeric"}).format(new Date(day+"T12:00:00Z"));
  for(const game of CONTENT_GAMES)states[game]=localGet(game)||gameStateDefault(game);
  initConnections();initContexto();
+}
+async function loadWordBank(){
+ try{
+  const {data,error}=await client.from("uentzoul_extras_word_bank")
+    .select("word,course_area,hint").eq("enabled",true).order("word").limit(500);
+  if(error)throw error;
+  const valid=(data||[]).filter(x=>clean(x.word).length===5);
+  if(valid.length>=20)psicoBank=valid.map(x=>({word:x.word,area:x.course_area,hint:x.hint}));
+ }catch(e){console.warn("Extras: usando banco de palavras local.",e?.message||e);}
 }
 async function loadCloud(){
  try{
@@ -324,7 +334,7 @@ function initContexto(){
   let common=0;
   for(const d of target.domains)if(entry.domains.has(d))common++;
   let score=common*140;
-  const nearby=NEAR[contextTarget]||[];
+  const nearby=NEAR[contextTarget.toLowerCase()]||[];
   const index=nearby.indexOf(word.toLowerCase());
   if(index>=0)score+=330-index*8;
   const reverse=NEAR[word.toLowerCase()]||[];
@@ -398,8 +408,9 @@ async function start(){
   const role=await client.rpc("uentzoul_is_admin");
   if(role.error||role.data!==true)throw Error("Extras está em prévia: somente administradores têm acesso.");
   initializeDay();
-  await loadCloud();
+  await Promise.all([loadWordBank(),loadCloud()]);
   approved=true;
+  for(const game of CONTENT_GAMES)if(states[game]?._savedAt)void flushCloud(game);
   $("extrasGate").hidden=true;$("extrasApp").hidden=false;
   const requested=new URL(location.href).searchParams.get("game");
   switchGame(GAMES.includes(requested)?requested:"tetris");
@@ -425,7 +436,7 @@ document.addEventListener("click",e=>{
  if(tab){switchGame(tab.dataset.game);return;}
  if(active==="psico"){
   const key=e.target.closest("[data-letter]");
-  if(key){inputPsico(key.dataset.letter);return;}
+  if(key){key.blur?.();inputPsico(key.dataset.letter);return;}
  }
  if(active==="conexo"){
   const tile=e.target.closest("[data-tile]");
@@ -448,7 +459,7 @@ document.addEventListener("submit",e=>{
 });
 document.addEventListener("keydown",e=>{
  if(!approved||active!=="psico")return;
- if(e.target&&(/^(INPUT|TEXTAREA|SELECT)$/.test(e.target.tagName)||e.target.isContentEditable))return;
+ if(e.target&&(/^(INPUT|TEXTAREA|SELECT)$/.test(e.target.tagName)||e.target.isContentEditable||e.target.closest?.("button,a,[role=tab]")))return;
  if(e.ctrlKey||e.altKey||e.metaKey)return;
  if(e.key==="Enter"){e.preventDefault();inputPsico("ENTER");return;}
  if(e.key==="Backspace"){e.preventDefault();inputPsico("BACK");return;}
