@@ -319,3 +319,124 @@ html[data-theme="dark"] .psb-toc-search input{color:#f5f1fa}
  html.psb-mode-book .psb-toc-panel,#psbReader:fullscreen .psb-toc-panel{
   top:52px;bottom:44px;left:6px}
 }
+
+
+/* Audiobooks — cartão de lançamento, inacessível também para administradores. */
+.psb-library .psb-category-audio.psb-category-coming,
+.psb-library .psb-category-audio.psb-category-coming:disabled{
+  background:linear-gradient(145deg,#f5f6f8 0%,#eef0f3 100%)!important;
+  border-color:#d7dce3!important;
+  box-shadow:0 5px 20px #303b4a08!important;
+  cursor:not-allowed!important;
+  color:#626b79!important;
+  opacity:1!important;
+}
+.psb-library .psb-category-audio.psb-category-coming:hover,
+.psb-library .psb-category-audio.psb-category-coming:focus,
+.psb-library .psb-category-audio.psb-category-coming:active{
+  transform:none!important;
+  box-shadow:0 5px 20px #303b4a08!important;
+  border-color:#d7dce3!important;
+  background:linear-gradient(145deg,#f5f6f8 0%,#eef0f3 100%)!important;
+}
+.psb-library .psb-category-audio.psb-category-coming::before{
+  background:radial-gradient(circle,#cbd0d8 0%,transparent 70%)!important;
+  opacity:.3!important;
+}
+.psb-library .psb-category-audio.psb-category-coming .psb-category-icon{
+  background:linear-gradient(140deg,#d9dde3,#f0f1f4)!important;
+  box-shadow:inset -5px 0 0 #9aa4b122,0 5px 14px #3f4b5710!important;
+  transform:none!important;
+}
+.psb-library .psb-category-audio.psb-category-coming .psb-category-icon svg{
+  stroke:#8a939e!important;
+}
+.psb-library .psb-category-audio.psb-category-coming .psb-category-num{
+  color:#858e9b!important;
+}
+.psb-library .psb-category-audio.psb-category-coming .psb-category-text small{
+  color:#798390!important;
+}
+.psb-library .psb-category-audio.psb-category-coming .psb-coming-badge{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  align-self:flex-start;
+  min-width:108px;
+  min-height:30px;
+  margin-top:20px;
+  padding:6px 16px;
+  border:1px solid #cdd3db!important;
+  border-radius:999px;
+  background:#e4e8ed!important;
+  color:#657080!important;
+  font-size:10px;
+  font-weight:850;
+  letter-spacing:.12em;
+  line-height:1.2;
+  text-transform:uppercase;
+  box-shadow:none!important;
+}
+html[data-theme="dark"] .psb-library .psb-category-audio.psb-category-coming,
+html[data-theme="dark"] .psb-library .psb-category-audio.psb-category-coming:disabled,
+html[data-theme="dark"] .psb-library .psb-category-audio.psb-category-coming:hover{
+  background:linear-gradient(145deg,#302f36,#292a31)!important;
+  border-color:#484952!important;
+  color:#b4b6c0!important;
+}
+html[data-theme="dark"] .psb-library .psb-category-audio.psb-category-coming .psb-category-icon{
+  background:linear-gradient(140deg,#444651,#343640)!important;
+}
+html[data-theme="dark"] .psb-library .psb-category-audio.psb-category-coming .psb-coming-badge{
+  background:#393b45!important;
+  border-color:#585a66!important;
+  color:#c7c9d1!important;
+}
+/* Navegação: sinal de indisponibilidade visível e alinhado em todos os perfis. */
+#nav #navAudiobooksMembers.pm-audiobooks-soon,
+#nav #navAudiobooksMembers.pm-audiobooks-soon:disabled{
+  display:flex;
+  align-items:center;
+  gap:9px;
+  color:#8b929f!important;
+  background:transparent!important;
+  box-shadow:none!important;
+  cursor:not-allowed!important;
+  opacity:.8;
+  transform:none!important;
+  user-select:none;
+}
+#nav #navAudiobooksMembers.pm-audiobooks-soon:hover{
+  color:#8b929f!important;
+  background:transparent!important;
+  transform:none!important;
+}
+#nav #navAudiobooksMembers.pm-audiobooks-soon svg{
+  flex:0 0 auto;
+  stroke:#929aa5!important;
+  opacity:.72;
+}
+#nav #navAudiobooksMembers .pm-audio-soon-tag{
+  display:inline-flex;
+  justify-content:center;
+  align-items:center;
+  margin-left:auto;
+  padding:4px 7px;
+  border:1px solid #d9dde3;
+  border-radius:7px;
+  background:#edf0f3;
+  color:#747d8a;
+  font-size:9px;
+  font-weight:850;
+  white-space:nowrap;
+  line-height:1.1;
+  letter-spacing:.02em;
+}
+html[data-theme="dark"] #nav #navAudiobooksMembers .pm-audio-soon-tag{
+  background:#353642;
+  color:#b3b4c0;
+  border-color:#4b4d59;
+}
+@media(max-width:600px){
+ #nav #navAudiobooksMembers .pm-audio-soon-tag{padding:3px 6px;font-size:8px}
+}
