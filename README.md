@@ -136,3 +136,16 @@ O código do recurso fica isolado em `group-call.js` e `group-call.css`, carrega
 O painel **Admin Config** inclui, logo abaixo de **LOG**, o atalho **Jogar TetrisZoul**. Ele redireciona para `tetriszoul.html`, um jogo independente baseado nas regras públicas do Sprint de 40 linhas: 10×20, 7-bag, Hold, SRS, Ghost Piece, cronômetro e DAS/ARR configuráveis. A página verifica a sessão Supabase e a permissão de administrador; os recordes concluídos ficam na tabela `uentzoul_tetriszoul_runs`, com RLS por usuário e acesso administrativo. Tempos ainda não sincronizados aguardam localmente no navegador para nova tentativa.
 
 **Requisito futuro (não implementado):** permitir acesso ao TetrisZoul também a pessoas escolhidas com um cargo específico de Tetris. Quando houver um sistema de cargos, um usuário poderá acumular vários cargos ao mesmo tempo (por exemplo: administração, Tetris e concursos). Não alterar nem impor essa estrutura de cargos agora. Não confundir o jogo atual com o aplicativo externo Jstris: este é um desenvolvimento independente.
+
+## Extras — prévia administrativa (20/11/2026)
+
+- A nova entrada **Extras** aparece imediatamente abaixo de **Trabalhos**. Para estudantes e visitantes ela é apenas um aviso **Em breve**, sem ação de clique. Administradores autenticados podem abrir a prévia; a rota e os três jogos de palavras exigem autorização administrativa, além de RLS no banco de progresso.
+- A página extras.html tem quatro abas no topo: **Tetris** (integra o jogo tetriszoul.html e preserva os recordes), **Psico** (palavra diária de cinco letras e seis tentativas), **Conexo** (quatro grupos temáticos de quatro palavras) e **Contexto** (palpites por proximidade de significado).
+- **Banco de palavras:** uentzoul_extras_word_bank no Supabase, com 58 respostas iniciais de cinco letras, vinculadas aos conteúdos de Psicologia do primeiro e segundo semestres. O navegador usa a lista publicada em extras-data.js se a consulta ao banco estiver temporariamente indisponível. Atualizar ambos ao adicionar palavras.
+- **Conteúdo adicional:** 25 grupos editoriais para Conexo e 141 termos distintos para Contexto. A proximidade no Contexto é um ranking relativo entre **os termos cadastrados** e relações temáticas. Não é uma cópia do modelo semântico do jogo original, nem aceita automaticamente qualquer palavra. O Psico aceita palpites livres de cinco letras; soluções vêm apenas do banco de Psicologia.
+- **Data diária:** calendário America/Sao_Paulo; desafios determinísticos para os administradores no mesmo dia. **Progresso:** tabela uentzoul_extras_progress (RLS por usuário e função uentzoul_is_admin) mais cache local por pessoa, dia e jogo.
+- **Sigilo:** o código dos puzzles no GitHub Pages é estático e público. A restrição de acesso protege a interface e os dados no Supabase, **não torna as respostas do JavaScript segredos criptográficos**. Não usar como ranking competitivo antifraude sem validação no servidor.
+
+### Acesso futuro / cargos (planejado, não implementado)
+
+O administrador poderá decidir mais tarde como permitir que amigos entrem nos jogos. Um eventual papel **Tetris** seria cumulativo com outros, assim como administrador e concursos. **Esta versão não cria, concede, altera nem retira papéis.** A regra futura deve aceitar múltiplas permissões simultâneas, sem tornar os papéis mutuamente exclusivos.
