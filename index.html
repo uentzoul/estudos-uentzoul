@@ -2948,12 +2948,28 @@ const doneBox=(id,label='Marcar como visto')=>`<label class="donecontrol ${isDon
 const audioEpisodes=k=>DB.audio[k]?.episodes||[];
 const doneCount=(items)=>items.filter(i=>isDone(i)).length;
 const topicProgressKey=(k,i)=>k==='grupos'?`topic:grupos:foco-v3:${i}`:`topic:${k}:${i}`;
+/* Os PDFs e textos não entram no progresso; somente atividades realizáveis. */
 const subjectKeys=k=>[
- ...DB.topics[k].map((_,i)=>topicProgressKey(k,i)),
- ...audioEpisodes(k).map(e=>`audio:${k}:${e.n}`)];
-const overallKeys=()=>[
- ...Object.keys(DB.subjects).flatMap(k=>subjectKeys(k))];
+ ...(DB.topics[k]||[]).map((_,i)=>topicProgressKey(k,i)),
+ ...audioEpisodes(k).map(e=>`audio:${k}:${e.n}`),
+ ...readyExamsFor(k).map(e=>`sim:${e.id}`),
+ ...(window.PSICO_STUDY_GUIDES?.hasGuide?.(k)?[window.PSICO_STUDY_GUIDES.progressKey(k)]:[]),
+ ...(window.PSICO_CASES?.[k]||[]).map((c,i)=>`case:${k}:${String(c.id||i)}`)
+];
+const overallKeys=()=>Object.keys(DB.subjects).flatMap(k=>subjectKeys(k));
 const fmtPct=(n,total)=>total?Math.round(n/total*100):0;
+const isProgressDone=id=>isDone(id)||(id.startsWith('sim:')&&!!store.results[id.slice(4)]);
+const subjectProgress=k=>{
+ const keys=[...new Set(subjectKeys(k))],manual=keys.filter(isProgressDone).length;
+ const flash=window.PSICO_PRACTICE?.flashProgress?.(k,DB.topics[k]||[],semester)||{completed:0,total:0};
+ const n=manual+flash.completed,total=keys.length+flash.total;
+ return {n,total,pct:fmtPct(n,total)};
+};
+const overallProgress=()=>{
+ const values=Object.keys(DB.subjects).map(subjectProgress);
+ const n=values.reduce((sum,p)=>sum+p.n,0),total=values.reduce((sum,p)=>sum+p.total,0);
+ return {n,total,pct:fmtPct(n,total)};
+};
 
 // Ponte restrita entre a Central de Estudos e o módulo de perfis.
 let activeProfileId=null;
@@ -3166,14 +3182,14 @@ window.pmOpenPodcastFromMini=(subject,index)=>{
 };
 const button=(label,act,cl='btn light')=>`<button class="${cl}" data-action="${act}">${label}</button>`;
 function subjectCard(id){
- const subj=getSubject(id), exams=readyExamsFor(id), sims=doneCount(exams.map(e=>'sim:'+e.id)), keys=subjectKeys(id),n=doneCount(keys);
+ const subj=getSubject(id), exams=readyExamsFor(id), sims=exams.filter(e=>isProgressDone('sim:'+e.id)).length,progress=subjectProgress(id),n=progress.n;
  const symbol={tcc:'T',familia:'F',meta:'M',grupos:'G',social:'S',avaliacao:'A'}[id]||'Ψ';
  return '<button type="button" class="subjectcard" data-action="subject:'+id+'" aria-label="Abrir '+esc(subj.name)+'" style="--accent:'+color(id)+'">'+
  '<span class="subject-top"><span class="subject-symbol" aria-hidden="true">'+symbol+'</span><span class="subject-date">'+esc(subj.exam)+' · '+dformat(subj.date)+'</span></span>'+
  '<span class="cardtitle">'+esc(subj.name)+'</span>'+
- '<span class="subject-meta">'+n+' de '+keys.length+' atividades · '+sims+' de '+exams.length+' simulados</span>'+
- '<span class="progressline"><span style="width:'+fmtPct(n,keys.length)+'%"></span></span>'+
- '<span class="cardbase"><span class="pill">'+fmtPct(n,keys.length)+'% concluído</span><span class="card-open-indicator" aria-hidden="true">↗</span></span></button>';
+ '<span class="subject-meta">'+n+' de '+progress.total+' atividades · '+sims+' de '+exams.length+' simulados</span>'+
+ '<span class="progressline"><span style="width:'+progress.pct+'%"></span></span>'+
+ '<span class="cardbase"><span class="pill">'+progress.pct+'% concluído</span><span class="card-open-indicator" aria-hidden="true">↗</span></span></button>';
 }
 function renderNav(){
  document.documentElement.dataset.examFocus=semester==='2026/2'?'2026/2':'none';
@@ -3213,21 +3229,21 @@ function head(k,h,sub){return `<div class="eyebrow">${esc(k)}</div><h1 class="h1
 function renderHome(){
  const order=Object.keys(DB.subjects).sort((a,b)=>getSubject(a).date.localeCompare(getSubject(b).date));
  const publishedExams=Object.keys(DB.subjects).flatMap(id=>readyExamsFor(id));
- const graded=publishedExams.filter(e=>!!store.results[e.id]).length,all=overallKeys(),total=doneCount(all);
+ const graded=publishedExams.filter(e=>!!store.results[e.id]).length,progress=overallProgress(),total=progress.n;
  const audioTotal=Object.keys(DB.audio).reduce((n,k)=>n+audioEpisodes(k).length,0);
  const audioDone=Object.keys(DB.audio).reduce((n,k)=>n+doneCount(audioEpisodes(k).map(e=>'audio:'+k+':'+e.n)),0);
  const topics=Object.keys(DB.topics).reduce((n,k)=>n+DB.topics[k].length,0);
  const topicsDone=Object.keys(DB.topics).reduce((n,k)=>n+doneCount(DB.topics[k].map((_,i)=>topicProgressKey(k,i))),0);
- const pct=fmtPct(total,all.length);
+ const pct=progress.pct;
  return '<header class="dashboard-hero slogan-hero" aria-label="Resumo do semestre"><div class="hero-copy"><div class="slogan-lockup"><span class="slogan-logo" aria-hidden="true">Ψ</span><div class="slogan-identity"><span class="hero-kicker">Psicologia PUCRS <span class="slogan-kicker-dot">·</span> '+esc(semester)+'</span><h1 class="slogan-title"><span>Psico</span><span class="slogan-title-accent">Moodle</span></h1></div></div></div>'+
- '<div class="hero-status"><span>Progresso do semestre</span><strong>'+pct+'%</strong><div class="hero-bar"><b style="width:'+pct+'%"></b></div><span class="hero-label">'+total+' de '+all.length+' atividades</span></div></header>'+
+ '<div class="hero-status"><span>Progresso do semestre</span><strong>'+pct+'%</strong><div class="hero-bar"><b style="width:'+pct+'%"></b></div><span class="hero-label">'+total+' de '+progress.total+' atividades</span></div></header>'+
 
  '<section class="section home-course-section" id="homeCourses">'+renderLibrary(true)+'</section>'+
  '<section class="section"><div class="two"><div class="panel"><div class="sectiontop"><h2>Agenda de avaliações</h2><button class="plainlink" data-action="page:calendar">Ver agenda →</button></div>'+
  '<div class="daylist">'+order.map(k=>{const item=getSubject(k);return '<div class="dayrow"><span class="daydate date">'+dformat(item.date)+'</span><span class="daytitle">'+esc(item.name)+'</span><span class="datecount">'+esc(item.exam)+'</span></div>'}).join('')+'</div>'+
  '<p class="small muted" style="margin-top:11px">Confira o Moodle para eventuais atualizações de datas.</p></div>'+
  '<div class="panel"><div class="sectiontop"><h2>Meu progresso</h2><span class="pill">Salvo automaticamente</span></div>'+
- '<div class="statline"><span>Atividades concluídas</span><strong>'+total+'/'+all.length+'</strong></div><div class="progressline"><div style="width:'+pct+'%"></div></div>'+
+ '<div class="statline"><span>Atividades concluídas</span><strong>'+total+'/'+progress.total+'</strong></div><div class="progressline"><div style="width:'+pct+'%"></div></div>'+
  '<div class="statline" style="margin-top:13px"><span>Disciplinas</span><strong>'+order.length+'</strong></div>'+
  '<div class="statline"><span>Conteúdos revisados</span><strong>'+topicsDone+'/'+topics+'</strong></div>'+
  '<div class="statline"><span>Podcasts ouvidos</span><strong>'+audioDone+'/'+audioTotal+'</strong></div>'+
