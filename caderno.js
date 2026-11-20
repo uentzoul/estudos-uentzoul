@@ -2312,13 +2312,131 @@ function flip(direction){
  },data.layout==='book'?320:170);
  setTimeout(()=>{flipping=false;stage.classList.remove('nb-book-turn-next','nb-book-turn-prev')},duration);
 }
+const EDITABLE_BACKUP_FORMAT='psicomoodle.caderno.editavel';
 function downloadJSON(){
- const blob=new Blob([JSON.stringify({version:2,exportedAt:new Date().toISOString(),books:data.books,activeBookId:data.bookId},null,2)],{type:'application/json'});
- const a=document.createElement('a');a.href=URL.createObjectURL(blob);
- a.download='cadernos-psicomoodle-'+new Date().toISOString().slice(0,10)+'.json';
- document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),1200);
- status('Cópia dos cadernos exportada.','success');
+ // O arquivo editável contém todas as páginas da matéria em uso, sem dependências externas.
+ if(editing)saveEditor(false);
+ serializable();
+ const book=activeBook();
+ const payload={
+  format:EDITABLE_BACKUP_FORMAT,version:3,semester:SEMESTER,
+  exportedAt:new Date().toISOString(),book:JSON.parse(JSON.stringify(book))
+ };
+ const blob=new Blob([JSON.stringify(payload,null,2)],{type:'application/json;charset=utf-8'});
+ const objectUrl=URL.createObjectURL(blob),anchor=document.createElement('a');
+ const slug=String(book.name||'caderno').normalize('NFD').replace(/[\u0300-\u036f]/g,'')
+  .toLocaleLowerCase('pt-BR').replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'').slice(0,55);
+ anchor.href=objectUrl;
+ anchor.download='caderno-editavel-'+(slug||'anotacoes')+'-'+new Date().toISOString().slice(0,10)+'.json';
+ document.body.appendChild(anchor);anchor.click();anchor.remove();
+ setTimeout(()=>URL.revokeObjectURL(objectUrl),3000);
+ status('Caderno editável exportado em JSON. Guarde o arquivo para recuperá-lo depois.','success');
 }
+function toggleExportMenu(force){
+ const menu=$('nbExportMenu'),button=$('nbExportToggle');
+ if(!menu||!button)return;
+ const show=typeof force==='boolean'?force:menu.hidden;
+ menu.hidden=!show;button.setAttribute('aria-expanded',String(show));
+}
+function validateBackupBook(book){
+ if(!book||typeof book!=='object'||Array.isArray(book)||typeof book.name!=='string'||
+   !book.name.trim()||!Array.isArray(book.pages)||book.pages.length>250)
+  throw Error('Estrutura do caderno inválida ou incompatível.');
+ const pages=[];
+ for(const item of book.pages){
+  if(!item||typeof item!=='object'||Array.isArray(item)||
+     !Array.isArray(item.notes)||item.notes.length>140||
+     !Array.isArray(item.strokes)||item.strokes.length>500||
+     !Array.isArray(item.stickies)||item.stickies.length>40)
+   throw Error('Uma folha do arquivo está inválida.');
+  for(const note of item.notes){
+   if(!note||typeof note!=='object'||typeof note.text!=='string'||note.text.length>2500)
+    throw Error('O arquivo contém anotações inválidas.');
+   if(note.inkRuns!==undefined&&(!Array.isArray(note.inkRuns)||note.inkRuns.length>2500))
+    throw Error('O arquivo contém cores inválidas.');
+  }
+  for(const stroke of item.strokes){
+   if(!stroke||!Array.isArray(stroke.points)||stroke.points.length>50000||
+      !stroke.points.every(p=>p&&Number.isFinite(p.x)&&Number.isFinite(p.y)))
+    throw Error('O arquivo contém desenhos inválidos.');
+  }
+  for(const sticky of item.stickies){
+   if(!sticky||typeof sticky.text!=='string'||sticky.text.length>700)
+    throw Error('O arquivo contém post-its inválidos.');
+  }
+  // Mantém estilos, textos, posicionamento e desenhos; troca apenas IDs internos.
+  const clean=cleanPage(item);
+  clean.notes=clean.notes.map(note=>({...note,id:id(),pending:false}));
+  clean.strokes=clean.strokes.map(stroke=>({...stroke,id:id()}));
+  clean.stickies=clean.stickies.map(sticky=>({...sticky,id:id()}));
+  pages.push(clean);
+ }
+ return {name:book.name.trim().slice(0,70),
+  color:/^#[0-9a-fA-F]{6}$/.test(book.color)?book.color:
+   SUBJECT_BOOKS.find(subject=>subject.id===book.id)?.color||'#79689b',
+  pages};
+}
+function parseEditableBackup(raw){
+ if(!raw||typeof raw!=='object'||Array.isArray(raw))
+  throw Error('Este arquivo não é um backup de caderno.');
+ let books,semester='';
+ if(raw.format===EDITABLE_BACKUP_FORMAT&&raw.version===3){
+  books=[raw.book];semester=String(raw.semester||'');
+ }else if(raw.version===2&&Array.isArray(raw.books)){
+  // Backups JSON anteriores continham todos os cadernos do semestre.
+  books=raw.books;semester=String(raw.semester||'');
+ }else throw Error('Formato incompatível. Escolha um JSON exportado pelo Caderno.');
+ if(!books.length||books.length>50)
+  throw Error('O arquivo não contém uma quantidade válida de cadernos.');
+ return {semester,books:books.map(validateBackupBook)};
+}
+function restoredBookName(name,existing){
+ const clean=String(name).slice(0,70),lower=clean.toLocaleLowerCase('pt-BR');
+ if(!existing.has(lower)){existing.add(lower);return clean;}
+ for(let index=1;index<1000;index++){
+  const suffix=index===1?' (restaurado)':' (restaurado '+index+')';
+  const label=clean.slice(0,70-suffix.length)+suffix;
+  if(!existing.has(label.toLocaleLowerCase('pt-BR'))){
+   existing.add(label.toLocaleLowerCase('pt-BR'));return label;
+  }
+ }
+ throw Error('Não foi possível identificar o caderno restaurado.');
+}
+async function importEditableBackup(file){
+ if(!file)return;
+ try{
+  if(file.size>50*1024*1024)throw Error('O JSON ultrapassa 50 MB.');
+  const backup=parseEditableBackup(JSON.parse(await file.text()));
+  if(backup.semester&&backup.semester!==SEMESTER){
+   if(!window.confirm('O arquivo pertence ao semestre '+backup.semester+
+    '. O semestre atual é '+SEMESTER+'. Importar como novo caderno mesmo assim?'))return;
+  }
+  if(data.books.length+backup.books.length>50)
+   throw Error('Limite de 50 cadernos. Não foi feita nenhuma alteração.');
+  if(editing)saveEditor(false);
+  const prior=JSON.stringify(serializable());
+  const oldStamp=localStamp,oldSignature=lastContentSignature,oldDirty=cloudDirty;
+  const existing=new Set(data.books.map(book=>String(book.name||'').toLocaleLowerCase('pt-BR')));
+  const incoming=backup.books.map(book=>({...book,id:id(),name:restoredBookName(book.name,existing)}));
+  checkpoint();
+  data.books.push(...incoming);
+  data.bookId=incoming[0].id;data.pages=activeBook().pages;data.page=0;
+  pendingPage=emptyPage();editing=null;selected=null;selectedStroke=-1;
+  editEnabled=false;data.mode='none';shelfOpen=true;
+  if(!persistNow()){
+   restoreState(prior);localStamp=oldStamp;lastContentSignature=oldSignature;cloudDirty=oldDirty;
+   undoStack.pop();renderAll();syncNotebookUI();
+   throw Error('Não foi possível armazenar o caderno recuperado. Os originais foram preservados.');
+  }
+  renderAll();syncNotebookUI();
+  status(incoming.length===1?
+   'Caderno recuperado! Abra a nova capa na estante para continuar editando.':
+   incoming.length+' cadernos recuperados em novas capas editáveis.','success');
+ }catch(error){
+  status('Importação não concluída: '+String(error?.message||'arquivo inválido'),'error');
+ }
+}
+
 function formatShortcut(v){
  if(!v)return 'Definir';
  if(v.startsWith('mouse:'))return 'Mouse '+v.slice(6);
