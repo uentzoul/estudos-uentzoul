@@ -204,11 +204,12 @@ test('Sumário clicável é criado automaticamente por livro e respeita páginas
  vm.runInNewContext(toc,sandbox);
  const api=sandbox.window.PSICO_BOOK_TOC;
  assert.ok(api,'módulo publicado e inicializável');
- const pages=api.ranges(83);
- assert.equal(pages[0].page,1);
- assert.equal(pages[0].title,'Início do livro');
- assert.ok(pages.length>5);
- assert.equal(pages[1].page,2);
- assert.ok(pages.every(x=>x.page>=1&&x.page<=83));
+ assert.equal(typeof api.ranges,'undefined','sumário não deve inventar divisões por página');
+ assert.doesNotMatch(toc,/Navegação por páginas|Páginas ['"]\+first|data-psb-toc-kind="range"/);
+ assert.match(toc,/Capítulos e seções/);
+ assert.match(toc,/Nenhum capítulo identificado neste PDF/);
+ assert.match(toc,/await c\.pdf\.getOutline\(\)/);
+ assert.match(toc,/function heading\(line\)/);
+ assert.match(main,/biblioteca-sumario\.js\?v=20261120-toc-v2/);
  api.close();
 });
