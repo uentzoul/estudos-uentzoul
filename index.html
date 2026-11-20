@@ -2993,6 +2993,8 @@ function switchSemester(next){
 }
 window.uentzoulProfileBridge={
  progress:()=>JSON.parse(JSON.stringify(store)),
+ studyProgress:subject=>DB.subjects[subject]?subjectProgress(subject):{n:0,total:0,pct:0},
+ overallStudyProgress:()=>overallProgress(),
  semester:()=>semester,
  hasSubjects:()=>Object.keys(DB.subjects).length>0,
  readSaved:readSavedProfile,
