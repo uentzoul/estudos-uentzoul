@@ -13,7 +13,7 @@ let host=null,selected='',filter='',sort='name',view='grid';
 const escape=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const items=()=>{try{return window.uentzoulLibraryApp?.items?.()||[]}catch{return []}};
 function docs(id){return items().filter(x=>x.subject===id&&x.uploaded===true&&x.inExam!==false&&x.key)}
-function calc(id){return {total:docs(id).length}}
+function calc(id){return window.uentzoulProfileBridge?.studyProgress?.(id)||{n:0,total:0,pct:0}}
 function detect(){
  for(const selector of ['#biblioteca','#view-biblioteca','#page-biblioteca','#biblioteca-content','[data-page="biblioteca"]','[data-view="biblioteca"]']){
  const el=document.querySelector(selector);if(el&&el.children.length&&el.tagName!=='BUTTON'&&el.tagName!=='A')return el;}
@@ -41,6 +41,8 @@ function css(){
  '.pc-card-body{padding:16px}.pc-card h3{font-size:14px;line-height:1.4;margin:0;min-height:40px;font-weight:800}',
  '.pc-card p{font-size:11px;color:var(--muted,#827e8d);margin:7px 0 13px;min-height:28px}',
  '.pc-count{display:flex;justify-content:space-between;font-size:11px;color:var(--muted,#827e8d);gap:5px;margin-bottom:7px}',
+ '.pc-meter{height:7px;border-radius:20px;overflow:hidden;background:var(--line,#e6e0eb)}',
+ '.pc-meter span{height:100%;display:block;background:var(--accent,#8971c1);border-radius:inherit}',
  '.pc-card-foot{display:flex;justify-content:space-between;align-items:center;margin-top:15px;font-size:11px;color:var(--muted,#827e8d)}',
  '.pc-grid.pc-list{grid-template-columns:1fr}.pc-list .pc-card button{display:grid;grid-template-columns:170px 1fr}.pc-list .pc-cover{height:100%;min-height:125px}',
  '.pc-back{border:1px solid var(--line,#dcd7e5);border-radius:10px;background:var(--paper,#fff);color:var(--ink,#272333);padding:10px 13px;cursor:pointer;margin-bottom:16px;font:inherit;font-size:12px}',
@@ -57,14 +59,14 @@ function css(){
  '@media(max-width:600px){.pc-grid{grid-template-columns:1fr}.pc-toolbar>*{flex:1 1 100%;width:100%}.pc-list .pc-card button{display:block}.pc-list .pc-cover{height:90px;min-height:90px}.pc-resource{align-items:start}}'
  ].join('\n');document.head.appendChild(s);
 }
-const meter=p=>'<div class="pc-count"><span>'+p.total+' '+(p.total===1?'material disponível':'materiais disponíveis')+'</span></div>';
+const meter=p=>'<div class="pc-count"><span>'+p.n+' de '+p.total+' atividades concluídas</span><strong>'+p.pct+'%</strong></div><div class="pc-meter" role="progressbar" aria-label="Progresso das atividades" aria-valuenow="'+p.pct+'" aria-valuemin="0" aria-valuemax="100"><span style="width:'+p.pct+'%"></span></div>';
 function home(){
  let available=courses.filter(c=>c[1].toLowerCase().includes(filter.toLowerCase()));
- available.sort((a,b)=>sort==='count'?calc(b[0]).total-calc(a[0]).total||a[1].localeCompare(b[1]):a[1].localeCompare(b[1]));
+ available.sort((a,b)=>sort==='progress'?calc(b[0]).pct-calc(a[0]).pct||a[1].localeCompare(b[1]):a[1].localeCompare(b[1]));
  host.innerHTML='<div class="pc-eyebrow">Psicologia PUCRS · 2026/2</div><h2 class="pc-head">Biblioteca de estudos</h2><div class="pc-intro">Matérias das provas finais. Clique em uma disciplina para acessar os materiais.</div>'+
- '<div class="pc-toolbar"><select aria-label="Semestre"><option>2026/2</option></select><input id="pc-search" placeholder="Buscar matéria" value="'+escape(filter)+'" aria-label="Buscar matéria"><select id="pc-sort"><option value="name">Ordenar por nome</option><option value="count">Ordenar por quantidade</option></select><select id="pc-view"><option value="grid">Cartões</option><option value="list">Lista</option></select></div>'+
+ '<div class="pc-toolbar"><select aria-label="Semestre"><option>2026/2</option></select><input id="pc-search" placeholder="Buscar matéria" value="'+escape(filter)+'" aria-label="Buscar matéria"><select id="pc-sort"><option value="name">Ordenar por nome</option><option value="progress">Ordenar por progresso</option></select><select id="pc-view"><option value="grid">Cartões</option><option value="list">Lista</option></select></div>'+
  (available.length?'<div class="pc-grid '+(view==='list'?'pc-list':'')+'">'+available.map(c=>'<article class="pc-card" style="--pc-color:'+c[2]+'"><button type="button" data-pc-course="'+c[0]+'"><div class="pc-cover"></div><div class="pc-card-body"><h3>'+escape(c[1])+'</h3><p>'+escape(c[3])+'</p>'+meter(calc(c[0]))+'<div class="pc-card-foot"><span>2026/2 · Prova final</span><span>Ver materiais →</span></div></div></button></article>').join('')+'</div>':'<div class="pc-empty">Nenhuma matéria encontrada.</div>')+
- '<div class="pc-disclaimer">Os materiais são disponibilizados para consulta, sem marcação de visto.</div>';
+ '<div class="pc-disclaimer">O progresso considera somente as atividades marcadas ou lembradas. Os materiais não precisam ser marcados como vistos.</div>';
  host.querySelector('#pc-sort').value=sort;host.querySelector('#pc-view').value=view;
 }
 function detail(){
@@ -101,6 +103,9 @@ function start(){
  new MutationObserver(()=>{if(!host?.isConnected)mount()}).observe(document.body,{childList:true,subtree:true});
  window.addEventListener('uentzoul:auth',render);
  window.addEventListener('uentzoul:library-updated',render);
+ window.addEventListener('uentzoul:progress',render);
+ window.addEventListener('uentzoul:flashcards-updated',render);
+ window.addEventListener('uentzoul:study-guides-updated',render);
 }
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start,{once:true});else start();
 })();
