@@ -78,3 +78,44 @@ test('Motor: 7 peças distintas, rotação, deslocamento, Hold e queda',()=>{
  assert.equal(game.state().pieces,1);
  assert.equal(game.state().grid.flat().filter(Boolean).length,4);
 });
+
+test('Soft drop em Fast e Ultra percorre várias linhas por frame, sem fixar a peça',()=>{
+  const altered=script.replace(/\nverify\(\);\n\}\)\(\);\s*$/,
+    '\nwindow.__tzTest={reset,press,release,frame,settings,allow:()=>{approved=true;},state:()=>({y:piece.y,pieces,phase})};\n})();');
+  assert.notEqual(altered,script,'motor de soft drop localizado');
+  const noop=()=>{};
+  const ctx={clearRect:noop,fillRect:noop,beginPath:noop,moveTo:noop,lineTo:noop,stroke:noop,strokeRect:noop,save:noop,restore:noop};
+  const elements=new Map();
+  function id(key){
+    if(!elements.has(key))elements.set(key,{
+      textContent:'',innerHTML:'',value:'',hidden:false,addEventListener:noop,
+      getContext:()=>ctx,append:noop,width:key==='board'?300:120,height:key==='board'?600:76
+    });
+    return elements.get(key);
+  }
+  let time=1000;
+  const crypto={getRandomValues:arr=>{for(let i=0;i<arr.length;i++)arr[i]=i*17+21;}};
+  const document={getElementById:id,addEventListener:noop,querySelectorAll:()=>[],createElement:()=>({textContent:'',append:noop})};
+  const window={addEventListener:noop,crypto};
+  const sandbox={document,window,localStorage:{getItem:()=>null,setItem:noop},performance:{now:()=>time},requestAnimationFrame:noop,crypto,console};
+  vm.runInNewContext(altered,sandbox,{filename:'tetriszoul-softdrop.test.js'});
+  const game=window.__tzTest;
+  game.reset();game.allow();game.settings.softDrop='fast';
+  game.press('down');
+  const initial=game.state().y;
+  time+=20;game.frame();
+  assert.equal(game.state().y-initial,4,'Fast desce quatro linhas em 20 ms, sem limite de uma por frame');
+  assert.equal(game.state().pieces,0,'soft drop não efetua hard drop');
+  game.release('down');
+  const stopped=game.state().y;time+=100;game.frame();
+  assert.equal(game.state().y,stopped,'a queda para imediatamente ao soltar a seta');
+  game.reset();game.settings.softDrop='ultra';
+  game.press('down');const ultraStart=game.state().y;
+  time+=16;game.frame();
+  assert.ok(game.state().y-ultraStart>=15,'Ultra atravessa mais de uma linha por frame');
+  game.reset();game.settings.softDrop='instant';
+  game.press('down');time+=16;game.frame();
+  assert.equal(game.state().pieces,0,'Instant não trava a peça no tabuleiro');
+  const bottom=game.state().y;time+=16;game.frame();
+  assert.equal(game.state().y,bottom,'Instant deixa a peça no ponto de contato');
+});
