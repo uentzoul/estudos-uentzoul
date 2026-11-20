@@ -932,3 +932,31 @@ html[data-theme="dark"] .nb-grammar-progress{color:#b9afd2}
  cursor:crosshair!important;
  touch-action:none;
 }
+
+/* Exportação: menu compacto de dois formatos, sem modificar a barra de ferramentas. */
+.nb-export-wrap{position:relative;flex:none}
+.nb-export-toggle{display:inline-flex;align-items:center;justify-content:center;gap:7px}
+.nb-export-menu{
+ position:absolute;right:0;top:calc(100% + 8px);z-index:100;
+ width:min(300px,calc(100vw - 28px));padding:6px;
+ background:#fff;border:1px solid #ddd3e8;border-radius:12px;
+ box-shadow:0 14px 38px #2b21462b;
+}
+.nb-export-menu[hidden]{display:none!important}
+.nb-export-menu button{
+ display:flex;flex-direction:column;align-items:flex-start;gap:3px;
+ width:100%;padding:11px 12px;text-align:left;border:0;border-radius:8px;
+ background:transparent;color:#493d61;font:inherit;cursor:pointer;
+}
+.nb-export-menu button:hover,.nb-export-menu button:focus-visible{
+ background:#f3eff9;outline:2px solid transparent;
+}
+.nb-export-menu button+button{border-top:1px solid #eee7f4;border-radius:0 0 8px 8px}
+.nb-export-menu strong{font-size:12px;font-weight:750}
+.nb-export-menu small{font-size:11px;line-height:1.4;color:#746985}
+html[data-theme="dark"] .nb-export-menu{background:#203149;border-color:#40526c;box-shadow:0 16px 35px #0006}
+html[data-theme="dark"] .nb-export-menu button{color:#eef1fa}
+html[data-theme="dark"] .nb-export-menu small{color:#b7c4d5}
+html[data-theme="dark"] .nb-export-menu button:hover,
+html[data-theme="dark"] .nb-export-menu button:focus-visible{background:#304562}
+html[data-theme="dark"] .nb-export-menu button+button{border-top-color:#40526c}
