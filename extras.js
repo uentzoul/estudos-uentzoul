@@ -3,7 +3,7 @@
 "use strict";
 const SB_URL="https://swseibmqoetnuctxyusj.supabase.co";
 const SB_KEY="sb_publishable_Fa12C_gaam8nv3g4fsWy2w_8nWQZWzq";
-const DATA=window.PSICO_EXTRAS_DATA;
+const DATA=window.PSICO_EXTRAS_DATA||{wordBank:[],connectionGroups:[],semanticDomains:[]};
 const $=id=>document.getElementById(id);
 const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const clean=s=>String(s??"").normalize("NFD").replace(/[\u0300-\u036f]/g,"").toUpperCase().trim();
@@ -719,6 +719,7 @@ async function loadStandaloneClient(){
  return window.supabase.createClient(SB_URL,SB_KEY);
 }
 function showAuthError(message){
+ document.documentElement.classList.remove("extras-booting");
  approved=false;
  $("extrasApp").hidden=true;
  $("extrasGate").hidden=false;
@@ -758,6 +759,7 @@ async function start(){
   // Mostrar os jogos assim que a sessão principal estiver disponível.
   // Consulta de banco e permissão administrativa não podem bloquear a tela inteira.
   approved=true;
+  document.documentElement.classList.remove("extras-booting");
   $("extrasGate").hidden=true;
   $("extrasApp").hidden=false;
   const requested=new URL(location.href).searchParams.get("game");
