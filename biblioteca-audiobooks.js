@@ -29,7 +29,7 @@ const current=()=>rows.find(r=>r.id===selectedChapter)||null;
 const positionKey=r=>'psicomoodle_audiobook_'+user()+'_'+r.id;
 function savePosition(force){if(!audioKey||!player.currentTime||!user())return;const now=Date.now();if(!force&&now-lastSave<6000)return;lastSave=now;try{localStorage.setItem('psa_position_'+audioKey,String(player.currentTime))}catch(_){}}
 function remembered(r){try{return Math.max(0,Number(localStorage.getItem('psa_position_'+r.id))||0)}catch(_){return 0}}
-function openBook(k){if(!book(k))return;selected=k;selectedChapter=chapters(k)[0]?.id||'';search='';notice='';formOpen=false;redraw()}
+function openBook(k){if(!book(k))return;if(audioKey&&rows.find(r=>r.id===audioKey)?.book_key!==k){savePosition(true);player.pause();}selected=k;selectedChapter=chapters(k)[0]?.id||'';search='';notice='';formOpen=false;redraw()}
 function redraw(){if(isAdmin())window.uentzoulAdminBridge?.refreshCurrent?.()}
 function cover(b,small){const colors=b.colors||['#4e4b77','#8679a7','#f0e6f8'];const image=/^https:\/\//i.test(b.cover||'')||/^assets\//.test(b.cover||'')?b.cover:'';return '<div class="psa-cover'+(small?' psa-cover-small':'')+'" style="--psa-0:'+esc(colors[0])+';--psa-1:'+esc(colors[1])+'">'+(image?'<img src="'+esc(image)+'" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.remove()">':'<span class="psa-cover-initial">'+esc((b.title||'A').slice(0,1))+'</span>')+'<div class="psa-cover-shine"></div><span class="psa-cover-ribbon">AUDIOBOOK</span><span class="psa-cover-headset" aria-hidden="true">♫</span></div>'}
 function itemCard(b){const count=chapters(b.id).length,external=(SOURCES[b.id]||[]).length;
@@ -73,7 +73,7 @@ savePosition(true);const token=++playToken;const c=client();if(!c)return;notice=
 try{const signed=await c.storage.from(BUCKET).createSignedUrl(r.audio_path,14400);if(signed.error||!signed.data?.signedUrl)throw signed.error||Error('Endereço indisponível');if(token!==playToken||!isAdmin())return;player.pause();audioKey=id;player.src=signed.data.signedUrl;player.load();lastPosition=remembered(r);notice='';redraw();if(autoplay)await player.play().catch(showPlayError)}
 catch(err){notice='Não foi possível abrir o áudio: '+(err?.message||'erro');redraw()}}
 function showPlayError(err){notice='O navegador não conseguiu reproduzir: '+(err?.message||'erro de áudio');redraw()}
-function syncPlayer(){const active=current();if(!active)return;const p=audioKey===active.id,elapsed=p?(player.currentTime||0):remembered(active),duration=p&&Number.isFinite(player.duration)?player.duration:0;const seek=$('psaSeek'),now=$('psaElapsed'),end=$('psaDuration');if(now)now.textContent=clock(elapsed);if(end)end.textContent=duration?clock(duration):'--:--';if(seek){seek.disabled=!duration;if(seek!==document.activeElement)seek.value=duration?String(Math.round(1000*elapsed/duration)):'0'}const play=document.querySelector('[data-psa-play]');if(play){play.textContent=p&&!player.paused?'Ⅱ':'▶';play.setAttribute('aria-label',p&&!player.paused?'Pausar':'Reproduzir')}const status=$('psaPlayStatus');if(status)status.textContent=p&&!player.paused?'Reproduzindo · '+esc(active.chapter_title):'Pronto para escutar';const list=$('psaTranscriptCues');if(list&&p){for(const el of list.querySelectorAll('[data-psa-seek]')){const time=Number(el.dataset.psaSeek);el.classList.toggle('active',player.currentTime>=time&&player.currentTime<time+6)}}}
+function syncPlayer(){refreshMini();const active=current();if(!active)return;const p=audioKey===active.id,elapsed=p?(player.currentTime||0):remembered(active),duration=p&&Number.isFinite(player.duration)?player.duration:0;const seek=$('psaSeek'),now=$('psaElapsed'),end=$('psaDuration');if(now)now.textContent=clock(elapsed);if(end)end.textContent=duration?clock(duration):'--:--';if(seek){seek.disabled=!duration;if(seek!==document.activeElement)seek.value=duration?String(Math.round(1000*elapsed/duration)):'0'}const play=document.querySelector('[data-psa-play]');if(play){play.textContent=p&&!player.paused?'Ⅱ':'▶';play.setAttribute('aria-label',p&&!player.paused?'Pausar':'Reproduzir')}const status=$('psaPlayStatus');if(status)status.textContent=p&&!player.paused?'Reproduzindo · '+esc(active.chapter_title):'Pronto para escutar';const list=$('psaTranscriptCues');if(list&&p){for(const el of list.querySelectorAll('[data-psa-seek]')){const time=Number(el.dataset.psaSeek);el.classList.toggle('active',player.currentTime>=time&&player.currentTime<time+6)}}}
 async function upload(form){if(busy||!isAdmin()||!selected)return;const data=new FormData(form),file=data.get('audio'),title=String(data.get('chapter')||'').trim(),order=Number(data.get('order'));if(!file||!file.size||!title||!Number.isInteger(order)||order<1||order>250||data.get('rights')!=='on')return;if(chapters(selected).some(r=>r.chapter_order===order)){notice='Já existe um capítulo nessa posição. Escolhe outro número.';redraw();return}if(file.size>LIMIT){notice='O limite é de 50 MB por capítulo. Divide o áudio em partes menores.';redraw();return}
 const ext=(file.name.split('.').pop()||'').toLowerCase();const types={mp3:'audio/mpeg',m4a:'audio/mp4',ogg:'audio/ogg'};if(!types[ext]){notice='Escolhe um arquivo MP3, M4A ou OGG.';redraw();return}
 let transcript=null;const attachment=data.get('transcript');if(attachment&&attachment.size){if(attachment.size>500000||!/[.](vtt|srt)$/i.test(attachment.name)){notice='A transcrição precisa ser um arquivo VTT ou SRT de até 500 KB.';redraw();return}transcript=await attachment.text();if(!cues(transcript).length){notice='A transcrição não contém marcações de tempo válidas.';redraw();return}}
@@ -101,5 +101,42 @@ for(const name of ['pause','timeupdate','durationchange','ratechange','seeking']
 player.addEventListener('ended',()=>{savePosition(true);const idx=chapters(rows.find(r=>r.id===audioKey)?.book_key).findIndex(r=>r.id===audioKey),list=chapters(rows.find(r=>r.id===audioKey)?.book_key);if(list[idx+1])void playChapter(list[idx+1].id);else syncPlayer()});
 window.addEventListener('uentzoul:auth',()=>{if(!isAdmin()||owner&&owner!==user()){stop();rows=[];owner='';loaded=false;selected='';filter='';notice=''}});
 window.addEventListener('pagehide',()=>savePosition(true));
+let mini=null,miniRefreshFrame=0;
+function miniMarkup(){
+ return '<div class="psa-mini-art" aria-hidden="true">♫</div><div class="psa-mini-main"><span class="psa-mini-label">AUDIOBOOK</span><strong id="psaMiniTitle">Livro narrado</strong><span id="psaMiniChapter">Capítulo</span><div class="psa-mini-progress"><span id="psaMiniElapsed">0:00</span><input id="psaMiniSeek" type="range" min="0" max="1000" value="0" aria-label="Posição do audiobook"><span id="psaMiniDuration">--:--</span></div></div><div class="psa-mini-buttons"><button data-psa-mini-back type="button" aria-label="Voltar dez segundos">−10</button><button data-psa-mini-play type="button" aria-label="Reproduzir audiobook">▶</button><button data-psa-mini-forward type="button" aria-label="Avançar dez segundos">+10</button><button data-psa-mini-close type="button" aria-label="Fechar miniplayer do audiobook">×</button></div>';
+}
+function buildMini(){
+ if(mini||!document.body)return;
+ mini=document.createElement('aside');mini.id='psaMini';mini.className='psa-mini';mini.setAttribute('aria-label','Miniplayer de audiobook');mini.setAttribute('role','region');mini.hidden=true;mini.innerHTML=miniMarkup();document.body.appendChild(mini);
+ mini.addEventListener('click',e=>{
+  if(e.target.closest('[data-psa-mini-close]')){stop();refreshMini();return}
+  if(e.target.closest('[data-psa-mini-play]')){if(audioKey){if(player.paused)void player.play().catch(showPlayError);else player.pause()}return}
+  if(e.target.closest('[data-psa-mini-back]')){player.currentTime=Math.max(0,player.currentTime-10);syncPlayer();return}
+  if(e.target.closest('[data-psa-mini-forward]')){player.currentTime=Math.min(Number.isFinite(player.duration)?player.duration:Infinity,player.currentTime+10);syncPlayer();return}
+ });
+ mini.querySelector('#psaMiniSeek').addEventListener('change',e=>{
+  if(Number.isFinite(player.duration)&&player.duration>0){player.currentTime=player.duration*Number(e.target.value)/1000;syncPlayer()}
+ });
+ new MutationObserver(()=>{
+  if(!miniRefreshFrame)miniRefreshFrame=requestAnimationFrame(()=>{miniRefreshFrame=0;refreshMini()});
+ }).observe(document.body,{childList:true,subtree:true});
+}
+function refreshMini(){
+ if(!mini)return;
+ const r=rows.find(x=>x.id===audioKey);
+ const visible=isAdmin()&&!!r&&!!player.src&&!document.querySelector('#psbLibrary .psa-player');
+ mini.hidden=!visible;
+ if(!visible)return;
+ const b=book(r.book_key),dur=Number.isFinite(player.duration)&&player.duration>0?player.duration:0;
+ mini.querySelector('#psaMiniTitle').textContent=b?.title||'Audiobook';
+ mini.querySelector('#psaMiniChapter').textContent=r.chapter_title;
+ mini.querySelector('#psaMiniElapsed').textContent=clock(player.currentTime);
+ mini.querySelector('#psaMiniDuration').textContent=dur?clock(dur):'--:--';
+ const seek=mini.querySelector('#psaMiniSeek');seek.disabled=!dur;
+ if(document.activeElement!==seek)seek.value=dur?String(Math.round(player.currentTime/dur*1000)):'0';
+ const button=mini.querySelector('[data-psa-mini-play]');button.textContent=player.paused?'▶':'Ⅱ';button.setAttribute('aria-label',player.paused?'Reproduzir audiobook':'Pausar audiobook');
+}
+document.addEventListener('play',e=>{if(e.target?.id==='audioPlayer'&&!player.paused)player.pause()},true);
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',buildMini,{once:true});else buildMini();
 window.PSICO_AUDIO_LIBRARY={render,afterRender,stop,hasRecording:key=>chapters(key).length>0};
 })();
