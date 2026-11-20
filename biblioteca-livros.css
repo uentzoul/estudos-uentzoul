@@ -76,7 +76,7 @@
 .psb-audio-empty p{font-size:12px;line-height:1.7;color:var(--psb-muted);max-width:470px;margin:0}
 .psb-error,.psb-floating-error{font-size:12px;background:#fef0f1;color:#a0454e;padding:13px 17px;border:1px solid #edcbd0;border-radius:10px}
 .psb-floating-error{position:fixed;z-index:10010;bottom:22px;left:50%;transform:translateX(-50%);box-shadow:0 9px 30px #0002;max-width:92vw}
-.psb-reader{display:flex;flex-direction:column;min-height:min(80vh,850px);height:min(83vh,960px);overflow:hidden;background:#eae7e2;border:1px solid #ddd8d5;border-radius:16px;box-shadow:0 15px 38px #2a27321b;animation:psb-reader-open .36s cubic-bezier(.24,.75,.26,1) both}
+.psb-reader{position:relative;display:flex;flex-direction:column;min-height:min(80vh,850px);height:min(83vh,960px);overflow:hidden;background:#eae7e2;border:1px solid #ddd8d5;border-radius:16px;box-shadow:0 15px 38px #2a27321b;animation:psb-reader-open .36s cubic-bezier(.24,.75,.26,1) both}
 @keyframes psb-reader-open{from{opacity:.5;transform:scale(.977) translateY(9px)}to{opacity:1;transform:scale(1) translateY(0)}}
 .psb-reader-top{display:grid;grid-template-columns:minmax(100px,.8fr) minmax(150px,1.7fr) minmax(190px,1.2fr);gap:10px;align-items:center;flex:0 0 auto;padding:12px 15px;background:var(--psb-bg);border-bottom:1px solid var(--psb-line);min-width:0}
 .psb-reader-exit{font-size:11px;font-weight:850;color:#755e9e;text-align:left;display:flex;align-items:center;gap:6px;background:none;border:none;padding:7px 3px}
@@ -126,10 +126,12 @@ html.psb-mode-book .psb-reader-top > *,
 #psbReader:fullscreen .psb-reader-top > *{pointer-events:auto}
 html.psb-mode-book .psb-reader-title,
 #psbReader:fullscreen .psb-reader-title{display:none}
-html.psb-mode-book .psb-reader-tools button:not([data-psb-focus]),
+html.psb-mode-book .psb-reader-tools button:not([data-psb-focus]):not([data-psb-toc-toggle]),
 html.psb-mode-book .psb-reader-tools .psb-zoom-count,
-#psbReader:fullscreen .psb-reader-tools button:not([data-psb-focus]),
+#psbReader:fullscreen .psb-reader-tools button:not([data-psb-focus]):not([data-psb-toc-toggle]),
 #psbReader:fullscreen .psb-reader-tools .psb-zoom-count{display:none}
+html.psb-mode-book .psb-reader-tools [data-psb-toc-toggle],
+#psbReader:fullscreen .psb-reader-tools [data-psb-toc-toggle],
 html.psb-mode-book .psb-reader-tools [data-psb-focus],
 html.psb-mode-book .psb-reader-exit,
 #psbReader:fullscreen .psb-reader-tools [data-psb-focus],
@@ -263,3 +265,57 @@ html[data-theme="dark"] .psb-album-cover-choices button[aria-pressed="true"]{bac
 html[data-theme="dark"] .psb-album-confirm{background:#37304b;color:#ded0f4}
 html[data-theme="dark"] .psb-album-confirm:has(input:checked){background:#243e36;color:#bcf1d5}
 @media(max-width:510px){.psb-album-review{grid-template-columns:80px minmax(0,1fr);gap:10px;padding:10px}.psb-album-cover-preview{width:80px}.psb-album-cover-choices button{padding:6px 7px;font-size:10px}}
+
+
+/* Sumário de cada livro: lateral sobreposta, sem encolher ou reconstruir as páginas. */
+.psb-toc-panel[hidden]{display:none!important}
+.psb-reader-tools .psb-toc-toggle{display:inline-flex;align-items:center;gap:6px;white-space:nowrap}
+.psb-toc-panel{position:absolute;z-index:12;left:12px;top:60px;bottom:53px;
+ width:min(358px,calc(100% - 24px));display:flex;flex-direction:column;min-height:0;
+ background:var(--psb-bg,#fff);color:var(--psb-ink,#26232f);
+ border:1px solid var(--psb-line,#ddd5e2);border-radius:14px;
+ box-shadow:5px 12px 38px #18112139;overflow:hidden}
+.psb-toc-header{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;
+ padding:15px 16px 12px;border-bottom:1px solid var(--psb-line,#ddd5e2)}
+.psb-toc-header>div{display:flex;flex-direction:column;gap:5px;min-width:0}
+.psb-toc-header strong{font-size:16px;line-height:1.2;font-weight:850}
+.psb-toc-header small{font-size:10px;line-height:1.5;color:var(--psb-muted,#827c8a)}
+.psb-toc-header button{font-size:24px;line-height:1;width:30px;height:30px;flex:0 0 30px;
+ border:1px solid var(--psb-line,#ddd5e2);border-radius:8px;background:transparent;color:inherit}
+.psb-toc-header button:hover{background:#ece7f4}
+.psb-toc-search{display:flex;align-items:center;gap:8px;margin:12px 13px 9px;
+ padding:8px 10px;background:transparent;border:1px solid var(--psb-line,#ddd5e2);
+ border-radius:9px}
+.psb-toc-search span{font-size:21px;color:var(--psb-muted,#80768c);line-height:1}
+.psb-toc-search input{min-width:0;width:100%;background:transparent;border:0;outline:none;
+ color:inherit;font:inherit;font-size:12px}
+.psb-toc-search:focus-within{border-color:#8064aa;outline:2px solid #8064aa33}
+.psb-toc-body{min-height:0;overflow-y:auto;overscroll-behavior:contain;flex:1;
+ padding:5px 11px 16px;scrollbar-width:thin}
+.psb-toc-subheading{font-size:10px;text-transform:uppercase;letter-spacing:.055em;
+ color:var(--psb-muted,#80768c);font-weight:850;margin:16px 5px 7px}
+.psb-toc-empty{font-size:11px;line-height:1.6;color:var(--psb-muted,#80768c);
+ margin:10px 6px 14px}
+.psb-toc-links{display:flex;flex-direction:column;gap:2px}
+.psb-toc-entry{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;
+ width:100%;padding:9px 8px 9px calc(9px + var(--psb-toc-depth,0)*13px);
+ background:transparent;color:inherit;border:1px solid transparent;border-radius:8px;
+ cursor:pointer;text-align:left;font:inherit}
+.psb-toc-entry:hover,.psb-toc-entry:focus-visible{background:#8064aa16;border-color:#8064aa30}
+.psb-toc-entry.is-current{background:#8064aa1f;border-color:#8064aa40}
+.psb-toc-entry-title{font-size:11px;line-height:1.45;overflow-wrap:anywhere}
+.psb-toc-entry-page{font-size:10px;color:var(--psb-muted,#80768c);
+ min-width:24px;text-align:right;font-variant-numeric:tabular-nums}
+html.psb-mode-book .psb-toc-panel,#psbReader:fullscreen .psb-toc-panel{
+ z-index:12;top:58px;bottom:52px;left:15px}
+html[data-theme="dark"] .psb-toc-panel{background:#2a2633;color:#f5f1fa;border-color:#564d65}
+html[data-theme="dark"] .psb-toc-entry:hover,
+html[data-theme="dark"] .psb-toc-entry.is-current{background:#6b597848}
+html[data-theme="dark"] .psb-toc-search input{color:#f5f1fa}
+@media(max-width:760px){
+ .psb-reader-tools .psb-toc-toggle{padding:7px 7px}
+ .psb-toc-toggle span{display:none}
+ .psb-toc-panel{left:6px;top:49px;bottom:46px;width:min(330px,calc(100% - 12px))}
+ html.psb-mode-book .psb-toc-panel,#psbReader:fullscreen .psb-toc-panel{
+  top:52px;bottom:44px;left:6px}
+}
