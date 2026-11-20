@@ -254,8 +254,8 @@ function renderGame(){
  if(!host||!approved)return;
  if(active==="tetris"&&isAdmin){
   host.innerHTML='<div class="game-panel"><div class="game-head"><div><span class="game-tag">Sprint · 40 Lines</span><h2>TetrisZoul</h2><p>O mesmo jogo independente que já existia no Admin Config, agora reunido com os outros Extras.</p></div><span class="game-stat">40 linhas</span></div>'+
-   '<div class="tetris-tools"><span class="section-note">Configurações, skins e recordes permanecem no TetrisZoul.</span><a href="./tetriszoul.html?v=20261120-extras-v2" target="_blank" rel="noopener noreferrer">Abrir jogo em tela própria ↗</a></div>'+
-   '<iframe class="tetris-frame" id="extrasTetrisFrame" src="./tetriszoul.html?v=20261120-extras-v2" title="TetrisZoul — 40 linhas" loading="lazy" allow="fullscreen"></iframe></div>';
+   '<div class="tetris-tools"><span class="section-note">Configurações, skins e recordes permanecem no TetrisZoul.</span><a href="./tetriszoul.html?v=20261120-softdrop-v3" target="_blank" rel="noopener noreferrer">Abrir jogo em tela própria ↗</a></div>'+
+   '<iframe class="tetris-frame" id="extrasTetrisFrame" src="./tetriszoul.html?v=20261120-softdrop-v3" title="TetrisZoul — 40 linhas" loading="lazy" allow="fullscreen"></iframe></div>';
  }else if(active==="psico")renderPsico();
  else if(active==="conexo")renderConexo();
  else if(active==="contexto")renderContexto();
