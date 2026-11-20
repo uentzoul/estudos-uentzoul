@@ -86,3 +86,20 @@
 html[data-theme="dark"] #psbLibrary .psa-state.is-playable{background:#1d3933;color:#a9e4d4;border-color:#2d5448}
 html[data-theme="dark"] #psbLibrary .psa-chapter>span:first-child{background:#443651;color:#d9c5ff}
 html[data-theme="dark"] #psbLibrary .psa-admin-toggle{background:#755e9f}
+
+/* Miniplayer flutuante do audiobook, independente do miniplayer dos podcasts */
+.psa-mini{position:fixed;z-index:38;left:calc(234px + 25px);bottom:17px;width:min(650px,calc(100vw - 285px));display:flex;align-items:center;gap:13px;background:#28243b;color:white;border:1px solid #c1b1df6b;border-radius:15px;padding:12px 15px;box-shadow:0 12px 40px #17122549}
+.psa-mini[hidden]{display:none!important}
+.psa-mini-art{background:linear-gradient(145deg,#7b61a7,#a786cf);height:51px;width:48px;flex:0 0 48px;display:grid;place-items:center;border-radius:8px;color:white;font-size:21px}
+.psa-mini-main{min-width:0;flex:1;display:flex;flex-direction:column;gap:2px}
+.psa-mini-label{font-size:9px;font-weight:850;letter-spacing:1px;color:#bca9e1}
+.psa-mini-main strong{font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.psa-mini-main>span:nth-of-type(2){color:#d9cde8;font-size:10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.psa-mini-progress{display:flex;align-items:center;gap:6px;font-size:10px;color:#c6b9d3;font-variant-numeric:tabular-nums}
+.psa-mini-progress input{accent-color:#c2a2ef;min-width:30px;flex:1}
+.psa-mini-buttons{display:flex;align-items:center;gap:6px}
+.psa-mini-buttons button{height:35px;min-width:36px;border-radius:9px;border:1px solid #ffffff32;background:#ffffff14;color:#fff;font-size:12px;cursor:pointer}
+.psa-mini-buttons [data-psa-mini-play]{background:#eddefe;color:#302144;font-weight:850;border:0}
+.psa-mini-buttons [data-psa-mini-close]{background:transparent;border:0;font-size:22px}
+@media(max-width:850px){.psa-mini{left:12px;bottom:12px;width:calc(100vw - 24px);max-width:600px}}
+@media(max-width:530px){.psa-mini{gap:7px;padding:10px}.psa-mini-art{width:38px;height:43px;flex-basis:38px}.psa-mini-main strong{font-size:11px}.psa-mini-buttons{gap:3px}.psa-mini-buttons button{min-width:29px;height:33px;font-size:10px}.psa-mini-buttons [data-psa-mini-close]{font-size:18px}.psa-mini-progress{gap:4px;font-size:9px}}
