@@ -163,3 +163,14 @@ html[data-theme="dark"] #topics.review-section .review-practice-question{backgro
 html[data-theme="dark"] #topics.review-section .review-practice-question>summary{color:#d8c5f7!important}
 html[data-theme="dark"] #topics.review-section .review-practice-prompt,html[data-theme="dark"] #topics.review-section .review-practice-answer p{color:#ede8f8}
 html[data-theme="dark"] #topics.review-section .review-practice-answer{background:#302b41}
+
+/* O resumo interno da pergunta não pode herdar os 130px de espaço do checkbox externo. */
+#topics.review-section .review-item .review-details .review-practice-question>summary{
+ display:block!important;position:static!important;min-height:0!important;
+ padding:11px 12px!important;padding-right:12px!important;
+ background:transparent!important;font-size:12px!important;line-height:1.5!important;
+ color:var(--review-accent)!important;
+}
+#topics.review-section .review-item .review-details .review-practice-question[open]>summary{
+ border-bottom:1px solid var(--line,#e5e0eb)!important;
+}
