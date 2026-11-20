@@ -579,9 +579,37 @@ function initContexto(){
  contextRankings=new Map(rankings.map((item,i)=>[item.word,i+1]));
  const st=states.contexto;
  if(!Array.isArray(st.guesses))st.guesses=[];
- st.guesses=st.guesses.filter(g=>g&&typeof g.word==="string"&&contextTerms.has(cleanTerm(g.word))).slice(0,120);
+ st.guesses=st.guesses.filter(g=>g&&typeof g.word==="string"&&cleanTerm(g.word).length<=60).slice(-500);
  st.won=st.guesses.some(g=>cleanTerm(g.word)===contextTarget);
  st.done=st.won;
+}
+function contextRankTerm(guess){
+ const word=cleanTerm(guess);
+ if(word===contextTarget)return 1;
+ const known=contextRankings.get(word);
+ if(known)return known;
+ // Aceita texto livre: aproxima variantes morfológicas de conceitos conhecidos,
+ // mantendo palpites desconhecidos mais distantes em vez de impedir a tentativa.
+ const nearby=(NEAR[contextTarget.toLowerCase()]||[]).map(cleanTerm);
+ const direct=nearby.indexOf(word);
+ if(direct>=0)return 2+direct*5;
+ const grams=value=>{
+  const s=" "+value+" ",result=new Set();
+  for(let i=0;i<s.length-2;i++)result.add(s.slice(i,i+3));
+  return result;
+ };
+ const a=grams(word);let best=0,rank=10000;
+ for(const [term,index] of contextRankings){
+  if(term.length<3||word.length<3)continue;
+  const b=grams(term);let shared=0;
+  for(const g of a)if(b.has(g))shared++;
+  const similarity=shared/Math.max(1,new Set([...a,...b]).size);
+  if(similarity>best){best=similarity;rank=index;}
+ }
+ if(best>=.42)return Math.max(2,Math.round(rank+(1-best)*45));
+ let hash=2166136261;
+ for(const char of word)hash=Math.imul(hash^char.charCodeAt(0),16777619)>>>0;
+ return 900+hash%9101;
 }
 function contextHints(){
  const item=contextTerms.get(contextTarget);
@@ -591,21 +619,20 @@ function contextHints(){
 function renderContexto(){
  const st=states.contexto;
  const all=contextTerms.size,tries=st.guesses.length;
- const best=st.guesses.reduce((m,g)=>Math.min(m,contextRankings.get(cleanTerm(g.word))||all),all);
- const sorted=st.guesses.slice().sort((a,b)=>(contextRankings.get(cleanTerm(a.word))||all)-(contextRankings.get(cleanTerm(b.word))||all));
+ const best=st.guesses.reduce((m,g)=>Math.min(m,contextRankTerm(g.word)),Infinity);
+ const sorted=st.guesses.slice().sort((a,b)=>contextRankTerm(a.word)-contextRankTerm(b.word));
  const results=sorted.map(g=>{
-  const rank=contextRankings.get(cleanTerm(g.word))||all;
-  const closeness=Math.max(4,Math.round(100*(1-(rank-1)/Math.max(1,all-1))));
-  const grade=rank<=10?"hot":rank<=Math.ceil(all*.3)?"mid":"far";
-  return '<div class="context-guess '+grade+'"><span class="context-fill" style="width:'+closeness+'%"></span><b>'+esc(displayTerm(g.word))+'</b><small>#'+rank+' / '+all+'</small></div>';
+  const rank=contextRankTerm(g.word);
+  const closeness=Math.max(3,Math.round(100/(1+Math.max(0,rank-1)/24)));
+  const grade=rank<=10?"hot":rank<=45?"mid":"far";
+  return '<div class="context-guess '+grade+'"><span class="context-fill" style="width:'+closeness+'%"></span><b>'+esc(displayTerm(g.word))+'</b><small>#'+rank+'</small></div>';
  }).join("");
- const suggestions=[...contextTerms.values()].map(v=>v.label).sort((a,b)=>a.localeCompare(b,"pt-BR")).map(w=>'<option value="'+esc(w)+'"></option>').join("");
  const result=st.won?'<div class="finish-box"><strong>Você encontrou o termo!</strong><p>'+esc(displayTerm(contextTarget))+' · '+tries+' palpite'+(tries===1?"":"s")+'. Escolha outra data para continuar jogando.</p></div>':"";
  $("gameHost").innerHTML=
   '<div class="game-panel"><div class="game-head"><div><span class="game-tag">Contexto do dia · Associação semântica</span><h2>CONTEXTO</h2><p>Tente descobrir um termo da Psicologia. Cada palpite recebe uma posição: quanto menor o número, mais perto do sentido da resposta.</p></div><span class="game-stat">'+(st.won?"Resolvido":"Melhor #"+(tries?best:"—"))+'</span></div>'+
   '<div class="context-layout">'+
-  (st.won?"":'<form id="contextForm" class="context-form" autocomplete="off"><input id="contextGuess" list="contextSuggest" aria-label="Palavra ou termo de Psicologia" placeholder="Digite uma palavra ou termo..." maxlength="60" required><datalist id="contextSuggest">'+suggestions+'</datalist><button class="primary-action" type="submit">Enviar</button></form>')+
-  '<div class="context-help"><div class="explanation">O ranking considera <b>'+all+' termos cadastrados</b> e relações temáticas revisadas para este jogo. Não é o ranking do Contexto original nem uma inteligência semântica geral.</div>'+
+  (st.won?"":'<form id="contextForm" class="context-form" autocomplete="off"><input id="contextGuess" aria-label="Palavra ou termo de Psicologia" placeholder="Digite uma palavra ou termo..." maxlength="60" autocapitalize="off" autocomplete="off" autocorrect="off" spellcheck="false" required><button class="primary-action" type="submit">Enviar</button></form>')+
+  '<div class="context-help">'+
   (!st.done?'<button class="secondary-action" type="button" id="contextHintBtn" '+(st.hint?"disabled":"")+'>Dica</button>':"")+'</div>'+
   (st.hint?'<div class="context-hint">Área do termo secreto: <b>'+esc(contextHints())+'</b></div>':"")+
   feedbackHtml("contexto")+
@@ -616,12 +643,9 @@ function renderContexto(){
 function contextSubmit(text){
  const guess=cleanTerm(text),st=states.contexto;
  if(st.done||!guess)return;
- if(!contextTerms.has(guess)){
-  setFeedback("contexto","Ainda não temos esse termo no vocabulário. Digite um termo cadastrado ou escolha uma sugestão.","error");return;
- }
  if(st.guesses.some(g=>cleanTerm(g.word)===guess)){setFeedback("contexto","Você já tentou esse termo.","error");return;}
  st.guesses.push({word:guess});st.won=guess===contextTarget;st.done=st.won;
- if(st.guesses.length>120)st.guesses=st.guesses.slice(-120);
+ if(st.guesses.length>500)st.guesses=st.guesses.slice(-500);
  store("contexto");
  feedback={game:"contexto",message:st.won?"Boa! Encontrou a palavra.":"Palpite registrado.",kind:st.won?"ok":""};
  renderContexto();
