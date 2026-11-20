@@ -100,8 +100,18 @@ test('Capas editoriais substituem miniaturas e ocupam a moldura sem faixas branc
  const ids=['vygotsky-formacao','kuhn-revolucoes','popper-logica','laville-construcao','foucault-loucura','marcondes-filosofia','schultz-historia','rumos-percursos','bock-psicologias','piaget-seis-estudos','laplanche-vocabulario','roudinesco-dicionario','censo-1','censo-2','hall-identidade','collins-interseccionalidade','zimerman-grupos','aries-crianca-familia','cfp-verdade-revolucionaria'];
  for(const id of ids){
   const item=main.split('\n').find(line=>line.startsWith(" {id:'"+id+"'"));
-  assert.ok(item&&/cover:'https:\/\//.test(item),'capa editorial '+id);
+  const cover=item?.match(/cover:'([^']+)'/)?.[1]||'';
+  const remote=/^https:\/\//.test(cover);
+  const local=/^assets\/[a-zA-Z0-9._/-]+\.(webp|png|jpe?g)$/.test(cover)
+   && fs.existsSync(new URL('../'+cover,import.meta.url));
+  assert.ok(item&&(remote||local),'capa editorial '+id);
  }
+ const piaget=main.split('\n').find(line=>line.startsWith(" {id:'piaget-seis-estudos'"));
+ assert.match(piaget,/cover:'assets\/piaget-seis-estudos-capa\.webp',coverZoom:1/);
+ const coverFile=fs.readFileSync(new URL('../assets/piaget-seis-estudos-capa.webp',import.meta.url));
+ assert.ok(coverFile.length>10000,'capa de Piaget presente');
+ assert.equal(coverFile.subarray(0,4).toString(),'RIFF');
+ assert.equal(coverFile.subarray(8,12).toString(),'WEBP');
  assert.match(main,/const image=b\.cover\|\|coverUrls\.get\(b\.id\)\|\|''/);
  assert.match(main,/if\(b\.cover\|\|coverUrls\.has\(b\.id\)\)continue/);
  assert.match(main,/if\(b\.cover\|\|coverUrls\.has\(b\.id\)\|\|!documentPDF\)return/);
