@@ -3,10 +3,10 @@
 (()=>{
 'use strict';
 const VERSION='rev-provas-equivalentes-20261113';
-const META_VERSION='rev-meta-p2-roteiro-variado-20261119-v2';
+const META_VERSION='rev-meta-p2-15-objetivas-20261119-v3';
 const UPCOMING_VERSION='rev-provas-variadas-20261119-v1';
 const SOCIAL_VERSION='rev-social-primeira-prova-uma-dissertativa-20261119-v2';
-const EVAL_VERSION='rev-avaliacao-p3-21-questoes-20261119-v1';
+const EVAL_VERSION='rev-avaliacao-p3-fontes-revisadas-20261119-v2';
 const LEGACY_CURRENT='rev-final-20261113-r2';
 const PREVIOUS_VERSION='rev-final-20261113';
 const LETTERS=['I','II','III','IV','V'];
@@ -99,7 +99,7 @@ function generate(id,level,topics,version=LEGACY_CURRENT){
 const FORMATS={
  tcc:['combo','choice','combo','choice','combo','choice','combo','choice','combo','choice','combo','choice','combo'],
  familia:['choice','choice','combo','choice','choice','tf','choice','choice','combo','choice','choice','combo','choice'],
- meta:['combo','choice','choice','combo','choice','choice','combo','choice','combo','choice','tf','choice','combo'],
+ meta:['combo','choice','choice','combo','choice','tf','combo','choice','combo','choice','tf','choice','combo','choice','tf'],
  grupos:['choice','combo','choice','choice','tf','choice','combo','choice','choice','combo','choice','choice','combo'],
  social:['combo','choice','tf','choice','combo','combo','choice','tf','combo','choice','combo','choice','combo'],
  avaliacao:['choice','combo','choice','choice','tf','choice','combo','choice','choice','combo','choice','combo','choice']
@@ -275,13 +275,13 @@ function questionEssay(topics,model,idx,a,b,qid){
   source:'Resposta orientativa autoral; consulte os materiais da disciplina.'};
 }
 
-/* Metapsicologia P2: somente as 28 questões sobre segunda tópica, Édipo e pulsão.
+/* Metapsicologia P2: 15 itens objetivos em cada simulado, baseados nas 28 questões de segunda tópica, Édipo e pulsão.
    As alternativas são afirmações completas, retiradas de conceitos relacionados do próprio roteiro.
    Nenhuma alternativa é uma recomendação vaga do tipo "priorizar outro conceito". */
 function metaSectionPeers(topics,topic){
  const peers=topics.filter(t=>t!==topic&&t.section===topic.section);
  const ranked=similarTopics('meta',peers.concat([topic]),topic).filter(t=>t.section===topic.section&&t!==topic);
- return ranked.length?ranked:peers;
+ return ranked.length>=3?ranked:peers.length>=3?peers:topics.filter(t=>t!==topic);
 }
 function metaChoice(topics,model,slot,topic,id){
  const peers=metaSectionPeers(topics,topic);
@@ -299,7 +299,7 @@ function metaChoice(topics,model,slot,topic,id){
  const correct=options.shift();
  options.splice(correctPosition,0,correct);
  return {type:'choice',id,concept:topic.title,
-  prompt:'Questão do estudo dirigido:\n'+topic.question+'\n\nQual alternativa apresenta a resposta teoricamente adequada?',
+  prompt:'Sobre '+topic.title.toLowerCase()+', qual afirmação está de acordo com a teoria freudiana?',
   options,answer:correctPosition,source:'Questão autoral baseada no estudo dirigido P2 do professor Jefferson Krug.'};
 }
 function metaCombo(topics,model,slot,topic,id){
@@ -332,23 +332,10 @@ function metaTF(model,slot,topic,id){
   answer:correct,explanation:(correct?'Correta. ':'Incorreta. ')+topic.explanation,
   source:'Afirmação autoral baseada no estudo dirigido P2.'};
 }
-function metaEssay(topics,model,index,topic,id){
- const peer=metaSectionPeers(topics,topic)[0];
- return {type:'essay',id,concept:topic.title,
-  prompt:'Questão do estudo dirigido:\n'+topic.question+
-   '\n\nNa resposta, apresente o conceito com clareza e explique sua relação ou diferença em comparação com '+peer.title.toLowerCase()+'.',
-  criteria:['Responder integralmente ao enunciado do professor.',
-   'Utilizar os conceitos de Freud com precisão e linguagem clara.',
-   'Relacionar a resposta ao caso sem fazer generalizações indevidas.',
-   'Diferenciar os conceitos indicados e justificar a conclusão.'],
-  model:topic.explanation+'\n\nRelação com '+peer.title+': '+peer.definition,
-  source:'Resposta-modelo didática, não gabarito oficial.'};
-}
 function generateMeta(model,topics){
  const format=FORMATS.meta,selected=Array.from({length:15},(_,i)=>topics[((model-1)*3+i*9)%topics.length]);
  const questions=selected.map((topic,i)=>{
   const id='meta-'+META_VERSION+'-'+model+'-'+(i+1);
-  if(i>=13)return metaEssay(topics,model,i-13,topic,id);
   if(format[i]==='combo')return metaCombo(topics,model,i,topic,id);
   if(format[i]==='tf')return metaTF(model,i,topic,id);
   return metaChoice(topics,model,i,topic,id);
@@ -542,7 +529,7 @@ function generateEvaluation(model,topics){
   difficulty:'P3 — roteiro docente',difficultyLevel:'equivalente',sameDifficulty:true,questions:qs};
 }
 function generateEqual(id,model,topics){
- if(id==='meta'&&Array.isArray(window.PSICO_META_P2_PRACTICE?.topics)&&topics.length===28)
+ if(id==='meta')
   return generateMeta(model,topics);
  if(id==='avaliacao'&&Array.isArray(window.PSICO_AVALIACAO_P3_PRACTICE?.topics)&&topics.length===21)
   return generateEvaluation(model,topics);
@@ -578,6 +565,10 @@ function apply(db){
  db.archivedExams=db.archivedExams||[];
  for(const e of db.exams.filter(e=>e?.subject==='meta'))if(!db.archivedExams.some(a=>a.id===e.id))db.archivedExams.push(e);
  db.exams=db.exams.filter(e=>e?.subject!=='meta');
+ // Guardar as provas anteriores de Avaliação P3 sem duplicá-las nas provas ativas.
+ const olderP3=e=>e?.subject==='avaliacao'&&String(e.revision||'').startsWith('rev-avaliacao-p3-')&&e.revision!==EVAL_VERSION;
+ for(const e of db.exams.filter(olderP3))if(!db.archivedExams.some(a=>a.id===e.id))db.archivedExams.push(e);
+ db.exams=db.exams.filter(e=>!olderP3(e));
  for(const id of ['tcc','familia','meta','grupos','social','avaliacao']){
   if(!db.subjects[id])continue;
   const oldTopics=curated(db,id);
