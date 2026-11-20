@@ -194,7 +194,7 @@ function ensureTocModule(){
  if(tocModulePromise)return tocModulePromise;
  tocModulePromise=new Promise((resolve,reject)=>{
   const node=document.createElement('script');
-  node.src='biblioteca-sumario.js?v=20261120-toc-v1';
+  node.src='biblioteca-sumario.js?v=20261120-toc-v2';
   node.async=true;
   node.onload=()=>window.PSICO_BOOK_TOC?resolve(window.PSICO_BOOK_TOC):reject(Error('Módulo de sumário indisponível.'));
   node.onerror=()=>reject(Error('Não foi possível carregar o sumário.'));
