@@ -26,7 +26,7 @@ const BOOKS=[
  {id:'collins-interseccionalidade',title:'Interseccionalidade',author:'Patricia Hill Collins e Sirma Bilge',subject:'Psicologia social e direitos',pages:91,part:true,path:'materials/00996dd9-c8d5-4672-9c60-d7cf8218880b.pdf',colors:['#794e5c','#ac7783','#f0d2d0'],cover:'https://boitempoeditorial.fbitsstatic.net/img/p/interseccionalidade-capa-sobre-pintura-152655/338306.jpg?h=420&v=no-value&w=420',coverZoom:1},
  {id:'zimerman-grupos',title:'Como trabalhamos com grupos',author:'David E. Zimerman e Luiz Carlos Osório',subject:'Psicologia de grupos',path:'materials/scheduled/7a66839d-e75d-4dfe-af73-e5a09d6a0323.pdf',colors:['#475360','#879ba7','#d7dce0'],cover:'https://livrariadopsicologo.com.br/capas/128/9798573072128.jpg',coverZoom:1},
  {id:'aries-crianca-familia',title:'História social da criança e da família',author:'Philippe Ariès',subject:'Psicologia da família',path:'materials/scheduled/d27048a1-049d-4e5a-b315-47a764818ff4.pdf',colors:['#776041','#ba9a6a','#e8d6ab'],cover:'https://martinsfontespaulista.vteximg.com.br/arquivos/ids/1417487-1000-1000/968646.jpg?v=639111726552530000',coverZoom:1.02},
- {id:'cfp-verdade-revolucionaria',title:'A verdade é revolucionária',author:'Conselho Federal de Psicologia',subject:'Psicologia social e direitos',pages:700,path:'materials/0729a72e-f387-4bf8-b2dd-c236339821c0.pdf',colors:['#493950','#92768f','#e2d2d8'],cover:'https://site.cfp.org.br/wp-content/uploads/2013/12/capa-do-livro.jpg',coverZoom:1}
+ {id:'cfp-verdade-revolucionaria',title:'A verdade é revolucionária',author:'Conselho Federal de Psicologia',subject:'Psicologia social e direitos',pages:700,path:'materials/0729a72e-f387-4bf8-b2dd-c236339821c0.pdf',colors:['#493950','#92768f','#e2d2d8'],cover:'https://site.cfp.org.br/wp-content/uploads/2013/12/capa-do-livro.jpg',coverZoom:1},
  {id:'dongo-pensamento-linguagem',title:'Pensamento e linguagem: Vygotsky, Wallon, Chomsky e Piaget',author:'Adrian Oscar Dongo-Montoya',subject:'Teorias sociocognitivas',pages:161,path:'materials/1ef66337-af16-4be8-a68e-a88e297bca86.pdf',colors:['#841e23','#be3339','#191a1e'],cover:'https://books.scielo.org/id/5vwmw/cover/cover.jpeg',coverZoom:1},
  {id:'freud-massas-vol15',title:'Psicologia das massas e análise do Eu e outros textos (1920–1923) — Obras completas, vol. 15',author:'Sigmund Freud',subject:'Psicologia de grupos',pages:300,path:'materials/scheduled/5502d9ef-c67a-4994-a81d-e75f430beae8.pdf',colors:['#71132f','#bb1846','#e9ced2'],cover:'https://americanas.vtexassets.com/arquivos/ids/30533196/7494222_1_xlarge.jpg?v=638794231500430000',coverZoom:1},
  {id:'macedo-neurose',title:'Neurose: leituras psicanalíticas',author:'Mônica Medeiros Kother Macedo (org.)',subject:'Metapsicologia',path:'multipart:neurose-2016',paths:['materials/58281768-cab0-4552-b550-1b98d6176791.pdf','materials/7cdf4500-8713-4af7-bf70-8ad3201e3716.pdf','materials/9b2622fb-b29d-4057-9d8a-f99866fe7699.pdf'],colors:['#65146f','#aa238a','#dbb6d9'],cover:'https://imgv2-2-f.scribdassets.com/img/word_document/640747959/original/2279098431/1?v=1',coverZoom:1},
@@ -402,14 +402,19 @@ async function loadFile(b){
 }
 // Representa três PDFs de uma mesma obra como um livro contínuo, sem abrir páginas em outras abas.
 function virtualDocument(docs){
- const offsets=[];let count=0;
- for(const pdf of docs){offsets.push(count);count+=pdf.numPages;}
+ const offsets=[],skips=[];let count=0;
+ for(let i=0;i<docs.length;i++){
+  offsets.push(count);
+  // Parte II retoma a folha de transição já presente no fim da Parte I.
+  skips.push(i===1?1:0);
+  count+=docs[i].numPages-skips[i];
+ }
  return {
   numPages:count,
   getPage(n){
    if(!Number.isInteger(n)||n<1||n>count)return Promise.reject(Error('Página fora do livro.'));
    let i=docs.length-1;while(i>0&&n<=offsets[i])i--;
-   return docs[i].getPage(n-offsets[i]);
+   return docs[i].getPage(n-offsets[i]+skips[i]);
   },
   getOutline:async()=>[],
   destroy:()=>Promise.all(docs.map(x=>x.destroy().catch(()=>{})))
@@ -585,10 +590,11 @@ async function download(){
    if(!window.PDFLib)await loadBookModule('https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js');
    if(!window.PDFLib)throw Error('Não foi possível preparar o PDF unificado.');
    const merged=await window.PDFLib.PDFDocument.create();
-   for(const part of documentBlobs){
+   for(let partIndex=0;partIndex<documentBlobs.length;partIndex++){
     if(!allowed()||activeBook!==book)throw Error('Leitura encerrada.');
-    const source=await window.PDFLib.PDFDocument.load(await part.arrayBuffer());
-    const copied=await merged.copyPages(source,Array.from({length:source.getPageCount()},(_,i)=>i));
+    const source=await window.PDFLib.PDFDocument.load(await documentBlobs[partIndex].arrayBuffer());
+    const start=book.id==='macedo-neurose'&&partIndex===1?1:0;
+    const copied=await merged.copyPages(source,Array.from({length:source.getPageCount()-start},(_,i)=>i+start));
     for(const copiedPage of copied)merged.addPage(copiedPage);
    }
    blob=new Blob([await merged.save()],{type:'application/pdf'});
