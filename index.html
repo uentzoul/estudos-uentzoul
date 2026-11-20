@@ -4969,7 +4969,7 @@ function render(){
  if(current.page==='extras'&&document.getElementById('psicoExtrasFrame')){renderNav();return;}
  if(current.page==='calendar'&&!agendaAvailable())current.page='home';
  if(current.page==='works'&&!window.uentzoulAdminConfig?.isAdmin?.())current.page='home';
- if(current.page==='works'&&document.activeElement?.closest?.('#pmWorks')&&['INPUT','TEXTAREA','SELECT'].includes(document.activeElement.tagName)){renderNav();return;}
+ if(current.page==='works'&&!window.PSICO_WORKS?.forceRender&&document.activeElement?.closest?.('#pmWorks')&&['INPUT','TEXTAREA','SELECT'].includes(document.activeElement.tagName)){renderNav();return;}
  renderNav();
  if((semester==='2027/1'||semester==='2026/1')&&!['ai','messages','admin','extras','works','exams','test'].includes(current.page)){
   $('main').innerHTML=renderThirdSemester();return;
@@ -8675,7 +8675,7 @@ window.addEventListener('message',function(event){
 });
 </script>
 <script src="admin-config.js?v=20261120-extras-access-v2"></script>
-<script src="trabalhos.js?v=20261120-preview-v1" defer></script>
+<script src="trabalhos.js?v=20261120-preview-v2" defer></script>
 <script id="pm-mobile-drawer-js" src="mobile-drawer.js?v=20261114-smooth-locked-v18" defer></script>
 <script id="pm-chat-mobile-js" src="chat-mobile-viewport.js?v=20261117-group-call-v5" defer></script>
 <!-- Extensão integrada ao núcleo de mensagens. -->
