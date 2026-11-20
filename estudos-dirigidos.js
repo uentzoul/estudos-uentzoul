@@ -118,7 +118,7 @@
      const changed=!sourcesReady||JSON.stringify(documents)!==JSON.stringify(officialRows)||
        JSON.stringify(guides)!==JSON.stringify(publishedGuides);
      officialRows=documents;publishedGuides=guides;sourcesReady=true;
-     if(changed)refreshVisibleGuides();
+     if(changed){refreshVisibleGuides();window.dispatchEvent(new Event('uentzoul:study-guides-updated'));}
      if(isAdmin())setTimeout(prepareMissingGuides,900);
    }catch(error){
      console.warn('Consulta dos estudos dirigidos indisponível:',error);
@@ -217,6 +217,16 @@
       (q.section&&(i===0||all[i-1].section!==q.section)?'<div class="sd-topic-divider"><span>'+fmt(q.section)+'</span></div>':'')+
       renderItem(q,i,guide.id)).join('')+'</div>'+openOriginalMarkup(doc)+'</div></details></section>';
  }
+ window.PSICO_STUDY_GUIDES={
+  progressKey:subject=>Object.prototype.hasOwnProperty.call(TARGETS,subject)?'guided:'+subject+':'+TARGETS[subject]:null,
+  hasGuide(subject){
+   if(!Object.prototype.hasOwnProperty.call(TARGETS,subject)||semester()!=='2026/2')return false;
+   if(subject==='meta'&&(window.PSICO_GUIDES?.meta||[]).some(g=>g.id==='meta-p2-professor'&&g.questions?.length))return true;
+   const doc=currentDoc(subject),saved=currentSaved(subject);
+   return !!((doc&&saved?.resource_key===doc.resource_key&&saved.guide?.questions?.length)||
+    inlineOriginal(subject)?.questions?.length||currentFallback(subject)?.questions?.length);
+  }
+ };
  window.renderStudyGuide=function(subject){
    if(!Object.prototype.hasOwnProperty.call(TARGETS,subject))return '<div class="sd-empty">Não há estudo dirigido desta disciplina na seleção atual.</div>';
    if(!window.uentzoulAIAuth?.user?.())return '<div class="sd-empty" data-sd-subject="'+esc(subject)+'">Entre na sua conta para consultar os estudos dirigidos.</div>';
