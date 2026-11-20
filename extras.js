@@ -540,6 +540,7 @@ async function start(){
   if(role.error||role.data!==true)throw Error("Extras está em prévia: somente administradores têm acesso.");
   initializeDay();
   await Promise.all([loadWordBank(),loadCloud()]);
+  initConnections();initContexto();
   approved=true;
   for(const game of CONTENT_GAMES)if(states[game]?._savedAt)void flushCloud(game);
   $("extrasGate").hidden=true;$("extrasApp").hidden=false;
@@ -570,8 +571,8 @@ document.addEventListener("click",e=>{
  const tab=e.target.closest("[data-game]");
  if(tab){switchGame(tab.dataset.game);return;}
  if(active==="psico"){
-  const key=e.target.closest("[data-letter]");
-  if(key){key.blur?.();inputPsico(key.dataset.letter);return;}
+  const cell=e.target.closest("[data-psico-cell]");
+  if(cell){selectPsicoCell(Number(cell.dataset.psicoCell));return;}
  }
  if(active==="conexo"){
   const tile=e.target.closest("[data-tile]");
@@ -586,7 +587,28 @@ document.addEventListener("click",e=>{
  }
 });
 document.addEventListener("change",e=>{if(e.target?.id==="archiveDate")void selectArchiveDay(e.target.value);});
+document.addEventListener("beforeinput",e=>{
+ if(e.target?.id!=="psicoTypeBox"||!approved||active!=="psico")return;
+ if(e.inputType==="deleteContentBackward"||e.inputType==="deleteContentForward"){
+  e.preventDefault();inputPsico("BACK");
+ }
+});
+document.addEventListener("input",e=>{
+ if(e.target?.id!=="psicoTypeBox"||!approved||active!=="psico"||e.isComposing)return;
+ const raw=e.target.value;
+ e.target.value="";
+ if(raw)inputPsico(raw.slice(0,12));
+});
+document.addEventListener("compositionend",e=>{
+ if(e.target?.id!=="psicoTypeBox"||!approved||active!=="psico")return;
+ const raw=e.target.value;
+ e.target.value="";
+ if(raw)inputPsico(raw.slice(0,12));
+});
 document.addEventListener("submit",e=>{
+ if(e.target.id==="psicoForm"){
+  e.preventDefault();inputPsico("ENTER");return;
+ }
  if(e.target.id==="contextForm"){
   e.preventDefault();
   const value=$("contextGuess")?.value||"";
@@ -594,16 +616,31 @@ document.addEventListener("submit",e=>{
  }
 });
 document.addEventListener("keydown",e=>{
- if(!approved||active!=="psico")return;
+ if(!approved||active!=="psico"||e.ctrlKey||e.altKey||e.metaKey)return;
+ const isNative=e.target?.id==="psicoTypeBox";
+ if(isNative){
+  const actions={Enter:"ENTER",Backspace:"BACK",Delete:"DELETE",ArrowLeft:"LEFT",ArrowRight:"RIGHT",Home:"HOME",End:"END"};
+  if(actions[e.key]){e.preventDefault();inputPsico(actions[e.key]);}
+  return; // Outras teclas são inseridas pelo teclado nativo e tratadas em 'input'.
+ }
  if(e.target&&(/^(INPUT|TEXTAREA|SELECT)$/.test(e.target.tagName)||e.target.isContentEditable||e.target.closest?.("button,a,[role=tab]")))return;
- if(e.ctrlKey||e.altKey||e.metaKey)return;
- if(e.key==="Enter"){e.preventDefault();inputPsico("ENTER");return;}
- if(e.key==="Backspace"){e.preventDefault();inputPsico("BACK");return;}
+ const actions={Enter:"ENTER",Backspace:"BACK",Delete:"DELETE",ArrowLeft:"LEFT",ArrowRight:"RIGHT",Home:"HOME",End:"END"};
+ if(actions[e.key]){e.preventDefault();inputPsico(actions[e.key]);return;}
  if(e.key.length===1&&/^[A-Za-zÀ-ÖØ-öø-ÿ]$/u.test(e.key)){
   e.preventDefault();inputPsico(e.key);
  }
 });
-window.addEventListener("focus",()=>{if(approved&&dateBrazil()!==day)location.reload();});
+let lastObservedToday=dateBrazil();
+window.addEventListener("focus",()=>{
+ if(!approved)return;
+ const current=dateBrazil();
+ if(current===lastObservedToday)return;
+ const formerlyToday=lastObservedToday;
+ lastObservedToday=current;
+ // Só avança automaticamente se a pessoa estava no dia corrente.
+ if(day===formerlyToday)void selectArchiveDay(current);
+ else updateArchiveControls();
+});
 window.addEventListener("online",()=>{
  if(!approved)return;
  for(const game of CONTENT_GAMES)if(states[game]?._savedAt)void flushCloud(game);
