@@ -31,6 +31,20 @@ test('Chat de Manutenção permanece disponível sem chamada de voz ou vídeo',(
  assert.match(maintenance,/pmMaintenanceForm/,'envio de mensagens segue disponível');
 });
 
+
+test('IA Tzoul está pausada na navegação e não é restaurada por histórico antigo',()=>{
+ assert.doesNotMatch(html,/data-page="ai"/,'aba de IA ausente da barra lateral');
+ assert.doesNotMatch(html,/data-pc-tab="ai"/,'atalho de IA ausente do Espaço Pessoal');
+ assert.doesNotMatch(html,/\['ai','IA \/ Documentos'\]/,'aba de IA removida do menu pessoal');
+ assert.match(html,/const go=\(page,extra=\{\}\)=>\{\s*if\(page==='ai'\)page='home';/,'rotas diretas redirecionam para a página inicial');
+ assert.match(html,/function render\(\)\{\s*if\(current\.page==='ai'\)current\.page='home';/,'estado antigo não consegue reabrir IA');
+ assert.doesNotMatch(html,/case 'ai':body=renderAI\(\)/,'renderizador de IA não está ativo');
+ assert.match(html,/data-page="extras"/,'jogos Extras continuam disponíveis');
+ assert.match(html,/data-page="messages"/,'Mensagens continua disponível');
+ assert.match(html,/function renderAI\(\)/,'o código anterior é preservado para eventual retomada');
+ assert.match(html,/data-pc-tab="exams"/,'Simulados pessoais permanecem disponíveis');
+});
+
 test('Documento principal declara português brasileiro e viewport responsivo',()=>{
  assert.match(html,/<html[^>]*lang="pt-BR"/i);
  assert.match(html,/<meta[^>]+name="viewport"/i);
