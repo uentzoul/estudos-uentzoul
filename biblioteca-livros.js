@@ -203,9 +203,9 @@ function ensureTocModule(){
  if(tocModulePromise)return tocModulePromise;
  // Carrega primeiro os capítulos conferidos nos exemplares originais.
  // Sem carregamento de PDFs adicionais ou acesso ao Storage.
- tocModulePromise=loadBookModule('biblioteca-capitulos-revisados.js?v=20261120-verificado-v1')
+ tocModulePromise=loadBookModule('biblioteca-capitulos-revisados.js?v=20261120-verificado-v2')
   .catch(err=>{console.warn('Sumários revisados indisponíveis:',err);})
-  .then(()=>loadBookModule('biblioteca-sumario.js?v=20261120-toc-v3'))
+  .then(()=>loadBookModule('biblioteca-sumario.js?v=20261120-toc-v4'))
   .then(()=>window.PSICO_BOOK_TOC||null)
   .catch(err=>{tocModulePromise=null;console.warn(err);return null});
  return tocModulePromise;
