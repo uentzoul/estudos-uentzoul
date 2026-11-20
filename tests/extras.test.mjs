@@ -54,7 +54,7 @@ test('Scripts extras são sintaticamente válidos',()=>{
 });
 function engine(){
  const expanded=script.replace(/\nstart\(\);\n\}\)\(\);\s*$/,
-  '\nwindow.__extTest={init:initializeDay,getWord,wordColors,inputPsico,conexoSubmit,contextSubmit,renderPsico,renderConexo,renderContexto,rank:()=>contextRankings,target:()=>contextTarget,groups:()=>connectionGroups,tiles:()=>connectionTiles,terms:()=>contextTerms,states:()=>states,setActive:v=>{active=v;},setBank:v=>{psicoBank=v;},mark:tileMark,rankTerm:contextRankTerm,validArchiveDay,dragStart:conexoDragStart,dragMove:conexoDragMove,dragEnd:conexoDragEnd,allow:()=>{approved=true;}};\n})();');
+  '\nwindow.__extTest={init:initializeDay,getWord,wordColors,inputPsico,conexoSubmit,contextSubmit,renderPsico,renderConexo,renderContexto,rank:()=>contextRankings,target:()=>contextTarget,groups:()=>connectionGroups,tiles:()=>connectionTiles,terms:()=>contextTerms,states:()=>states,setActive:v=>{active=v;},setBank:v=>{psicoBank=v;},setPsicoMode,getPsicoWords,psicoState,config:()=>PSICO_MODES[psicoMode],html:()=>document.getElementById("gameHost").innerHTML,mark:tileMark,rankTerm:contextRankTerm,validArchiveDay,dragStart:conexoDragStart,dragMove:conexoDragMove,dragEnd:conexoDragEnd,allow:()=>{approved=true;}};\n})();');
  assert.notEqual(expanded,script,'acesso de teste ao motor');
  const storage=new Map(),elements=new Map();
  const fakeElement=id=>{
@@ -81,6 +81,54 @@ test('Psico avalia letras repetidas e aceita palavra correta',()=>{
  assert.equal(e.states().psico.guesses[0],answer);
  assert.equal(Array.from(e.wordColors('AAAAA','ABCDE')).filter(v=>v==='correct').length,1);
 });
+
+test('Psico Duplo usa dois tabuleiros independentes, com sete palpites compartilhados',()=>{
+ const e=engine();e.init('2026-11-21');e.setActive('psico');e.allow();e.setPsicoMode('duplo');
+ const words=Array.from(e.getPsicoWords(),w=>norm(w.word));
+ assert.equal(words.length,2);
+ assert.equal(new Set(words).size,2);
+ assert.equal(e.config().attempts,7);
+ assert.equal((e.html().match(/class="psico-board-column/g)||[]).length,2);
+ for(const letter of words[0])e.inputPsico(letter);
+ e.inputPsico('ENTER');
+ assert.equal(e.psicoState().guesses.length,1);
+ assert.equal(e.psicoState().solvedAt[0],1);
+ assert.equal(e.psicoState().solvedAt[1],0);
+ assert.equal(e.psicoState().done,false);
+ assert.match(e.html(),/psico-board-solved/);
+ for(const letter of words[1])e.inputPsico(letter);
+ e.inputPsico('ENTER');
+ assert.equal(e.psicoState().won,true);
+ assert.equal(e.psicoState().done,true);
+ assert.equal(e.psicoState().guesses.length,2);
+});
+test('Psico Quádruplo usa quatro grades, nove tentativas e termina somente ao resolver tudo ou esgotar chances',()=>{
+ const e=engine();e.init('2026-11-21');e.setActive('psico');e.allow();e.setPsicoMode('quadruplo');
+ assert.equal(e.config().attempts,9);
+ assert.equal(e.getPsicoWords().length,4);
+ assert.equal(new Set(e.getPsicoWords().map(x=>norm(x.word))).size,4);
+ assert.equal((e.html().match(/class="psico-board-column/g)||[]).length,4);
+ for(let i=0;i<9;i++){e.inputPsico('ZZZZZ');e.inputPsico('ENTER');}
+ assert.equal(e.psicoState().guesses.length,9);
+ assert.equal(e.psicoState().done,true);
+ assert.equal(e.psicoState().won,false);
+ assert.match(e.html(),/Respostas:/);
+});
+test('Trocar de modo não remove o progresso anterior do PSICO clássico',()=>{
+ const e=engine();e.init('2026-11-21');e.setActive('psico');e.allow();
+ const answer=norm(e.getWord().word);
+ e.inputPsico('ZZZZZ');e.inputPsico('ENTER');
+ assert.equal(e.states().psico.guesses.length,1);
+ e.setPsicoMode('duplo');
+ e.inputPsico('ZZZZZ');e.inputPsico('ENTER');
+ assert.equal(e.states().psico.variants.duplo.guesses.length,1);
+ e.setPsicoMode('quadruplo');
+ assert.equal(e.psicoState().guesses.length,0);
+ e.setPsicoMode('classico');
+ assert.equal(e.states().psico.guesses.length,1);
+ assert.notEqual(answer,'ZZZZZ');
+});
+
 test('Conexo escolhe quatro grupos distintos e registra solução',()=>{
  const e=engine();e.init();e.setActive('conexo');
  assert.equal(e.groups().length,4);
