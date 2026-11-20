@@ -2666,8 +2666,7 @@ html[data-theme="dark"]{
 
 <span class="sidebtn nav-upcoming" role="note" tabindex="0" aria-disabled="true" aria-label="Trabalhos — em breve" title="Em breve"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3h8l4 4v14H4V3h4Z"/><path d="M16 3v5h4M8 12h8M8 16h8M8 8h4"/></svg><span class="nav-upcoming-name">Trabalhos</span><span class="nav-upcoming-tip" aria-hidden="true">Em breve</span></span>
 </span>
-<span class="sidebtn nav-upcoming" id="navExtrasSoon" role="note" tabindex="0" aria-disabled="true" aria-label="Extras — em breve" title="Em breve"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="3.5" width="7" height="7" rx="1.3"/><rect x="13.5" y="3.5" width="7" height="7" rx="1.3"/><rect x="3.5" y="13.5" width="7" height="7" rx="1.3"/><rect x="13.5" y="13.5" width="7" height="7" rx="1.3"/></svg><span class="nav-upcoming-name">Extras</span><span class="nav-upcoming-tip" aria-hidden="true">Em breve</span></span>
-<button class="sidebtn" data-page="extras" id="navExtrasAdmin" hidden aria-label="Extras — jogos em prévia para administrador"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="3.5" width="7" height="7" rx="1.3"/><rect x="13.5" y="3.5" width="7" height="7" rx="1.3"/><rect x="3.5" y="13.5" width="7" height="7" rx="1.3"/><rect x="13.5" y="13.5" width="7" height="7" rx="1.3"/></svg> Extras</button>
+<button class="sidebtn" data-page="extras" id="navExtrasGames" aria-label="Extras — jogos de Psicologia"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="3.5" width="7" height="7" rx="1.3"/><rect x="13.5" y="3.5" width="7" height="7" rx="1.3"/><rect x="3.5" y="13.5" width="7" height="7" rx="1.3"/><rect x="13.5" y="13.5" width="7" height="7" rx="1.3"/></svg> Extras</button>
 <button class="sidebtn" data-page="admin" id="navAdminConfig" hidden aria-label="Configurações exclusivas do administrador"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 2v3m0 14v3M2 12h3m14 0h3M4.9 4.9l2.1 2.1m10 10 2.1 2.1m0-14.2L17 7m-10 10-2.1 2.1"/></svg> Admin Config</button>
 </nav>
   <button type="button" id="mobileNavMoreToggle" class="mobile-nav-more" aria-controls="nav" aria-expanded="false" aria-label="Mostrar mais atalhos" title="Mostrar mais atalhos">
@@ -3132,7 +3131,7 @@ function pmNavRestore(state){
   if(!['home','subject','test','exams','calendar','audio','messages','ai','admin','extras'].includes(current.page))current.page='home';
   if(current.page==='subject'&&!DB.subjects[current.subject])current.page='home';
   if(current.page==='test'&&!DB.exams.some(x=>x.id===current.exam))current.page='exams';
-  if((current.page==='admin'||current.page==='extras')&&!window.uentzoulAdminConfig?.isAdmin?.())current.page='home';
+  if(current.page==='admin'&&!window.uentzoulAdminConfig?.isAdmin?.())current.page='home';
   if(current.page==='calendar'&&!agendaAvailable())current.page='home';
   if(state.agenda){
    calendarView=['provas','horarios','conteudos'].includes(state.agenda.view)?state.agenda.view:'provas';
@@ -3164,7 +3163,7 @@ const go=(page,extra={})=>{
  if(page==='library')page='home';
  if(page==='schedule'){calendarView='horarios';page='calendar';}
  if(page==='calendar'&&!agendaAvailable())return;
- if((page==='admin'||page==='extras')&&!window.uentzoulAdminConfig?.isAdmin?.())page='home';
+ if(page==='admin'&&!window.uentzoulAdminConfig?.isAdmin?.())page='home';
  const previousScroll=window.scrollY||0;
  if(page==='home')current.libraryCourse=null;
  current={...current,...extra,page};
@@ -3231,9 +3230,8 @@ function renderNav(){
  const adminButton=document.getElementById('navAdminConfig');
  const adminAccess=!!window.uentzoulAdminConfig?.isAdmin?.();
  if(adminButton)adminButton.hidden=!adminAccess;
- const extraButton=document.getElementById('navExtrasAdmin'),extraSoon=document.getElementById('navExtrasSoon');
- if(extraButton){extraButton.hidden=!adminAccess;extraButton.style.display=adminAccess?'':'none';}
- if(extraSoon){extraSoon.hidden=adminAccess;extraSoon.style.display=adminAccess?'none':'';}
+ const extraButton=document.getElementById('navExtrasGames');
+ if(extraButton){extraButton.hidden=false;extraButton.style.display='';}
 }
 function head(k,h,sub){return `<div class="eyebrow">${esc(k)}</div><h1 class="h1">${esc(h)}</h1>${sub?`<p class="lead">${esc(sub)}</p>`:''}`}
 function renderHome(){
@@ -4950,7 +4948,7 @@ function render(){
  // Não desmontar o iframe do Caderno quando outras seções atualizarem em segundo plano.
  if(window.PSICO_NOTEBOOK_ACTIVE?.()&&document.getElementById('uentzoulCadernoFrame'))return;
  // Evitar desmontar uma partida em andamento por atualizações do painel principal.
- if(current.page==='extras'&&window.uentzoulAdminConfig?.isAdmin?.()&&document.getElementById('psicoExtrasFrame')){renderNav();return;}
+ if(current.page==='extras'&&document.getElementById('psicoExtrasFrame')){renderNav();return;}
  if(current.page==='calendar'&&!agendaAvailable())current.page='home';
  renderNav();
  if((semester==='2027/1'||semester==='2026/1')&&!['ai','messages','admin','extras','exams','test'].includes(current.page)){
@@ -4962,9 +4960,7 @@ function render(){
   $('main').innerHTML=head(semester,v[0],v[1])+'<section class="section"><div class="panel semester-empty"><h2>Este semestre ainda está vazio</h2><p class="muted">As matérias, os textos, os simulados, os podcasts e a agenda deste semestre serão adicionados quando estiverem definidos. Os demais semestres continuam disponíveis no seletor.</p><p class="small">O progresso deste semestre começa vazio e não se mistura com o do semestre anterior.</p></div></section>';
   return;
  }
- let body='';switch(current.page){case 'home':body=renderHome();break;case 'subject':body=renderSubject(current.subject);break;case 'exams':body=renderExams();break;case 'test':body=renderTest(current.exam);break;case 'library':body=renderHome();break;case 'audio':body=renderAudio();break;case 'calendar':body=renderCalendar();break;case 'ai':body=renderAI();break;case 'messages':body=window.uentzoulMessenger?.render()||'<section class="panel">Carregando mensagens…</section>';break;case 'extras':body=window.uentzoulAdminConfig?.isAdmin?.()?
- '<div class="psico-extras-embed"><iframe id="psicoExtrasFrame" src="./extras.html" title="Extras · jogos de Psicologia" loading="eager" allow="fullscreen"></iframe></div>':
- '<section class="panel"><h2>Extras em breve</h2><p>Acesso reservado para a prévia administrativa.</p></section>';break;
+ let body='';switch(current.page){case 'home':body=renderHome();break;case 'subject':body=renderSubject(current.subject);break;case 'exams':body=renderExams();break;case 'test':body=renderTest(current.exam);break;case 'library':body=renderHome();break;case 'audio':body=renderAudio();break;case 'calendar':body=renderCalendar();break;case 'ai':body=renderAI();break;case 'messages':body=window.uentzoulMessenger?.render()||'<section class="panel">Carregando mensagens…</section>';break;case 'extras':body='<div class="psico-extras-embed"><iframe id="psicoExtrasFrame" src="./extras.html" title="Extras · jogos de Psicologia" loading="eager" allow="fullscreen"></iframe></div>';break;
  case 'admin':body=window.uentzoulAdminConfig?.render()||'<section class="panel">Acesso restrito.</section>';break;default:body=renderHome()};if(psAudioElement&&psAudioElement.isConnected&&$('main').contains(psAudioElement))document.body.appendChild(psAudioElement);
  $('main').innerHTML=body;if(current.page==='ai')queueMicrotask(tzHydrateThumbnails);if(isPodcastView())setupAudio();if(current.page==='messages')window.uentzoulMessenger?.afterRender(current.peerId||null);if(current.page==='admin')window.uentzoulAdminConfig?.afterRender();}
 /* A camada de organização só altera categorias e posições, nunca os arquivos. */
