@@ -261,8 +261,19 @@ function bookShelf(){
  '<p class="psb-shelf-note">Este catálogo inclui livros e trechos acadêmicos já disponibilizados no acervo. Quando o arquivo é parcial, ele é identificado. Novas obras poderão ser acrescentadas à coleção.</p>';
 }
 function audioShelf(){
- return '<div class="psb-subhead"><div><button data-psb-tab="home" class="psb-back">‹ Biblioteca</button><h2>Biblioteca de audiobooks</h2><p>Espaço reservado aos audiobooks do acervo.</p></div></div>'+
- '<section class="psb-audio-empty"><div class="psb-audio-symbol">♫</div><h3>Acervo de audiobooks</h3><p>A estrutura desta coleção está preparada. Os títulos e os recursos de áudio serão definidos separadamente, sem misturar com os podcasts das disciplinas.</p></section>';
+ return window.PSICO_AUDIO_LIBRARY?.render?.()||
+ '<div class="psb-subhead"><div><button data-psb-tab="home" class="psb-back">‹ Biblioteca</button><h2>Biblioteca de audiobooks</h2><p>Preparando o catálogo de audiobooks…</p></div></div>';
+}
+function ensureAudioLibrary(){
+ if(window.PSICO_AUDIO_LIBRARY||window.__psaLibraryPending)return;
+ window.__psaLibraryPending=true;
+ if(!document.getElementById('psaLibraryStyles')){
+  const link=document.createElement('link');link.id='psaLibraryStyles';link.rel='stylesheet';link.href='biblioteca-audiobooks.css?v=20261120-1';document.head.appendChild(link);
+ }
+ const script=document.createElement('script');script.src='biblioteca-audiobooks.js?v=20261120-1';script.async=true;
+ script.onload=()=>{window.__psaLibraryPending=false;requestRender();};
+ script.onerror=()=>{window.__psaLibraryPending=false;lastError='Não foi possível carregar a biblioteca de audiobooks.';requestRender()};
+ document.head.appendChild(script);
 }
 function isTwoPage(){
  return window.innerWidth>=820 && (focused?window.innerWidth/window.innerHeight>1.15:(document.querySelector('#psbReaderViewport')?.clientWidth||0)>790);
@@ -310,6 +321,10 @@ async function afterRender(){
  if(!allowed())return;
  if(activeBook&&documentPDF){await draw();void ensureTocModule().then(api=>api?.mount?.());return;}
  if(activeShelf==='books'){filterShelf();void restoreCovers();}
+ if(activeShelf==='audio'){
+  if(window.PSICO_AUDIO_LIBRARY)window.PSICO_AUDIO_LIBRARY.afterRender();
+  else ensureAudioLibrary();
+ }
  void window.PSICO_BOOK_UPLOAD?.load?.(requestRender);
 }
 function requestRender(){
@@ -582,5 +597,5 @@ document.addEventListener('fullscreenchange',()=>{
 window.addEventListener('uentzoul:auth',()=>{
  if(!allowed()&&activeBook)closeBook(true);
 });
-window.PSICO_BOOK_LIBRARY={render,afterRender,hasAccess:allowed,books:()=>allBooks().map(({id,title,author,subject,pages,part})=>({id,title,author,subject,pages,part})),isOpen:()=>!!activeBook,getReaderContext:()=>allowed()&&documentPDF&&activeBook?{pdf:documentPDF,book:activeBook,leafMap,total:bookPageCount(),currentPage:()=>page,goPage}:null,reset:()=>{closeBook(true);activeShelf='home';query='';}};
+window.PSICO_BOOK_LIBRARY={render,afterRender,hasAccess:allowed,books:()=>allBooks().map(({id,title,author,subject,pages,part,cover,colors})=>({id,title,author,subject,pages,part,cover,colors})),isOpen:()=>!!activeBook,getReaderContext:()=>allowed()&&documentPDF&&activeBook?{pdf:documentPDF,book:activeBook,leafMap,total:bookPageCount(),currentPage:()=>page,goPage}:null,reset:()=>{closeBook(true);activeShelf='home';query='';}};
 })();
