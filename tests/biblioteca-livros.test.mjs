@@ -188,6 +188,19 @@ test('Classificação automática preserva assunto e exige correspondência de c
 
 test('Sumário clicável é criado automaticamente por livro e respeita páginas divididas',()=>{
  const toc=read('biblioteca-sumario.js');
+ const reviewed=read('biblioteca-capitulos-revisados.js');
+ const verifiedContext={window:{}};
+ vm.runInNewContext(reviewed,verifiedContext);
+ const catalog=verifiedContext.window.PSICO_BOOK_VERIFIED_TOC;
+ assert.equal(Object.keys(catalog).length,18,'todos os 18 livros cadastrados conferidos');
+ assert.equal(Object.values(catalog).reduce((n,items)=>n+items.length,0),248,'somente capítulos e seções identificados nos arquivos');
+ assert.equal(catalog['hall-identidade'].length,6);
+ assert.ok(catalog['hall-identidade'].some(item=>item.index===1),'seções de Hall apontam para a folha interna correta');
+ assert.equal(catalog['bock-psicologias'].filter(item=>item.title.startsWith('Capítulo')).length,23);
+ assert.match(main,/biblioteca-capitulos-revisados\.js\?v=20261120-verificado-v1/);
+ assert.match(toc,/function reviewedChapters\(c\)/);
+ assert.match(toc,/c\.leafMap\.findIndex\(leaf=>leaf\.source===entry\.source&&leaf\.index===entry\.index\)/);
+ assert.match(toc,/state\.kind='reviewed'/);
  assert.match(main,/ensureTocModule\(\)\.then\(api=>api\?\.mount\?\.\(\)\)/);
  assert.match(main,/getReaderContext:\(\)=>allowed\(\)&&documentPDF&&activeBook/);
  assert.match(main,/window\.PSICO_BOOK_TOC\?\.close\?\.\(\)/);
@@ -210,6 +223,6 @@ test('Sumário clicável é criado automaticamente por livro e respeita páginas
  assert.match(toc,/Nenhum capítulo identificado neste PDF/);
  assert.match(toc,/await c\.pdf\.getOutline\(\)/);
  assert.match(toc,/function heading\(line\)/);
- assert.match(main,/biblioteca-sumario\.js\?v=20261120-toc-v2/);
+ assert.match(main,/biblioteca-sumario\.js\?v=20261120-toc-v3/);
  api.close();
 });
