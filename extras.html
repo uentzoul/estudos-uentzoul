@@ -21,7 +21,7 @@ setTimeout(()=>{
 },6500);
 </script>
 <title>Extras · PsicoMoodle</title>
-<link rel="stylesheet" href="./extras.css?v=20261120-psico-modos-v1">
+<link rel="stylesheet" href="./extras.css?v=20261120-extras-wide-admin-v1">
 </head>
 <body>
 <main class="extras-wrap">
@@ -45,6 +45,7 @@ setTimeout(()=>{
    <button role="tab" type="button" data-game="conexo" aria-selected="false"><span class="tab-glyph" aria-hidden="true">◈</span><span><strong>VÍNCULO</strong><small>Quatro conexões</small></span></button>
    <button role="tab" type="button" data-game="tetris" aria-selected="false" hidden><span class="tab-glyph" aria-hidden="true">▦</span><span><strong>Tetris</strong><small>TetrisZoul · 40 linhas</small></span></button>
   </nav>
+  <div class="extras-tools">
   <div id="extrasCalendar" class="extras-calendar">
    <button type="button" id="calendarToggle" class="calendar-toggle" aria-haspopup="dialog" aria-expanded="false" aria-controls="calendarPopup">
     <span class="calendar-toggle-icon" aria-hidden="true">▦</span><span>Calendário</span><small id="calendarSelectedLabel">—</small><span class="calendar-chevron" aria-hidden="true">⌄</span>
@@ -60,10 +61,13 @@ setTimeout(()=>{
     <div class="calendar-popup-footer"><button type="button" id="archiveToday" class="calendar-today">Hoje</button></div>
    </div>
   </div>
+  <button type="button" class="admin-answers-toggle" id="adminAnswersToggle" aria-expanded="false" aria-controls="adminAnswersPanel" hidden>Revelar respostas</button>
+  </div>
+  <section id="adminAnswersPanel" class="admin-answers-panel" aria-label="Respostas reservadas à administração" hidden></section>
   <section id="gameHost" role="tabpanel" aria-live="polite" aria-label="Jogo selecionado"></section>
  </section>
 </main>
 <script src="./extras-data.js?v=20261120-update-2"></script>
-<script src="./extras.js?v=20261120-softdrop-v6"></script>
+<script src="./extras.js?v=20261120-extras-wide-admin-v1"></script>
 </body>
 </html>
