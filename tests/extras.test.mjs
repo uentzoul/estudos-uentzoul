@@ -202,3 +202,61 @@ test('Extras não interrompe a abertura aguardando consulta de permissões ou pr
  assert.ok(s.indexOf('switchGame(initial)')<s.indexOf('loadCloud(enteredDay)'));
  assert.match(s,/if\(event==="SIGNED_OUT"\)/,'sem tratar INITIAL_SESSION como logout');
 });
+
+test('Iframe de conta autenticada abre Extras imediatamente com sessão do site, sem outra janela de login',async()=>{
+ const expanded=script.replace(/\nstart\(\);\n\}\)\(\);\s*$/,
+  '\nwindow.__authHarness={start,approved:()=>approved,client:()=>client,isAdmin:()=>isAdmin,uid:()=>uid};\n})();');
+ assert.notEqual(expanded,script);
+ let madeClient=0,requestedUser=0,resolveRole,authListener;
+ const rolePromise=new Promise(resolve=>{resolveRole=resolve});
+ const shared={
+  auth:{
+   getUser:async()=>{requestedUser++;return {data:{user:null}}},
+   onAuthStateChange(fn){authListener=fn;return {data:{subscription:{unsubscribe(){}}}};}
+  },
+  rpc:()=>rolePromise,
+  from:()=>({select:()=>({eq(){return this},order(){return this},limit:async()=>({data:[],error:null})})})
+ };
+ const els=new Map();
+ const node=id=>{
+  if(!els.has(id))els.set(id,{id,hidden:id==='extrasApp',textContent:'',innerHTML:'',disabled:false,
+   classList:{remove(){}},setAttribute(){},focus(){}});
+  return els.get(id);
+ };
+ const doc={
+  documentElement:{dataset:{},classList:{remove(){}},scrollHeight:900},
+  body:{scrollHeight:900},getElementById:node,
+  querySelector:s=>s==='.extras-tabs'?{classList:{toggle(){}}}:null,
+  querySelectorAll:()=>[],addEventListener(){}
+ };
+ const url='https://example.test';
+ const parent={
+  location:{origin:url},document:{documentElement:{dataset:{theme:'dark'}}},
+  uentzoulAIAuth:{user:()=>({id:'conta-logada'}),client:()=>shared,getSession:async()=>null},
+  postMessage(){}
+ };
+ const win={parent,PSICO_EXTRAS_DATA:data,addEventListener(){},
+  supabase:{createClient(){madeClient++;throw Error('cliente duplicado')}}};
+ const storage=new Map();
+ const sandbox={
+  window:win,document:doc,console,Date,Intl,URL,Math,
+  localStorage:{getItem:k=>storage.get(k)||null,setItem:(k,v)=>storage.set(k,v)},
+  location:{origin:url,href:url+'/extras.html'},history:{replaceState(){}},
+  requestAnimationFrame(){},setTimeout,clearTimeout
+ };
+ vm.runInNewContext(expanded,sandbox,{filename:'extras-auth-harness.js'});
+ const loading=win.__authHarness.start();
+ assert.equal(win.__authHarness.approved(),true,'app aberta antes de esperar permissão e banco');
+ assert.equal(node('extrasApp').hidden,false,'jogos visíveis sem tela de login');
+ assert.equal(node('extrasGate').hidden,true,'nenhum painel branco de login');
+ assert.equal(win.__authHarness.client(),shared,'mesmo cliente do site');
+ assert.equal(win.__authHarness.uid(),'conta-logada');
+ assert.equal(madeClient,0,'não inicia outro Supabase');
+ assert.equal(requestedUser,0,'não consulta getUser de outra instância');
+ assert.equal(doc.documentElement.dataset.theme,'dark','tema herdado antes de mostrar a interface');
+ authListener?.('INITIAL_SESSION',null);
+ assert.equal(node('extrasApp').hidden,false,'evento inicial sem payload não é logout');
+ resolveRole({data:true,error:null});
+ await loading;
+ assert.equal(win.__authHarness.isAdmin(),true);
+});
