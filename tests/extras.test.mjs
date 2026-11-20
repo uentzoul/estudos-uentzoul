@@ -104,16 +104,13 @@ test('VÍNCULO tem tentativas ilimitadas, não encerra por erros e permite marca
  const e=engine();e.init('2026-11-21');e.setActive('conexo');
  const tiles=e.tiles();
  assert.equal(tiles.length,16);
- const wrong=[tiles[0].id,tiles.find(t=>t.group!==tiles[0].group).id,tiles.find(t=>t.group!==tiles[0].group&&t.id!==tiles[1].id).id,tiles[1].id];
+ const wrong=[...tiles.filter(t=>t.group===0).slice(0,3),tiles.find(t=>t.group===1)];
  for(let i=0;i<8;i++){
-  const choices=i%2?[tiles[0],tiles[2],tiles[3],tiles[4]]:[tiles[0],tiles[1],tiles[2],tiles[3]];
-  const distinct=new Set(choices.map(t=>t.group));
-  if(distinct.size===1){
-   e.states().conexo.selected=[tiles[0].id,tiles[1].id,tiles[2].id,tiles[4].id];
-  }else e.states().conexo.selected=choices.map(t=>t.id);
+  e.states().conexo.selected=wrong.map(t=>t.id);
   e.conexoSubmit();
  }
  assert.equal(e.states().conexo.done,false,'errar não encerra a partida');
+ assert.equal(e.states().conexo.solved.length,0);
  const id=e.tiles()[0].id;
  e.mark(id);
  assert.ok(e.states().conexo.marked.includes(id));
