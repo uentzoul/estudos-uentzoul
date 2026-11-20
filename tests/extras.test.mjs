@@ -54,7 +54,7 @@ test('Scripts extras são sintaticamente válidos',()=>{
 });
 function engine(){
  const expanded=script.replace(/\nstart\(\);\n\}\)\(\);\s*$/,
-  '\nwindow.__extTest={init:initializeDay,getWord,wordColors,inputPsico,conexoSubmit,contextSubmit,renderPsico,renderConexo,renderContexto,rank:()=>contextRankings,target:()=>contextTarget,groups:()=>connectionGroups,tiles:()=>connectionTiles,terms:()=>contextTerms,states:()=>states,setActive:v=>{active=v;},setBank:v=>{psicoBank=v;},setPsicoMode,getPsicoWords,psicoState,config:()=>PSICO_MODES[psicoMode],html:()=>document.getElementById("gameHost").innerHTML,mark:tileMark,rankTerm:contextRankTerm,validArchiveDay,dragStart:conexoDragStart,dragMove:conexoDragMove,dragEnd:conexoDragEnd,allow:()=>{approved=true;}};\n})();');
+  '\nwindow.__extTest={init:initializeDay,getWord,wordColors,inputPsico,conexoSubmit,contextSubmit,renderPsico,renderConexo,renderContexto,rank:()=>contextRankings,target:()=>contextTarget,groups:()=>connectionGroups,tiles:()=>connectionTiles,terms:()=>contextTerms,states:()=>states,setActive:v=>{active=v;},setBank:v=>{psicoBank=v;},setPsicoMode,getPsicoWords,psicoState,getAdminAnswersFor,showAdminAnswers:()=>{adminAnswersOpen=true;updateAdminAnswers();},setAdmin:v=>{isAdmin=v;},node:document.getElementById,config:()=>PSICO_MODES[psicoMode],html:()=>document.getElementById("gameHost").innerHTML,mark:tileMark,rankTerm:contextRankTerm,validArchiveDay,dragStart:conexoDragStart,dragMove:conexoDragMove,dragEnd:conexoDragEnd,allow:()=>{approved=true;}};\n})();');
  assert.notEqual(expanded,script,'acesso de teste ao motor');
  const storage=new Map(),elements=new Map();
  const fakeElement=id=>{
@@ -127,6 +127,47 @@ test('Trocar de modo não remove o progresso anterior do PSICO clássico',()=>{
  e.setPsicoMode('classico');
  assert.equal(e.states().psico.guesses.length,1);
  assert.notEqual(answer,'ZZZZZ');
+});
+
+
+test('Quadruplo de desktop ocupa quatro colunas e mantém versão responsiva',()=>{
+ const styles=read('extras.css');
+ assert.match(styles,/\.psico-multi-grid\.psico-multi-quadruplo\{max-width:1530px\}/);
+ assert.match(styles,/@media\(min-width:840px\)\s*\{\s*\.psico-multi-grid\.psico-multi-quadruplo\{grid-template-columns:repeat\(4,minmax\(0,1fr\)\)/);
+ assert.match(script,/psico-multi-'\+psicoMode/);
+ assert.match(script,/installExtrasWideHost\(\)/);
+ assert.match(script,/body:has\(#psicoExtrasFrame\):not\(\.pm-extras-sidebar-open\) #siteSidebar/);
+});
+test('Respostas dos próximos dias correspondem aos desafios reais nos três jogos',()=>{
+ const e=engine();
+ for(const date of ['2026-11-20','2026-11-21','2026-11-27']){
+  e.init(date);e.setActive('psico');e.allow();
+  assert.equal(e.getAdminAnswersFor(date,'psico','classico')[0],e.getWord().word);
+  for(const mode of ['duplo','quadruplo']){
+   e.setPsicoMode(mode);
+   assert.deepEqual(Array.from(e.getAdminAnswersFor(date,'psico',mode)),Array.from(e.getPsicoWords(),x=>x.word));
+  }
+  assert.equal(e.getAdminAnswersFor(date,'contexto')[0],e.target());
+  assert.deepEqual(Array.from(e.getAdminAnswersFor(date,'conexo'),x=>x.title),Array.from(e.groups(),x=>x.title));
+ }
+});
+test('Botão de revelar respostas é exclusivo de administradores e contextualizado por aba',()=>{
+ const e=engine();e.init('2026-11-20');e.setActive('psico');e.allow();
+ assert.match(page,/id="adminAnswersToggle"[^>]*hidden/);
+ assert.match(page,/id="adminAnswersPanel"[^>]*hidden/);
+ e.setAdmin(false);e.showAdminAnswers();
+ assert.equal(e.node('adminAnswersToggle').hidden,true);
+ assert.equal(e.node('adminAnswersPanel').hidden,true);
+ e.setAdmin(true);e.showAdminAnswers();
+ assert.equal(e.node('adminAnswersToggle').hidden,false);
+ assert.equal(e.node('adminAnswersPanel').hidden,false);
+ assert.match(e.node('adminAnswersPanel').innerHTML,/PSICO Clássico/);
+ assert.equal((e.node('adminAnswersPanel').innerHTML.match(/class="admin-answers-day"/g)||[]).length,8);
+ e.setActive('conexo');e.showAdminAnswers();
+ assert.match(e.node('adminAnswersPanel').innerHTML,/VÍNCULO/);
+ assert.match(e.node('adminAnswersPanel').innerHTML,/admin-answers-groups/);
+ e.setActive('contexto');e.showAdminAnswers();
+ assert.match(e.node('adminAnswersPanel').innerHTML,/CONTEXTO/);
 });
 
 test('Conexo escolhe quatro grupos distintos e registra solução',()=>{

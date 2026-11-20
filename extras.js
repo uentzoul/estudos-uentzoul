@@ -53,7 +53,7 @@ const NEAR={
 };
 let client=null,uid=null,approved=false,isAdmin=false,day="",ordinal=0,active="psico",states={};
 let calendarViewMonth="",calendarOpen=false,conexoMarkMode=false,conexoDrag=null,suppressConexoClick=false;
-let archiveLoadToken=0, psicoFlippingRow=-1, psicoMode="classico";
+let archiveLoadToken=0, psicoFlippingRow=-1, psicoMode="classico",adminAnswersOpen=false;
 const PSICO_MODES={classico:{label:"Clássico",boards:1,attempts:6},duplo:{label:"Duplo",boards:2,attempts:7},quadruplo:{label:"Quádruplo",boards:4,attempts:9}};
 let psicoBank=DATA.wordBank.slice().sort((a,b)=>clean(a.word).localeCompare(clean(b.word),"pt-BR"));
 let connectionGroups=[],connectionTiles=[],contextTerms=new Map(),contextRankings=null,contextTarget="",contextFreeRanks=new Map();
@@ -75,11 +75,12 @@ function shuffle(a,seed){
  for(let i=arr.length-1;i>0;i--){const j=Math.floor(rand()*(i+1));[arr[i],arr[j]]=[arr[j],arr[i]];}
  return arr;
 }
-function getWord(){
- if(day===ARCHIVE_START)return {word:"EXAME",area:"Avaliação Psicológica",hint:"Investigação ou procedimento avaliativo"};
- const list=psicoBank;
- return list[((ordinal*17+23)%list.length+list.length)%list.length];
+function getWordFor(targetDay){
+ if(targetDay===ARCHIVE_START)return {word:"EXAME",area:"Avaliação Psicológica",hint:"Investigação ou procedimento avaliativo"};
+ const list=psicoBank,n=dayNumber(targetDay);
+ return list[((n*17+23)%list.length+list.length)%list.length];
 }
+function getWord(){return getWordFor(day);}
 function gameStateDefault(game){
  return game==="psico"?{guesses:[],draft:"",done:false,won:false}:
  game==="conexo"?{solved:[],selected:[],wrong:[],shuffled:[],marked:[],done:false,won:false}:
@@ -137,6 +138,7 @@ function updateArchiveControls(){
  if(wrapper)wrapper.hidden=active==="tetris";
  if(active==="tetris")setCalendarOpen(false);
  else renderCalendar();
+ updateAdminAnswers();
 }
 function initializeDay(selected=dateBrazil()){
  day=selected;ordinal=dayNumber(day);psicoFlippingRow=-1;calendarViewMonth=selected.slice(0,7);
@@ -251,6 +253,65 @@ function switchGame(game){
  renderTabs();updateArchiveControls();renderGame();
  try{const url=new URL(location.href);url.searchParams.set("game",game);history.replaceState(null,"",url);}catch(_){}
 }
+
+function installExtrasWideHost(){
+ if(window.parent===window)return;
+ try{
+  const parent=window.parent,doc=parent.document;
+  if(parent.location.origin!==location.origin||!doc?.head||!doc?.body||!doc.createElement)return;
+  if(!doc.getElementById("pmExtrasWideStyle")){
+   const style=doc.createElement("style");style.id="pmExtrasWideStyle";
+   style.textContent="#pmExtrasSidebarToggle{display:none;align-items:center;justify-content:center;gap:7px;position:fixed;top:12px;left:12px;z-index:145;min-height:35px;padding:7px 12px;border:1px solid var(--line,#ddd);border-radius:10px;background:var(--paper,#fff);color:var(--ink,#222);font:750 12px/1.2 system-ui,sans-serif;box-shadow:0 4px 15px #0002;cursor:pointer}\n@media(min-width:761px){\n body:has(#psicoExtrasFrame):not(.pm-extras-sidebar-open) #siteSidebar{display:none!important}\n body:has(#psicoExtrasFrame) #profileSidebar,body:has(#psicoExtrasFrame) #pmRightHandle{display:none!important}\n body:has(#psicoExtrasFrame) .app>.main{max-width:none!important;min-width:0!important;width:100%!important;flex:1 1 0!important;padding:53px clamp(12px,2vw,32px) 35px!important}\n body:has(#psicoExtrasFrame) .psico-extras-embed{max-width:none!important;width:100%!important}\n body:has(#psicoExtrasFrame) #pmExtrasSidebarToggle{display:flex!important}\n}";
+   doc.head.appendChild(style);
+  }
+  let button=doc.getElementById("pmExtrasSidebarToggle");
+  if(!button){
+   button=doc.createElement("button");button.type="button";button.id="pmExtrasSidebarToggle";
+   button.setAttribute("aria-controls","siteSidebar");
+   button.addEventListener("click",()=>{
+    const open=doc.body.classList.toggle("pm-extras-sidebar-open");
+    button.textContent=open?"✕ Fechar menu":"☰ Abrir menu";
+    button.setAttribute("aria-expanded",String(open));
+   });
+   doc.body.appendChild(button);
+  }
+  doc.body.classList.remove("pm-extras-sidebar-open");
+  button.textContent="☰ Abrir menu";button.setAttribute("aria-expanded","false");
+ }catch(e){console.warn("Extras: tela ampla indisponível.",e?.message||e);}
+}
+function addDays(targetDay,count){
+ return new Date(Date.parse(targetDay+"T12:00:00Z")+count*86400000).toISOString().slice(0,10);
+}
+function getAdminAnswersFor(targetDay,game=active,mode=psicoMode){
+ if(game==="psico")return getPsicoWordsFor(targetDay,mode).map(item=>item.word);
+ if(game==="contexto")return [getContextAnswerFor(targetDay)];
+ if(game==="conexo")return getConnectionGroupsFor(targetDay).map(g=>({title:g.title,terms:g.terms.slice()}));
+ return [];
+}
+function updateAdminAnswers(){
+ const button=$("adminAnswersToggle"),panel=$("adminAnswersPanel");
+ if(!button||!panel)return;
+ const allowed=approved&&isAdmin&&active!=="tetris";
+ button.hidden=!allowed;
+ if(!allowed){panel.hidden=true;button.setAttribute("aria-expanded","false");return;}
+ button.setAttribute("aria-expanded",String(adminAnswersOpen));
+ button.textContent=adminAnswersOpen?"Ocultar respostas":"Revelar respostas";
+ panel.hidden=!adminAnswersOpen;
+ if(!adminAnswersOpen)return;
+ const today=dateBrazil(),dates=[day,...Array.from({length:8},(_,i)=>addDays(today,i))].filter((d,i,a)=>a.indexOf(d)===i);
+ const gameLabel=active==="psico"?"PSICO "+PSICO_MODES[psicoMode].label:active==="conexo"?"VÍNCULO":"CONTEXTO";
+ panel.innerHTML='<div class="admin-answers-heading"><strong>Respostas — '+esc(gameLabel)+'</strong><small>Somente administradores · data selecionada e próximos 7 dias</small></div>'+
+ '<div class="admin-answers-list">'+dates.map(target=>{
+  const solutions=getAdminAnswersFor(target);
+  const detail=active==="conexo"?
+   '<div class="admin-answers-groups">'+solutions.map(g=>'<div><strong>'+esc(g.title)+'</strong><small>'+g.terms.map(esc).join(" · ")+'</small></div>').join("")+'</div>':
+   '<div class="admin-answers-words">'+solutions.map((term,i)=>'<span><b>'+(active==="psico"&&solutions.length>1?(i+1)+'. ':"")+esc(term)+'</b></span>').join("")+'</div>';
+  const marker=target===day?" · selecionada":target===today?" · hoje":target>today?" · próximo dia":"";
+  return '<section class="admin-answers-day"><strong class="admin-answers-date">'+esc(dateLabel(target)+marker)+'</strong>'+detail+'</section>';
+ }).join("")+'</div>';
+ requestHeight();
+}
+
 function renderGame(){
  const host=$("gameHost");
  if(!host||!approved)return;
@@ -261,6 +322,7 @@ function renderGame(){
  }else if(active==="psico")renderPsico();
  else if(active==="conexo")renderConexo();
  else if(active==="contexto")renderContexto();
+ updateAdminAnswers();
  requestHeight();
 }
 function requestHeight(){
@@ -283,12 +345,13 @@ function wordColors(guess,answer){
  }
  return colors;
 }
-function getPsicoWords(){
- if(psicoMode==="classico")return [getWord()];
+function getPsicoWordsFor(targetDay,mode){
+ if(mode==="classico")return [getWordFor(targetDay)];
  // Lista editorial local: a atualização do banco remoto não altera partidas múltiplas em andamento.
  const pool=DATA.wordBank.filter(item=>clean(item.word).length===5);
- return shuffle(pool,ordinal*7919+(psicoMode==="duplo"?311:733)).slice(0,PSICO_MODES[psicoMode].boards);
+ return shuffle(pool,dayNumber(targetDay)*7919+(mode==="duplo"?311:733)).slice(0,PSICO_MODES[mode].boards);
 }
+function getPsicoWords(){return getPsicoWordsFor(day,psicoMode);}
 function psicoState(){
  const root=states.psico;
  if(psicoMode==="classico")return root;
@@ -320,7 +383,7 @@ function setPsicoMode(next){
  if(!approved||active!=="psico"||!PSICO_MODES[next]||next===psicoMode)return;
  psicoMode=next;states.psico.mode=next;psicoFlippingRow=-1;
  feedback={game:"",message:"",kind:""};
- store("psico");renderPsico();
+ store("psico");renderPsico();updateAdminAnswers();
 }
 function psicoNativeFocus(){
  const input=$("psicoTypeBox");
@@ -368,7 +431,7 @@ function renderPsico(){
   return '<section class="psico-board-column'+(solvedAt?' psico-board-solved':'')+'" aria-label="Tabuleiro '+(boardIndex+1)+'">'+caption+
    '<div class="psico-board'+(multi?' psico-board-multi':'')+'" role="grid" aria-label="'+cfg.attempts+' tentativas, cinco letras por linha">'+rows.join("")+'</div></section>';
  });
- const boardsHtml=multi?'<div class="psico-multi-grid">'+boards.join("")+'</div>':boards[0];
+ const boardsHtml=multi?'<div class="psico-multi-grid psico-multi-'+psicoMode+'">'+boards.join("")+'</div>':boards[0];
  let result="";
  if(st.done){
   const title=st.won?(multi?"Todas as palavras encontradas!":"Boa! Palavra encontrada."):"Fim das tentativas.";
@@ -435,17 +498,17 @@ function inputPsico(key){
  if(message){message.textContent="";message.className="feedback";}
 }
 
-function initConnections(){
+function getConnectionGroupsFor(targetDay){
  const chosen=[],seen=new Set();
  const canPick=group=>{
   const unique=group.terms.map(cleanTerm);
   return new Set(unique).size===4&&!unique.some(t=>seen.has(t));
  };
  const add=group=>{chosen.push(group);group.terms.map(cleanTerm).forEach(term=>seen.add(term));};
- if(day===ARCHIVE_START){
+ if(targetDay===ARCHIVE_START){
   LAUNCH_GROUPS.forEach(add);
  }else{
-  const pool=shuffle(DATA.connectionGroups,ordinal*104729+17);
+  const pool=shuffle(DATA.connectionGroups,dayNumber(targetDay)*104729+17);
   const first=pool.find(canPick);
   if(first){
    add(first);
@@ -457,7 +520,11 @@ function initConnections(){
   for(const group of pool){if(chosen.length===4)break;if(!chosen.includes(group)&&canPick(group))add(group);}
  }
  if(chosen.length!==4)throw Error("Não foi possível montar quatro grupos exclusivos.");
- connectionGroups=chosen.map((g,i)=>({...g,level:i}));
+ return chosen.map((g,i)=>({...g,level:i}));
+}
+function initConnections(){
+ const chosen=getConnectionGroupsFor(day);
+ connectionGroups=chosen;
  connectionTiles=shuffle(chosen.flatMap((group,i)=>group.terms.map((word,j)=>({id:i+"-"+j,word,group:i}))),ordinal*83293+101);
  const st=states.conexo;
  if(!Array.isArray(st.solved))st.solved=[];
@@ -612,6 +679,10 @@ function displayTerm(value){
  const v=cleanTerm(value),found=contextTerms.get(v);
  return found?.label||String(value??"").toLowerCase();
 }
+function getContextAnswerFor(targetDay){
+ const n=dayNumber(targetDay);
+ return cleanTerm(targetDay===ARCHIVE_START?"polarizacao":TARGETS[((n*11+5)%TARGETS.length+TARGETS.length)%TARGETS.length]);
+}
 function initContexto(){
  contextTerms=new Map();contextFreeRanks=new Map();
  DATA.semanticDomains.forEach((domain,i)=>domain.terms.forEach(term=>{
@@ -620,7 +691,7 @@ function initContexto(){
   if(!contextTerms.has(key))contextTerms.set(key,{label:term,domains:new Set()});
   contextTerms.get(key).domains.add(i);
  }));
- contextTarget=cleanTerm(day===ARCHIVE_START?"polarizacao":TARGETS[((ordinal*11+5)%TARGETS.length+TARGETS.length)%TARGETS.length]);
+ contextTarget=getContextAnswerFor(day);
  if(!contextTerms.has(contextTarget))throw Error("Resposta do Contexto não cadastrada: "+contextTarget);
  const target=contextTerms.get(contextTarget);
  const rankings=[...contextTerms.keys()].map(word=>{
@@ -781,6 +852,7 @@ async function start(){
   // Mostrar os jogos assim que a sessão principal estiver disponível.
   // Consulta de banco e permissão administrativa não podem bloquear a tela inteira.
   approved=true;
+  installExtrasWideHost();
   document.documentElement.classList.remove("extras-booting");
   $("extrasGate").hidden=true;
   $("extrasApp").hidden=false;
@@ -817,6 +889,8 @@ async function start(){
  }finally{authBusy=false;}
 }
 document.addEventListener("click",e=>{
+ const answersToggle=e.target.closest("#adminAnswersToggle");
+ if(answersToggle&&isAdmin&&active!=="tetris"){adminAnswersOpen=!adminAnswersOpen;updateAdminAnswers();return;}
  const calendarToggle=e.target.closest("#calendarToggle"),calendarPrev=e.target.closest("#calendarMonthPrev"),calendarNext=e.target.closest("#calendarMonthNext"),calendarDay=e.target.closest("[data-calendar-day]"),todayButton=e.target.closest("#archiveToday");
  if(calendarToggle){setCalendarOpen(!calendarOpen);return;}
  if(calendarPrev){calendarMonth(-1);return;}
