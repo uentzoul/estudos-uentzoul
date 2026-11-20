@@ -218,3 +218,8 @@ button.psico-cell:focus-visible{outline:2px solid var(--accent);outline-offset:2
 .conexo-grid.is-dragging .conexo-tile{transition:none}
 .conexo-drag-ghost{-webkit-user-select:none;user-select:none;-webkit-user-drag:none;touch-action:none;z-index:99999!important}
 .calendar-popup-footer{justify-content:flex-end}
+
+/* Abertura integrada: não exibir o falso painel de login enquanto o Extras inicializa. */
+html.extras-booting .extras-gate{visibility:hidden}
+html.extras-booting,html.extras-booting body{background:var(--bg)}
+:root[data-theme=dark] html.extras-booting{color-scheme:dark}
