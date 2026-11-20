@@ -1,0 +1,26 @@
+name: Testes dos jogos Extras
+on:
+  pull_request:
+    paths:
+      - 'extras.*'
+      - 'tests/extras.test.mjs'
+      - '.github/workflows/extras-tests.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'extras.*'
+      - 'tests/extras.test.mjs'
+      - '.github/workflows/extras-tests.yml'
+permissions:
+  contents: read
+jobs:
+  testar-extras:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verificar jogos e regressões de autenticação
+        run: node --test tests/extras.test.mjs

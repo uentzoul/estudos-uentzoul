@@ -53,7 +53,8 @@ const NEAR={
 };
 let client=null,uid=null,approved=false,isAdmin=false,day="",ordinal=0,active="psico",states={};
 let calendarViewMonth="",calendarOpen=false,conexoMarkMode=false,conexoDrag=null,suppressConexoClick=false;
-let archiveLoadToken=0, psicoFlippingRow=-1;
+let archiveLoadToken=0, psicoFlippingRow=-1, psicoMode="classico";
+const PSICO_MODES={classico:{label:"Clássico",boards:1,attempts:6},duplo:{label:"Duplo",boards:2,attempts:7},quadruplo:{label:"Quádruplo",boards:4,attempts:9}};
 let psicoBank=DATA.wordBank.slice().sort((a,b)=>clean(a.word).localeCompare(clean(b.word),"pt-BR"));
 let connectionGroups=[],connectionTiles=[],contextTerms=new Map(),contextRankings=null,contextTarget="",contextFreeRanks=new Map();
 const persistTimers=Object.create(null),persistPromises=Object.create(null);
@@ -141,6 +142,7 @@ function initializeDay(selected=dateBrazil()){
  day=selected;ordinal=dayNumber(day);psicoFlippingRow=-1;calendarViewMonth=selected.slice(0,7);
  feedback={game:"",message:"",kind:""};
  for(const game of CONTENT_GAMES)states[game]=localGet(game)||gameStateDefault(game);
+ if(PSICO_MODES[states.psico.mode])psicoMode=states.psico.mode;
  initConnections();initContexto();updateArchiveControls();
 }
 function validArchiveDay(value){
@@ -281,84 +283,111 @@ function wordColors(guess,answer){
  }
  return colors;
 }
+function getPsicoWords(){
+ if(psicoMode==="classico")return [getWord()];
+ // Lista editorial local: a atualização do banco remoto não altera partidas múltiplas em andamento.
+ const pool=DATA.wordBank.filter(item=>clean(item.word).length===5);
+ return shuffle(pool,ordinal*7919+(psicoMode==="duplo"?311:733)).slice(0,PSICO_MODES[psicoMode].boards);
+}
+function psicoState(){
+ const root=states.psico;
+ if(psicoMode==="classico")return root;
+ if(!root.variants||typeof root.variants!=="object")root.variants={};
+ if(!root.variants[psicoMode]||typeof root.variants[psicoMode]!=="object")
+  root.variants[psicoMode]={guesses:[],draft:"",done:false,won:false};
+ return root.variants[psicoMode];
+}
 function normalizePsico(){
- const st=states.psico;
+ const st=psicoState(),limit=PSICO_MODES[psicoMode].attempts;
  if(!Array.isArray(st.guesses))st.guesses=[];
- st.guesses=st.guesses.filter(v=>typeof v==="string"&&clean(v).length===5).slice(0,6);
+ st.guesses=st.guesses.filter(v=>typeof v==="string"&&clean(v).length===5).slice(0,limit);
  if(!Array.isArray(st.cells)||st.cells.length!==5){
   const old=clean(st.draft||"").replace(/[^A-Z]/g,"").slice(0,5);
   st.cells=Array.from({length:5},(_,i)=>old[i]||"");
  }
  st.cells=st.cells.map(v=>clean(v).replace(/[^A-Z]/g,"").slice(0,1));
  st.cursor=Math.max(0,Math.min(4,Number.isInteger(st.cursor)?st.cursor:st.cells.findIndex(v=>!v)));
+ st.solvedAt=getPsicoWords().map(({word})=>{
+  const found=st.guesses.findIndex(guess=>clean(guess)===clean(word));
+  return found<0?0:found+1;
+ });
+ st.won=st.solvedAt.every(Boolean);
+ st.done=st.won||st.guesses.length>=limit;
  if(st.done)st.cursor=0;
  return st;
 }
+function setPsicoMode(next){
+ if(!approved||active!=="psico"||!PSICO_MODES[next]||next===psicoMode)return;
+ psicoMode=next;states.psico.mode=next;psicoFlippingRow=-1;
+ feedback={game:"",message:"",kind:""};
+ store("psico");renderPsico();
+}
 function psicoNativeFocus(){
  const input=$("psicoTypeBox");
- if(!input)return;
- input.focus({preventScroll:true});
+ if(input)input.focus({preventScroll:true});
 }
 function selectPsicoCell(index,shouldFocus=true){
  const st=normalizePsico();
  if(st.done||!Number.isInteger(index)||index<0||index>4)return;
- st.cursor=index;
- store("psico",false);
- syncPsicoDraft();
+ st.cursor=index;store("psico",false);syncPsicoDraft();
  if(shouldFocus)psicoNativeFocus();
 }
 function syncPsicoDraft(changedIndex=-1){
  const st=normalizePsico();
  document.querySelectorAll("[data-psico-cell]").forEach(node=>{
-  const index=Number(node.dataset.psicoCell);
-  const letter=st.cells[index]||"";
+  const index=Number(node.dataset.psicoCell),letter=st.cells[index]||"";
   node.textContent=letter;
   node.className="psico-cell editable"+(letter?" filled":"")+(index===st.cursor?" cursor-active":"");
   node.setAttribute("aria-label","Posição "+(index+1)+": "+(letter||"vazia")+(index===st.cursor?", selecionada":""));
   if(index===changedIndex){
-   node.classList.remove("psico-pop");
-   void node.offsetWidth;
-   node.classList.add("psico-pop");
+   node.classList.remove("psico-pop");void node.offsetWidth;node.classList.add("psico-pop");
   }
  });
- const submit=$("psicoSubmit");
- if(submit)submit.disabled=st.cells.some(v=>!v);
+ const submit=$("psicoSubmit");if(submit)submit.disabled=st.cells.some(v=>!v);
 }
 function renderPsico(){
- const answer=getWord(),st=normalizePsico();
- const rows=[];
- for(let r=0;r<6;r++){
-  let letters=[],colors=[];
-  const locked=r<st.guesses.length;
-  const editable=r===st.guesses.length&&!st.done;
-  if(locked){letters=clean(st.guesses[r]).split("");colors=wordColors(st.guesses[r],answer.word);}
-  else if(editable)letters=st.cells;
-  rows.push('<div class="psico-row'+(r===psicoFlippingRow&&locked?' psico-revealing':'')+'" role="row" aria-label="Tentativa '+(r+1)+'">'+
-   Array.from({length:5},(_,i)=>{
-    const letter=letters[i]||"",status=colors[i]||(letter?"filled":"");
-    const selected=editable&&i===st.cursor;
-    const className="psico-cell "+status+(editable?" editable":"")+(selected?" cursor-active":"");
-    if(editable){
-     return '<button type="button" class="'+className+'" data-psico-cell="'+i+'" role="gridcell" aria-label="Posição '+(i+1)+': '+(letter||"vazia")+(selected?", selecionada":"")+'">'+esc(letter)+'</button>';
-    }
-    return '<div class="'+className+'" role="gridcell" aria-label="'+esc(letter||"vazio")+' '+esc(status)+'">'+esc(letter)+'</div>';
-   }).join("")+'</div>');
- }
+ const cfg=PSICO_MODES[psicoMode],answers=getPsicoWords(),st=normalizePsico(),multi=cfg.boards>1;
+ const boards=answers.map((answer,boardIndex)=>{
+  const solvedAt=st.solvedAt[boardIndex],rows=[];
+  for(let r=0;r<cfg.attempts;r++){
+   let letters=[],colors=[];
+   const locked=r<st.guesses.length&&(!solvedAt||r<solvedAt);
+   const editable=r===st.guesses.length&&!st.done&&!solvedAt;
+   if(locked){letters=clean(st.guesses[r]).split("");colors=wordColors(st.guesses[r],answer.word);}
+   else if(editable)letters=st.cells;
+   rows.push('<div class="psico-row'+(r===psicoFlippingRow&&locked?' psico-revealing':'')+'" role="row" aria-label="Palavra '+(boardIndex+1)+', tentativa '+(r+1)+'">'+
+    Array.from({length:5},(_,i)=>{
+     const letter=letters[i]||"",status=colors[i]||(letter?"filled":"");
+     const selected=editable&&i===st.cursor;
+     const cls="psico-cell "+status+(editable?" editable":"")+(selected?" cursor-active":"");
+     return editable?'<button type="button" class="'+cls+'" data-psico-cell="'+i+'" role="gridcell" aria-label="Posição '+(i+1)+': '+(letter||"vazia")+(selected?", selecionada":"")+'">'+esc(letter)+'</button>':
+      '<div class="'+cls+'" role="gridcell" aria-label="'+esc(letter||"vazio")+' '+esc(status)+'">'+esc(letter)+'</div>';
+    }).join("")+'</div>');
+  }
+  const caption=multi?'<div class="psico-board-caption"><strong>Palavra '+(boardIndex+1)+'</strong><span'+(solvedAt?' class="is-solved"':'')+'>'+(solvedAt?'✓ Resolvida':'Em andamento')+'</span></div>':"";
+  return '<section class="psico-board-column'+(solvedAt?' psico-board-solved':'')+'" aria-label="Tabuleiro '+(boardIndex+1)+'">'+caption+
+   '<div class="psico-board'+(multi?' psico-board-multi':'')+'" role="grid" aria-label="'+cfg.attempts+' tentativas, cinco letras por linha">'+rows.join("")+'</div></section>';
+ });
+ const boardsHtml=multi?'<div class="psico-multi-grid">'+boards.join("")+'</div>':boards[0];
  let result="";
  if(st.done){
-  const title=st.won?"Boa! Palavra encontrada.":"Fim das tentativas.";
-  result='<div class="finish-box"><strong>'+title+'</strong><p>A palavra era <b>'+esc(answer.word)+'</b>. '+esc(answer.hint)+' · '+esc(answer.area)+'. Escolha outro dia para jogar novamente.</p></div>';
+  const title=st.won?(multi?"Todas as palavras encontradas!":"Boa! Palavra encontrada."):"Fim das tentativas.";
+  const words=answers.map(answer=>'<b>'+esc(answer.word)+'</b>').join(" · ");
+  const explanation=multi?"Respostas: "+words+".":'A palavra era '+words+'. '+esc(answers[0].hint)+' · '+esc(answers[0].area)+'.';
+  result='<div class="finish-box"><strong>'+title+'</strong><p>'+explanation+' Escolha outro dia para jogar novamente.</p></div>';
  }
  const editor=st.done?"":'<form id="psicoForm" class="psico-native-form" autocomplete="off">'+
   '<label class="psico-input-visually-hidden" for="psicoTypeBox">Digite as letras usando o teclado do dispositivo</label>'+
   '<input id="psicoTypeBox" type="text" inputmode="text" enterkeyhint="done" autocapitalize="characters" autocomplete="off" autocorrect="off" spellcheck="false" aria-label="Digite as letras na posição selecionada" maxlength="24">'+
-  '<button type="submit" class="primary-action" id="psicoSubmit" '+(st.cells.some(v=>!v)?"disabled":"")+'>Enviar palavra</button></form>'+
-  '';
- $("gameHost").innerHTML=
-  '<div class="game-panel"><div class="game-head"><div><h2>PSICO</h2></div><span class="game-stat">'+(st.done?(st.won?"Concluído":"Encerrado"):(st.guesses.length+1)+" / 6")+'</span></div>'+
-  '<div class="psico-board" role="grid" aria-label="Seis tentativas, cinco letras por linha">'+rows.join("")+'</div>'+
-  feedbackHtml("psico")+editor+result+
-  '</div>';
+  '<button type="submit" class="primary-action" id="psicoSubmit" '+(st.cells.some(v=>!v)?"disabled":"")+'>Enviar palavra</button></form>';
+ const switcher='<nav class="psico-mode-switch" aria-label="Modo de jogo">'+
+  Object.keys(PSICO_MODES).map(key=>'<button type="button" data-psico-mode="'+key+'" aria-pressed="'+(key===psicoMode)+'"'+
+   (key===psicoMode?' class="is-current"':'')+'>'+PSICO_MODES[key].label+'</button>').join("")+'</nav>';
+ const solvedCount=st.solvedAt.filter(Boolean).length;
+ $("gameHost").innerHTML='<div class="game-panel"><div class="game-head"><div><h2>PSICO</h2></div><span class="game-stat">'+
+  (st.done?(st.won?"Concluído":"Encerrado"):(st.guesses.length+1)+" / "+cfg.attempts)+'</span></div>'+
+  switcher+(multi?'<p class="psico-multi-status" aria-live="polite">'+solvedCount+' de '+cfg.boards+' palavras resolvidas · '+cfg.attempts+' tentativas compartilhadas</p>':"")+
+  boardsHtml+feedbackHtml("psico")+editor+result+'</div>';
  requestHeight();
 }
 function inputPsico(key){
@@ -367,7 +396,6 @@ function inputPsico(key){
  if(st.done)return;
  let changed=-1;
  if(key==="BACK"||key==="DELETE"){
-  // Apaga a célula selecionada; se ela já está vazia, volta uma posição.
   if(st.cells[st.cursor]){changed=st.cursor;st.cells[st.cursor]="";}
   else if(st.cursor>0){st.cursor--;changed=st.cursor;st.cells[st.cursor]="";}
   store("psico",false);syncPsicoDraft(changed);return;
@@ -383,21 +411,17 @@ function inputPsico(key){
    if(row){row.classList.remove("psico-shake");void row.offsetWidth;row.classList.add("psico-shake");}
    return;
   }
-  const guess=st.cells.join(""),correct=clean(getWord().word);
-  st.guesses.push(guess);
+  st.guesses.push(st.cells.join(""));
   st.cells=Array(5).fill("");st.draft="";st.cursor=0;
-  st.won=guess===correct;st.done=st.won||st.guesses.length>=6;
-  psicoFlippingRow=st.guesses.length-1;
+  normalizePsico();psicoFlippingRow=st.guesses.length-1;
   store("psico");
-  feedback={game:"psico",message:st.won?"Acertou!":st.done?"As seis tentativas terminaram.":"Continue tentando.",kind:st.won?"ok":""};
-  renderPsico();
-  return;
+  feedback={game:"psico",message:st.won?"Acertou!":st.done?"As tentativas terminaram.":"Continue tentando.",kind:st.won?"ok":""};
+  renderPsico();return;
  }
  const chars=clean(key).replace(/[^A-Z]/g,"");
  if(!chars)return;
  for(const letter of chars){
-  changed=st.cursor;
-  st.cells[st.cursor]=letter;
+  changed=st.cursor;st.cells[st.cursor]=letter;
   let next=-1;
   for(let offset=1;offset<=5;offset++){
    const index=(changed+offset)%5;
@@ -405,10 +429,8 @@ function inputPsico(key){
   }
   st.cursor=next>=0?next:Math.min(4,changed+1);
  }
- st.draft=st.cells.join("");
- feedback={game:"",message:"",kind:""};
- store("psico",false);
- syncPsicoDraft(changed);
+ st.draft=st.cells.join("");feedback={game:"",message:"",kind:""};
+ store("psico",false);syncPsicoDraft(changed);
  const message=document.querySelector(".feedback");
  if(message){message.textContent="";message.className="feedback";}
 }
@@ -805,6 +827,8 @@ document.addEventListener("click",e=>{
  const tab=e.target.closest("[data-game]");
  if(tab){switchGame(tab.dataset.game);return;}
  if(active==="psico"){
+  const mode=e.target.closest("[data-psico-mode]");
+  if(mode){setPsicoMode(mode.dataset.psicoMode);return;}
   const cell=e.target.closest("[data-psico-cell]");
   if(cell){selectPsicoCell(Number(cell.dataset.psicoCell));return;}
  }
