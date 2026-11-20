@@ -4825,7 +4825,7 @@ function renderThirdSemester(){
  const ids=Object.keys(DB.subjects),subjectId=current.subject,subj=DB.subjects[subjectId];
  const count=ids.length,totalHours=ids.reduce((sum,k)=>sum+(DB.subjects[k].hours||0),0);
  const countLabel=String(count);
- const activities=overallKeys(),completed=doneCount(activities),pct=fmtPct(completed,activities.length);
+ const progress=overallProgress(),completed=progress.n,pct=progress.pct;
  const courseCards=()=>'<div class="library-page"><div class="course-intro"><div>'+
   head('Psicologia PUCRS · '+period,'Disciplinas do '+ordinal+' semestre',countLabel+' disciplinas cadastradas. '+(firstSemester?'Flashcards, estudos de caso e simulados para relembrar.':'Os conteúdos e materiais poderão ser adicionados posteriormente.'))+
   '</div></div>'+ '<div class="course-grid">'+ids.slice().sort((a,b)=>DB.subjects[a].name.localeCompare(DB.subjects[b].name,'pt-BR')).map(k=>{
@@ -4840,7 +4840,7 @@ function renderThirdSemester(){
    '</div>';
  if(current.page==='home'||current.page==='library'){
   return '<header class="dashboard-hero slogan-hero" aria-label="'+ordinal+' semestre"><div class="hero-copy"><div class="slogan-lockup"><span class="slogan-logo" aria-hidden="true">Ψ</span><div class="slogan-identity"><span class="hero-kicker">Psicologia PUCRS · '+period+'</span><h1 class="slogan-title"><span>Psico</span><span class="slogan-title-accent">Moodle</span></h1></div></div></div>'+
-   '<div class="hero-status"><span>Progresso do semestre</span><strong>'+pct+'%</strong><div class="hero-bar"><b style="width:'+pct+'%"></b></div><span class="hero-label">'+completed+' de '+activities.length+' atividades</span></div></header>'+
+   '<div class="hero-status"><span>Progresso do semestre</span><strong>'+pct+'%</strong><div class="hero-bar"><b style="width:'+pct+'%"></b></div><span class="hero-label">'+completed+' de '+progress.total+' atividades</span></div></header>'+
    '<section class="section home-course-section" id="homeCourses">'+courseCards()+'</section>'+
    '<p class="footer">Para diagnóstico do uso, registramos horários e seções acessadas, sem armazenar textos digitados, mensagens ou respostas.</p>';
  }
@@ -5296,11 +5296,11 @@ document.addEventListener('change',e=>{if(!e.target.matches('[data-complete]'))r
   const parent=e.target.closest('.donecontrol');if(parent){parent.classList.toggle('is-checked',e.target.checked);const label=parent.querySelector('span');if(label)label.textContent=e.target.checked?'✓ Visto':(e.target.closest('.review-item')||e.target.closest('.ge-clean-card')?'Visto':'Marcar como visto');}
   const topic=e.target.closest('.topicunit');if(topic)topic.classList.toggle('is-done',e.target.checked);
   if(current.page==='subject'){
-   const k=current.subject,keys=subjectKeys(k),n=doneCount(keys);
+   const k=current.subject,progress=subjectProgress(k),n=progress.n;
    const count=$('subjectDoneCount'),percentage=$('subjectDonePercent'),bar=$('subjectDoneBar');
-   if(count)count.textContent=`${n}/${keys.length} concluídos`;
-   if(percentage)percentage.textContent=`${fmtPct(n,keys.length)}% de progresso`;
-   if(bar)bar.style.width=`${fmtPct(n,keys.length)}%`;
+   if(count)count.textContent=`${n}/${progress.total} concluídos`;
+   if(percentage)percentage.textContent=`${progress.pct}% de progresso`;
+   if(bar)bar.style.width=`${progress.pct}%`;
    const stats=[['Tópicos',DB.topics[k].map((_,i)=>topicProgressKey(k,i))],['Simulados',readyExamsFor(k).map(e=>`sim:${e.id}`)],['Áudios',audioEpisodes(k).map(e=>`audio:${k}:${e.n}`)]];
    stats.forEach(([name,values])=>{let el=document.querySelector(`[data-subject-stat="${name}"]`);if(el)el.textContent=`${doneCount(values)}/${values.length}`;});
    const reviewKeys=DB.topics[k].map((_,i)=>topicProgressKey(k,i)),reviewDone=doneCount(reviewKeys);
