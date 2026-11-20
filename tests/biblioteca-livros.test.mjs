@@ -134,3 +134,42 @@ test('Álbum de envios admin integra PDFs sem alterar obras antigas',()=>{
  assert.match(css,/\.psb-album-fields/);
  new vm.Script(uploader,{filename:'biblioteca-upload.js'});
 });
+
+
+test('O envio só inicia após análise da capa e confirmação editorial',()=>{
+ const upload=read('biblioteca-upload.js');
+ const review=read('biblioteca-review.js');
+ assert.match(html,/biblioteca-review\.js\?v=20261120-review-v1/);
+ assert.ok(html.indexOf('biblioteca-review.js?v=')<html.indexOf('biblioteca-upload.js?v='));
+ assert.match(upload,/function reviewItem\(item\)/);
+ assert.match(upload,/data-psb-confirm/);
+ assert.match(upload,/const targets=queue\.filter\(x=>x\.status==='review'&&x\.reviewed\)/);
+ assert.match(upload,/data-psb-cover-mode="pdf"/);
+ assert.match(upload,/data-psb-find-cover/);
+ assert.match(upload,/if\(!title\|\|!author/);
+ assert.match(upload,/cover_path:coverPath\|\|null/);
+ assert.match(upload,/createSignedUrl\(book\.coverPath,3600\)/);
+ assert.match(upload,/const leftovers=\[path,coverPath\]\.filter\(Boolean\)/);
+ assert.match(review,/pageCover=await previewPage\(page\)/);
+ assert.match(review,/data\.hasCover/);
+ assert.match(review,/!data\.hasCover\) data\.foundCover=await findCover/);
+ assert.match(review,/www\.googleapis\.com\/books\/v1\/volumes/);
+ assert.match(review,/openlibrary\.org\/search\.json/);
+ assert.match(css,/\.psb-album-review/);
+ assert.match(css,/\.psb-album-cover-preview img/);
+ new vm.Script(upload,{filename:'biblioteca-upload.js'});
+ new vm.Script(review,{filename:'biblioteca-review.js'});
+});
+test('Classificação automática preserva assunto e exige correspondência de capa',()=>{
+ const code=read('biblioteca-review.js');
+ const w={};
+ vm.runInNewContext(code,{window:w});
+ const f=w.PSICO_BOOK_REVIEW;
+ assert.ok(f,'analisador exportado');
+ assert.equal(f.inferSubject('História da psicologia: rumos e percursos','Jacó-Vilela'),'História da psicologia');
+ assert.equal(f.inferSubject('Vocabulário da psicanálise','Laplanche'),'Psicanálise');
+ assert.equal(f.inferSubject('Psicologia da Família',''), 'Psicologia da família');
+ assert.equal(f.titleMatch('História da psicologia moderna','História da Psicologia Moderna'),1);
+ assert.ok(f.titleMatch('A estrutura das revoluções científicas','Manual de Radiologia Veterinária')<.4);
+ assert.equal(f.cleanTitle('LIVRO_HISTÓRIA DA PSICOLOGIA.pdf'),'História da psicologia');
+});

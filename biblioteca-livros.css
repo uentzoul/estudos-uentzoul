@@ -240,3 +240,26 @@ html[data-theme="dark"] .psb-album-drop strong{color:#f6efff}
 @media(max-width:650px){.psb-category-upload{padding:16px;min-height:120px}.psb-category-upload .psb-category-icon{flex-basis:55px;width:55px;height:66px;font-size:32px}
 .psb-album-panel,.psb-album-library{padding:15px}.psb-album-panel-head,.psb-album-library-head{flex-wrap:wrap;align-items:flex-start}
 .psb-album-fields{grid-template-columns:1fr}.psb-album-actions{flex-direction:column;align-items:stretch}.psb-album-send{width:100%}}
+
+/* Revisão editorial de PDFs antes do envio */
+.psb-album-review{display:grid;grid-template-columns:105px minmax(0,1fr);gap:15px;align-items:start;margin:0 0 15px;padding:15px;background:color-mix(in srgb,var(--psb-bg) 91%,#bca4df);border:1px solid var(--psb-line);border-radius:12px}
+.psb-album-cover-preview{width:105px;aspect-ratio:.68;background:linear-gradient(145deg,#69608d,#c5b5d9);border-radius:4px 7px 7px 4px;overflow:hidden;box-shadow:3px 5px 12px #29223d1b;display:flex;align-items:center;justify-content:center}
+.psb-album-cover-preview img{display:block;width:100%;height:100%;object-fit:cover;object-position:center}
+.psb-album-no-cover{font-size:11px;color:#fff;padding:9px;text-align:center;line-height:1.5}
+.psb-album-review-data{display:flex;flex-direction:column;min-width:0;gap:6px}
+.psb-album-review-data>strong{font-size:12px;color:var(--psb-ink)}
+.psb-album-review-data>span,.psb-album-review-data>small{font-size:11px;color:var(--psb-muted);line-height:1.45}
+.psb-album-cover-choices{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+.psb-album-cover-choices button{border:1px solid var(--psb-line);border-radius:7px;padding:7px 9px;background:var(--psb-bg);color:var(--psb-ink);font-size:11px}
+.psb-album-cover-choices button[aria-pressed="true"]{border-color:#a48bcf;background:#eae4f6;color:#594278;font-weight:750}
+.psb-album-cover-choices button:disabled{opacity:.5;cursor:not-allowed}
+.psb-album-review-warnings{margin:0 0 12px}
+.psb-album-review-warnings p{margin:4px 0;font-size:11px;line-height:1.5;color:#a16229}
+.psb-album-confirm{display:flex;align-items:flex-start;gap:9px;margin-top:13px;padding:12px;border-radius:9px;background:#f1eef9;color:#54486d;font-size:11px;line-height:1.5;font-weight:700}
+.psb-album-confirm input{margin-top:2px;flex:0 0 auto;accent-color:#7054a3}
+.psb-album-confirm:has(input:checked){background:#ebf6f0;color:#267554}
+html[data-theme="dark"] .psb-album-review{background:#2a2534}
+html[data-theme="dark"] .psb-album-cover-choices button[aria-pressed="true"]{background:#48385e;color:#e9dbff}
+html[data-theme="dark"] .psb-album-confirm{background:#37304b;color:#ded0f4}
+html[data-theme="dark"] .psb-album-confirm:has(input:checked){background:#243e36;color:#bcf1d5}
+@media(max-width:510px){.psb-album-review{grid-template-columns:80px minmax(0,1fr);gap:10px;padding:10px}.psb-album-cover-preview{width:80px}.psb-album-cover-choices button{padding:6px 7px;font-size:10px}}
