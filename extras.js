@@ -73,7 +73,7 @@ function getWord(){
 }
 function gameStateDefault(game){
  return game==="psico"?{guesses:[],draft:"",done:false,won:false}:
- game==="conexo"?{solved:[],mistakes:0,selected:[],wrong:[],shuffled:[],done:false,won:false}:
+ game==="conexo"?{solved:[],selected:[],wrong:[],shuffled:[],marked:[],done:false,won:false}:
  {guesses:[],hint:false,done:false,won:false};
 }
 function localKey(game,targetDay=day){return "psicomoodle-extras-v1:"+uid+":"+targetDay+":"+game;}
@@ -418,31 +418,41 @@ function initConnections(){
  if(!Array.isArray(st.selected))st.selected=[];
  if(!Array.isArray(st.wrong))st.wrong=[];
  if(!Array.isArray(st.shuffled))st.shuffled=[];
- st.solved=st.solved.filter(i=>Number.isInteger(i)&&i>=0&&i<4);
- st.mistakes=Math.max(0,Math.min(4,Number(st.mistakes)||0));
- st.done=st.solved.length===4||st.mistakes>=4;
- st.won=st.solved.length===4;
+ if(!Array.isArray(st.marked))st.marked=[];
+ st.solved=[...new Set(st.solved.filter(i=>Number.isInteger(i)&&i>=0&&i<4))];
+ const ids=new Set(connectionTiles.filter(t=>!st.solved.includes(t.group)).map(t=>t.id));
+ st.selected=st.selected.filter(id=>ids.has(id)).slice(0,4);
+ st.marked=st.marked.filter(id=>ids.has(id));
+ st.shuffled=st.shuffled.filter(id=>ids.has(id));
+ // Erros nunca encerram uma partida. Partidas antigas interrompidas podem continuar.
+ st.done=st.solved.length===4;
+ st.won=st.done;
 }
 function renderConexo(){
  const st=states.conexo,solved=st.solved||[];
- const failed=st.done&&!st.won;
- const show=connectionGroups.map((group,i)=>({group,i})).filter(x=>solved.includes(x.i)||failed);
- const remaining=connectionTiles.filter(t=>!solved.includes(t.group)&&!failed);
- const sorted=st.shuffled?.length?remaining.sort((a,b)=>st.shuffled.indexOf(a.id)-st.shuffled.indexOf(b.id)):remaining;
- const found=show.map(({group,i})=>'<div class="conexo-group l'+(group.level%4)+'"><strong>'+esc(group.title)+'</strong><small>'+group.terms.map(esc).join(" · ")+'</small></div>').join("");
- let end="";
- if(st.done)end='<div class="finish-box"><strong>'+(st.won?"Quatro grupos encontrados!":"Tentativas encerradas.")+'</strong><p>'+ (st.won?"Você resolveu o VÍNCULO deste dia.":"As quatro conexões aparecem acima para revisão.")+' Escolha outra data para jogar novamente.</p></div>';
- $("gameHost").innerHTML='<div class="game-panel"><div class="game-head"><div><span class="game-tag">Conexões do dia · 16 palavras</span><h2>VÍNCULO</h2><p>Selecione quatro termos que têm uma ligação. São quatro grupos de quatro; você pode errar até quatro vezes.</p></div><span class="game-stat">'+solved.length+' / 4 grupos</span></div>'+
+ const show=connectionGroups.map((group,i)=>({group,i})).filter(x=>solved.includes(x.i));
+ const remaining=connectionTiles.filter(t=>!solved.includes(t.group));
+ const order=new Map((st.shuffled||[]).map((id,i)=>[id,i]));
+ const sorted=remaining.sort((a,b)=>(order.get(a.id)??1000+connectionTiles.indexOf(a))-(order.get(b.id)??1000+connectionTiles.indexOf(b)));
+ const found=show.map(({group})=>'<div class="conexo-group l'+(group.level%4)+'"><strong>'+esc(group.title)+'</strong><small>'+group.terms.map(esc).join(" · ")+'</small></div>').join("");
+ const end=st.done?'<div class="finish-box"><strong>Quatro grupos encontrados!</strong><p>Você resolveu o VÍNCULO deste dia. Escolha outra data para jogar novamente.</p></div>':'';
+ $("gameHost").innerHTML='<div class="game-panel"><div class="game-head"><div><span class="game-tag">Conexões do dia · 16 palavras</span><h2>VÍNCULO</h2><p>Encontre os quatro grupos de quatro palavras. Não há limite de erros ou tentativas.</p></div><span class="game-stat">'+solved.length+' / 4 grupos</span></div>'+
   '<div class="conexo-solved">'+found+'</div>'+
-  '<div class="conexo-grid">'+sorted.map(t=>'<button class="conexo-tile '+(st.selected.includes(t.id)?"selected":"")+'" data-tile="'+esc(t.id)+'" type="button" aria-pressed="'+String(st.selected.includes(t.id))+'">'+esc(t.word)+'</button>').join("")+'</div>'+
-  '<div class="lives">Erros disponíveis: '+Array.from({length:4},(_,i)=>'<span class="life '+(i<st.mistakes?"lost":"")+'" aria-label="'+(i<st.mistakes?"Erro usado":"Tentativa disponível")+'"></span>').join("")+'</div>'+
+  '<div class="conexo-grid" aria-label="Palavras do VÍNCULO — arraste para organizar">'+sorted.map(t=>'<button class="conexo-tile '+(st.selected.includes(t.id)?"selected ":"")+(st.marked.includes(t.id)?"marked":"")+'" data-tile="'+esc(t.id)+'" type="button" aria-pressed="'+String(st.selected.includes(t.id))+'" aria-label="'+esc(t.word)+(st.marked.includes(t.id)?" (marcada)":"")+'">'+esc(t.word)+'</button>').join("")+'</div>'+
   feedbackHtml("conexo")+
-  (!st.done?'<div class="game-actions"><button type="button" class="secondary-action" data-conexo="shuffle">Misturar</button><button type="button" class="secondary-action" data-conexo="deselect">Desmarcar</button><button type="button" class="primary-action" data-conexo="submit" '+(st.selected.length!==4?"disabled":"")+' >Enviar ('+st.selected.length+'/4)</button></div>':"")+
-  end+'<div class="explanation">Os conjuntos foram criados com conceitos e assuntos das disciplinas que você estudou. Categorias são reveladas quando acertadas ou ao terminar as tentativas.</div></div>';
+  (!st.done?'<div class="game-actions"><button type="button" class="secondary-action" data-conexo="shuffle">Misturar</button><button type="button" class="secondary-action" data-conexo="deselect">Desmarcar seleção</button><button type="button" class="secondary-action'+(conexoMarkMode?' conexo-mark-mode':'')+'" data-conexo="markmode" aria-pressed="'+String(conexoMarkMode)+'">Marcar palavras</button><button type="button" class="primary-action" data-conexo="submit" '+(st.selected.length!==4?"disabled":"")+' >Enviar ('+st.selected.length+'/4)</button></div>':"")+
+  end+'<p class="conexo-help">Arraste as palavras para reorganizar. Clique com o botão direito para marcar uma possível conexão. No celular, use “Marcar palavras” e toque nos quadrados.</p></div>';
  requestHeight();
+}
+function tileMark(id){
+ const st=states.conexo;if(st.done)return;
+ st.marked=st.marked||[];
+ st.marked=st.marked.includes(id)?st.marked.filter(x=>x!==id):[...st.marked,id];
+ store("conexo");renderConexo();
 }
 function tileClick(id){
  const st=states.conexo;if(st.done)return;
+ if(conexoMarkMode){tileMark(id);return;}
  if(st.selected.includes(id))st.selected=st.selected.filter(x=>x!==id);
  else if(st.selected.length<4)st.selected.push(id);
  store("conexo",false);renderConexo();
@@ -460,22 +470,22 @@ function conexoSubmit(){
   feedback={game:"conexo",message:"Grupo encontrado: "+connectionGroups[idx].title,kind:"ok"};
  }else{
   const code=st.selected.slice().sort().join("|");
-  if(st.wrong.includes(code)){setFeedback("conexo","Esse conjunto já foi tentado.","error");return;}
-  st.wrong.push(code);st.mistakes++;
+  if(!st.wrong.includes(code))st.wrong.push(code);
   const count=Math.max(...[0,1,2,3].map(group=>terms.filter(t=>t.group===group).length));
   feedback={game:"conexo",message:count===3?"Faltou uma palavra!":"Essas quatro palavras não formam um grupo.",kind:"error"};
  }
- st.selected=[];st.done=st.solved.length===4||st.mistakes>=4;st.won=st.solved.length===4;
+ st.selected=[];st.done=st.solved.length===4;st.won=st.done;
  store("conexo");renderConexo();
 }
 function conexoAction(action){
  const st=states.conexo;
  if(action==="submit"){conexoSubmit();return;}
+ if(action==="markmode"){conexoMarkMode=!conexoMarkMode;renderConexo();return;}
  if(action==="deselect"){st.selected=[];store("conexo",false);renderConexo();return;}
  if(action==="shuffle"){
   const remaining=connectionTiles.filter(t=>!st.solved.includes(t.group));
   st.shuffled=shuffle(remaining,Math.floor(Math.random()*4294967295)+1).map(t=>t.id);
-  store("conexo",false);renderConexo();
+  store("conexo");renderConexo();
  }
 }
 function displayTerm(value){
