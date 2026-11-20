@@ -58,9 +58,24 @@ test('Administrador continua vendo todas as obras e tem ferramentas exclusivas',
 });
 test('Acesso público não libera catálogo de PDFs nem ferramentas administrativas',()=>{
  assert.match(html,/id="navBookLibraryAdmin" data-page="books" hidden/);
- assert.match(html,/id="navAudiobooksMembers" data-page="audiobooks" hidden/);
+ assert.match(html,/id="navAudiobooksMembers" data-page="audiobooks" disabled aria-disabled="true"/);
+ assert.match(html,/id="navAudiobooksMembers"[^>]+disabled[^>]*>/);
+ assert.match(html,/if\(page==='audiobooks'\)return/);
+ assert.match(html,/if\(current.page==='audiobooks'\)current.page='home'/);
  assert.match(html,/case 'audiobooks':body=/);
  assert.match(html,/if\(page==='books'&&!window\.uentzoulAdminConfig\?\.isAdmin\?\.\(\)\)return/);
  assert.match(code,/if\(busy\|\|!isAdmin\(\)\|\|!selected\)return/);
  assert.match(code,/const bs=isAdmin\(\)\?books\(\):\[\.\.\.new Set\(rows\.filter/);
+});
+
+test('Cartão da Biblioteca também permanece cinza e não clicável para o administrador',()=>{
+ const books=fs.readFileSync(new URL('../biblioteca-livros.js',import.meta.url),'utf8');
+ const css=fs.readFileSync(new URL('../biblioteca-livros.css',import.meta.url),'utf8');
+ assert.match(books,/psb-category-audio psb-category-coming" disabled aria-disabled="true"/);
+ assert.doesNotMatch(books,/<button class="psb-category psb-category-audio" data-psb-tab="audio"/);
+ assert.match(books,/if\(tab\.dataset\.psbTab==='audio'\)return/);
+ assert.match(books,/if\(activeShelf==='audio'\)activeShelf='home'/);
+ assert.match(css,/\.psb-category-audio\.psb-category-coming/);
+ assert.match(css,/\.psb-coming-badge/);
+ assert.match(css,/\.pm-audio-soon-tag/);
 });
