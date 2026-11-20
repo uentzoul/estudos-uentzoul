@@ -243,6 +243,7 @@ function renderShelf(){
  const host=$('nbShelf');if(!host)return;
  host.innerHTML='<div class="nb-shelf-tutorial-bar"><span id="nbGrammarProgress" class="nb-grammar-progress" role="status" aria-live="polite"></span>'+
   '<button type="button" id="nbGrammarRetry" class="nb-shelf-tutorial-button nb-grammar-retry" data-nb-grammar-retry>Revisar anotações</button>'+
+  '<button type="button" class="nb-shelf-tutorial-button" data-nb-import>Importar caderno (JSON)</button>'+
   '<button type="button" class="nb-shelf-tutorial-button" data-nb-tour-start aria-label="Abrir tutorial do Caderno">ⓘ Tutorial</button></div>'+
   '<div class="nb-shelf-heading"><span class="nb-shelf-eyebrow">PSICOMOODLE · '+SEMESTER_LABEL.toUpperCase()+'</span>'+
   '<h2>Meus cadernos</h2><p>Escolhe uma matéria para abrir o caderno e folhear suas páginas. Anotações sincronizadas com a sua conta.</p></div>'+
@@ -439,8 +440,9 @@ function redo(){
 root.className='nb-app';
 root.innerHTML=
  '<header class="nb-top"><div class="nb-brand"><button type="button" class="nb-mark nb-hamburger" data-nb-action="drawer" aria-label="Abrir lista de cadernos" title="Cadernos">☰</button><div><h1 id="nbBookHeading">Caderno de aula</h1><p>Meu espaço de anotações</p></div></div>'+
- '<div class="nb-top-right"><button class="nb-quiet nb-back-books" data-nb-action="backToBooks" title="Voltar à estante de cadernos">‹ Cadernos</button><button class="nb-edit-toggle" id="nbEditToggle" data-nb-action="toggleEdit" aria-pressed="false">✎ Editar</button><span class="nb-status" id="nbStatus" role="status">Rascunho local · salvo automaticamente</span><button class="nb-quiet" data-nb-action="export">Exportar PDF</button></div></header>'+
- '<section class="nb-shelf" id="nbShelf" aria-label="Escolher caderno" hidden></section>'+ 
+ '<div class="nb-top-right"><button class="nb-quiet nb-back-books" data-nb-action="backToBooks" title="Voltar à estante de cadernos">‹ Cadernos</button><button class="nb-edit-toggle" id="nbEditToggle" data-nb-action="toggleEdit" aria-pressed="false">✎ Editar</button><span class="nb-status" id="nbStatus" role="status">Rascunho local · salvo automaticamente</span><div class="nb-export-wrap"><button type="button" class="nb-quiet nb-export-toggle" data-nb-export-toggle id="nbExportToggle" aria-haspopup="menu" aria-expanded="false" aria-controls="nbExportMenu">Exportar <span aria-hidden="true">⌄</span></button><div id="nbExportMenu" class="nb-export-menu" role="menu" aria-label="Formatos de exportação" hidden><button type="button" role="menuitem" data-nb-export-format="pdf"><strong>Exportar PDF</strong><small>Para leitura e impressão</small></button><button type="button" role="menuitem" data-nb-export-format="json"><strong>Salvar caderno editável (JSON)</strong><small>Backup para restaurar e continuar editando</small></button></div></div></div></header>'+
+ '<section class="nb-shelf" id="nbShelf" aria-label="Escolher caderno" hidden></section>'+
+ '<input id="nbImportFile" type="file" accept=".json,application/json" hidden aria-label="Selecionar backup do caderno editável">'+ 
  '<div class="nb-tools" id="nbTools" role="toolbar" aria-label="Ferramentas do caderno">'+
  '<div class="nb-toolgroup nb-primary-tools">' +
  '<button type="button" class="nb-tool nb-icon-tool" data-nb-action="none" aria-label="Navegar" title="Navegar">✋</button>' +
