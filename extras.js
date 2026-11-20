@@ -488,6 +488,61 @@ function conexoAction(action){
   store("conexo");renderConexo();
  }
 }
+function conexoGridFlip(grid,modify){
+ const tiles=[...grid.querySelectorAll(".conexo-tile")];
+ const before=new Map(tiles.map(el=>[el,el.getBoundingClientRect()]));
+ modify();
+ for(const el of tiles){
+  if(el.classList.contains("drag-origin"))continue;
+  const prev=before.get(el),now=el.getBoundingClientRect();
+  const x=prev.left-now.left,y=prev.top-now.top;
+  if((x||y)&&el.animate)el.animate([{transform:"translate("+x+"px,"+y+"px)"},{transform:"translate(0,0)"}],{duration:180,easing:"cubic-bezier(.22,.61,.36,1)"});
+ }
+}
+function conexoDragStart(e){
+ if(!approved||active!=="conexo"||states.conexo.done||e.button!==0)return;
+ const tile=e.target.closest(".conexo-tile"),grid=tile?.closest(".conexo-grid");
+ if(!grid)return;
+ conexoDrag={tile,grid,pointerId:e.pointerId,x:e.clientX,y:e.clientY,started:false,ghost:null};
+}
+function conexoDragMove(e){
+ const drag=conexoDrag;
+ if(!drag||drag.pointerId!==e.pointerId)return;
+ const dx=e.clientX-drag.x,dy=e.clientY-drag.y;
+ if(!drag.started){
+  if(Math.hypot(dx,dy)<9)return;
+  drag.started=true;suppressConexoClick=true;
+  const rect=drag.tile.getBoundingClientRect();
+  drag.ghost=drag.tile.cloneNode(true);
+  drag.ghost.removeAttribute("data-tile");
+  drag.ghost.classList.add("conexo-drag-ghost");
+  Object.assign(drag.ghost.style,{left:rect.left+"px",top:rect.top+"px",width:rect.width+"px",height:rect.height+"px"});
+  document.body.appendChild(drag.ghost);
+  drag.tile.classList.add("drag-origin");
+  drag.grid.classList.add("is-dragging");
+ }
+ if(e.cancelable)e.preventDefault();
+ drag.ghost.style.transform="translate("+dx+"px,"+dy+"px) scale(1.045)";
+ const target=document.elementFromPoint(e.clientX,e.clientY)?.closest(".conexo-tile");
+ if(!target||target===drag.tile||target.parentElement!==drag.grid)return;
+ const rect=target.getBoundingClientRect();
+ // Em uma grade de quatro colunas, inserir após o destino se o cursor passou do centro.
+ const after=e.clientY>rect.top+rect.height*.58||(Math.abs(e.clientY-(rect.top+rect.height/2))<rect.height*.42&&e.clientX>rect.left+rect.width/2);
+ const next=after?target.nextElementSibling:target;
+ if(next===drag.tile||(!after&&target===drag.tile))return;
+ conexoGridFlip(drag.grid,()=>drag.grid.insertBefore(drag.tile,next));
+}
+function conexoDragEnd(e){
+ const drag=conexoDrag;if(!drag||drag.pointerId!==e.pointerId)return;
+ conexoDrag=null;
+ if(!drag.started)return;
+ drag.ghost?.remove();drag.tile.classList.remove("drag-origin");drag.grid.classList.remove("is-dragging");
+ states.conexo.shuffled=[...drag.grid.querySelectorAll("[data-tile]")].map(el=>el.dataset.tile);
+ store("conexo");
+ renderConexo();
+ // Impede o clique sintético após soltar uma peça arrastada no mouse e no toque.
+ setTimeout(()=>{suppressConexoClick=false;},0);
+}
 function displayTerm(value){
  const v=cleanTerm(value),found=contextTerms.get(v);
  return found?.label||String(value??"").toLowerCase();
@@ -623,7 +678,7 @@ document.addEventListener("click",e=>{
  }
  if(active==="conexo"){
   const tile=e.target.closest("[data-tile]");
-  if(tile){tileClick(tile.dataset.tile);return;}
+  if(tile){if(suppressConexoClick){suppressConexoClick=false;return;}tileClick(tile.dataset.tile);return;}
   const action=e.target.closest("[data-conexo]");
   if(action){conexoAction(action.dataset.conexo);return;}
  }
@@ -633,6 +688,16 @@ document.addEventListener("click",e=>{
   }
  }
 });
+document.addEventListener("contextmenu",e=>{
+ if(!approved||active!=="conexo")return;
+ const tile=e.target.closest(".conexo-tile[data-tile]");
+ if(!tile)return;
+ e.preventDefault();tileMark(tile.dataset.tile);
+});
+document.addEventListener("pointerdown",e=>conexoDragStart(e));
+document.addEventListener("pointermove",e=>conexoDragMove(e),{passive:false});
+document.addEventListener("pointerup",e=>conexoDragEnd(e));
+document.addEventListener("pointercancel",e=>conexoDragEnd(e));
 document.addEventListener("change",e=>{if(e.target?.id==="archiveDate")void selectArchiveDay(e.target.value);});
 document.addEventListener("beforeinput",e=>{
  if(e.target?.id!=="psicoTypeBox"||!approved||active!=="psico")return;
