@@ -268,9 +268,9 @@ function ensureAudioLibrary(){
  if(window.PSICO_AUDIO_LIBRARY||window.__psaLibraryPending)return;
  window.__psaLibraryPending=true;
  if(!document.getElementById('psaLibraryStyles')){
-  const link=document.createElement('link');link.id='psaLibraryStyles';link.rel='stylesheet';link.href='biblioteca-audiobooks.css?v=20261120-1';document.head.appendChild(link);
+  const link=document.createElement('link');link.id='psaLibraryStyles';link.rel='stylesheet';link.href='biblioteca-audiobooks.css?v=20261120-2';document.head.appendChild(link);
  }
- const script=document.createElement('script');script.src='biblioteca-audiobooks.js?v=20261120-1';script.async=true;
+ const script=document.createElement('script');script.src='biblioteca-audiobooks.js?v=20261120-2';script.async=true;
  script.onload=()=>{window.__psaLibraryPending=false;requestRender();};
  script.onerror=()=>{window.__psaLibraryPending=false;lastError='Não foi possível carregar a biblioteca de audiobooks.';requestRender()};
  document.head.appendChild(script);
