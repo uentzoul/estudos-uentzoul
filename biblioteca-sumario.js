@@ -6,20 +6,11 @@ const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&
 const norm=s=>String(s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLocaleLowerCase('pt-BR');
 let state=null,generation=0,eventsBound=false;
 function context(){return window.PSICO_BOOK_LIBRARY?.getReaderContext?.()||null}
-function ranges(count){
- const step=count>400?24:count>170?16:count>70?10:count>25?6:4;
- const items=[{title:'Início do livro',page:1,level:0}];
- for(let first=2;first<=count;first+=step){
-  const last=Math.min(count,first+step-1);
-  items.push({title:'Páginas '+first+(first===last?'':'–'+last),page:first,level:0});
- }
- return items;
-}
-function cacheKey(c){return 'psb-toc-v3::'+(window.uentzoulAIAuth?.user?.()?.id||'')+'::'+c.book.id+'::'+c.book.path+'::'+c.total}
+function cacheKey(c){return 'psb-toc-v4::'(window.uentzoulAIAuth?.user?.()?.id||'')+'::'+c.book.id+'::'+c.book.path+'::'+c.total}
 function readCache(c){
  try{
   const record=JSON.parse(localStorage.getItem(cacheKey(c))||'null');
-  if(!record||!Array.isArray(record.items)||!['outline','text','pages'].includes(record.kind))return null;
+  if(!record||!Array.isArray(record.items)||!['outline','text'].includes(record.kind))return null;
   return {kind:record.kind,items:record.items.filter(x=>
    typeof x.title==='string'&&x.title.length<=200&&Number.isInteger(x.page)&&x.page>=1&&x.page<=c.total).slice(0,240)};
  }catch(_){return null}
@@ -172,10 +163,11 @@ function renderEntries(items,kind){
 }
 function renderBody(){
  if(!state)return '';
- const chapters=state.items.length?
+ return state.items.length?
   '<div class="psb-toc-subheading">Capítulos e seções</div>'+renderEntries(state.items,'chapter'):
-  '<p class="psb-toc-empty">'+(state.loading?'Identificando capítulos e seções…':'Este arquivo não possui capítulos reconhecíveis automaticamente. Utilize a navegação por páginas.')+'</p>';
- return chapters+'<div class="psb-toc-subheading">Navegação por páginas</div>'+renderEntries(state.ranges,'range');
+  '<p class="psb-toc-empty">'+(state.loading?
+   'Identificando os capítulos deste livro…':
+   'Não foi possível identificar os capítulos com segurança neste arquivo. Em PDFs digitalizados sem texto reconhecível, o sumário depende de marcadores ou de identificação das seções.')+'</p>';
 }
 function refreshStatus(){
  const el=document.getElementById('psbTocStatus');
@@ -191,16 +183,13 @@ function sync(){
  const panel=document.getElementById('psbTocPanel'),c=context();
  if(!panel||!c)return;
  const current=c.currentPage();
- for(const kind of ['chapter','range']){
-  let closest=0;
-  for(const item of (kind==='chapter'?state.items:state.ranges))
-   if(item.page<=current)closest=item.page;
-  for(const b of panel.querySelectorAll('[data-psb-toc-kind="'+kind+'"]')){
-   const yes=Number(b.dataset.psbTocPage)===closest;
-   b.classList.toggle('is-current',yes);
-   if(yes)b.setAttribute('aria-current','location');
-   else b.removeAttribute('aria-current');
-  }
+ let currentChapter=0;
+ for(const item of state.items)if(item.page<=current)currentChapter=item.page;
+ for(const b of panel.querySelectorAll('[data-psb-toc-kind="chapter"]')){
+  const selected=Number(b.dataset.psbTocPage)===currentChapter;
+  b.classList.toggle('is-current',selected);
+  if(selected)b.setAttribute('aria-current','location');
+  else b.removeAttribute('aria-current');
  }
 }
 function setOpen(on){
@@ -220,11 +209,11 @@ function mount(){
   generation++;
   const cached=readCache(c);
   state={
-   key,query:'',open:false,loading:!cached,kind:cached?.kind||'pages',
-   items:cached?.items||[],ranges:ranges(c.total),
-   status:cached?'Sumário disponível':'Preparando sumário…'
+   key,query:'',open:false,loading:!cached,kind:cached?.kind||'unknown',
+   items:cached?.items||[],
+   status:cached?'Sumário disponível':'Identificando capítulos…'
   };
-  if(cached)state.status=cached.kind==='outline'?'Capítulos do próprio PDF':cached.kind==='text'?'Seções identificadas no texto':'Navegação organizada por páginas';
+  if(cached)state.status=cached.kind==='outline'?'Capítulos do próprio PDF':'Seções identificadas no texto';
   else void build(c,generation);
  }
  const tools=reader.querySelector('.psb-reader-tools');
@@ -236,7 +225,7 @@ function mount(){
    '<aside id="psbTocPanel" class="psb-toc-panel" aria-label="Sumário do livro" hidden>'+
    '<header class="psb-toc-header"><div><strong>Sumário</strong><small id="psbTocStatus">'+esc(state.status)+'</small></div>'+
    '<button type="button" data-psb-toc-close aria-label="Fechar sumário">×</button></header>'+
-   '<label class="psb-toc-search"><span aria-hidden="true">⌕</span><input type="search" id="psbTocFilter" placeholder="Buscar capítulo ou página" aria-label="Buscar no sumário"></label>'+
+   '<label class="psb-toc-search"><span aria-hidden="true">⌕</span><input type="search" id="psbTocFilter" placeholder="Buscar capítulo ou seção" aria-label="Buscar capítulo no sumário"></label>'+
    '<div class="psb-toc-body" id="psbTocBody">'+renderBody()+'</div></aside>');
  }
  const input=reader.querySelector('#psbTocFilter');
@@ -270,22 +259,23 @@ async function build(c,gen){
   if(generation!==gen)return;
   if(!items.length){
    items=await textHeadings(c,gen);
-   kind=items.length?'text':'pages';
+   kind=items.length?'text':'unknown';
   }
   if(generation!==gen||!state)return;
   state.items=items;state.kind=kind;state.loading=false;
   state.status=kind==='outline'?'Capítulos do próprio PDF':
-   kind==='text'?'Seções identificadas automaticamente no texto':
-   'Navegação organizada por páginas';
-  writeCache(c,items,kind);refreshStatus();refreshBody();
+   kind==='text'?'Capítulos e seções identificados no texto':
+   'Nenhum capítulo identificado neste PDF';
+  if(kind!=='unknown')writeCache(c,items,kind);
+  refreshStatus();refreshBody();
  }catch(_){
   if(generation!==gen||!state)return;
-  state.items=[];state.kind='pages';state.loading=false;
-  state.status='Capítulos indisponíveis; navegue pelas páginas.';
+  state.items=[];state.kind='unknown';state.loading=false;
+  state.status='Não foi possível identificar capítulos neste PDF.';
   refreshStatus();refreshBody();
  }
 }
 function close(){generation++;state=null}
 function isOpen(){return !!state?.open}
-window.PSICO_BOOK_TOC={mount,sync,close,isOpen,closePanel:()=>setOpen(false),ranges};
+window.PSICO_BOOK_TOC={mount,sync,close,isOpen,closePanel:()=>setOpen(false)};
 })();
