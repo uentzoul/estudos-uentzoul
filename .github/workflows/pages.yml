@@ -23,7 +23,7 @@ jobs:
         with:
           node-version: '22'
       - name: Auditoria de regressão antes de publicar
-        run: node --test tests/site-qa.test.mjs tests/tetriszoul.test.mjs
+        run: node --test tests/site-qa.test.mjs tests/tetriszoul.test.mjs tests/extras.test.mjs
       - uses: actions/configure-pages@v5
       - name: Publicar versão do site sem cache antigo
         run: |
