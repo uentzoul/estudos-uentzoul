@@ -220,7 +220,7 @@ test('Sumário clicável é criado automaticamente por livro e respeita páginas
   }
  }
  function sequence(id,re,expected){
-  const nums=catalog[id].map(x=>x.title.match(re)?.[1]).filter(Boolean).map(Number);
+  const nums=Array.from(catalog[id],x=>x.title.match(re)?.[1]).filter(Boolean).map(Number);
   assert.deepEqual(nums,Array.from({length:expected},(_,i)=>i+1),id+' sem saltos ou inversões');
  }
  sequence('zimerman-grupos',/^(\d+)\./,38);
@@ -231,7 +231,7 @@ test('Sumário clicável é criado automaticamente por livro e respeita páginas
  sequence('collins-interseccionalidade',/^(\d+)\./,8);
  const popChapters=catalog['popper-logica'].filter(x=>x.title.startsWith('Capítulo '));
  assert.equal(popChapters.length,10);
- assert.deepEqual(popChapters.map(x=>x.title.match(/^Capítulo ([IVX]+)/)[1]),
+ assert.deepEqual(Array.from(popChapters,x=>x.title.match(/^Capítulo ([IVX]+)/)[1]),
   ['I','II','III','IV','V','VI','VII','VIII','IX','X']);
  assert.equal(catalog['collins-interseccionalidade'].filter(x=>x.missing).length,6,'o trecho digital inclui apenas capítulos 1 e 2');
  assert.equal(catalog['kuhn-revolucoes'].filter(x=>x.missing).length,1,'Kuhn contém lacuna assinalada, sem link falso');
