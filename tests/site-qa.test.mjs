@@ -52,21 +52,20 @@ test('Documento principal declara português brasileiro e viewport responsivo',(
 });
 
 
-test('Carregador mantém Biblioteca abaixo de Agenda e preserva os dois avisos Em breve',()=>{
+test('Carregador mantém Biblioteca abaixo de Agenda e não recria áreas descontinuadas',()=>{
  const loader=read('site-version.js');
- // Executa a rotina real de reordenação sobre um menu simulado.
+ // Executa a rotina de reordenação sobre a navegação sem Trabalhos.
  const begin=loader.indexOf(" const nav=document.getElementById('nav');");
  const finish=loader.indexOf(' // Marca e nome:',begin);
  assert.ok(begin>=0&&finish>begin,'rotina de ordenação do menu');
- const initial=['home','calendar','exams','caderno','messages','vacation','biblioteca','trabalhos','extras'];
+ const initial=['home','calendar','exams','caderno','messages','vacation','biblioteca','extras'];
  const nodes=Object.fromEntries(initial.map(name=>[name,{name}]));
  const children=initial.map(name=>nodes[name]);
  const selectorMap={
   '[data-page="home"]':'home','[data-page="calendar"]':'calendar','[data-page="exams"]':'exams',
   '#navCadernoPreview':'caderno','[aria-label="Biblioteca — em breve"]':'biblioteca',
   '[data-page="messages"]':'messages','#navVacationReview':'vacation',
-  '[aria-label="Trabalhos — em breve"]':'trabalhos','.nav-upcoming':'biblioteca',
-  '[data-page="admin"]':null
+  '[data-page="extras"]':'extras','[data-page="admin"]':null
  };
  for(const node of children)Object.defineProperty(node,'nextElementSibling',{
   get(){return children[children.indexOf(node)+1]||null}
@@ -76,54 +75,48 @@ test('Carregador mantém Biblioteca abaixo de Agenda e preserva os dois avisos E
   insertBefore(node,before){const old=children.indexOf(node);if(old>=0)children.splice(old,1);const index=before?children.indexOf(before):-1;children.splice(index<0?children.length:index,0,node)}
  };
  vm.runInNewContext(loader.slice(begin,finish),{document:{getElementById:id=>id==='nav'?nav:null}});
- assert.deepEqual(children.map(n=>n.name).slice(0,9),['home','calendar','biblioteca','exams','caderno','messages','vacation','trabalhos','extras'],'ordem após carregar scripts e login');
+ assert.deepEqual(children.map(n=>n.name),['home','calendar','biblioteca','exams','caderno','messages','vacation','extras'],'menu estável após carregar scripts e login');
 
- // Garante que a harmonização não escolhe apenas o primeiro "Em breve".
  const badgeBegin=loader.indexOf(' function harmonizeUpcoming(){');
  const badgeEnd=loader.indexOf('\n function sync(){',badgeBegin);
  assert.ok(badgeBegin>=0&&badgeEnd>badgeBegin,'rotina de selos');
- const incoming=[{name:'biblioteca'},{name:'trabalhos'}];
- for(const item of incoming){
-  item.badges=[];
-  item.tip={remove(){item.tip=null}};
-  item.querySelector=selector=>selector==='.nav-upcoming-tip'?item.tip:selector==='.nb-preview-label'?item.badges[0]:null;
-  item.removeAttribute=()=>{};
-  item.appendChild=badge=>item.badges.push(badge);
- }
+ const item={name:'biblioteca',badges:[]};
+ item.tip={remove(){item.tip=null}};
+ item.querySelector=selector=>selector==='.nav-upcoming-tip'?item.tip:selector==='.nb-preview-label'?item.badges[0]:null;
+ item.removeAttribute=()=>{};
+ item.appendChild=badge=>item.badges.push(badge);
  const fakeDocument={
-  querySelectorAll:()=>incoming,
+  querySelectorAll:()=>[item],
   createElement:tag=>({tag,className:'',textContent:'',setAttribute(name,value){this[name]=value}})
  };
  vm.runInNewContext(loader.slice(badgeBegin,badgeEnd)+'\nharmonizeUpcoming();',{document:fakeDocument});
- for(const item of incoming){
-  assert.equal(item.badges.length,1,item.name+' possui um selo');
-  assert.equal(item.badges[0].textContent,'Em breve',item.name+' mostra Em breve');
-  assert.equal(item.tip,null,item.name+' não mantém tooltip duplicado');
- }
- assert.match(html,/site-version\.js\?v=20261120-biblioteca-agenda-v3/,'cache invalida a versão que reorganizava o menu');
+ assert.equal(item.badges.length,1,'Biblioteca mantém um selo');
+ assert.equal(item.badges[0].textContent,'Em breve','Biblioteca mostra Em breve');
+ assert.equal(item.tip,null,'Biblioteca não mantém tooltip duplicado');
+ assert.match(html,/site-version\.js\?v=20261120-sem-trabalhos-v1/,'cache invalida a versão antiga do menu');
 });
 
-test('Biblioteca aparece logo abaixo de Agenda e ambos os futuros recursos não abrem telas',()=>{
+test('Biblioteca fica após Agenda e Trabalhos não existe mais no site',()=>{
  const navStart=html.indexOf('<nav class="menu" id="nav">');
  const navEnd=html.indexOf('</nav>',navStart);
  assert.ok(navStart>=0&&navEnd>navStart,'menu principal disponível');
  const nav=html.slice(navStart,navEnd);
  const agenda=nav.indexOf('data-page="calendar"');
+ const biblioteca=nav.indexOf('aria-label="Biblioteca — em breve"');
  const simulados=nav.indexOf('data-page="exams"');
  const caderno=nav.indexOf('id="navCadernoPreview"');
- const biblioteca=nav.indexOf('aria-label="Biblioteca — em breve"');
  const mensagens=nav.indexOf('data-page="messages"');
- const trabalhos=nav.indexOf('aria-label="Trabalhos — em breve"');
- assert.ok(agenda>=0&&biblioteca>agenda&&simulados>biblioteca&&caderno>simulados&&mensagens>caderno,'Biblioteca vem imediatamente após Agenda e Horários, antes de Simulados');
- assert.ok(trabalhos>mensagens,'Trabalhos permanece na sua posição');
- for(const name of ['Biblioteca','Trabalhos']){
-  const pattern=new RegExp('<span class="sidebtn nav-upcoming" role="note" tabindex="0" aria-disabled="true" aria-label="'+name+' — em breve" title="Em breve">[\\s\\S]*?<span class="nav-upcoming-name">'+name+'</span><span class="nav-upcoming-tip" aria-hidden="true">Em breve</span></span>');
-  assert.match(nav,pattern,name+' é informativo, tem ícone, não é botão nem link');
- }
- assert.equal((nav.match(/class="sidebtn nav-upcoming"/g)||[]).length,2,'dois recursos futuros');
- assert.doesNotMatch(nav,/data-page="library"|data-page="trabalhos"/,'nenhuma rota acessível');
- assert.match(html,/const targets=\[\.\.\.document\.querySelectorAll\('#nav \.nav-upcoming'\)\]/,'tooltip de ambos os itens no desktop');
- assert.match(html,/@media\(hover:none\)\{\s*#nav \.nav-upcoming/,'aviso Em breve visível em telas touch');
+ const ferias=nav.indexOf('id="navVacationReview"');
+ const extras=nav.indexOf('id="navExtrasGames"');
+ const admin=nav.indexOf('id="navAdminConfig"');
+ assert.ok(agenda>=0&&biblioteca>agenda&&simulados>biblioteca&&caderno>simulados&&mensagens>caderno&&ferias>mensagens&&extras>ferias&&admin>extras,'ordem preservada');
+ const pattern=/<span class="sidebtn nav-upcoming" role="note" tabindex="0" aria-disabled="true" aria-label="Biblioteca — em breve" title="Em breve">[\s\S]*?<span class="nav-upcoming-name">Biblioteca<\/span><span class="nav-upcoming-tip" aria-hidden="true">Em breve<\/span><\/span>/;
+ assert.match(nav,pattern,'Biblioteca mantém o aviso informativo');
+ assert.equal((nav.match(/class="sidebtn nav-upcoming"/g)||[]).length,1,'somente Biblioteca fica Em breve');
+ assert.doesNotMatch(nav,/Trabalhos|trabalhos|data-page="works"/,'nenhum botão da antiga funcionalidade');
+ assert.doesNotMatch(html,/navTrabalhos|PSICO_WORKS|PSICO_WORK_REVIEW|case 'works'|data-page="works"|trabalhos-conferencia\.(css|js)|trabalhos\.(css|js)/,'sem código ou referências do módulo removido');
+ assert.match(html,/const targets=\[\.\.\.document\.querySelectorAll\('#nav \.nav-upcoming'\)\]/,'tooltip de Biblioteca no desktop');
+ assert.match(html,/@media\(hover:none\)\{\s*#nav \.nav-upcoming/,'aviso de Biblioteca visível em telas touch');
 });
 
 test('Barra oval de busca, ordenação e visualização não retorna em nenhum semestre',()=>{
@@ -147,8 +140,8 @@ test('Três semestres continuam cadastrados com suas disciplinas',()=>{
 });
 
 test('Revisão de Férias já existe no HTML inicial e não pisca no refresh',()=>{
- const elementIndex=html.indexOf('id="navVacationReview"'),upcomingIndex=html.indexOf('aria-label="Trabalhos — em breve"');
- assert.ok(elementIndex>0&&upcomingIndex>elementIndex,'item na posição final antes do HTML ser exibido');
+ const elementIndex=html.indexOf('id="navVacationReview"'),extrasIndex=html.indexOf('id="navExtrasGames"');
+ assert.ok(elementIndex>0&&extrasIndex>elementIndex,'item na posição final antes do HTML ser exibido');
  assert.match(html,/<script id="pm-vacation-timeline-js"[^>]+defer><\/script>/,'script carregado sem injeção tardia');
  assert.match(html,/<link id="pm-vacation-timeline-css"[^>]+rel="stylesheet"/,'estilo carregado no head');
  const css=read('revisao-ferias.css');
