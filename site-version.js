@@ -26,14 +26,14 @@ function setup(){
  if(nav){
   // Navegação no mesmo alinhamento desde o primeiro quadro.
   // Não remover e reinserir todos os botões ao carregar: isso causava o flick.
-  const anchor=nav.querySelector('.nav-upcoming')||nav.querySelector('[data-page="admin"]')||null;
+  const anchor=nav.querySelector('[aria-label="Trabalhos — em breve"]')||nav.querySelector('.nav-upcoming')||nav.querySelector('[data-page="admin"]')||null;
   const items=[
    nav.querySelector('[data-page="home"]'),
    nav.querySelector('[data-page="calendar"]'),
    nav.querySelector('[data-page="exams"]'),
    nav.querySelector('#navCadernoPreview'),
+   nav.querySelector('[aria-label="Biblioteca — em breve"]'),
    nav.querySelector('[data-page="messages"]'),
-   nav.querySelector('[data-page="ai"]'),
    nav.querySelector('#navVacationReview')
   ].filter(Boolean);
   let next=anchor;
@@ -290,7 +290,7 @@ setTimeout(check,15000);
   }
   return semesters.includes(value)?value:'2026/2';
  }
- const notebookUrl=()=>('./caderno.html?v=20261120-edicao-backup-v3&semester='+
+ const notebookUrl=()=>('./caderno.html?v=20261120-biblioteca-menu-v2&semester='+
    encodeURIComponent(selectedSemester()));
  function addStyles(){
   if(document.getElementById(STYLE_ID))return;
@@ -371,15 +371,16 @@ setTimeout(check,15000);
   setTimeout(fitNotebookHeight,180);
  }
  function harmonizeUpcoming(){
-  const jobs=document.querySelector('#nav .nav-upcoming');
-  if(!jobs)return;
-  jobs.querySelector('.nav-upcoming-tip')?.remove();
-  jobs.removeAttribute('title');
-  if(!jobs.querySelector('.nb-preview-label')){
-   const badge=document.createElement('span');
-   badge.className='nb-preview-label';badge.textContent='Em breve';
-   badge.setAttribute('aria-hidden','true');jobs.appendChild(badge);
-  }
+  // Biblioteca e Trabalhos devem manter o mesmo selo "Em breve", sem alterar a navegação.
+  document.querySelectorAll('#nav .nav-upcoming').forEach(item=>{
+   item.querySelector('.nav-upcoming-tip')?.remove();
+   item.removeAttribute('title');
+   if(!item.querySelector('.nb-preview-label')){
+    const badge=document.createElement('span');
+    badge.className='nb-preview-label';badge.textContent='Em breve';
+    badge.setAttribute('aria-hidden','true');item.appendChild(badge);
+   }
+  });
  }
  function sync(){
   const el=nav();if(!el)return;

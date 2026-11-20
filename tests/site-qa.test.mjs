@@ -51,6 +51,58 @@ test('Documento principal declara português brasileiro e viewport responsivo',(
  assert.match(html,/<main[^>]+id="main"/i);
 });
 
+
+test('Carregador mantém Biblioteca entre Caderno e Mensagens e preserva os dois avisos Em breve',()=>{
+ const loader=read('site-version.js');
+ // Executa a rotina real de reordenação sobre um menu simulado.
+ const begin=loader.indexOf(" const nav=document.getElementById('nav');");
+ const finish=loader.indexOf(' // Marca e nome:',begin);
+ assert.ok(begin>=0&&finish>begin,'rotina de ordenação do menu');
+ const initial=['home','calendar','exams','caderno','messages','vacation','biblioteca','trabalhos','extras'];
+ const nodes=Object.fromEntries(initial.map(name=>[name,{name}]));
+ const children=initial.map(name=>nodes[name]);
+ const selectorMap={
+  '[data-page="home"]':'home','[data-page="calendar"]':'calendar','[data-page="exams"]':'exams',
+  '#navCadernoPreview':'caderno','[aria-label="Biblioteca — em breve"]':'biblioteca',
+  '[data-page="messages"]':'messages','#navVacationReview':'vacation',
+  '[aria-label="Trabalhos — em breve"]':'trabalhos','.nav-upcoming':'biblioteca',
+  '[data-page="admin"]':null
+ };
+ for(const node of children)Object.defineProperty(node,'nextElementSibling',{
+  get(){return children[children.indexOf(node)+1]||null}
+ });
+ const nav={
+  querySelector(selector){return nodes[selectorMap[selector]]||null},
+  insertBefore(node,before){const old=children.indexOf(node);if(old>=0)children.splice(old,1);const index=before?children.indexOf(before):-1;children.splice(index<0?children.length:index,0,node)}
+ };
+ vm.runInNewContext(loader.slice(begin,finish),{document:{getElementById:id=>id==='nav'?nav:null}});
+ assert.deepEqual(children.map(n=>n.name).slice(0,9),['home','calendar','exams','caderno','biblioteca','messages','vacation','trabalhos','extras'],'ordem após carregar scripts e login');
+
+ // Garante que a harmonização não escolhe apenas o primeiro "Em breve".
+ const badgeBegin=loader.indexOf(' function harmonizeUpcoming(){');
+ const badgeEnd=loader.indexOf('\n function sync(){',badgeBegin);
+ assert.ok(badgeBegin>=0&&badgeEnd>badgeBegin,'rotina de selos');
+ const incoming=[{name:'biblioteca'},{name:'trabalhos'}];
+ for(const item of incoming){
+  item.badges=[];
+  item.tip={remove(){item.tip=null}};
+  item.querySelector=selector=>selector==='.nav-upcoming-tip'?item.tip:selector==='.nb-preview-label'?item.badges[0]:null;
+  item.removeAttribute=()=>{};
+  item.appendChild=badge=>item.badges.push(badge);
+ }
+ const fakeDocument={
+  querySelectorAll:()=>incoming,
+  createElement:tag=>({tag,className:'',textContent:'',setAttribute(name,value){this[name]=value}})
+ };
+ vm.runInNewContext(loader.slice(badgeBegin,badgeEnd)+'\nharmonizeUpcoming();',{document:fakeDocument});
+ for(const item of incoming){
+  assert.equal(item.badges.length,1,item.name+' possui um selo');
+  assert.equal(item.badges[0].textContent,'Em breve',item.name+' mostra Em breve');
+  assert.equal(item.tip,null,item.name+' não mantém tooltip duplicado');
+ }
+ assert.match(html,/site-version\.js\?v=20261120-biblioteca-menu-v2/,'cache invalida a versão que reorganizava o menu');
+});
+
 test('Biblioteca aparece logo abaixo de Caderno e ambos os futuros recursos não abrem telas',()=>{
  const navStart=html.indexOf('<nav class="menu" id="nav">');
  const navEnd=html.indexOf('</nav>',navStart);
