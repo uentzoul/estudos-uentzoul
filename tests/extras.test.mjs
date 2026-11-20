@@ -21,7 +21,7 @@ test('Extras é acessível a contas conectadas, com TetrisZoul exclusivo de admi
  assert.ok(index.indexOf('id="navExtrasGames"')<index.indexOf('id="navAdminConfig"'));
  assert.match(index,/case 'extras':body='<div class="psico-extras-embed">/);
  assert.match(page,/id="extrasGate"/);
- assert.match(script,/isAdmin=!role.error&&role.data===true/);
+ assert.match(script,/isAdmin=!role\?\.error&&role\?\.data===true/);
  assert.match(script,/if\(b.dataset.game==="tetris"\)b.hidden=!isAdmin/);
  assert.match(script,/game==="tetris"&&!isAdmin/);
  assert.match(read('tetriszoul.html'),/rpc\("uentzoul_is_admin"\)/);
@@ -183,4 +183,22 @@ test('Arraste do VÍNCULO reordena peças em tempo real, com captura de ponteiro
  assert.equal(grid.pointer,null,'ponteiro liberado ao soltar');
  assert.equal(e.states().conexo.shuffled[15],id,'nova ordem persiste');
  assert.equal(e.states().conexo.selected.length,0,'arrastar não seleciona a palavra');
+});
+
+test('Extras reutiliza autenticação do site e não cria outra sessão dentro do iframe',()=>{
+ assert.match(script,/function hostLogin\(\)/);
+ assert.match(script,/window\.parent\.uentzoulAIAuth/);
+ assert.match(script,/client=host\.client/);
+ assert.match(script,/uid=linked\.id/);
+ assert.match(script,/client=await loadStandaloneClient\(\)/,'acesso isolado continua disponível');
+ assert.match(script,/event==="SIGNED_OUT"/);
+ assert.doesNotMatch(page,/<script src="https:\/\/cdn\.jsdelivr\.net\/npm\/@supabase/);
+ assert.match(page,/class="extras-booting"/);
+ assert.match(script,/document\.documentElement\.classList\.remove\("extras-booting"\)/);
+});
+test('Extras não interrompe a abertura aguardando consulta de permissões ou progresso',()=>{
+ const s=script.slice(script.indexOf('async function start(){'),script.indexOf('document.addEventListener("click"',script.indexOf('async function start(){')));
+ assert.ok(s.indexOf('approved=true')<s.indexOf('client.rpc("uentzoul_is_admin")'));
+ assert.ok(s.indexOf('switchGame(initial)')<s.indexOf('loadCloud(enteredDay)'));
+ assert.match(s,/if\(event==="SIGNED_OUT"\)/,'sem tratar INITIAL_SESSION como logout');
 });
