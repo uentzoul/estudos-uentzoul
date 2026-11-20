@@ -1999,6 +1999,7 @@ html[data-theme="dark"] .tz-pending-icon{background:#40375e;color:#d6c4ff}
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2064%2064%22%3E%3Crect%20width%3D%2264%22%20height%3D%2264%22%20rx%3D%2214%22%20fill%3D%22%23192d44%22%2F%3E%3Ctext%20x%3D%2232%22%20y%3D%2246%22%20fill%3D%22white%22%20font-size%3D%2246%22%20font-family%3D%22Georgia%2Cserif%22%20text-anchor%3D%22middle%22%3E%CE%A8%3C%2Ftext%3E%3C%2Fsvg%3E">
 <link rel="stylesheet" href="library-manager.css?v=20261114-batch-recovery-v1">
 <link rel="stylesheet" href="biblioteca-livros.css?v=20261120-review-v1">
+<link rel="stylesheet" href="biblioteca-audiobooks.css?v=20261120-members-v1">
 <link rel="stylesheet" href="biblioteca-moodle.css?v=20261112-3">
 <link rel="stylesheet" href="revisao-compacta.css?v=20261120-moreno-rogers-p3-v1">
 <script src="revisao-erros.js?v=20261119-avaliacao-p3-v1"></script>
@@ -2656,6 +2657,7 @@ html[data-theme="dark"]{
 
 <span class="sidebtn nav-upcoming" role="note" tabindex="0" aria-disabled="true" aria-label="Biblioteca — em breve" title="Em breve"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M12 6c-2.5-1.7-5.7-2-9-1v14c3.3-1 6.5-.7 9 1V6Zm0 0c2.5-1.7 5.7-2 9-1v14c-3.3-1-6.5-.7-9 1V6Z"/></svg><span class="nav-upcoming-name">Biblioteca</span><span class="nav-upcoming-tip" aria-hidden="true">Em breve</span></span>
 <button type="button" class="sidebtn" id="navBookLibraryAdmin" data-page="books" hidden aria-label="Biblioteca — acesso do administrador"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 6c-2.5-1.7-5.7-2-9-1v14c3.3-1 6.5-.7 9 1V6Zm0 0c2.5-1.7 5.7-2 9-1v14c-3.3-1-6.5-.7-9 1V6Z"/></svg><span class="nav-label">Biblioteca</span><small class="psb-admin-mini">Teste</small></button>
+<button type="button" class="sidebtn" id="navAudiobooksMembers" data-page="audiobooks" hidden aria-label="Biblioteca de audiobooks"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 13v-2a8 8 0 0 1 16 0v2"/><rect x="2" y="12" width="4" height="8" rx="2"/><rect x="18" y="12" width="4" height="8" rx="2"/></svg><span class="nav-label">Audiobooks</span></button>
 
 <button class="sidebtn" data-page="exams"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="3" width="14" height="18" rx="2"/><path d="M9 8h6M9 12h6M9 16h3"/></svg><span class="nav-label">Simulados</span></button>
 
@@ -3140,11 +3142,12 @@ function pmNavRestore(state){
   const screen=state.screen||{};
   if(current.page==='books'&&screen.page!=='books')window.PSICO_BOOK_LIBRARY?.reset?.();
   current={...current,...screen};
-  if(!['home','subject','test','exams','calendar','audio','messages','admin','extras','books'].includes(current.page))current.page='home';
+  if(!['home','subject','test','exams','calendar','audio','audiobooks','messages','admin','extras','books'].includes(current.page))current.page='home';
   if(current.page==='subject'&&!DB.subjects[current.subject])current.page='home';
   if(current.page==='test'&&!DB.exams.some(x=>x.id===current.exam))current.page='exams';
   if(current.page==='admin'&&!window.uentzoulAdminConfig?.isAdmin?.())current.page='home';
   if(current.page==='books'&&!window.uentzoulAdminConfig?.isAdmin?.())current.page='home';
+ if(current.page==='audiobooks'&&!window.uentzoulAIAuth?.user?.())current.page='home';
   if(current.page==='extras'&&(isExtrasPhone()||!window.uentzoulAIAuth?.user?.()))current.page='home';
   if(current.page==='calendar'&&!agendaAvailable())current.page='home';
   if(state.agenda){
@@ -3194,6 +3197,7 @@ const go=(page,extra={})=>{
  if(page==='calendar'&&!agendaAvailable())return;
  if(page==='admin'&&!window.uentzoulAdminConfig?.isAdmin?.())page='home';
  if(page==='books'&&!window.uentzoulAdminConfig?.isAdmin?.())return;
+ if(page==='audiobooks'&&!window.uentzoulAIAuth?.user?.()){window.uentzoulAIAuth?.openLogin?.();return;}
  if(page==='extras'&&isExtrasPhone())return;
  if(page==='extras'&&!window.uentzoulAIAuth?.user?.()){
   window.uentzoulAIAuth?.openLogin?.();
@@ -3270,6 +3274,9 @@ function renderNav(){
  const bookButton=document.getElementById('navBookLibraryAdmin');
  if(bookComing)bookComing.hidden=adminAccess;
  if(bookButton){bookButton.hidden=!adminAccess;bookButton.style.display=adminAccess?'':'none';}
+ const audiobookButton=document.getElementById('navAudiobooksMembers');
+ const memberAudioAccess=!!window.uentzoulAIAuth?.user?.()&&!adminAccess;
+ if(audiobookButton){audiobookButton.hidden=!memberAudioAccess;audiobookButton.style.display=memberAudioAccess?'':'none';}
  if(current.page==='books'&&!adminAccess){window.PSICO_BOOK_LIBRARY?.reset?.();current.page='home';queueMicrotask(()=>render());}
  const extraButton=document.getElementById('navExtrasGames');
  if(extraButton){
@@ -5002,6 +5009,8 @@ for(const name of ['uentzoul:flashcards-updated','uentzoul:study-guides-updated'
  if(current.page==='home'||current.page==='library')render();
 });
 window.PSICO_LIBRARY_RENDER_DIAGNOSTICS=()=>({replacements:docsRefreshCount,pending:docsRefreshTimer!==null});
+window.uentzoulAudioRefresh=()=>{if(current.page==='audiobooks')render()};
+window.uentzoulAudioGoHome=()=>go('home');
 function render(){
  if(current.page==='ai')current.page='home';
  if(current.page==='extras'&&isExtrasPhone())current.page='home';
@@ -5011,21 +5020,23 @@ function render(){
  if(current.page==='extras'&&document.getElementById('psicoExtrasFrame')){renderNav();return;}
  if(current.page==='calendar'&&!agendaAvailable())current.page='home';
  if(current.page==='books'&&!window.uentzoulAdminConfig?.isAdmin?.())current.page='home';
+ if(current.page==='audiobooks'&&!window.uentzoulAIAuth?.user?.())current.page='home';
  // Evita desmontar as páginas do livro durante atualizações de outras áreas.
  if(current.page==='books'&&window.PSICO_BOOK_LIBRARY?.isOpen?.()&&document.getElementById('psbReader')){renderNav();return;}
  renderNav();
- if((semester==='2027/1'||semester==='2026/1')&&!['ai','messages','admin','extras','books','exams','test'].includes(current.page)){
+ if((semester==='2027/1'||semester==='2026/1')&&!['ai','messages','admin','extras','books','audiobooks','exams','test'].includes(current.page)){
   $('main').innerHTML=renderThirdSemester();return;
  }
- if(!Object.keys(DB.subjects).length&&current.page!=='ai'&&current.page!=='messages'&&current.page!=='admin'&&current.page!=='extras'&&current.page!=='books'){
+ if(!Object.keys(DB.subjects).length&&current.page!=='ai'&&current.page!=='messages'&&current.page!=='admin'&&current.page!=='extras'&&current.page!=='books'&&current.page!=='audiobooks'){
   const labels={home:[semesterLabel(semester),'Um espaço novo para este semestre'],exams:['Simulados','Nenhum simulado cadastrado'],library:['Biblioteca','Nenhum arquivo cadastrado'],audio:['Podcasts','Nenhum podcast cadastrado'],calendar:['Agenda e Horários','Nenhuma avaliação cadastrada']};
   const v=labels[current.page]||labels.home;
   $('main').innerHTML=head(semester,v[0],v[1])+'<section class="section"><div class="panel semester-empty"><h2>Este semestre ainda está vazio</h2><p class="muted">As matérias, os textos, os simulados, os podcasts e a agenda deste semestre serão adicionados quando estiverem definidos. Os demais semestres continuam disponíveis no seletor.</p><p class="small">O progresso deste semestre começa vazio e não se mistura com o do semestre anterior.</p></div></section>';
   return;
  }
- let body='';switch(current.page){case 'home':body=renderHome();break;case 'subject':body=renderSubject(current.subject);break;case 'exams':body=renderExams();break;case 'test':body=renderTest(current.exam);break;case 'library':body=renderHome();break;case 'audio':body=renderAudio();break;case 'calendar':body=renderCalendar();break;case 'ai':body=renderHome();break;case 'messages':body=window.uentzoulMessenger?.render()||'<section class="panel">Carregando mensagens…</section>';break;case 'books':body=window.PSICO_BOOK_LIBRARY?.render()||'<section class="panel">Carregando Biblioteca…</section>';break;case 'extras':body='<div class="psico-extras-embed"><iframe id="psicoExtrasFrame" src="./extras.html?v=20261120-pc-tablet-v1" title="Extras · jogos de Psicologia" loading="eager" allow="fullscreen"></iframe></div>';break;
+ let body='';switch(current.page){case 'home':body=renderHome();break;case 'subject':body=renderSubject(current.subject);break;case 'exams':body=renderExams();break;case 'test':body=renderTest(current.exam);break;case 'library':body=renderHome();break;case 'audio':body=renderAudio();break;case 'calendar':body=renderCalendar();break;case 'ai':body=renderHome();break;case 'messages':body=window.uentzoulMessenger?.render()||'<section class="panel">Carregando mensagens…</section>';break;case 'books':body=window.PSICO_BOOK_LIBRARY?.render()||'<section class="panel">Carregando Biblioteca…</section>';break;
+case 'audiobooks':body='<div class="psb-library" id="psbLibrary">'+(window.PSICO_AUDIO_LIBRARY?.render?.()||'<p>Carregando audiobooks…</p>')+'</div>';break;case 'extras':body='<div class="psico-extras-embed"><iframe id="psicoExtrasFrame" src="./extras.html?v=20261120-pc-tablet-v1" title="Extras · jogos de Psicologia" loading="eager" allow="fullscreen"></iframe></div>';break;
  case 'admin':body=window.uentzoulAdminConfig?.render()||'<section class="panel">Acesso restrito.</section>';break;default:body=renderHome()};if(psAudioElement&&psAudioElement.isConnected&&$('main').contains(psAudioElement))document.body.appendChild(psAudioElement);
- $('main').innerHTML=body;if(current.page==='ai')queueMicrotask(tzHydrateThumbnails);if(isPodcastView())setupAudio();if(current.page==='messages')window.uentzoulMessenger?.afterRender(current.peerId||null);if(current.page==='admin')window.uentzoulAdminConfig?.afterRender();if(current.page==='books')queueMicrotask(()=>window.PSICO_BOOK_LIBRARY?.afterRender?.());}
+ $('main').innerHTML=body;if(current.page==='ai')queueMicrotask(tzHydrateThumbnails);if(isPodcastView())setupAudio();if(current.page==='messages')window.uentzoulMessenger?.afterRender(current.peerId||null);if(current.page==='admin')window.uentzoulAdminConfig?.afterRender();if(current.page==='books')queueMicrotask(()=>window.PSICO_BOOK_LIBRARY?.afterRender?.());if(current.page==='audiobooks')queueMicrotask(()=>window.PSICO_AUDIO_LIBRARY?.afterRender?.());}
 /* A camada de organização só altera categorias e posições, nunca os arquivos. */
 if(window.PSICO_MATERIAL_EDITOR){
  window.PSICO_MATERIAL_EDITOR.classify=materialGroup;
@@ -8720,6 +8731,7 @@ window.addEventListener('message',function(event){
 <script src="biblioteca-review.js?v=20261120-review-v1" defer></script>
 <script src="biblioteca-upload.js?v=20261120-review-v1" defer></script>
 <script src="biblioteca-livros.js?v=20261120-audiobooks-v1" defer></script>
+<script src="biblioteca-audiobooks.js?v=20261120-members-v1" defer></script>
 <script id="pm-mobile-drawer-js" src="mobile-drawer.js?v=20261114-smooth-locked-v18" defer></script>
 <script id="pm-chat-mobile-js" src="chat-mobile-viewport.js?v=20261117-group-call-v5" defer></script>
 <!-- Extensão integrada ao núcleo de mensagens. -->
