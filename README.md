@@ -24,7 +24,7 @@ O acesso ao site é feito por e-mail e senha usando o cadastro próprio do Psico
 
 - Histórico de conversas separado por estudante, com opção de abrir, renomear e excluir chats anteriores.
 - A IA Tzoul consulta a base de materiais do semestre, com opção de respostas aprofundadas.
-- A aba Simulados gera uma prova inédita quando solicitada: 13 objetivas e 2 dissertativas.
+- A aba Simulados apresenta provas com 15 questões. Na revisão de Metapsicologia (P2), cada um dos cinco simulados possui exclusivamente 15 questões objetivas: 7 de múltipla escolha, 5 de combinações de afirmativas e 3 de verdadeiro ou falso, sem dissertativas. Nas demais disciplinas, a distribuição depende da prova e do roteiro de estudos.
 - Dificuldades Normal e Difícil, com questões voltadas ao estilo documentado dos professores.
 - Uma entrega por pessoa por prova; depois de entregue, o simulado fica para consulta da correção.
 - Compartilhamento das provas geradas com outros estudantes cadastrados. Gabaritos permanecem protegidos no servidor até a entrega.
