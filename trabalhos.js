@@ -39,6 +39,12 @@ function save(rows){
  catch(_){notice='Não foi possível salvar: verifique o espaço disponível neste navegador.';return false;}
 }
 function get(){return read().find(x=>x.id===chosen)||null;}
+function rerenderWorks(){
+ if(!permitted())return;
+ window.PSICO_WORKS.forceRender=true;
+ try{window.uentzoulAdminBridge?.refreshCurrent?.();}
+ finally{window.PSICO_WORKS.forceRender=false;}
+}
 function edit(patch){
  const rows=read(),i=rows.findIndex(x=>x.id===chosen);
  if(i<0)return;
@@ -139,14 +145,17 @@ function render(){
  return '<div id="pmWorks" class="pw-root">'+header()+navigation()+(notice?'<p class="pw-save-note" role="status">'+esc(notice)+'</p>':'')+(view==='new'?createView():view==='route'?routeView():listView())+'</div>';
 }
 function afterRender(){}
-function open(id){chosen=id;view='route';notice='';window.uentzoulAdminBridge?.refreshCurrent?.();}
+function open(id){chosen=id;view='route';notice='';rerenderWorks();}
 function newId(){return crypto?.randomUUID?.()||('w'+Date.now()+'_'+Math.random().toString(36).slice(2));}
+function suggestedChecks(prompt){
+ return String(prompt||'').split(/\r?\n/).filter(line=>/^\s*(?:[-*•]\s+|\d+[.)]\s+)/.test(line)).map(line=>line.replace(/^\s*(?:[-*•]\s+|\d+[.)]\s+)/,'').trim()).filter(line=>line.length>=8&&line.length<=240).slice(0,15).map(label=>({id:newId(),label,ok:false}));
+}
 function create(form){
  const data=new FormData(form),title=String(data.get('title')||'').trim();
  if(!title)return;
- const row={id:newId(),title,subject:String(data.get('subject')||''),type:String(data.get('type')||'outro'),due:String(data.get('due')||''),members:String(data.get('members')||''),prompt:String(data.get('prompt')||''),done:[false,false,false,false,false,false],notes:['','','','','',''],stage:0,checks:[],scope:'',question:'',approach:'',decisions:'',sources:'',tasks:'',createdAt:new Date().toISOString(),updatedAt:new Date().toISOString()};
+ const row={id:newId(),title,subject:String(data.get('subject')||''),type:String(data.get('type')||'outro'),due:String(data.get('due')||''),members:String(data.get('members')||''),prompt:String(data.get('prompt')||''),done:[false,false,false,false,false,false],notes:['','','','','',''],stage:0,checks:suggestedChecks(String(data.get('prompt')||'')),scope:'',question:'',approach:'',decisions:'',sources:'',tasks:'',createdAt:new Date().toISOString(),updatedAt:new Date().toISOString()};
  const rows=read();rows.push(row);
- if(save(rows)){chosen=row.id;view='route';window.uentzoulAdminBridge?.refreshCurrent?.();}
+ if(save(rows)){chosen=row.id;view='route';rerenderWorks();}
 }
 function download(x){
  const lines=['TRABALHO: '+x.title,'Tipo: '+(TYPES.find(t=>t[0]===x.type)?.[1]||''),'Entrega: '+dateLabel(x.due),'Integrantes: '+(x.members||''),'','ENUNCIADO',x.prompt||'(não informado)','','MAPA DE DECISÕES','Recorte: '+(x.scope||''),'Pergunta central: '+(x.question||''),'Caminho: '+(x.approach||''),'Decisões: '+(x.decisions||''),'Fontes a conferir: '+(x.sources||''),'Divisão de tarefas: '+(x.tasks||''),'','ETAPAS'];
@@ -159,15 +168,15 @@ function download(x){
 document.addEventListener('click',e=>{
  if(!permitted()||!e.target.closest('#pmWorks'))return;
  const nav=e.target.closest('[data-pw-nav]');
- if(nav){view=nav.dataset.pwNav;notice='';window.uentzoulAdminBridge?.refreshCurrent?.();return;}
+ if(nav){view=nav.dataset.pwNav;notice='';rerenderWorks();return;}
  const openBtn=e.target.closest('[data-pw-open]');
  if(openBtn){open(openBtn.dataset.pwOpen);return;}
  const step=e.target.closest('[data-pw-stage]');
- if(step){const i=Number(step.dataset.pwStage);if(i>=0&&i<6){edit({stage:i});window.uentzoulAdminBridge?.refreshCurrent?.();}return;}
+ if(step){const i=Number(step.dataset.pwStage);if(i>=0&&i<6){edit({stage:i});rerenderWorks();}return;}
  const complete=e.target.closest('[data-pw-complete]');
- if(complete){const x=get();if(!x)return;const i=Number(complete.dataset.pwComplete),done=[...x.done];done[i]=!done[i];edit({done});window.uentzoulAdminBridge?.refreshCurrent?.();return;}
+ if(complete){const x=get();if(!x)return;const i=Number(complete.dataset.pwComplete),done=[...x.done];done[i]=!done[i];edit({done});rerenderWorks();return;}
  if(e.target.closest('[data-pw-export]')){const x=get();if(x)download(x);return;}
- if(e.target.closest('[data-pw-delete]')){const x=get();if(!x||!confirm('Excluir este trabalho e suas anotações salvas neste navegador?'))return;save(read().filter(row=>row.id!==x.id));chosen=null;view='list';window.uentzoulAdminBridge?.refreshCurrent?.();}
+ if(e.target.closest('[data-pw-delete]')){const x=get();if(!x||!confirm('Excluir este trabalho e suas anotações salvas neste navegador?'))return;save(read().filter(row=>row.id!==x.id));chosen=null;view='list';rerenderWorks();}
 });
 document.addEventListener('submit',e=>{
  if(!permitted()||!e.target.closest('#pmWorks'))return;
@@ -176,18 +185,18 @@ document.addEventListener('submit',e=>{
   e.preventDefault();const label=String(new FormData(e.target).get('label')||'').trim(),x=get();
   if(!label||!x)return;
   edit({checks:[...(x.checks||[]),{id:newId(),label,ok:false}]});
-  window.uentzoulAdminBridge?.refreshCurrent?.();
+  rerenderWorks();
  }
 });
 document.addEventListener('change',e=>{
  if(!permitted()||!e.target.closest('#pmWorks'))return;
  const check=e.target.closest('[data-pw-check]'),x=get();
- if(check&&x){edit({checks:(x.checks||[]).map(y=>y.id===check.dataset.pwCheck?{...y,ok:check.checked}:y)});window.uentzoulAdminBridge?.refreshCurrent?.();return;}
+ if(check&&x){edit({checks:(x.checks||[]).map(y=>y.id===check.dataset.pwCheck?{...y,ok:check.checked}:y)});rerenderWorks();return;}
  if(!x)return;
  const field=e.target.closest('[data-pw-field]');
  if(field){edit({[field.dataset.pwField]:field.value});return;}
  const notes=e.target.closest('[data-pw-stage-notes]');
  if(notes){const i=Number(notes.dataset.pwStageNotes),arr=[...x.notes];if(i>=0&&i<6){arr[i]=notes.value;edit({notes:arr});}}
 });
-window.PSICO_WORKS={render,afterRender,hasAccess:permitted};
+window.PSICO_WORKS={render,afterRender,hasAccess:permitted,forceRender:false};
 })();
