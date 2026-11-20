@@ -189,17 +189,25 @@ async function mapBookPages(pdf,b,token){
 }
 // O módulo do sumário é carregado só na abertura de livros; não aumenta o consumo da estante.
 let tocModulePromise=null;
+function loadBookModule(src){
+ return new Promise((resolve,reject)=>{
+  const node=document.createElement('script');
+  node.src=src;node.async=true;
+  node.onload=()=>resolve();
+  node.onerror=()=>reject(Error('Não foi possível carregar '+src));
+  document.head.appendChild(node);
+ });
+}
 function ensureTocModule(){
  if(window.PSICO_BOOK_TOC)return Promise.resolve(window.PSICO_BOOK_TOC);
  if(tocModulePromise)return tocModulePromise;
- tocModulePromise=new Promise((resolve,reject)=>{
-  const node=document.createElement('script');
-  node.src='biblioteca-sumario.js?v=20261120-toc-v2';
-  node.async=true;
-  node.onload=()=>window.PSICO_BOOK_TOC?resolve(window.PSICO_BOOK_TOC):reject(Error('Módulo de sumário indisponível.'));
-  node.onerror=()=>reject(Error('Não foi possível carregar o sumário.'));
-  document.head.appendChild(node);
- }).catch(err=>{tocModulePromise=null;console.warn(err);return null});
+ // Carrega primeiro os capítulos conferidos nos exemplares originais.
+ // Sem carregamento de PDFs adicionais ou acesso ao Storage.
+ tocModulePromise=loadBookModule('biblioteca-capitulos-revisados.js?v=20261120-verificado-v1')
+  .catch(err=>{console.warn('Sumários revisados indisponíveis:',err);})
+  .then(()=>loadBookModule('biblioteca-sumario.js?v=20261120-toc-v3'))
+  .then(()=>window.PSICO_BOOK_TOC||null)
+  .catch(err=>{tocModulePromise=null;console.warn(err);return null});
  return tocModulePromise;
 }
 function pdfjs(){
