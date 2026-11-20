@@ -117,9 +117,10 @@ function buildMini(){
  mini.querySelector('#psaMiniSeek').addEventListener('change',e=>{
   if(Number.isFinite(player.duration)&&player.duration>0){player.currentTime=player.duration*Number(e.target.value)/1000;syncPlayer()}
  });
- new MutationObserver(()=>{
+ const main=document.querySelector('#main');
+ if(main)new MutationObserver(()=>{
   if(!miniRefreshFrame)miniRefreshFrame=requestAnimationFrame(()=>{miniRefreshFrame=0;refreshMini()});
- }).observe(document.body,{childList:true,subtree:true});
+ }).observe(main,{childList:true,subtree:true});
 }
 function refreshMini(){
  if(!mini)return;
