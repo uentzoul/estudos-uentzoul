@@ -111,3 +111,26 @@ test('Capas editoriais substituem miniaturas e ocupam a moldura sem faixas branc
  assert.match(css,/transform:scale\(var\(--psb-cover-zoom,1\)\)/);
  assert.doesNotMatch(css,/\.psb-original-cover\{[^}]*object-fit:contain/);
 });
+
+
+test('Álbum de envios admin integra PDFs sem alterar obras antigas',()=>{
+ const uploader=read('biblioteca-upload.js');
+ assert.match(html,/biblioteca-upload\.js\?v=20261120-album-v1/);
+ assert.match(main,/const allBooks=\(\)=>BOOKS\.concat\(window\.PSICO_BOOK_UPLOAD\?\.books\?\.\(\)\|\|\[\]\)/);
+ assert.match(main,/data-psb-tab="upload"/);
+ assert.match(main,/activeShelf==='upload'/);
+ assert.match(main,/allBooks\(\)\.map\(bookCard\)/);
+ assert.match(main,/allBooks\(\)\.find\(x=>x\.id===id\)/);
+ assert.match(main,/PSICO_BOOK_UPLOAD\?\.load\?\.\(requestRender\)/);
+ assert.match(uploader,/const TABLE='uentzoul_book_catalog'/);
+ assert.match(uploader,/const MAX_BYTES=50\*1024\*1024/);
+ assert.match(uploader,/materials\/scheduled\/books\//);
+ assert.match(uploader,/contentType:'application\/pdf',upsert:false/);
+ assert.match(uploader,/signature!=='%PDF-'/);
+ assert.match(uploader,/window\.uentzoulAdminConfig\?\.isAdmin\?\.\(\)/);
+ assert.match(uploader,/\.insert\(record\)\.select\('id'\)\.single\(\)/);
+ assert.match(uploader,/type="file" accept=".pdf,application\/pdf" multiple/);
+ assert.match(css,/\.psb-album-drop/);
+ assert.match(css,/\.psb-album-fields/);
+ new vm.Script(uploader,{filename:'biblioteca-upload.js'});
+});

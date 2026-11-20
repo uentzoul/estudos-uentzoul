@@ -192,3 +192,51 @@ html[data-theme="dark"] #navBookLibraryAdmin .psb-admin-mini{color:#d3c4f6;backg
 }
 @media(max-width:370px){.psb-reader-title span,.psb-zoom-count{display:none}.psb-reader-top{grid-template-columns:37px 1fr auto}.psb-reader-tools button{padding:6px 5px}.psb-book-meta h3{font-size:11px}}
 @media(prefers-reduced-motion:reduce){.psb-library *{animation:none!important;transition:none!important}}
+
+
+/* Álbum para upload de livros — Biblioteca */
+.psb-category-upload{grid-column:1/-1;min-height:130px;padding:20px 26px;background:linear-gradient(110deg,#fff,#f8f6fc)}
+.psb-category-upload .psb-category-icon{width:78px;height:78px;flex:0 0 78px;font-size:43px;color:#7058a4;transform:none!important;box-shadow:none}
+.psb-album-panel,.psb-album-library{border:1px solid var(--psb-line);background:var(--psb-bg);border-radius:18px;padding:24px;margin:17px 0 22px;min-width:0}
+.psb-album-panel-head,.psb-album-library-head{display:flex;align-items:center;justify-content:space-between;gap:15px;margin-bottom:17px}
+.psb-album-panel h3,.psb-album-library h3{font-size:17px;letter-spacing:-.2px;margin:0 0 4px}
+.psb-album-panel-head p,.psb-album-library-head p{margin:0;color:var(--psb-muted);font-size:12px}
+.psb-album-limit{font-size:11px;font-weight:750;color:#6d5896;background:#f0eaf8;padding:8px 11px;border-radius:8px;white-space:nowrap}
+.psb-album-drop{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;min-height:172px;position:relative;border:1.5px dashed #bba8dd;border-radius:15px;background:#faf8ff;color:#67597b;text-align:center;cursor:pointer}
+.psb-album-drop:hover,.psb-album-drop:focus-within{background:#f3eefb;border-color:#866cb7}
+.psb-album-drop-icon{font-size:37px;line-height:1;color:#785fac}
+.psb-album-drop strong{font-size:14px;color:#4a3d64}
+.psb-album-drop span:last-of-type{font-size:11px}
+.psb-album-drop input{position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer}
+.psb-album-info{margin:12px 0 18px;color:var(--psb-muted);font-size:11px;line-height:1.6}
+.psb-album-queue{display:grid;gap:14px}
+.psb-album-blank{margin:0;padding:18px;border:1px dashed var(--psb-line);border-radius:12px;font-size:12px;color:var(--psb-muted)}
+.psb-album-item{border:1px solid var(--psb-line);border-radius:13px;padding:15px;min-width:0}
+.psb-album-file{display:flex;align-items:center;gap:11px;margin-bottom:15px}
+.psb-album-file>div{display:flex;flex:1;min-width:0;flex-direction:column;gap:3px}
+.psb-album-file strong{font-size:12px;overflow-wrap:anywhere}
+.psb-album-file small{font-size:11px;color:var(--psb-muted)}
+.psb-album-pdf{display:grid;place-items:center;width:40px;height:45px;flex:0 0 40px;background:#f0eaf9;color:#745c9a;border-radius:7px;font-size:10px;font-weight:850}
+.psb-album-file>button{border:0;background:transparent;color:var(--psb-muted);font-size:24px}
+.psb-album-fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.psb-album-fields label{display:flex;flex-direction:column;gap:5px;min-width:0;font-size:11px;color:var(--psb-muted)}
+.psb-album-fields input{width:100%;min-width:0;height:40px;border:1px solid var(--psb-line);border-radius:9px;padding:8px 10px;background:var(--psb-bg);color:var(--psb-ink);font-size:12px}
+.psb-album-excerpt{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--psb-muted);margin-top:13px;cursor:pointer}
+.psb-album-excerpt input{accent-color:#765ba7}
+.psb-album-state{font-size:11px;color:#75629a;margin:10px 0 0}
+.psb-album-state.is-error{color:#af4b4b}.psb-album-state.is-success{color:#267d64}
+.psb-album-actions{display:flex;align-items:center;justify-content:space-between;gap:14px;margin-top:16px}
+.psb-album-actions p{margin:0;color:var(--psb-muted);font-size:12px}
+.psb-album-send{border:0;background:#6e55a4;color:#fff;border-radius:10px;font-size:12px;font-weight:750;padding:13px 17px}
+.psb-album-send:disabled{opacity:.5;cursor:not-allowed}
+.psb-album-library-head button{border:1px solid var(--psb-line);background:var(--psb-bg);color:var(--psb-ink);border-radius:9px;padding:9px 12px;font-size:12px}
+.psb-album-history-item{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--psb-line)}
+.psb-album-history-icon{display:grid;place-items:center;width:35px;height:43px;flex:0 0 35px;background:#efe8f8;border-radius:7px;color:#735b9e}
+.psb-album-history-item>div{display:flex;flex-direction:column;gap:3px;min-width:0}
+.psb-album-history-item strong{font-size:12px;overflow-wrap:anywhere}
+.psb-album-history-item small{font-size:11px;color:var(--psb-muted)}
+html[data-theme="dark"] .psb-album-drop{background:#2b2732;border-color:#816b99}
+html[data-theme="dark"] .psb-album-drop strong{color:#f6efff}
+@media(max-width:650px){.psb-category-upload{padding:16px;min-height:120px}.psb-category-upload .psb-category-icon{flex-basis:55px;width:55px;height:66px;font-size:32px}
+.psb-album-panel,.psb-album-library{padding:15px}.psb-album-panel-head,.psb-album-library-head{flex-wrap:wrap;align-items:flex-start}
+.psb-album-fields{grid-template-columns:1fr}.psb-album-actions{flex-direction:column;align-items:stretch}.psb-album-send{width:100%}}

@@ -29,6 +29,7 @@ const BOOKS=[
  {id:'aries-crianca-familia',title:'História social da criança e da família',author:'Philippe Ariès',subject:'Psicologia da família',path:'materials/scheduled/d27048a1-049d-4e5a-b315-47a764818ff4.pdf',colors:['#776041','#ba9a6a','#e8d6ab'],cover:'https://martinsfontespaulista.vteximg.com.br/arquivos/ids/1417487-1000-1000/968646.jpg?v=639111726552530000',coverZoom:1.02},
  {id:'cfp-verdade-revolucionaria',title:'A verdade é revolucionária',author:'Conselho Federal de Psicologia',subject:'Psicologia social e direitos',pages:700,path:'materials/0729a72e-f387-4bf8-b2dd-c236339821c0.pdf',colors:['#493950','#92768f','#e2d2d8'],cover:'https://site.cfp.org.br/wp-content/uploads/2013/12/capa-do-livro.jpg',coverZoom:1}
 ];
+const allBooks=()=>BOOKS.concat(window.PSICO_BOOK_UPLOAD?.books?.()||[]);
 const normalize=s=>String(s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLocaleLowerCase('pt-BR');
 const esc=s=>String(s??'').replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
 const allowed=()=>Boolean(window.uentzoulAdminConfig?.isAdmin?.()&&window.uentzoulAIAuth?.user?.()?.id);
@@ -124,20 +125,23 @@ function bookCard(b,i){
 function categoryCards(){
  return '<div class="psb-categories"><button class="psb-category psb-category-books" data-psb-tab="books">'+
  '<span class="psb-category-icon" aria-hidden="true"><svg viewBox="0 0 64 64"><path d="M32 13c-9-6-20-6-28-2v42c11-4 20-4 28 2 8-6 17-6 28-2V11c-8-4-19-4-28 2zm0 0v42"/></svg></span>'+
- '<span class="psb-category-text"><span class="psb-category-num">01 / ACERVO</span><strong>Biblioteca de livros</strong><small>Obras, dicionários e leituras de Psicologia em um leitor integrado.</small><span class="psb-category-action">Explorar '+BOOKS.length+' livros <b>→</b></span></span></button>'+
+ '<span class="psb-category-text"><span class="psb-category-num">01 / ACERVO</span><strong>Biblioteca de livros</strong><small>Obras, dicionários e leituras de Psicologia em um leitor integrado.</small><span class="psb-category-action">Explorar '+allBooks().length+' livros <b>→</b></span></span></button>'+
  '<button class="psb-category psb-category-audio" data-psb-tab="audio">'+
  '<span class="psb-category-icon" aria-hidden="true"><svg viewBox="0 0 64 64"><rect x="10" y="20" width="44" height="32" rx="11"/><path d="M10 37H3V28c0-17 13-27 29-27s29 10 29 27v9h-7M20 29v15M44 29v15"/></svg></span>'+
- '<span class="psb-category-text"><span class="psb-category-num">02 / ESCUTA</span><strong>Biblioteca de audiobooks</strong><small>Um espaço próprio para os livros narrados e suas futuras coleções.</small><span class="psb-category-action">Abrir coleção <b>→</b></span></span></button></div>';
+ '<span class="psb-category-text"><span class="psb-category-num">02 / ESCUTA</span><strong>Biblioteca de audiobooks</strong><small>Um espaço próprio para os livros narrados e suas futuras coleções.</small><span class="psb-category-action">Abrir coleção <b>→</b></span></span></button>'+
+ '<button type="button" class="psb-category psb-category-upload" data-psb-tab="upload" aria-label="Adicionar livros">'+
+ '<span class="psb-category-icon" aria-hidden="true">↑</span><span class="psb-category-text"><span class="psb-category-num">03 / ADMIN</span>'+
+ '<strong>Adicionar livros</strong><small>Álbum para enviar PDFs, cadastrar obras e completar a estante.</small><span class="psb-category-action">Abrir álbum de uploads <b>→</b></span></span></button></div>';
 }
 function mainHeader(){
  return '<header class="psb-main-head"><span class="psb-eyebrow">PSICOMOODLE / ACERVO DIGITAL</span>'+
  '<div class="psb-heading-row"><div><h1>Biblioteca</h1><p>Conhecimento organizado para ler no seu ritmo.</p></div><span class="psb-admin-tag">Acesso do administrador</span></div></header>';
 }
 function bookShelf(){
- return '<div class="psb-subhead"><div><button data-psb-tab="home" class="psb-back">‹ Biblioteca</button><h2>Biblioteca de livros</h2><p>Explore o acervo. Cada PDF é carregado individualmente e fica guardado neste dispositivo quando houver espaço.</p></div><span class="psb-count" id="psbBookCount">'+BOOKS.length+' livros</span></div>'+
+ return '<div class="psb-subhead"><div><button data-psb-tab="home" class="psb-back">‹ Biblioteca</button><h2>Biblioteca de livros</h2><p>Explore o acervo. Cada PDF é carregado individualmente e fica guardado neste dispositivo quando houver espaço.</p></div><span class="psb-count" id="psbBookCount">'+allBooks().length+' livros</span></div>'+
  '<label class="psb-search"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.7" cy="10.7" r="6.7"/><path d="m16 16 5 5"/></svg>'+
  '<input type="search" id="psbSearch" autocomplete="off" spellcheck="false" value="'+esc(query)+'" placeholder="Pesquisar título, autor ou assunto..." aria-label="Pesquisar livros"></label>'+
- '<div class="psb-shelf" id="psbShelf">'+BOOKS.map(bookCard).join('')+'</div>'+
+ '<div class="psb-shelf" id="psbShelf">'+allBooks().map(bookCard).join('')+'</div>'+
  '<div class="psb-empty" id="psbSearchEmpty" hidden>Nenhum livro encontrado. Experimente outra palavra.</div>'+
  '<p class="psb-shelf-note">Este catálogo inclui livros e trechos acadêmicos já disponibilizados no acervo. Quando o arquivo é parcial, ele é identificado. Novas obras poderão ser acrescentadas à coleção.</p>';
 }
@@ -183,7 +187,7 @@ function render(){
  if(lastUserId!==user()){lastUserId=user();closeBook(true);activeShelf='home';query='';}
  return '<div class="psb-library" id="psbLibrary">'+
  (activeBook?reader():mainHeader()+
- (activeShelf==='home'?categoryCards():activeShelf==='audio'?audioShelf():bookShelf()))+
+ (activeShelf==='home'?categoryCards():activeShelf==='audio'?audioShelf():activeShelf==='upload'?(window.PSICO_BOOK_UPLOAD?.render?.()||'<p>Carregando álbum…</p>'):bookShelf()))+
  (lastError&&!activeBook?'<p class="psb-error" role="alert">'+esc(lastError)+'</p>':'')+
  '</div>';
 }
@@ -191,13 +195,14 @@ async function afterRender(){
  if(!allowed())return;
  if(activeBook&&documentPDF){await draw();return;}
  if(activeShelf==='books'){filterShelf();void restoreCovers();}
+ void window.PSICO_BOOK_UPLOAD?.load?.(requestRender);
 }
 function requestRender(){
  if(!allowed())return;
  window.uentzoulAdminBridge?.refreshCurrent?.();
 }
 async function restoreCovers(){
- for(const b of BOOKS){
+ for(const b of allBooks()){
   if(b.cover||coverUrls.has(b.id))continue;
   const stored=await cachedGet(COVER_STORE,cacheKey(b));
   if(!stored||!allowed())continue;
@@ -252,7 +257,7 @@ async function loadFile(b){
 }
 async function openBook(id){
  if(!allowed()||readerBusy)return;
- const b=BOOKS.find(x=>x.id===id);if(!b)return;
+ const b=allBooks().find(x=>x.id===id);if(!b)return;
  readerBusy=true;lastError='';downloadPct=0;cachedForActive=false;
  const myToken=++openToken;
  setCardLoading(b,true);
@@ -441,5 +446,5 @@ document.addEventListener('fullscreenchange',()=>{
 window.addEventListener('uentzoul:auth',()=>{
  if(!allowed()&&activeBook)closeBook(true);
 });
-window.PSICO_BOOK_LIBRARY={render,afterRender,hasAccess:allowed,books:()=>BOOKS.map(({id,title,author,subject,pages,part})=>({id,title,author,subject,pages,part})),isOpen:()=>!!activeBook,reset:()=>{closeBook(true);activeShelf='home';query='';}};
+window.PSICO_BOOK_LIBRARY={render,afterRender,hasAccess:allowed,books:()=>allBooks().map(({id,title,author,subject,pages,part})=>({id,title,author,subject,pages,part})),isOpen:()=>!!activeBook,reset:()=>{closeBook(true);activeShelf='home';query='';}};
 })();
