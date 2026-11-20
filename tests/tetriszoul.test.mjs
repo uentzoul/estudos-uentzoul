@@ -26,13 +26,15 @@ test('TetrisZoul possui página própria com regras 40 Lines',()=>{
  assert.match(html,/uentzoul_tetriszoul_runs/,'recordes salvos na conta');
 });
 
-test('Entrada no Admin Config fica diretamente depois do LOG, sem modificar papéis',()=>{
+test('TetrisZoul só aparece na última opção do Extras, não no Admin Config',()=>{
  const admin=read('admin-config.js');
- const body=admin.slice(admin.indexOf('function render(){'));
- const log=body.indexOf('adminLogMarkup()+');
- const game=body.indexOf('Jogar TetrisZoul');
- assert.ok(log>=0&&game>log,'link após LOG');
- assert.match(body,/href="\.\/tetriszoul\.html"/);
+ const extras=read('extras.html');
+ const js=read('extras.js');
+ assert.doesNotMatch(admin,/admin-tetriszoul-link|Jogar TetrisZoul/);
+ assert.ok(extras.indexOf('data-game="tetris"')>extras.indexOf('data-game="conexo"'));
+ assert.match(extras,/data-game="tetris" aria-selected="false" hidden/);
+ assert.match(js,/if\(b.dataset.game==="tetris"\)b.hidden=!isAdmin/);
+ assert.match(html,/rpc\("uentzoul_is_admin"\)/);
  assert.doesNotMatch(html,/set_concurso_role|set_tetris_role|grant_role/);
 });
 
