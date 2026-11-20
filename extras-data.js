@@ -1835,11 +1835,11 @@ window.PSICO_EXTRAS_DATA={
         "condicionamento",
         "habito",
         "aprendizagem",
-        "analise funcional",
+        "analise",
         "modelagem",
         "generalizacao",
         "consequencia",
-        "terapia cognitivo comportamental"
+        "terapia"
       ]
     },
     {
@@ -1858,7 +1858,7 @@ window.PSICO_EXTRAS_DATA={
         "abandono",
         "privacao",
         "fracasso",
-        "terapia do esquema"
+        "psicoterapia"
       ]
     },
     {
@@ -1895,7 +1895,7 @@ window.PSICO_EXTRAS_DATA={
         "recasamento",
         "violencia",
         "geracao",
-        "ciclo vital",
+        "ciclo",
         "apego",
         "filho",
         "cuidado",
@@ -1938,7 +1938,7 @@ window.PSICO_EXTRAS_DATA={
         "desigualdade",
         "identidade",
         "opinioes",
-        "redes sociais",
+        "redes",
         "vies",
         "conformidade",
         "influencia"
@@ -1956,9 +1956,9 @@ window.PSICO_EXTRAS_DATA={
         "pessoa",
         "autoconceito",
         "experiencia",
-        "consideracao positiva",
+        "consideracao",
         "humanismo",
-        "abordagem centrada na pessoa"
+        "acolhimento"
       ]
     },
     {
@@ -1993,7 +1993,7 @@ window.PSICO_EXTRAS_DATA={
         "psicologo",
         "atendimento",
         "conselho",
-        "avaliacao psicologica"
+        "avaliacao"
       ]
     },
     {
@@ -2053,7 +2053,7 @@ window.PSICO_EXTRAS_DATA={
         "frustracao",
         "resiliencia",
         "autoeficacia",
-        "bem estar",
+        "equilibrio",
         "superacao"
       ]
     },
@@ -2111,7 +2111,7 @@ window.PSICO_EXTRAS_DATA={
         "foco",
         "percepcao",
         "imaginacao",
-        "ritmo circadiano"
+        "circadiano"
       ]
     },
     {
@@ -2130,10 +2130,10 @@ window.PSICO_EXTRAS_DATA={
         "tracos",
         "individualidade",
         "autonomia",
-        "papel social",
+        "papel",
         "self",
         "pessoa",
-        "historia de vida",
+        "biografia",
         "socializacao",
         "genero",
         "cultura",
@@ -2144,9 +2144,8 @@ window.PSICO_EXTRAS_DATA={
     {
       "name": "Saúde mental e bem-estar",
       "terms": [
-        "saude mental",
         "saude",
-        "bem estar",
+        "equilibrio",
         "sofrimento",
         "estresse",
         "ansiedade",
@@ -2163,9 +2162,9 @@ window.PSICO_EXTRAS_DATA={
         "resiliencia",
         "adaptacao",
         "enfrentamento",
-        "qualidade de vida",
+        "vitalidade",
         "sono",
-        "apoio social",
+        "apoio",
         "escuta",
         "autocuidado",
         "emocao"
