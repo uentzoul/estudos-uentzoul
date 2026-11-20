@@ -26,7 +26,7 @@ function setup(){
  if(nav){
   // Navegação no mesmo alinhamento desde o primeiro quadro.
   // Não remover e reinserir todos os botões ao carregar: isso causava o flick.
-  const anchor=nav.querySelector('[aria-label="Trabalhos — em breve"]')||nav.querySelector('.nav-upcoming')||nav.querySelector('[data-page="admin"]')||null;
+  const anchor=nav.querySelector('[data-page="extras"]')||nav.querySelector('[data-page="admin"]')||null;
   const items=[
    nav.querySelector('[data-page="home"]'),
    nav.querySelector('[data-page="calendar"]'),
@@ -371,7 +371,7 @@ setTimeout(check,15000);
   setTimeout(fitNotebookHeight,180);
  }
  function harmonizeUpcoming(){
-  // Biblioteca e Trabalhos devem manter o mesmo selo "Em breve", sem alterar a navegação.
+  // Biblioteca deve manter o selo "Em breve", sem alterar a navegação.
   document.querySelectorAll('#nav .nav-upcoming').forEach(item=>{
    item.querySelector('.nav-upcoming-tip')?.remove();
    item.removeAttribute('title');
