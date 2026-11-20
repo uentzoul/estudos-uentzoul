@@ -279,9 +279,6 @@ function installExtrasWideHost(){
   button.textContent="☰ Abrir menu";button.setAttribute("aria-expanded","false");
  }catch(e){console.warn("Extras: tela ampla indisponível.",e?.message||e);}
 }
-function addDays(targetDay,count){
- return new Date(Date.parse(targetDay+"T12:00:00Z")+count*86400000).toISOString().slice(0,10);
-}
 function getAdminAnswersFor(targetDay,game=active,mode=psicoMode){
  if(game==="psico")return getPsicoWordsFor(targetDay,mode).map(item=>item.word);
  if(game==="contexto")return [getContextAnswerFor(targetDay)];
@@ -298,17 +295,13 @@ function updateAdminAnswers(){
  button.textContent=adminAnswersOpen?"Ocultar respostas":"Revelar respostas";
  panel.hidden=!adminAnswersOpen;
  if(!adminAnswersOpen)return;
- const today=dateBrazil(),dates=[day,...Array.from({length:8},(_,i)=>addDays(today,i))].filter((d,i,a)=>a.indexOf(d)===i);
  const gameLabel=active==="psico"?"PSICO "+PSICO_MODES[psicoMode].label:active==="conexo"?"VÍNCULO":"CONTEXTO";
- panel.innerHTML='<div class="admin-answers-heading"><strong>Respostas — '+esc(gameLabel)+'</strong><small>Somente administradores · data selecionada e próximos 7 dias</small></div>'+
- '<div class="admin-answers-list">'+dates.map(target=>{
-  const solutions=getAdminAnswersFor(target);
-  const detail=active==="conexo"?
-   '<div class="admin-answers-groups">'+solutions.map(g=>'<div><strong>'+esc(g.title)+'</strong><small>'+g.terms.map(esc).join(" · ")+'</small></div>').join("")+'</div>':
-   '<div class="admin-answers-words">'+solutions.map((term,i)=>'<span><b>'+(active==="psico"&&solutions.length>1?(i+1)+'. ':"")+esc(term)+'</b></span>').join("")+'</div>';
-  const marker=target===day?" · selecionada":target===today?" · hoje":target>today?" · próximo dia":"";
-  return '<section class="admin-answers-day"><strong class="admin-answers-date">'+esc(dateLabel(target)+marker)+'</strong>'+detail+'</section>';
- }).join("")+'</div>';
+ const solutions=getAdminAnswersFor(day);
+ const detail=active==="conexo"?
+  '<div class="admin-answers-groups">'+solutions.map(g=>'<div><strong>'+esc(g.title)+'</strong><small>'+g.terms.map(esc).join(" · ")+'</small></div>').join("")+'</div>':
+  '<div class="admin-answers-words">'+solutions.map((term,i)=>'<span><b>'+(active==="psico"&&solutions.length>1?(i+1)+'. ':"")+esc(term)+'</b></span>').join("")+'</div>';
+ panel.innerHTML='<div class="admin-answers-heading"><strong>Respostas — '+esc(gameLabel)+'</strong><small>Somente administradores · data selecionada</small></div>'+
+  '<div class="admin-answers-list"><section class="admin-answers-day"><strong class="admin-answers-date">'+esc(dateLabel(day))+'</strong>'+detail+'</section></div>';
  requestHeight();
 }
 
@@ -447,9 +440,9 @@ function renderPsico(){
   Object.keys(PSICO_MODES).map(key=>'<button type="button" data-psico-mode="'+key+'" aria-pressed="'+(key===psicoMode)+'"'+
    (key===psicoMode?' class="is-current"':'')+'>'+PSICO_MODES[key].label+'</button>').join("")+'</nav>';
  const solvedCount=st.solvedAt.filter(Boolean).length;
- $("gameHost").innerHTML='<div class="game-panel"><div class="game-head"><div><h2>PSICO</h2></div><span class="game-stat">'+
-  (st.done?(st.won?"Concluído":"Encerrado"):(st.guesses.length+1)+" / "+cfg.attempts)+'</span></div>'+
-  switcher+(multi?'<p class="psico-multi-status" aria-live="polite">'+solvedCount+' de '+cfg.boards+' palavras resolvidas · '+cfg.attempts+' tentativas compartilhadas</p>':"")+
+ $("gameHost").innerHTML='<div class="game-panel"><div class="psico-game-heading"><h2 class="psico-wordmark">PSICO</h2></div>'+
+  switcher+'<div class="psico-mode-status"><span class="game-stat">'+
+  (st.done?(st.won?"Concluído":"Encerrado"):(st.guesses.length+1)+" / "+cfg.attempts)+'</span></div>'+(multi?'<p class="psico-multi-status" aria-live="polite">'+solvedCount+' de '+cfg.boards+' palavras resolvidas · '+cfg.attempts+' tentativas compartilhadas</p>':"")+
   boardsHtml+feedbackHtml("psico")+editor+result+'</div>';
  requestHeight();
 }
