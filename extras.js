@@ -8,6 +8,8 @@ const $=id=>document.getElementById(id);
 const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const clean=s=>String(s??"").normalize("NFD").replace(/[\u0300-\u036f]/g,"").toUpperCase().trim();
 const cleanTerm=s=>clean(s).replace(/\s+/g," ");
+// No CONTEXTO, apenas uma palavra ortográfica por entrada: sem espaços, hífens ou números.
+const isContextWord=value=>/^[A-Z]+$/u.test(cleanTerm(value));
 const GAMES=["psico","contexto","conexo","tetris"];
 const ARCHIVE_START="2026-11-20";
 const CONTENT_GAMES=["psico","conexo","contexto"];
@@ -18,26 +20,26 @@ const LAUNCH_GROUPS=[
  {title:"Áreas de atuação da Psicologia",terms:["Hospitalar","Forense","Escolar","Organizacional"]},
  {title:"Etapas do ciclo vital",terms:["Infância","Adolescência","Adultez","Velhice"]}
 ];
-const TARGETS=["memoria","empatia","recalque","familia","laudo","lideranca","ideologia","esquema","apego","pulsao","atencao","divorcio","polarizacao","inconsciente","cuidado","congruencia","reforco","ciclo vital","escuta","pensamento","normas","diagnostico","libertacao","preconceito","aprendizagem","avaliacao","cooperacao","desejo","comportamento","democracia","medo","alegria","tristeza","raiva","culpa","vergonha","orgulho","saudade","amor","ansiedade","felicidade","calma","esperanca","luto","motivacao","autonomia","persistencia","autocontrole","impulso","recompensa","rotina","resiliencia","autoeficacia","amizade","confianca","relacionamento","comunicacao","intimidade","limites","convivencia","isolamento","rejeicao","sono","descanso","insonia","cansaco","concentracao","distracao","esquecimento","lembranca","imaginacao","identidade","personalidade","temperamento","autoconhecimento","autoestima","autoconfianca","autoimagem","carater","socializacao","estresse","depressao","trauma","terapia","psicoterapia","sofrimento","autocuidado","qualidade de vida","saude mental"];
+const TARGETS=["memoria","empatia","recalque","familia","laudo","lideranca","ideologia","esquema","apego","pulsao","atencao","divorcio","polarizacao","inconsciente","cuidado","congruencia","reforco","ciclo","escuta","pensamento","normas","diagnostico","libertacao","preconceito","aprendizagem","avaliacao","cooperacao","desejo","comportamento","democracia","medo","alegria","tristeza","raiva","culpa","vergonha","orgulho","saudade","amor","ansiedade","felicidade","calma","esperanca","luto","motivacao","autonomia","persistencia","autocontrole","impulso","recompensa","rotina","resiliencia","autoeficacia","amizade","confianca","relacionamento","comunicacao","intimidade","limites","convivencia","isolamento","rejeicao","sono","descanso","insonia","cansaco","concentracao","distracao","esquecimento","lembranca","imaginacao","identidade","personalidade","temperamento","autoconhecimento","autoestima","autoconfianca","autoimagem","carater","socializacao","estresse","depressao","trauma","terapia","psicoterapia","sofrimento","autocuidado","vitalidade","saude"];
 const NEAR={
  memoria:["atencao","percepcao","aprendizagem","linguagem"],
- empatia:["compreensao","escuta","aceitacao","rogers","consideracao positiva"],
+ empatia:["compreensao","escuta","aceitacao","rogers","consideracao"],
  recalque:["inconsciente","defesa","desejo","pulsao","conflito"],
  familia:["casal","parentalidade","filho","apego","vinculo","cuidado"],
  laudo:["parecer","documento","avaliacao","diagnostico","anamnese"],
  lideranca:["grupo","coesao","papeis","normas","cooperacao"],
  ideologia:["fatalismo","poder","cultura","sociedade","alienacao"],
- esquema:["crenca","pensamento","terapia do esquema","abandono","vergonha"],
+ esquema:["crenca","pensamento","psicoterapia","abandono","vergonha"],
  apego:["vinculo","familia","parentalidade","infancia","cuidado"],
  pulsao:["libido","desejo","inconsciente","recalque","id"],
  atencao:["memoria","percepcao","cognicao","linguagem"],
  divorcio:["separacao","casal","guarda","recasamento","familia"],
- polarizacao:["algoritmo","vies","redes sociais","midia","opiniao"],
+ polarizacao:["algoritmo","vies","redes","midia","opiniao"],
  inconsciente:["recalque","sonho","desejo","id","freud"],
  cuidado:["familia","acolhimento","escuta","parentalidade"],
  congruencia:["autenticidade","rogers","empatia","pessoa"],
  reforco:["comportamento","resposta","estimulo","punicao"],
- "ciclo vital":["infancia","adolescencia","adultez","velhice"],
+ ciclo:["infancia","adolescencia","adultez","velhice"],
  escuta:["empatia","entrevista","pessoa","acolhimento"],
  pensamento:["cognicao","crenca","esquema","interpretacao"],
  normas:["grupo","papeis","conformidade","sociedade"],
@@ -706,13 +708,15 @@ function displayTerm(value){
 }
 function getContextAnswerFor(targetDay){
  const n=dayNumber(targetDay);
- return cleanTerm(targetDay===ARCHIVE_START?"polarizacao":TARGETS[((n*11+5)%TARGETS.length+TARGETS.length)%TARGETS.length]);
+ const answer=cleanTerm(targetDay===ARCHIVE_START?"polarizacao":TARGETS[((n*11+5)%TARGETS.length+TARGETS.length)%TARGETS.length]);
+ if(!isContextWord(answer))throw Error("Resposta do Contexto deve ter uma palavra: "+answer);
+ return answer;
 }
 function initContexto(){
  contextTerms=new Map();contextFreeRanks=new Map();
  DATA.semanticDomains.forEach((domain,i)=>domain.terms.forEach(term=>{
   const key=cleanTerm(term);
-  if(!key)return;
+  if(!isContextWord(key))return;
   if(!contextTerms.has(key))contextTerms.set(key,{label:term,domains:new Set()});
   contextTerms.get(key).domains.add(i);
  }));
@@ -730,8 +734,6 @@ function initContexto(){
   if(index>=0)score+=330-index*8;
   const reverse=NEAR[word.toLowerCase()]||[];
   if(reverse.includes(contextTarget.toLowerCase()))score+=270;
-  const a=contextTarget.split(" "),b=word.split(" ");
-  if(a.some(t=>b.includes(t)))score+=30;
   // Stable tie breaker only. Proximity comes from curated subject-domain links.
   score+=Math.max(0,12-Math.abs(word.length-contextTarget.length));
   score+=((word.charCodeAt(0)*43+word.length*17+ordinal%31)%97)/1000;
@@ -739,20 +741,35 @@ function initContexto(){
  }).sort((a,b)=>b.score-a.score||a.word.localeCompare(b.word,"pt-BR"));
  contextRankings=new Map(rankings.map((item,i)=>[item.word,i+1]));
  const st=states.contexto;
- if(!Array.isArray(st.guesses))st.guesses=[];
- st.guesses=st.guesses.filter(g=>g&&typeof g.word==="string"&&cleanTerm(g.word).length<=60).slice(-500);
- st.won=st.guesses.some(g=>cleanTerm(g.word)===contextTarget);
- st.done=st.won;
+ const previous=Array.isArray(st.guesses)?st.guesses:[];
+ const seen=new Set();
+ // Descartar respostas antigas com mais de uma palavra, repetidas ou malformadas.
+ const valid=previous.filter(g=>{
+  if(!g||typeof g.word!=="string"||g.word.length>60||!isContextWord(g.word))return false;
+  const word=cleanTerm(g.word);
+  if(seen.has(word))return false;
+  seen.add(word);return true;
+ }).slice(-500);
+ const won=valid.some(g=>cleanTerm(g.word)===contextTarget);
+ const changed=valid.length!==previous.length||!Array.isArray(st.guesses)||st.won!==won||st.done!==won;
+ st.guesses=valid;st.won=won;st.done=won;
+ if(changed){
+  // Não restaurar palpites compostos do cache antigo ou do Supabase.
+  if(approved)st._savedAt=Math.max(Date.now(),(Number(st._savedAt)||0)+1);
+  localSet("contexto");
+  if(approved)scheduleCloud("contexto",day);
+ }
 }
 function contextRankTerm(guess){
  const word=cleanTerm(guess);
+ if(!isContextWord(word))return Infinity;
  if(word===contextTarget)return 1;
  const known=contextRankings.get(word);
  if(known)return known;
  if(contextFreeRanks.has(word))return contextFreeRanks.get(word);
  // Aceita texto livre: aproxima variantes morfológicas de conceitos conhecidos,
  // mantendo palpites desconhecidos mais distantes em vez de impedir a tentativa.
- const nearby=(NEAR[contextTarget.toLowerCase()]||[]).map(cleanTerm);
+ const nearby=(NEAR[contextTarget.toLowerCase()]||[]).map(cleanTerm).filter(isContextWord);
  const direct=nearby.indexOf(word);
  if(direct>=0){const rank=2+direct*5;contextFreeRanks.set(word,rank);return rank;}
  const grams=value=>{
@@ -796,7 +813,7 @@ function renderContexto(){
  $("gameHost").innerHTML=
   '<div class="game-panel"><div class="game-head"><div><h2>CONTEXTO</h2></div><span class="game-stat">'+(st.won?"Resolvido":"Melhor #"+(tries?best:"—"))+'</span></div>'+
   '<div class="context-layout">'+
-  (st.won?"":'<form id="contextForm" class="context-form" autocomplete="off"><input id="contextGuess" aria-label="Palavra ou termo de Psicologia" placeholder="Digite uma palavra ou termo..." maxlength="60" autocapitalize="off" autocomplete="off" autocorrect="off" spellcheck="false" required><button class="primary-action" type="submit">Enviar</button></form>')+
+  (st.won?"":'<form id="contextForm" class="context-form" autocomplete="off"><input id="contextGuess" aria-label="Uma palavra de Psicologia" placeholder="Digite uma palavra..." maxlength="60" pattern="[A-Za-zÀ-ÖØ-öø-ÿ]+" title="Digite apenas uma palavra, sem espaços." autocapitalize="off" autocomplete="off" autocorrect="off" spellcheck="false" required><button class="primary-action" type="submit">Enviar</button></form>')+
   '<div class="context-help">'+
   (!st.done?'<button class="secondary-action" type="button" id="contextHintBtn" '+(st.hint?"disabled":"")+'>Dica</button>':"")+'</div>'+
   (st.hint?'<div class="context-hint">Área do termo secreto: <b>'+esc(contextHints())+'</b></div>':"")+
@@ -808,7 +825,11 @@ function renderContexto(){
 function contextSubmit(text){
  const guess=cleanTerm(text),st=states.contexto;
  if(st.done||!guess)return;
- if(st.guesses.some(g=>cleanTerm(g.word)===guess)){setFeedback("contexto","Você já tentou esse termo.","error");return;}
+ if(!isContextWord(text)){
+  setFeedback("contexto","Digite apenas uma palavra, sem espaços ou expressões.","error");
+  return;
+ }
+ if(st.guesses.some(g=>cleanTerm(g.word)===guess)){setFeedback("contexto","Você já tentou essa palavra.","error");return;}
  st.guesses.push({word:guess});st.won=guess===contextTarget;st.done=st.won;
  if(st.guesses.length>500)st.guesses=st.guesses.slice(-500);
  store("contexto");
