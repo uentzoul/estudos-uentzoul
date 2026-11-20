@@ -2542,6 +2542,17 @@ function act(action){
  }
 }
 root.addEventListener('click',event=>{
+ const exportToggle=event.target.closest('[data-nb-export-toggle]');
+ if(exportToggle){toggleExportMenu();return;}
+ const formatButton=event.target.closest('[data-nb-export-format]');
+ if(formatButton){
+  toggleExportMenu(false);
+  if(formatButton.dataset.nbExportFormat==='pdf')act('export');
+  else if(formatButton.dataset.nbExportFormat==='json')downloadJSON();
+  return;
+ }
+ if(event.target.closest('[data-nb-import]')){$('nbImportFile')?.click();return;}
+ if(!event.target.closest('.nb-export-wrap'))toggleExportMenu(false);
  if(!event.target.closest('.nb-format-menu'))closeFormatMenus();
  const shelfBook=event.target.closest('[data-nb-shelf-book]');
  if(shelfBook){openShelfBook(shelfBook.dataset.nbShelfBook,shelfBook);return}
@@ -2613,6 +2624,11 @@ root.addEventListener('click',event=>{
  }
 });
 root.addEventListener('change',event=>{
+ if(event.target.id==='nbImportFile'){
+  const file=event.target.files?.[0]||null;event.target.value='';
+  if(file)void importEditableBackup(file);
+  return;
+ }
  if(event.target.id==='nbLayout'){
   if(editing)saveEditor(false);
   data.layout=event.target.value==='book'?'book':'single';
@@ -2631,6 +2647,7 @@ root.addEventListener('change',event=>{
 });
 // Clicar fora do texto confirma alterações, inclusive a exclusão completa.
 document.addEventListener('pointerdown',event=>{
+ if(!event.target.closest('.nb-export-wrap'))toggleExportMenu(false);
  formatPointerActive=!!event.target.closest('.nb-format-menu');
  if(!formatPointerActive)closeFormatMenus();
 },true);
@@ -2892,6 +2909,10 @@ root.addEventListener('keydown',event=>{
  if(event.target.id==='nbRenameBook'&&event.key==='Enter'){event.preventDefault();renameBook();}
 });
 document.addEventListener('keydown',event=>{
+ if(event.key==='Escape'&&!$('nbExportMenu')?.hidden){
+  toggleExportMenu(false);$('nbExportToggle')?.focus({preventScroll:true});
+  event.preventDefault();event.stopPropagation();return;
+ }
  if(listening){event.preventDefault();bindShortcut(event);return}
  if(event.isComposing)return;
  const inInput=!!event.target.closest('textarea,input,select,[contenteditable="true"]');
