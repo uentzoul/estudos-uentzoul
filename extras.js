@@ -787,8 +787,10 @@ function renderContexto(){
  const results=sorted.map(g=>{
   const rank=contextRankTerm(g.word);
   const closeness=Math.max(3,Math.round(100/(1+Math.max(0,rank-1)/24)));
-  const grade=rank<=10?"hot":rank<=45?"mid":"far";
-  return '<div class="context-guess '+grade+'"><span class="context-fill" style="width:'+closeness+'%"></span><b>'+esc(displayTerm(g.word))+'</b><small>#'+rank+'</small></div>';
+  // Variação contínua: longe = vermelho (0°), médio = amarelo (60°), perto = verde (120°).
+  // Usar a mesma proximidade do preenchimento preserva a ordem semântica das tentativas.
+  const hue=Math.round(120*Math.pow((closeness-3)/97,.72));
+  return '<div class="context-guess"><span class="context-fill" style="width:'+closeness+'%;--context-hue:'+hue+'"></span><b>'+esc(displayTerm(g.word))+'</b><small>#'+rank+'</small></div>';
  }).join("");
  const result=st.won?'<div class="finish-box"><strong>Você encontrou o termo!</strong><p>'+esc(displayTerm(contextTarget))+' · '+tries+' palpite'+(tries===1?"":"s")+'. Escolha outra data para continuar jogando.</p></div>':"";
  $("gameHost").innerHTML=
