@@ -93,7 +93,7 @@
 .pw-add-inline{display:flex;gap:7px}
 .pw-add-inline input{font-size:11px}
 .pw-add-inline button{padding:7px 10px}
-#nav #navTrabalhosAdmin[hidden],#nav #navTrabalhosLocked[hidden]{display:none!important}
+#nav #navTrabalhosAdmin[hidden],#nav [aria-label="Trabalhos — em breve"][hidden]{display:none!important}
 #nav #navTrabalhosAdmin{display:flex;align-items:center;gap:9px}
 #nav #navTrabalhosAdmin svg{flex:0 0 auto}
 #nav #navTrabalhosAdmin .pw-admin-mini{margin-left:auto;color:#8067b6;background:#eee8fb;border-radius:6px;padding:3px 6px;line-height:1.2;font-size:9px;font-weight:800}
