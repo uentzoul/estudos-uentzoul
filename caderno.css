@@ -960,3 +960,12 @@ html[data-theme="dark"] .nb-export-menu small{color:#b7c4d5}
 html[data-theme="dark"] .nb-export-menu button:hover,
 html[data-theme="dark"] .nb-export-menu button:focus-visible{background:#304562}
 html[data-theme="dark"] .nb-export-menu button+button{border-top-color:#40526c}
+
+/* Resultado de recuperação visível também na estante, onde o cabeçalho fica oculto. */
+.nb-import-notice{max-width:1040px;margin:5px auto 16px;padding:10px 13px;
+ border:1px solid #d8cde6;border-radius:10px;background:#f7f5fa;
+ color:#53466b;font:650 12px/1.45 'DM Sans',system-ui,sans-serif}
+.nb-import-notice[hidden]{display:none!important}
+.nb-import-notice[data-state="error"]{border-color:#e2b5b5;color:#9e444c;background:#fff8f8}
+html[data-theme="dark"] .nb-import-notice{background:#21314a;border-color:#475975;color:#e2def4}
+html[data-theme="dark"] .nb-import-notice[data-state="error"]{background:#392a37;border-color:#815465;color:#f3c5ce}
