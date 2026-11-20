@@ -6,13 +6,13 @@ const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&
 const norm=s=>String(s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLocaleLowerCase('pt-BR');
 let state=null,generation=0,eventsBound=false;
 function context(){return window.PSICO_BOOK_LIBRARY?.getReaderContext?.()||null}
-function cacheKey(c){return 'psb-toc-v5::'+(window.uentzoulAIAuth?.user?.()?.id||'')+'::'+c.book.id+'::'+c.book.path+'::'+c.total}
+function cacheKey(c){return 'psb-toc-v6::'+(window.uentzoulAIAuth?.user?.()?.id||'')+'::'+c.book.id+'::'+c.book.path+'::'+c.total}
 function readCache(c){
  try{
   const record=JSON.parse(localStorage.getItem(cacheKey(c))||'null');
   if(!record||!Array.isArray(record.items)||!['outline','text','reviewed'].includes(record.kind))return null;
   return {kind:record.kind,items:record.items.filter(x=>
-   typeof x.title==='string'&&x.title.length<=200&&Number.isInteger(x.page)&&x.page>=1&&x.page<=c.total).slice(0,240)};
+   typeof x.title==='string'&&x.title.length<=200&&(x.missing===true||(Number.isInteger(x.page)&&x.page>=1&&x.page<=c.total))).slice(0,240)};
  }catch(_){return null}
 }
 function writeCache(c,items,kind){
@@ -157,9 +157,13 @@ function renderEntries(items,kind){
  const q=norm(state?.query||'');
  const matches=q?items.filter(x=>norm(x.title).includes(q)||String(x.page).includes(q)):items;
  if(!matches.length)return '<p class="psb-toc-empty">Nenhuma correspondência.</p>';
- return '<div class="psb-toc-links">'+matches.map(x=>
-  '<button type="button" class="psb-toc-entry" data-psb-toc-page="'+x.page+'" data-psb-toc-kind="'+kind+'" style="--psb-toc-depth:'+Math.max(0,Math.min(3,x.level||0))+'">'+
-   '<span class="psb-toc-entry-title">'+esc(x.title)+'</span><span class="psb-toc-entry-page">'+x.page+'</span></button>').join('')+'</div>';
+ return '<div class="psb-toc-links">'+matches.map(x=>{
+  const padding=' style="--psb-toc-depth:'+Math.max(0,Math.min(3,x.level||0))+'"';
+  if(x.missing)return '<div class="psb-toc-entry psb-toc-unavailable" aria-disabled="true"'+padding+'>'+
+    '<span class="psb-toc-entry-title">'+esc(x.title)+'</span><span class="psb-toc-entry-page">Indisponível</span></div>';
+  return '<button type="button" class="psb-toc-entry" data-psb-toc-page="'+x.page+'" data-psb-toc-kind="'+kind+'"'+padding+'>'+
+   '<span class="psb-toc-entry-title">'+esc(x.title)+'</span><span class="psb-toc-entry-page">'+x.page+'</span></button>';
+ }).join('')+'</div>';
 }
 function renderBody(){
  if(!state)return '';
@@ -184,7 +188,7 @@ function sync(){
  if(!panel||!c)return;
  const current=c.currentPage();
  let currentChapter=0;
- for(const item of state.items)if(item.page<=current)currentChapter=item.page;
+ for(const item of state.items)if(!item.missing&&item.page<=current)currentChapter=item.page;
  for(const b of panel.querySelectorAll('[data-psb-toc-kind="chapter"]')){
   const selected=Number(b.dataset.psbTocPage)===currentChapter;
   b.classList.toggle('is-current',selected);
@@ -257,11 +261,12 @@ function reviewedChapters(c){
  const source=window.PSICO_BOOK_VERIFIED_TOC?.[c.book.id];
  if(!Array.isArray(source)||!source.length)return null;
  return source.map(entry=>{
+  if(entry.missing===true)return {title:String(entry.title),missing:true,level:Number(entry.level)||0};
   const match=Number.isInteger(entry.index)?
    c.leafMap.findIndex(leaf=>leaf.source===entry.source&&leaf.index===entry.index):-1;
   const page=match>=0?match+1:logicalPage(c,entry.source);
   return {title:String(entry.title),page,level:Number(entry.level)||0};
- }).filter(x=>x.title.trim().length>=2&&Number.isInteger(x.page)&&x.page>=1&&x.page<=c.total);
+ }).filter(x=>x.title.trim().length>=2&&(x.missing||(Number.isInteger(x.page)&&x.page>=1&&x.page<=c.total)));
 }
 async function build(c,gen){
  try{
@@ -271,7 +276,7 @@ async function build(c,gen){
   if(generation!==gen)return;
   if(reviewed?.length){
    state.items=reviewed;state.kind='reviewed';state.loading=false;
-   state.status='Capítulos e seções conferidos no exemplar';
+   state.status=reviewed.some(x=>x.missing)?'Sumário revisado · há capítulos ausentes deste arquivo':'Capítulos e seções conferidos no exemplar';
    writeCache(c,reviewed,'reviewed');
    refreshStatus();refreshBody();return;
   }
