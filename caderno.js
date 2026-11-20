@@ -885,7 +885,7 @@ function makeRoom(saved){
 function fallbackBasic(input){
  // Protege a tabulação real contra a normalização da revisão gramatical.
  const tabMarker='\uE000';
- let text=String(input||'').replace(/\t/g,tabMarker).replace(/ +/g,' ').replace(/\s+([,.;:!?])/g,'$1')
+ let text=String(input||'').replace(/\t/g,tabMarker).replace(/ +/g,' ').replace(/[ \t]+([,.;:!?])/g,'$1')
   .replace(/([,;:!?])(?=[\p{L}\p{N}])/gu,'$1 ').trim();
  if(!text)return '';
  text=text.replace(/\bnao\b/gi,word=>word[0]==='N'?'Não':'não');
@@ -2643,18 +2643,27 @@ function joinWritingLines(direction){
 }
 function applyTabKey(input,outdent){
  const value=input.value,start=input.selectionStart,end=input.selectionEnd;
- if(outdent){
-  const lineStart=value.lastIndexOf('\n',Math.max(0,start-1))+1;
-  let from=lineStart;
-  if(value[from]!=='\t'){
-   if(start===0||value[start-1]!=='\t')return false;
-   from=start-1;
-  }
-  input.setRangeText('',from,from+1,'preserve');
-  input.setSelectionRange(Math.max(from,start-1),Math.max(from,end-1));
+ if(end>start){
+  // Uma seleção não é substituída por Tab: cada linha selecionada recebe/remove recuo.
+  const first=value.lastIndexOf('\n',start-1)+1;
+  const lastSelected=end>first&&value[end-1]==='\n'?end-1:end;
+  const breakAt=value.indexOf('\n',lastSelected);
+  const last=breakAt<0?value.length:breakAt;
+  const original=value.slice(first,last);
+  const updated=original.split('\n').map(line=>outdent?line.replace(/^\t/,''):'\t'+line).join('\n');
+  if(value.length+updated.length-original.length>(Number(input.maxLength)||Infinity))return true;
+  input.setRangeText(updated,first,last,'select');
+  input.setSelectionRange(first,first+updated.length);
+ }else if(outdent){
+  const first=value.lastIndexOf('\n',start-1)+1;
+  if(value[first]==='\t'){
+   input.setRangeText('',first,first+1,'start');
+   input.setSelectionRange(Math.max(first,start-1),Math.max(first,start-1));
+  }else if(start&&value[start-1]==='\t'){
+   input.setRangeText('',start-1,start,'start');
+  }else return true;
  }else{
-  const limit=Number(input.maxLength)||Infinity;
-  if(value.length-(end-start)>=limit)return true;
+  if(value.length+1>(Number(input.maxLength)||Infinity))return true;
   input.setRangeText('\t',start,end,'end');
  }
  input.dispatchEvent(new Event('input',{bubbles:true}));
