@@ -58,8 +58,8 @@ test('Administrador continua vendo todas as obras e tem ferramentas exclusivas',
 });
 test('Acesso público não libera catálogo de PDFs nem ferramentas administrativas',()=>{
  assert.match(html,/id="navBookLibraryAdmin" data-page="books" hidden/);
- assert.match(html,/id="navAudiobooksMembers" data-page="audiobooks" disabled aria-disabled="true"/);
- assert.match(html,/id="navAudiobooksMembers"[^>]+disabled[^>]*>/);
+ assert.doesNotMatch(html,/navAudiobooksMembers/);
+ assert.doesNotMatch(html,/<span class="nav-label">Audiobooks<\/span>/);
  assert.match(html,/if\(page==='audiobooks'\)return/);
  assert.match(html,/if\(current.page==='audiobooks'\)current.page='home'/);
  assert.match(html,/case 'audiobooks':body=/);
@@ -77,5 +77,5 @@ test('Cartão da Biblioteca também permanece cinza e não clicável para o admi
  assert.match(books,/if\(activeShelf==='audio'\)activeShelf='home'/);
  assert.match(css,/\.psb-category-audio\.psb-category-coming/);
  assert.match(css,/\.psb-coming-badge/);
- assert.match(css,/\.pm-audio-soon-tag/);
+ assert.doesNotMatch(html,/pm-audio-soon-tag/);
 });
