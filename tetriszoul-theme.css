@@ -32,7 +32,7 @@ body{background:radial-gradient(ellipse at top,#262340 0,transparent 47%),#11142
 .jstris-hold canvas{height:65px}
 .next-panel h2{text-align:center;margin:1px 0 8px}
 .next-panel .pieces{display:block}
-.next-panel .pieces>div:first-child{display:none}
+.next-panel .pieces>div:first-child{display:block}
 .next-panel .next-box{margin:0}
 .next-panel .next-board{gap:4px}
 .next-panel .piece-box{min-height:59px;padding:4px;background:#151929}
