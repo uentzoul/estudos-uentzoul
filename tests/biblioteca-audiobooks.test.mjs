@@ -72,7 +72,7 @@ test('Membros autenticados podem abrir a Biblioteca sem acesso às ferramentas a
 test('Audiobooks da Biblioteca podem ser abertos; envio permanece sob controle do administrador',()=>{
  const books=fs.readFileSync(new URL('../biblioteca-livros.js',import.meta.url),'utf8');
  const css=fs.readFileSync(new URL('../biblioteca-livros.css',import.meta.url),'utf8');
- assert.match(books,/<button class="psb-category psb-category-audio" data-psb-tab="audio"/);
+ assert.match(books,/<button type="button" class="psb-category psb-category-audio" data-psb-tab="audio"/);
  assert.doesNotMatch(books,/psb-category-audio psb-category-coming" disabled/);
  assert.match(books,/if\(activeShelf==='audio'\)/);
  assert.match(books,/data-psb-tab="upload"/);
