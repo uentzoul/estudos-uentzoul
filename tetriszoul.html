@@ -428,11 +428,30 @@ function updateUI(){
  byId("timer").textContent=format(ms);
  byId("pps").textContent=(ms>0?(pieces/(ms/1000)):0).toFixed(2).replace(".",",")+" peças/s";byId("pps").hidden=!settings.showPps;
 }
+// A queda suave acumula deslocamentos entre frames: não limita a 1 linha por tela.
+// Uma única renderização por lote mantém a resposta rápida mesmo em 60 Hz.
+var SOFT_DROP_MS={slow:80,medium:32,fast:5,ultra:1,instant:0};
+function softDropRows(maxRows){
+ if(!piece||phase==="lost"||phase==="won")return 0;
+ startClock();
+ var moved=0;
+ while(moved<maxRows&&valid(piece,piece.x,piece.y+1,piece.r)){piece.y++;moved++;}
+ if(moved)draw();
+ return moved;
+}
 function frame(){
  if(!approved)return;
  if(phase==="running"){updateUI();var now=performance.now();Object.keys(pressed).forEach(function(key){
    var p=pressed[key];if(!p)return;
-   if(key==="down"){var interval={slow:100,medium:50,fast:24,ultra:8,instant:0}[settings.softDrop]||24;if(!interval){while(move(0,1)){};p.last=now;}else if(now-p.last>=interval){move(0,1);p.last=now;}return;}
+   if(key==="down"){
+    var interval=SOFT_DROP_MS[settings.softDrop]??SOFT_DROP_MS.fast;
+    if(interval===0){softDropRows(HEIGHT);p.last=now;}
+    else{
+     var elapsed=Math.max(0,now-p.last),steps=Math.min(HEIGHT,Math.floor(elapsed/interval));
+     if(steps>0){softDropRows(steps);p.last=now-elapsed%interval;}
+    }
+    return;
+   }
    if(now-p.started<settings.das)return;
    if(settings.arr===0){while(move(key==="left"?-1:1,0)){};p.last=now;return;}
    if(now-p.last>=settings.arr){move(key==="left"?-1:1,0);p.last=now;}
