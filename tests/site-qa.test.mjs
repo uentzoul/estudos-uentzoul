@@ -52,7 +52,7 @@ test('Documento principal declara português brasileiro e viewport responsivo',(
 });
 
 
-test('Carregador mantém Biblioteca entre Caderno e Mensagens e preserva os dois avisos Em breve',()=>{
+test('Carregador mantém Biblioteca abaixo de Agenda e preserva os dois avisos Em breve',()=>{
  const loader=read('site-version.js');
  // Executa a rotina real de reordenação sobre um menu simulado.
  const begin=loader.indexOf(" const nav=document.getElementById('nav');");
@@ -76,7 +76,7 @@ test('Carregador mantém Biblioteca entre Caderno e Mensagens e preserva os dois
   insertBefore(node,before){const old=children.indexOf(node);if(old>=0)children.splice(old,1);const index=before?children.indexOf(before):-1;children.splice(index<0?children.length:index,0,node)}
  };
  vm.runInNewContext(loader.slice(begin,finish),{document:{getElementById:id=>id==='nav'?nav:null}});
- assert.deepEqual(children.map(n=>n.name).slice(0,9),['home','calendar','exams','caderno','biblioteca','messages','vacation','trabalhos','extras'],'ordem após carregar scripts e login');
+ assert.deepEqual(children.map(n=>n.name).slice(0,9),['home','calendar','biblioteca','exams','caderno','messages','vacation','trabalhos','extras'],'ordem após carregar scripts e login');
 
  // Garante que a harmonização não escolhe apenas o primeiro "Em breve".
  const badgeBegin=loader.indexOf(' function harmonizeUpcoming(){');
@@ -100,19 +100,21 @@ test('Carregador mantém Biblioteca entre Caderno e Mensagens e preserva os dois
   assert.equal(item.badges[0].textContent,'Em breve',item.name+' mostra Em breve');
   assert.equal(item.tip,null,item.name+' não mantém tooltip duplicado');
  }
- assert.match(html,/site-version\.js\?v=20261120-biblioteca-menu-v2/,'cache invalida a versão que reorganizava o menu');
+ assert.match(html,/site-version\.js\?v=20261120-biblioteca-agenda-v3/,'cache invalida a versão que reorganizava o menu');
 });
 
-test('Biblioteca aparece logo abaixo de Caderno e ambos os futuros recursos não abrem telas',()=>{
+test('Biblioteca aparece logo abaixo de Agenda e ambos os futuros recursos não abrem telas',()=>{
  const navStart=html.indexOf('<nav class="menu" id="nav">');
  const navEnd=html.indexOf('</nav>',navStart);
  assert.ok(navStart>=0&&navEnd>navStart,'menu principal disponível');
  const nav=html.slice(navStart,navEnd);
+ const agenda=nav.indexOf('data-page="calendar"');
+ const simulados=nav.indexOf('data-page="exams"');
  const caderno=nav.indexOf('id="navCadernoPreview"');
  const biblioteca=nav.indexOf('aria-label="Biblioteca — em breve"');
  const mensagens=nav.indexOf('data-page="messages"');
  const trabalhos=nav.indexOf('aria-label="Trabalhos — em breve"');
- assert.ok(caderno>=0&&biblioteca>caderno&&mensagens>biblioteca,'Biblioteca vem imediatamente após Caderno e antes de Mensagens');
+ assert.ok(agenda>=0&&biblioteca>agenda&&simulados>biblioteca&&caderno>simulados&&mensagens>caderno,'Biblioteca vem imediatamente após Agenda e Horários, antes de Simulados');
  assert.ok(trabalhos>mensagens,'Trabalhos permanece na sua posição');
  for(const name of ['Biblioteca','Trabalhos']){
   const pattern=new RegExp('<span class="sidebtn nav-upcoming" role="note" tabindex="0" aria-disabled="true" aria-label="'+name+' — em breve" title="Em breve">[\\s\\S]*?<span class="nav-upcoming-name">'+name+'</span><span class="nav-upcoming-tip" aria-hidden="true">Em breve</span></span>');
