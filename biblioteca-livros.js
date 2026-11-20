@@ -23,7 +23,7 @@ const BOOKS=[
  {id:'roudinesco-dicionario',title:'Dicionário de psicanálise',author:'Élisabeth Roudinesco e Michel Plon',subject:'Psicanálise',path:'materials/e50e2857-461b-479e-a336-30d0163378ba.pdf',colors:['#4e3446','#8b667f','#dfbdc6'],cover:'https://images.tcdn.com.br/img/img_prod/796789/180_dicionario_de_psicanalise_40703_1_9d0f2252568e67b710a78733a6ec42a3.jpg',coverZoom:1},
  {id:'censo-1',title:'Censo da Psicologia Brasileira — Volume 1',author:'Conselho Federal de Psicologia',subject:'Psicologia no Brasil',pages:272,path:'materials/5121236f-6052-47fb-81cb-43a39ab2174e.pdf',colors:['#32476f','#648ab0','#cfdeee'],cover:'https://censo.cfp.org.br/2022/img/capa-censo-vol-1.png',coverZoom:1},
  {id:'censo-2',title:'Censo da Psicologia Brasileira — Volume 2',author:'Conselho Federal de Psicologia',subject:'Psicologia no Brasil',pages:292,path:'materials/031b3456-79f7-432d-ba60-a82c25d65c16.pdf',colors:['#28575d','#51969a','#c8e6e4'],cover:'https://censo.cfp.org.br/2022/img/capa-censo-vol-2.png',coverZoom:1},
- {id:'hall-identidade',title:'A identidade cultural na pós-modernidade',author:'Stuart Hall',subject:'Psicologia social e direitos',part:true,path:'materials/scheduled/711e0e4a-cf52-4229-8042-75b950fba6b2.pdf',colors:['#4a506f','#7e85a9','#d3d5e5'],cover:'https://martinsfontespaulista.vteximg.com.br/arquivos/ids/1704825-1000-1000/731170.jpg?v=638839774338270000',coverZoom:1.03},
+ {id:'hall-identidade',title:'A identidade cultural na pós-modernidade',author:'Stuart Hall',subject:'Psicologia social e direitos',part:true,scanColumns:3,path:'materials/scheduled/711e0e4a-cf52-4229-8042-75b950fba6b2.pdf',colors:['#4a506f','#7e85a9','#d3d5e5'],cover:'https://martinsfontespaulista.vteximg.com.br/arquivos/ids/1704825-1000-1000/731170.jpg?v=638839774338270000',coverZoom:1.03},
  {id:'collins-interseccionalidade',title:'Interseccionalidade',author:'Patricia Hill Collins e Sirma Bilge',subject:'Psicologia social e direitos',pages:91,part:true,path:'materials/00996dd9-c8d5-4672-9c60-d7cf8218880b.pdf',colors:['#794e5c','#ac7783','#f0d2d0'],cover:'https://boitempoeditorial.fbitsstatic.net/img/p/interseccionalidade-capa-sobre-pintura-152655/338306.jpg?h=420&v=no-value&w=420',coverZoom:1},
  {id:'zimerman-grupos',title:'Como trabalhamos com grupos',author:'David E. Zimerman e Luiz Carlos Osório',subject:'Psicologia de grupos',path:'materials/scheduled/7a66839d-e75d-4dfe-af73-e5a09d6a0323.pdf',colors:['#475360','#879ba7','#d7dce0'],cover:'https://livrariadopsicologo.com.br/capas/128/9798573072128.jpg',coverZoom:1},
  {id:'aries-crianca-familia',title:'História social da criança e da família',author:'Philippe Ariès',subject:'Psicologia da família',path:'materials/scheduled/d27048a1-049d-4e5a-b315-47a764818ff4.pdf',colors:['#776041','#ba9a6a','#e8d6ab'],cover:'https://martinsfontespaulista.vteximg.com.br/arquivos/ids/1417487-1000-1000/968646.jpg?v=639111726552530000',coverZoom:1.02},
@@ -80,25 +80,113 @@ let loadedKeys=new Set(),coverUrls=new Map(),slideDirection=1;
 let pdfPromise=null,lastError='',lastBookId=null,lastUserId='',downloadPct=0;
 let focused=false,gestureStart=null,cachedForActive=false,renderTasks=[];
 const cacheKey=b=>user()+'::'+b.id+'::'+b.path;
-// O Piaget foi digitalizado com duas páginas físicas em cada folha do PDF.
-// Só este livro usa a visualização de páginas individuais, sem tocar no PDF armazenado.
-const isSplitScan=()=>activeBook?.id==='piaget-seis-estudos';
-const bookPageCount=()=>documentPDF?(isSplitScan()?documentPDF.numPages*2:documentPDF.numPages):(activeBook?.pages||0);
-function sourceForLeaf(leaf){
- if(!isSplitScan())return {source:leaf,side:null};
- const total=documentPDF.numPages*2;
- // A capa frontal é a metade direita da primeira digitalização; a contracapa vai ao fim.
- if(leaf===1)return {source:1,side:'right'};
- if(leaf===total)return {source:1,side:'left'};
- const pos=leaf-2;
- return {source:2+Math.floor(pos/2),side:pos%2===0?'left':'right'};
-}
-const progressKey=b=>PAGE_STORE+(b.id==='piaget-seis-estudos'?'split-v1_':'')+user()+'_'+b.id;
+// Reconstrói páginas escaneadas em 2, 3 ou 4 partes, sem modificar os PDFs originais.
+// Análise local apenas quando o livro é aberto; não há downloads adicionais na estante.
+let leafMap=[];
+const bookPageCount=()=>leafMap.length||(documentPDF?.numPages||activeBook?.pages||0);
+const sourceForLeaf=n=>leafMap[n-1]||{source:n,cols:1,rows:1,index:0,rotate:0};
+const hasSoloCover=()=>activeBook?.id==='piaget-seis-estudos'||
+ (sourceForLeaf(1).cols===1&&sourceForLeaf(1).rows===1);
+const progressKey=b=>PAGE_STORE+(b.id==='piaget-seis-estudos'?'split-v1_':'scan-layout-v2_')+user()+'_'+b.id;
 function getSavedPage(b){
- try{return Math.max(1,parseInt(localStorage.getItem(progressKey(b))||'1',10)||1)}catch(_){return 1}
+ try{
+  const saved=Number(localStorage.getItem(progressKey(b)));
+  if(saved>0)return Math.floor(saved);
+  const legacy=Number(localStorage.getItem(PAGE_STORE+user()+'_'+b.id));
+  if(legacy>0&&leafMap.length){
+   const index=leafMap.findIndex(x=>x.source>=legacy);
+   return index>=0?index+1:leafMap.length;
+  }
+ }catch(_){}
+ return 1;
 }
-function savePage(b,which){
- try{localStorage.setItem(progressKey(b),String(which))}catch(_){}
+function savePage(b,n){try{localStorage.setItem(progressKey(b),String(n))}catch(_){}}
+function scanGridForRatio(r){
+ if(r>=2.45)return [4,1];
+ if(r>=1.78)return [3,1];
+ if(r>=1.25)return [2,1];
+ if(r<=.21)return [1,4];
+ if(r<=.29)return [1,3];
+ if(r<=.43)return [1,2];
+ return [1,1];
+}
+// Reconhece quatro miniaturas em matriz 2×2 pelo cruzamento de margens e pelo texto
+// nas quatro regiões; evita confundir uma página comum com quatro páginas pequenas.
+async function isFourUp(pdf,n){
+ try{
+  const p=await pdf.getPage(n),view=p.getViewport({scale:1});
+  if(view.width/view.height<.49||view.width/view.height>1.0)return false;
+  const vp=p.getViewport({scale:Math.min(1,450/Math.max(view.width,view.height))});
+  const c=document.createElement('canvas');c.width=Math.round(vp.width);c.height=Math.round(vp.height);
+  const ctx=c.getContext('2d',{willReadFrequently:true});if(!ctx)return false;
+  await p.render({canvasContext:ctx,viewport:vp}).promise;
+  const pixels=ctx.getImageData(0,0,c.width,c.height).data,w=c.width,h=c.height;
+  function ink(x0,y0,x1,y1){
+   let dark=0,total=0;
+   for(let y=Math.floor(y0*h);y<Math.floor(y1*h);y+=3)
+    for(let x=Math.floor(x0*w);x<Math.floor(x1*w);x+=3){
+     const i=(y*w+x)*4;
+     dark+=pixels[i]*.299+pixels[i+1]*.587+pixels[i+2]*.114<190?1:0;
+     total++;
+    }
+   return dark/Math.max(total,1);
+  }
+  const q=[ink(.08,.08,.42,.42),ink(.58,.08,.92,.42),
+           ink(.08,.58,.42,.92),ink(.58,.58,.92,.92)];
+  const avg=q.reduce((a,b)=>a+b,0)/4;
+  return q.every(x=>x>.02)&&
+    ink(.486,.06,.514,.94)<Math.min(.025,avg*.3)&&
+    ink(.06,.486,.94,.514)<Math.min(.025,avg*.3);
+ }catch(_){return false;}
+}
+async function mapBookPages(pdf,b,token){
+ if(b.id==='piaget-seis-estudos'){
+  const map=[{source:1,cols:2,rows:1,index:1,rotate:180}];
+  for(let n=2;n<=pdf.numPages;n++)map.push(
+   {source:n,cols:2,rows:1,index:0,rotate:180},
+   {source:n,cols:2,rows:1,index:1,rotate:180});
+  map.push({source:1,cols:2,rows:1,index:0,rotate:180});
+  return map;
+ }
+ const geometry=[];
+ for(let n=1;n<=pdf.numPages;n+=12){
+  if(openToken!==token||!allowed())return null;
+  const sample=Array.from({length:Math.min(12,pdf.numPages-n+1)},(_,i)=>n+i);
+  const group=await Promise.all(sample.map(async i=>{
+   try{
+    const p=await pdf.getPage(i),vp=p.getViewport({scale:1});
+    return {source:i,r:vp.width/Math.max(vp.height,1)};
+   }catch(_){return {source:i,r:.7};}
+  }));
+  geometry.push(...group);
+ }
+ const wide=geometry.filter(x=>x.r>=1.25).length;
+ const tall=geometry.filter(x=>x.r<=.43).length;
+ const bookWide=wide>=Math.max(2,Math.ceil(pdf.numPages*.40));
+ const bookTall=tall>=Math.max(2,Math.ceil(pdf.numPages*.40));
+ let grid=false;
+ if(!bookWide&&!bookTall&&pdf.numPages>=4){
+  const s=[Math.max(2,Math.floor(pdf.numPages*.3)),Math.max(3,Math.floor(pdf.numPages*.7))];
+  grid=(await Promise.all(s.map(n=>isFourUp(pdf,n)))).every(Boolean);
+ }
+ if(openToken!==token||!allowed())return null;
+ const forced=Number(b.scanColumns)||0;
+ const map=[];
+ for(const g of geometry){
+  let cols=1,rows=1;
+  const [detectedCols,detectedRows]=scanGridForRatio(g.r);
+  if(forced>=2&&forced<=4){
+   if(bookWide&&g.r<1.10){/* preserve a separate cover */}
+   else if(bookTall&&g.r>.5){/* preserve a separate cover */}
+   else if(g.r<.47)rows=forced;
+   else cols=forced;
+  }else if(bookWide&&g.r>=1.25)cols=detectedCols;
+  else if(bookTall&&g.r<=.43)rows=detectedRows;
+  else if(grid&&g.r>.49&&g.r<1){cols=2;rows=2;}
+  for(let index=0;index<cols*rows;index++)
+   map.push({source:g.source,cols,rows,index,rotate:0});
+ }
+ return map;
 }
 function pdfjs(){
  if(window.pdfjsLib)return Promise.resolve(window.pdfjsLib);
@@ -167,10 +255,10 @@ function isTwoPage(){
 }
 function spreadPages(){
  if(!documentPDF)return [page];
- const count=bookPageCount();
- if(!isTwoPage()||page===1)return [page];
- const base=page%2===0?page:page-1;
- return [base,base+1].filter(n=>n<=count);
+ if(!isTwoPage())return [page];
+ if(hasSoloCover()&&page===1)return [1];
+ const base=hasSoloCover()?(page%2===0?page:page-1):(page%2===1?page:page-1);
+ return [base,base+1].filter(n=>n<=bookPageCount());
 }
 function reader(){
  const b=activeBook;
@@ -279,8 +367,10 @@ async function openBook(id){
   if(myToken!==openToken||!allowed())return;
   const next=await pdf.getDocument({data:new Uint8Array(await blob.arrayBuffer()),useSystemFonts:true}).promise;
   if(myToken!==openToken||!allowed()){await next.destroy().catch(()=>{});return;}
-  documentPDF=next;documentBlob=blob;activeBook=b;lastBookId=b.id;
-  page=Math.min(documentPDF.numPages,getSavedPage(b));zoom=1;
+  const newMap=await mapBookPages(next,b,myToken);
+   if(myToken!==openToken||!allowed()||!newMap){await next.destroy().catch(()=>{});return;}
+   documentPDF=next;documentBlob=blob;activeBook=b;leafMap=newMap;lastBookId=b.id;
+   b.pages=bookPageCount();page=Math.min(bookPageCount(),getSavedPage(b));zoom=1;
   const card=document.querySelector('#psbLibrary [data-psb-book-card="'+b.id+'"]');
   if(card){card.classList.add('is-opening');await new Promise(r=>setTimeout(r,310));}
   if(myToken!==openToken||!allowed())return;
@@ -309,7 +399,7 @@ function closeBook(silent=false){
  const old=documentPDF;
  for(const job of renderTasks){try{job.cancel()}catch(_){}}
  renderTasks=[];
- documentPDF=null;documentBlob=null;activeBook=null;focused=false;zoom=1;cachedForActive=false;
+ documentPDF=null;documentBlob=null;activeBook=null;leafMap=[];focused=false;zoom=1;cachedForActive=false;
  if(document.fullscreenElement?.id==='psbReader'){try{document.exitFullscreen?.()}catch(_){}}
  document.documentElement.classList.remove('psb-mode-book');
  if(!silent){requestRender();requestAnimationFrame(()=>{const input=document.getElementById('psbSearch');if(input)input.value=query;filterShelf();restoreCovers();})}
@@ -336,7 +426,7 @@ async function draw(){
  if(spread)spread.classList.toggle('psb-single',ids.length===1);
  const pageInput=reader.querySelector('#psbPageInput');if(pageInput){pageInput.value=String(page);pageInput.max=bookPageCount();}
  const zoomText=reader.querySelector('#psbZoomCount');if(zoomText)zoomText.textContent=Math.round(zoom*100)+'%';
- const noPrev=page<=1,noNext=page>=bookPageCount();
+ const noPrev=page<=1,noNext=ids[ids.length-1]>=bookPageCount();
  reader.querySelector('[data-psb-prev]')?.toggleAttribute('disabled',noPrev);
  reader.querySelector('[data-psb-next]')?.toggleAttribute('disabled',noNext);
  const width=reader.querySelector('#psbReaderViewport')?.clientWidth||window.innerWidth;
@@ -346,59 +436,58 @@ async function draw(){
  const pagesToCleanup=new Set();
  await Promise.all(ids.map(async(num,i)=>{
   try{
-   const leaf=sourceForLeaf(num);
-   const pdfPage=await documentPDF.getPage(leaf.source);
+   const leaf=sourceForLeaf(num),pdfPage=await documentPDF.getPage(leaf.source);
    if(token!==pageToken||!allowed())return;
-   // A digitalização do Piaget aparece invertida no leitor normal.
-   // Corrigimos 180 graus APENAS aqui; cada metade passa a ocupar um canvas próprio.
-   const rotation=leaf.side?(pdfPage.rotate+180)%360:pdfPage.rotate;
+   const rotation=(pdfPage.rotate+(leaf.rotate||0))%360;
    const base=pdfPage.getViewport({scale:1,rotation});
-   const leafWidth=leaf.side?base.width/2:base.width;
-   let factor=Math.min(availableWidth/leafWidth,availableHeight/base.height)*zoom;
-   factor=Math.min(Math.max(factor,0.15),3.25);
-   const renderScale=Math.min(window.devicePixelRatio||1,2);
-   const viewport=pdfPage.getViewport({scale:factor*renderScale,rotation});
+   const cols=leaf.cols||1,rows=leaf.rows||1;
+   const leafWidth=base.width/cols,leafHeight=base.height/rows;
+   let factor=Math.min(availableWidth/leafWidth,availableHeight/leafHeight)*zoom;
+   factor=Math.min(Math.max(factor,.15),3.25);
+   const dpr=Math.min(window.devicePixelRatio||1,2);
+   const viewport=pdfPage.getViewport({scale:factor*dpr,rotation});
    const canvas=sheets[i].querySelector('canvas');
    const ctx=canvas?.getContext('2d',{alpha:false});
    if(!canvas||!ctx)return;
-   canvas.width=Math.round(leaf.side?viewport.width/2:viewport.width);
-   canvas.height=Math.round(viewport.height);
+   const rasterW=viewport.width/cols,rasterH=viewport.height/rows;
+   canvas.width=Math.max(1,Math.round(rasterW));
+   canvas.height=Math.max(1,Math.round(rasterH));
    canvas.style.width=Math.round(leafWidth*factor)+'px';
-   canvas.style.height=Math.round(base.height*factor)+'px';
-   const offset=leaf.side==='right'?viewport.width/2:0;
-   const job=pdfPage.render({
-    canvasContext:ctx,viewport,
-    ...(leaf.side?{transform:[1,0,0,1,-offset,0]}:{})
-   });
-   renderTasks.push(job);
-   await job.promise;
+   canvas.style.height=Math.round(leafHeight*factor)+'px';
+   const x=(leaf.index%cols)*rasterW,y=Math.floor(leaf.index/cols)*rasterH;
+   const job=pdfPage.render({canvasContext:ctx,viewport,
+    ...(cols>1||rows>1?{transform:[1,0,0,1,-x,-y]}:{})});
+   renderTasks.push(job);await job.promise;
    if(token!==pageToken||!allowed())return;
    pagesToCleanup.add(pdfPage);
    sheets[i].classList.remove('psb-sheet-transition');
-   void sheets[i].offsetWidth;
-   sheets[i].classList.add('psb-sheet-transition');
+   void sheets[i].offsetWidth;sheets[i].classList.add('psb-sheet-transition');
   }catch(e){
-   if(token===pageToken&&e?.name!=='RenderingCancelledException')showNote('Erro ao renderizar a página. Tente novamente.');
+   if(token===pageToken&&e?.name!=='RenderingCancelledException')
+    showNote('Erro ao renderizar a página. Tente novamente.');
   }
  }));
- // As duas metades podem compartilhar o mesmo PDFPageProxy. Só limpar após ambas concluírem.
- if(token===pageToken)for(const pdfPage of pagesToCleanup)pdfPage.cleanup();
+ if(token===pageToken)for(const p of pagesToCleanup)p.cleanup();
 }
 function turn(next){
  if(!documentPDF||!activeBook)return;
- const step=isTwoPage()?(page===1?1:2):1;
- let target=page;
- if(next>0)target=page+step;
- if(next<0)target=page===2?1:page-step;
- page=Math.max(1,Math.min(bookPageCount(),target));
- if(isTwoPage()&&page>1&&page%2!==0)page=Math.max(2,page-1);
- savePage(activeBook,page);
- void draw();
+ const cover=hasSoloCover(),count=bookPageCount();
+ if(isTwoPage()){
+  if(next>0)page=cover&&page===1?2:page+2;
+  else page=cover&&page===2?1:page-2;
+  page=Math.max(1,Math.min(count,page));
+  if(cover&&page>1&&page%2!==0)page=Math.max(2,page-1);
+  else if(!cover&&page%2===0)page=Math.max(1,page-1);
+ }else page=Math.max(1,Math.min(count,page+(next>0?1:-1)));
+ savePage(activeBook,page);void draw();
 }
 function goPage(n){
  if(!documentPDF||!activeBook)return;
  page=Math.min(bookPageCount(),Math.max(1,Math.floor(Number(n)||1)));
- if(isTwoPage()&&page>1&&page%2!==0)page--;
+ if(isTwoPage()){
+  if(hasSoloCover()&&page>1&&page%2!==0)page--;
+  else if(!hasSoloCover()&&page%2===0)page--;
+ }
  savePage(activeBook,page);void draw();
 }
 function setZoom(delta){
