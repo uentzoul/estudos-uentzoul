@@ -261,7 +261,7 @@ test('Desafio inaugural permanece intacto e novos termos são reais e ligados à
  for(const word of needed)assert.ok(data.wordBank.some(x=>norm(x.word)===norm(word)),word+' deve existir');
  assert.ok(data.wordBank.every(x=>norm(x.word).length===5&&x.area&&x.hint));
  assert.equal(new Set(data.wordBank.map(x=>norm(x.word))).size,data.wordBank.length);
- assert.match(page,/extras-data\.js\?v=20261120-psico-vocab-v2/);
+ assert.match(page,/extras-data\.js\?v=20261120-context-oneword-v1/);
 });
 
 test('Conexo escolhe quatro grupos distintos e registra solução',()=>{
