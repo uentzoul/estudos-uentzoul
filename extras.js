@@ -55,7 +55,7 @@ let client=null,uid=null,approved=false,isAdmin=false,day="",ordinal=0,active="p
 let calendarViewMonth="",calendarOpen=false,conexoMarkMode=false,conexoDrag=null,suppressConexoClick=false;
 let archiveLoadToken=0, psicoFlippingRow=-1;
 let psicoBank=DATA.wordBank.slice().sort((a,b)=>clean(a.word).localeCompare(clean(b.word),"pt-BR"));
-let connectionGroups=[],connectionTiles=[],contextTerms=new Map(),contextRankings=null,contextTarget="";
+let connectionGroups=[],connectionTiles=[],contextTerms=new Map(),contextRankings=null,contextTarget="",contextFreeRanks=new Map();
 const persistTimers=Object.create(null),persistPromises=Object.create(null);
 let feedback={game:"",message:"",kind:""};
 let authBusy=false;
@@ -497,6 +497,7 @@ function conexoSubmit(){
  }else{
   const code=st.selected.slice().sort().join("|");
   if(!st.wrong.includes(code))st.wrong.push(code);
+  if(st.wrong.length>100)st.wrong=st.wrong.slice(-100);
   const count=Math.max(...[0,1,2,3].map(group=>terms.filter(t=>t.group===group).length));
   feedback={game:"conexo",message:count===3?"Faltou uma palavra!":"Essas quatro palavras não formam um grupo.",kind:"error"};
  }
@@ -574,7 +575,7 @@ function displayTerm(value){
  return found?.label||String(value??"").toLowerCase();
 }
 function initContexto(){
- contextTerms=new Map();
+ contextTerms=new Map();contextFreeRanks=new Map();
  DATA.semanticDomains.forEach((domain,i)=>domain.terms.forEach(term=>{
   const key=cleanTerm(term);
   if(!key)return;
@@ -614,11 +615,12 @@ function contextRankTerm(guess){
  if(word===contextTarget)return 1;
  const known=contextRankings.get(word);
  if(known)return known;
+ if(contextFreeRanks.has(word))return contextFreeRanks.get(word);
  // Aceita texto livre: aproxima variantes morfológicas de conceitos conhecidos,
  // mantendo palpites desconhecidos mais distantes em vez de impedir a tentativa.
  const nearby=(NEAR[contextTarget.toLowerCase()]||[]).map(cleanTerm);
  const direct=nearby.indexOf(word);
- if(direct>=0)return 2+direct*5;
+ if(direct>=0){const rank=2+direct*5;contextFreeRanks.set(word,rank);return rank;}
  const grams=value=>{
   const s=" "+value+" ",result=new Set();
   for(let i=0;i<s.length-2;i++)result.add(s.slice(i,i+3));
@@ -632,10 +634,11 @@ function contextRankTerm(guess){
   const similarity=shared/Math.max(1,new Set([...a,...b]).size);
   if(similarity>best){best=similarity;rank=index;}
  }
- if(best>=.42)return Math.max(2,Math.round(rank+(1-best)*45));
+ if(best>=.42){const result=Math.max(2,Math.round(rank+(1-best)*45));contextFreeRanks.set(word,result);return result;}
  let hash=2166136261;
  for(const char of word)hash=Math.imul(hash^char.charCodeAt(0),16777619)>>>0;
- return 900+hash%9101;
+ const result=900+hash%9101;
+ contextFreeRanks.set(word,result);return result;
 }
 function contextHints(){
  const item=contextTerms.get(contextTarget);
