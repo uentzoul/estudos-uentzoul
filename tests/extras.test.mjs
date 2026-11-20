@@ -25,6 +25,15 @@ test('Navegação Extras: link só para administrador e aviso para demais pessoa
  assert.match(script,/rpc\("uentzoul_is_admin"\)/);
  for(const game of ['tetris','psico','conexo','contexto'])assert.match(page,new RegExp('data-game="'+game+'"'));
 });
+test('Arquivo de desafios começa em 20/11/2026 e não libera datas anteriores ou futuras',()=>{
+ assert.match(page,/id="archiveDate" min="2026-11-20"/);
+ assert.match(script,/const ARCHIVE_START="2026-11-20"/);
+ assert.match(script,/value>=ARCHIVE_START&&value<=dateBrazil\(\)/);
+ assert.match(script,/input\.min=ARCHIVE_START;input\.max=today/);
+ assert.ok(page.indexOf('data-game="psico"')<page.indexOf('data-game="contexto"'));
+ assert.ok(page.indexOf('data-game="contexto"')<page.indexOf('data-game="conexo"'));
+ assert.ok(page.indexOf('data-game="conexo"')<page.indexOf('data-game="tetris"'));
+});
 test('Banco inicial tem somente respostas de cinco letras e sem duplicações',()=>{
  assert.ok(data.wordBank.length>=50);
  assert.ok(data.wordBank.every(w=>norm(w.word).length===5&&w.area&&w.hint));
