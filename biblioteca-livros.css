@@ -440,3 +440,8 @@ html[data-theme="dark"] #nav #navAudiobooksMembers .pm-audio-soon-tag{
 @media(max-width:600px){
  #nav #navAudiobooksMembers .pm-audio-soon-tag{padding:3px 6px;font-size:8px}
 }
+
+/* Itens impressos no sumário mas ausentes do exemplar digital não são links. */
+.psb-toc-unavailable{opacity:.66;cursor:default!important;background:transparent!important;border-color:transparent!important}
+.psb-toc-unavailable .psb-toc-entry-page{font-style:italic;font-size:9px;min-width:80px}
+.psb-toc-unavailable .psb-toc-entry-title{font-style:italic}
