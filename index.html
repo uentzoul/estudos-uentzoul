@@ -2950,11 +2950,9 @@ const doneCount=(items)=>items.filter(i=>isDone(i)).length;
 const topicProgressKey=(k,i)=>k==='grupos'?`topic:grupos:foco-v3:${i}`:`topic:${k}:${i}`;
 const subjectKeys=k=>[
  ...DB.topics[k].map((_,i)=>topicProgressKey(k,i)),
- ...DB.materials.filter(x=>x.subject===k&&x.available).map(m=>`material:${m.url||m.source}`),
  ...audioEpisodes(k).map(e=>`audio:${k}:${e.n}`)];
 const overallKeys=()=>[
- ...Object.keys(DB.subjects).flatMap(k=>subjectKeys(k)),
- ...DB.materials.filter(m=>m.subject==='geral'&&m.available).map(m=>`material:${m.url||m.source}`)];
+ ...Object.keys(DB.subjects).flatMap(k=>subjectKeys(k))];
 const fmtPct=(n,total)=>total?Math.round(n/total*100):0;
 
 // Ponte restrita entre a Central de Estudos e o módulo de perfis.
@@ -3368,7 +3366,6 @@ function materialFileGlyph(m){
 
 function docCard(m){
  if(!m.available)return '';
- const key='material:'+(m._libraryLegacyUrl||m.source||m._libraryKey||m.url);
  const href=m._libraryUpload?'#':m.url;
  const attr=m._libraryUpload?' data-library-file="'+esc(m._libraryKey)+'"':'';
  const title=esc(materialDisplayTitle(m));
@@ -3379,13 +3376,12 @@ function docCard(m){
   (badges?'<span class="pm-file-meta">'+badges+'</span>':'')+'</span>';
  const main='<a class="doc-full-link" href="'+esc(href)+'"'+attr+
   ' target="_blank" rel="noopener noreferrer" aria-label="Abrir '+title+'">'+body+'</a>';
- return '<div class="doc doc-compact is-available">'+main+
-  '<div class="doc-check">'+doneBox(key)+'</div></div>';
+ return '<div class="doc doc-compact is-available">'+main+'</div>';
 }
 
-/* Cartões da Biblioteca: o próprio cartão é o link, com "Visto" independente. */
+/* Cartões da Biblioteca: o próprio cartão abre o arquivo sem marcação de leitura. */
 
-/* Microinteração no clique: nunca intercepta o link nem o controle de visto. */
+/* Microinteração no clique: nunca intercepta o link do arquivo. */
 (function(){
  function pulse(link,event){
   if(!link||window.matchMedia('(prefers-reduced-motion: reduce)').matches)return;
@@ -3428,9 +3424,8 @@ function libraryResourceCard(m,i=0){
  const uploadAttr=m._libraryUpload?' data-library-file="'+esc(m._libraryKey)+'"':'';
  const body='<a class="library-resource-main" href="'+esc(url)+'"'+uploadAttr+
   ' target="_blank" rel="noopener noreferrer" aria-label="Abrir '+name+'">'+content+'</a>';
- const key='material:'+(m._libraryLegacyUrl||m.source||m._libraryKey||m.url);
  return '<article class="doc library-resource is-available type-'+type+'" style="--library-seq:'+(i%8)+'">'+
-  body+'<div class="library-resource-bottom"><span class="library-resource-progress">'+doneBox(key)+'</span></div></article>';
+  body+'</article>';
 }
 
 function materialGroup(m){
@@ -3621,13 +3616,7 @@ function libraryExamMaterials(k){
  return visibleMaterialVersions(DB.materials.filter(m=>m.subject===k&&m.available));
 }
 function libraryExamProgress(k){
- const docs=libraryExamMaterials(k).filter(m=>m.available);
- const n=doneCount(docs.map(m=>'material:'+(m._libraryLegacyUrl||m.source||m._libraryKey||m.url)));
- return {n,total:docs.length,pct:fmtPct(n,docs.length)};
-}
-function libraryProgressMarkup(p){
- return '<div class="course-progress-label"><span>'+p.n+' de '+p.total+' materiais concluídos</span><strong>'+p.pct+'%</strong></div>'+
- '<div class="course-progress-track" role="progressbar" aria-label="Progresso dos materiais" aria-valuenow="'+p.pct+'" aria-valuemin="0" aria-valuemax="100"><span style="width:'+p.pct+'%"></span></div>';
+ return {total:libraryExamMaterials(k).filter(m=>m.available).length};
 }
 function renderLibrary(embedded=false){
  const selected=current.libraryCourse;
@@ -3640,16 +3629,16 @@ function renderLibrary(embedded=false){
     '<div class="course-detail-banner" aria-hidden="true">Ψ</div>'+
     '<div class="course-detail-body">'+
     '<span class="eyebrow">Psicologia PUCRS · 2026/2 · Acervo completo</span><h1 class="h1">'+esc(subj.name)+'</h1>'+
-    '<p>Arquivos da disciplina para consulta, com destaque para os temas das últimas provas.</p>'+libraryProgressMarkup(p)+'</div></section>'+
+    '<p>Arquivos da disciplina para consulta, com destaque para os temas das últimas provas.</p></div></section>'+
     (familyTopics.length?'<h2 style="font-size:16px;margin:0 0 7px">Conteúdos da prova</h2><div class="course-syllabus">'+familyTopics.map(t=>'<span>'+esc(t)+'</span>').join('')+'</div>':'')+
     '<div class="pm-exam-info" role="note"><strong>Como identificar os materiais da prova</strong><p>O marcador <span class="pm-exam-badge">Cai na prova</span> indica o foco das últimas avaliações. Outros documentos estão disponíveis para consulta, mas não entram nas atividades atuais.</p></div>'+'<div class="course-materials-title"><h2>Acervo da disciplina</h2><span>'+docs.length+' publicado(s)</span></div>'+
     '<section class="course-detail-resources">'+(docs.length?organizedSubjectMaterials(docs,true,selected):
      '<div class="course-empty">Nenhum material publicado nesta disciplina.</div>')+'</section>'+
-    '<p class="course-library-note">O percentual considera apenas arquivos disponíveis marcados como vistos. As marcações são pessoais.</p></div>';
+    '<p class="course-library-note">Arquivos disponíveis para consulta, sem necessidade de marcar como visto.</p></div>';
  }
  const order='name',mode='cards';
  let ids=subjects.slice();
- ids.sort((a,b)=>order==='progress'?libraryExamProgress(b).pct-libraryExamProgress(a).pct||DB.subjects[a].name.localeCompare(DB.subjects[b].name,'pt-BR'):DB.subjects[a].name.localeCompare(DB.subjects[b].name,'pt-BR'));
+ ids.sort((a,b)=>DB.subjects[a].name.localeCompare(DB.subjects[b].name,'pt-BR'));
  const courses=ids.map(k=>{
   const subj=DB.subjects[k],p=libraryExamProgress(k);
   const courseTopics={tcc:'Terapia do Esquema · TCCs de terceira onda',familia:'Luto · Dependência química · Violência intrafamiliar',meta:'Segunda tópica · Édipo · Pulsão',grupos:'Psicodrama de Moreno · Carl Rogers · Escritores da Liberdade',social:'Martín-Baró · Interseccionalidade · Polarização social',avaliacao:'Entrevista de devolução · Contextos de atuação · Ética profissional'};
@@ -3658,18 +3647,14 @@ function renderLibrary(embedded=false){
   '<button class="course-card-button" type="button" data-action="subject:'+k+'" aria-label="Abrir disciplina '+esc(subj.name)+'">'+
   '<div class="course-cover"><span class="course-index">2026/2 · ACERVO</span><span class="course-symbol" aria-hidden="true">Ψ</span></div>'+
   '<div class="course-card-content"><div class="course-card-title">'+esc(subj.name)+'</div>'+
-  '<div class="course-card-desc">'+esc(hint)+'</div>'+libraryProgressMarkup(p)+
+  '<div class="course-card-desc">'+esc(hint)+'</div>'+
   '<div class="course-card-footer"><span>'+p.total+' '+(p.total===1?'material':'materiais')+'</span><span>Abrir disciplina →</span></div></div></button></article>';
  }).join('');
  return '<div class="library-page"><div class="course-intro"><div>'+(embedded?head('Psicologia PUCRS · '+semester,'Disciplinas','Selecione uma matéria para acessar conteúdos, materiais, simulados e podcasts.'):head('Biblioteca · '+semester,'Resumo das disciplinas','Todos os materiais liberados por disciplina. Os arquivos que caem nas últimas provas estão identificados.'))+'</div></div>'+
 (ids.length?'<div class="course-grid '+(mode==='list'?'is-list':'')+'">'+courses+'</div>':'<div class="course-empty">Nenhuma disciplina corresponde ao filtro selecionado.</div>')+
 
- '<p class="course-library-note">O progresso é calculado pelos materiais publicados e marcados como vistos no seu perfil. Materiais que ainda não foram enviados não aparecem como referências vazias.</p></div>';
+ '<p class="course-library-note">Os materiais publicados estão disponíveis para consulta. Materiais ainda não enviados não aparecem como referências vazias.</p></div>';
 }
-document.addEventListener('change',event=>{
- const el=event.target;
-if(el.matches('.library-page [data-complete]'))requestAnimationFrame(()=>{if(current.page==='home'||current.page==='library')render()});
-});
 function audioSelectionIndex(){return current.audioSubject==='tcc'?currentChapter:currentEpisode;}
 function audioKey(k,i){return k+':'+i;}
 function podcastEpisode(k,i){return audioEpisodes(k)[i];}
@@ -5290,7 +5275,7 @@ document.addEventListener('change',e=>{if(!e.target.matches('[data-complete]'))r
    if(count)count.textContent=`${n}/${keys.length} concluídos`;
    if(percentage)percentage.textContent=`${fmtPct(n,keys.length)}% de progresso`;
    if(bar)bar.style.width=`${fmtPct(n,keys.length)}%`;
-   const stats=[['Tópicos',DB.topics[k].map((_,i)=>topicProgressKey(k,i))],['Materiais',DB.materials.filter(m=>m.subject===k&&m.available).map(m=>`material:${m.url||m.source}`)],['Simulados',readyExamsFor(k).map(e=>`sim:${e.id}`)],['Áudios',audioEpisodes(k).map(e=>`audio:${k}:${e.n}`)]];
+   const stats=[['Tópicos',DB.topics[k].map((_,i)=>topicProgressKey(k,i))],['Simulados',readyExamsFor(k).map(e=>`sim:${e.id}`)],['Áudios',audioEpisodes(k).map(e=>`audio:${k}:${e.n}`)]];
    stats.forEach(([name,values])=>{let el=document.querySelector(`[data-subject-stat="${name}"]`);if(el)el.textContent=`${doneCount(values)}/${values.length}`;});
    const reviewKeys=DB.topics[k].map((_,i)=>topicProgressKey(k,i)),reviewDone=doneCount(reviewKeys);
    const reviewCount=$('reviewProgressCount'),reviewFill=$('reviewProgressFill');
