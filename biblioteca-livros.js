@@ -75,7 +75,7 @@ let activeShelf='home',query='',activeBook=null,documentPDF=null,documentBlob=nu
 let zoom=1,dragX=0,readerBusy=false,openToken=0,pageToken=0;
 let loadedKeys=new Set(),coverUrls=new Map(),slideDirection=1;
 let pdfPromise=null,lastError='',lastBookId=null,lastUserId='',downloadPct=0;
-let focused=false,gestureStart=null;
+let focused=false,gestureStart=null,cachedForActive=false,renderTasks=[];
 const cacheKey=b=>user()+'::'+b.id+'::'+b.path;
 const progressKey=b=>PAGE_STORE+user()+'_'+b.id;
 function getSavedPage(b){
@@ -173,7 +173,7 @@ function reader(){
  '<label class="psb-pager-input"><input id="psbPageInput" type="number" min="1" max="'+count+'" value="'+page+'" aria-label="Ir para a página"> <span>de '+count+'</span></label>'+
  '<button data-psb-last type="button" title="Última página">»</button></div>'+
  '<span class="psb-reader-hint">Arraste, toque nas setas ou use ← → para folhear</span>'+
- '<span class="psb-cached-label" id="psbCachedLabel">PDF salvo neste dispositivo</span></footer>'+
+ '<span class="psb-cached-label" id="psbCachedLabel">'+(cachedForActive?'PDF salvo neste dispositivo':'Leitura online · sem cópia local')+'</span></footer>'+
  '</section>';
 }
 function render(){
@@ -224,7 +224,7 @@ function fileFromCache(b){
 }
 async function loadFile(b){
  const cached=await fileFromCache(b);
- if(cached instanceof Blob&&cached.size>100)return cached;
+ if(cached instanceof Blob&&cached.size>100){cachedForActive=true;return cached;}
  const c=client();
  if(!c||!allowed())throw Error('Entre como administrador para consultar a Biblioteca.');
  const signing=await c.storage.from(BUCKET).createSignedUrl(b.path,180);
@@ -245,13 +245,13 @@ async function loadFile(b){
   blob=new Blob(parts,{type:'application/pdf'});
  }else blob=await resp.blob();
  if(blob.size<100)throw Error('O PDF recebido está vazio.');
- if(!(await cachedPut(CACHE_STORE,cacheKey(b),blob)))lastError='O livro abriu, mas o navegador não conseguiu guardá-lo offline.';
+ cachedForActive=await cachedPut(CACHE_STORE,cacheKey(b),blob);
  return blob;
 }
 async function openBook(id){
  if(!allowed()||readerBusy)return;
  const b=BOOKS.find(x=>x.id===id);if(!b)return;
- readerBusy=true;lastError='';downloadPct=0;
+ readerBusy=true;lastError='';downloadPct=0;cachedForActive=false;
  const myToken=++openToken;
  setCardLoading(b,true);
  try{
@@ -287,7 +287,9 @@ async function cacheCover(b){
 function closeBook(silent=false){
  ++openToken;++pageToken;
  const old=documentPDF;
- documentPDF=null;documentBlob=null;activeBook=null;focused=false;zoom=1;
+ for(const job of renderTasks){try{job.cancel()}catch(_){}}
+ renderTasks=[];
+ documentPDF=null;documentBlob=null;activeBook=null;focused=false;zoom=1;cachedForActive=false;
  if(document.fullscreenElement?.id==='psbReader'){try{document.exitFullscreen?.()}catch(_){}}
  document.documentElement.classList.remove('psb-mode-book');
  if(!silent){requestRender();requestAnimationFrame(()=>{const input=document.getElementById('psbSearch');if(input)input.value=query;filterShelf();restoreCovers();})}
@@ -303,6 +305,8 @@ async function draw(){
  const reader=document.getElementById('psbReader');
  if(!documentPDF||!reader||!allowed())return;
  const token=++pageToken,ids=spreadPages();
+ for(const job of renderTasks){try{job.cancel()}catch(_){}}
+ renderTasks=[];
  const sheets=[...reader.querySelectorAll('[data-psb-sheet]')];
  for(let i=0;i<sheets.length;i++){
   const sheet=sheets[i],num=ids[i];sheet.hidden=!num;
@@ -333,13 +337,14 @@ async function draw(){
    canvas.width=Math.round(viewport.width);canvas.height=Math.round(viewport.height);
    canvas.style.width=Math.round(base.width*factor)+'px';
    canvas.style.height=Math.round(base.height*factor)+'px';
-   await pdfPage.render({canvasContext:ctx,viewport}).promise;
+   const job=pdfPage.render({canvasContext:ctx,viewport});renderTasks.push(job);
+   await job.promise;
    if(token!==pageToken||!allowed())return;
    sheets[i].classList.remove('psb-sheet-transition');
    void sheets[i].offsetWidth;
    sheets[i].classList.add('psb-sheet-transition');
    pdfPage.cleanup();
-  }catch(e){if(token===pageToken)showNote('Erro ao renderizar a página. Tente novamente.');}
+  }catch(e){if(token===pageToken&&e?.name!=='RenderingCancelledException')showNote('Erro ao renderizar a página. Tente novamente.');}
  }));
 }
 function turn(next){
