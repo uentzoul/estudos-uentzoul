@@ -12,6 +12,13 @@ try{
   if(theme==="dark"||theme==="light")document.documentElement.dataset.theme=theme;
  }
 }catch(_){}
+// Se os scripts externos falharem, mostrar uma mensagem em vez de uma tela vazia.
+setTimeout(()=>{
+ if(!document.documentElement.classList.contains('extras-booting'))return;
+ document.documentElement.classList.remove('extras-booting');
+ const status=document.getElementById('extrasGateStatus');
+ if(status)status.textContent='Não foi possível carregar os jogos. Abre Extras novamente pelo PsicoMoodle.';
+},6500);
 </script>
 <title>Extras · PsicoMoodle</title>
 <link rel="stylesheet" href="./extras.css?v=20261120-auth-fix-v4">
