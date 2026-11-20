@@ -51,6 +51,27 @@ test('Documento principal declara português brasileiro e viewport responsivo',(
  assert.match(html,/<main[^>]+id="main"/i);
 });
 
+test('Biblioteca aparece logo abaixo de Caderno e ambos os futuros recursos não abrem telas',()=>{
+ const navStart=html.indexOf('<nav class="menu" id="nav">');
+ const navEnd=html.indexOf('</nav>',navStart);
+ assert.ok(navStart>=0&&navEnd>navStart,'menu principal disponível');
+ const nav=html.slice(navStart,navEnd);
+ const caderno=nav.indexOf('id="navCadernoPreview"');
+ const biblioteca=nav.indexOf('aria-label="Biblioteca — em breve"');
+ const mensagens=nav.indexOf('data-page="messages"');
+ const trabalhos=nav.indexOf('aria-label="Trabalhos — em breve"');
+ assert.ok(caderno>=0&&biblioteca>caderno&&mensagens>biblioteca,'Biblioteca vem imediatamente após Caderno e antes de Mensagens');
+ assert.ok(trabalhos>mensagens,'Trabalhos permanece na sua posição');
+ for(const name of ['Biblioteca','Trabalhos']){
+  const pattern=new RegExp('<span class="sidebtn nav-upcoming" role="note" tabindex="0" aria-disabled="true" aria-label="'+name+' — em breve" title="Em breve">[\\s\\S]*?<span class="nav-upcoming-name">'+name+'</span><span class="nav-upcoming-tip" aria-hidden="true">Em breve</span></span>');
+  assert.match(nav,pattern,name+' é informativo, tem ícone, não é botão nem link');
+ }
+ assert.equal((nav.match(/class="sidebtn nav-upcoming"/g)||[]).length,2,'dois recursos futuros');
+ assert.doesNotMatch(nav,/data-page="library"|data-page="trabalhos"/,'nenhuma rota acessível');
+ assert.match(html,/const targets=\[\.\.\.document\.querySelectorAll\('#nav \.nav-upcoming'\)\]/,'tooltip de ambos os itens no desktop');
+ assert.match(html,/@media\(hover:none\)\{\s*#nav \.nav-upcoming/,'aviso Em breve visível em telas touch');
+});
+
 test('Barra oval de busca, ordenação e visualização não retorna em nenhum semestre',()=>{
  for(const removed of [
   'class="course-toolbar"','id="libraryCourseSearch"',

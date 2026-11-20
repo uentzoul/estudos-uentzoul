@@ -2656,6 +2656,8 @@ html[data-theme="dark"]{
  aria-label="Caderno — entre na sua conta para salvar suas anotações"
  title="Caderno · suas anotações"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M5 3h14v18H5zM9 3v18M12 8h4M12 12h4M12 16h4"/></svg><span class="nav-label">Caderno</span></button>
 
+<span class="sidebtn nav-upcoming" role="note" tabindex="0" aria-disabled="true" aria-label="Biblioteca — em breve" title="Em breve"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M12 6c-2.5-1.7-5.7-2-9-1v14c3.3-1 6.5-.7 9 1V6Zm0 0c2.5-1.7 5.7-2 9-1v14c-3.3-1-6.5-.7-9 1V6Z"/></svg><span class="nav-upcoming-name">Biblioteca</span><span class="nav-upcoming-tip" aria-hidden="true">Em breve</span></span>
+
 <button class="sidebtn" data-page="messages"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.5 8.5 0 0 1-8.5 8.5c-1.5 0-3.1-.4-4.4-1.1L3 20l1.2-4.9A8.5 8.5 0 1 1 21 11.5Z"/><path d="M8 11.5h8M8 14.5h5"/></svg><span class="nav-label">Mensagens</span> <span class="dm-nav-badge" id="dmNavBadge" hidden></span></button>
 
 
@@ -8672,11 +8674,11 @@ window.addEventListener('message',function(event){
 <script id="pm-chat-sticker-personal" src="chat-sticker-personal.js?v=20261116-pacotes-pessoais-v1" defer></script>
 
 <script>
-/* Aviso desacoplado do scroll da sidebar. Nenhuma alteração em navegação. */
+/* Avisos "Em breve" posicionados fora da área rolável para Biblioteca e Trabalhos. */
 (function(){
  const side=document.getElementById('siteSidebar');
- const target=document.querySelector('#nav .nav-upcoming');
- if(!side||!target)return;
+ const targets=[...document.querySelectorAll('#nav .nav-upcoming')];
+ if(!side||!targets.length)return;
  const tip=document.createElement('div');
  tip.className='nav-upcoming-floating-tip';
  tip.id='navUpcomingFloatingTip';
@@ -8685,22 +8687,24 @@ window.addEventListener('message',function(event){
  tip.hidden=true;
  document.body.appendChild(tip);
  const desktop=()=>window.matchMedia('(min-width:761px)').matches;
+ let active=null;
  const place=()=>{
-  if(!desktop()){tip.hidden=true;return}
-  const rect=target.getBoundingClientRect();
+  if(!active||!desktop()){tip.hidden=true;return}
+  const rect=active.getBoundingClientRect();
   tip.style.top=(rect.top+rect.height/2)+'px';
   tip.style.left=Math.min(rect.right+9,window.innerWidth-90)+'px';
-  if(rect.bottom<=0||rect.top>=window.innerHeight)tip.hidden=true;
+  tip.hidden=rect.bottom<=0||rect.top>=window.innerHeight;
  };
- let hovered=false;
- const show=()=>{hovered=true;place();if(desktop()&&target.getBoundingClientRect().bottom>0)tip.hidden=false};
- const hide=()=>{hovered=false;tip.hidden=true};
- target.addEventListener('pointerenter',show);
- target.addEventListener('pointerleave',()=>{if(!target.matches(':focus-visible'))hide()});
- target.addEventListener('focusin',show);
- target.addEventListener('focusout',hide);
- side.addEventListener('scroll',()=>{if(hovered)place()},{passive:true});
- window.addEventListener('resize',()=>{if(hovered)place();else tip.hidden=true},{passive:true});
+ const show=target=>{active=target;place()};
+ const hide=target=>{if(active===target){active=null;tip.hidden=true;}};
+ for(const target of targets){
+  target.addEventListener('pointerenter',()=>show(target));
+  target.addEventListener('pointerleave',()=>{if(!target.matches(':focus-visible'))hide(target)});
+  target.addEventListener('focusin',()=>show(target));
+  target.addEventListener('focusout',()=>hide(target));
+ }
+ side.addEventListener('scroll',place,{passive:true});
+ window.addEventListener('resize',place,{passive:true});
 })();
 </script>
 <script>
