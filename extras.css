@@ -62,8 +62,18 @@
 .context-status{font-size:11px;color:var(--muted);margin:12px 0}
 .context-results{display:grid;gap:7px}
 .context-guess{position:relative;display:flex;justify-content:space-between;gap:13px;align-items:center;min-height:44px;border-radius:9px;border:1px solid var(--line);padding:10px 12px;overflow:hidden;background:#fbfafc}
-.context-guess .context-fill{position:absolute;inset:0 auto 0 0;background:#8fcaae58;pointer-events:none}
-.context-guess.far .context-fill{background:#b8b0c63e}.context-guess.mid .context-fill{background:#ead49a91}.context-guess.hot .context-fill{background:#97d7b9aa}
+.context-guess .context-fill{
+ position:absolute;inset:0 auto 0 0;pointer-events:none;
+ /* 0° vermelho, 60° amarelo, 120° verde — tom contínuo pelo ranking semântico. */
+ background:hsl(var(--context-hue,0) 82% 43% / .64);
+ transition:width .25s ease,background-color .25s ease;
+}
+:root[data-theme=dark] .context-guess .context-fill{
+ background:hsl(var(--context-hue,0) 86% 52% / .47);
+}
+@media(prefers-reduced-motion:reduce){
+ .context-guess .context-fill{transition:none}
+}
 .context-guess b,.context-guess small{position:relative;z-index:1}.context-guess b{font-size:13px;text-transform:capitalize}.context-guess small{font-size:11px;font-weight:750;font-variant-numeric:tabular-nums}
 .context-help{display:flex;justify-content:space-between;align-items:center;gap:13px;flex-wrap:wrap}
 .context-help .explanation{margin:0;max-width:none;flex:1}
