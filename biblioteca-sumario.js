@@ -6,11 +6,11 @@ const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&
 const norm=s=>String(s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLocaleLowerCase('pt-BR');
 let state=null,generation=0,eventsBound=false;
 function context(){return window.PSICO_BOOK_LIBRARY?.getReaderContext?.()||null}
-function cacheKey(c){return 'psb-toc-v4::'+(window.uentzoulAIAuth?.user?.()?.id||'')+'::'+c.book.id+'::'+c.book.path+'::'+c.total}
+function cacheKey(c){return 'psb-toc-v5::'+(window.uentzoulAIAuth?.user?.()?.id||'')+'::'+c.book.id+'::'+c.book.path+'::'+c.total}
 function readCache(c){
  try{
   const record=JSON.parse(localStorage.getItem(cacheKey(c))||'null');
-  if(!record||!Array.isArray(record.items)||!['outline','text'].includes(record.kind))return null;
+  if(!record||!Array.isArray(record.items)||!['outline','text','reviewed'].includes(record.kind))return null;
   return {kind:record.kind,items:record.items.filter(x=>
    typeof x.title==='string'&&x.title.length<=200&&Number.isInteger(x.page)&&x.page>=1&&x.page<=c.total).slice(0,240)};
  }catch(_){return null}
@@ -213,7 +213,7 @@ function mount(){
    items:cached?.items||[],
    status:cached?'Sumário disponível':'Identificando capítulos…'
   };
-  if(cached)state.status=cached.kind==='outline'?'Capítulos do próprio PDF':'Seções identificadas no texto';
+  if(cached)state.status=cached.kind==='reviewed'?'Sumário conferido no exemplar':cached.kind==='outline'?'Capítulos do próprio PDF':'Seções identificadas no texto';
   else void build(c,generation);
  }
  const tools=reader.querySelector('.psb-reader-tools');
@@ -253,8 +253,28 @@ function mount(){
   });
  }
 }
+function reviewedChapters(c){
+ const source=window.PSICO_BOOK_VERIFIED_TOC?.[c.book.id];
+ if(!Array.isArray(source)||!source.length)return null;
+ return source.map(entry=>{
+  const match=Number.isInteger(entry.index)?
+   c.leafMap.findIndex(leaf=>leaf.source===entry.source&&leaf.index===entry.index):-1;
+  const page=match>=0?match+1:logicalPage(c,entry.source);
+  return {title:String(entry.title),page,level:Number(entry.level)||0};
+ }).filter(x=>x.title.trim().length>=2&&Number.isInteger(x.page)&&x.page>=1&&x.page<=c.total);
+}
 async function build(c,gen){
  try{
+  // Índices conferidos pelo conteúdo do exemplar prevalecem sobre marcadores
+  // automáticos, que podem conter autores, referências ou divisões falsas.
+  const reviewed=reviewedChapters(c);
+  if(generation!==gen)return;
+  if(reviewed?.length){
+   state.items=reviewed;state.kind='reviewed';state.loading=false;
+   state.status='Capítulos e seções conferidos no exemplar';
+   writeCache(c,reviewed,'reviewed');
+   refreshStatus();refreshBody();return;
+  }
   let items=await pdfBookmarks(c,gen),kind='outline';
   if(generation!==gen)return;
   if(!items.length){
