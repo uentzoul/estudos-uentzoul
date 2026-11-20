@@ -16,6 +16,10 @@ test('TetrisZoul possui página própria com regras 40 Lines',()=>{
  assert.match(html,/TARGET=40/);
  assert.match(html,/7-bag/);
  assert.match(html,/DAS \(ms\)/);
+ assert.match(html,/restart:"KeyD"/);
+ assert.match(html,/id="settingsDrawer"/);
+ assert.match(html,/data-setting-pane="skin"/);
+ assert.doesNotMatch(html,/id="lobby"/);
  assert.match(html,/ARR \(ms\)/);
  assert.match(html,/data-touch="drop"/);
  assert.match(html,/uentzoul_is_admin/,'permite só acesso administrativo');
@@ -41,7 +45,7 @@ test('Motor: 7 peças distintas, rotação, deslocamento, Hold e queda',()=>{
  '\nwindow.__tzTest={reset,rotate,move,holdPiece,hardDrop,shuffleBag,state:()=>({pieces,lines,phase,piece,hold,grid})};\n})();');
  assert.notEqual(altered,script,'funções do jogo localizadas');
  const noop=()=>{};
- const ctx={clearRect:noop,fillRect:noop,beginPath:noop,moveTo:noop,lineTo:noop,stroke:noop};
+ const ctx={clearRect:noop,fillRect:noop,beginPath:noop,moveTo:noop,lineTo:noop,stroke:noop,strokeRect:noop,save:noop,restore:noop};
  const elements=new Map();
  function id(key){
   if(!elements.has(key))elements.set(key,{
