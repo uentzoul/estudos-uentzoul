@@ -18,7 +18,7 @@ const LAUNCH_GROUPS=[
  {title:"Áreas de atuação da Psicologia",terms:["Hospitalar","Forense","Escolar","Organizacional"]},
  {title:"Etapas do ciclo vital",terms:["Infância","Adolescência","Adultez","Velhice"]}
 ];
-const TARGETS=["memoria","empatia","recalque","familia","laudo","lideranca","ideologia","esquema","apego","pulsao","atencao","divorcio","polarizacao","inconsciente","cuidado","congruencia","reforco","ciclo vital","escuta","pensamento","normas","diagnostico","libertacao","preconceito","aprendizagem","avaliacao","cooperacao","desejo","comportamento","democracia"];
+const TARGETS=["memoria","empatia","recalque","familia","laudo","lideranca","ideologia","esquema","apego","pulsao","atencao","divorcio","polarizacao","inconsciente","cuidado","congruencia","reforco","ciclo vital","escuta","pensamento","normas","diagnostico","libertacao","preconceito","aprendizagem","avaliacao","cooperacao","desejo","comportamento","democracia","medo","alegria","tristeza","raiva","culpa","vergonha","orgulho","saudade","amor","ansiedade","felicidade","calma","esperanca","luto","motivacao","autonomia","persistencia","autocontrole","impulso","recompensa","rotina","resiliencia","autoeficacia","amizade","confianca","relacionamento","comunicacao","intimidade","limites","convivencia","isolamento","rejeicao","sono","descanso","insonia","cansaco","concentracao","distracao","esquecimento","lembranca","imaginacao","identidade","personalidade","temperamento","autoconhecimento","autoestima","autoconfianca","autoimagem","carater","socializacao","estresse","depressao","trauma","terapia","psicoterapia","sofrimento","autocuidado","qualidade de vida","saude mental"];
 const NEAR={
  memoria:["atencao","percepcao","aprendizagem","linguagem"],
  empatia:["compreensao","escuta","aceitacao","rogers","consideracao positiva"],
@@ -581,7 +581,7 @@ function initContexto(){
   if(!contextTerms.has(key))contextTerms.set(key,{label:term,domains:new Set()});
   contextTerms.get(key).domains.add(i);
  }));
- contextTarget=cleanTerm(TARGETS[((ordinal*11+5)%TARGETS.length+TARGETS.length)%TARGETS.length]);
+ contextTarget=cleanTerm(day===ARCHIVE_START?"polarizacao":TARGETS[((ordinal*11+5)%TARGETS.length+TARGETS.length)%TARGETS.length]);
  if(!contextTerms.has(contextTarget))throw Error("Resposta do Contexto não cadastrada: "+contextTarget);
  const target=contextTerms.get(contextTarget);
  const rankings=[...contextTerms.keys()].map(word=>{
