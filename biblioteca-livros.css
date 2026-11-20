@@ -445,3 +445,10 @@ html[data-theme="dark"] #nav #navAudiobooksMembers .pm-audio-soon-tag{
 .psb-toc-unavailable{opacity:.66;cursor:default!important;background:transparent!important;border-color:transparent!important}
 .psb-toc-unavailable .psb-toc-entry-page{font-style:italic;font-size:9px;min-width:80px}
 .psb-toc-unavailable .psb-toc-entry-title{font-style:italic}
+
+/* Obras em catalogação: capa preservada, abertura bloqueada sem arquivo integral. */
+.psb-library .psb-book-button.psb-book-pending{cursor:not-allowed;opacity:.67;filter:saturate(.7)}
+.psb-library .psb-book-button.psb-book-pending:hover{transform:none;box-shadow:none}
+.psb-library .psb-book-button.psb-book-pending .psb-cover-loading{display:none!important}
+.psb-library .psb-book:has(.psb-book-pending) .psb-book-meta>span{color:#85737c;font-weight:700}
+html[data-theme="dark"] .psb-library .psb-book:has(.psb-book-pending) .psb-book-meta>span{color:#c3b3bd}
