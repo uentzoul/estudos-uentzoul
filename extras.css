@@ -208,3 +208,5 @@ button.psico-cell:focus-visible{outline:2px solid var(--accent);outline-offset:2
 
 .extras-tabs.three-games{grid-template-columns:repeat(3,minmax(0,1fr))}
 @media(max-width:680px){.extras-tabs.three-games{grid-template-columns:repeat(2,minmax(0,1fr))}}
+
+@media(max-width:680px){.extras-tabs.three-games button:nth-child(3){grid-column:1/-1}}
