@@ -2594,6 +2594,31 @@ function snapshotWritingDraft(){
  note.span=occupiedSpan(note);materializePage();
  return note;
 }
+function pullWritingLineUp(){
+ if(!editing||!editEnabled||data.mode!=='text'||editing.line<=FIRST_LINE)return false;
+ const currentLine=editing.line,previousLine=currentLine-1;
+ // Backspace no início de uma linha precedida por pauta vazia elimina essa pauta.
+ if(noteAtWritingLine(previousLine))return false;
+ const input=$('nbEditorText');if(!input||!input.value.trim())return false;
+ snapshotWritingDraft();
+ checkpoint();
+ if(!removeBlankPauta(previousLine,true))return false;
+ editing=null;renderNotes();beginEdit(previousLine,'start');
+ crossLineUndoReady=true;
+ status('Pauta vazia removida. Ctrl+Z desfaz.','success');
+ return true;
+}
+function deleteEmptyWritingLine(){
+ if(!editing||!editEnabled||data.mode!=='text')return false;
+ const current=noteAtWritingLine(editing.line);
+ const next=editing.line+Math.max(1,Number(current?.span)||1);
+ if(next>=ROWS||noteAtWritingLine(next)||!page().notes.some(n=>Number(n.line)>next))return false;
+ snapshotWritingDraft();checkpoint();
+ if(!removeBlankPauta(next,true))return false;
+ crossLineUndoReady=true;
+ status('Pauta vazia removida. Ctrl+Z desfaz.','success');
+ return true;
+}
 function joinWritingLines(direction){
  if(!editing||data.mode!=='text'||!editEnabled)return false;
  const input=$('nbEditorText');if(!input)return false;
@@ -2622,14 +2647,14 @@ function joinWritingLines(direction){
  }
  const current=snapshotWritingDraft();
  checkpoint(); // A cópia inclui até os caracteres ainda não confirmados na linha atual.
- const target=direction<0?neighbor:current;
- if(!target)return false;
+ const target=direction<0?neighbor:(current||neighbor);
+ if(!current&&direction>0)target.line=line;
  const currentMap=inkMapFor(raw,current?.ink||data.ink,current?.inkRuns||[]);
  const neighborMap=inkMapFor(neighbor.text,neighbor.ink,neighbor.inkRuns);
  const first=direction<0?neighborMap:currentMap,last=direction<0?currentMap:neighborMap;
  const colors=first.concat(Array(glue.length).fill(first.at(-1)||data.ink),last);
  const ink=colors[0]||target.ink||data.ink;
- const discard=direction<0?current:neighbor;
+ const discard=direction<0?current:(current?neighbor:null);
  page().notes=page().notes.filter(n=>n.id!==discard?.id);
  Object.assign(target,{text:joined,original:joined,ink,
   inkRuns:inkRunsFor(joined,colors,ink),pending:false,reviewed:false,span});
@@ -2693,7 +2718,7 @@ root.addEventListener('keydown',event=>{
    if(from===0){
     event.preventDefault();event.stopPropagation();
     if(!input.value.trim())previousWritingLine();
-    else if(!joinWritingLines(-1))moveWritingCaret(-1,'end');
+    else if(!joinWritingLines(-1)&&!pullWritingLineUp())moveWritingCaret(-1,'end');
     return;
    }
    if(!input.value.trim()){
@@ -2701,7 +2726,9 @@ root.addEventListener('keydown',event=>{
    }
   }
   if(plain&&collapsed&&event.key==='Delete'&&to===input.value.length){
-   if(joinWritingLines(1)){event.preventDefault();event.stopPropagation();return;}
+   if(joinWritingLines(1)||deleteEmptyWritingLine()){
+    event.preventDefault();event.stopPropagation();return;
+   }
   }
   if(plain&&collapsed&&
      ((event.key==='ArrowLeft'&&from===0)||
