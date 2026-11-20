@@ -23,7 +23,7 @@ function isAdmin(){return admin && owner===user()?.id;}
 function updateNav(){
  const el=document.getElementById('navAdminConfig');
  if(el){el.hidden=!isAdmin();el.style.display=isAdmin()?'':'none';}
- if(!isAdmin()&&['#admin','#extras'].includes(location.hash))bridge()?.goHome?.();
+ if(!isAdmin()&&location.hash==='#admin')bridge()?.goHome?.();
  bridge()?.refreshNav?.();
 }
 async function heartbeat(){
