@@ -360,7 +360,7 @@ test('CONTEXTO limpa palpites compostos antigos sem perder palavras válidas nem
  e.renderContexto();
  assert.doesNotMatch(e.html(),/redes sociais|ciclo vital/i);
  assert.match(e.html(),/algoritmo/i);
- assert.match(e.html(),/atenção/i);
+ assert.match(e.html(),/atencao/i); // O índice normaliza acentos, como já fazia antes.
 });
 
 test('VÍNCULO tem tentativas ilimitadas, não encerra por erros e permite marcação',()=>{
