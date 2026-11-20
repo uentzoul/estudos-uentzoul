@@ -9,25 +9,25 @@ const CACHE_STORE='pdfs';
 const PAGE_STORE='psicomoodle_book_page_v1';
 const COVER_STORE='covers';
 const BOOKS=[
- {id:'vygotsky-formacao',title:'A formação social da mente',author:'Lev S. Vygotsky',subject:'Psicologia do desenvolvimento',pages:90,part:true,path:'materials/8922ee37-a6bf-42b9-a088-74553da06e4d.pdf',colors:['#6b1631','#a83e57','#efd3d6'],cover:'https://livrariadavila.vtexassets.com/arquivos/ids/8153041-800-800?aspect=true&height=800&v=638993021344770000&width=800'},
- {id:'kuhn-revolucoes',title:'A estrutura das revoluções científicas',author:'Thomas S. Kuhn',subject:'Filosofia e epistemologia',pages:218,path:'materials/662d8e57-4bd5-4660-83d3-978f5bf8ecf5.pdf',colors:['#243658','#436d91','#e0d0aa']},
- {id:'popper-logica',title:'A lógica da pesquisa científica',author:'Karl Popper',subject:'Filosofia e epistemologia',pages:282,path:'materials/a7fef255-0104-4c90-8215-626cc778ef9e.pdf',colors:['#263c4d','#547889','#d3c2a2']},
- {id:'laville-construcao',title:'A construção do saber',author:'Christian Laville e Jean Dionne',subject:'Pesquisa e metodologia',pages:342,path:'materials/edf30302-6d0c-4eef-8e6d-b4b88ae24bc6.pdf',colors:['#a45c5d','#d7a779','#f5d3a8'],cover:'https://static.estantevirtual.com.br/book/00/000-2497-000/000-2497-000_detail1.jpg?ts=1712765301650'},
- {id:'foucault-loucura',title:'História da loucura',author:'Michel Foucault',subject:'Filosofia e epistemologia',pages:29,part:true,path:'materials/8e971689-68f2-490e-ac7f-1e940946b51d.pdf',colors:['#62533f','#a09174','#e4d6b8']},
- {id:'marcondes-filosofia',title:'Iniciação à história da filosofia',author:'Danilo Marcondes',subject:'Filosofia e epistemologia',pages:330,path:'materials/f904e991-f020-4806-bf5c-26dce81ecbab.pdf',colors:['#30515a','#6e9c9d','#f4dfb3']},
- {id:'schultz-historia',title:'História da psicologia moderna',author:'Duane P. Schultz e Sydney E. Schultz',subject:'História da psicologia',pages:483,path:'materials/6d6e8461-0cfe-4ce7-9e9a-07b1ad6b4603.pdf',colors:['#5d3753','#a67985','#eac9bc']},
- {id:'rumos-percursos',title:'História da psicologia: rumos e percursos',author:'Ana Maria Jacó-Vilela, Arthur A. L. Ferreira e Francisco T. Portugal (orgs.)',subject:'História da psicologia',pages:593,path:'materials/948311e3-11ea-4772-a0ea-d346bafed7b4.pdf',colors:['#675488','#a792b8','#eee1f5'],cover:'https://i.zst.com.br/thumbs/12/32/31/1456320459.jpg'},
- {id:'bock-psicologias',title:'Psicologias: uma introdução ao estudo de psicologia',author:'Ana M. B. Bock, Odair Furtado e Maria de Lourdes T. Teixeira',subject:'Fundamentos da psicologia',pages:492,path:'materials/73921dd3-3416-44f3-baa7-416281d0374a.pdf',colors:['#8a5032','#be8663','#f0d0a3']},
- {id:'piaget-seis-estudos',title:'Seis estudos de psicologia',author:'Jean Piaget',subject:'Teorias sociocognitivas',pages:69,part:true,path:'materials/5f1c6082-497a-42a2-945e-1c6a8c48ba96.pdf',colors:['#24504f','#4e9684','#d3ddc4']},
- {id:'laplanche-vocabulario',title:'Vocabulário da psicanálise',author:'Jean Laplanche e Jean-Bertrand Pontalis',subject:'Psicanálise',path:'materials/8d645726-f77a-469b-b9c7-1196601a9f4f.pdf',colors:['#503e63','#8e749e','#e8cce9']},
- {id:'roudinesco-dicionario',title:'Dicionário de psicanálise',author:'Élisabeth Roudinesco e Michel Plon',subject:'Psicanálise',path:'materials/e50e2857-461b-479e-a336-30d0163378ba.pdf',colors:['#4e3446','#8b667f','#dfbdc6']},
- {id:'censo-1',title:'Censo da Psicologia Brasileira — Volume 1',author:'Conselho Federal de Psicologia',subject:'Psicologia no Brasil',pages:272,path:'materials/5121236f-6052-47fb-81cb-43a39ab2174e.pdf',colors:['#32476f','#648ab0','#cfdeee']},
- {id:'censo-2',title:'Censo da Psicologia Brasileira — Volume 2',author:'Conselho Federal de Psicologia',subject:'Psicologia no Brasil',pages:292,path:'materials/031b3456-79f7-432d-ba60-a82c25d65c16.pdf',colors:['#28575d','#51969a','#c8e6e4']},
- {id:'hall-identidade',title:'A identidade cultural na pós-modernidade',author:'Stuart Hall',subject:'Psicologia social e direitos',part:true,path:'materials/scheduled/711e0e4a-cf52-4229-8042-75b950fba6b2.pdf',colors:['#4a506f','#7e85a9','#d3d5e5']},
- {id:'collins-interseccionalidade',title:'Interseccionalidade',author:'Patricia Hill Collins e Sirma Bilge',subject:'Psicologia social e direitos',pages:91,part:true,path:'materials/00996dd9-c8d5-4672-9c60-d7cf8218880b.pdf',colors:['#794e5c','#ac7783','#f0d2d0']},
- {id:'zimerman-grupos',title:'Como trabalhamos com grupos',author:'David E. Zimerman e Luiz Carlos Osório',subject:'Psicologia de grupos',path:'materials/scheduled/7a66839d-e75d-4dfe-af73-e5a09d6a0323.pdf',colors:['#475360','#879ba7','#d7dce0']},
- {id:'aries-crianca-familia',title:'História social da criança e da família',author:'Philippe Ariès',subject:'Psicologia da família',path:'materials/scheduled/d27048a1-049d-4e5a-b315-47a764818ff4.pdf',colors:['#776041','#ba9a6a','#e8d6ab']},
- {id:'cfp-verdade-revolucionaria',title:'A verdade é revolucionária',author:'Conselho Federal de Psicologia',subject:'Psicologia social e direitos',pages:700,path:'materials/0729a72e-f387-4bf8-b2dd-c236339821c0.pdf',colors:['#493950','#92768f','#e2d2d8']}
+ {id:'vygotsky-formacao',title:'A formação social da mente',author:'Lev S. Vygotsky',subject:'Psicologia do desenvolvimento',pages:90,part:true,path:'materials/8922ee37-a6bf-42b9-a088-74553da06e4d.pdf',colors:['#6b1631','#a83e57','#efd3d6'],cover:'https://martinsfontespaulista.vteximg.com.br/arquivos/ids/1055184-511-511/242244_ampliada.jpg?v=637266093967730000',coverZoom:1},
+ {id:'kuhn-revolucoes',title:'A estrutura das revoluções científicas',author:'Thomas S. Kuhn',subject:'Filosofia e epistemologia',pages:218,path:'materials/662d8e57-4bd5-4660-83d3-978f5bf8ecf5.pdf',colors:['#243658','#436d91','#e0d0aa'],cover:'https://martinsfontespaulista.vteximg.com.br/arquivos/ids/1682173-800-800/166637.jpg?v=638743624714200000',coverZoom:1.02},
+ {id:'popper-logica',title:'A lógica da pesquisa científica',author:'Karl Popper',subject:'Filosofia e epistemologia',pages:282,path:'materials/a7fef255-0104-4c90-8215-626cc778ef9e.pdf',colors:['#263c4d','#547889','#d3c2a2'],cover:'https://martinsfontespaulista.vteximg.com.br/arquivos/ids/589186-800-800/724082_detalhes.jpg?v=637260491894570000',coverZoom:1.02},
+ {id:'laville-construcao',title:'A construção do saber',author:'Christian Laville e Jean Dionne',subject:'Pesquisa e metodologia',pages:342,path:'materials/edf30302-6d0c-4eef-8e6d-b4b88ae24bc6.pdf',colors:['#a45c5d','#d7a779','#f5d3a8'],cover:'https://down-br.img.susercontent.com/file/br-11134207-7qukw-lh4vl8ku27p126',coverZoom:1.02},
+ {id:'foucault-loucura',title:'História da loucura',author:'Michel Foucault',subject:'Filosofia e epistemologia',pages:29,part:true,path:'materials/8e971689-68f2-490e-ac7f-1e940946b51d.pdf',colors:['#62533f','#a09174','#e4d6b8'],cover:'https://livrarialoyola.fbitsstatic.net/img/p/historia-da-loucura-212644/407388.jpg?h=800&qs=ignore&v=no-change&w=800',coverZoom:1.02},
+ {id:'marcondes-filosofia',title:'Iniciação à história da filosofia',author:'Danilo Marcondes',subject:'Filosofia e epistemologia',pages:330,path:'materials/f904e991-f020-4806-bf5c-26dce81ecbab.pdf',colors:['#30515a','#6e9c9d','#f4dfb3'],cover:'https://martinsfontespaulista.vteximg.com.br/arquivos/ids/1447141-800-800/117429.jpg?v=638288629981030000',coverZoom:1},
+ {id:'schultz-historia',title:'História da psicologia moderna',author:'Duane P. Schultz e Sydney E. Schultz',subject:'História da psicologia',pages:483,path:'materials/6d6e8461-0cfe-4ce7-9e9a-07b1ad6b4603.pdf',colors:['#5d3753','#a67985','#eac9bc'],cover:'https://martinsfontespaulista.vteximg.com.br/arquivos/ids/258309-800-800/861815_ampliada.jpg?v=637251623787600000',coverZoom:1},
+ {id:'rumos-percursos',title:'História da psicologia: rumos e percursos',author:'Ana Maria Jacó-Vilela, Arthur A. L. Ferreira e Francisco T. Portugal (orgs.)',subject:'História da psicologia',pages:593,path:'materials/948311e3-11ea-4772-a0ea-d346bafed7b4.pdf',colors:['#675488','#a792b8','#eee1f5'],cover:'https://is1-ssl.mzstatic.com/image/thumb/Publication62/v4/03/90/d4/0390d4e7-2884-df82-6b76-9e792fa1cdeb/1024091637.jpg/1200x1200wz.jpg',coverZoom:1.1},
+ {id:'bock-psicologias',title:'Psicologias: uma introdução ao estudo de psicologia',author:'Ana M. B. Bock, Odair Furtado e Maria de Lourdes T. Teixeira',subject:'Fundamentos da psicologia',pages:492,path:'materials/73921dd3-3416-44f3-baa7-416281d0374a.pdf',colors:['#8a5032','#be8663','#f0d0a3'],cover:'https://down-br.img.susercontent.com/file/sg-11134201-8260g-mjem5f5hdz42a4',coverZoom:1},
+ {id:'piaget-seis-estudos',title:'Seis estudos de psicologia',author:'Jean Piaget',subject:'Teorias sociocognitivas',pages:69,part:true,path:'materials/5f1c6082-497a-42a2-945e-1c6a8c48ba96.pdf',colors:['#24504f','#4e9684','#d3ddc4'],cover:'https://www.doctorlivros.com.br/resources/products/300164/2019-09-17-18-49-24-264e024e.jpg',coverZoom:1.04},
+ {id:'laplanche-vocabulario',title:'Vocabulário da psicanálise',author:'Jean Laplanche e Jean-Bertrand Pontalis',subject:'Psicanálise',path:'materials/8d645726-f77a-469b-b9c7-1196601a9f4f.pdf',colors:['#503e63','#8e749e','#e8cce9'],cover:'https://down-br.img.susercontent.com/file/sg-11134201-7rd71-lul553akanua1f',coverZoom:1},
+ {id:'roudinesco-dicionario',title:'Dicionário de psicanálise',author:'Élisabeth Roudinesco e Michel Plon',subject:'Psicanálise',path:'materials/e50e2857-461b-479e-a336-30d0163378ba.pdf',colors:['#4e3446','#8b667f','#dfbdc6'],cover:'https://images.tcdn.com.br/img/img_prod/796789/180_dicionario_de_psicanalise_40703_1_9d0f2252568e67b710a78733a6ec42a3.jpg',coverZoom:1},
+ {id:'censo-1',title:'Censo da Psicologia Brasileira — Volume 1',author:'Conselho Federal de Psicologia',subject:'Psicologia no Brasil',pages:272,path:'materials/5121236f-6052-47fb-81cb-43a39ab2174e.pdf',colors:['#32476f','#648ab0','#cfdeee'],cover:'https://censo.cfp.org.br/2022/img/capa-censo-vol-1.png',coverZoom:1},
+ {id:'censo-2',title:'Censo da Psicologia Brasileira — Volume 2',author:'Conselho Federal de Psicologia',subject:'Psicologia no Brasil',pages:292,path:'materials/031b3456-79f7-432d-ba60-a82c25d65c16.pdf',colors:['#28575d','#51969a','#c8e6e4'],cover:'https://censo.cfp.org.br/2022/img/capa-censo-vol-2.png',coverZoom:1},
+ {id:'hall-identidade',title:'A identidade cultural na pós-modernidade',author:'Stuart Hall',subject:'Psicologia social e direitos',part:true,path:'materials/scheduled/711e0e4a-cf52-4229-8042-75b950fba6b2.pdf',colors:['#4a506f','#7e85a9','#d3d5e5'],cover:'https://martinsfontespaulista.vteximg.com.br/arquivos/ids/1704825-1000-1000/731170.jpg?v=638839774338270000',coverZoom:1.03},
+ {id:'collins-interseccionalidade',title:'Interseccionalidade',author:'Patricia Hill Collins e Sirma Bilge',subject:'Psicologia social e direitos',pages:91,part:true,path:'materials/00996dd9-c8d5-4672-9c60-d7cf8218880b.pdf',colors:['#794e5c','#ac7783','#f0d2d0'],cover:'https://boitempoeditorial.fbitsstatic.net/img/p/interseccionalidade-capa-sobre-pintura-152655/338306.jpg?h=420&v=no-value&w=420',coverZoom:1},
+ {id:'zimerman-grupos',title:'Como trabalhamos com grupos',author:'David E. Zimerman e Luiz Carlos Osório',subject:'Psicologia de grupos',path:'materials/scheduled/7a66839d-e75d-4dfe-af73-e5a09d6a0323.pdf',colors:['#475360','#879ba7','#d7dce0'],cover:'https://livrariadopsicologo.com.br/capas/128/9798573072128.jpg',coverZoom:1},
+ {id:'aries-crianca-familia',title:'História social da criança e da família',author:'Philippe Ariès',subject:'Psicologia da família',path:'materials/scheduled/d27048a1-049d-4e5a-b315-47a764818ff4.pdf',colors:['#776041','#ba9a6a','#e8d6ab'],cover:'https://martinsfontespaulista.vteximg.com.br/arquivos/ids/1417487-1000-1000/968646.jpg?v=639111726552530000',coverZoom:1.02},
+ {id:'cfp-verdade-revolucionaria',title:'A verdade é revolucionária',author:'Conselho Federal de Psicologia',subject:'Psicologia social e direitos',pages:700,path:'materials/0729a72e-f387-4bf8-b2dd-c236339821c0.pdf',colors:['#493950','#92768f','#e2d2d8'],cover:'https://site.cfp.org.br/wp-content/uploads/2013/12/capa-do-livro.jpg',coverZoom:1}
 ];
 const normalize=s=>String(s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLocaleLowerCase('pt-BR');
 const esc=s=>String(s??'').replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
@@ -105,13 +105,13 @@ function pdfjs(){
 function badgeLabel(b){return b.part?'Trecho disponibilizado':(b.pages?b.pages+' páginas':'PDF');}
 function cover(b,index){
  const colors=b.colors||['#49536a','#8691a7','#e2e3ed'];
- const image=coverUrls.get(b.id)||b.cover||'';
+ const image=b.cover||coverUrls.get(b.id)||'';
  const title=b.title.replace(/[:—]/g,' ').trim();
  return '<span class="psb-cover-frame" style="--b0:'+colors[0]+';--b1:'+colors[1]+';--b2:'+colors[2]+'">'+
    '<span class="psb-spine" aria-hidden="true"></span>'+
    '<span class="psb-cover-face"><span class="psb-cover-design"><span class="psb-cover-mark" aria-hidden="true">Ψ</span>'+
    '<span class="psb-cover-type">'+esc(title)+'</span><span class="psb-cover-author">'+esc(b.author)+'</span><span class="psb-cover-lines" aria-hidden="true"></span></span>'+
-   (image?'<img class="psb-original-cover" src="'+esc(image)+'" alt="" loading="lazy" onerror="this.style.display=\'none\'">':'')+'</span>'+
+   (image?'<img class="psb-original-cover" style="--psb-cover-zoom:'+Number(b.coverZoom||1)+'" src="'+esc(image)+'" alt="" loading="lazy" decoding="async" referrerpolicy="no-referrer" onerror="this.style.display=\'none\'">':'')+'</span>'+
    '<span class="psb-cover-loading" aria-hidden="true"><span class="psb-spinner"></span></span>'+
    '</span>';
 }
@@ -198,7 +198,7 @@ function requestRender(){
 }
 async function restoreCovers(){
  for(const b of BOOKS){
-  if(coverUrls.has(b.id))continue;
+  if(b.cover||coverUrls.has(b.id))continue;
   const stored=await cachedGet(COVER_STORE,cacheKey(b));
   if(!stored||!allowed())continue;
   coverUrls.set(b.id,stored);
@@ -277,7 +277,7 @@ async function openBook(id){
  }finally{readerBusy=false;}
 }
 async function cacheCover(b){
- if(coverUrls.has(b.id)||!documentPDF)return;
+ if(b.cover||coverUrls.has(b.id)||!documentPDF)return;
  try{
   const first=await documentPDF.getPage(1),vp=first.getViewport({scale:0.45});
   const canvas=document.createElement('canvas');canvas.width=Math.max(80,Math.round(vp.width));canvas.height=Math.max(110,Math.round(vp.height));

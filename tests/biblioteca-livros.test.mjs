@@ -95,3 +95,19 @@ test('Inicialmente a biblioteca não oferece dados a alunos e mostra as duas cat
  assert.match(s,/Vocabulário da psicanálise/);
  assert.equal(h.stats(),0,'nenhum PDF é baixado ao mostrar as capas');
 });
+
+test('Capas editoriais substituem miniaturas e ocupam a moldura sem faixas brancas',()=>{
+ const ids=['vygotsky-formacao','kuhn-revolucoes','popper-logica','laville-construcao','foucault-loucura','marcondes-filosofia','schultz-historia','rumos-percursos','bock-psicologias','piaget-seis-estudos','laplanche-vocabulario','roudinesco-dicionario','censo-1','censo-2','hall-identidade','collins-interseccionalidade','zimerman-grupos','aries-crianca-familia','cfp-verdade-revolucionaria'];
+ for(const id of ids){
+  const item=main.split('\n').find(line=>line.startsWith(" {id:'"+id+"'"));
+  assert.ok(item&&/cover:'https:\/\//.test(item),'capa editorial '+id);
+ }
+ assert.match(main,/const image=b\.cover\|\|coverUrls\.get\(b\.id\)\|\|''/);
+ assert.match(main,/if\(b\.cover\|\|coverUrls\.has\(b\.id\)\)continue/);
+ assert.match(main,/if\(b\.cover\|\|coverUrls\.has\(b\.id\)\|\|!documentPDF\)return/);
+ assert.match(main,/is1-ssl\.mzstatic\.com\/image\/thumb\/Publication62/);
+ assert.doesNotMatch(main,/i\.zst\.com\.br\/thumbs\/12\/32\/31/);
+ assert.match(css,/\.psb-original-cover\{[^}]*object-fit:cover/);
+ assert.match(css,/transform:scale\(var\(--psb-cover-zoom,1\)\)/);
+ assert.doesNotMatch(css,/\.psb-original-cover\{[^}]*object-fit:contain/);
+});

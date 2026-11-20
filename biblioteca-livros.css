@@ -55,7 +55,7 @@
 .psb-cover-type{position:relative;font-size:clamp(13px,1.24vw,20px);font-weight:730;letter-spacing:-.4px;line-height:1.18;word-break:normal;overflow-wrap:anywhere;hyphens:auto;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:6;overflow:hidden;max-height:62%}
 .psb-cover-author{position:relative;font-size:10px;line-height:1.32;margin-top:11px;max-height:49px;overflow:hidden;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:3;color:#f5edf4}
 .psb-cover-lines{position:relative;display:block;margin-top:14px;height:2px;min-height:2px;background:#fff7;max-width:36%}
-.psb-original-cover{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;object-position:center;background:#fdfcfb}
+.psb-original-cover{position:absolute;inset:0;width:100%;height:100%;display:block;object-fit:cover;object-position:center center;background:transparent;transform:scale(var(--psb-cover-zoom,1));transform-origin:center;backface-visibility:hidden}
 .psb-cover-loading{position:absolute;z-index:5;inset:0;background:#14151abb;opacity:0;visibility:hidden;display:grid;place-items:center;transition:opacity .2s ease,visibility .2s ease;pointer-events:none}
 .psb-book.is-loading .psb-cover-loading{opacity:1;visibility:visible}
 .psb-spinner{width:36px;height:36px;border:3px solid #fff7;border-top-color:#fff;border-radius:50%;animation:psb-spin .86s linear infinite}
