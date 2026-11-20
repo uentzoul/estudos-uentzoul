@@ -2002,6 +2002,7 @@ html[data-theme="dark"] .tz-pending-icon{background:#40375e;color:#d6c4ff}
 <link rel="stylesheet" href="disciplina-clean.css?v=20261119-simetria-v2">
 <link rel="stylesheet" href="inicio-slogan.css?v=20261117-vistos-podcasts-1">
 <link rel="stylesheet" href="admin-config.css?v=20261120-tetriszoul-v1">
+<link rel="stylesheet" href="trabalhos.css?v=20261120-preview-v1">
 <link rel="stylesheet" href="agenda-calendario.css?v=20261112-3">
 <link rel="stylesheet" href="estudos-dirigidos.css?v=20261119-answer-tabs-v1">
 <link rel="stylesheet" href="estudo-ativo.css?v=20261117-vistos-casos-1">
@@ -2666,8 +2667,9 @@ html[data-theme="dark"]{
 <svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 17l4-4 4 3 6-9 2 2"/><path d="M3 21h18"/><circle cx="6" cy="7" r="2"/></svg><span class="nav-label"><span class="nav-label-full">Revisão de Férias</span><span class="nav-label-short">Férias</span></span>
 </button>
 
-<span class="sidebtn nav-upcoming" role="note" tabindex="0" aria-disabled="true" aria-label="Trabalhos — em breve" title="Em breve"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3h8l4 4v14H4V3h4Z"/><path d="M16 3v5h4M8 12h8M8 16h8M8 8h4"/></svg><span class="nav-upcoming-name">Trabalhos</span><span class="nav-upcoming-tip" aria-hidden="true">Em breve</span></span>
+<span class="sidebtn nav-upcoming" id="navTrabalhosLocked" role="note" tabindex="0" aria-disabled="true" aria-label="Trabalhos — em breve" title="Em breve"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3h8l4 4v14H4V3h4Z"/><path d="M16 3v5h4M8 12h8M8 16h8M8 8h4"/></svg><span class="nav-upcoming-name">Trabalhos</span><span class="nav-upcoming-tip" aria-hidden="true">Em breve</span></span>
 </span>
+<button type="button" class="sidebtn" data-page="works" id="navTrabalhosAdmin" hidden aria-label="Trabalhos — prévia do administrador"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3h8l4 4v14H4V3h4Z"/><path d="M16 3v5h4M8 12h8M8 16h8M8 8h4"/></svg><span class="nav-label">Trabalhos</span><small class="pw-admin-mini">Teste</small></button>
 <button class="sidebtn" data-page="extras" id="navExtrasGames" aria-label="Extras — jogos de Psicologia"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="3.5" width="7" height="7" rx="1.3"/><rect x="13.5" y="3.5" width="7" height="7" rx="1.3"/><rect x="3.5" y="13.5" width="7" height="7" rx="1.3"/><rect x="13.5" y="13.5" width="7" height="7" rx="1.3"/></svg> Extras</button>
 <button class="sidebtn" data-page="admin" id="navAdminConfig" hidden aria-label="Configurações exclusivas do administrador"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 2v3m0 14v3M2 12h3m14 0h3M4.9 4.9l2.1 2.1m10 10 2.1 2.1m0-14.2L17 7m-10 10-2.1 2.1"/></svg> Admin Config</button>
 </nav>
@@ -3130,10 +3132,11 @@ function pmNavRestore(state){
   }
   const screen=state.screen||{};
   current={...current,...screen};
-  if(!['home','subject','test','exams','calendar','audio','messages','admin','extras'].includes(current.page))current.page='home';
+  if(!['home','subject','test','exams','calendar','audio','messages','admin','extras','works'].includes(current.page))current.page='home';
   if(current.page==='subject'&&!DB.subjects[current.subject])current.page='home';
   if(current.page==='test'&&!DB.exams.some(x=>x.id===current.exam))current.page='exams';
   if(current.page==='admin'&&!window.uentzoulAdminConfig?.isAdmin?.())current.page='home';
+  if(current.page==='works'&&!window.uentzoulAdminConfig?.isAdmin?.())current.page='home';
   if(current.page==='extras'&&!window.uentzoulAIAuth?.user?.())current.page='home';
   if(current.page==='calendar'&&!agendaAvailable())current.page='home';
   if(state.agenda){
@@ -3168,6 +3171,7 @@ const go=(page,extra={})=>{
  if(page==='schedule'){calendarView='horarios';page='calendar';}
  if(page==='calendar'&&!agendaAvailable())return;
  if(page==='admin'&&!window.uentzoulAdminConfig?.isAdmin?.())page='home';
+ if(page==='works'&&!window.uentzoulAdminConfig?.isAdmin?.())page='home';
  if(page==='extras'&&!window.uentzoulAIAuth?.user?.()){
   window.uentzoulAIAuth?.openLogin?.();
   return;
@@ -3238,6 +3242,11 @@ function renderNav(){
  const adminButton=document.getElementById('navAdminConfig');
  const adminAccess=!!window.uentzoulAdminConfig?.isAdmin?.();
  if(adminButton)adminButton.hidden=!adminAccess;
+ const worksLocked=document.getElementById('navTrabalhosLocked');
+ const worksAdmin=document.getElementById('navTrabalhosAdmin');
+ if(worksLocked)worksLocked.hidden=adminAccess;
+ if(worksAdmin){worksAdmin.hidden=!adminAccess;worksAdmin.style.display=adminAccess?'':'none';}
+ if(current.page==='works'&&!adminAccess){current.page='home';queueMicrotask(()=>render());}
  const extraButton=document.getElementById('navExtrasGames');
  if(extraButton){extraButton.hidden=false;extraButton.style.display='';}
 }
@@ -4959,19 +4968,22 @@ function render(){
  // Evitar desmontar uma partida em andamento por atualizações do painel principal.
  if(current.page==='extras'&&document.getElementById('psicoExtrasFrame')){renderNav();return;}
  if(current.page==='calendar'&&!agendaAvailable())current.page='home';
+ if(current.page==='works'&&!window.uentzoulAdminConfig?.isAdmin?.())current.page='home';
+ if(current.page==='works'&&document.activeElement?.closest?.('#pmWorks')&&['INPUT','TEXTAREA','SELECT'].includes(document.activeElement.tagName)){renderNav();return;}
  renderNav();
- if((semester==='2027/1'||semester==='2026/1')&&!['ai','messages','admin','extras','exams','test'].includes(current.page)){
+ if((semester==='2027/1'||semester==='2026/1')&&!['ai','messages','admin','extras','works','exams','test'].includes(current.page)){
   $('main').innerHTML=renderThirdSemester();return;
  }
- if(!Object.keys(DB.subjects).length&&current.page!=='ai'&&current.page!=='messages'&&current.page!=='admin'&&current.page!=='extras'){
+ if(!Object.keys(DB.subjects).length&&current.page!=='ai'&&current.page!=='messages'&&current.page!=='admin'&&current.page!=='extras'&&current.page!=='works'){
   const labels={home:[semesterLabel(semester),'Um espaço novo para este semestre'],exams:['Simulados','Nenhum simulado cadastrado'],library:['Biblioteca','Nenhum arquivo cadastrado'],audio:['Podcasts','Nenhum podcast cadastrado'],calendar:['Agenda e Horários','Nenhuma avaliação cadastrada']};
   const v=labels[current.page]||labels.home;
   $('main').innerHTML=head(semester,v[0],v[1])+'<section class="section"><div class="panel semester-empty"><h2>Este semestre ainda está vazio</h2><p class="muted">As matérias, os textos, os simulados, os podcasts e a agenda deste semestre serão adicionados quando estiverem definidos. Os demais semestres continuam disponíveis no seletor.</p><p class="small">O progresso deste semestre começa vazio e não se mistura com o do semestre anterior.</p></div></section>';
   return;
  }
  let body='';switch(current.page){case 'home':body=renderHome();break;case 'subject':body=renderSubject(current.subject);break;case 'exams':body=renderExams();break;case 'test':body=renderTest(current.exam);break;case 'library':body=renderHome();break;case 'audio':body=renderAudio();break;case 'calendar':body=renderCalendar();break;case 'ai':body=renderHome();break;case 'messages':body=window.uentzoulMessenger?.render()||'<section class="panel">Carregando mensagens…</section>';break;case 'extras':body='<div class="psico-extras-embed"><iframe id="psicoExtrasFrame" src="./extras.html?v=20261120-auth-fix-v4" title="Extras · jogos de Psicologia" loading="eager" allow="fullscreen"></iframe></div>';break;
+ case 'works':body=window.PSICO_WORKS?.render()||'<section class="panel">Carregando Trabalhos…</section>';break;
  case 'admin':body=window.uentzoulAdminConfig?.render()||'<section class="panel">Acesso restrito.</section>';break;default:body=renderHome()};if(psAudioElement&&psAudioElement.isConnected&&$('main').contains(psAudioElement))document.body.appendChild(psAudioElement);
- $('main').innerHTML=body;if(current.page==='ai')queueMicrotask(tzHydrateThumbnails);if(isPodcastView())setupAudio();if(current.page==='messages')window.uentzoulMessenger?.afterRender(current.peerId||null);if(current.page==='admin')window.uentzoulAdminConfig?.afterRender();}
+ $('main').innerHTML=body;if(current.page==='ai')queueMicrotask(tzHydrateThumbnails);if(isPodcastView())setupAudio();if(current.page==='messages')window.uentzoulMessenger?.afterRender(current.peerId||null);if(current.page==='admin')window.uentzoulAdminConfig?.afterRender();if(current.page==='works')window.PSICO_WORKS?.afterRender?.();}
 /* A camada de organização só altera categorias e posições, nunca os arquivos. */
 if(window.PSICO_MATERIAL_EDITOR){
  window.PSICO_MATERIAL_EDITOR.classify=materialGroup;
@@ -8663,6 +8675,7 @@ window.addEventListener('message',function(event){
 });
 </script>
 <script src="admin-config.js?v=20261120-extras-access-v2"></script>
+<script src="trabalhos.js?v=20261120-preview-v1" defer></script>
 <script id="pm-mobile-drawer-js" src="mobile-drawer.js?v=20261114-smooth-locked-v18" defer></script>
 <script id="pm-chat-mobile-js" src="chat-mobile-viewport.js?v=20261117-group-call-v5" defer></script>
 <!-- Extensão integrada ao núcleo de mensagens. -->
