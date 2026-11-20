@@ -9,7 +9,7 @@ const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&
 const clean=s=>String(s??"").normalize("NFD").replace(/[\u0300-\u036f]/g,"").toUpperCase().trim();
 const cleanTerm=s=>clean(s).replace(/\s+/g," ");
 const GAMES=["psico","contexto","conexo","tetris"];
-const ARCHIVE_START="2026-01-01";
+const ARCHIVE_START="2026-11-20";
 const CONTENT_GAMES=["psico","conexo","contexto"];
 const TARGETS=["memoria","empatia","recalque","familia","laudo","lideranca","ideologia","esquema","apego","pulsao","atencao","divorcio","polarizacao","inconsciente","cuidado","congruencia","reforco","ciclo vital","escuta","pensamento","normas","diagnostico","libertacao","preconceito","aprendizagem","avaliacao","cooperacao","desejo","comportamento","democracia"];
 const NEAR={
