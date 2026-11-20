@@ -295,25 +295,20 @@ function installExtrasWideHost(){
  try{
   const parent=window.parent,doc=parent.document;
   if(parent.location.origin!==location.origin||!doc?.head||!doc?.body||!doc.createElement)return;
-  if(!doc.getElementById("pmExtrasWideStyle")){
-   const style=doc.createElement("style");style.id="pmExtrasWideStyle";
-   style.textContent="#pmExtrasSidebarToggle{display:none;align-items:center;justify-content:center;gap:7px;position:fixed;top:12px;left:12px;z-index:145;min-height:35px;padding:7px 12px;border:1px solid var(--line,#ddd);border-radius:10px;background:var(--paper,#fff);color:var(--ink,#222);font:750 12px/1.2 system-ui,sans-serif;box-shadow:0 4px 15px #0002;cursor:pointer}\n@media(min-width:761px){\n body:has(#psicoExtrasFrame):not(.pm-extras-sidebar-open) #siteSidebar{display:none!important}\n body:has(#psicoExtrasFrame) #profileSidebar,body:has(#psicoExtrasFrame) #pmRightHandle{display:none!important}\n body:has(#psicoExtrasFrame) .app>.main{max-width:none!important;min-width:0!important;width:100%!important;flex:1 1 0!important;padding:53px clamp(12px,2vw,32px) 35px!important}\n body:has(#psicoExtrasFrame) .psico-extras-embed{max-width:none!important;width:100%!important}\n body:has(#psicoExtrasFrame) #pmExtrasSidebarToggle{display:flex!important}\n}";
-   doc.head.appendChild(style);
-  }
-  let button=doc.getElementById("pmExtrasSidebarToggle");
-  if(!button){
-   button=doc.createElement("button");button.type="button";button.id="pmExtrasSidebarToggle";
-   button.setAttribute("aria-controls","siteSidebar");
-   button.addEventListener("click",()=>{
-    const open=doc.body.classList.toggle("pm-extras-sidebar-open");
-    button.textContent=open?"✕ Fechar menu":"☰ Abrir menu";
-    button.setAttribute("aria-expanded",String(open));
-   });
-   doc.body.appendChild(button);
-  }
+  // Elimina controles e regras antigos mesmo quando o iframe é reaberto sem recarregar o site.
+  doc.getElementById("pmExtrasWideStyle")?.remove();
+  doc.getElementById("pmExtrasSidebarToggle")?.remove();
   doc.body.classList.remove("pm-extras-sidebar-open");
-  button.textContent="☰ Abrir menu";button.setAttribute("aria-expanded","false");
- }catch(e){console.warn("Extras: tela ampla indisponível.",e?.message||e);}
+  // Mantém a barra esquerda original e sua navegação; só amplia a área útil do Extras.
+  const style=doc.createElement("style");
+  style.id="pmExtrasWideStyle";
+  style.textContent="@media(min-width:761px){"+
+   "body:has(#psicoExtrasFrame) #profileSidebar,body:has(#psicoExtrasFrame) #pmRightHandle{display:none!important}"+
+   "body:has(#psicoExtrasFrame) .app>.main{max-width:none!important;min-width:0!important;width:auto!important;flex:1 1 0!important;padding:18px clamp(12px,2vw,32px) 35px!important}"+
+   "body:has(#psicoExtrasFrame) .psico-extras-embed{max-width:none!important;width:100%!important}"+
+  "}";
+  doc.head.appendChild(style);
+ }catch(e){console.warn("Extras: largura ampliada indisponível.",e?.message||e);}
 }
 function getAdminAnswersFor(targetDay,game=active,mode=psicoMode){
  if(game==="psico")return getPsicoWordsFor(targetDay,mode).map(item=>item.word);

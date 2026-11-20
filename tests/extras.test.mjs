@@ -136,7 +136,10 @@ test('Quadruplo de desktop ocupa quatro colunas e mantém versão responsiva',()
  assert.match(styles,/@media\(min-width:840px\)\s*\{\s*\.psico-multi-grid\.psico-multi-quadruplo\{grid-template-columns:repeat\(4,minmax\(0,1fr\)\)/);
  assert.match(script,/psico-multi-'\+psicoMode/);
  assert.match(script,/installExtrasWideHost\(\)/);
- assert.match(script,/body:has\(#psicoExtrasFrame\):not\(\.pm-extras-sidebar-open\) #siteSidebar/);
+ assert.doesNotMatch(script,/body:has\(#psicoExtrasFrame\):not\(\.pm-extras-sidebar-open\) #siteSidebar/);
+ assert.doesNotMatch(script,/button=doc\.createElement\("button"\)/);
+ assert.match(script,/doc\.getElementById\("pmExtrasSidebarToggle"\)\?\.remove\(\)/);
+ assert.match(script,/body:has\(#psicoExtrasFrame\) \.app>\.main/);
 });
 test('Respostas da data selecionada correspondem aos desafios reais nos três jogos',()=>{
  const e=engine();
