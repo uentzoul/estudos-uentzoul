@@ -2010,9 +2010,9 @@ html[data-theme="dark"] .tz-pending-icon{background:#40375e;color:#d6c4ff}
 <script src="estudos-dirigidos-tcc.js?v=20261112-3"></script>
 <script src="estudos-dirigidos-meta.js?v=20261116-meta-p2"></script>
 <script src="metapsicologia-p2-pratica.js?v=20261119-28q-v1"></script>
-<script src="estudos-dirigidos.js?v=20261119-avaliacao-p3-accordion-v3"></script>
+<script src="estudos-dirigidos.js?v=20261120-progresso-atividades-v1"></script>
 <script src="estudos-casos-data.js?v=20261119-avaliacao-p3-cases-v1"></script>
-<script src="estudo-ativo.js?v=20261119-avaliacao-p3-v1"></script>
+<script src="estudo-ativo.js?v=20261120-progresso-atividades-v1"></script>
 <link rel="stylesheet" href="primeiro-semestre-relembrar.css?v=20261117-clareza-v2">
 <script src="primeiro-semestre-dados.js?v=20261117-clareza-v2"></script>
 <script src="primeiro-semestre-relembrar.js?v=20261119-simetria-v2"></script>
@@ -3634,42 +3634,46 @@ function libraryExamMaterials(k){
 function libraryExamProgress(k){
  return {total:libraryExamMaterials(k).filter(m=>m.available).length};
 }
+function libraryProgressMarkup(p){
+ return '<div class="course-progress-label"><span>'+p.n+' de '+p.total+' atividades concluídas</span><strong>'+p.pct+'%</strong></div>'+
+ '<div class="course-progress-track" role="progressbar" aria-label="Progresso das atividades" aria-valuenow="'+p.pct+'" aria-valuemin="0" aria-valuemax="100"><span style="width:'+p.pct+'%"></span></div>';
+}
 function renderLibrary(embedded=false){
  const selected=current.libraryCourse;
  const subjects=Object.keys(DB.subjects);
  if(selected&&DB.subjects[selected]){
-  const subj=DB.subjects[selected],docs=libraryExamMaterials(selected),p=libraryExamProgress(selected);
+  const subj=DB.subjects[selected],docs=libraryExamMaterials(selected),progress=subjectProgress(selected);
   const familyTopics=selected==='familia'?['Luto e reorganização familiar','Dependência química na família','Violência e proteção infantil','Mitos, rituais e transgeracionalidade','Atendimento clínico familiar']:[];
   return '<div class="library-page"><button type="button" class="course-back" data-action="libraryBack">← Voltar às disciplinas</button>'+
    '<section class="course-detail-hero" style="--course-accent:'+color(selected)+'">'+
     '<div class="course-detail-banner" aria-hidden="true">Ψ</div>'+
     '<div class="course-detail-body">'+
     '<span class="eyebrow">Psicologia PUCRS · 2026/2 · Acervo completo</span><h1 class="h1">'+esc(subj.name)+'</h1>'+
-    '<p>Arquivos da disciplina para consulta, com destaque para os temas das últimas provas.</p></div></section>'+
+    '<p>Arquivos da disciplina para consulta, com destaque para os temas das últimas provas.</p>'+libraryProgressMarkup(progress)+'</div></section>'+
     (familyTopics.length?'<h2 style="font-size:16px;margin:0 0 7px">Conteúdos da prova</h2><div class="course-syllabus">'+familyTopics.map(t=>'<span>'+esc(t)+'</span>').join('')+'</div>':'')+
     '<div class="pm-exam-info" role="note"><strong>Como identificar os materiais da prova</strong><p>O marcador <span class="pm-exam-badge">Cai na prova</span> indica o foco das últimas avaliações. Outros documentos estão disponíveis para consulta, mas não entram nas atividades atuais.</p></div>'+'<div class="course-materials-title"><h2>Acervo da disciplina</h2><span>'+docs.length+' publicado(s)</span></div>'+
     '<section class="course-detail-resources">'+(docs.length?organizedSubjectMaterials(docs,true,selected):
      '<div class="course-empty">Nenhum material publicado nesta disciplina.</div>')+'</section>'+
-    '<p class="course-library-note">Arquivos disponíveis para consulta, sem necessidade de marcar como visto.</p></div>';
+    '<p class="course-library-note">O progresso considera conteúdos revisados, podcasts, flashcards lembrados, simulados, estudos dirigidos e casos. Materiais e textos não entram no cálculo.</p></div>';
  }
  const order='name',mode='cards';
  let ids=subjects.slice();
  ids.sort((a,b)=>DB.subjects[a].name.localeCompare(DB.subjects[b].name,'pt-BR'));
  const courses=ids.map(k=>{
-  const subj=DB.subjects[k],p=libraryExamProgress(k);
+  const subj=DB.subjects[k],p=libraryExamProgress(k),progress=subjectProgress(k);
   const courseTopics={tcc:'Terapia do Esquema · TCCs de terceira onda',familia:'Luto · Dependência química · Violência intrafamiliar',meta:'Segunda tópica · Édipo · Pulsão',grupos:'Psicodrama de Moreno · Carl Rogers · Escritores da Liberdade',social:'Martín-Baró · Interseccionalidade · Polarização social',avaliacao:'Entrevista de devolução · Contextos de atuação · Ética profissional'};
   const hint=semester==='2026/2'?(courseTopics[k]||'Conteúdos da disciplina'):(subj.full||'Materiais da avaliação final');
   return '<article class="course-card" style="--course-accent:'+color(k)+'" data-course-search="'+esc((subj.name+' '+hint).toLocaleLowerCase('pt-BR'))+'">'+
   '<button class="course-card-button" type="button" data-action="subject:'+k+'" aria-label="Abrir disciplina '+esc(subj.name)+'">'+
   '<div class="course-cover"><span class="course-index">2026/2 · ACERVO</span><span class="course-symbol" aria-hidden="true">Ψ</span></div>'+
   '<div class="course-card-content"><div class="course-card-title">'+esc(subj.name)+'</div>'+
-  '<div class="course-card-desc">'+esc(hint)+'</div>'+
+  '<div class="course-card-desc">'+esc(hint)+'</div>'+libraryProgressMarkup(progress)+
   '<div class="course-card-footer"><span>'+p.total+' '+(p.total===1?'material':'materiais')+'</span><span>Abrir disciplina →</span></div></div></button></article>';
  }).join('');
  return '<div class="library-page"><div class="course-intro"><div>'+(embedded?head('Psicologia PUCRS · '+semester,'Disciplinas','Selecione uma matéria para acessar conteúdos, materiais, simulados e podcasts.'):head('Biblioteca · '+semester,'Resumo das disciplinas','Todos os materiais liberados por disciplina. Os arquivos que caem nas últimas provas estão identificados.'))+'</div></div>'+
 (ids.length?'<div class="course-grid '+(mode==='list'?'is-list':'')+'">'+courses+'</div>':'<div class="course-empty">Nenhuma disciplina corresponde ao filtro selecionado.</div>')+
 
- '<p class="course-library-note">Os materiais publicados estão disponíveis para consulta. Materiais ainda não enviados não aparecem como referências vazias.</p></div>';
+ '<p class="course-library-note">O percentual representa as atividades marcadas como concluídas ou lembradas. Os materiais continuam disponíveis sem caixinhas de visto.</p></div>';
 }
 function audioSelectionIndex(){return current.audioSubject==='tcc'?currentChapter:currentEpisode;}
 function audioKey(k,i){return k+':'+i;}
@@ -4927,6 +4931,10 @@ function scheduleDocsRefresh(){
  },140);
 }
 window.addEventListener('uentzoul:material-placements-updated',scheduleDocsRefresh);
+// Atualiza porcentagens sem interromper atividades que estão abertas.
+for(const name of ['uentzoul:flashcards-updated','uentzoul:study-guides-updated'])window.addEventListener(name,()=>{
+ if(current.page==='home'||current.page==='library')render();
+});
 window.PSICO_LIBRARY_RENDER_DIAGNOSTICS=()=>({replacements:docsRefreshCount,pending:docsRefreshTimer!==null});
 function render(){
  // Não desmontar o iframe do Caderno quando outras seções atualizarem em segundo plano.
