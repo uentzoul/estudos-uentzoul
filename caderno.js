@@ -1050,7 +1050,7 @@ function saveEditor(advance=true,insertLine=false){
   const span=Math.max(1,Number(unchanged.span)||1);
   closeEditor();
   if(advance){
-   if(insertLine)insertBlankPauta(priorLine+span,true);
+   if(insertLine)insertBlankPauta(priorLine+span);
    advanceLine(insertLine?priorLine+span:priorLine+1);
   }
   return;
@@ -2534,6 +2534,7 @@ root.addEventListener('input',event=>{
  if(t.id==='nbEraseSize'){data.eraserRadius=clamp(Number(t.value)||14,6,32);save();return;}
  if(t.id==='nbEditorText'){
   if(!editing)return;
+  crossLineUndoReady=false;
   const oldMarker=listInfo(editing.draft),newMarker=listInfo(t.value);
   if(oldMarker&&(!newMarker||newMarker.kind!==oldMarker.kind)){
    data.listStyle='none';refreshTools();
@@ -2665,30 +2666,66 @@ root.addEventListener('keydown',event=>{
   if(applyTabKey(event.target,event.shiftKey)){event.preventDefault();event.stopPropagation();}
   return;
  }
- if(event.target.id==='nbEditorText'){
-  if(event.key==='Backspace'&&!event.isComposing&&!event.ctrlKey&&!event.metaKey&&!event.altKey&&editing){
-   const input=event.target,marker=listInfo(input.value);
-   const markerOnly=!!(marker&&!input.value.slice(marker.prefix.length).trim());
-   const atMarker=!!(marker&&input.selectionStart===input.selectionEnd&&
-    input.selectionStart<=marker.prefix.length&&input.selectionStart>marker.indent.length);
-   if(marker&&(markerOnly||atMarker)){
+ if(event.target.id==='nbEditorText'&&editing){
+  if(event.isComposing)return;
+  const input=event.target,from=input.selectionStart,to=input.selectionEnd;
+  const collapsed=from===to,plain=!event.ctrlKey&&!event.metaKey&&!event.altKey;
+  if((event.ctrlKey||event.metaKey)&&!event.altKey&&event.code==='KeyZ'&&crossLineUndoReady){
+   event.preventDefault();event.stopPropagation();crossLineUndoReady=false;
+   if(event.shiftKey)redo();else undo();return;
+  }
+  if(plain&&collapsed&&event.key==='Backspace'){
+   const marker=listInfo(input.value);
+   const only=!!(marker&&!input.value.slice(marker.prefix.length).trim());
+   const atMarker=!!(marker&&from<=marker.prefix.length&&from>marker.indent.length);
+   if(marker&&(only||atMarker)){
+    event.preventDefault();event.stopPropagation();removeListMarker(input,marker);return;
+   }
+   if(from===0){
     event.preventDefault();event.stopPropagation();
-    removeListMarker(input,marker);return;
+    if(!input.value.trim())previousWritingLine();
+    else if(!joinWritingLines(-1))moveWritingCaret(-1,'end');
+    return;
    }
    if(!input.value.trim()){
     event.preventDefault();event.stopPropagation();previousWritingLine();return;
    }
   }
-  if(event.key==='Enter'&&!event.shiftKey&&!event.isComposing){
-   event.preventDefault();event.stopPropagation();saveEditor(true,true);return;
+  if(plain&&collapsed&&event.key==='Delete'&&to===input.value.length){
+   if(joinWritingLines(1)){event.preventDefault();event.stopPropagation();return;}
   }
-  // Dois espaços seguidos no fim da linha confirmam a anotação.
-  // Um espaço sozinho continua separando palavras normalmente.
-  if(event.key===' '&&!event.isComposing&&!event.repeat){
-   const input=event.target,atEnd=input.selectionStart===input.value.length&&input.selectionEnd===input.value.length;
-   if(atEnd&&input.value.endsWith(' ')){
-    event.preventDefault();event.stopPropagation();saveEditor(true);return;
+  if(plain&&collapsed&&
+     ((event.key==='ArrowLeft'&&from===0)||
+      (event.key==='ArrowRight'&&to===input.value.length)||
+      (event.key==='ArrowUp'&&!input.value.slice(0,from).includes('\n'))||
+      (event.key==='ArrowDown'&&!input.value.slice(to).includes('\n')&&to===input.value.length))){
+   const direction=['ArrowLeft','ArrowUp'].includes(event.key)?-1:1;
+   if(moveWritingCaret(direction,direction<0?'end':'start')){
+    event.preventDefault();event.stopPropagation();return;
    }
+  }
+  if((event.ctrlKey||event.metaKey)&&!event.altKey&&
+     (event.key==='Home'||event.key==='End')){
+   const toEnd=event.key==='End',atPage=toEnd?Math.max(0,data.pages.length-1):0;
+   saveEditor(false);data.page=atPage;pendingPage=emptyPage();
+   renderPage();renderPageRail();save();
+   const notes=page().notes.slice().sort((a,b)=>Number(a.line)-Number(b.line));
+   beginEdit(Number(toEnd?(notes.at(-1)?.line??FIRST_LINE):FIRST_LINE),toEnd?'end':'start');
+   event.preventDefault();event.stopPropagation();return;
+  }
+  if(event.key==='Enter'&&!event.shiftKey&&plain){
+   event.preventDefault();event.stopPropagation();
+   if(from<input.value.length||to<input.value.length){
+    // Enter no meio do texto insere uma quebra real sem sobrescrever os caracteres seguintes.
+    if(input.value.length-(to-from)+1<=Number(input.maxLength||2500)){
+     input.setRangeText('\n',from,to,'end');
+     input.dispatchEvent(new Event('input',{bubbles:true}));
+    }
+   }else saveEditor(true,true);
+   return;
+  }
+  if(event.key===' '&&plain&&!event.repeat&&collapsed&&to===input.value.length&&input.value.endsWith(' ')){
+   event.preventDefault();event.stopPropagation();saveEditor(true);return;
   }
   if(event.key==='Escape'){
    event.preventDefault();event.stopPropagation();
