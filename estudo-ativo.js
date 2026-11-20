@@ -57,7 +57,9 @@ function cards(id){
 }
 function key(id){return 'psicomoodle:flash:v1:'+S(id).semester+':'+own()+':'+id}
 function records(id){try{return JSON.parse(localStorage.getItem(key(id))||'{}')||{}}catch{return {}}}
-function save(id,r){try{localStorage.setItem(key(id),JSON.stringify(r))}catch(e){console.warn('Não foi possível salvar a revisão deste dispositivo',e)}}
+function save(id,r){try{localStorage.setItem(key(id),JSON.stringify(r))}catch(e){console.warn('Não foi possível salvar a revisão deste dispositivo',e)}
+ window.dispatchEvent(new Event('uentzoul:flashcards-updated'));
+}
 function due(id){
  const s=S(id),r=records(id);return cards(id).filter(c=>s.again?!s.seen.has(c.key):!r[c.key]||Number(r[c.key].due||0)<=Date.now());
 }
@@ -117,6 +119,13 @@ function caseView(id){
 }
 function refresh(root){const id=root.dataset.activeId;root.outerHTML=root.dataset.activeMode==='flash'?cardView(id):caseView(id)}
 window.PSICO_PRACTICE={
+ flashProgress(id,topics,semester){
+  const state=S(id);
+  if(Array.isArray(topics))state.topics=topics;
+  if(semester)state.semester=semester;
+  const all=cards(id),data=records(id);
+  return {completed:all.filter(card=>Number(data[card.key]?.hits||0)>0).length,total:all.length};
+ },
  focusCards(id,topics,titles,max=4){
   const state=S(id);
   state.topics=Array.isArray(topics)?topics:[];
