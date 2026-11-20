@@ -6,7 +6,7 @@ const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&
 const norm=s=>String(s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLocaleLowerCase('pt-BR');
 let state=null,generation=0,eventsBound=false;
 function context(){return window.PSICO_BOOK_LIBRARY?.getReaderContext?.()||null}
-function cacheKey(c){return 'psb-toc-v4::'(window.uentzoulAIAuth?.user?.()?.id||'')+'::'+c.book.id+'::'+c.book.path+'::'+c.total}
+function cacheKey(c){return 'psb-toc-v4::'+(window.uentzoulAIAuth?.user?.()?.id||'')+'::'+c.book.id+'::'+c.book.path+'::'+c.total}
 function readCache(c){
  try{
   const record=JSON.parse(localStorage.getItem(cacheKey(c))||'null');
