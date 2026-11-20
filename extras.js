@@ -779,7 +779,7 @@ async function start(){
   // O jogo abre mesmo quando o banco demora a responder; a sincronização
   // atualiza apenas se a conta e o dia ainda coincidirem.
   const [role]=await Promise.all([
-   client.rpc("uentzoul_is_admin").catch(e=>({error:e})),
+   Promise.resolve(client.rpc("uentzoul_is_admin")).catch(e=>({error:e})),
    loadWordBank(),
    loadCloud(enteredDay)
   ]);
