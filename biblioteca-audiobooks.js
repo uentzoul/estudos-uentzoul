@@ -38,11 +38,14 @@ return '<article class="psa-item"><button type="button" data-psa-open="'+esc(b.i
 function shelf(){
  const bs=isAdmin()?books():[...new Set(rows.filter(r=>r.audio_path).map(r=>r.book_key))].map(book).filter(Boolean);
  const show=bs.filter(b=>!filter||clean([b.title,b.author,b.subject].join(' ')).includes(clean(filter)));
-return '<div class="psb-subhead"><div><button class="psb-back" '+(isAdmin()?'data-psb-tab="home"':'data-psa-backhome')+'>‹ Biblioteca</button><h2>Biblioteca de audiobooks</h2><p>'+(isAdmin()?'Ouça gravações autorizadas por capítulos ou consulte as versões disponíveis em plataformas oficiais.':'Audiobooks enviados e publicados para escuta no site.')+'</p></div><span class="psb-count">'+bs.length+' '+(bs.length===1?'audiobook':'audiobooks')+'</span></div>'+
-'<div class="psa-search"><label for="psaFind">Buscar título ou autor</label><input id="psaFind" type="search" placeholder="Pesquisar audiobooks..." value="'+esc(filter)+'" autocomplete="off"></div>'+
-'<div class="psa-library-grid">'+show.map(itemCard).join('')+'</div>'
-(!show.length?'<p class="psa-info">'+(!isAdmin()&&!loaded?'Carregando audiobooks publicados…':filter?'Nenhum audiobook encontrado nessa busca.':isAdmin()?'Nenhuma obra cadastrada.':'Nenhum audiobook publicado até o momento.')+'</p>':'')+
-(isAdmin()?'<p class="psa-disclaimer">As versões comerciais são links externos. Compra ou assinatura não permitem reenvio ao site. Apenas arquivos com licença de hospedagem podem ser reproduzidos aqui.</p>':'')}
+ const message=!loaded&&!isAdmin()?'Carregando audiobooks publicados…':filter?'Nenhum audiobook encontrado nessa busca.':isAdmin()?'Nenhuma obra cadastrada.':'Nenhum audiobook publicado até o momento.';
+ return '<div class="psb-subhead"><div><button class="psb-back" '+(isAdmin()?'data-psb-tab="home"':'data-psa-backhome')+'>‹ Biblioteca</button><h2>Biblioteca de audiobooks</h2><p>'+
+ (isAdmin()?'Ouça gravações autorizadas por capítulos ou consulte as versões disponíveis em plataformas oficiais.':'Audiobooks enviados e publicados para escuta no site.')+'</p></div><span class="psb-count">'+bs.length+' '+(bs.length===1?'audiobook':'audiobooks')+'</span></div>'+
+ '<div class="psa-search"><label for="psaFind">Buscar título ou autor</label><input id="psaFind" type="search" placeholder="Pesquisar audiobooks..." value="'+esc(filter)+'" autocomplete="off"></div>'+
+ '<div class="psa-library-grid">'+show.map(itemCard).join('')+'</div>'+
+ (!show.length?'<p class="psa-info">'+message+'</p>':'')+
+ (isAdmin()?'<p class="psa-disclaimer">As versões comerciais são links externos. Compra ou assinatura não permitem reenvio ao site. Apenas arquivos com licença de hospedagem podem ser reproduzidos aqui.</p>':'');
+}
 function links(k){const entries=SOURCES[k]||[];
 return '<section class="psa-sources"><h3>Onde ouvir fora do site</h3>'+(entries.length?entries.map(x=>'<div class="psa-source"><div><strong>'+esc(x.title)+'</strong><small>'+esc(x.lang)+'</small></div><a href="'+esc(x.url)+'" target="_blank" rel="noopener noreferrer">Abrir plataforma ↗</a></div>').join(''):'<p>Não foi encontrada uma edição comercial ou gravação confiável correspondente a esta obra na pesquisa atual.</p>')+'<p class="psa-source-note">Links externos não autorizam baixar, converter ou redistribuir suas gravações.</p></section>'}
 function playback(){const cs=chapters(selected),r=current()||cs[0];
@@ -65,10 +68,14 @@ return '<section class="psa-admin"><button class="psa-admin-toggle" type="button
 '<label class="psa-rights"><input name="rights" type="checkbox" required> Confirmo que tenho direito de hospedar e disponibilizar esta gravação e sua transcrição no site.</label>'+
 '<button class="psa-submit" type="submit" '+(busy?'disabled':'')+'>'+(busy?'Enviando…':'Publicar capítulo')+'</button></form>':'')+
 (cs.length?'<details class="psa-admin-manage"><summary>Gerenciar capítulos publicados</summary>'+cs.map(r=>'<div><span>'+esc(r.chapter_title)+'</span><button type="button" data-psa-delete="'+esc(r.id)+'">Excluir</button></div>').join('')+'</details>':'')+'</section>'}
-function detail(){const b=book(selected);if(!b||(!isAdmin()&&!chapters(selected).length)){selected='';return shelf()}
-return '<div class="psa-detail"><button class="psb-back" data-psa-back>‹ Audiobooks</button><div class="psa-hero">'+cover(b,true)+'<div><span class="psa-eyebrow">BIBLIOTECA DE AUDIOBOOKS</span><h2>'+esc(b.title)+'</h2><p>'+esc(b.author)+'</p><small>'+esc(b.subject||'Biblioteca')+'</small></div></div><div class="psa-detail-columns"><div>'+playback()+links(selected)+'</div><div>'+uploader()+'</div></div><p class="psa-notice" id="psaNotice" role="status">'+esc(notice)+'</p></div>'}
+function detail(){
+ const b=book(selected);
+ if(!b||(!isAdmin()&&!chapters(selected).length)){selected='';return shelf()}
+ return '<div class="psa-detail"><button class="psb-back" data-psa-back>‹ Audiobooks</button><div class="psa-hero">'+cover(b,true)+'<div><span class="psa-eyebrow">BIBLIOTECA DE AUDIOBOOKS</span><h2>'+esc(b.title)+'</h2><p>'+esc(b.author)+'</p><small>'+esc(b.subject||'Biblioteca')+'</small></div></div><div class="psa-detail-columns"><div>'+playback()+(isAdmin()?links(selected):'')+'</div>'+
+ (isAdmin()?'<div>'+uploader()+'</div>':'')+'</div><p class="psa-notice" id="psaNotice" role="status">'+esc(notice)+'</p></div>'
+}
 function render(){return '<div class="psa-app">'+(selected?detail():shelf())+'</div>'}
-async function load(force){if(!canListen())return;if(loading||(loaded&&!force))return;const uid=user();if(uid!==owner){owner=uid;rows=[];loaded=false;selected='';}const c=client();if(!c)return;loading=true;try{const q=await c.from(TABLE).select('id,book_key,chapter_order,chapter_title,audio_path,transcript_vtt,created_at').order('chapter_order',{ascending:true});if(q.error)throw q.error;if(uid!==user())return;rows=q.data||[];loaded=true;notice='';redraw()}catch(err){notice='Não foi possível carregar os audiobooks: '+(err?.message||'erro');loaded=true;redraw()}finally{loading=false}}
+async function load(force){if(!canListen())return;if(loading||(loaded&&!force))return;const uid=user();if(uid!==owner){owner=uid;rows=[];loaded=false;selected='';}const c=client();if(!c)return;loading=true;try{const q=await c.from(TABLE).select('id,book_key,chapter_order,chapter_title,audio_path,transcript_vtt,book_title,book_author,book_subject,book_cover_url,created_at').order('chapter_order',{ascending:true});if(q.error)throw q.error;if(uid!==user())return;rows=q.data||[];loaded=true;notice='';redraw()}catch(err){notice='Não foi possível carregar os audiobooks: '+(err?.message||'erro');loaded=true;redraw()}finally{loading=false}}
 function afterRender(){if(!canListen())return;void load(false);syncPlayer()}
 function stop(){savePosition(true);playToken++;player.pause();player.removeAttribute('src');player.load();audioKey='';selectedChapter=''}
 async function playChapter(id,autoplay=true){if(!canListen())return;const r=rows.find(x=>x.id===id);if(!r)return;selectedChapter=r.id;if(audioKey===id&&player.src){if(autoplay){if(player.paused)await player.play().catch(showPlayError);else player.pause();}redraw();return}
