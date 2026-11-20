@@ -1,6 +1,6 @@
 /* Vocabulário editorial PsicoMoodle · Psicologia geral e conteúdos acadêmicos. */
 window.PSICO_EXTRAS_DATA={
-  "version": 1,
+  "version": 2,
   "wordBank": [
     {
       "word": "GRUPO",
@@ -451,8 +451,7 @@ window.PSICO_EXTRAS_DATA={
       "word": "FUGAS",
       "area": "Comportamento",
       "hint": "Respostas de afastamento de situações aversivas"
-    }
-  ,
+    },
     {
         "word": "ÂNIMO",
         "area": "Emoções e saúde psicológica",
