@@ -2658,7 +2658,7 @@ html[data-theme="dark"]{
 
 <button class="sidebtn" data-page="messages"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.5 8.5 0 0 1-8.5 8.5c-1.5 0-3.1-.4-4.4-1.1L3 20l1.2-4.9A8.5 8.5 0 1 1 21 11.5Z"/><path d="M8 11.5h8M8 14.5h5"/></svg><span class="nav-label">Mensagens</span> <span class="dm-nav-badge" id="dmNavBadge" hidden></span></button>
 
-<button class="sidebtn" data-page="ai"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="m12 2 2.6 6.9L21 11l-6.4 2.1L12 20l-2.6-6.9L3 11l6.4-2.1L12 2Z"/><path d="m19 18 1 2 2 1-2 1-1 2-1-2-2-1 2-1z"/></svg><span class="nav-label">IA Tzoul</span></button>
+
 
 <button type="button" class="sidebtn" id="navVacationReview" aria-label="Revisão de Férias">
 <svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 17l4-4 4 3 6-9 2 2"/><path d="M3 21h18"/><circle cx="6" cy="7" r="2"/></svg><span class="nav-label"><span class="nav-label-full">Revisão de Férias</span><span class="nav-label-short">Férias</span></span>
@@ -3128,7 +3128,7 @@ function pmNavRestore(state){
   }
   const screen=state.screen||{};
   current={...current,...screen};
-  if(!['home','subject','test','exams','calendar','audio','messages','ai','admin','extras'].includes(current.page))current.page='home';
+  if(!['home','subject','test','exams','calendar','audio','messages','admin','extras'].includes(current.page))current.page='home';
   if(current.page==='subject'&&!DB.subjects[current.subject])current.page='home';
   if(current.page==='test'&&!DB.exams.some(x=>x.id===current.exam))current.page='exams';
   if(current.page==='admin'&&!window.uentzoulAdminConfig?.isAdmin?.())current.page='home';
@@ -3160,6 +3160,7 @@ window.addEventListener('focus',refreshAgendaAvailability);
 document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')refreshAgendaAvailability()});
 window.uentzoulCurrentRoute=()=>({page:current.page,semester,subject:current.subject,subjectArea:current.subjectArea});
 const go=(page,extra={})=>{
+ if(page==='ai')page='home';
  if(page==='personal')page='home'; // Funcionalidade suspensa, sem apagar dados
  if(page==='library')page='home';
  if(page==='schedule'){calendarView='horarios';page='calendar';}
@@ -4950,6 +4951,7 @@ for(const name of ['uentzoul:flashcards-updated','uentzoul:study-guides-updated'
 });
 window.PSICO_LIBRARY_RENDER_DIAGNOSTICS=()=>({replacements:docsRefreshCount,pending:docsRefreshTimer!==null});
 function render(){
+ if(current.page==='ai')current.page='home';
  // Não desmontar o iframe do Caderno quando outras seções atualizarem em segundo plano.
  if(window.PSICO_NOTEBOOK_ACTIVE?.()&&document.getElementById('uentzoulCadernoFrame'))return;
  // Evitar desmontar uma partida em andamento por atualizações do painel principal.
@@ -4965,7 +4967,7 @@ function render(){
   $('main').innerHTML=head(semester,v[0],v[1])+'<section class="section"><div class="panel semester-empty"><h2>Este semestre ainda está vazio</h2><p class="muted">As matérias, os textos, os simulados, os podcasts e a agenda deste semestre serão adicionados quando estiverem definidos. Os demais semestres continuam disponíveis no seletor.</p><p class="small">O progresso deste semestre começa vazio e não se mistura com o do semestre anterior.</p></div></section>';
   return;
  }
- let body='';switch(current.page){case 'home':body=renderHome();break;case 'subject':body=renderSubject(current.subject);break;case 'exams':body=renderExams();break;case 'test':body=renderTest(current.exam);break;case 'library':body=renderHome();break;case 'audio':body=renderAudio();break;case 'calendar':body=renderCalendar();break;case 'ai':body=renderAI();break;case 'messages':body=window.uentzoulMessenger?.render()||'<section class="panel">Carregando mensagens…</section>';break;case 'extras':body='<div class="psico-extras-embed"><iframe id="psicoExtrasFrame" src="./extras.html?v=20261120-auth-fix-v4" title="Extras · jogos de Psicologia" loading="eager" allow="fullscreen"></iframe></div>';break;
+ let body='';switch(current.page){case 'home':body=renderHome();break;case 'subject':body=renderSubject(current.subject);break;case 'exams':body=renderExams();break;case 'test':body=renderTest(current.exam);break;case 'library':body=renderHome();break;case 'audio':body=renderAudio();break;case 'calendar':body=renderCalendar();break;case 'ai':body=renderHome();break;case 'messages':body=window.uentzoulMessenger?.render()||'<section class="panel">Carregando mensagens…</section>';break;case 'extras':body='<div class="psico-extras-embed"><iframe id="psicoExtrasFrame" src="./extras.html?v=20261120-auth-fix-v4" title="Extras · jogos de Psicologia" loading="eager" allow="fullscreen"></iframe></div>';break;
  case 'admin':body=window.uentzoulAdminConfig?.render()||'<section class="panel">Acesso restrito.</section>';break;default:body=renderHome()};if(psAudioElement&&psAudioElement.isConnected&&$('main').contains(psAudioElement))document.body.appendChild(psAudioElement);
  $('main').innerHTML=body;if(current.page==='ai')queueMicrotask(tzHydrateThumbnails);if(isPodcastView())setupAudio();if(current.page==='messages')window.uentzoulMessenger?.afterRender(current.peerId||null);if(current.page==='admin')window.uentzoulAdminConfig?.afterRender();}
 /* A camada de organização só altera categorias e posições, nunca os arquivos. */
@@ -7436,7 +7438,7 @@ function pcOverview(subject){
   '<button data-pc-tab="sources"><span>📚</span><strong>Materiais</strong><small>Arquivos, links e anotações</small></button>'+
   '<button data-pc-tab="agenda"><span>📅</span><strong>Agenda</strong><small>Provas, trabalhos e estudos</small></button>'+
   '<button data-pc-tab="exams"><span>✎</span><strong>Simulados</strong><small>13 objetivas + 2 dissertativas</small></button>'+
-  '<button data-pc-tab="ai"><span>✦</span><strong>IA Tzoul</strong><small>Resumos, trabalhos e roteiros</small></button></div>';
+  '</div>';
  const upcoming=agenda.length?agenda.map(x=>'<div class="pc2-mini-row"><span>'+pcIconType(x.type)+'</span><div><strong>'+esc(x.title)+'</strong><small>'+pcDateTime(x.due_at)+'</small></div></div>').join(''):
   '<p class="pc2-muted">Nenhum compromisso pendente.</p>';
  const latest=exams.length?exams.map(x=>'<button type="button" class="pc2-mini-row pc2-mini-button" data-pc-exam="'+esc(x.id)+'"><span>✎</span><div><strong>'+esc(x.difficulty==='dificil'?'Simulado difícil':'Simulado normal')+'</strong><small>'+(pcSubmission(x.id)?'Entregue · revisão liberada':'Aguardando resposta')+'</small></div><b>↗</b></button>').join(''):
@@ -7447,7 +7449,7 @@ function pcOverview(subject){
   '<section class="pc2-panel pc2-panel-wide"><header><h3>Materiais e produções</h3><button data-pc-tab="sources">Abrir biblioteca pessoal</button></header>'+
   '<p class="pc2-muted">'+pcCountSources(subject.id)+' fontes cadastradas · '+docs.length+' produções recentes da IA</p>'+
   (docs.length?'<div class="pc2-doc-links">'+docs.map(d=>'<button data-pc-doc="'+esc(d.id)+'">'+esc(d.title)+' <span>↗</span></button>').join('')+'</div>':'')+
-  '<button class="pc2-text-action" data-pc-tab="ai">✦ Criar um resumo ou trabalho com a IA</button></section></div>';
+  '</section></div>';
 }
 function pcSourcesView(subject){
  const src=pcSources(subject.id);
@@ -7467,7 +7469,7 @@ function pcSourcesView(subject){
   '<div class="pc2-add-actions"><button data-pc-add="file">＋ Adicionar arquivo</button><button data-pc-add="note">＋ Colar texto</button><button data-pc-add="link">＋ Adicionar link</button></div>'+
   note+'<section class="pc2-panel"><header><h3>Outras fontes</h3><small>'+src.length+' itens</small></header>'+
   (items||'<div class="pc2-empty-mini">Adicione PDFs, arquivos, referências ou notas para montar a biblioteca desta matéria.</div>')+
-  '<p class="pc2-hint">Arquivos ficam privados na sua conta. A IA consulta as anotações e até 3 arquivos PDF, Word ou PowerPoint por solicitação, priorizando os mais recentes. TXT e Markdown também são lidos. Links externos são referências, não páginas lidas automaticamente.</p></section>';
+  '<p class="pc2-hint">Arquivos e anotações ficam privados na tua conta. Links externos são referências cadastradas por ti.</p></section>';
 }
 
 function pcCalendarGrid(subject){
@@ -7583,8 +7585,9 @@ function pcDetail(){
  if(pc.view==='exam')return pcExamView();
  if(pc.view==='legacy')return pcOldExamView();
  if(pc.view==='doc')return pcDocView();
- const tabs=[['overview','Visão geral'],['sources','Materiais'],['agenda','Agenda'],['exams','Simulados'],['ai','IA / Documentos']];
- const content=pc.tab==='sources'?pcSourcesView(subject):pc.tab==='agenda'?pcAgendaView(subject):pc.tab==='exams'?pcExamsView(subject):pc.tab==='ai'?pcAIView(subject):pcOverview(subject);
+ const tabs=[['overview','Visão geral'],['sources','Materiais'],['agenda','Agenda'],['exams','Simulados']];
+ if(pc.tab==='ai')pc.tab='overview';
+ const content=pc.tab==='sources'?pcSourcesView(subject):pc.tab==='agenda'?pcAgendaView(subject):pc.tab==='exams'?pcExamsView(subject):pcOverview(subject);
  return '<button class="pc2-back" data-pc-home>← Todas as matérias</button>'+
   '<header class="pc2-subject-hero"><span class="pc2-subject-avatar">'+esc(pcIcon(subject.title))+'</span><div><small>MATÉRIA PESSOAL</small><h1>'+esc(subject.title)+'</h1>'+
   '<p>'+pcCountSources(subject.id)+' fontes · '+pcAgenda(subject.id).length+' compromissos · '+pcExams(subject.id).length+' simulados</p></div>'+
@@ -7624,7 +7627,7 @@ function pcModalMarkup(){
   '<div class="pc2-modal-body">'+body+'</div></section></div>';
 }
 function pcRender(){
- if(!onlineUser)return '<section class="pc-login"><h1>Espaço Pessoal</h1><p>Crie matérias, acrescente fontes, monte sua agenda e estude com a IA Tzoul.</p><button type="button" data-account-action="open" class="pc-primary">Entrar / Cadastrar</button></section>';
+ if(!onlineUser)return '<section class="pc-login"><h1>Espaço Pessoal</h1><p>Crie matérias, acrescente fontes e organize sua agenda de estudos.</p><button type="button" data-account-action="open" class="pc-primary">Entrar / Cadastrar</button></section>';
  if(!pc.loaded&&!pc.loading)queueMicrotask(pcLoad);
  return '<div class="pc2-page">'+(pc.error?'<div class="pc-error" role="alert">'+esc(pc.error)+' <button data-pc-clear-error aria-label="Fechar aviso">×</button></div>':'')+
   (pc.notice?'<div class="pc2-notice" role="status">'+esc(pc.notice)+'</div>':'')+
@@ -7966,7 +7969,7 @@ document.addEventListener('click',e=>{
  let b=e.target.closest('[data-pc-new]');if(b){pcModalOpen('create');return}
  b=e.target.closest('[data-pc-open-subject]');if(b){pcOpenSubject(b.dataset.pcOpenSubject);return}
  b=e.target.closest('[data-pc-home]');if(b){pc.view='home';pc.selected=null;pc.modal=null;pcShow();return}
- b=e.target.closest('[data-pc-tab]');if(b){pc.tab=b.dataset.pcTab;pc.view='detail';pcShow();return}
+ b=e.target.closest('[data-pc-tab]');if(b){if(b.dataset.pcTab==='ai')return;pc.tab=b.dataset.pcTab;pc.view='detail';pcShow();return}
  b=e.target.closest('[data-pc-edit-subject]');if(b){pcModalOpen('edit-subject');return}
  b=e.target.closest('[data-pc-add]');if(b){pcModalOpen('source');requestAnimationFrame(()=>{const radio=document.querySelector('#pc2SourceForm [name=kind][value="'+(b.dataset.pcAdd==='file'?'arquivo':b.dataset.pcAdd==='note'?'nota':'link')+'"]');if(radio){radio.checked=true;pcSourceFields(radio.value)}});return}
  b=e.target.closest('[data-pc-new-event]');if(b){pcModalOpen('agenda');return}
