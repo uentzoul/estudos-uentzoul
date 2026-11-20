@@ -54,7 +54,7 @@ test('Scripts extras são sintaticamente válidos',()=>{
 });
 function engine(){
  const expanded=script.replace(/\nstart\(\);\n\}\)\(\);\s*$/,
-  '\nwindow.__extTest={init:initializeDay,getWord,wordColors,inputPsico,conexoSubmit,contextSubmit,renderPsico,renderConexo,renderContexto,rank:()=>contextRankings,target:()=>contextTarget,groups:()=>connectionGroups,tiles:()=>connectionTiles,terms:()=>contextTerms,states:()=>states,setActive:v=>{active=v;},setBank:v=>{psicoBank=v;},mark:tileMark,rankTerm:contextRankTerm,validArchiveDay};\n})();');
+  '\nwindow.__extTest={init:initializeDay,getWord,wordColors,inputPsico,conexoSubmit,contextSubmit,renderPsico,renderConexo,renderContexto,rank:()=>contextRankings,target:()=>contextTarget,groups:()=>connectionGroups,tiles:()=>connectionTiles,terms:()=>contextTerms,states:()=>states,setActive:v=>{active=v;},setBank:v=>{psicoBank=v;},mark:tileMark,rankTerm:contextRankTerm,validArchiveDay,dragStart:conexoDragStart,dragMove:conexoDragMove,dragEnd:conexoDragEnd,allow:()=>{approved=true;}};\n})();');
  assert.notEqual(expanded,script,'acesso de teste ao motor');
  const storage=new Map(),elements=new Map();
  const fakeElement=id=>{
@@ -62,12 +62,12 @@ function engine(){
   return elements.get(id);
  };
  const document={
-  body:{scrollHeight:1200},documentElement:{scrollHeight:1200},getElementById:fakeElement,
+  body:{scrollHeight:1200,appendChild(){}},documentElement:{scrollHeight:1200},getElementById:fakeElement,
   addEventListener(){},querySelectorAll(){return[];},querySelector(){return null;}
  };
  const window={PSICO_EXTRAS_DATA:data,addEventListener(){}};
  window.parent=window;
- const sandbox={window,document,localStorage:{getItem:k=>storage.get(k)||null,setItem:(k,v)=>storage.set(k,v)},console,Date,Intl,Math,URL,location:{href:'https://example.test/extras.html'},requestAnimationFrame(){}};
+ const sandbox={window,document,localStorage:{getItem:k=>storage.get(k)||null,setItem:(k,v)=>storage.set(k,v)},console,Date,Intl,Math,URL,location:{href:'https://example.test/extras.html'},requestAnimationFrame(){},setTimeout,clearTimeout};
  vm.runInNewContext(expanded,sandbox,{filename:'extras-engine.js'});
  return window.__extTest;
 }
@@ -89,7 +89,7 @@ test('Conexo escolhe quatro grupos distintos e registra solução',()=>{
  e.states().conexo.selected=e.tiles().filter(t=>t.group===0).map(t=>t.id);
  e.conexoSubmit();
  assert.equal(e.states().conexo.solved.length,1);
- assert.equal(e.states().conexo.mistakes,0);
+ assert.deepEqual(Array.from(e.states().conexo.wrong),[]);
 });
 test('Contexto apresenta ranking semântico e aceita a palavra correta',()=>{
  const e=engine();e.init();e.setActive('contexto');
@@ -138,4 +138,49 @@ test('Dia inaugural preserva EXAME e as quatro conexões originais',()=>{
   'Hospitalar / Forense / Escolar / Organizacional',
   'Infância / Adolescência / Adultez / Velhice'
  ]);
+});
+
+test('Interface enxuta: sem textos internos de desenvolvimento ou explicações redundantes',()=>{
+ assert.doesNotMatch(page,/Desafios a partir de 20\/11\/2026|um novo desafio por dia/i);
+ assert.doesNotMatch(page,/Acesso antecipado|Progresso individual por dia/);
+ assert.doesNotMatch(script,/Cores:<\/b>|Tenta “memória”|ranking considera|141 termos cadastrados/i);
+ assert.doesNotMatch(script,/Tente descobrir um termo da Psicologia|Toque numa letra para editá-la/);
+});
+test('Arraste do VÍNCULO reordena peças em tempo real, com captura de ponteiro no grid',()=>{
+ const e=engine();e.init('2026-11-21');e.setActive('conexo');e.allow();
+ const cls=()=>{const flags=new Set(['conexo-tile']);return {
+  add:v=>flags.add(v),remove:v=>flags.delete(v),contains:v=>flags.has(v)
+ }};
+ const grid={tiles:[],pointer:null,classList:cls(),querySelectorAll(){return this.tiles},
+  getBoundingClientRect(){return {left:0,right:400,top:0,bottom:400}},
+  setPointerCapture(id){this.pointer=id},hasPointerCapture(id){return this.pointer===id},
+  releasePointerCapture(){this.pointer=null},
+  insertBefore(el,ref){
+   this.tiles.splice(this.tiles.indexOf(el),1);
+   const pos=ref?this.tiles.indexOf(ref):this.tiles.length;
+   this.tiles.splice(pos<0?this.tiles.length:pos,0,el);
+  }};
+ for(const word of e.tiles()){
+  const tile={dataset:{tile:word.id},classList:cls(),style:{},
+   closest:selector=>selector.includes('conexo-grid')?grid:tile,
+   getBoundingClientRect(){
+    const i=grid.tiles.indexOf(tile),left=i%4*100,top=Math.floor(i/4)*100;
+    return {left,top,width:90,height:90,right:left+90,bottom:top+90};
+   },
+   cloneNode(){return {
+    style:{},classList:cls(),removeAttribute(){},setAttribute(){},remove(){}
+   }},
+   getAnimations(){return []},animate(){}};
+  Object.defineProperty(tile,'nextElementSibling',{get(){return grid.tiles[grid.tiles.indexOf(tile)+1]||null}});
+  grid.tiles.push(tile);
+ }
+ const tile=grid.tiles[0],id=tile.dataset.tile;
+ e.dragStart({target:tile,button:0,pointerId:8,clientX:45,clientY:45});
+ e.dragMove({pointerId:8,clientX:345,clientY:345,cancelable:true,preventDefault(){}});
+ assert.equal(grid.pointer,8,'o grid captura o movimento mesmo quando a peça sai da posição original');
+ assert.equal(grid.tiles[15],tile,'peça vai para o quadrado mais próximo do cursor');
+ e.dragEnd({pointerId:8});
+ assert.equal(grid.pointer,null,'ponteiro liberado ao soltar');
+ assert.equal(e.states().conexo.shuffled[15],id,'nova ordem persiste');
+ assert.equal(e.states().conexo.selected.length,0,'arrastar não seleciona a palavra');
 });
