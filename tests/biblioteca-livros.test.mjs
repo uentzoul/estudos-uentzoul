@@ -193,11 +193,56 @@ test('Sumário clicável é criado automaticamente por livro e respeita páginas
  vm.runInNewContext(reviewed,verifiedContext);
  const catalog=verifiedContext.window.PSICO_BOOK_VERIFIED_TOC;
  assert.equal(Object.keys(catalog).length,18,'todos os 18 livros cadastrados conferidos');
- assert.equal(Object.values(catalog).reduce((n,items)=>n+items.length,0),248,'somente capítulos e seções identificados nos arquivos');
+ assert.equal(Object.values(catalog).reduce((n,items)=>n+items.length,0),372,'sumários confrontados com os livros, com lacunas identificadas');
  assert.equal(catalog['hall-identidade'].length,6);
  assert.ok(catalog['hall-identidade'].some(item=>item.index===1),'seções de Hall apontam para a folha interna correta');
  assert.equal(catalog['bock-psicologias'].filter(item=>item.title.startsWith('Capítulo')).length,23);
- assert.match(main,/biblioteca-capitulos-revisados\.js\?v=20261120-verificado-v1/);
+ const pageLimits={
+  'vygotsky-formacao':90,'kuhn-revolucoes':218,'popper-logica':282,
+  'laville-construcao':342,'marcondes-filosofia':330,'schultz-historia':483,
+  'rumos-percursos':593,'bock-psicologias':492,'piaget-seis-estudos':69,
+  'laplanche-vocabulario':580,'roudinesco-dicionario':888,'censo-1':272,
+  'censo-2':292,'hall-identidade':30,'collins-interseccionalidade':91,
+  'zimerman-grupos':377,'aries-crianca-familia':275,'cfp-verdade-revolucionaria':700
+ };
+ for(const [id,entries] of Object.entries(catalog)){
+  let last=0;
+  for(const entry of entries){
+   assert.ok(entry.title.length>2,id+' capítulo com título');
+   if(entry.missing){
+    assert.equal(entry.source,undefined,id+' sem destino fabricado');
+    continue;
+   }
+   assert.ok(Number.isInteger(entry.source)&&entry.source>=1&&entry.source<=pageLimits[id],id+': '+entry.title);
+   assert.ok(entry.source>=last,id+': sequência de páginas em ordem');
+   if(entry.index!==undefined)assert.ok([0,1,2,3].includes(entry.index),id+' índice de coluna válido');
+   last=entry.source;
+  }
+ }
+ function sequence(id,re,expected){
+  const nums=catalog[id].map(x=>x.title.match(re)?.[1]).filter(Boolean).map(Number);
+  assert.deepEqual(nums,Array.from({length:expected},(_,i)=>i+1),id+' sem saltos ou inversões');
+ }
+ sequence('zimerman-grupos',/^(\d+)\./,38);
+ sequence('laville-construcao',/^Capítulo (\d+)/,10);
+ sequence('schultz-historia',/^Capítulo (\d+)/,15);
+ sequence('bock-psicologias',/^Capítulo (\d+)/,23);
+ sequence('kuhn-revolucoes',/^(\d+)\./,12);
+ sequence('collins-interseccionalidade',/^(\d+)\./,8);
+ const popChapters=catalog['popper-logica'].filter(x=>x.title.startsWith('Capítulo '));
+ assert.equal(popChapters.length,10);
+ assert.deepEqual(popChapters.map(x=>x.title.match(/^Capítulo ([IVX]+)/)[1]),
+  ['I','II','III','IV','V','VI','VII','VIII','IX','X']);
+ assert.equal(catalog['collins-interseccionalidade'].filter(x=>x.missing).length,6,'o trecho digital inclui apenas capítulos 1 e 2');
+ assert.equal(catalog['kuhn-revolucoes'].filter(x=>x.missing).length,1,'Kuhn contém lacuna assinalada, sem link falso');
+ assert.equal(catalog['aries-crianca-familia'].filter(x=>x.missing).length,1,'Ariès possui abertura não identificada');
+ assert.equal(catalog['cfp-verdade-revolucionaria'].filter(x=>x.level===0).length,16,'apresentação e 15 estados');
+ assert.match(toc,/psb-toc-unavailable/);
+ assert.match(toc,/if\(entry\.missing===true\)/);
+ assert.match(toc,/psb-toc-v6::/);
+ assert.match(css,/\.psb-toc-unavailable\{/);
+
+ assert.match(main,/biblioteca-capitulos-revisados\.js\?v=20261120-verificado-v2/);
  assert.match(toc,/function reviewedChapters\(c\)/);
  assert.match(toc,/c\.leafMap\.findIndex\(leaf=>leaf\.source===entry\.source&&leaf\.index===entry\.index\)/);
  assert.match(toc,/state\.kind='reviewed'/);
@@ -223,6 +268,6 @@ test('Sumário clicável é criado automaticamente por livro e respeita páginas
  assert.match(toc,/Nenhum capítulo identificado neste PDF/);
  assert.match(toc,/await c\.pdf\.getOutline\(\)/);
  assert.match(toc,/function heading\(line\)/);
- assert.match(main,/biblioteca-sumario\.js\?v=20261120-toc-v3/);
+ assert.match(main,/biblioteca-sumario\.js\?v=20261120-toc-v4/);
  api.close();
 });
