@@ -53,7 +53,7 @@ const NEAR={
 };
 let client=null,uid=null,approved=false,isAdmin=false,day="",ordinal=0,active="psico",states={};
 let calendarViewMonth="",calendarOpen=false,conexoMarkMode=false,conexoDrag=null,suppressConexoClick=false;
-let archiveLoadToken=0, psicoFlippingRow=-1, psicoMode="classico";
+let archiveLoadToken=0, psicoFlippingRow=-1, psicoMode="classico",adminAnswersOpen=false;
 const PSICO_MODES={classico:{label:"Clássico",boards:1,attempts:6},duplo:{label:"Duplo",boards:2,attempts:7},quadruplo:{label:"Quádruplo",boards:4,attempts:9}};
 let psicoBank=DATA.wordBank.slice().sort((a,b)=>clean(a.word).localeCompare(clean(b.word),"pt-BR"));
 let connectionGroups=[],connectionTiles=[],contextTerms=new Map(),contextRankings=null,contextTarget="",contextFreeRanks=new Map();
@@ -75,11 +75,12 @@ function shuffle(a,seed){
  for(let i=arr.length-1;i>0;i--){const j=Math.floor(rand()*(i+1));[arr[i],arr[j]]=[arr[j],arr[i]];}
  return arr;
 }
-function getWord(){
- if(day===ARCHIVE_START)return {word:"EXAME",area:"Avaliação Psicológica",hint:"Investigação ou procedimento avaliativo"};
- const list=psicoBank;
- return list[((ordinal*17+23)%list.length+list.length)%list.length];
+function getWordFor(targetDay){
+ if(targetDay===ARCHIVE_START)return {word:"EXAME",area:"Avaliação Psicológica",hint:"Investigação ou procedimento avaliativo"};
+ const list=psicoBank,n=dayNumber(targetDay);
+ return list[((n*17+23)%list.length+list.length)%list.length];
 }
+function getWord(){return getWordFor(day);}
 function gameStateDefault(game){
  return game==="psico"?{guesses:[],draft:"",done:false,won:false}:
  game==="conexo"?{solved:[],selected:[],wrong:[],shuffled:[],marked:[],done:false,won:false}:
@@ -137,6 +138,7 @@ function updateArchiveControls(){
  if(wrapper)wrapper.hidden=active==="tetris";
  if(active==="tetris")setCalendarOpen(false);
  else renderCalendar();
+ updateAdminAnswers();
 }
 function initializeDay(selected=dateBrazil()){
  day=selected;ordinal=dayNumber(day);psicoFlippingRow=-1;calendarViewMonth=selected.slice(0,7);
@@ -283,12 +285,13 @@ function wordColors(guess,answer){
  }
  return colors;
 }
-function getPsicoWords(){
- if(psicoMode==="classico")return [getWord()];
+function getPsicoWordsFor(targetDay,mode){
+ if(mode==="classico")return [getWordFor(targetDay)];
  // Lista editorial local: a atualização do banco remoto não altera partidas múltiplas em andamento.
  const pool=DATA.wordBank.filter(item=>clean(item.word).length===5);
- return shuffle(pool,ordinal*7919+(psicoMode==="duplo"?311:733)).slice(0,PSICO_MODES[psicoMode].boards);
+ return shuffle(pool,dayNumber(targetDay)*7919+(mode==="duplo"?311:733)).slice(0,PSICO_MODES[mode].boards);
 }
+function getPsicoWords(){return getPsicoWordsFor(day,psicoMode);}
 function psicoState(){
  const root=states.psico;
  if(psicoMode==="classico")return root;
@@ -320,7 +323,7 @@ function setPsicoMode(next){
  if(!approved||active!=="psico"||!PSICO_MODES[next]||next===psicoMode)return;
  psicoMode=next;states.psico.mode=next;psicoFlippingRow=-1;
  feedback={game:"",message:"",kind:""};
- store("psico");renderPsico();
+ store("psico");renderPsico();updateAdminAnswers();
 }
 function psicoNativeFocus(){
  const input=$("psicoTypeBox");
@@ -368,7 +371,7 @@ function renderPsico(){
   return '<section class="psico-board-column'+(solvedAt?' psico-board-solved':'')+'" aria-label="Tabuleiro '+(boardIndex+1)+'">'+caption+
    '<div class="psico-board'+(multi?' psico-board-multi':'')+'" role="grid" aria-label="'+cfg.attempts+' tentativas, cinco letras por linha">'+rows.join("")+'</div></section>';
  });
- const boardsHtml=multi?'<div class="psico-multi-grid">'+boards.join("")+'</div>':boards[0];
+ const boardsHtml=multi?'<div class="psico-multi-grid psico-multi-'+psicoMode+'">'+boards.join("")+'</div>':boards[0];
  let result="";
  if(st.done){
   const title=st.won?(multi?"Todas as palavras encontradas!":"Boa! Palavra encontrada."):"Fim das tentativas.";
@@ -435,17 +438,17 @@ function inputPsico(key){
  if(message){message.textContent="";message.className="feedback";}
 }
 
-function initConnections(){
+function getConnectionGroupsFor(targetDay){
  const chosen=[],seen=new Set();
  const canPick=group=>{
   const unique=group.terms.map(cleanTerm);
   return new Set(unique).size===4&&!unique.some(t=>seen.has(t));
  };
  const add=group=>{chosen.push(group);group.terms.map(cleanTerm).forEach(term=>seen.add(term));};
- if(day===ARCHIVE_START){
+ if(targetDay===ARCHIVE_START){
   LAUNCH_GROUPS.forEach(add);
  }else{
-  const pool=shuffle(DATA.connectionGroups,ordinal*104729+17);
+  const pool=shuffle(DATA.connectionGroups,dayNumber(targetDay)*104729+17);
   const first=pool.find(canPick);
   if(first){
    add(first);
@@ -457,7 +460,11 @@ function initConnections(){
   for(const group of pool){if(chosen.length===4)break;if(!chosen.includes(group)&&canPick(group))add(group);}
  }
  if(chosen.length!==4)throw Error("Não foi possível montar quatro grupos exclusivos.");
- connectionGroups=chosen.map((g,i)=>({...g,level:i}));
+ return chosen.map((g,i)=>({...g,level:i}));
+}
+function initConnections(){
+ const chosen=getConnectionGroupsFor(day);
+ connectionGroups=chosen;
  connectionTiles=shuffle(chosen.flatMap((group,i)=>group.terms.map((word,j)=>({id:i+"-"+j,word,group:i}))),ordinal*83293+101);
  const st=states.conexo;
  if(!Array.isArray(st.solved))st.solved=[];
@@ -612,6 +619,10 @@ function displayTerm(value){
  const v=cleanTerm(value),found=contextTerms.get(v);
  return found?.label||String(value??"").toLowerCase();
 }
+function getContextAnswerFor(targetDay){
+ const n=dayNumber(targetDay);
+ return cleanTerm(targetDay===ARCHIVE_START?"polarizacao":TARGETS[((n*11+5)%TARGETS.length+TARGETS.length)%TARGETS.length]);
+}
 function initContexto(){
  contextTerms=new Map();contextFreeRanks=new Map();
  DATA.semanticDomains.forEach((domain,i)=>domain.terms.forEach(term=>{
@@ -620,7 +631,7 @@ function initContexto(){
   if(!contextTerms.has(key))contextTerms.set(key,{label:term,domains:new Set()});
   contextTerms.get(key).domains.add(i);
  }));
- contextTarget=cleanTerm(day===ARCHIVE_START?"polarizacao":TARGETS[((ordinal*11+5)%TARGETS.length+TARGETS.length)%TARGETS.length]);
+ contextTarget=getContextAnswerFor(day);
  if(!contextTerms.has(contextTarget))throw Error("Resposta do Contexto não cadastrada: "+contextTarget);
  const target=contextTerms.get(contextTarget);
  const rankings=[...contextTerms.keys()].map(word=>{
