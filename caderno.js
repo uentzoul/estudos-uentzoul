@@ -201,6 +201,7 @@ function restoreState(serialized){
  if(!data.books.some(b=>b.id===data.bookId))data.bookId=data.books[0].id;
  data.pages=activeBook().pages;pendingPage=emptyPage();
 }
+let crossLineUndoReady=false;
 let editing=null, previewText='',drawPoints=null,warpDrag=null,stickyDrag=null,selectedStroke=-1,tapCandidate=null;
 let grammarRunning=false,grammarPaused=false,grammarDone=0,grammarTotal=0;
 const grammarAttempted=new Set(),grammarInFlight=new Set();
@@ -767,7 +768,7 @@ function renderNotes(){
  const notes=page().notes;
  $('nbTextLayer').innerHTML=notes.filter(n=>!(editing&&n.id===editing.id)).map(n=>noteMarkup(n,false)).join('');
 }
-function editorMarkup(){
+function editorMarkup(caret='end'){
  const host=$('nbEditorHost');
  if(!editing){host.innerHTML='';return;}
  const line=editing.line,top=START+line*L-3,fsize=26;
@@ -780,16 +781,27 @@ function editorMarkup(){
  const input=$('nbEditorText');input.value=editing.draft||'';
  input.style.height=Math.max(38,input.scrollHeight)+'px';
  syncInkOverlay();
- requestAnimationFrame(()=>{input.focus({preventScroll:true});input.setSelectionRange(input.value.length,input.value.length)});
+ requestAnimationFrame(()=>{
+  if(!input.isConnected||$('nbEditorText')!==input)return;
+  input.focus({preventScroll:true});
+  const offset=caret==='start'?0:caret==='end'?input.value.length:
+   clamp(Number(caret)||0,0,input.value.length);
+  input.setSelectionRange(offset,offset);
+ });
 }
-function beginEdit(line){
+function beginEdit(line,caret='end'){
  if(!editEnabled||data.mode!=='text'||line<FIRST_LINE)return;
  line=clamp(line,FIRST_LINE,ROWS-1);
- if(editing&&editing.line!==line){
-  const current=String($('nbEditorText')?.value||'');
-  // Trocar de linha também deve confirmar exclusões feitas com Backspace.
-  saveEditor(false);
+ if(editing&&editing.line===line){
+  const input=$('nbEditorText');
+  if(input){
+   input.focus({preventScroll:true});
+   const pos=caret==='start'?0:caret==='end'?input.value.length:clamp(Number(caret)||0,0,input.value.length);
+   input.setSelectionRange(pos,pos);
+  }
+  return;
  }
+ if(editing&&editing.line!==line)saveEditor(false);
  data.size=1;
  const existing=page().notes.find(n=>line>=Number(n.line)&&line<Number(n.line)+Number(n.span||Number(n.size)||1));
  if(existing)data.listStyle=listInfo(existing.text)?.kind||'none';
@@ -801,7 +813,7 @@ function beginEdit(line){
   data.ink=editing.inkMap.at(-1)||existing.ink||data.ink;
  }else editing.inkMap=inkMapFor(editing.draft,data.ink);
  previewText=editing.draft;
- refreshTools();renderNotes();editorMarkup();focusLine(editing.line);
+ refreshTools();renderNotes();editorMarkup(caret);focusLine(editing.line);
 }
 /* Marcadores e números são caracteres apagáveis, não elementos fixos. */
 function removeListMarker(input,marker){
@@ -1033,6 +1045,16 @@ function saveEditor(advance=true,insertLine=false){
  if(!editing)return;
  const priorLine=editing.line;
  const typed=String($('nbEditorText')?.value||'').replace(/\r\n?/g,'\n').trimEnd();
+ const unchanged=editing.id?page().notes.find(n=>n.id===editing.id):null;
+ if(unchanged&&typed===unchanged.text){
+  const span=Math.max(1,Number(unchanged.span)||1);
+  closeEditor();
+  if(advance){
+   if(insertLine)insertBlankPauta(priorLine+span,true);
+   advanceLine(insertLine?priorLine+span:priorLine+1);
+  }
+  return;
+ }
  const inkMap=reconcileInkMap(editing.draft,editing.inkMap,typed,data.ink);
  const listOnly=listInfo(typed);
  if(listOnly&&!typed.slice(listOnly.prefix.length).trim()){
@@ -2532,6 +2554,92 @@ root.addEventListener('input',event=>{
 root.addEventListener('scroll',event=>{
  if(event.target.id==='nbEditorText')syncInkOverlay();
 },true);
+/* Comportamento padrão do teclado dentro das pautas, independente das ferramentas visuais. */
+function noteAtWritingLine(line){
+ return page().notes.find(n=>Number(n.line)<=line&&
+  line<Number(n.line)+Math.max(1,Number(n.span)||1));
+}
+function moveWritingCaret(direction,caret='end'){
+ if(!editing||!editEnabled||data.mode!=='text')return false;
+ const line=editing.line,here=noteAtWritingLine(line);
+ const step=direction>0?Math.max(1,Number(here?.span)||1):-1;
+ saveEditor(false);
+ const target=line+step;
+ if(target>=ROWS){
+  if(data.page+1>=250)return false;
+  data.page++;pendingPage=emptyPage();renderPage();renderPageRail();save();
+  beginEdit(FIRST_LINE,caret);return true;
+ }
+ if(target<FIRST_LINE){
+  if(data.page<=0)return false;
+  data.page--;pendingPage=emptyPage();renderPage();renderPageRail();save();
+  const prev=page().notes.filter(n=>Number(n.line)<ROWS)
+   .sort((a,b)=>Number(b.line)-Number(a.line))[0];
+  beginEdit(prev?Number(prev.line):ROWS-1,caret);return true;
+ }
+ beginEdit(target,caret);return true;
+}
+function snapshotWritingDraft(){
+ if(!editing)return null;
+ const raw=String($('nbEditorText')?.value||'');
+ let note=editing.id?page().notes.find(n=>n.id===editing.id):null;
+ if(!raw.trim())return note;
+ if(!note){note={id:id(),line:editing.line};page().notes.push(note);editing.id=note.id;}
+ const colors=reconcileInkMap(editing.draft,editing.inkMap,raw,data.ink);
+ const ink=colors[0]||data.ink;
+ Object.assign(note,{text:raw,original:raw,font:data.font,size:1,ink,
+  inkRuns:inkRunsFor(raw,colors,ink),align:data.align||'left',pending:false,reviewed:false});
+ delete note.grammarReviewVersion;
+ note.span=occupiedSpan(note);materializePage();
+ return note;
+}
+function joinWritingLines(direction){
+ if(!editing||data.mode!=='text'||!editEnabled)return false;
+ const input=$('nbEditorText');if(!input)return false;
+ const line=editing.line,old=editing.id?page().notes.find(n=>n.id===editing.id):null;
+ const next=line+Math.max(1,Number(old?.span)||1);
+ const neighbor=page().notes.find(n=>n.id!==editing.id&&
+  (direction<0?Number(n.line)+Math.max(1,Number(n.span)||1)===line:Number(n.line)===next));
+ if(!neighbor)return false;
+ const raw=input.value,left=direction<0?String(neighbor.text||''):raw;
+ const right=direction<0?raw:String(neighbor.text||'');
+ const glue=left&&right&&!/\s$/.test(left)&&!/^\s/.test(right)?' ':'';
+ const joined=left+glue+right,position=left.length+glue.length;
+ if(joined.length>2500){status('Esta anotação ultrapassaria o limite de caracteres.','error');return false;}
+ const lineMain=direction<0?Number(neighbor.line):line;
+ const base=direction<0?neighbor:(old||{line,size:1,font:data.font,frameW:620});
+ const span=occupiedSpan({...base,line:lineMain,text:joined});
+ if(lineMain+span>ROWS){status('Não há espaço para unir essas linhas nesta folha.','error');return false;}
+ // Sem deslocar anotações para fora da folha.
+ const rest=page().notes.filter(n=>n.id!==neighbor.id&&n.id!==old?.id)
+  .sort((a,b)=>Number(a.line)-Number(b.line));
+ let limit=lineMain+span;
+ for(const n of rest){
+  if(Number(n.line)<lineMain)continue;
+  limit=Math.max(Number(n.line),limit)+Math.max(1,Number(n.span)||1);
+  if(limit>ROWS){status('Não há espaço para unir linhas sem cortar texto.','error');return false;}
+ }
+ const current=snapshotWritingDraft();
+ checkpoint(); // A cópia inclui até os caracteres ainda não confirmados na linha atual.
+ const target=direction<0?neighbor:current;
+ if(!target)return false;
+ const currentMap=inkMapFor(raw,current?.ink||data.ink,current?.inkRuns||[]);
+ const neighborMap=inkMapFor(neighbor.text,neighbor.ink,neighbor.inkRuns);
+ const first=direction<0?neighborMap:currentMap,last=direction<0?currentMap:neighborMap;
+ const colors=first.concat(Array(glue.length).fill(first.at(-1)||data.ink),last);
+ const ink=colors[0]||target.ink||data.ink;
+ const discard=direction<0?current:neighbor;
+ page().notes=page().notes.filter(n=>n.id!==discard?.id);
+ Object.assign(target,{text:joined,original:joined,ink,
+  inkRuns:inkRunsFor(joined,colors,ink),pending:false,reviewed:false,span});
+ delete target.grammarReviewVersion;
+ makeRoom(target);
+ editing=null;renderNotes();renderPageRail();save();
+ beginEdit(lineMain,position);
+ crossLineUndoReady=true;
+ status('Linhas unidas. Ctrl+Z desfaz.','success');
+ return true;
+}
 function applyTabKey(input,outdent){
  const value=input.value,start=input.selectionStart,end=input.selectionEnd;
  if(outdent){
