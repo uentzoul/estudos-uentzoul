@@ -30,9 +30,9 @@ function setup(){
   const items=[
    nav.querySelector('[data-page="home"]'),
    nav.querySelector('[data-page="calendar"]'),
+   nav.querySelector('[aria-label="Biblioteca — em breve"]'),
    nav.querySelector('[data-page="exams"]'),
    nav.querySelector('#navCadernoPreview'),
-   nav.querySelector('[aria-label="Biblioteca — em breve"]'),
    nav.querySelector('[data-page="messages"]'),
    nav.querySelector('#navVacationReview')
   ].filter(Boolean);
@@ -290,7 +290,7 @@ setTimeout(check,15000);
   }
   return semesters.includes(value)?value:'2026/2';
  }
- const notebookUrl=()=>('./caderno.html?v=20261120-biblioteca-menu-v2&semester='+
+ const notebookUrl=()=>('./caderno.html?v=20261120-biblioteca-agenda-v3&semester='+
    encodeURIComponent(selectedSemester()));
  function addStyles(){
   if(document.getElementById(STYLE_ID))return;
