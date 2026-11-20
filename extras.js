@@ -696,39 +696,100 @@ function contextSubmit(text){
  renderContexto();
  if(!st.done)$("contextGuess")?.focus();
 }
-async function start(){
- if(authBusy)return;authBusy=true;
+function hostLogin(){
+ // Mesma origem, mesmo cliente e mesma sessão usados pela página principal.
+ // Não criar outro Supabase Client em um iframe que pertence ao próprio site.
  try{
-  if(!DATA||!window.supabase?.createClient)throw Error("Os recursos dos jogos não carregaram. Verifique sua conexão.");
-  client=window.supabase.createClient(SB_URL,SB_KEY,{auth:{persistSession:true,autoRefreshToken:true}});
-  const session=await client.auth.getUser();
-  if(session.error||!session.data?.user?.id)throw Error("Faça login no PsicoMoodle para abrir o Extras.");
-  uid=session.data.user.id;
-  const role=await client.rpc("uentzoul_is_admin");
-  isAdmin=!role.error&&role.data===true;
+  if(window.parent===window||window.parent.location.origin!==location.origin)return null;
+  const auth=window.parent.uentzoulAIAuth;
+  const shared=auth?.client?.();
+  return shared?.auth&&shared?.from?{auth,client:shared}:null;
+ }catch(_){return null;}
+}
+async function loadStandaloneClient(){
+ if(!window.supabase?.createClient){
+  await new Promise((resolve,reject)=>{
+   const script=document.createElement("script");
+   script.src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js";
+   script.onload=resolve;script.onerror=()=>reject(Error("Não foi possível carregar a autenticação."));
+   document.head.appendChild(script);
+  });
+ }
+ if(!window.supabase?.createClient)throw Error("Não foi possível carregar a autenticação.");
+ return window.supabase.createClient(SB_URL,SB_KEY);
+}
+function showAuthError(message){
+ approved=false;
+ $("extrasApp").hidden=true;
+ $("extrasGate").hidden=false;
+ $("extrasGateStatus").textContent=message;
+ requestHeight();
+}
+function followSiteTheme(){
+ try{
+  const parentTheme=window.parent!==window?window.parent.document.documentElement.dataset.theme:"";
+  const theme=parentTheme||localStorage.getItem("psicomoodle-theme");
+  document.documentElement.dataset.theme=theme==="dark"?"dark":"light";
+ }catch(_){document.documentElement.dataset.theme="light";}
+}
+async function start(){
+ if(authBusy||approved)return;
+ authBusy=true;
+ followSiteTheme();
+ try{
+  if(!DATA?.wordBank?.length)throw Error("Não foi possível carregar o vocabulário.");
+  const host=hostLogin();
+  if(host){
+   client=host.client;
+   const linked=host.auth.user?.();
+   if(linked?.id)uid=linked.id;
+   else{
+    // O usuário pode estar autenticado enquanto o perfil principal sincroniza.
+    const session=await host.auth.getSession?.();
+    uid=session?.user?.id||null;
+   }
+  }else{
+   client=await loadStandaloneClient();
+   const result=await client.auth.getUser();
+   uid=result.error?null:result.data?.user?.id||null;
+  }
+  if(!uid)throw Error("Abre tua conta no PsicoMoodle para acessar os jogos.");
   initializeDay();
-  await Promise.all([loadWordBank(),loadCloud()]);
-  initConnections();initContexto();
+  // Mostrar os jogos assim que a sessão principal estiver disponível.
+  // Consulta de banco e permissão administrativa não podem bloquear a tela inteira.
   approved=true;
-  for(const game of CONTENT_GAMES)if(states[game]?._savedAt)void flushCloud(game);
-  $("extrasGate").hidden=true;$("extrasApp").hidden=false;
+  $("extrasGate").hidden=true;
+  $("extrasApp").hidden=false;
   const requested=new URL(location.href).searchParams.get("game");
-  switchGame(GAMES.includes(requested)&&!(requested==="tetris"&&!isAdmin)?requested:"psico");
-  try{
-   const theme=window.parent!==window?window.parent.document.documentElement.dataset.theme:localStorage.getItem("psicomoodle-theme");
-   if(theme==="dark")document.documentElement.dataset.theme="dark";
-  }catch(_){}
-  client.auth.onAuthStateChange((event,newSession)=>{
-   if(event==="SIGNED_OUT"||!newSession?.user?.id||newSession.user.id!==uid){
-    approved=false;$("extrasApp").hidden=true;$("extrasGate").hidden=false;
-    $("extrasGateStatus").textContent="A sessão foi encerrada. Faça login novamente.";
-    requestHeight();
+  const initial=GAMES.includes(requested)&&requested!=="tetris"?requested:"psico";
+  switchGame(initial);
+  // O cliente compartilhado publica eventos de login; jamais considerar
+  // INITIAL_SESSION sem payload um logout da página principal.
+  client.auth.onAuthStateChange((event,session)=>{
+   if(event==="SIGNED_OUT"){
+    if(host&&host.auth.user?.()?.id===uid)return;
+    showAuthError("A sessão foi encerrada. Entra novamente pelo PsicoMoodle.");
+   }else if(event==="SIGNED_IN"&&session?.user?.id&&session.user.id!==uid){
+    approved=false;uid=null;void start();
    }
   });
+  const enteredDay=day,enteredUid=uid;
+  // O jogo abre mesmo quando o banco demora a responder; a sincronização
+  // atualiza apenas se a conta e o dia ainda coincidirem.
+  const [role]=await Promise.all([
+   client.rpc("uentzoul_is_admin").catch(e=>({error:e})),
+   loadWordBank(),
+   loadCloud(enteredDay)
+  ]);
+  if(!approved||enteredUid!==uid||enteredDay!==day)return;
+  isAdmin=!role?.error&&role?.data===true;
+  initConnections();initContexto();
+  if(requested==="tetris"&&isAdmin)switchGame("tetris");
+  else{renderTabs();updateArchiveControls();renderGame();}
   requestHeight();
  }catch(e){
-  $("extrasGateStatus").textContent=e.message||"Não foi possível confirmar o acesso.";
-  requestHeight();
+  console.error("Extras: abertura interrompida",e);
+  showAuthError(e?.message||"Não foi possível carregar os jogos.");
  }finally{authBusy=false;}
 }
 document.addEventListener("click",e=>{
