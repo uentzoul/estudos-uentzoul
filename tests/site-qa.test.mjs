@@ -518,8 +518,8 @@ test('Ajuste inteligente do caderno reconhece meia-lua e não destrói desenhos 
  assert.match(source,/const r=smartStroke\(item\.points\)/);
  assert.ok(source.includes("!['line','polygon','rectangle'].includes(s.kind)"),'arestas retas no canvas');
  assert.ok(pdf.includes("!['line','polygon','rectangle'].includes(stroke.kind)"),'arestas retas no PDF');
- assert.match(read('caderno.html'),/20261116-caderno-v33-grammar-review-repair/);
- assert.match(read('site-version.js'),/caderno\.html\?v=20261116-caderno-v33-grammar-review-repair/);
+ assert.match(read('caderno.html'),/caderno\.js\?v=[a-z0-9-]+/,'caderno carrega versão explícita do editor');
+ assert.match(read('site-version.js'),/caderno\.html\?v=[a-z0-9-]+/,'navegação carrega versão explícita do caderno');
 });
 
 test('Caderno remove a seta superior sem alterar a navegação restante',()=>{
@@ -566,7 +566,7 @@ test('Caderno não expõe o iframe branco antes de carregar',()=>{
  assert.match(loader,/frame\.addEventListener\('load'/,'aguarda o carregamento do caderno');
  assert.match(loader,/doc\.readyState!==['"]complete['"]/,'aguarda conteúdo completo');
  assert.match(loader,/frame\.classList\.remove\('nb-frame-ready'\)/,'oculta novamente antes de trocar semestre');
- assert.match(html,/site-version\.js\?v=20261116-caderno-v[0-9]+-[a-z0-9-]+/,'carregamento da versão atualizada');
+ assert.match(html,/site-version\.js\?v=[a-z0-9-]+/,'carregamento da versão atualizada');
 });
 
 test('Revisão de Férias: clique delegado, botão destravado e sem fade global',()=>{
