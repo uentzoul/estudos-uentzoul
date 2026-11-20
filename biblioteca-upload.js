@@ -11,12 +11,13 @@ const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&
 const auth=()=>window.uentzoulAIAuth;
 const userId=()=>auth()?.user?.()?.id||'';
 const hasAccess=()=>Boolean(userId()&&window.uentzoulAdminConfig?.isAdmin?.());
+const canRead=()=>Boolean(userId());
 const client=()=>auth()?.client?.();
 const sizeText=size=>(size/1024/1024).toLocaleString('pt-BR',{maximumFractionDigits:1})+' MB';
 function safeCover(s){
  try{const u=new URL(String(s||'').trim());return u.protocol==='https:'?u.href:null}catch(_){return null;}
 }
-function books(){return hasAccess()?uploaded.slice():[];}
+function books(){return canRead()?uploaded.slice():[];}
 function toBook(row){
  if(!row||!/^materials\/scheduled\/books\/[a-f0-9-]{36}[.]pdf$/.test(String(row.storage_path||'')))return null;
  return {id:'album-'+row.id,title:String(row.title||'Sem título'),
@@ -26,7 +27,7 @@ function toBook(row){
 }
 async function load(onChange,force=false){
  if(typeof onChange==='function')refresh=onChange;
- if(!hasAccess()){uploaded=[];loaded=false;owner='';return;}
+ if(!canRead()){uploaded=[];loaded=false;owner='';return;}
  const uid=userId();
  if(owner!==uid){owner=uid;uploaded=[];loaded=false;notice='';queue=[];}
  if(loading||(loaded&&!force))return;
@@ -37,7 +38,7 @@ async function load(onChange,force=false){
    .select('id,title,author,subject,storage_path,filename,size_bytes,cover_url,cover_path,part,created_at')
    .order('created_at',{ascending:false});
   if(error)throw error;
-  if(!hasAccess()||uid!==userId())return;
+  if(!canRead()||uid!==userId())return;
   uploaded=(data||[]).map(toBook).filter(Boolean);
   // As capas extraídas do PDF ficam no bucket privado, com links assinados por sessão.
   await Promise.all(uploaded.map(async book=>{

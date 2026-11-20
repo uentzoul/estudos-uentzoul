@@ -1,4 +1,4 @@
-/* Extras PsicoMoodle — jogos originais de estudo, com acesso administrativo e progresso diário. */
+/* Extras PsicoMoodle — jogos originais de estudo, com acesso de membros e progresso diário. */
 (function(){
 "use strict";
 const SB_URL="https://swseibmqoetnuctxyusj.supabase.co";
@@ -280,13 +280,13 @@ function setFeedback(game,message,kind=""){
 }
 function renderTabs(){
  document.querySelectorAll("[data-game]").forEach(b=>{
-  if(b.dataset.game==="tetris")b.hidden=!isAdmin;
+  if(b.dataset.game==="tetris")b.hidden=false;
   b.setAttribute("aria-selected",String(b.dataset.game===active));
  });
- document.querySelector(".extras-tabs")?.classList.toggle("three-games",!isAdmin);
+ document.querySelector(".extras-tabs")?.classList.toggle("three-games",false);
 }
 function switchGame(game){
- if(!approved||!GAMES.includes(game)||(game==="tetris"&&!isAdmin))return;
+ if(!approved||!GAMES.includes(game))return;
  active=game;
  renderTabs();updateArchiveControls();renderGame();
  try{const url=new URL(location.href);url.searchParams.set("game",game);history.replaceState(null,"",url);}catch(_){}
@@ -341,10 +341,10 @@ function updateAdminAnswers(){
 function renderGame(){
  const host=$("gameHost");
  if(!host||!approved)return;
- if(active==="tetris"&&isAdmin){
+ if(active==="tetris"){
   host.innerHTML='<div class="game-panel"><div class="game-head"><div><span class="game-tag">Sprint · 40 Lines</span><h2>TetrisZoul</h2><p>O mesmo jogo independente que já existia no Admin Config, agora reunido com os outros Extras.</p></div><span class="game-stat">40 linhas</span></div>'+
-   '<div class="tetris-tools"><span class="section-note">Configurações, skins e recordes permanecem no TetrisZoul.</span><a href="./tetriszoul.html?v=20261120-softdrop-v3" target="_blank" rel="noopener noreferrer">Abrir jogo em tela própria ↗</a></div>'+
-   '<iframe class="tetris-frame" id="extrasTetrisFrame" src="./tetriszoul.html?v=20261120-softdrop-v3" title="TetrisZoul — 40 linhas" loading="lazy" allow="fullscreen"></iframe></div>';
+   '<div class="tetris-tools"><span class="section-note">Configurações, skins e recordes permanecem no TetrisZoul.</span><a href="./tetriszoul.html?v=20261120-member-release-v1" target="_blank" rel="noopener noreferrer">Abrir jogo em tela própria ↗</a></div>'+
+   '<iframe class="tetris-frame" id="extrasTetrisFrame" src="./tetriszoul.html?v=20261120-member-release-v1" title="TetrisZoul — 40 linhas" loading="lazy" allow="fullscreen"></iframe></div>';
  }else if(active==="psico")renderPsico();
  else if(active==="conexo")renderConexo();
  else if(active==="contexto")renderContexto();
@@ -896,7 +896,6 @@ function isExtrasPhone(){
  return !!(window.matchMedia?.('(pointer: coarse)')?.matches&&touches>0&&shortSide>0&&shortSide<600);
 }
 async function start(){
- if(isExtrasPhone()){showAuthError('Extras disponível somente em computador ou tablet.');return;}
  if(authBusy||approved)return;
  authBusy=true;
  followSiteTheme();
@@ -927,7 +926,7 @@ async function start(){
   $("extrasGate").hidden=true;
   $("extrasApp").hidden=false;
   const requested=new URL(location.href).searchParams.get("game");
-  const initial=GAMES.includes(requested)&&requested!=="tetris"?requested:"psico";
+  const initial=GAMES.includes(requested)?requested:"psico";
   switchGame(initial);
   // O cliente compartilhado publica eventos de login; jamais considerar
   // INITIAL_SESSION sem payload um logout da página principal.
@@ -950,7 +949,7 @@ async function start(){
   if(!approved||enteredUid!==uid||enteredDay!==day)return;
   isAdmin=!role?.error&&role?.data===true;
   initConnections();initContexto();
-  if(requested==="tetris"&&isAdmin)switchGame("tetris");
+  if(requested==="tetris")switchGame("tetris");
   else{renderTabs();updateArchiveControls();renderGame();}
   requestHeight();
  }catch(e){

@@ -86,7 +86,7 @@ h1{font-size:clamp(28px,4.5vw,42px);letter-spacing:-.05em;margin:0}
 <main id="gate" class="gate" role="status">
  <span class="tag">Área privada</span>
  <h1>TetrisZoul</h1>
- <p id="gateMessage">Conferindo tua sessão e a permissão administrativa…</p>
+ <p id="gateMessage">Conferindo tua sessão…</p>
  <a class="return" href="./index.html#extras">Voltar ao Extras</a>
 </main>
 <main id="app" class="shell" hidden>
@@ -685,8 +685,6 @@ async function verify(){
   var response=await client.auth.getUser();
   if(response.error||!response.data?.user?.id)throw Error("Entra primeiro na tua conta do PsicoMoodle.");
   uid=response.data.user.id;
-  var role=await client.rpc("uentzoul_is_admin");
-  if(role.error||role.data!==true)throw Error("O TetrisZoul está disponível somente para administradores.");
   approved=true;gate.hidden=true;app.hidden=false;
   reset();settingsLoad();storedList();requestAnimationFrame(frame);
   await loadRecords();await flushPending();
