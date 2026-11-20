@@ -1,0 +1,118 @@
+
+/* TetrisZoul — Jstris-inspired compact 40L cockpit, Psycho Mudo identity. */
+:root{--tz-violet:#806bbd;--tz-paper:#1a2132;--tz-border:#343a50}
+body{background:radial-gradient(ellipse at top,#262340 0,transparent 47%),#111423}
+.shell{max-width:1080px;padding:18px 18px 55px}
+.top{max-width:910px;margin:0 auto 13px}
+.return{background:#211e35;border-color:#48405e;color:#ded7ff}
+.headline{max-width:910px;margin:0 auto 13px;padding:0 5px;align-items:flex-end}
+.headline h1{font-size:clamp(24px,3vw,35px)}
+.headline p{font-size:11px;margin:4px 0 0}
+.tag{color:#c3acff}
+.status-pill{border:1px solid #50476c;background:#211d34;color:#ddcff9;padding:7px 11px}
+.layout{grid-template-columns:minmax(185px,1fr) 314px minmax(185px,1fr);gap:12px;max-width:910px;margin:auto;align-items:start}
+.layout .panel{border:1px solid #373149;background:linear-gradient(180deg,#201e32,#181b2b);border-radius:8px;box-shadow:0 12px 25px #03030b12;padding:15px}
+.layout .left{padding-top:10px}
+.layout .left h2{font-size:12px;letter-spacing:.035em;text-transform:uppercase;color:#d7c9ef}
+.layout .metric strong{font-size:24px}
+.layout .metric{padding:10px 0}
+.layout .detail{font-size:10px}
+.layout .center{min-width:0}
+.board-wrap{padding:5px;background:#181e2c;border:1px solid #5b567a;border-radius:5px;box-shadow:0 7px 30px #0809156f}
+.board-outline{border:1px solid #77739e;max-width:300px;background:#101522;box-shadow:0 0 0 1px #171928}
+#board{display:block;image-rendering:pixelated}
+.timer{font-size:31px;color:#eeeaff;font-weight:650;margin:0 0 8px;letter-spacing:0;font-family:ui-monospace,SFMono-Regular,Consolas,monospace}
+.board-metadata{margin-top:7px}
+.board-metadata span:first-child{color:#beafdf}
+.overlay{background:#131522cd;text-shadow:0 3px 12px #000}
+.overlay strong{font-size:29px;letter-spacing:.08em}
+.jstris-hold{text-align:center;margin:0 0 12px}
+.jstris-hold h2{margin:0 0 5px}
+.jstris-hold .piece-box{min-height:84px;max-width:145px;margin:auto;padding:6px}
+.jstris-hold canvas{height:65px}
+.next-panel h2{text-align:center;margin:1px 0 8px}
+.next-panel .pieces{display:block}
+.next-panel .pieces>div:first-child{display:none}
+.next-panel .next-box{margin:0}
+.next-panel .next-board{gap:4px}
+.next-panel .piece-box{min-height:59px;padding:4px;background:#151929}
+.next-panel canvas{height:48px}
+.actions{gap:7px;margin-top:10px;flex-wrap:nowrap}
+.actions .btn{padding:9px 8px;font-size:12px;min-height:37px;white-space:nowrap}
+.actions .primary{background:#735bab}
+.actions .btn:focus-visible{outline-offset:2px}
+.actions .btn.secondary{border-color:#555071;background:#302940}
+.left .records{margin-top:14px}
+.records ol{gap:5px}
+.records li{font-size:11px;background:#16192a;border:1px solid #302c42;border-radius:5px;padding:8px}
+#saveState{font-size:10px}
+.settings-drawer{max-width:910px;margin:20px auto 0;border:1px solid #484164;background:#1d1c30;border-radius:9px;box-shadow:0 16px 40px #06061145;overflow:hidden}
+.settings-drawer[hidden]{display:none!important}
+.drawer-head{display:flex;align-items:center;justify-content:space-between;padding:13px 18px;border-bottom:1px solid #3e385a;background:#28243d}
+.drawer-head h2{font-size:16px;margin:0}
+.drawer-close{color:#ded7f6;background:transparent;border:1px solid #655980;border-radius:5px;font-size:18px;padding:2px 9px}
+.drawer-body{display:grid;grid-template-columns:164px minmax(0,1fr);min-height:280px}
+.drawer-tabs{display:flex;flex-direction:column;padding:12px 0;background:#17192a;border-right:1px solid #3b3650}
+.drawer-tabs button{border:0;border-left:3px solid transparent;text-align:left;background:transparent;color:#b4b0ca;padding:12px 17px;font-size:12px}
+.drawer-tabs button[aria-selected="true"]{background:#342d50;border-left-color:#a390f3;color:white;font-weight:750}
+.drawer-pane{padding:19px 20px 13px;min-width:0}
+.drawer-pane h3{font-size:14px;margin:0 0 7px}
+.drawer-pane .drawer-hint{color:#a5a1b6;font-size:11px;line-height:1.65;margin:0 0 14px}
+.drawer-pane label{color:#d6d0e7;font-size:12px}
+.drawer-pane :is(input:not([type=checkbox]),select){color:#f2ecff;background:#111827;border:1px solid #514869;border-radius:5px;padding:9px;max-width:100%;font-size:12px}
+.drawer-pane input[type=checkbox]{accent-color:#987ee7}
+.settings-row{display:grid;grid-template-columns:minmax(130px,1fr) minmax(110px,1.4fr);gap:10px;align-items:center;padding:8px 0;border-bottom:1px solid #343048}
+.settings-row:last-child{border-bottom:0}
+.settings-row input,.settings-row select{width:100%}
+.bind-input{cursor:pointer;text-align:center}
+.bind-input:focus{border-color:#b4a3ff!important;box-shadow:0 0 0 2px #9a83ea44}
+.setting-toggles{display:grid;gap:12px;margin:16px 0}
+.setting-toggles label{display:flex;align-items:center;gap:9px}
+.skin-options{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.skin-option{background:#14182a;border:1px solid #474059;border-radius:7px;padding:11px 5px;display:flex;flex-direction:column;align-items:center;gap:8px;color:#e1dcf2;font-size:11px;min-height:82px}
+.skin-option[aria-pressed="true"]{outline:2px solid #a38bea;background:#31284b}
+.skin-preview{display:flex;gap:2px;height:30px;align-items:center}
+.skin-preview i{display:block;width:23px;height:23px;background:var(--skin-col,#9c7bd9);border:2px solid #ffffff45;box-shadow:inset 0 3px 0 #ffffff35,inset 0 -3px 0 #0003}
+.skin-option[data-skin="flat"] i{border:0;box-shadow:none}
+.skin-option[data-skin="outline"] i{background:#251d3d!important;border:3px solid var(--skin-col)}
+.skin-option[data-skin="neon"] i{box-shadow:0 0 9px var(--skin-col),inset 0 0 4px #fff7;border:1px solid #fff6}
+.skin-option[data-skin="mono"] i{background:#acb7cb!important}
+.skin-option[data-skin="pastel"] i{opacity:.65}
+.skin-option[data-skin="solid"] i{border:0;box-shadow:none}
+.skin-option[data-skin="invisible"] i{opacity:.12}
+.drawer-footer{display:flex;align-items:center;justify-content:flex-end;gap:10px;border-top:1px solid #3e385a;padding:12px 18px}
+.drawer-footer .btn{font-size:12px}
+.drawer-footer .primary{background:#735bab}
+.bottom-note{font-size:10px;color:#aaa4c7;line-height:1.5}
+#settingNotice{margin-right:auto;font-size:11px;color:#8adaaf;min-height:15px}
+@media(max-width:800px){.layout{grid-template-columns:minmax(130px,1fr) minmax(240px,300px) minmax(120px,1fr);gap:8px}.layout .panel{padding:10px}.layout .left .metrics{display:block}.next-panel .piece-box{min-height:50px}.layout .metric strong{font-size:18px}}
+@media(max-width:600px){
+ .shell{padding:12px 10px 40px}
+ .layout{display:grid;grid-template-columns:minmax(0,1fr) minmax(240px,310px);align-items:start;gap:8px}
+ .layout>.center{grid-column:2;grid-row:1}
+ .layout>.left{grid-column:1;grid-row:1}
+ .layout>.right{grid-column:1/-1;grid-row:2;display:block}
+ .layout .left .metrics{display:block}
+ .layout .left .metric strong{font-size:16px}
+ .layout .left .detail{font-size:9px}
+ .layout .left{padding:8px}
+ .layout .left h2{font-size:11px}
+ .layout .right .panel{height:auto}
+ .layout .next-panel .next-board{grid-template-columns:repeat(5,minmax(0,1fr));gap:5px}
+ .layout .next-panel .piece-box{height:48px;min-height:0;padding:2px}
+ .layout .next-panel .piece-box canvas{width:100%;height:43px}
+ .layout .left .records li{flex-wrap:wrap}
+ .headline{align-items:center}
+ .headline p{font-size:10px}
+ .timer{font-size:25px}
+ .board-wrap{max-width:310px}
+ .actions{flex-wrap:wrap}
+ .drawer-body{grid-template-columns:1fr}
+ .drawer-tabs{flex-direction:row;flex-wrap:wrap;gap:0;padding:5px;border-right:0;border-bottom:1px solid #51496f}
+ .drawer-tabs button{padding:9px 10px;border-left:0;border-bottom:2px solid transparent;flex:1;min-width:75px;text-align:center}
+ .drawer-tabs button[aria-selected="true"]{border-bottom-color:#a390f3}
+ .drawer-pane{padding:14px}
+ .skin-options{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .settings-row{grid-template-columns:minmax(98px,1fr) minmax(115px,1.25fr)}
+}
+@media(max-width:390px){.layout{display:flex;flex-direction:column}.layout>.center{order:1;width:100%}.layout>.left{order:2;width:100%}.layout>.right{order:3;width:100%}.layout .left .metrics{display:grid;grid-template-columns:repeat(3,minmax(0,1fr))}.layout .left .metric{padding:5px!important}.layout .left .metric strong{font-size:18px}}
