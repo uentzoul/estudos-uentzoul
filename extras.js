@@ -357,10 +357,10 @@ function renderPsico(){
   '<button type="submit" class="primary-action" id="psicoSubmit" '+(st.cells.some(v=>!v)?"disabled":"")+'>Enviar palavra</button></form>'+
   '<p class="psico-draft-help" id="psicoDraftHelp">Posição '+(st.cursor+1)+' de 5 · Toque numa letra para editá-la; Enter envia a tentativa.</p>';
  $("gameHost").innerHTML=
-  '<div class="game-panel"><div class="game-head"><div><span class="game-tag">Palavra diária · cinco letras</span><h2>PSICO</h2><p>Seis tentativas. Toque numa posição e escreva com o teclado do dispositivo. Antes de enviar, você pode corrigir ou substituir qualquer letra.</p></div><span class="game-stat">'+(st.done?(st.won?"Concluído":"Encerrado"):(st.guesses.length+1)+" / 6")+'</span></div>'+
+  '<div class="game-panel"><div class="game-head"><div><span class="game-tag">Palavra diária · cinco letras</span><h2>PSICO</h2><p>Seis tentativas.</p></div><span class="game-stat">'+(st.done?(st.won?"Concluído":"Encerrado"):(st.guesses.length+1)+" / 6")+'</span></div>'+
   '<div class="psico-board" role="grid" aria-label="Seis tentativas, cinco letras por linha">'+rows.join("")+'</div>'+
   feedbackHtml("psico")+editor+result+
-  '<div class="explanation"><b>Cores:</b> verde = letra correta e no lugar certo; amarelo = letra da palavra em outra posição; cinza = letra ausente. As tentativas já enviadas ficam bloqueadas. Setas para mover a seleção, Backspace ou Delete para corrigir e Enter para enviar. Os acentos são opcionais.</div></div>';
+  '</div>';
  requestHeight();
 }
 function inputPsico(key){
@@ -462,12 +462,12 @@ function renderConexo(){
  const sorted=remaining.sort((a,b)=>(order.get(a.id)??1000+connectionTiles.indexOf(a))-(order.get(b.id)??1000+connectionTiles.indexOf(b)));
  const found=show.map(({group})=>'<div class="conexo-group l'+(group.level%4)+'"><strong>'+esc(group.title)+'</strong><small>'+group.terms.map(esc).join(" · ")+'</small></div>').join("");
  const end=st.done?'<div class="finish-box"><strong>Quatro grupos encontrados!</strong><p>Você resolveu o VÍNCULO deste dia. Escolha outra data para jogar novamente.</p></div>':'';
- $("gameHost").innerHTML='<div class="game-panel"><div class="game-head"><div><span class="game-tag">Conexões do dia · 16 palavras</span><h2>VÍNCULO</h2><p>Encontre os quatro grupos de quatro palavras. Não há limite de erros ou tentativas.</p></div><span class="game-stat">'+solved.length+' / 4 grupos</span></div>'+
+ $("gameHost").innerHTML='<div class="game-panel"><div class="game-head"><div><span class="game-tag">Conexões do dia · 16 palavras</span><h2>VÍNCULO</h2></div><span class="game-stat">'+solved.length+' / 4 grupos</span></div>'+
   '<div class="conexo-solved">'+found+'</div>'+
   '<div class="conexo-grid" aria-label="Palavras do VÍNCULO — arraste para organizar">'+sorted.map(t=>'<button class="conexo-tile '+(st.selected.includes(t.id)?"selected ":"")+(st.marked.includes(t.id)?"marked":"")+'" data-tile="'+esc(t.id)+'" type="button" aria-pressed="'+String(st.selected.includes(t.id))+'" aria-label="'+esc(t.word)+(st.marked.includes(t.id)?" (marcada)":"")+'">'+esc(t.word)+'</button>').join("")+'</div>'+
   feedbackHtml("conexo")+
   (!st.done?'<div class="game-actions"><button type="button" class="secondary-action" data-conexo="shuffle">Misturar</button><button type="button" class="secondary-action" data-conexo="deselect">Desmarcar seleção</button><button type="button" class="secondary-action'+(conexoMarkMode?' conexo-mark-mode':'')+'" data-conexo="markmode" aria-pressed="'+String(conexoMarkMode)+'">Marcar palavras</button><button type="button" class="primary-action" data-conexo="submit" '+(st.selected.length!==4?"disabled":"")+' >Enviar ('+st.selected.length+'/4)</button></div>':"")+
-  end+'<p class="conexo-help">Arraste as palavras para reorganizar. Clique com o botão direito para marcar uma possível conexão. No celular, use “Marcar palavras” e toque nos quadrados.</p></div>';
+  end+'</div>';
  requestHeight();
 }
 function tileMark(id){
@@ -518,17 +518,22 @@ function conexoAction(action){
 function conexoGridFlip(grid,modify){
  const tiles=[...grid.querySelectorAll(".conexo-tile")];
  const before=new Map(tiles.map(el=>[el,el.getBoundingClientRect()]));
+ // Interrompe a animação anterior após medir a posição visível.
+ tiles.forEach(el=>el.getAnimations?.().forEach(anim=>anim.cancel()));
  modify();
  for(const el of tiles){
   if(el.classList.contains("drag-origin"))continue;
   const prev=before.get(el),now=el.getBoundingClientRect();
   const x=prev.left-now.left,y=prev.top-now.top;
-  if((x||y)&&el.animate)el.animate([{transform:"translate("+x+"px,"+y+"px)"},{transform:"translate(0,0)"}],{duration:180,easing:"cubic-bezier(.22,.61,.36,1)"});
+  if((Math.abs(x)>0.5||Math.abs(y)>0.5)&&el.animate){
+   el.animate([{transform:"translate("+x+"px,"+y+"px)"},{transform:"translate(0,0)"}],
+    {duration:230,easing:"cubic-bezier(.22,1,.36,1)"});
+  }
  }
 }
 function conexoDragStart(e){
  if(!approved||active!=="conexo"||states.conexo.done||e.button!==0)return;
- const tile=e.target.closest(".conexo-tile"),grid=tile?.closest(".conexo-grid");
+ const tile=e.target.closest(".conexo-tile[data-tile]"),grid=tile?.closest(".conexo-grid");
  if(!grid)return;
  conexoDrag={tile,grid,pointerId:e.pointerId,x:e.clientX,y:e.clientY,started:false,ghost:null};
 }
@@ -537,11 +542,14 @@ function conexoDragMove(e){
  if(!drag||drag.pointerId!==e.pointerId)return;
  const dx=e.clientX-drag.x,dy=e.clientY-drag.y;
  if(!drag.started){
-  if(Math.hypot(dx,dy)<9)return;
+  if(Math.hypot(dx,dy)<7)return;
   drag.started=true;suppressConexoClick=true;
+  // Captura no grid estável: mover uma peça no DOM não perde o gesto.
+  try{drag.grid.setPointerCapture(e.pointerId);}catch(_){}
   const rect=drag.tile.getBoundingClientRect();
   drag.ghost=drag.tile.cloneNode(true);
   drag.ghost.removeAttribute("data-tile");
+  drag.ghost.setAttribute("aria-hidden","true");
   drag.ghost.classList.add("conexo-drag-ghost");
   Object.assign(drag.ghost.style,{left:rect.left+"px",top:rect.top+"px",width:rect.width+"px",height:rect.height+"px"});
   document.body.appendChild(drag.ghost);
@@ -549,26 +557,36 @@ function conexoDragMove(e){
   drag.grid.classList.add("is-dragging");
  }
  if(e.cancelable)e.preventDefault();
- drag.ghost.style.transform="translate("+dx+"px,"+dy+"px) scale(1.045)";
- const target=document.elementFromPoint(e.clientX,e.clientY)?.closest(".conexo-tile");
- if(!target||target===drag.tile||target.parentElement!==drag.grid)return;
- const rect=target.getBoundingClientRect();
- // Em uma grade de quatro colunas, inserir após o destino se o cursor passou do centro.
- const after=e.clientY>rect.top+rect.height*.58||(Math.abs(e.clientY-(rect.top+rect.height/2))<rect.height*.42&&e.clientX>rect.left+rect.width/2);
- const next=after?target.nextElementSibling:target;
- if(next===drag.tile||(!after&&target===drag.tile))return;
+ drag.ghost.style.transform="translate3d("+dx+"px,"+dy+"px,0) scale(1.045)";
+ const area=drag.grid.getBoundingClientRect();
+ if(e.clientX<area.left-18||e.clientX>area.right+18||e.clientY<area.top-18||e.clientY>area.bottom+18)return;
+ const tiles=[...drag.grid.querySelectorAll(".conexo-tile")];
+ let targetIndex=-1,distance=Infinity;
+ tiles.forEach((el,i)=>{
+  const rect=el.getBoundingClientRect();
+  const d=Math.pow(e.clientX-(rect.left+rect.width/2),2)+Math.pow(e.clientY-(rect.top+rect.height/2),2);
+  if(d<distance){distance=d;targetIndex=i;}
+ });
+ const from=tiles.indexOf(drag.tile);
+ if(targetIndex===from||targetIndex<0)return;
+ const other=tiles[targetIndex];
+ const next=targetIndex>from?other.nextElementSibling:other;
  conexoGridFlip(drag.grid,()=>drag.grid.insertBefore(drag.tile,next));
 }
 function conexoDragEnd(e){
  const drag=conexoDrag;if(!drag||drag.pointerId!==e.pointerId)return;
  conexoDrag=null;
  if(!drag.started)return;
- drag.ghost?.remove();drag.tile.classList.remove("drag-origin");drag.grid.classList.remove("is-dragging");
+ if(drag.grid.hasPointerCapture?.(drag.pointerId)){
+  try{drag.grid.releasePointerCapture(drag.pointerId);}catch(_){}
+ }
+ drag.ghost?.remove();
+ drag.tile.classList.remove("drag-origin");
+ drag.grid.classList.remove("is-dragging");
  states.conexo.shuffled=[...drag.grid.querySelectorAll("[data-tile]")].map(el=>el.dataset.tile);
  store("conexo");
  renderConexo();
- // Impede o clique sintético após soltar uma peça arrastada no mouse e no toque.
- setTimeout(()=>{suppressConexoClick=false;},250);
+ setTimeout(()=>{suppressConexoClick=false;},300);
 }
 function displayTerm(value){
  const v=cleanTerm(value),found=contextTerms.get(v);
@@ -658,15 +676,15 @@ function renderContexto(){
  }).join("");
  const result=st.won?'<div class="finish-box"><strong>Você encontrou o termo!</strong><p>'+esc(displayTerm(contextTarget))+' · '+tries+' palpite'+(tries===1?"":"s")+'. Escolha outra data para continuar jogando.</p></div>':"";
  $("gameHost").innerHTML=
-  '<div class="game-panel"><div class="game-head"><div><span class="game-tag">Contexto do dia · Associação semântica</span><h2>CONTEXTO</h2><p>Tente descobrir um termo da Psicologia. Cada palpite recebe uma posição: quanto menor o número, mais perto do sentido da resposta.</p></div><span class="game-stat">'+(st.won?"Resolvido":"Melhor #"+(tries?best:"—"))+'</span></div>'+
+  '<div class="game-panel"><div class="game-head"><div><span class="game-tag">Contexto do dia · Associação semântica</span><h2>CONTEXTO</h2></div><span class="game-stat">'+(st.won?"Resolvido":"Melhor #"+(tries?best:"—"))+'</span></div>'+
   '<div class="context-layout">'+
   (st.won?"":'<form id="contextForm" class="context-form" autocomplete="off"><input id="contextGuess" aria-label="Palavra ou termo de Psicologia" placeholder="Digite uma palavra ou termo..." maxlength="60" autocapitalize="off" autocomplete="off" autocorrect="off" spellcheck="false" required><button class="primary-action" type="submit">Enviar</button></form>')+
   '<div class="context-help">'+
   (!st.done?'<button class="secondary-action" type="button" id="contextHintBtn" '+(st.hint?"disabled":"")+'>Dica</button>':"")+'</div>'+
   (st.hint?'<div class="context-hint">Área do termo secreto: <b>'+esc(contextHints())+'</b></div>':"")+
   feedbackHtml("contexto")+
-  '<p class="context-status">'+tries+' palpite'+(tries===1?"":"s")+' · #1 é a resposta · Ordenado do mais próximo para o mais distante</p>'+
-  result+'<div class="context-results">'+(results||'<p class="section-note">Tenta “memória”, “grupo”, “empatia”, “laudo” ou outro conceito que vimos nas aulas.</p>')+'</div></div></div>';
+  (tries?'<p class="context-status">'+tries+' palpite'+(tries===1?"":"s")+'</p>':'')+
+  result+'<div class="context-results">'+results+'</div></div></div>';
  requestHeight();
 }
 function contextSubmit(text){
@@ -747,11 +765,13 @@ document.addEventListener("contextmenu",e=>{
  if(!tile)return;
  e.preventDefault();tileMark(tile.dataset.tile);
 });
+document.addEventListener("dragstart",e=>{
+ if(e.target.closest?.(".conexo-tile"))e.preventDefault();
+});
 document.addEventListener("pointerdown",e=>conexoDragStart(e));
 document.addEventListener("pointermove",e=>conexoDragMove(e),{passive:false});
 document.addEventListener("pointerup",e=>conexoDragEnd(e));
 document.addEventListener("pointercancel",e=>conexoDragEnd(e));
-document.addEventListener("change",e=>{if(e.target?.id==="archiveDate")void selectArchiveDay(e.target.value);});
 document.addEventListener("beforeinput",e=>{
  if(e.target?.id!=="psicoTypeBox"||!approved||active!=="psico")return;
  if(e.inputType==="deleteContentBackward"||e.inputType==="deleteContentForward"){
