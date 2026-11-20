@@ -15,21 +15,28 @@ vm.runInNewContext(wordSource,dataContext,{filename:'extras-data.js'});
 const data=dataContext.window.PSICO_EXTRAS_DATA;
 const norm=value=>String(value).normalize('NFD').replace(/[\u0300-\u036f]/g,'').toUpperCase();
 
-test('Navegação Extras: link só para administrador e aviso para demais pessoas',()=>{
- assert.match(index,/id="navExtrasSoon"/);
- assert.match(index,/id="navExtrasAdmin" hidden/);
- assert.ok(index.indexOf('id="navExtrasSoon"')>index.indexOf('Trabalhos — em breve'));
- assert.ok(index.indexOf('id="navExtrasAdmin"')<index.indexOf('id="navAdminConfig"'));
- assert.match(index,/page==='extras'\)\&\&!window\.uentzoulAdminConfig\?\.isAdmin/);
+test('Extras é acessível a contas conectadas, com TetrisZoul exclusivo de administradores',()=>{
+ assert.match(index,/id="navExtrasGames"/);
+ assert.doesNotMatch(index,/id="navExtrasSoon"/);
+ assert.ok(index.indexOf('id="navExtrasGames"')<index.indexOf('id="navAdminConfig"'));
+ assert.match(index,/case 'extras':body='<div class="psico-extras-embed">/);
  assert.match(page,/id="extrasGate"/);
- assert.match(script,/rpc\("uentzoul_is_admin"\)/);
+ assert.match(script,/isAdmin=!role.error&&role.data===true/);
+ assert.match(script,/if\(b.dataset.game==="tetris"\)b.hidden=!isAdmin/);
+ assert.match(script,/game==="tetris"&&!isAdmin/);
+ assert.match(read('tetriszoul.html'),/rpc\("uentzoul_is_admin"\)/);
+ assert.doesNotMatch(read('admin-config.js'),/admin-tetriszoul-link/);
  for(const game of ['tetris','psico','conexo','contexto'])assert.match(page,new RegExp('data-game="'+game+'"'));
 });
-test('Arquivo de desafios começa em 20/11/2026 e não libera datas anteriores ou futuras',()=>{
- assert.match(page,/id="archiveDate" min="2026-11-20"/);
+test('Calendário permite escolher somente a partir de 20/11/2026 até o dia atual',()=>{
+ assert.match(page,/id="calendarToggle"/);
+ assert.match(page,/id="calendarPopup"/);
+ assert.match(page,/id="calendarDays"/);
+ assert.doesNotMatch(page,/id="archiveDate"/);
  assert.match(script,/const ARCHIVE_START="2026-11-20"/);
  assert.match(script,/value>=ARCHIVE_START&&value<=dateBrazil\(\)/);
- assert.match(script,/input\.min=ARCHIVE_START;input\.max=today/);
+ assert.match(script,/function renderCalendar\(\)/);
+ assert.match(script,/function selectArchiveDay\(/);
  assert.ok(page.indexOf('data-game="psico"')<page.indexOf('data-game="contexto"'));
  assert.ok(page.indexOf('data-game="contexto"')<page.indexOf('data-game="conexo"'));
  assert.ok(page.indexOf('data-game="conexo"')<page.indexOf('data-game="tetris"'));
@@ -47,7 +54,7 @@ test('Scripts extras são sintaticamente válidos',()=>{
 });
 function engine(){
  const expanded=script.replace(/\nstart\(\);\n\}\)\(\);\s*$/,
-  '\nwindow.__extTest={init:initializeDay,getWord,wordColors,inputPsico,conexoSubmit,contextSubmit,renderPsico,renderConexo,renderContexto,rank:()=>contextRankings,target:()=>contextTarget,groups:()=>connectionGroups,tiles:()=>connectionTiles,terms:()=>contextTerms,states:()=>states,setActive:v=>{active=v;},setBank:v=>{psicoBank=v;}};\n})();');
+  '\nwindow.__extTest={init:initializeDay,getWord,wordColors,inputPsico,conexoSubmit,contextSubmit,renderPsico,renderConexo,renderContexto,rank:()=>contextRankings,target:()=>contextTarget,groups:()=>connectionGroups,tiles:()=>connectionTiles,terms:()=>contextTerms,states:()=>states,setActive:v=>{active=v;},setBank:v=>{psicoBank=v;},mark:tileMark,rankTerm:contextRankTerm,validArchiveDay};\n})();');
  assert.notEqual(expanded,script,'acesso de teste ao motor');
  const storage=new Map(),elements=new Map();
  const fakeElement=id=>{
@@ -91,4 +98,47 @@ test('Contexto apresenta ranking semântico e aceita a palavra correta',()=>{
  e.contextSubmit(e.target());
  assert.equal(e.states().contexto.won,true);
  assert.equal(e.states().contexto.guesses.length,1);
+});
+
+test('VÍNCULO tem tentativas ilimitadas, não encerra por erros e permite marcação',()=>{
+ const e=engine();e.init('2026-11-21');e.setActive('conexo');
+ const tiles=e.tiles();
+ assert.equal(tiles.length,16);
+ const wrong=[tiles[0].id,tiles.find(t=>t.group!==tiles[0].group).id,tiles.find(t=>t.group!==tiles[0].group&&t.id!==tiles[1].id).id,tiles[1].id];
+ for(let i=0;i<8;i++){
+  const choices=i%2?[tiles[0],tiles[2],tiles[3],tiles[4]]:[tiles[0],tiles[1],tiles[2],tiles[3]];
+  const distinct=new Set(choices.map(t=>t.group));
+  if(distinct.size===1){
+   e.states().conexo.selected=[tiles[0].id,tiles[1].id,tiles[2].id,tiles[4].id];
+  }else e.states().conexo.selected=choices.map(t=>t.id);
+  e.conexoSubmit();
+ }
+ assert.equal(e.states().conexo.done,false,'errar não encerra a partida');
+ const id=e.tiles()[0].id;
+ e.mark(id);
+ assert.ok(e.states().conexo.marked.includes(id));
+ e.mark(id);
+ assert.ok(!e.states().conexo.marked.includes(id));
+ assert.doesNotMatch(read('extras.js'),/Erros disponíveis:/);
+ assert.match(read('extras.js'),/function conexoDragMove\(/);
+ assert.match(read('extras.js'),/contextmenu/);
+});
+test('CONTEXTO aceita palpites livres, sem autocomplete e sem texto sobre 141 termos',()=>{
+ const e=engine();e.init('2026-11-21');e.setActive('contexto');
+ e.contextSubmit('uma palavra inventada que nao esta no dicionario');
+ assert.equal(e.states().contexto.guesses.length,1);
+ assert.equal(e.states().contexto.won,false);
+ assert.ok(e.rankTerm('uma palavra inventada')>1);
+ assert.doesNotMatch(page,/contextSuggest|<datalist/);
+ assert.doesNotMatch(script,/ranking considera|termos cadastrados/i);
+});
+test('Dia inaugural preserva EXAME e as quatro conexões originais',()=>{
+ const e=engine();e.init('2026-11-20');
+ assert.equal(e.getWord().word,'EXAME');
+ assert.deepEqual(Array.from(e.groups(),g=>Array.from(g.terms).join(' / ')),[
+  'Testagem / Observação / Entrevistado / Relatório',
+  'Coesão / Liderança / Normas / Papéis',
+  'Hospitalar / Forense / Escolar / Organizacional',
+  'Infância / Adolescência / Adultez / Velhice'
+ ]);
 });
