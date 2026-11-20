@@ -66,6 +66,15 @@ A Edge Function **ia-tzoul** valida a sessão e confere a titularidade da matér
 
 A Biblioteca foi alinhada com títulos, contadores e materiais distribuídos em grades estáveis para computador e celular. Em mensagens de grupos e no chat global, avisos destinados à coletividade utilizam tratamento no plural.
 
+
+## Trabalhos — prévia exclusiva do administrador (20/11/2026)
+
+A navegação **Trabalhos** continua visível com o aviso **Em breve** para visitantes e estudantes. Apenas contas confirmadas como administradoras pela verificação `uentzoul_is_admin` do Supabase podem abrir a primeira versão de teste (botão **Trabalhos · Teste**).
+
+A prévia, em `trabalhos.js` e `trabalhos.css`, contém **Meus trabalhos**, **Criar trabalho** e **Minha rota**: cadastro do enunciado, identificação orientadora de exigências, checklist editável, seis etapas com perguntas reflexivas, mapa de decisões, escolhas metodológicas, organização de tarefas em grupo e exportação de roteiro em TXT. Não redige automaticamente o trabalho acadêmico.
+
+**Persistência temporária:** nesta fase, os registros são armazenados apenas no `localStorage` do navegador e associados ao ID da conta administradora. Não existe sincronização entre dispositivos ou colaboração em tempo real. Não utilizar a prévia para dados sensíveis. A liberação para estudantes dependerá de autorização explícita e de uma futura camada de persistência segura no servidor, com políticas RLS.
+
 ## Política de preservação de dados (obrigatória nas atualizações)
 
 **Não apagar ou reinicializar mensagens, conversas, simulados, respostas, provas entregues, matérias pessoais, agenda, histórico ou progresso ao atualizar a aparência ou funcionalidades do site.** Fazer alterações incrementais no código e migrações não destrutivas. Não usar TRUNCATE, DROP TABLE, migrações que esvaziem registros, nem sobrescrever históricos com arrays vazios em atualização automática. Exclusão só pode ocorrer por ação explícita e confirmada da própria pessoa sobre o seu conteúdo. Testar antes de publicar.
