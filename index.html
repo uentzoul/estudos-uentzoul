@@ -3129,6 +3129,7 @@ function pmNavRestore(state){
    window.dispatchEvent(new Event('uentzoul:progress'));
   }
   const screen=state.screen||{};
+  if(current.page==='books'&&screen.page!=='books')window.PSICO_BOOK_LIBRARY?.reset?.();
   current={...current,...screen};
   if(!['home','subject','test','exams','calendar','audio','messages','admin','extras','books'].includes(current.page))current.page='home';
   if(current.page==='subject'&&!DB.subjects[current.subject])current.page='home';
