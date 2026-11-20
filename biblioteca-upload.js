@@ -296,7 +296,14 @@ document.addEventListener('drop',event=>{
  event.preventDefault();listFiles(event.dataTransfer?.files);
 });
 window.addEventListener('uentzoul:auth',()=>{
- if(!hasAccess()){for(const item of queue)forgetCover(item);uploaded=[];loaded=false;owner='';queue=[];notice='';}
+ if(!canRead()){
+  for(const item of queue)forgetCover(item);
+  uploaded=[];loaded=false;owner='';queue=[];notice='';
+ }else if(!hasAccess()){
+  // Contas comuns mantêm o catálogo lido; somente a fila de edição é limpa.
+  for(const item of queue)forgetCover(item);
+  queue=[];notice='';
+ }
 });
 window.PSICO_BOOK_UPLOAD={books,load,render,maxBytes:MAX_BYTES};
 })();
