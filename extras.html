@@ -1,12 +1,20 @@
 <!doctype html>
-<html lang="pt-BR">
+<html lang="pt-BR" class="extras-booting">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="robots" content="noindex,nofollow">
 <meta name="theme-color" content="#f4f1fa">
+<script>
+try{
+ if(window.parent!==window&&window.parent.location.origin===location.origin){
+  const theme=window.parent.document.documentElement.dataset.theme;
+  if(theme==="dark"||theme==="light")document.documentElement.dataset.theme=theme;
+ }
+}catch(_){}
+</script>
 <title>Extras · PsicoMoodle</title>
-<link rel="stylesheet" href="./extras.css?v=20261120-clean-drag-v3">
+<link rel="stylesheet" href="./extras.css?v=20261120-auth-fix-v4">
 </head>
 <body>
 <main class="extras-wrap">
@@ -48,8 +56,7 @@
   <section id="gameHost" role="tabpanel" aria-live="polite" aria-label="Jogo selecionado"></section>
  </section>
 </main>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <script src="./extras-data.js?v=20261120-update-2"></script>
-<script src="./extras.js?v=20261120-clean-drag-v3"></script>
+<script src="./extras.js?v=20261120-auth-fix-v4"></script>
 </body>
 </html>
