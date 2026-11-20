@@ -42,7 +42,7 @@ test('Calendário permite escolher somente a partir de 20/11/2026 até o dia atu
  assert.ok(page.indexOf('data-game="conexo"')<page.indexOf('data-game="tetris"'));
 });
 test('Banco inicial tem somente respostas de cinco letras e sem duplicações',()=>{
- assert.ok(data.wordBank.length>=50);
+ assert.ok(data.wordBank.length>=220);
  assert.ok(data.wordBank.every(w=>norm(w.word).length===5&&w.area&&w.hint));
  assert.equal(new Set(data.wordBank.map(w=>norm(w.word))).size,data.wordBank.length);
  assert.ok(data.connectionGroups.length>=20);
@@ -54,7 +54,7 @@ test('Scripts extras são sintaticamente válidos',()=>{
 });
 function engine(){
  const expanded=script.replace(/\nstart\(\);\n\}\)\(\);\s*$/,
-  '\nwindow.__extTest={init:initializeDay,getWord,wordColors,inputPsico,conexoSubmit,contextSubmit,renderPsico,renderConexo,renderContexto,rank:()=>contextRankings,target:()=>contextTarget,groups:()=>connectionGroups,tiles:()=>connectionTiles,terms:()=>contextTerms,states:()=>states,setActive:v=>{active=v;},setBank:v=>{psicoBank=v;},setPsicoMode,getPsicoWords,psicoState,getAdminAnswersFor,showAdminAnswers:()=>{adminAnswersOpen=true;updateAdminAnswers();},setAdmin:v=>{isAdmin=v;},node:document.getElementById,config:()=>PSICO_MODES[psicoMode],html:()=>document.getElementById("gameHost").innerHTML,mark:tileMark,rankTerm:contextRankTerm,validArchiveDay,dragStart:conexoDragStart,dragMove:conexoDragMove,dragEnd:conexoDragEnd,allow:()=>{approved=true;}};\n})();');
+  '\nwindow.__extTest={init:initializeDay,getWord,wordColors,inputPsico,conexoSubmit,contextSubmit,renderPsico,renderConexo,renderContexto,rank:()=>contextRankings,target:()=>contextTarget,groups:()=>connectionGroups,tiles:()=>connectionTiles,terms:()=>contextTerms,states:()=>states,setActive:v=>{active=v;},setBank:v=>{psicoBank=v;},setPsicoMode,getPsicoWords,psicoState,getAdminAnswersFor,getPsicoWordsFor,getPsicoDayWordsFor,psicoDeck:()=>PSICO_ANSWER_DECK,classicCore:()=>PSICO_CLASSIC_CORE,showAdminAnswers:()=>{adminAnswersOpen=true;updateAdminAnswers();},setAdmin:v=>{isAdmin=v;},node:document.getElementById,config:()=>PSICO_MODES[psicoMode],html:()=>document.getElementById("gameHost").innerHTML,mark:tileMark,rankTerm:contextRankTerm,validArchiveDay,dragStart:conexoDragStart,dragMove:conexoDragMove,dragEnd:conexoDragEnd,allow:()=>{approved=true;}};\n})();');
  assert.notEqual(expanded,script,'acesso de teste ao motor');
  const storage=new Map(),elements=new Map();
  const fakeElement=id=>{
@@ -196,6 +196,39 @@ test('Revelar respostas mostra apenas a data selecionada, nunca dias futuros',()
   assert.equal((e.node('adminAnswersPanel').innerHTML.match(/class="admin-answers-day"/g)||[]).length,1);
  }
 });
+
+test('Respostas do Psico mantêm sete palavras diferentes entre três modos por pelo menos 35 dias',()=>{
+ const e=engine(),all=new Set();
+ const dateAt=offset=>new Date(Date.parse('2026-11-21T12:00:00Z')+offset*86400000).toISOString().slice(0,10);
+ assert.ok(e.psicoDeck().length>=245);
+ for(let n=0;n<35;n++){
+  const day=dateAt(n);
+  const classic=e.getPsicoWordsFor(day,'classico').map(x=>norm(x.word));
+  const duplo=e.getPsicoWordsFor(day,'duplo').map(x=>norm(x.word));
+  const quadruplo=e.getPsicoWordsFor(day,'quadruplo').map(x=>norm(x.word));
+  const words=[...classic,...duplo,...quadruplo];
+  assert.equal(words.length,7,day+' precisa ter sete soluções');
+  assert.equal(new Set(words).size,7,day+' contém resposta repetida entre modos');
+  for(const word of words){
+   assert.ok(!all.has(word),day+' repete '+word+' de dia anterior');
+   all.add(word);
+  }
+  if(n<30)assert.ok(e.classicCore().has(classic[0]),day+' prioriza tema psicológico no clássico');
+ }
+ assert.equal(all.size,245);
+});
+test('Desafio inaugural permanece intacto e novos termos são reais e ligados à Psicologia',()=>{
+ const e=engine();
+ assert.deepEqual(Array.from(e.getPsicoWordsFor('2026-11-20','classico'),x=>norm(x.word)),['EXAME']);
+ assert.deepEqual(Array.from(e.getPsicoWordsFor('2026-11-20','duplo'),x=>norm(x.word)),['LAUDO','CAUSA']);
+ assert.deepEqual(Array.from(e.getPsicoWordsFor('2026-11-20','quadruplo'),x=>norm(x.word)),['GANHO','NOCAO','MEDOS','RITMO']);
+ const needed=['ÂNIMO','ÂNSIA','MÁGOA','CIÚME','SUSTO','PAVOR','LAPSO','VISÃO','LÍDER','ABUSO','SURTO','MÉDIA'];
+ for(const word of needed)assert.ok(data.wordBank.some(x=>norm(x.word)===norm(word)),word+' deve existir');
+ assert.ok(data.wordBank.every(x=>norm(x.word).length===5&&x.area&&x.hint));
+ assert.equal(new Set(data.wordBank.map(x=>norm(x.word))).size,data.wordBank.length);
+ assert.match(page,/extras-data\.js\?v=20261120-psico-vocab-v2/);
+});
+
 test('Conexo escolhe quatro grupos distintos e registra solução',()=>{
  const e=engine();e.init();e.setActive('conexo');
  assert.equal(e.groups().length,4);
