@@ -290,7 +290,7 @@ setTimeout(check,15000);
   }
   return semesters.includes(value)?value:'2026/2';
  }
- const notebookUrl=()=>('./caderno.html?v=20261116-caderno-v33-grammar-review-repair&semester='+
+ const notebookUrl=()=>('./caderno.html?v=20261120-caderno-pontuacao-v1&semester='+
    encodeURIComponent(selectedSemester()));
  function addStyles(){
   if(document.getElementById(STYLE_ID))return;
