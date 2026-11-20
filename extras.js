@@ -323,8 +323,6 @@ function syncPsicoDraft(changedIndex=-1){
  });
  const submit=$("psicoSubmit");
  if(submit)submit.disabled=st.cells.some(v=>!v);
- const info=$("psicoDraftHelp");
- if(info)info.textContent="Posição "+(st.cursor+1)+" de 5 · Toque numa letra para editá-la; Enter envia a tentativa.";
 }
 function renderPsico(){
  const answer=getWord(),st=normalizePsico();
@@ -355,9 +353,9 @@ function renderPsico(){
   '<label class="psico-input-visually-hidden" for="psicoTypeBox">Digite as letras usando o teclado do dispositivo</label>'+
   '<input id="psicoTypeBox" type="text" inputmode="text" enterkeyhint="done" autocapitalize="characters" autocomplete="off" autocorrect="off" spellcheck="false" aria-label="Digite as letras na posição selecionada" maxlength="24">'+
   '<button type="submit" class="primary-action" id="psicoSubmit" '+(st.cells.some(v=>!v)?"disabled":"")+'>Enviar palavra</button></form>'+
-  '<p class="psico-draft-help" id="psicoDraftHelp">Posição '+(st.cursor+1)+' de 5 · Toque numa letra para editá-la; Enter envia a tentativa.</p>';
+  '';
  $("gameHost").innerHTML=
-  '<div class="game-panel"><div class="game-head"><div><span class="game-tag">Palavra diária · cinco letras</span><h2>PSICO</h2><p>Seis tentativas.</p></div><span class="game-stat">'+(st.done?(st.won?"Concluído":"Encerrado"):(st.guesses.length+1)+" / 6")+'</span></div>'+
+  '<div class="game-panel"><div class="game-head"><div><h2>PSICO</h2></div><span class="game-stat">'+(st.done?(st.won?"Concluído":"Encerrado"):(st.guesses.length+1)+" / 6")+'</span></div>'+
   '<div class="psico-board" role="grid" aria-label="Seis tentativas, cinco letras por linha">'+rows.join("")+'</div>'+
   feedbackHtml("psico")+editor+result+
   '</div>';
@@ -462,7 +460,7 @@ function renderConexo(){
  const sorted=remaining.sort((a,b)=>(order.get(a.id)??1000+connectionTiles.indexOf(a))-(order.get(b.id)??1000+connectionTiles.indexOf(b)));
  const found=show.map(({group})=>'<div class="conexo-group l'+(group.level%4)+'"><strong>'+esc(group.title)+'</strong><small>'+group.terms.map(esc).join(" · ")+'</small></div>').join("");
  const end=st.done?'<div class="finish-box"><strong>Quatro grupos encontrados!</strong><p>Você resolveu o VÍNCULO deste dia. Escolha outra data para jogar novamente.</p></div>':'';
- $("gameHost").innerHTML='<div class="game-panel"><div class="game-head"><div><span class="game-tag">Conexões do dia · 16 palavras</span><h2>VÍNCULO</h2></div><span class="game-stat">'+solved.length+' / 4 grupos</span></div>'+
+ $("gameHost").innerHTML='<div class="game-panel"><div class="game-head"><div><h2>VÍNCULO</h2></div><span class="game-stat">'+solved.length+' / 4 grupos</span></div>'+
   '<div class="conexo-solved">'+found+'</div>'+
   '<div class="conexo-grid" aria-label="Palavras do VÍNCULO — arraste para organizar">'+sorted.map(t=>'<button class="conexo-tile '+(st.selected.includes(t.id)?"selected ":"")+(st.marked.includes(t.id)?"marked":"")+'" data-tile="'+esc(t.id)+'" type="button" aria-pressed="'+String(st.selected.includes(t.id))+'" aria-label="'+esc(t.word)+(st.marked.includes(t.id)?" (marcada)":"")+'">'+esc(t.word)+'</button>').join("")+'</div>'+
   feedbackHtml("conexo")+
@@ -676,7 +674,7 @@ function renderContexto(){
  }).join("");
  const result=st.won?'<div class="finish-box"><strong>Você encontrou o termo!</strong><p>'+esc(displayTerm(contextTarget))+' · '+tries+' palpite'+(tries===1?"":"s")+'. Escolha outra data para continuar jogando.</p></div>':"";
  $("gameHost").innerHTML=
-  '<div class="game-panel"><div class="game-head"><div><span class="game-tag">Contexto do dia · Associação semântica</span><h2>CONTEXTO</h2></div><span class="game-stat">'+(st.won?"Resolvido":"Melhor #"+(tries?best:"—"))+'</span></div>'+
+  '<div class="game-panel"><div class="game-head"><div><h2>CONTEXTO</h2></div><span class="game-stat">'+(st.won?"Resolvido":"Melhor #"+(tries?best:"—"))+'</span></div>'+
   '<div class="context-layout">'+
   (st.won?"":'<form id="contextForm" class="context-form" autocomplete="off"><input id="contextGuess" aria-label="Palavra ou termo de Psicologia" placeholder="Digite uma palavra ou termo..." maxlength="60" autocapitalize="off" autocomplete="off" autocorrect="off" spellcheck="false" required><button class="primary-action" type="submit">Enviar</button></form>')+
   '<div class="context-help">'+
