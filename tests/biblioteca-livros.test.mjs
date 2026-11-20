@@ -184,3 +184,31 @@ test('Classificação automática preserva assunto e exige correspondência de c
  assert.ok(f.titleMatch('A estrutura das revoluções científicas','Manual de Radiologia Veterinária')<.4);
  assert.equal(f.cleanTitle('LIVRO_HISTÓRIA DA PSICOLOGIA.pdf'),'História da psicologia');
 });
+
+
+test('Sumário clicável é criado automaticamente por livro e respeita páginas divididas',()=>{
+ const toc=read('biblioteca-sumario.js');
+ assert.match(main,/ensureTocModule\(\)\.then\(api=>api\?\.mount\?\.\(\)\)/);
+ assert.match(main,/getReaderContext:\(\)=>allowed\(\)&&documentPDF&&activeBook/);
+ assert.match(main,/window\.PSICO_BOOK_TOC\?\.close\?\.\(\)/);
+ assert.match(main,/window\.PSICO_BOOK_TOC\?\.sync\?\.\(\)/);
+ assert.match(toc,/await c\.pdf\.getOutline\(\)/);
+ assert.match(toc,/await c\.pdf\.getPage\(source\)/);
+ assert.match(toc,/await p\.getTextContent\(\)/);
+ assert.match(toc,/logicalPage\(c,source/);
+ assert.match(toc,/data-psb-toc-page/);
+ assert.match(toc,/state\.query=e\.target\.value/);
+ assert.match(toc,/function cacheKey/);
+ assert.match(css,/\.psb-toc-panel\[hidden\]\{display:none!important\}/);
+ const sandbox={window:{},document:{},localStorage:{getItem:()=>null,setItem:()=>{}},setTimeout,console};
+ vm.runInNewContext(toc,sandbox);
+ const api=sandbox.window.PSICO_BOOK_TOC;
+ assert.ok(api,'módulo publicado e inicializável');
+ const pages=api.ranges(83);
+ assert.equal(pages[0].page,1);
+ assert.equal(pages[0].title,'Início do livro');
+ assert.ok(pages.length>5);
+ assert.equal(pages[1].page,2);
+ assert.ok(pages.every(x=>x.page>=1&&x.page<=83));
+ api.close();
+});
