@@ -33,9 +33,9 @@ test('A estante só carrega documentos ao abrir um livro e preserva o acervo pri
  assert.match(main,/cachedPut\(CACHE_STORE,cacheKey\(b\),blob\)/);
  assert.match(main,/pdf\.getDocument\(\{data:new Uint8Array\(await blob\.arrayBuffer\(\)\)/);
  assert.match(main,/pdfjsLib/);
- assert.match(main,/function focusBook\(\)/);
+ assert.match(main,/async function focusBook\(\)/);
  assert.match(main,/function isTwoPage\(\)/);
- assert.match(main,/function cacheCover\(\)/);
+ assert.match(main,/async function cacheCover\(b\)/);
  assert.match(main,/AUDIO|Biblioteca de audiobooks/i);
  assert.match(main,/is-loading/);
  assert.match(css,/\.psb-cover-loading/);
