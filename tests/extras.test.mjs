@@ -138,7 +138,7 @@ test('Quadruplo de desktop ocupa quatro colunas e mantém versão responsiva',()
  assert.match(script,/installExtrasWideHost\(\)/);
  assert.match(script,/body:has\(#psicoExtrasFrame\):not\(\.pm-extras-sidebar-open\) #siteSidebar/);
 });
-test('Respostas dos próximos dias correspondem aos desafios reais nos três jogos',()=>{
+test('Respostas da data selecionada correspondem aos desafios reais nos três jogos',()=>{
  const e=engine();
  for(const date of ['2026-11-20','2026-11-21','2026-11-27']){
   e.init(date);e.setActive('psico');e.allow();
@@ -162,7 +162,7 @@ test('Botão de revelar respostas é exclusivo de administradores e contextualiz
  assert.equal(e.node('adminAnswersToggle').hidden,false);
  assert.equal(e.node('adminAnswersPanel').hidden,false);
  assert.match(e.node('adminAnswersPanel').innerHTML,/PSICO Clássico/);
- assert.equal((e.node('adminAnswersPanel').innerHTML.match(/class="admin-answers-day"/g)||[]).length,8);
+ assert.equal((e.node('adminAnswersPanel').innerHTML.match(/class="admin-answers-day"/g)||[]).length,1);
  e.setActive('conexo');e.showAdminAnswers();
  assert.match(e.node('adminAnswersPanel').innerHTML,/VÍNCULO/);
  assert.match(e.node('adminAnswersPanel').innerHTML,/admin-answers-groups/);
@@ -170,6 +170,32 @@ test('Botão de revelar respostas é exclusivo de administradores e contextualiz
  assert.match(e.node('adminAnswersPanel').innerHTML,/CONTEXTO/);
 });
 
+test('PSICO apresenta nome centralizado acima dos modos e mantém o contador separado',()=>{
+ const styles=read('extras.css');
+ assert.match(script,/class="psico-game-heading"><h2 class="psico-wordmark">PSICO<\/h2><\/div>/);
+ assert.match(styles,/\.psico-game-heading\{display:flex;align-items:center;justify-content:center/);
+ assert.match(styles,/\.psico-wordmark\{/);
+ const e=engine();e.init('2026-11-20');e.setActive('psico');e.allow();e.renderPsico();
+ const markup=e.html(),word=markup.indexOf('class="psico-wordmark"'),modes=markup.indexOf('class="psico-mode-switch"');
+ assert.ok(word>=0&&modes>word,'o logo fica acima das abas');
+ assert.match(markup,/class="psico-mode-status"/);
+});
+test('Revelar respostas mostra apenas a data selecionada, nunca dias futuros',()=>{
+ const e=engine();e.init('2026-11-21');e.setActive('psico');e.allow();e.setAdmin(true);e.showAdminAnswers();
+ const markup=e.node('adminAnswersPanel').innerHTML;
+ assert.equal((markup.match(/class="admin-answers-day"/g)||[]).length,1);
+ assert.match(markup,/21 de nov/);
+ assert.doesNotMatch(markup,/22 de nov|23 de nov|próximos 7 dias/i);
+ for(const mode of ['duplo','quadruplo']){
+  e.setPsicoMode(mode);e.showAdminAnswers();
+  assert.equal((e.node('adminAnswersPanel').innerHTML.match(/class="admin-answers-day"/g)||[]).length,1);
+  assert.equal((e.node('adminAnswersPanel').innerHTML.match(/class="admin-answers-words"/g)||[]).length,1);
+ }
+ for(const game of ['conexo','contexto']){
+  e.setActive(game);e.showAdminAnswers();
+  assert.equal((e.node('adminAnswersPanel').innerHTML.match(/class="admin-answers-day"/g)||[]).length,1);
+ }
+});
 test('Conexo escolhe quatro grupos distintos e registra solução',()=>{
  const e=engine();e.init();e.setActive('conexo');
  assert.equal(e.groups().length,4);
