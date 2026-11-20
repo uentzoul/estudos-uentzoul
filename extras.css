@@ -205,3 +205,6 @@ button.psico-cell:focus-visible{outline:2px solid var(--accent);outline-offset:2
  .conexo-tile.marked::after{height:5px;width:5px;right:3px;top:3px}
 }
 @media(prefers-reduced-motion:reduce){.conexo-tile,.calendar-toggle{transition:none!important}}
+
+.extras-tabs.three-games{grid-template-columns:repeat(3,minmax(0,1fr))}
+@media(max-width:680px){.extras-tabs.three-games{grid-template-columns:repeat(2,minmax(0,1fr))}}
