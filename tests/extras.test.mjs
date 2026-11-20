@@ -175,7 +175,7 @@ test('PSICO apresenta nome centralizado acima dos modos e mantém o contador sep
  assert.match(script,/class="psico-game-heading"><h2 class="psico-wordmark">PSICO<\/h2><\/div>/);
  assert.match(styles,/\.psico-game-heading\{display:flex;align-items:center;justify-content:center/);
  assert.match(styles,/\.psico-wordmark\{/);
- const e=engine();e.init('2026-11-20');e.setActive('psico');e.allow();
+ const e=engine();e.init('2026-11-20');e.setActive('psico');e.allow();e.renderPsico();
  const markup=e.html(),word=markup.indexOf('class="psico-wordmark"'),modes=markup.indexOf('class="psico-mode-switch"');
  assert.ok(word>=0&&modes>word,'o logo fica acima das abas');
  assert.match(markup,/class="psico-mode-status"/);
