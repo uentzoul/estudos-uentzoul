@@ -1,0 +1,191 @@
+/* Missão Concurso — visual isolado dentro de Concursos. Não altera as outras áreas. */
+.concursos-shell:has(.ld-root){width:min(1270px,100%);padding:16px 16px 72px;line-height:1.55}
+.concursos-shell .ld-root{
+ --ld-ink:#172b40;--ld-muted:#536576;--ld-line:#dae4e8;--ld-canvas:#f4f8f8;--ld-white:#fff;
+ --ld-teal:#096b71;--ld-teal-dark:#08545b;--ld-teal-soft:#def3f0;--ld-coral:#c56939;
+ color:var(--ld-ink);font:inherit;line-height:1.55;max-width:1190px;margin:auto;
+ background:radial-gradient(ellipse 65% 20% at 90% 0%,#e5f4ec 0%,transparent 100%),var(--ld-canvas);
+ border:1px solid #dfe8e9;border-radius:27px;padding:clamp(14px,2.5vw,32px);
+ min-height:600px;box-shadow:0 16px 55px #253d4b0b;
+}
+.concursos-shell .ld-root *,.concursos-shell .ld-root *:before,.concursos-shell .ld-root *:after{box-sizing:border-box}
+.concursos-shell .ld-root h1,.concursos-shell .ld-root h2,.concursos-shell .ld-root h3,.concursos-shell .ld-root p{margin:0}
+.concursos-shell .ld-root h1{font-size:clamp(25px,3.1vw,39px);line-height:1.18;letter-spacing:-.035em;color:var(--ld-ink)}
+.concursos-shell .ld-root h2{font-size:clamp(19px,2.1vw,25px);line-height:1.3;letter-spacing:-.018em}
+.concursos-shell .ld-root h3{font-size:18px;line-height:1.35}
+.concursos-shell .ld-root button,.concursos-shell .ld-root select{font:inherit;cursor:pointer}
+.concursos-shell .ld-root button:focus-visible,.concursos-shell .ld-root select:focus-visible,.concursos-shell .ld-root summary:focus-visible{outline:3px solid #ea9c4e;outline-offset:3px}
+.concursos-shell .ld-root button:disabled{cursor:default}
+.concursos-shell .ld-header{display:flex;gap:12px;justify-content:space-between;align-items:center;margin-bottom:20px}
+.concursos-shell .ld-brand{display:flex;align-items:center;gap:11px}
+.concursos-shell .ld-brand-mark{height:46px;width:46px;border-radius:16px;display:grid;place-items:center;background:#0c6e73;color:white;font-size:28px;line-height:1;flex-shrink:0}
+.concursos-shell .ld-brand strong{font-weight:900;display:block;letter-spacing:-.025em;font-size:20px}
+.concursos-shell .ld-brand span:not(.ld-brand-mark){display:block;font-size:12px;color:var(--ld-muted);font-weight:600}
+.concursos-shell .ld-top-actions{display:flex;align-items:center;gap:9px;flex-wrap:wrap;justify-content:flex-end}
+.concursos-shell .ld-exam{color:#576a70;font-size:12px;font-weight:700}
+.concursos-shell .ld-nav{display:flex;gap:6px;background:#fff;border:1px solid var(--ld-line);padding:7px;border-radius:16px;flex-wrap:wrap;margin-bottom:24px}
+.concursos-shell .ld-nav button{display:inline-flex;justify-content:center;align-items:center;gap:7px;flex:1 1 auto;min-height:44px;color:#475c67;font-size:13px;font-weight:800;border:none;background:transparent;border-radius:11px;padding:9px 10px}
+.concursos-shell .ld-nav button span{font-size:20px;line-height:1}
+.concursos-shell .ld-nav button:hover,.concursos-shell .ld-nav button[aria-current="page"]{background:#e1f1ef;color:#07585d}
+.concursos-shell .ld-button{display:inline-flex;align-items:center;justify-content:center;text-align:center;gap:9px;min-height:46px;max-width:100%;padding:11px 18px;border:1px solid #c7d4d9;border-radius:13px;background:#fff;color:#184555;font-size:14px;font-weight:850;white-space:normal;line-height:1.25;transition:transform .15s,background .15s,border .15s}
+.concursos-shell .ld-button:not(:disabled):hover{transform:translateY(-1px);border-color:#86b9b7;background:#f0f9f7}
+.concursos-shell .ld-button.ld-primary{background:var(--ld-teal);border-color:var(--ld-teal);color:#fff}
+.concursos-shell .ld-button.ld-primary:hover{background:var(--ld-teal-dark);border-color:var(--ld-teal-dark)}
+.concursos-shell .ld-button.ld-secondary{background:#eaf5f3;border-color:#cde7e2;color:#07545a}
+.concursos-shell .ld-button.ld-secondary:hover{background:#ddf2ed}
+.concursos-shell .ld-button.ld-quiet{background:transparent;border-color:transparent;color:#315d69;padding-inline:9px}
+.concursos-shell .ld-button.ld-large{font-size:16px;min-height:53px;padding:12px 24px}
+.concursos-shell .ld-eyebrow{text-transform:uppercase;letter-spacing:.105em;font-size:11px;font-weight:900;color:#0a6971;display:block;margin-bottom:9px}
+.concursos-shell .ld-panel{background:#fff;border:1px solid var(--ld-line);border-radius:22px;padding:clamp(18px,2.5vw,28px)}
+.concursos-shell .ld-welcome{display:grid;grid-template-columns:minmax(0,1fr) minmax(145px,215px);gap:28px;align-items:center;overflow:hidden;background:linear-gradient(120deg,#fff 10%,#e5f4ef 100%);min-height:268px}
+.concursos-shell .ld-welcome p,.concursos-shell .ld-page-head p{color:#4c616b;font-size:16px;line-height:1.65;margin-top:13px;max-width:660px}
+.concursos-shell .ld-actions{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:21px}
+.concursos-shell .ld-between{justify-content:space-between}
+.concursos-shell .ld-center{justify-content:center}
+.concursos-shell .ld-mission-stamp{width:195px;height:195px;background:#0c7074;border:11px solid #d7efe9;box-shadow:0 0 0 1px #a5dad2;border-radius:50%;display:flex;flex-direction:column;justify-content:center;align-items:center;color:white;transform:rotate(8deg);text-align:center;justify-self:center}
+.concursos-shell .ld-mission-stamp>span{font-size:79px;font-weight:950;line-height:1}
+.concursos-shell .ld-mission-stamp>small{font-size:12px;font-weight:800;max-width:115px;line-height:1.2}
+.concursos-shell .ld-chips{display:flex;gap:8px;flex-wrap:wrap;margin:16px 0 28px}
+.concursos-shell .ld-chips span{background:#fff;border:1px solid #dce7e8;border-radius:99px;font-size:12px;font-weight:800;color:#536b74;padding:9px 13px}
+.concursos-shell .ld-section-title{display:flex;justify-content:space-between;align-items:flex-end;gap:12px;margin:23px 0 15px}
+.concursos-shell .ld-grid{display:grid;gap:13px;grid-template-columns:repeat(3,minmax(0,1fr))}
+.concursos-shell .ld-activity{position:relative;display:flex;flex-direction:column;align-items:flex-start;text-align:left;min-height:168px;gap:10px;border:1px solid #dbe5e7;border-radius:20px;background:#fff;padding:20px;color:var(--ld-ink);box-shadow:0 4px 18px #15445609;transition:transform .18s,border-color .18s,box-shadow .18s}
+.concursos-shell .ld-activity:hover{transform:translateY(-3px);border-color:#83b9b5;box-shadow:0 9px 23px #1b5a630f}
+.concursos-shell .ld-activity-icon{display:grid;place-items:center;font-size:24px;background:#ebf7f5;border-radius:13px;width:51px;height:49px}
+.concursos-shell .ld-activity strong{font-size:16px;font-weight:900;line-height:1.24}
+.concursos-shell .ld-activity>span:nth-last-child(2){font-size:13px;color:#586b76;line-height:1.55}
+.concursos-shell .ld-activity-arrow{position:absolute;top:15px;right:17px;color:#6c9b9e;font-size:20px}
+.concursos-shell .ld-plan-highlight{margin-top:18px;display:flex;align-items:center;gap:20px;justify-content:space-between;background:#edf6f3;border-color:#d2e9e2}
+.concursos-shell .ld-plan-highlight p{color:#566d72;font-size:13px;margin-top:6px;max-width:650px}
+.concursos-shell .ld-mini-stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin:14px 0}
+.concursos-shell .ld-mini-stats div{display:flex;gap:8px;align-items:baseline;justify-content:center;border-radius:13px;padding:14px;border:1px dashed #cddcdd;background:#ffffffaa}
+.concursos-shell .ld-mini-stats strong{font-size:19px;color:#11676a}
+.concursos-shell .ld-mini-stats span{font-size:12px;color:#62737b}
+.concursos-shell .ld-footer{margin-top:32px;text-align:center;color:#657781;font-size:12px}
+.concursos-shell .ld-page-head{margin:14px 0 24px;max-width:800px}
+.concursos-shell .ld-subject{position:relative;display:flex;flex-direction:column;align-items:flex-start;gap:10px;text-align:left;padding:23px;background:#fff;border:1px solid var(--ld-line);border-radius:21px;min-height:215px;color:var(--ld-ink)}
+.concursos-shell .ld-subject:hover{border-color:#70aead;background:#fbfefd}
+.concursos-shell .ld-subject-index{font-size:12px;letter-spacing:.08em;color:#28797a;font-weight:900}
+.concursos-shell .ld-subject strong{font-size:19px;line-height:1.22;font-weight:850;max-width:90%}
+.concursos-shell .ld-subject>span:not(.ld-subject-index):not(.ld-subject-arrow){font-size:13px;color:#60727a}
+.concursos-shell .ld-subject small{font-size:12px;color:#50666e}
+.concursos-shell .ld-subject-arrow{position:absolute;right:18px;top:16px;font-size:19px;color:#6b9a9c}
+.concursos-shell .ld-track{height:9px;border-radius:99px;background:#e0e9e8;overflow:hidden;display:block;width:100%}
+.concursos-shell .ld-track i{background:linear-gradient(90deg,#0a6d73,#35a39d);height:100%;border-radius:99px;display:block;transition:width .22s}
+.concursos-shell .ld-topic-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+.concursos-shell .ld-topic-card{display:flex;flex-direction:column;align-items:flex-start;gap:11px;min-width:0}
+.concursos-shell .ld-topic-card h2{font-size:20px}
+.concursos-shell .ld-topic-card p{font-size:13px;line-height:1.6;color:#516671;flex:1}
+.concursos-shell .ld-topic-card .ld-actions{margin-top:auto}
+.concursos-shell .ld-topic-tag{display:flex;align-items:center;gap:12px;flex-wrap:wrap;text-transform:uppercase;font-size:11px;letter-spacing:.06em;font-weight:900;color:#29777b}
+.concursos-shell .ld-topic-tag span{color:#668088}
+.concursos-shell .ld-topic-meta{font-size:12px;font-weight:700;color:#77868b}
+.concursos-shell .ld-back-row{margin:4px 0 14px}
+.concursos-shell .ld-topic-choices{grid-template-columns:repeat(2,minmax(0,1fr))}
+.concursos-shell .ld-full-theory{margin-top:18px}
+.concursos-shell .ld-full-theory summary{font-weight:900;cursor:pointer;font-size:15px;color:#135e62}
+.concursos-shell .ld-full-theory section{margin:20px 0;padding:0 0 15px;border-bottom:1px solid #e4ecec}
+.concursos-shell .ld-full-theory h3{margin-bottom:10px}
+.concursos-shell .ld-full-theory p{white-space:pre-wrap;margin-top:9px;line-height:1.75;font-size:15px}
+.concursos-shell .ld-lesson,.concursos-shell .ld-game{max-width:870px;margin:0 auto;min-height:500px}
+.concursos-shell .ld-stage-top{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:16px}
+.concursos-shell .ld-stage-top .ld-eyebrow{margin:0}
+.concursos-shell .ld-pill{font-size:12px;font-weight:850;background:#e3f2ed;color:#125d5e;padding:8px 12px;border-radius:99px;white-space:nowrap}
+.concursos-shell .ld-reading{padding:24px 6px}
+.concursos-shell .ld-step-icon{font-size:30px;color:#167d7e;display:block;margin-bottom:8px}
+.concursos-shell .ld-reading h1{font-size:clamp(23px,2.8vw,34px);margin-bottom:16px}
+.concursos-shell .ld-reading-text{white-space:pre-wrap;color:#334958;font-size:clamp(16px,1.5vw,18px);line-height:1.9;max-width:760px}
+.concursos-shell .ld-reading>p{margin:10px 0;font-size:16px;line-height:1.7;color:#435763}
+.concursos-shell .ld-reflect{padding:12px 15px;border-radius:12px;border:1px solid #dce9e6;margin:10px 0}
+.concursos-shell .ld-reflect summary{font-weight:800;cursor:pointer}
+.concursos-shell .ld-reflect p{padding-top:12px}
+.concursos-shell .ld-muted{color:#63747c;font-size:13px;margin-top:14px!important}
+.concursos-shell .ld-game-category{font-size:12px;color:#43757a;font-weight:800;margin:21px 0 10px!important}
+.concursos-shell .ld-game h1{font-size:clamp(21px,2.55vw,30px);line-height:1.37;margin-bottom:22px}
+.concursos-shell .ld-choices{display:grid;gap:11px;margin:23px 0}
+.concursos-shell .ld-choice{display:flex;align-items:flex-start;gap:14px;text-align:left;width:100%;background:#fff;border:1.5px solid #d3e0e3;border-radius:13px;padding:14px 15px;color:#283e4b;min-height:58px;font-size:15px;line-height:1.5}
+.concursos-shell .ld-choice:not(:disabled):hover{border-color:#62a39f;background:#f3faf8}
+.concursos-shell .ld-choice-letter{flex:0 0 30px;height:30px;background:#eaf1f2;border-radius:9px;color:#466372;display:grid;place-items:center;font-size:13px;font-weight:950}
+.concursos-shell .ld-choice.is-correct{background:#e9f8ec;border-color:#45a46c;color:#17492c}
+.concursos-shell .ld-choice.is-correct .ld-choice-letter{background:#c5ebd0;color:#126036}
+.concursos-shell .ld-choice.is-wrong{background:#fff0e9;border-color:#d5967d;color:#733d2f}
+.concursos-shell .ld-choice.is-wrong .ld-choice-letter{background:#f5d8c8;color:#863d28}
+.concursos-shell .ld-choice:disabled{opacity:1}
+.concursos-shell .ld-explain{border:1px solid #c6e7dc;background:#eef9f3;border-radius:16px;padding:18px 20px;margin-top:16px}
+.concursos-shell .ld-explain h2{font-size:19px;color:#175b45;margin-bottom:12px}
+.concursos-shell .ld-explain p{font-size:14px;line-height:1.7;margin-top:9px}
+.concursos-shell .ld-explain details{border-top:1px solid #d0e8dd;margin-top:15px;padding-top:12px}
+.concursos-shell .ld-explain summary{font-size:13px;font-weight:800;cursor:pointer;color:#285f5c}
+.concursos-shell .ld-flip{border:2px solid #7dbcb1;background:linear-gradient(145deg,#fff,#e6f7f2);border-radius:22px;min-height:290px;width:100%;margin-top:20px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:19px;padding:30px;text-align:center;color:#163c45;transition:background .2s,transform .2s}
+.concursos-shell .ld-flip:hover{transform:translateY(-2px)}
+.concursos-shell .ld-flip.is-flipped{background:linear-gradient(145deg,#fff9e9,#fff);border-color:#d8b978}
+.concursos-shell .ld-flip small{letter-spacing:.13em;color:#38777e;font-weight:850;font-size:12px}
+.concursos-shell .ld-flip strong{font-size:clamp(19px,2.6vw,28px);line-height:1.48;max-width:670px;white-space:pre-wrap}
+.concursos-shell .ld-flip>span{font-size:12px;color:#537078}
+.concursos-shell .ld-card-actions{justify-content:center;margin-top:20px}
+.concursos-shell .ld-finish,.concursos-shell .ld-break{text-align:center;max-width:630px;margin:28px auto;padding:45px 24px}
+.concursos-shell .ld-finish p,.concursos-shell .ld-break p{color:#5b7078;line-height:1.7;margin-top:12px}
+.concursos-shell .ld-win,.concursos-shell .ld-big-icon{display:block;font-size:57px;color:#b77c2c;margin:8px 0 13px}
+.concursos-shell .ld-result{border-radius:20px;background:#eaf6f0;border:1px solid #d6eadc;margin:26px auto 10px;max-width:250px;padding:16px;display:flex;flex-direction:column;align-items:center}
+.concursos-shell .ld-result strong{font-size:39px;color:#0c6865}
+.concursos-shell .ld-result span{font-size:12px;color:#55706b;font-weight:750}
+.concursos-shell .ld-progress-summary{display:flex;align-items:center;gap:16px;margin-bottom:18px}
+.concursos-shell .ld-progress-summary strong{display:block;font-size:27px;color:#0c686d}
+.concursos-shell .ld-progress-summary span{display:block;font-size:12px;color:#61737e;white-space:nowrap}
+.concursos-shell .ld-progress-summary .ld-track{flex:1}
+.concursos-shell .ld-days{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+.concursos-shell .ld-day{display:flex;flex-direction:column;align-items:flex-start;gap:8px;text-align:left;border:1px solid #dae4e5;border-radius:14px;background:#fff;padding:15px;min-height:142px;color:#1d3848}
+.concursos-shell .ld-day:hover{border-color:#75b7ac;background:#fafffe}
+.concursos-shell .ld-day.is-done{background:#edf8f0;border-color:#83ba91}
+.concursos-shell .ld-day strong{font-weight:900}
+.concursos-shell .ld-day small{font-size:12px;color:#62767e}
+.concursos-shell .ld-day>span{font-size:12px;color:#5a7078;flex:1}
+.concursos-shell .ld-day b{font-size:12px;color:#077278}
+.concursos-shell .ld-completion{margin-top:17px}
+.concursos-shell .ld-completion p{font-size:14px;color:#62757c;margin-top:9px}
+.concursos-shell .ld-subject-buttons{display:flex;gap:9px;flex-wrap:wrap;margin-top:16px}
+.concursos-shell .ld-filter{margin-top:19px}
+.concursos-shell .ld-priorities>p{font-size:15px;color:#596c76;margin-bottom:12px}
+.concursos-shell .ld-priorities details{border:1px solid #deeaeb;border-radius:12px;margin:12px 0;overflow:hidden}
+.concursos-shell .ld-priorities summary{padding:14px 18px;cursor:pointer;font-weight:900;background:#f0f7f6}
+.concursos-shell .ld-priority-list{display:grid;gap:0}
+.concursos-shell .ld-priority-list label{display:grid;grid-template-columns:minmax(0,1fr) minmax(150px,220px);align-items:center;gap:12px;padding:13px 15px;border-top:1px solid #e8eeee}
+.concursos-shell .ld-priority-list strong{display:block;font-size:14px}
+.concursos-shell .ld-priority-list small{display:block;color:#5b6d75;font-size:12px;margin-top:5px}
+.concursos-shell .ld-priority-list select{width:100%;min-height:43px;background:#fff;color:#1c3e4c;border:1px solid #c9dadd;border-radius:10px;padding:8px 10px;font-size:13px}
+.concursos-shell .ld-empty{max-width:600px}
+.concursos-shell .ld-root.ld-focus .ld-nav,.concursos-shell .ld-root.ld-focus .ld-footer,.concursos-shell .ld-root.ld-focus .ld-chips,.concursos-shell .ld-root.ld-focus .ld-mini-stats{display:none}
+.concursos-shell .ld-root.ld-focus .ld-lesson,.concursos-shell .ld-root.ld-focus .ld-game{max-width:760px}
+@media(max-width:1020px){
+ .concursos-shell .ld-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .concursos-shell .ld-days{grid-template-columns:repeat(3,minmax(0,1fr))}
+}
+@media(max-width:630px){
+ .concursos-shell:has(.ld-root){padding:6px 5px 40px}
+ .concursos-shell .ld-root{border-radius:17px;padding:15px 12px;min-height:500px}
+ .concursos-shell .ld-header{align-items:flex-start;flex-wrap:wrap;margin-bottom:13px}
+ .concursos-shell .ld-brand-mark{height:41px;width:41px}
+ .concursos-shell .ld-top-actions{width:100%;justify-content:space-between}
+ .concursos-shell .ld-nav{gap:3px;padding:5px;border-radius:13px}
+ .concursos-shell .ld-nav button{flex:1 1 29%;font-size:12px;min-height:43px;padding:7px 4px;gap:3px}
+ .concursos-shell .ld-nav button span{font-size:15px}
+ .concursos-shell .ld-welcome{grid-template-columns:1fr;gap:4px;min-height:0}
+ .concursos-shell .ld-mission-stamp{width:104px;height:104px;border-width:5px;justify-self:end;margin-top:-3px}
+ .concursos-shell .ld-mission-stamp>span{font-size:43px}
+ .concursos-shell .ld-mission-stamp>small{font-size:9px;max-width:76px}
+ .concursos-shell .ld-grid,.concursos-shell .ld-topic-grid,.concursos-shell .ld-topic-choices{grid-template-columns:1fr}
+ .concursos-shell .ld-activity{min-height:125px;padding:17px;gap:8px}
+ .concursos-shell .ld-plan-highlight,.concursos-shell .ld-section-title{align-items:flex-start;flex-direction:column}
+ .concursos-shell .ld-mini-stats{grid-template-columns:1fr}
+ .concursos-shell .ld-mini-stats div{justify-content:flex-start}
+ .concursos-shell .ld-days{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .concursos-shell .ld-progress-summary{flex-wrap:wrap}
+ .concursos-shell .ld-priority-list label{grid-template-columns:1fr;gap:9px}
+ .concursos-shell .ld-choice{padding:13px 11px}
+ .concursos-shell .ld-reading{padding:23px 0}
+ .concursos-shell .ld-flip{min-height:245px;padding:19px}
+ .concursos-shell .ld-exam{font-size:11px}
+}
+@media(prefers-reduced-motion:reduce){
+ .concursos-shell .ld-root *{scroll-behavior:auto!important;animation:none!important;transition:none!important}
+}
