@@ -173,6 +173,75 @@ test('Quadruplo de desktop ocupa quatro colunas e mantém versão responsiva',()
  assert.match(script,/doc\.getElementById\("pmExtrasSidebarToggle"\)\?\.remove\(\)/);
  assert.match(script,/body:has\(#psicoExtrasFrame\) \.app>\.main/);
 });
+test('PSICO respeita a agenda de Psicologia sem duplicar respostas e preserva 21/11',()=>{
+ const e=engine();
+ const calendar={
+ "2026-11-22": [
+  "GRUPO",
+  "PAPEL",
+  "NORMA",
+  "LÍDER",
+  "COESO",
+  "PODER",
+  "LAÇOS"
+ ],
+ "2026-11-23": [
+  "LAUDO",
+  "TESTE",
+  "EXAME",
+  "TRAÇO",
+  "HUMOR",
+  "DADOS",
+  "SINAL"
+ ],
+ "2026-11-24": [
+  "ÉTICA",
+  "MORAL",
+  "CULPA",
+  "JUÍZO",
+  "IDEAL",
+  "ABUSO",
+  "RISCO"
+ ],
+ "2026-11-25": [
+  "MANIA",
+  "FOBIA",
+  "VÍCIO",
+  "SURTO",
+  "ÂNSIA",
+  "CRISE",
+  "RAIVA"
+ ],
+ "2026-11-26": [
+  "ÉDIPO",
+  "FREUD",
+  "LAPSO",
+  "LACAN",
+  "KLEIN",
+  "ADLER",
+  "SONHO"
+ ],
+ "2026-11-27": [
+  "AROMA",
+  "VISÃO",
+  "TÁTIL",
+  "SABOR",
+  "OLHAR",
+  "OUVIR",
+  "FOCAR"
+ ]
+};
+ for(const [date,words] of Object.entries(calendar)){
+  assert.deepEqual(Array.from(e.getPsicoDayWordsFor(date),item=>norm(item.word)),words.map(norm),date);
+ }
+ assert.deepEqual(Array.from(e.getPsicoDayWordsFor('2026-11-21'),item=>norm(item.word)),
+  ['PAVOR','NETOS','FATOR','FALHA','REDES','GRITO','VIVER']);
+ assert.deepEqual(Array.from(e.getPsicoDayWordsFor('2026-11-20'),item=>norm(item.word)),
+  ['EXAME','LAUDO','CAUSA','GANHO','NOÇÃO','MEDOS','RITMO'].map(norm));
+ const deck=Array.from(e.psicoDeck(),item=>norm(item.word));
+ assert.equal(new Set(deck).size,deck.length,'respostas editoriais não podem gerar repetição no baralho');
+});
+
 test('Respostas da data selecionada correspondem aos desafios reais nos três jogos',()=>{
  const e=engine();
  for(const date of ['2026-11-20','2026-11-21','2026-11-27']){
