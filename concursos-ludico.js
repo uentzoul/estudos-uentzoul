@@ -17,6 +17,30 @@ const subject=id=>subjects().find(x=>x.id===id);
 const topic=id=>topics().find(x=>x.id===id);
 const qid=id=>questions().find(x=>x.id===id);
 const cdid=id=>cards().find(x=>x.id===id);
+// Divide textos longos em etapas legíveis, sem descartar nenhuma parte do conteúdo.
+function lessonParts(t){
+ const result=[];
+ for(const section of (t?.study||[])){
+  const name=String(section.title||t.title||'Assunto'),body=String(section.body||'');
+  const sentences=body.split(/(?<=[.!?])\s+(?=[A-ZÀ-Ü0-9])/u);
+  let chunk='';
+  const flush=()=>{if(chunk.trim()){result.push({title:name,body:chunk.trim()});chunk='';}};
+  for(let sentence of sentences){
+   while(sentence.length>600){
+    const cut=Math.max(1,sentence.lastIndexOf(' ',600));
+    const part=sentence.slice(0,cut).trim();
+    if(chunk.length+part.length>560)flush();
+    chunk+=(chunk?' ':'')+part;flush();
+    sentence=sentence.slice(cut).trimStart();
+   }
+   if(chunk&&chunk.length+sentence.length>560)flush();
+   chunk+=(chunk?' ':'')+sentence;
+  }
+  flush();
+  if(!body.trim())result.push({title:name,body:''});
+ }
+ return result;
+}
 function meta(){
  let m=ctx.store.notes.__concursos_ludico;
  if(!m||typeof m!=='object'||Array.isArray(m)){m={};ctx.store.notes.__concursos_ludico=m;}
@@ -30,7 +54,7 @@ function due(){
  const m=meta(),now=Date.now();
  return questions().filter(q=>{
   const prior=ctx.store.answers[q.id],item=m.review[q.id];
-  return (prior&&prior.correct===false)||!!(item&&new Date(item.due).getTime()<=now);
+  return item?new Date(item.due).getTime()<=now:!!(prior&&prior.correct===false);
  });
 }
 const knownCards=()=>cards().filter(c=>ctx.store.flashcards[c.id]===true).length;
@@ -116,7 +140,7 @@ function learn(id){
 }
 function lessonView(){
  const t=topic(topicId);if(!t)return subjectView();
- const sections=(t.study||[]).filter(x=>x.title||x.body);
+ const sections=lessonParts(t);
  const total=sections.length+1,rec=sections[step]||null;
  if(!sections.length)return topicView(topicId);
  return '<div class="ld-back-row">'+button('topic','← Voltar ao assunto','data-topic="'+E(topicId)+'"','ld-button ld-quiet')+'</div>'+
@@ -212,7 +236,11 @@ function recordMatch(choice){
 }
 function startCards(opts={}){
  let pool=cards().filter(c=>(!opts.topic||c.topic===opts.topic)&&(!opts.subject||c.subject===opts.subject));
- pool=pool.sort((a,b)=>Number(ctx.store.flashcards[a.id]===true)-Number(ctx.store.flashcards[b.id]===true));
+ const cardReview=meta().cardDue,now=Date.now();
+ pool=pool.sort((a,b)=>{
+  const weight=c=>ctx.store.flashcards[c.id]===true?(cardReview[c.id]&&new Date(cardReview[c.id]).getTime()<=now?1:3):0;
+  return weight(a)-weight(b);
+ });
  if(!pool.length){ctx.toast('Não há cartões neste assunto.');return;}
  session={kind:'cards',ids:pool.slice(0,Math.min(opts.count||7,pool.length)).map(x=>x.id),index:0,good:0,completed:false,title:'Vira-cartas'};
  face=false;page='game';paused=false;draw();
@@ -344,14 +372,14 @@ function handle(action,el){
  if(action==='learn-random'){const t=pick(topics(),1)[0];if(t)learn(t.id);return;}
  if(action==='lesson-next'){
   const t=topic(topicId);if(!t)return;
-  const sections=(t.study||[]).filter(x=>x.title||x.body);
+  const sections=lessonParts(t);
   if(step<sections.length){step++;draw();}
   else {meta().lessons[topicId]=stamp();ctx.save();startQuiz({topic:topicId,count:3,title:'Hora de lembrar'});}
   return;
  }
  if(action==='speak'){
   if(speaking){stopSpeech();draw();return;}
-  const t=topic(topicId),section=(t?.study||[])[step],u=window.speechSynthesis;
+  const t=topic(topicId),section=lessonParts(t)[step],u=window.speechSynthesis;
   if(!u||!window.SpeechSynthesisUtterance){ctx.toast('Leitura em voz alta não disponível neste navegador.');return;}
   stopSpeech();const utter=new SpeechSynthesisUtterance(section?(section.title+'. '+section.body):'Pense no que você acabou de aprender.');
   utter.lang='pt-BR';utter.rate=.94;utter.onend=()=>{speaking=false;};utter.onerror=()=>{speaking=false;};
