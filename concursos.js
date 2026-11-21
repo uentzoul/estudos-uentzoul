@@ -143,6 +143,7 @@ function enter(restored=false){
 }
 function exit(){
  if(onlyContest())return;
+ window.PMConcursoLudico?.close?.();
  active=false;external=false;
  try{if(location.hash==='#concursos')history.replaceState(history.state,'',location.pathname+location.search);}catch(e){}
  syncChrome();
@@ -479,6 +480,8 @@ function go(dest){
 function render(){
  if(!active||external||working)return;
  if(onlyContest()&&view==='caderno'){view='inicio';rememberView();}
+ // Preserva autenticação, plano, permissões e dados; troca apenas a experiência de Concursos.
+ if(window.PMConcursoLudico?.render?.({data:D,store,rights,view,subject,dayIndex,save:scheduleSave,go,generate,renderHTML,toast}))return;
  if(view==='inicio')home();
  else if(view==='configurar')setup();
  else if(view==='dia')day();
