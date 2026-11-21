@@ -72,7 +72,7 @@ function navbar(){
 function renderBody(body){
  if(!ctx)return;
  ctx.renderHTML('<div class="ld-root '+(focus?'ld-focus':'')+'">'+titlebar()+navbar()+
- (paused?'<section class="ld-break ld-panel"><span class="ld-big-icon" aria-hidden="true">☕</span><h1>Pausa livre</h1><p>O que você respondeu já está guardado. Retome quando quiser, sem perder pontos nem precisar recomeçar.</p>'+button('resume','Continuar de onde parei','','ld-button ld-primary')+'</section>':body)+
+ (paused?'<section class="ld-break ld-panel"><span class="ld-big-icon" aria-hidden="true">☕</span><h1>Pausa livre</h1><p>O que você respondeu já está guardado. Continue sua atividade quando quiser, nesta aba.</p>'+button('resume','Continuar de onde parei','','ld-button ld-primary')+'</section>':body)+
  '<footer class="ld-footer">Avance no seu ritmo. O objetivo é compreender e lembrar, não correr contra o relógio.</footer></div>');
 }
 function chips(){
@@ -153,6 +153,21 @@ function lessonView(){
  '<div class="ld-actions ld-between">'+button('speak',speaking?'Parar leitura':'Ouvir esta etapa','','ld-button ld-secondary')+
  button('lesson-next',step===total-1?'Concluir e praticar':'Próxima etapa →','','ld-button ld-primary')+'</div></section>';
 }
+// Alterna matérias nos desafios livres, evitando blocos repetitivos de um único tema.
+function balancedQuestions(pool,count){
+ const by=new Map();
+ for(const q of pool){if(!by.has(q.subject))by.set(q.subject,[]);by.get(q.subject).push(q);}
+ const result=[];
+ while(result.length<count){
+  let added=false;
+  for(const id of pick([...by.keys()],by.size)){
+   const one=by.get(id).shift();
+   if(one){result.push(one);added=true;if(result.length===count)break;}
+  }
+  if(!added)break;
+ }
+ return result;
+}
 function startQuiz(opts={}){
  const filter=opts.topic?questions().filter(q=>q.topic===opts.topic):opts.subject?questions().filter(q=>q.subject===opts.subject):opts.type==='errors'?wrong():opts.type==='due'?due():questions();
  const m=meta();
@@ -164,7 +179,7 @@ function startQuiz(opts={}){
  });
  if(!pool.length){ctx.toast('Ainda não há questões nesse modo. Experimente outro desafio.');return;}
  const count=Math.min(Number(opts.count)||5,pool.length);
- const chosen=pool.slice(0,count);
+ const chosen=(!opts.topic&&!opts.subject&&!['errors','due'].includes(opts.type))?balancedQuestions(pool,count):pool.slice(0,count);
  session={kind:'quiz',ids:chosen.map(q=>q.id),index:0,selected:null,good:0,completed:false,title:opts.type==='errors'?'Detetive dos erros':opts.type==='due'?'Revisão inteligente':opts.title||'Desafio relâmpago'};
  page='game';paused=false;draw();
 }
