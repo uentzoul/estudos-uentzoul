@@ -108,7 +108,7 @@ function topicView(id){
  tile('cards-topic','🃏','Vira-cartas','Recuperar as ideias sem olhar a resposta.','data-topic="'+E(id)+'"')+'</div>'+
  '<details class="ld-panel ld-full-theory"><summary>Consultar todo o material deste assunto</summary><div>'+
  (t.study||[]).map(part=>'<section><h3>'+E(part.title)+'</h3><p>'+E(part.body)+'</p></section>').join('')+
- (t.notes||[]).length?'<h3>Conceitos essenciais</h3>'+t.notes.map(n=>'<p><strong>'+E(n.term)+':</strong> '+E(n.explanation)+'</p>').join(''):'')+'</div></details>';
+ ((t.notes||[]).length?'<h3>Conceitos essenciais</h3>'+t.notes.map(n=>'<p><strong>'+E(n.term)+':</strong> '+E(n.explanation)+'</p>').join(''):'')+'</div></details>';
 }
 function learn(id){
  const t=topic(id);if(!t)return draw();
