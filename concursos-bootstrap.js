@@ -113,8 +113,13 @@
    }
    // O módulo lúdico é carregado somente para usuários já autorizados em Concursos.
    if(!document.getElementById('pm-concursos-ludico-css')){
-    const style=document.createElement('link');style.rel='stylesheet';style.id='pm-concursos-ludico-css';
-    style.href='concursos-ludico.css?v=20261121-missoes-v1';document.head.appendChild(style);
+    await new Promise(resolve=>{
+     const style=document.createElement('link');style.rel='stylesheet';style.id='pm-concursos-ludico-css';
+     style.href='concursos-ludico.css?v=20261121-missoes-v1';
+     style.onload=resolve;
+     style.onerror=()=>{console.warn('Não foi possível carregar o visual de Concursos');resolve();};
+     document.head.appendChild(style);
+    });
    }
    await script('pm-concursos-ludico','concursos-ludico.js?v=20261121-missoes-v1');
    await script('pm-concursos-app','concursos.js?v=20261121-missoes-v1');
