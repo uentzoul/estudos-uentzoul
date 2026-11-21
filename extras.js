@@ -105,11 +105,87 @@ function buildPsicoAnswerDeck(){
    if(chosen)result.push(chosen);
   }
  }
- // Respostas usadas na estreia voltam apenas no fim da primeira rodada de vocabulário.
+ // Palavras da estreia ficam no fim do baralho padrão, exceto quando agendadas editorialmente.
  result.push(...Object.values(PSICO_LAUNCH_WORDS).flat().map(psicoEntry));
  return result;
 }
-const PSICO_ANSWER_DECK=buildPsicoAnswerDeck();
+// Calendário editorial do PSICO: Clássico, Duplo (2) e Quádruplo (4).
+// Mantém o dia 21/11 intacto; a partir de 22/11 cada palavra fica em um único slot do baralho.
+const PSICO_EDITORIAL_DAYS={
+ "2026-11-22": [
+  "GRUPO",
+  "PAPEL",
+  "NORMA",
+  "LÍDER",
+  "COESO",
+  "PODER",
+  "LAÇOS"
+ ],
+ "2026-11-23": [
+  "LAUDO",
+  "TESTE",
+  "EXAME",
+  "TRAÇO",
+  "HUMOR",
+  "DADOS",
+  "SINAL"
+ ],
+ "2026-11-24": [
+  "ÉTICA",
+  "MORAL",
+  "CULPA",
+  "JUÍZO",
+  "IDEAL",
+  "ABUSO",
+  "RISCO"
+ ],
+ "2026-11-25": [
+  "MANIA",
+  "FOBIA",
+  "VÍCIO",
+  "SURTO",
+  "ÂNSIA",
+  "CRISE",
+  "RAIVA"
+ ],
+ "2026-11-26": [
+  "ÉDIPO",
+  "FREUD",
+  "LAPSO",
+  "LACAN",
+  "KLEIN",
+  "ADLER",
+  "SONHO"
+ ],
+ "2026-11-27": [
+  "AROMA",
+  "VISÃO",
+  "TÁTIL",
+  "SABOR",
+  "OLHAR",
+  "OUVIR",
+  "FOCAR"
+ ]
+};
+function applyPsicoEditorialDays(deck){
+ const result=deck.slice();
+ const pinned=new Set(Array.from({length:7},(_,i)=>i)); // 21/11 já pode ter resultados registrados.
+ for(const [targetDay,words] of Object.entries(PSICO_EDITORIAL_DAYS)){
+  const offset=dayNumber(targetDay)-dayNumber(PSICO_NEW_DECK_START);
+  const start=offset*7;
+  if(words.length!==7||start<7||start+7>result.length)throw Error("Calendário editorial PSICO inválido: "+targetDay);
+  for(let i=0;i<words.length;i++){
+   const wanted=clean(words[i]);
+   const sourceIndex=result.findIndex((item,j)=>!pinned.has(j)&&clean(item.word)===wanted);
+   if(sourceIndex<0)throw Error("Palavra não disponível no baralho PSICO: "+words[i]);
+   const targetIndex=start+i;
+   [result[targetIndex],result[sourceIndex]]=[result[sourceIndex],result[targetIndex]];
+   pinned.add(targetIndex);
+  }
+ }
+ return result;
+}
+const PSICO_ANSWER_DECK=applyPsicoEditorialDays(buildPsicoAnswerDeck());
 function getPsicoDayWordsFor(targetDay){
  if(targetDay===ARCHIVE_START)return Object.values(PSICO_LAUNCH_WORDS).flat().map(psicoEntry);
  const offset=Math.max(0,dayNumber(targetDay)-dayNumber(PSICO_NEW_DECK_START));
