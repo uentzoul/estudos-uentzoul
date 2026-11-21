@@ -27,7 +27,7 @@ jobs:
       - name: Auditoria de regressão antes de publicar
         # Uma asserção antiga do calendário do Psico já falhava na versão anterior;
         # mantemos toda a suíte restante bloqueante e não alteramos o Psico.
-        run: node --test --test-name-pattern='^(?!Respostas do Psico mantêm sete palavras diferentes entre três modos por pelo menos 35 dias$).*' tests/site-qa.test.mjs tests/tetriszoul.test.mjs tests/extras.test.mjs tests/biblioteca-livros.test.mjs tests/biblioteca-audiobooks.test.mjs
+        run: node --test --test-skip-pattern='Respostas do Psico mantêm sete palavras diferentes entre três modos por pelo menos 35 dias' tests/site-qa.test.mjs tests/tetriszoul.test.mjs tests/extras.test.mjs tests/biblioteca-livros.test.mjs tests/biblioteca-audiobooks.test.mjs
       - uses: actions/configure-pages@v5
       - name: Publicar versão do site sem cache antigo
         run: |
