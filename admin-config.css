@@ -251,3 +251,18 @@ html[data-theme="dark"] .admin-log-row-target:hover{background:#ffffff0b}
 .admin-tetriszoul-text small{font-size:11px;color:var(--muted)}
 .admin-tetriszoul-arrow{font-size:11px;font-weight:750;color:#8a73ce;white-space:nowrap}
 @media(max-width:480px){.admin-config-page .admin-tetriszoul-link{gap:10px}.admin-tetriszoul-icon{height:35px;width:35px}.admin-tetriszoul-arrow{font-size:10px}}
+
+/* Central de Monitoramento: visualização reservada após o gesto na bolinha.
+   A aparência e o pulso da bolinha verde permanecem inalterados. */
+.admin-config-page .admin-log-secret-panel{padding:12px 0 2px}
+.admin-config-page .admin-log-secret-head{
+ display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;
+ margin:1px 0 13px;
+}
+.admin-config-page .admin-log-secret-head strong{color:var(--ink);font-size:13px;font-weight:800}
+.admin-config-page .admin-log-secret-back{
+ border:1px solid var(--line);background:var(--soft);color:var(--ink);
+ border-radius:9px;padding:9px 12px;font-size:11px;font-weight:750;min-height:37px;
+}
+.admin-config-page .admin-log-secret-back:hover{border-color:#9580cd}
+.admin-config-page .admin-log-secret-back:focus-visible{outline:2px solid #9580cd;outline-offset:2px}
