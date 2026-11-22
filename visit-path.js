@@ -10,6 +10,8 @@ if(window.__uentzoulSiteHealthAudit===true){
 }
 const STORAGE_KEY='psicomoodle_visit_path_v1';
 let key=null,identity=null,authToken=null,queue=Promise.resolve(),ready=false,lastRoute='',ending=false;
+let countryCode=null,countryStarted=false,countryApplied=false;
+try{const cached=sessionStorage.getItem('psicomoodle_origin_country_v1');if(/^[A-Z]{2}$/.test(cached||''))countryCode=cached;}catch(_){}
 const app=()=>window.uentzoulAIAuth;
 const client=()=>app()?.client?.();
 const allowed=new Set(['home','subject','exams','test','calendar','messages','ai','audio','library','admin','vacation']);
@@ -38,6 +40,26 @@ function normalize(info={}){
 }
 /* Leitura técnica geral do navegador; não coleta IP, localização, UA completo,
    impressão digital (fingerprint) ou identificador persistente de hardware. */
+/* Coleta somente o país aproximado por rede; não armazena IP.
+   A consulta é feita pelo próprio navegador usando o serviço externo GeoJS. */
+function loadCountry(){
+ if(countryStarted||countryCode||window.__uentzoulSiteHealthAudit===true)return;
+ countryStarted=true;
+ const controller=typeof AbortController==='function'?new AbortController():null;
+ const timeout=controller?setTimeout(()=>controller.abort(),3000):null;
+ fetch('https://get.geojs.io/v1/ip/country.json',{
+  cache:'no-store',mode:'cors',credentials:'omit',referrerPolicy:'no-referrer',
+  ...(controller?{signal:controller.signal}:{})
+ }).then(response=>{if(!response.ok)throw Error('País indisponível');return response.json();})
+ .then(data=>{
+  const code=String(data?.country||'').toUpperCase();
+  if(!/^[A-Z]{2}$/.test(code)||code==='XX')return;
+  countryCode=code;
+  try{sessionStorage.setItem('psicomoodle_origin_country_v1',code)}catch(_){}
+  if(ready&&key&&!ending)void rpc('heartbeat',current());
+ }).catch(()=>{/* Se falhar, manter origem desconhecida. */})
+ .finally(()=>{if(timeout)clearTimeout(timeout)});
+}
 function deviceInfo(){
  const ua=String(navigator.userAgent||'');
  const platform=String(navigator.platform||'');
@@ -80,11 +102,11 @@ function deviceInfo(){
   {width:Math.min(sw,sh),height:Math.max(sw,sh)}:{};
  const mode=navigator.standalone===true||window.matchMedia?.('(display-mode: standalone)')?.matches?
   'standalone':document.fullscreenElement?'fullscreen':'browser';
- return {kind,family,os,os_version:osVersion,browser,browser_major:browserVersion,mode,...dimensions};
+ return {kind,family,os,os_version:osVersion,browser,browser_major:browserVersion,mode,...dimensions,...(countryCode?{country_code:countryCode}:{})};
 }
 function payload(kind,route){
  const entry=normalize(route||current());
- return {p_visit_key:key,p_kind:kind,p_section:entry.page,p_detail:entry.detail,p_semester:entry.semester,p_device:kind==='navigate'?deviceInfo():null};
+ return {p_visit_key:key,p_kind:kind,p_section:entry.page,p_detail:entry.detail,p_semester:entry.semester,p_device:(kind==='navigate'||(kind==='heartbeat'&&countryCode&&!countryApplied))?deviceInfo():null};
 }
 function rpc(kind,route){
  if(!key||!client())return Promise.resolve();
@@ -93,6 +115,7 @@ function rpc(kind,route){
   try{
    const {error}=await client().rpc('uentzoul_track_visit_device',params);
    if(error)console.warn('Registro resumido de navegação indisponível:',error.message);
+   else if(params.p_device?.country_code)countryApplied=true;
   }catch(error){console.warn('Registro resumido de navegação indisponível:',error);}
  });
  return queue;
@@ -105,7 +128,7 @@ async function sync(){
   const next=uid||'anonymous';
   authToken=s.data?.session?.access_token||null;
   if(identity!==next||!key){
-   identity=next;
+   identity=next;countryApplied=false;
    const prev=stored();
    const parts=prev?.split('|')||[];
    key=(parts.length===2&&parts[0]===next&&/^[0-9a-f-]{36}$/.test(parts[1]))?parts[1]:uuid();
@@ -166,7 +189,7 @@ window.addEventListener('pageshow',event=>{
 window.PSICO_VISIT_PATH={status:()=>({ready:!!ready,anonymous:identity==='anonymous'})};
 let attempts=0;
 function start(){
- if(client())void sync().then(ok=>{if(ok)void navigate(current());});
+ if(client()){loadCountry();void sync().then(ok=>{if(ok)void navigate(current());});}
  else if(attempts++<50)setTimeout(start,600);
 }
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start,{once:true});
