@@ -1,5 +1,6 @@
--- RASCUNHO: não aplicar no banco sem autorização de publicação.
--- País aproximado enviado pelo navegador; não serve como verificação de identidade nem segurança.
+-- RASCUNHO: Não executar antes de autorização explícita de publicação.
+-- País aproximado do visitante enviado pelo navegador, sujeito a imprecisão de VPN/proxy.
+-- Preserva a mesma verificação de permissões da função já publicada.
 CREATE OR REPLACE FUNCTION public.uentzoul_track_visit_device(p_visit_key uuid, p_kind text, p_section text DEFAULT NULL::text, p_detail text DEFAULT NULL::text, p_semester text DEFAULT NULL::text, p_device jsonb DEFAULT NULL::jsonb)
  RETURNS bigint
  LANGUAGE plpgsql
@@ -31,7 +32,8 @@ BEGIN
  v_major := CASE WHEN p_device->>'browser_major' ~ '^[0-9]{1,3}$' THEN p_device->>'browser_major' ELSE NULL END;
  v_os_version := CASE WHEN p_device->>'os_version' ~ '^[0-9]{1,3}(\.[0-9]{1,3}){0,2}$' THEN p_device->>'os_version' ELSE NULL END;
  v_mode := CASE WHEN p_device->>'mode' IN ('browser','standalone','fullscreen') THEN p_device->>'mode' ELSE 'browser' END;
- v_country := CASE WHEN pg_catalog.upper(p_device->>'country_code') ~ '^[A-Z]{2} ~ '^[0-9]{2,5}$' THEN LEAST((p_device->>'width')::integer,10000) ELSE NULL END;
+ v_country := CASE WHEN pg_catalog.upper(p_device->>'country_code') ~ '^[A-Z]{2}$' AND pg_catalog.upper(p_device->>'country_code') <> 'XX' THEN pg_catalog.upper(p_device->>'country_code') ELSE NULL END;
+ v_width := CASE WHEN p_device->>'width' ~ '^[0-9]{2,5}$' THEN LEAST((p_device->>'width')::integer,10000) ELSE NULL END;
  v_height := CASE WHEN p_device->>'height' ~ '^[0-9]{2,5}$' THEN LEAST((p_device->>'height')::integer,10000) ELSE NULL END;
  v_info := pg_catalog.jsonb_strip_nulls(pg_catalog.jsonb_build_object(
   'kind',v_kind,'family',v_family,'browser',v_browser,'browser_major',v_major,
@@ -45,21 +47,4 @@ BEGIN
        OR (actor='anonymous' AND (select auth.uid()) IS NULL) );
  RETURN v_id;
 END
-$function$
- AND pg_catalog.upper(p_device->>'country_code') <> 'XX' THEN pg_catalog.upper(p_device->>'country_code') ELSE NULL END;
- v_width := CASE WHEN p_device->>'width' ~ '^[0-9]{2,5}$' THEN LEAST((p_device->>'width')::integer,10000) ELSE NULL END;
- v_height := CASE WHEN p_device->>'height' ~ '^[0-9]{2,5}$' THEN LEAST((p_device->>'height')::integer,10000) ELSE NULL END;
- v_info := pg_catalog.jsonb_strip_nulls(pg_catalog.jsonb_build_object(
-  'kind',v_kind,'family',v_family,'browser',v_browser,'browser_major',v_major,
-  'os',v_os,'os_version',v_os_version,'width',v_width,'height',v_height,'mode',v_mode
- ));
- UPDATE public.uentzoul_access_log
- SET device_info=v_info
- WHERE id=v_id
-  AND device_info IS NULL
-  AND ( (user_id IS NOT NULL AND user_id=(select auth.uid()))
-       OR (actor='anonymous' AND (select auth.uid()) IS NULL) );
- RETURN v_id;
-END
-$function$
-
+$function$;
