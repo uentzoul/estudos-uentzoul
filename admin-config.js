@@ -280,6 +280,14 @@ function visitTitle(step){
  return 'Acessou '+(VISIT_SECTION[step.section]||'uma seção do site');
 }
 const DEVICE_KIND={phone:'Celular',tablet:'Tablet',desktop:'Computador',unknown:'Dispositivo'};
+function originStatus(row){
+ const code=String(row?.device_info?.country_code||'').toUpperCase();
+ if(!/^[A-Z]{2}$/.test(code)||code==='XX')return {label:'País não identificado',foreign:false,known:false};
+ if(code==='BR')return {label:'Brasil · país estimado',foreign:false,known:true};
+ let country=code;
+ try{country=new Intl.DisplayNames(['pt-BR'],{type:'region'}).of(code)||code;}catch(_){}
+ return {label:'FORA DO BRASIL · '+country,foreign:true,known:true};
+}
 function deviceSummary(row){
  const d=row?.device_info;
  if(!d||typeof d!=='object')return 'Dispositivo não registrado';
@@ -298,11 +306,12 @@ function deviceDetails(row){
   ['Navegador',d.browser&&d.browser!=='Other'?d.browser+(d.browser_major?' '+d.browser_major:''):'Não identificado'],
   ['Sistema operacional',d.os&&d.os!=='Other'?d.os+(d.os_version?' '+d.os_version:''):'Não identificado'],
   ['Tela informada',Number.isInteger(d.width)&&Number.isInteger(d.height)?d.width+' × '+d.height+' pixels CSS':'Não informada'],
-  ['Modo de acesso',d.mode==='standalone'?'Tela inicial / aplicativo':d.mode==='fullscreen'?'Tela cheia':'Navegador']
+  ['Modo de acesso',d.mode==='standalone'?'Tela inicial / aplicativo':d.mode==='fullscreen'?'Tela cheia':'Navegador'],
+   ['País aproximado',originStatus(row).label]
  ];
  return '<section class="admin-visit-device"><strong>Informações do dispositivo</strong>'+
   '<dl>'+pairs.map(([name,value])=>'<div><dt>'+esc(name)+'</dt><dd>'+esc(value)+'</dd></div>').join('')+'</dl>'+
-  '<p>Informações aproximadas fornecidas pelo navegador; não comprovam o modelo exato nem identificam a pessoa. Não são armazenados IP, localização ou agente de usuário completo.</p></section>';
+  '<p>País estimado pela rede, sujeito a VPN, proxy e imprecisões. Acesso estrangeiro não significa necessariamente robô ou invasão. O site não guarda IP, cidade, endereço ou agente de usuário completo. Visitas anteriores podem não ter localização.</p></section>';
 }
 function visitDetail(row){
  if(!row)return '';
@@ -425,7 +434,7 @@ function logMarkup(){
    (!match?' data-admin-open-presence="'+esc(row.user_id||'')+'"':'')+
    ' aria-expanded="'+selected+'"'+(selected?' data-admin-visit-selected':'')+'>'+
    '<span class="admin-log-avatar '+(active?'is-online':'')+'" aria-hidden="true">'+(row.actor==='anonymous'?'?':name.trim().charAt(0).toUpperCase()||'U')+'</span>'+
-   '<span class="admin-log-person"><strong>'+name+'</strong><small>'+esc(status)+'</small>'+((logTab==='entries'||grouping)?'<small class="admin-log-device">'+esc(deviceSummary(row))+'</small>':'')+'</span>'+
+   '<span class="admin-log-person"><strong>'+name+'</strong><small>'+esc(status)+'</small>'+((logTab==='entries'||grouping)?'<small class="admin-log-device">'+esc(deviceSummary(row))+'</small><small class="admin-log-origin" style="font-weight:750">'+esc(originStatus(row).label)+'</small>':'')+'</span>'+
    '<time datetime="'+esc(when||'')+'">'+esc(logDate(when))+'</time>'+
    '<span class="admin-log-expand" aria-hidden="true">'+(selected?'⌃':'⌄')+'</span></button>';
   return '<div class="admin-log-row'+(selected?' is-selected':'')+'">'+button+markButton+'</div>'+
@@ -488,7 +497,7 @@ function adminLogMarkup(){
   '<summary><div class="admin-log-title"><span class="admin-log-glyph" aria-hidden="true">⌁</span>'+
   '<div><strong>LOG</strong><small>Contas e visitantes online</small></div></div>'+
   '<span class="admin-log-summary-meta">Privado <span aria-hidden="true">⌄</span></span></summary>'+
-  '<div class="admin-log-content"><p class="admin-log-explain">O status online é uma estimativa de atividade nos últimos dois minutos. Clique em uma entrada para consultar o percurso resumido da visita. O registro não guarda mensagens, respostas ou textos digitados. Entradas antigas exibem somente o que já foi registrado.</p>'+ 
+  '<div class="admin-log-content"><p class="admin-log-explain">O status online é uma estimativa de atividade nos últimos dois minutos. Clique em uma entrada para consultar o percurso resumido da visita. O registro não guarda mensagens, respostas ou textos digitados. O país é estimado pela rede e não comprova identidade ou robô. Visitas antigas podem exibir país não identificado.</p>'+ 
   guestOnlineMarkup()+
   '<div class="admin-log-toolbar" role="tablist" aria-label="Visualização dos acessos">'+
   [['online','Online','adminLogOnlineCount'],['last','Último acesso',''],['entries','Entradas',''],['explored','Navegaram',''],['entryOnly','Só entraram',''],['unclassified','Sem dados',''],['bots','Robôs','']].map(([tab,label,id])=>
