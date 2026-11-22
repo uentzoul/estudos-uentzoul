@@ -634,7 +634,8 @@ async function toggleTestAccess(id){
  }finally{markingTest=false;updateLogPanel();}
 }
 document.addEventListener('submit',e=>{if(e.target.id!=='adminTopicForm')return;e.preventDefault();saveTopic(e.target);});
-document.addEventListener('click',e=>{
+// Usa pointerup em captura: funciona também ao tocar no span no Safari do iPhone.
+document.addEventListener('pointerup',e=>{
  // Cinco cliques diretamente na bolinha verde, sem qualquer feedback visual.
  const pulse=e.target.closest?.('.admin-online-pulse');
  if(pulse&&isAdmin()&&logOpen&&document.getElementById('adminLogView')?.contains(pulse)){
@@ -649,6 +650,8 @@ document.addEventListener('click',e=>{
   }
   return;
  }
+},true);
+document.addEventListener('click',e=>{
  if(e.target.closest?.('[data-admin-log-back]')&&isAdmin()&&secretLogOpen){
   secretLogOpen=false;secretLogClicks=0;lastSecretLogClick=0;logTab='online';
   selectedVisitId=null;selectedPresenceId=null;visitSteps=[];
