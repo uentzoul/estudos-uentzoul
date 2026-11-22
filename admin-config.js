@@ -8,6 +8,7 @@ let visitActivity=new Map(),visitActivityLoading=false,visitActivityError='',las
 const ACTIVITY_TABS=new Set(['explored','entryOnly','unclassified']);
 const FOREIGN_TAB='foreign';
 let lastLogGesture=0,logRenderTimer=null,lastLogRenderKey='';
+let secretLogOpen=false,secretLogClicks=0,lastSecretLogClick=0;
 let botRuns=[],lastBotRuns=0,botRunsError='',botRunsLoading=false;
 let selectedVisitId=null,selectedPresenceId=null,visitSteps=[],visitLoading=false,visitError='',logLimit=200,hasMoreEntries=false;
 let guestOnlineCount=null,lastGuestCount=0,guestCountError='';
@@ -496,20 +497,39 @@ function updateLogPanel(){
  const tabs=document.querySelectorAll('[data-admin-log-tab]');
  for(const button of tabs)button.setAttribute('aria-selected',String(button.dataset.adminLogTab===logTab));
 }
+/* A tela comum do LOG mostra somente os três contadores.
+   O histórico é montado apenas após cinco cliques na bolinha verde. */
+function secretLogMarkup(){
+ return '<section class="admin-log-secret-panel" aria-label="Central de Monitoramento">'+
+  '<div class="admin-log-secret-head">'+
+  '<button type="button" class="admin-log-secret-back" data-admin-log-back>← Voltar aos contadores</button>'+
+  '<strong>Central de Monitoramento</strong></div>'+
+  '<p class="admin-log-explain">O status online é uma estimativa de atividade nos últimos dois minutos. Clique em uma entrada para consultar o percurso resumido da visita. O registro não guarda mensagens, respostas ou textos digitados. O país é estimado pela rede e não comprova identidade ou robô. Visitas antigas podem exibir país não identificado.</p>'+
+  '<div class="admin-log-toolbar" role="tablist" aria-label="Visualização dos acessos">'+
+  [['online','Online','adminLogOnlineCount'],['last','Último acesso',''],['entries','Entradas',''],['foreign','Fora do Brasil',''],['explored','Navegaram',''],['entryOnly','Só entraram',''],['unclassified','Sem dados',''],['bots','Robôs','']].map(([tab,label,id])=>
+   '<button type="button" role="tab" data-admin-log-tab="'+tab+'" aria-selected="'+(logTab===tab)+'">'+label+(id?' <span id="'+id+'">'+(onlineTotalCount()===null?'—':onlineTotalCount())+'</span>':'')+'</button>').join('')+
+  '<button type="button" class="admin-log-refresh" data-admin-log-refresh title="Atualizar registros" aria-label="Atualizar registros">↻</button></div>'+
+  '<div id="adminLogData">'+logMarkup()+'</div>'+
+  '<p class="admin-log-foot">Os registros de entrada são mantidos por até 60 dias. As verificações do nosso robô são exibidas na aba Robôs e não contam como visitantes. A contagem anônima é aproximada, não identifica visitantes e não corresponde necessariamente a pessoas únicas; abas em segundo plano deixam de contar após dois minutos sem atividade.</p></section>';
+}
 function adminLogMarkup(){
  lastLogRenderKey=logViewKey();
  return '<details id="adminLogDisclosure" class="admin-card admin-log-card" '+(logOpen?'open':'')+'>'+
   '<summary><div class="admin-log-title"><span class="admin-log-glyph" aria-hidden="true">⌁</span>'+
   '<div><strong>LOG</strong><small>Contas e visitantes online</small></div></div>'+
   '<span class="admin-log-summary-meta">Privado <span aria-hidden="true">⌄</span></span></summary>'+
-  '<div class="admin-log-content"><p class="admin-log-explain">O status online é uma estimativa de atividade nos últimos dois minutos. Clique em uma entrada para consultar o percurso resumido da visita. O registro não guarda mensagens, respostas ou textos digitados. O país é estimado pela rede e não comprova identidade ou robô. Visitas antigas podem exibir país não identificado.</p>'+ 
-  guestOnlineMarkup()+
-  '<div class="admin-log-toolbar" role="tablist" aria-label="Visualização dos acessos">'+
-  [['online','Online','adminLogOnlineCount'],['last','Último acesso',''],['entries','Entradas',''],['foreign','Fora do Brasil',''],['explored','Navegaram',''],['entryOnly','Só entraram',''],['unclassified','Sem dados',''],['bots','Robôs','']].map(([tab,label,id])=>
-   '<button type="button" role="tab" data-admin-log-tab="'+tab+'" aria-selected="'+(logTab===tab)+'">'+label+(id?' <span id="'+id+'">'+(onlineTotalCount()===null?'—':onlineTotalCount())+'</span>':'')+'</button>').join('')+
-  '<button type="button" class="admin-log-refresh" data-admin-log-refresh title="Atualizar registros" aria-label="Atualizar registros">↻</button></div>'+
-  '<div id="adminLogData">'+logMarkup()+'</div>'+
-  '<p class="admin-log-foot">Os registros de entrada são mantidos por até 60 dias. As verificações do nosso robô são exibidas na aba Robôs e não contam como visitantes. A contagem anônima é aproximada, não identifica visitantes e não corresponde necessariamente a pessoas únicas; abas em segundo plano deixam de contar após dois minutos sem atividade.</p></div></details>';
+  '<div class="admin-log-content"><div id="adminLogView">'+
+  (secretLogOpen?secretLogMarkup():guestOnlineMarkup())+
+  '</div></div></details>';
+}
+function switchLogView(){
+ const view=document.getElementById('adminLogView');
+ if(!view||!isAdmin())return;
+ if(logRenderTimer){clearTimeout(logRenderTimer);logRenderTimer=null;}
+ lastLogGesture=0;
+ lastLogRenderKey=logViewKey();
+ view.innerHTML=secretLogOpen?secretLogMarkup():guestOnlineMarkup();
+ updateLogPanel();
 }
 function refreshAdminPage(){
  if(document.getElementById('adminConfigPage')&&isAdmin())bridge()?.rerenderAdmin?.();
@@ -517,13 +537,13 @@ function refreshAdminPage(){
 async function refresh(){
  const c=client(),u=user();
  if(!c||!u){
-  if(owner){owner=null;admin=false;presence=[];accessLog=[];guestOnlineCount=null;topics=[];topicsSignature='';updateNav();}
+  if(owner){owner=null;admin=false;secretLogOpen=false;secretLogClicks=0;presence=[];accessLog=[];guestOnlineCount=null;topics=[];topicsSignature='';updateNav();}
   return;
  }
  if(checking)return;checking=true;
  try{
   if(owner!==u.id){
-   admin=false;owner=u.id;presence=[];updateNav();
+   admin=false;owner=u.id;secretLogOpen=false;secretLogClicks=0;presence=[];updateNav();
    const {data,error}=await c.rpc('uentzoul_is_admin');
    if(error)throw error;
    if(user()?.id!==u.id)return;
@@ -531,7 +551,7 @@ async function refresh(){
    if(isAdmin())window.uentzoulLibraryManager?.refresh?.();
   }
   await loadTopics();
-  if(isAdmin()&&document.getElementById('adminConfigPage')){await loadReports();if(logOpen)await Promise.all([loadPresence(),loadAccess(),loadGuestOnline()]);}
+  if(isAdmin()&&document.getElementById('adminConfigPage')){await loadReports();if(logOpen)await Promise.all([loadPresence(),loadGuestOnline(),...(secretLogOpen?[loadAccess()]:[])]);}
  }catch(e){console.warn('Verificação de administrador:',e);if(user()?.id===owner){admin=false;updateNav();}}
  finally{checking=false;}
 }
@@ -568,7 +588,7 @@ function render(){
 function afterRender(){
  if(!isAdmin())return;
  if(logOpen&&(Date.now()-lastPresence>12000||Date.now()-lastLog>12000||Date.now()-lastGuestCount>12000)){
-  loadPresence();loadAccess();loadGuestOnline();if(ACTIVITY_TABS.has(logTab))void loadVisitActivity();
+  loadPresence();loadGuestOnline();if(secretLogOpen){loadAccess();if(ACTIVITY_TABS.has(logTab))void loadVisitActivity();}
  }
  if(Date.now()-lastReports>25000)loadReports();
 }
@@ -615,6 +635,25 @@ async function toggleTestAccess(id){
 }
 document.addEventListener('submit',e=>{if(e.target.id!=='adminTopicForm')return;e.preventDefault();saveTopic(e.target);});
 document.addEventListener('click',e=>{
+ // Cinco cliques diretamente na bolinha verde, sem qualquer feedback visual.
+ const pulse=e.target.closest?.('.admin-online-pulse');
+ if(pulse&&isAdmin()&&logOpen&&document.getElementById('adminLogView')?.contains(pulse)){
+  const now=Date.now();
+  secretLogClicks=now-lastSecretLogClick<=2500?secretLogClicks+1:1;
+  lastSecretLogClick=now;
+  if(secretLogClicks===5){
+   secretLogClicks=0;lastSecretLogClick=0;secretLogOpen=true;logTab='online';
+   selectedVisitId=null;selectedPresenceId=null;visitSteps=[];
+   switchLogView();
+   void loadPresence();void loadGuestOnline();void loadAccess();
+  }
+  return;
+ }
+ if(e.target.closest?.('[data-admin-log-back]')&&isAdmin()&&secretLogOpen){
+  secretLogOpen=false;secretLogClicks=0;lastSecretLogClick=0;logTab='online';
+  selectedVisitId=null;selectedPresenceId=null;visitSteps=[];
+  switchLogView();return;
+ }
  const edit=e.target.closest('[data-admin-edit]');if(edit&&isAdmin()){editing=edit.dataset.adminEdit;refreshAdminPage();return;}
  const del=e.target.closest('[data-admin-delete]');if(del&&isAdmin()){deleteTopic(del.dataset.adminDelete);return;}
  if(e.target.closest('[data-admin-cancel]')&&isAdmin()){editing=null;refreshAdminPage();return;}
@@ -634,8 +673,16 @@ document.addEventListener('click',e=>{
 document.addEventListener('toggle',e=>{
  if(e.target.id!=='adminLogDisclosure'||!isAdmin())return;
  logOpen=e.target.open;
- if(logOpen&&(Date.now()-lastPresence>5000||Date.now()-lastLog>5000||Date.now()-lastGuestCount>5000)){
-  loadPresence();loadAccess();loadGuestOnline();if(logTab==='bots')void loadBotRuns();if(ACTIVITY_TABS.has(logTab))void loadVisitActivity();
+ if(!logOpen){
+  secretLogOpen=false;secretLogClicks=0;lastSecretLogClick=0;logTab='online';
+  selectedVisitId=null;selectedPresenceId=null;visitSteps=[];
+  switchLogView();return;
+ }
+ if(Date.now()-lastPresence>5000||Date.now()-lastGuestCount>5000){
+  loadPresence();loadGuestOnline();
+ }
+ if(secretLogOpen&&Date.now()-lastLog>5000){
+  loadAccess();if(logTab==='bots')void loadBotRuns();if(ACTIVITY_TABS.has(logTab))void loadVisitActivity();
  }
 },true);
 /* As navegações são registradas no visit-path.js; presença online permanece independente. */
