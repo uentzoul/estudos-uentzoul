@@ -266,3 +266,6 @@ html[data-theme="dark"] .admin-log-row-target:hover{background:#ffffff0b}
 }
 .admin-config-page .admin-log-secret-back:hover{border-color:#9580cd}
 .admin-config-page .admin-log-secret-back:focus-visible{outline:2px solid #9580cd;outline-offset:2px}
+
+/* Suprime o zoom por toque duplo sem alterar a bolinha nem seu cursor. */
+.admin-config-page .admin-online-pulse{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
