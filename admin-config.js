@@ -422,7 +422,7 @@ function logMarkup(){
   'Registros antigos ou incompletos sem histórico de percurso. Não é possível dizer se navegaram.')+
   ' Cada linha representa uma visita, não uma pessoa única.'+
   (visitActivityLoading?' Atualizando classificação…':'')+'</p>':'';
- if(!rows.length)return intro+'<p class="admin-muted">'+title+'</p>';
+ if(!rows.length)return intro+'<p class="admin-muted">'+title+'</p>'+((logTab===FOREIGN_TAB&&hasMoreEntries)?'<button type="button" class="admin-log-more" data-admin-log-more>Carregar mais 200 entradas anteriores</button>':'');
  return intro+'<div class="admin-log-rows">'+rows.slice(0,logTab==='online'?100:logLimit).map(row=>{
   const active=logTab==='online'?true:logTab==='last'&&loggedOnline(row);
   const name=esc(row.name||'Usuário cadastrado');
