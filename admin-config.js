@@ -519,7 +519,7 @@ function adminLogMarkup(){
   '<div><strong>LOG</strong><small>Contas e visitantes online</small></div></div>'+
   '<span class="admin-log-summary-meta">Privado <span aria-hidden="true">⌄</span></span></summary>'+
   '<div class="admin-log-content"><div id="adminLogView">'+
-  (secretLogOpen?secretLogMarkup():guestOnlineMarkup())+
+  guestOnlineMarkup()+(secretLogOpen?secretLogMarkup():'')+
   '</div></div></details>';
 }
 function switchLogView(){
@@ -528,7 +528,9 @@ function switchLogView(){
  if(logRenderTimer){clearTimeout(logRenderTimer);logRenderTimer=null;}
  lastLogGesture=0;
  lastLogRenderKey=logViewKey();
- view.innerHTML=secretLogOpen?secretLogMarkup():guestOnlineMarkup();
+ const detail=view.querySelector('.admin-log-secret-panel');
+ if(secretLogOpen&&!detail)view.insertAdjacentHTML('beforeend',secretLogMarkup());
+ else if(!secretLogOpen&&detail)detail.remove();
  updateLogPanel();
 }
 function refreshAdminPage(){
