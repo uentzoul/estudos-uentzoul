@@ -395,7 +395,8 @@ test('LOG identifica tipo de dispositivo, navegador e sistema sem inventar model
    navigator:{userAgent:ua,platform,maxTouchPoints:touches,standalone:false,userAgentData:undefined},
    window:{matchMedia:()=>({matches:false})},
    document:{fullscreenElement:null},
-   screen:{width:dimensions[0],height:dimensions[1]}
+   screen:{width:dimensions[0],height:dimensions[1]},
+   countryCode:null
   });
  const iphone=detect('Mozilla/5.0 (iPhone; CPU iPhone OS 26_0 like Mac OS X) AppleWebKit/605.1.15 Version/26.0 Mobile/15E148 Safari/604.1');
  assert.equal(iphone.kind,'phone');
@@ -416,7 +417,8 @@ test('LOG identifica tipo de dispositivo, navegador e sistema sem inventar model
  assert.equal(pc.family,'Windows PC');
  assert.equal(pc.browser,'Chrome');
  assert.equal(pc.width,1080);
- assert.match(tracker,/p_device:kind==='navigate'\?deviceInfo\(\):null/);
+ assert.ok(tracker.includes("p_device:(kind==='navigate'||(kind==='heartbeat'&&countryCode&&!countryApplied))?deviceInfo():null"),'captura país durante navegação ou heartbeat quando disponível');
+ assert.match(admin,/\['foreign','Fora do Brasil',''\]/);
  assert.match(tracker,/rpc\('uentzoul_track_visit_device'/);
  assert.match(admin,/ended_at,device_info/);
  assert.match(admin,/deviceSummary\(row\)/);
