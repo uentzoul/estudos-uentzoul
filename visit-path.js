@@ -11,10 +11,12 @@ if(window.__uentzoulSiteHealthAudit===true){
 const STORAGE_KEY='psicomoodle_visit_path_v1';
 let key=null,identity=null,authToken=null,queue=Promise.resolve(),ready=false,lastRoute='',ending=false;
 let countryCode=null,countryStarted=false,countryApplied=false;
+let extrasFrame=null,extrasDetail=null;
+const games=new Set(['psico','contexto','conexo','tetris']);
 try{const cached=sessionStorage.getItem('psicomoodle_origin_country_v1');if(/^[A-Z]{2}$/.test(cached||''))countryCode=cached;}catch(_){}
 const app=()=>window.uentzoulAIAuth;
 const client=()=>app()?.client?.();
-const allowed=new Set(['home','subject','exams','test','calendar','messages','ai','audio','library','admin','vacation']);
+const allowed=new Set(['home','subject','exams','test','calendar','messages','ai','audio','library','admin','vacation','extras','books','audiobooks','caderno','concursos']);
 function uuid(){
  if(globalThis.crypto?.randomUUID)return globalThis.crypto.randomUUID();
  if(!globalThis.crypto?.getRandomValues)return null;
@@ -25,16 +27,30 @@ function uuid(){
 }
 const stored=()=>{try{return sessionStorage.getItem(STORAGE_KEY)}catch(_){return null}};
 const save=v=>{try{if(v)sessionStorage.setItem(STORAGE_KEY,v);else sessionStorage.removeItem(STORAGE_KEY)}catch(_){}};
-const current=()=>window.uentzoulCurrentRoute?.()||{page:'home',semester:'2026/2'};
+const current=()=>{
+ const route=window.uentzoulCurrentRoute?.()||{page:'home',semester:'2026/2'};
+ if(document.getElementById('vr-root'))return {page:'vacation',semester:route.semester};
+ if(route.page==='extras'){
+  const frame=document.getElementById('psicoExtrasFrame');
+  if(frame!==extrasFrame){extrasFrame=frame;extrasDetail=null;}
+  return {...route,detail:extrasDetail};
+ }
+ extrasFrame=null;extrasDetail=null;
+ return route;
+};
 const clean=(value,len=48)=>String(value||'').toLowerCase().replace(/[^a-z0-9_-]/g,'').slice(0,len);
 function normalize(info={}){
- const page=allowed.has(info.page)?info.page:'home';
+ const page=allowed.has(info.page)?info.page:null;
  const semester=['2026/1','2026/2','2027/1'].includes(info.semester)?info.semester:null;
  let detail=null;
  if(page==='subject'){
   const subject=clean(info.subject);
   const area=clean(info.subjectArea,32);
   detail=subject?(subject+(area?':'+area:'')):null;
+ }
+ if(page==='extras'){
+  const [game,action]=String(info.detail||'').split(':');
+  if(games.has(game))detail=game+(action==='played'?':played':'');
  }
  return {page,detail,semester};
 }
@@ -109,14 +125,15 @@ function payload(kind,route){
  return {p_visit_key:key,p_kind:kind,p_section:entry.page,p_detail:entry.detail,p_semester:entry.semester,p_device:(kind==='navigate'||(kind==='heartbeat'&&countryCode&&!countryApplied))?deviceInfo():null};
 }
 function rpc(kind,route){
- if(!key||!client())return Promise.resolve();
+ if(!key||!client())return Promise.resolve(false);
  const params=payload(kind,route);
  queue=queue.catch(()=>{}).then(async()=>{
   try{
    const {error}=await client().rpc('uentzoul_track_visit_device',params);
-   if(error)console.warn('Registro resumido de navegação indisponível:',error.message);
-   else if(params.p_device?.country_code)countryApplied=true;
-  }catch(error){console.warn('Registro resumido de navegação indisponível:',error);}
+   if(error){console.warn('Registro resumido de navegação indisponível:',error.message);return false;}
+   if(params.p_device?.country_code)countryApplied=true;
+   return true;
+  }catch(error){console.warn('Registro resumido de navegação indisponível:',error);return false;}
  });
  return queue;
 }
@@ -145,12 +162,25 @@ async function navigate(route){
  if(!ready&&!(await sync()))return;
  const source=route||current();
  const normalized=normalize(source);
+ if(!normalized.page)return;
  const signature=JSON.stringify(normalized);
  if(lastRoute===signature)return;
  lastRoute=signature;
- await rpc('navigate',source);
+ const ok=await rpc('navigate',source);
+ if(!ok&&lastRoute===signature)lastRoute='';
 }
-function routeEvent(e){void navigate(e.detail||current());}
+function routeEvent(e){void navigate(e.detail?.page==='vacation'?e.detail:current());}
+function recordExtra(game,played,source){
+ if(!games.has(game)||ending)return;
+ const route=window.uentzoulCurrentRoute?.();
+ const frame=document.getElementById('psicoExtrasFrame');
+ if(route?.page!=='extras'||!frame||source!==frame.contentWindow)return;
+ if(extrasFrame!==frame){extrasFrame=frame;extrasDetail=null;}
+ const detail=game+(played===true?':played':'');
+ if(extrasDetail===game+':played'&&played!==true)return;
+ extrasDetail=detail;
+ void navigate({...route,detail});
+}
 function refocus(){
  if(document.visibilityState!=='visible'||ending)return;
  void sync().then(ok=>{if(ok){void navigate(current());void rpc('heartbeat');}});
@@ -162,7 +192,7 @@ window.addEventListener('popstate',()=>requestAnimationFrame(()=>{void navigate(
 window.addEventListener('focus',refocus);
 document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')refocus();});
 window.addEventListener('online',refocus);
-setInterval(()=>{if(document.visibilityState==='visible'&&!ending)void sync().then(ok=>{if(ok)void rpc('heartbeat');});},45000);
+setInterval(()=>{if(document.visibilityState==='visible'&&!ending)void sync().then(ok=>{if(ok){void navigate(current());void rpc('heartbeat');}});},45000);
 
 // pagehide é o melhor esforço disponível no navegador; ausência deste evento
 // significa "encerramento não confirmado", nunca uma saída inventada.
@@ -186,7 +216,7 @@ window.addEventListener('pagehide',()=>{
 window.addEventListener('pageshow',event=>{
  if(event.persisted){ending=false;ready=false;identity=null;key=null;void sync().then(ok=>{if(ok)void navigate(current());});}
 });
-window.PSICO_VISIT_PATH={status:()=>({ready:!!ready,anonymous:identity==='anonymous'})};
+window.PSICO_VISIT_PATH={status:()=>({ready:!!ready,anonymous:identity==='anonymous'}),recordExtra};
 let attempts=0;
 function start(){
  if(client()){loadCountry();void sync().then(ok=>{if(ok)void navigate(current());});}

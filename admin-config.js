@@ -267,7 +267,7 @@ function logDate(date){
  catch(_){return '—'}
 }
 function loggedOnline(p){return !!p.last_seen&&Date.now()-new Date(p.last_seen).getTime()<120000}
-const VISIT_SECTION={home:'Página inicial',subject:'Disciplina',exams:'Simulados',test:'Simulado',calendar:'Agenda e Horários',messages:'Mensagens',ai:'IA Tzoul',audio:'Podcasts',library:'Biblioteca',admin:'Admin Config',vacation:'Revisão de Férias'};
+const VISIT_SECTION={home:'Página inicial',subject:'Disciplina',exams:'Simulados',test:'Simulado',calendar:'Agenda e Horários',messages:'Mensagens',ai:'IA Tzoul',audio:'Podcasts',library:'Biblioteca',admin:'Admin Config',vacation:'Revisão de Férias',extras:'Extras',books:'Biblioteca de livros',audiobooks:'Audiobooks',caderno:'Caderno',concursos:'Concursos'};
 const VISIT_SUBJECTS={tcc:'TCC',familia:'Psicologia da Família',meta:'Metapsicologia',grupos:'Psicologia dos Grupos',social:'Psicologia Social',avaliacao:'Avaliação Psicológica',profissao:'Psicologia como Profissão',processos:'Processos Psicológicos Básicos',direitos:'Psicologia e Direitos Humanos',epistemologia:'Fundamentos Epistemológicos em Psicologia',historia:'História da Psicologia',sociocognitivas:'Teorias Sociocognitivas',desenvolvimento:'Psicologia do Desenvolvimento',inteligencia:'Avaliação Psicológica: Inteligência e Funções Cognitivas',basesbiologicas:'Bases Biológicas do Comportamento Humano',psicopatologia:'Concepções em Psicopatologia',observacao:'Observação e Entrevista',grupos2:'Psicologia dos Grupos II',psiquismo:'Psiquismo e Subjetividade em Psicanálise',escolar:'Psicologia Escolar e da Educação I',etica:'Ética e Legislação em Psicologia'};
 const VISIT_AREAS={trail:'Trilha de Estudos',topics:'Conteúdos',docs:'Materiais e textos',tests:'Simulados',podcasts:'Podcasts',guided:'Estudo dirigido',flash:'Flashcards',cases:'Estudos de caso'};
 function visitTitle(step){
@@ -277,6 +277,12 @@ function visitTitle(step){
   const parts=String(step.detail||'').split(':');
   const base=VISIT_SUBJECTS[parts[0]]||'uma disciplina';
   return 'Acessou '+base+(parts[1]&&VISIT_AREAS[parts[1]]?' · '+VISIT_AREAS[parts[1]]:'');
+ }
+ if(step.section==='extras'){
+  const [game,action]=String(step.detail||'').split(':');
+  const names={psico:'PSICO',contexto:'CONTEXTO',conexo:'VÍNCULO',tetris:'TetrisZoul'};
+  if(names[game])return action==='played'?'Jogou '+names[game]:'Abriu o jogo '+names[game];
+  return 'Acessou Extras';
  }
  if(step.section==='test')return 'Abriu um simulado';
  return 'Acessou '+(VISIT_SECTION[step.section]||'uma seção do site');

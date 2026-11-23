@@ -361,9 +361,17 @@ function renderTabs(){
  });
  document.querySelector(".extras-tabs")?.classList.toggle("three-games",!isAdmin);
 }
+// Envia somente o identificador fixo do jogo, nunca palpites ou respostas.
+function reportGame(game,played=false){
+ try{
+  if(window.parent!==window&&window.parent.location.origin===location.origin)
+   window.parent.PSICO_VISIT_PATH?.recordExtra?.(game,played,window);
+ }catch(_){}
+}
 function switchGame(game){
  if(!approved||!GAMES.includes(game)||(game==="tetris"&&!isAdmin))return;
  active=game;
+ reportGame(game);
  renderTabs();updateArchiveControls();renderGame();
  try{const url=new URL(location.href);url.searchParams.set("game",game);history.replaceState(null,"",url);}catch(_){}
 }
@@ -577,6 +585,7 @@ function inputPsico(key){
    if(row){row.classList.remove("psico-shake");void row.offsetWidth;row.classList.add("psico-shake");}
    return;
   }
+  reportGame("psico",true);
   st.guesses.push(st.cells.join(""));
   st.cells=Array(5).fill("");st.draft="";st.cursor=0;
   normalizePsico();psicoFlippingRow=st.guesses.length-1;
@@ -678,6 +687,7 @@ function conexoSubmit(){
  if(st.done||st.selected.length!==4)return;
  const terms=st.selected.map(id=>connectionTiles.find(t=>t.id===id)).filter(Boolean);
  if(terms.length!==4)return;
+ reportGame("conexo",true);
  const groups=new Set(terms.map(t=>t.group));
  if(groups.size===1){
   const idx=terms[0].group;
@@ -906,6 +916,7 @@ function contextSubmit(text){
   return;
  }
  if(st.guesses.some(g=>cleanTerm(g.word)===guess)){setFeedback("contexto","Você já tentou essa palavra.","error");return;}
+ reportGame("contexto",true);
  st.guesses.push({word:guess});st.won=guess===contextTarget;st.done=st.won;
  if(st.guesses.length>500)st.guesses=st.guesses.slice(-500);
  store("contexto");
