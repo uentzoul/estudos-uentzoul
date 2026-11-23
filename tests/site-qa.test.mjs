@@ -969,7 +969,10 @@ test('Metapsicologia P2 usa exatamente as 28 perguntas em simulados, flashcards 
  for(const topic of bank){
   const affirm=runtime.window.PSICO_REVIEW_ERRORS.affirmations('meta',topic);
   assert.equal(affirm.correct,topic.definition);
-  assert.equal(affirm.incorrect,topic.myth);
+  assert.equal(affirm.incorrect,topic.incorrect,'Revisão usa confusões conceituais próprias');
+  assert.notEqual(affirm.incorrect,topic.myth,'Simulados preservam seus distratores originais');
+  assert.equal(runtime.window.PSICO_REVIEW_ERRORS.explain('meta',topic),topic.whyWrong);
+  assert.ok(topic.whyWrong.length>=80,'Cada equívoco tem correção didática detalhada');
  }
  vm.runInNewContext(read('estudo-ativo.js'),runtime);
  runtime.window.PSICO_PRACTICE.flashcards('meta',db.topics.meta,'2026/2');
