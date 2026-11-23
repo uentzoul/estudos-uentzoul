@@ -140,25 +140,41 @@ test('Psico Quádruplo usa quatro grades, nove tentativas e termina somente ao r
  assert.equal(e.getPsicoWords().length,4);
  assert.equal(new Set(e.getPsicoWords().map(x=>norm(x.word))).size,4);
  assert.equal((e.html().match(/class="psico-board-column/g)||[]).length,4);
- for(let i=0;i<9;i++){e.inputPsico('ZZZZZ');e.inputPsico('ENTER');}
+ for(let i=0;i<9;i++){e.inputPsico('ARROZ');e.inputPsico('ENTER');}
  assert.equal(e.psicoState().guesses.length,9);
  assert.equal(e.psicoState().done,true);
  assert.equal(e.psicoState().won,false);
  assert.match(e.html(),/Respostas:/);
 });
+test('PSICO rejeita palavras inventadas e sobrenomes sem consumir tentativa nos três modos',()=>{
+ const e=engine();e.init('2026-11-26');e.setActive('psico');e.allow();
+ for(const mode of ['classico','duplo','quadruplo']){
+  e.setPsicoMode(mode);
+  for(const word of ['ZZZZZ','ABCDE','FREUD','LACAN','KLEIN','ADLER']){
+   e.inputPsico('HOME');e.inputPsico(word);e.inputPsico('ENTER');
+   assert.equal(e.psicoState().guesses.length,0,mode+' '+word);
+   assert.match(e.feedback().message,/Palavra inválida/);
+  }
+  e.inputPsico('HOME');e.inputPsico('ARROZ');e.inputPsico('ENTER');
+  assert.equal(e.psicoState().guesses.length,1);
+ }
+ assert.equal(e.getPsicoWordsFor('2026-11-26','classico')[0].word,'ÉDIPO');
+ assert.ok(e.psicoDeck().every(x=>!['FREUD','LACAN','KLEIN','ADLER'].includes(norm(x.word))));
+});
+
 test('Trocar de modo não remove o progresso anterior do PSICO clássico',()=>{
  const e=engine();e.init('2026-11-21');e.setActive('psico');e.allow();
  const answer=norm(e.getWord().word);
- e.inputPsico('ZZZZZ');e.inputPsico('ENTER');
+ e.inputPsico('ARROZ');e.inputPsico('ENTER');
  assert.equal(e.states().psico.guesses.length,1);
  e.setPsicoMode('duplo');
- e.inputPsico('ZZZZZ');e.inputPsico('ENTER');
+ e.inputPsico('ARROZ');e.inputPsico('ENTER');
  assert.equal(e.states().psico.variants.duplo.guesses.length,1);
  e.setPsicoMode('quadruplo');
  assert.equal(e.psicoState().guesses.length,0);
  e.setPsicoMode('classico');
  assert.equal(e.states().psico.guesses.length,1);
- assert.notEqual(answer,'ZZZZZ');
+ assert.notEqual(answer,'ARROZ');
 });
 
 
@@ -214,11 +230,11 @@ test('PSICO respeita a agenda de Psicologia sem duplicar respostas e preserva 21
  ],
  "2026-11-26": [
   "ÉDIPO",
-  "FREUD",
+  "FALTA",
   "LAPSO",
-  "LACAN",
-  "KLEIN",
-  "ADLER",
+  "SIGNO",
+  "TOTEM",
+  "GOZOS",
   "SONHO"
  ],
  "2026-11-27": [
@@ -330,7 +346,7 @@ test('Desafio inaugural permanece intacto e novos termos são reais e ligados à
  for(const word of needed)assert.ok(data.wordBank.some(x=>norm(x.word)===norm(word)),word+' deve existir');
  assert.ok(data.wordBank.every(x=>norm(x.word).length===5&&x.area&&x.hint));
  assert.equal(new Set(data.wordBank.map(x=>norm(x.word))).size,data.wordBank.length);
- assert.match(page,/extras-data\.js\?v=20261120-context-oneword-v1/);
+ assert.match(page,/extras-data\.js\?v=20261123-psico-lexicon-v1/);
 });
 
 test('Conexo escolhe quatro grupos distintos e registra solução',()=>{

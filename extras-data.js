@@ -453,940 +453,940 @@ window.PSICO_EXTRAS_DATA={
       "hint": "Respostas de afastamento de situações aversivas"
     },
     {
-        "word": "ÂNIMO",
-        "area": "Emoções e saúde psicológica",
-        "hint": "Disposição afetiva e motivacional",
-        "priority": true
+      "word": "ÂNIMO",
+      "area": "Emoções e saúde psicológica",
+      "hint": "Disposição afetiva e motivacional",
+      "priority": true
     },
     {
-        "word": "ÂNSIA",
-        "area": "Emoções e saúde psicológica",
-        "hint": "Apreensão ou desejo vivido com intensidade",
-        "priority": true
+      "word": "ÂNSIA",
+      "area": "Emoções e saúde psicológica",
+      "hint": "Apreensão ou desejo vivido com intensidade",
+      "priority": true
     },
     {
-        "word": "MÁGOA",
-        "area": "Emoções e saúde psicológica",
-        "hint": "Tristeza ligada a ofensas ou decepções",
-        "priority": true
+      "word": "MÁGOA",
+      "area": "Emoções e saúde psicológica",
+      "hint": "Tristeza ligada a ofensas ou decepções",
+      "priority": true
     },
     {
-        "word": "CIÚME",
-        "area": "Emoções e saúde psicológica",
-        "hint": "Emoção associada ao receio de perder um vínculo",
-        "priority": true
+      "word": "CIÚME",
+      "area": "Emoções e saúde psicológica",
+      "hint": "Emoção associada ao receio de perder um vínculo",
+      "priority": true
     },
     {
-        "word": "SUSTO",
-        "area": "Emoções e saúde psicológica",
-        "hint": "Reação repentina a um evento inesperado",
-        "priority": true
+      "word": "SUSTO",
+      "area": "Emoções e saúde psicológica",
+      "hint": "Reação repentina a um evento inesperado",
+      "priority": true
     },
     {
-        "word": "PAVOR",
-        "area": "Emoções e saúde psicológica",
-        "hint": "Experiência de medo muito intenso",
-        "priority": true
+      "word": "PAVOR",
+      "area": "Emoções e saúde psicológica",
+      "hint": "Experiência de medo muito intenso",
+      "priority": true
     },
     {
-        "word": "TEMOR",
-        "area": "Emoções e saúde psicológica",
-        "hint": "Sentimento de medo e apreensão",
-        "priority": true
+      "word": "TEMOR",
+      "area": "Emoções e saúde psicológica",
+      "hint": "Sentimento de medo e apreensão",
+      "priority": true
     },
     {
-        "word": "FÚRIA",
-        "area": "Emoções e saúde psicológica",
-        "hint": "Raiva em grau elevado de intensidade",
-        "priority": true
+      "word": "FÚRIA",
+      "area": "Emoções e saúde psicológica",
+      "hint": "Raiva em grau elevado de intensidade",
+      "priority": true
     },
     {
-        "word": "ABUSO",
-        "area": "Emoções e saúde psicológica",
-        "hint": "Violação de limites ou direitos numa relação",
-        "priority": true
+      "word": "ABUSO",
+      "area": "Emoções e saúde psicológica",
+      "hint": "Violação de limites ou direitos numa relação",
+      "priority": true
     },
     {
-        "word": "SURTO",
-        "area": "Emoções e saúde psicológica",
-        "hint": "Manifestação aguda de alterações psíquicas",
-        "priority": true
+      "word": "SURTO",
+      "area": "Emoções e saúde psicológica",
+      "hint": "Manifestação aguda de alterações psíquicas",
+      "priority": true
     },
     {
-        "word": "MANIA",
-        "area": "Emoções e saúde psicológica",
-        "hint": "Episódio clínico de humor anormalmente elevado ou irritável",
-        "priority": true
+      "word": "MANIA",
+      "area": "Emoções e saúde psicológica",
+      "hint": "Episódio clínico de humor anormalmente elevado ou irritável",
+      "priority": true
     },
     {
-        "word": "LUTOS",
-        "area": "Emoções e saúde psicológica",
-        "hint": "Processos de adaptação a perdas",
-        "priority": true
+      "word": "LUTOS",
+      "area": "Emoções e saúde psicológica",
+      "hint": "Processos de adaptação a perdas",
+      "priority": true
     },
     {
-        "word": "AFAGO",
-        "area": "Emoções e saúde psicológica",
-        "hint": "Gesto de carinho e acolhimento",
-        "priority": true
+      "word": "AFAGO",
+      "area": "Emoções e saúde psicológica",
+      "hint": "Gesto de carinho e acolhimento",
+      "priority": true
     },
     {
-        "word": "PULSO",
-        "area": "Emoções e saúde psicológica",
-        "hint": "Sinal corporal que varia com a ativação fisiológica",
-        "priority": true
+      "word": "PULSO",
+      "area": "Emoções e saúde psicológica",
+      "hint": "Sinal corporal que varia com a ativação fisiológica",
+      "priority": true
     },
     {
-        "word": "NERVO",
-        "area": "Emoções e saúde psicológica",
-        "hint": "Estrutura responsável por conduzir sinais no sistema nervoso",
-        "priority": true
+      "word": "NERVO",
+      "area": "Emoções e saúde psicológica",
+      "hint": "Estrutura responsável por conduzir sinais no sistema nervoso",
+      "priority": true
     },
     {
-        "word": "MORTE",
-        "area": "Emoções e saúde psicológica",
-        "hint": "Evento que pode desencadear processos de luto",
-        "priority": true
+      "word": "MORTE",
+      "area": "Emoções e saúde psicológica",
+      "hint": "Evento que pode desencadear processos de luto",
+      "priority": true
     },
     {
-        "word": "SENTE",
-        "area": "Emoções e saúde psicológica",
-        "hint": "Verbo ligado à vivência de emoções e sensações",
-        "priority": true
+      "word": "SENTE",
+      "area": "Emoções e saúde psicológica",
+      "hint": "Verbo ligado à vivência de emoções e sensações",
+      "priority": true
     },
     {
-        "word": "SINTO",
-        "area": "Emoções e saúde psicológica",
-        "hint": "Relato em primeira pessoa de uma experiência subjetiva",
-        "priority": true
+      "word": "SINTO",
+      "area": "Emoções e saúde psicológica",
+      "hint": "Relato em primeira pessoa de uma experiência subjetiva",
+      "priority": true
     },
     {
-        "word": "SORRI",
-        "area": "Emoções e saúde psicológica",
-        "hint": "Expressão facial importante na comunicação emocional",
-        "priority": true
+      "word": "SORRI",
+      "area": "Emoções e saúde psicológica",
+      "hint": "Expressão facial importante na comunicação emocional",
+      "priority": true
     },
     {
-        "word": "QUERO",
-        "area": "Emoções e saúde psicológica",
-        "hint": "Expressão verbal de desejo ou motivação",
-        "priority": true
+      "word": "QUERO",
+      "area": "Emoções e saúde psicológica",
+      "hint": "Expressão verbal de desejo ou motivação",
+      "priority": true
     },
     {
-        "word": "FIRME",
-        "area": "Emoções e saúde psicológica",
-        "hint": "Qualidade relacionada à persistência e estabilidade",
-        "priority": true
+      "word": "FIRME",
+      "area": "Emoções e saúde psicológica",
+      "hint": "Qualidade relacionada à persistência e estabilidade",
+      "priority": true
     },
     {
-        "word": "GRITO",
-        "area": "Emoções e saúde psicológica",
-        "hint": "Manifestação vocal de emoção",
-        "priority": true
+      "word": "GRITO",
+      "area": "Emoções e saúde psicológica",
+      "hint": "Manifestação vocal de emoção",
+      "priority": true
     },
     {
-        "word": "CALAR",
-        "area": "Emoções e saúde psicológica",
-        "hint": "Interromper a expressão verbal",
-        "priority": true
+      "word": "CALAR",
+      "area": "Emoções e saúde psicológica",
+      "hint": "Interromper a expressão verbal",
+      "priority": true
     },
     {
-        "word": "DORME",
-        "area": "Emoções e saúde psicológica",
-        "hint": "Verbo referente ao estado de sono",
-        "priority": true
+      "word": "DORME",
+      "area": "Emoções e saúde psicológica",
+      "hint": "Verbo referente ao estado de sono",
+      "priority": true
     },
     {
-        "word": "RONCO",
-        "area": "Emoções e saúde psicológica",
-        "hint": "Som respiratório que pode ocorrer durante o sono",
-        "priority": true
+      "word": "RONCO",
+      "area": "Emoções e saúde psicológica",
+      "hint": "Som respiratório que pode ocorrer durante o sono",
+      "priority": true
     },
     {
-        "word": "VIGIA",
-        "area": "Emoções e saúde psicológica",
-        "hint": "Atenção mantida sobre o ambiente",
-        "priority": true
+      "word": "VIGIA",
+      "area": "Emoções e saúde psicológica",
+      "hint": "Atenção mantida sobre o ambiente",
+      "priority": true
     },
     {
-        "word": "DRAMA",
-        "area": "Emoções e saúde psicológica",
-        "hint": "Representação de conflitos humanos e emocionais",
-        "priority": true
+      "word": "DRAMA",
+      "area": "Emoções e saúde psicológica",
+      "hint": "Representação de conflitos humanos e emocionais",
+      "priority": true
     },
     {
-        "word": "VISÃO",
-        "area": "Cognição, linguagem e percepção",
-        "hint": "Modalidade de percepção de estímulos visuais",
-        "priority": true
+      "word": "VISÃO",
+      "area": "Cognição, linguagem e percepção",
+      "hint": "Modalidade de percepção de estímulos visuais",
+      "priority": true
     },
     {
-        "word": "TÁTIL",
-        "area": "Cognição, linguagem e percepção",
-        "hint": "Relativo às sensações percebidas pelo tato",
-        "priority": true
+      "word": "TÁTIL",
+      "area": "Cognição, linguagem e percepção",
+      "hint": "Relativo às sensações percebidas pelo tato",
+      "priority": true
     },
     {
-        "word": "ÓTICA",
-        "area": "Cognição, linguagem e percepção",
-        "hint": "Perspectiva relacionada à visão",
-        "priority": true
+      "word": "ÓTICA",
+      "area": "Cognição, linguagem e percepção",
+      "hint": "Perspectiva relacionada à visão",
+      "priority": true
     },
     {
-        "word": "AROMA",
-        "area": "Cognição, linguagem e percepção",
-        "hint": "Estímulo percebido pelo olfato",
-        "priority": true
+      "word": "AROMA",
+      "area": "Cognição, linguagem e percepção",
+      "hint": "Estímulo percebido pelo olfato",
+      "priority": true
     },
     {
-        "word": "SABOR",
-        "area": "Cognição, linguagem e percepção",
-        "hint": "Experiência sensorial ligada ao paladar",
-        "priority": true
+      "word": "SABOR",
+      "area": "Cognição, linguagem e percepção",
+      "hint": "Experiência sensorial ligada ao paladar",
+      "priority": true
     },
     {
-        "word": "GOSTO",
-        "area": "Cognição, linguagem e percepção",
-        "hint": "Preferência subjetiva ou percepção gustativa",
-        "priority": true
+      "word": "GOSTO",
+      "area": "Cognição, linguagem e percepção",
+      "hint": "Preferência subjetiva ou percepção gustativa",
+      "priority": true
     },
     {
-        "word": "OLHOS",
-        "area": "Cognição, linguagem e percepção",
-        "hint": "Órgãos envolvidos na percepção visual",
-        "priority": true
+      "word": "OLHOS",
+      "area": "Cognição, linguagem e percepção",
+      "hint": "Órgãos envolvidos na percepção visual",
+      "priority": true
     },
     {
-        "word": "ROSTO",
-        "area": "Cognição, linguagem e percepção",
-        "hint": "Região do corpo importante na expressão não verbal",
-        "priority": true
+      "word": "ROSTO",
+      "area": "Cognição, linguagem e percepção",
+      "hint": "Região do corpo importante na expressão não verbal",
+      "priority": true
     },
     {
-        "word": "FACES",
-        "area": "Cognição, linguagem e percepção",
-        "hint": "Pistas emocionais percebidas nas expressões faciais",
-        "priority": true
+      "word": "FACES",
+      "area": "Cognição, linguagem e percepção",
+      "hint": "Pistas emocionais percebidas nas expressões faciais",
+      "priority": true
     },
     {
-        "word": "DEDOS",
-        "area": "Cognição, linguagem e percepção",
-        "hint": "Partes da mão importantes para a motricidade fina",
-        "priority": true
+      "word": "DEDOS",
+      "area": "Cognição, linguagem e percepção",
+      "hint": "Partes da mão importantes para a motricidade fina",
+      "priority": true
     },
     {
-        "word": "BRAÇO",
-        "area": "Cognição, linguagem e percepção",
-        "hint": "Membro corporal envolvido em ações motoras",
-        "priority": true
+      "word": "BRAÇO",
+      "area": "Cognição, linguagem e percepção",
+      "hint": "Membro corporal envolvido em ações motoras",
+      "priority": true
     },
     {
-        "word": "PONTO",
-        "area": "Cognição, linguagem e percepção",
-        "hint": "Alvo sobre o qual a atenção pode se concentrar",
-        "priority": true
+      "word": "PONTO",
+      "area": "Cognição, linguagem e percepção",
+      "hint": "Alvo sobre o qual a atenção pode se concentrar",
+      "priority": true
     },
     {
-        "word": "MAPAS",
-        "area": "Cognição, linguagem e percepção",
-        "hint": "Representações mentais de espaços e relações",
-        "priority": true
+      "word": "MAPAS",
+      "area": "Cognição, linguagem e percepção",
+      "hint": "Representações mentais de espaços e relações",
+      "priority": true
     },
     {
-        "word": "BLOCO",
-        "area": "Cognição, linguagem e percepção",
-        "hint": "Agrupamento de informações usado para facilitar a memória",
-        "priority": true
+      "word": "BLOCO",
+      "area": "Cognição, linguagem e percepção",
+      "hint": "Agrupamento de informações usado para facilitar a memória",
+      "priority": true
     },
     {
-        "word": "RETER",
-        "area": "Cognição, linguagem e percepção",
-        "hint": "Manter informação disponível na memória",
-        "priority": true
+      "word": "RETER",
+      "area": "Cognição, linguagem e percepção",
+      "hint": "Manter informação disponível na memória",
+      "priority": true
     },
     {
-        "word": "NOTAR",
-        "area": "Cognição, linguagem e percepção",
-        "hint": "Perceber e dar atenção a um estímulo",
-        "priority": true
+      "word": "NOTAR",
+      "area": "Cognição, linguagem e percepção",
+      "hint": "Perceber e dar atenção a um estímulo",
+      "priority": true
     },
     {
-        "word": "PENSA",
-        "area": "Cognição, linguagem e percepção",
-        "hint": "Verbo relacionado ao ato de pensar",
-        "priority": true
+      "word": "PENSA",
+      "area": "Cognição, linguagem e percepção",
+      "hint": "Verbo relacionado ao ato de pensar",
+      "priority": true
     },
     {
-        "word": "PENSE",
-        "area": "Cognição, linguagem e percepção",
-        "hint": "Forma verbal usada ao solicitar uma reflexão",
-        "priority": true
+      "word": "PENSE",
+      "area": "Cognição, linguagem e percepção",
+      "hint": "Forma verbal usada ao solicitar uma reflexão",
+      "priority": true
     },
     {
-        "word": "ERROS",
-        "area": "Cognição, linguagem e percepção",
-        "hint": "Falhas de julgamento, memória ou desempenho",
-        "priority": true
+      "word": "ERROS",
+      "area": "Cognição, linguagem e percepção",
+      "hint": "Falhas de julgamento, memória ou desempenho",
+      "priority": true
     },
     {
-        "word": "LETRA",
-        "area": "Cognição, linguagem e percepção",
-        "hint": "Unidade gráfica da linguagem escrita",
-        "priority": true
+      "word": "LETRA",
+      "area": "Cognição, linguagem e percepção",
+      "hint": "Unidade gráfica da linguagem escrita",
+      "priority": true
     },
     {
-        "word": "TEXTO",
-        "area": "Cognição, linguagem e percepção",
-        "hint": "Conjunto de enunciados com sentido",
-        "priority": true
+      "word": "TEXTO",
+      "area": "Cognição, linguagem e percepção",
+      "hint": "Conjunto de enunciados com sentido",
+      "priority": true
     },
     {
-        "word": "PROSA",
-        "area": "Cognição, linguagem e percepção",
-        "hint": "Forma de linguagem presente em relatos e narrativas",
-        "priority": true
+      "word": "PROSA",
+      "area": "Cognição, linguagem e percepção",
+      "hint": "Forma de linguagem presente em relatos e narrativas",
+      "priority": true
     },
     {
-        "word": "RIMAS",
-        "area": "Cognição, linguagem e percepção",
-        "hint": "Correspondências sonoras úteis à consciência fonológica",
-        "priority": true
+      "word": "RIMAS",
+      "area": "Cognição, linguagem e percepção",
+      "hint": "Correspondências sonoras úteis à consciência fonológica",
+      "priority": true
     },
     {
-        "word": "CONTO",
-        "area": "Cognição, linguagem e percepção",
-        "hint": "Narrativa que pode ser usada na aprendizagem",
-        "priority": true
+      "word": "CONTO",
+      "area": "Cognição, linguagem e percepção",
+      "hint": "Narrativa que pode ser usada na aprendizagem",
+      "priority": true
     },
     {
-        "word": "DIZER",
-        "area": "Cognição, linguagem e percepção",
-        "hint": "Expressar conteúdos pela linguagem",
-        "priority": true
+      "word": "DIZER",
+      "area": "Cognição, linguagem e percepção",
+      "hint": "Expressar conteúdos pela linguagem",
+      "priority": true
     },
     {
-        "word": "FALAR",
-        "area": "Cognição, linguagem e percepção",
-        "hint": "Produzir linguagem oral",
-        "priority": true
+      "word": "FALAR",
+      "area": "Cognição, linguagem e percepção",
+      "hint": "Produzir linguagem oral",
+      "priority": true
     },
     {
-        "word": "VERBO",
-        "area": "Cognição, linguagem e percepção",
-        "hint": "Elemento da linguagem que expressa ações ou estados",
-        "priority": true
+      "word": "VERBO",
+      "area": "Cognição, linguagem e percepção",
+      "hint": "Elemento da linguagem que expressa ações ou estados",
+      "priority": true
     },
     {
-        "word": "CÓPIA",
-        "area": "Cognição, linguagem e percepção",
-        "hint": "Reprodução de um modelo observado",
-        "priority": true
+      "word": "CÓPIA",
+      "area": "Cognição, linguagem e percepção",
+      "hint": "Reprodução de um modelo observado",
+      "priority": true
     },
     {
-        "word": "MATIZ",
-        "area": "Cognição, linguagem e percepção",
-        "hint": "Variação de cor na experiência visual",
-        "priority": true
+      "word": "MATIZ",
+      "area": "Cognição, linguagem e percepção",
+      "hint": "Variação de cor na experiência visual",
+      "priority": true
     },
     {
-        "word": "RUÍDO",
-        "area": "Cognição, linguagem e percepção",
-        "hint": "Som ou interferência na comunicação",
-        "priority": true
+      "word": "RUÍDO",
+      "area": "Cognição, linguagem e percepção",
+      "hint": "Som ou interferência na comunicação",
+      "priority": true
     },
     {
-        "word": "NEXOS",
-        "area": "Cognição, linguagem e percepção",
-        "hint": "Relações de sentido entre ideias",
-        "priority": true
+      "word": "NEXOS",
+      "area": "Cognição, linguagem e percepção",
+      "hint": "Relações de sentido entre ideias",
+      "priority": true
     },
     {
-        "word": "TRAMA",
-        "area": "Cognição, linguagem e percepção",
-        "hint": "Sequência de eventos organizada numa narrativa",
-        "priority": true
+      "word": "TRAMA",
+      "area": "Cognição, linguagem e percepção",
+      "hint": "Sequência de eventos organizada numa narrativa",
+      "priority": true
     },
     {
-        "word": "ATUAR",
-        "area": "Comportamento e aprendizagem",
-        "hint": "Realizar ações em determinado contexto",
-        "priority": true
+      "word": "ATUAR",
+      "area": "Comportamento e aprendizagem",
+      "hint": "Realizar ações em determinado contexto",
+      "priority": true
     },
     {
-        "word": "AÇÕES",
-        "area": "Comportamento e aprendizagem",
-        "hint": "Comportamentos executados por uma pessoa",
-        "priority": true
+      "word": "AÇÕES",
+      "area": "Comportamento e aprendizagem",
+      "hint": "Comportamentos executados por uma pessoa",
+      "priority": true
     },
     {
-        "word": "EVITA",
-        "area": "Comportamento e aprendizagem",
-        "hint": "Resposta de afastamento diante de estímulo aversivo",
-        "priority": true
+      "word": "EVITA",
+      "area": "Comportamento e aprendizagem",
+      "hint": "Resposta de afastamento diante de estímulo aversivo",
+      "priority": true
     },
     {
-        "word": "FREIO",
-        "area": "Comportamento e aprendizagem",
-        "hint": "Imagem usada para representar inibição de impulsos",
-        "priority": true
+      "word": "FREIO",
+      "area": "Comportamento e aprendizagem",
+      "hint": "Imagem usada para representar inibição de impulsos",
+      "priority": true
     },
     {
-        "word": "FREAR",
-        "area": "Comportamento e aprendizagem",
-        "hint": "Reduzir ou interromper uma resposta",
-        "priority": true
+      "word": "FREAR",
+      "area": "Comportamento e aprendizagem",
+      "hint": "Reduzir ou interromper uma resposta",
+      "priority": true
     },
     {
-        "word": "INIBE",
-        "area": "Comportamento e aprendizagem",
-        "hint": "Diminui a ocorrência de determinada ação",
-        "priority": true
+      "word": "INIBE",
+      "area": "Comportamento e aprendizagem",
+      "hint": "Diminui a ocorrência de determinada ação",
+      "priority": true
     },
     {
-        "word": "REAGE",
-        "area": "Comportamento e aprendizagem",
-        "hint": "Apresenta resposta diante de um evento",
-        "priority": true
+      "word": "REAGE",
+      "area": "Comportamento e aprendizagem",
+      "hint": "Apresenta resposta diante de um evento",
+      "priority": true
     },
     {
-        "word": "AGITA",
-        "area": "Comportamento e aprendizagem",
-        "hint": "Produz movimento ou inquietação",
-        "priority": true
+      "word": "AGITA",
+      "area": "Comportamento e aprendizagem",
+      "hint": "Produz movimento ou inquietação",
+      "priority": true
     },
     {
-        "word": "ATIVA",
-        "area": "Comportamento e aprendizagem",
-        "hint": "Coloca em funcionamento uma resposta ou processo",
-        "priority": true
+      "word": "ATIVA",
+      "area": "Comportamento e aprendizagem",
+      "hint": "Coloca em funcionamento uma resposta ou processo",
+      "priority": true
     },
     {
-        "word": "PASSO",
-        "area": "Comportamento e aprendizagem",
-        "hint": "Etapa de uma sequência de comportamentos",
-        "priority": true
+      "word": "PASSO",
+      "area": "Comportamento e aprendizagem",
+      "hint": "Etapa de uma sequência de comportamentos",
+      "priority": true
     },
     {
-        "word": "ANDAR",
-        "area": "Comportamento e aprendizagem",
-        "hint": "Ação motora de locomoção",
-        "priority": true
+      "word": "ANDAR",
+      "area": "Comportamento e aprendizagem",
+      "hint": "Ação motora de locomoção",
+      "priority": true
     },
     {
-        "word": "IMITA",
-        "area": "Comportamento e aprendizagem",
-        "hint": "Reproduz comportamentos observados em outros",
-        "priority": true
+      "word": "IMITA",
+      "area": "Comportamento e aprendizagem",
+      "hint": "Reproduz comportamentos observados em outros",
+      "priority": true
     },
     {
-        "word": "BUSCA",
-        "area": "Comportamento e aprendizagem",
-        "hint": "Comportamento direcionado a um objetivo",
-        "priority": true
+      "word": "BUSCA",
+      "area": "Comportamento e aprendizagem",
+      "hint": "Comportamento direcionado a um objetivo",
+      "priority": true
     },
     {
-        "word": "TENTA",
-        "area": "Comportamento e aprendizagem",
-        "hint": "Realiza uma tentativa de alcançar uma meta",
-        "priority": true
+      "word": "TENTA",
+      "area": "Comportamento e aprendizagem",
+      "hint": "Realiza uma tentativa de alcançar uma meta",
+      "priority": true
     },
     {
-        "word": "CUIDA",
-        "area": "Comportamento e aprendizagem",
-        "hint": "Pratica ações de atenção e cuidado",
-        "priority": true
+      "word": "CUIDA",
+      "area": "Comportamento e aprendizagem",
+      "hint": "Pratica ações de atenção e cuidado",
+      "priority": true
     },
     {
-        "word": "CRIAR",
-        "area": "Comportamento e aprendizagem",
-        "hint": "Produzir algo novo por processos criativos",
-        "priority": true
+      "word": "CRIAR",
+      "area": "Comportamento e aprendizagem",
+      "hint": "Produzir algo novo por processos criativos",
+      "priority": true
     },
     {
-        "word": "MUDAR",
-        "area": "Comportamento e aprendizagem",
-        "hint": "Modificar um padrão de ação ou pensamento",
-        "priority": true
+      "word": "MUDAR",
+      "area": "Comportamento e aprendizagem",
+      "hint": "Modificar um padrão de ação ou pensamento",
+      "priority": true
     },
     {
-        "word": "FIXAR",
-        "area": "Comportamento e aprendizagem",
-        "hint": "Consolidar uma informação ou aprendizagem",
-        "priority": true
+      "word": "FIXAR",
+      "area": "Comportamento e aprendizagem",
+      "hint": "Consolidar uma informação ou aprendizagem",
+      "priority": true
     },
     {
-        "word": "TOCAR",
-        "area": "Comportamento e aprendizagem",
-        "hint": "Interagir fisicamente por meio do tato",
-        "priority": true
+      "word": "TOCAR",
+      "area": "Comportamento e aprendizagem",
+      "hint": "Interagir fisicamente por meio do tato",
+      "priority": true
     },
     {
-        "word": "DANÇA",
-        "area": "Comportamento e aprendizagem",
-        "hint": "Movimento corporal organizado e expressivo",
-        "priority": true
+      "word": "DANÇA",
+      "area": "Comportamento e aprendizagem",
+      "hint": "Movimento corporal organizado e expressivo",
+      "priority": true
     },
     {
-        "word": "HÁBIL",
-        "area": "Comportamento e aprendizagem",
-        "hint": "Que demonstra competência em uma tarefa",
-        "priority": true
+      "word": "HÁBIL",
+      "area": "Comportamento e aprendizagem",
+      "hint": "Que demonstra competência em uma tarefa",
+      "priority": true
     },
     {
-        "word": "ÊXITO",
-        "area": "Comportamento e aprendizagem",
-        "hint": "Resultado positivo diante de uma meta",
-        "priority": true
+      "word": "ÊXITO",
+      "area": "Comportamento e aprendizagem",
+      "hint": "Resultado positivo diante de uma meta",
+      "priority": true
     },
     {
-        "word": "TESTA",
-        "area": "Comportamento e aprendizagem",
-        "hint": "Experimenta uma hipótese ou possibilidade",
-        "priority": true
+      "word": "TESTA",
+      "area": "Comportamento e aprendizagem",
+      "hint": "Experimenta uma hipótese ou possibilidade",
+      "priority": true
     },
     {
-        "word": "CEDER",
-        "area": "Comportamento e aprendizagem",
-        "hint": "Mudar de posição numa interação",
-        "priority": true
+      "word": "CEDER",
+      "area": "Comportamento e aprendizagem",
+      "hint": "Mudar de posição numa interação",
+      "priority": true
     },
     {
-        "word": "LÍDER",
-        "area": "Psicologia social e grupos",
-        "hint": "Pessoa que exerce influência ou coordenação num grupo",
-        "priority": true
+      "word": "LÍDER",
+      "area": "Psicologia social e grupos",
+      "hint": "Pessoa que exerce influência ou coordenação num grupo",
+      "priority": true
     },
     {
-        "word": "COESO",
-        "area": "Psicologia social e grupos",
-        "hint": "Característica de um grupo com união",
-        "priority": true
+      "word": "COESO",
+      "area": "Psicologia social e grupos",
+      "hint": "Característica de um grupo com união",
+      "priority": true
     },
     {
-        "word": "TURMA",
-        "area": "Psicologia social e grupos",
-        "hint": "Conjunto de pessoas que compartilham atividades",
-        "priority": true
+      "word": "TURMA",
+      "area": "Psicologia social e grupos",
+      "hint": "Conjunto de pessoas que compartilham atividades",
+      "priority": true
     },
     {
-        "word": "CLIMA",
-        "area": "Psicologia social e grupos",
-        "hint": "Percepção do ambiente de trabalho ou de grupo",
-        "priority": true
+      "word": "CLIMA",
+      "area": "Psicologia social e grupos",
+      "hint": "Percepção do ambiente de trabalho ou de grupo",
+      "priority": true
     },
     {
-        "word": "PACTO",
-        "area": "Psicologia social e grupos",
-        "hint": "Acordo estabelecido entre pessoas",
-        "priority": true
+      "word": "PACTO",
+      "area": "Psicologia social e grupos",
+      "hint": "Acordo estabelecido entre pessoas",
+      "priority": true
     },
     {
-        "word": "ORDEM",
-        "area": "Psicologia social e grupos",
-        "hint": "Organização de relações e regras coletivas",
-        "priority": true
+      "word": "ORDEM",
+      "area": "Psicologia social e grupos",
+      "hint": "Organização de relações e regras coletivas",
+      "priority": true
     },
     {
-        "word": "VOTOS",
-        "area": "Psicologia social e grupos",
-        "hint": "Expressões de escolha coletiva",
-        "priority": true
+      "word": "VOTOS",
+      "area": "Psicologia social e grupos",
+      "hint": "Expressões de escolha coletiva",
+      "priority": true
     },
     {
-        "word": "VOTAR",
-        "area": "Psicologia social e grupos",
-        "hint": "Participar de decisão coletiva",
-        "priority": true
+      "word": "VOTAR",
+      "area": "Psicologia social e grupos",
+      "hint": "Participar de decisão coletiva",
+      "priority": true
     },
     {
-        "word": "BOATO",
-        "area": "Psicologia social e grupos",
-        "hint": "Informação não confirmada que circula socialmente",
-        "priority": true
+      "word": "BOATO",
+      "area": "Psicologia social e grupos",
+      "hint": "Informação não confirmada que circula socialmente",
+      "priority": true
     },
     {
-        "word": "RUMOR",
-        "area": "Psicologia social e grupos",
-        "hint": "Mensagem disseminada sem verificação",
-        "priority": true
+      "word": "RUMOR",
+      "area": "Psicologia social e grupos",
+      "hint": "Mensagem disseminada sem verificação",
+      "priority": true
     },
     {
-        "word": "CARGO",
-        "area": "Psicologia social e grupos",
-        "hint": "Posição ocupada em uma organização",
-        "priority": true
+      "word": "CARGO",
+      "area": "Psicologia social e grupos",
+      "hint": "Posição ocupada em uma organização",
+      "priority": true
     },
     {
-        "word": "CARGA",
-        "area": "Psicologia social e grupos",
-        "hint": "Demandas e exigências da vida de trabalho",
-        "priority": true
+      "word": "CARGA",
+      "area": "Psicologia social e grupos",
+      "hint": "Demandas e exigências da vida de trabalho",
+      "priority": true
     },
     {
-        "word": "PAUTA",
-        "area": "Psicologia social e grupos",
-        "hint": "Tema levado à discussão coletiva",
-        "priority": true
+      "word": "PAUTA",
+      "area": "Psicologia social e grupos",
+      "hint": "Tema levado à discussão coletiva",
+      "priority": true
     },
     {
-        "word": "UNIDO",
-        "area": "Psicologia social e grupos",
-        "hint": "Condição de pessoas que atuam juntas",
-        "priority": true
+      "word": "UNIDO",
+      "area": "Psicologia social e grupos",
+      "hint": "Condição de pessoas que atuam juntas",
+      "priority": true
     },
     {
-        "word": "IGUAL",
-        "area": "Psicologia social e grupos",
-        "hint": "Ideia de equivalência ou igualdade",
-        "priority": true
+      "word": "IGUAL",
+      "area": "Psicologia social e grupos",
+      "hint": "Ideia de equivalência ou igualdade",
+      "priority": true
     },
     {
-        "word": "OUTRO",
-        "area": "Psicologia social e grupos",
-        "hint": "Pessoa ou posição distinta de si",
-        "priority": true
+      "word": "OUTRO",
+      "area": "Psicologia social e grupos",
+      "hint": "Pessoa ou posição distinta de si",
+      "priority": true
     },
     {
-        "word": "DIGNO",
-        "area": "Psicologia social e grupos",
-        "hint": "Relacionado ao respeito pela dignidade humana",
-        "priority": true
+      "word": "DIGNO",
+      "area": "Psicologia social e grupos",
+      "hint": "Relacionado ao respeito pela dignidade humana",
+      "priority": true
     },
     {
-        "word": "JUSTO",
-        "area": "Psicologia social e grupos",
-        "hint": "Relacionado a julgamentos de justiça",
-        "priority": true
+      "word": "JUSTO",
+      "area": "Psicologia social e grupos",
+      "hint": "Relacionado a julgamentos de justiça",
+      "priority": true
     },
     {
-        "word": "FALSO",
-        "area": "Psicologia social e grupos",
-        "hint": "Que não corresponde aos fatos",
-        "priority": true
+      "word": "FALSO",
+      "area": "Psicologia social e grupos",
+      "hint": "Que não corresponde aos fatos",
+      "priority": true
     },
     {
-        "word": "LEAIS",
-        "area": "Psicologia social e grupos",
-        "hint": "Pessoas que mantêm compromissos em vínculos",
-        "priority": true
+      "word": "LEAIS",
+      "area": "Psicologia social e grupos",
+      "hint": "Pessoas que mantêm compromissos em vínculos",
+      "priority": true
     },
     {
-        "word": "HONRA",
-        "area": "Psicologia social e grupos",
-        "hint": "Valor social associado à reputação",
-        "priority": true
+      "word": "HONRA",
+      "area": "Psicologia social e grupos",
+      "hint": "Valor social associado à reputação",
+      "priority": true
     },
     {
-        "word": "ÉLITE",
-        "area": "Psicologia social e grupos",
-        "hint": "Grupo que concentra prestígio ou poder",
-        "priority": true
+      "word": "ÉLITE",
+      "area": "Psicologia social e grupos",
+      "hint": "Grupo que concentra prestígio ou poder",
+      "priority": true
     },
     {
-        "word": "RENDA",
-        "area": "Psicologia social e grupos",
-        "hint": "Condição econômica com efeitos nas oportunidades sociais",
-        "priority": true
+      "word": "RENDA",
+      "area": "Psicologia social e grupos",
+      "hint": "Condição econômica com efeitos nas oportunidades sociais",
+      "priority": true
     },
     {
-        "word": "POBRE",
-        "area": "Psicologia social e grupos",
-        "hint": "Condição de insuficiência de recursos",
-        "priority": true
+      "word": "POBRE",
+      "area": "Psicologia social e grupos",
+      "hint": "Condição de insuficiência de recursos",
+      "priority": true
     },
     {
-        "word": "CASTA",
-        "area": "Psicologia social e grupos",
-        "hint": "Estrutura de estratificação social",
-        "priority": true
+      "word": "CASTA",
+      "area": "Psicologia social e grupos",
+      "hint": "Estrutura de estratificação social",
+      "priority": true
     },
     {
-        "word": "RIXAS",
-        "area": "Psicologia social e grupos",
-        "hint": "Conflitos ou disputas interpessoais",
-        "priority": true
+      "word": "RIXAS",
+      "area": "Psicologia social e grupos",
+      "hint": "Conflitos ou disputas interpessoais",
+      "priority": true
     },
     {
-        "word": "ALIAR",
-        "area": "Psicologia social e grupos",
-        "hint": "Estabelecer relação de apoio e cooperação",
-        "priority": true
+      "word": "ALIAR",
+      "area": "Psicologia social e grupos",
+      "hint": "Estabelecer relação de apoio e cooperação",
+      "priority": true
     },
     {
-        "word": "ETNIA",
-        "area": "Psicologia social e grupos",
-        "hint": "Identificação de pertencimento cultural",
-        "priority": true
+      "word": "ETNIA",
+      "area": "Psicologia social e grupos",
+      "hint": "Identificação de pertencimento cultural",
+      "priority": true
     },
     {
-        "word": "RIVAL",
-        "area": "Psicologia social e grupos",
-        "hint": "Indivíduo ou grupo percebido como concorrente",
-        "priority": true
+      "word": "RIVAL",
+      "area": "Psicologia social e grupos",
+      "hint": "Indivíduo ou grupo percebido como concorrente",
+      "priority": true
     },
     {
-        "word": "DEVER",
-        "area": "Psicologia social e grupos",
-        "hint": "Obrigação social ou moral",
-        "priority": true
+      "word": "DEVER",
+      "area": "Psicologia social e grupos",
+      "hint": "Obrigação social ou moral",
+      "priority": true
     },
     {
-        "word": "CREDO",
-        "area": "Psicologia social e grupos",
-        "hint": "Conjunto de crenças partilhadas",
-        "priority": true
+      "word": "CREDO",
+      "area": "Psicologia social e grupos",
+      "hint": "Conjunto de crenças partilhadas",
+      "priority": true
     },
     {
-        "word": "MITOS",
-        "area": "Psicologia social e grupos",
-        "hint": "Narrativas ou crenças passíveis de exame crítico",
-        "priority": true
+      "word": "MITOS",
+      "area": "Psicologia social e grupos",
+      "hint": "Narrativas ou crenças passíveis de exame crítico",
+      "priority": true
     },
     {
-        "word": "MASSA",
-        "area": "Psicologia social e grupos",
-        "hint": "Grande agrupamento de pessoas em dinâmica social",
-        "priority": true
+      "word": "MASSA",
+      "area": "Psicologia social e grupos",
+      "hint": "Grande agrupamento de pessoas em dinâmica social",
+      "priority": true
     },
     {
-        "word": "BEBÊS",
-        "area": "Família e desenvolvimento",
-        "hint": "Crianças no início do desenvolvimento",
-        "priority": true
+      "word": "BEBÊS",
+      "area": "Família e desenvolvimento",
+      "hint": "Crianças no início do desenvolvimento",
+      "priority": true
     },
     {
-        "word": "IDOSO",
-        "area": "Família e desenvolvimento",
-        "hint": "Pessoa em etapa avançada do ciclo vital",
-        "priority": true
+      "word": "IDOSO",
+      "area": "Família e desenvolvimento",
+      "hint": "Pessoa em etapa avançada do ciclo vital",
+      "priority": true
     },
     {
-        "word": "IDOSA",
-        "area": "Família e desenvolvimento",
-        "hint": "Pessoa em etapa avançada do ciclo vital",
-        "priority": true
+      "word": "IDOSA",
+      "area": "Família e desenvolvimento",
+      "hint": "Pessoa em etapa avançada do ciclo vital",
+      "priority": true
     },
     {
-        "word": "PRIMO",
-        "area": "Família e desenvolvimento",
-        "hint": "Parente na rede familiar ampliada",
-        "priority": true
+      "word": "PRIMO",
+      "area": "Família e desenvolvimento",
+      "hint": "Parente na rede familiar ampliada",
+      "priority": true
     },
     {
-        "word": "PRIMA",
-        "area": "Família e desenvolvimento",
-        "hint": "Parente na rede familiar ampliada",
-        "priority": true
+      "word": "PRIMA",
+      "area": "Família e desenvolvimento",
+      "hint": "Parente na rede familiar ampliada",
+      "priority": true
     },
     {
-        "word": "NETOS",
-        "area": "Família e desenvolvimento",
-        "hint": "Membros de geração posterior na família",
-        "priority": true
+      "word": "NETOS",
+      "area": "Família e desenvolvimento",
+      "hint": "Membros de geração posterior na família",
+      "priority": true
     },
     {
-        "word": "NETAS",
-        "area": "Família e desenvolvimento",
-        "hint": "Membros de geração posterior na família",
-        "priority": true
+      "word": "NETAS",
+      "area": "Família e desenvolvimento",
+      "hint": "Membros de geração posterior na família",
+      "priority": true
     },
     {
-        "word": "FILHA",
-        "area": "Família e desenvolvimento",
-        "hint": "Relação de filiação num sistema familiar",
-        "priority": true
+      "word": "FILHA",
+      "area": "Família e desenvolvimento",
+      "hint": "Relação de filiação num sistema familiar",
+      "priority": true
     },
     {
-        "word": "NOIVA",
-        "area": "Família e desenvolvimento",
-        "hint": "Pessoa em vínculo de compromisso para casamento",
-        "priority": true
+      "word": "NOIVA",
+      "area": "Família e desenvolvimento",
+      "hint": "Pessoa em vínculo de compromisso para casamento",
+      "priority": true
     },
     {
-        "word": "NOIVO",
-        "area": "Família e desenvolvimento",
-        "hint": "Pessoa em vínculo de compromisso para casamento",
-        "priority": true
+      "word": "NOIVO",
+      "area": "Família e desenvolvimento",
+      "hint": "Pessoa em vínculo de compromisso para casamento",
+      "priority": true
     },
     {
-        "word": "PARTO",
-        "area": "Família e desenvolvimento",
-        "hint": "Nascimento e transição para funções parentais",
-        "priority": true
+      "word": "PARTO",
+      "area": "Família e desenvolvimento",
+      "hint": "Nascimento e transição para funções parentais",
+      "priority": true
     },
     {
-        "word": "FETOS",
-        "area": "Família e desenvolvimento",
-        "hint": "Etapa do desenvolvimento pré-natal",
-        "priority": true
+      "word": "FETOS",
+      "area": "Família e desenvolvimento",
+      "hint": "Etapa do desenvolvimento pré-natal",
+      "priority": true
     },
     {
-        "word": "JOGOS",
-        "area": "Família e desenvolvimento",
-        "hint": "Atividades lúdicas importantes para desenvolvimento e socialização",
-        "priority": true
+      "word": "JOGOS",
+      "area": "Família e desenvolvimento",
+      "hint": "Atividades lúdicas importantes para desenvolvimento e socialização",
+      "priority": true
     },
     {
-        "word": "TEMPO",
-        "area": "Família e desenvolvimento",
-        "hint": "Dimensão que organiza fases do desenvolvimento",
-        "priority": true
+      "word": "TEMPO",
+      "area": "Família e desenvolvimento",
+      "hint": "Dimensão que organiza fases do desenvolvimento",
+      "priority": true
     },
     {
-        "word": "ROTAS",
-        "area": "Família e desenvolvimento",
-        "hint": "Trajetórias possíveis ao longo do ciclo de vida",
-        "priority": true
+      "word": "ROTAS",
+      "area": "Família e desenvolvimento",
+      "hint": "Trajetórias possíveis ao longo do ciclo de vida",
+      "priority": true
     },
     {
-        "word": "ADOTA",
-        "area": "Família e desenvolvimento",
-        "hint": "Verbo associado à formação familiar por adoção",
-        "priority": true
+      "word": "ADOTA",
+      "area": "Família e desenvolvimento",
+      "hint": "Verbo associado à formação familiar por adoção",
+      "priority": true
     },
     {
-        "word": "AMIGA",
-        "area": "Família e desenvolvimento",
-        "hint": "Pessoa com quem existe relação de amizade",
-        "priority": true
+      "word": "AMIGA",
+      "area": "Família e desenvolvimento",
+      "hint": "Pessoa com quem existe relação de amizade",
+      "priority": true
     },
     {
-        "word": "VIDAS",
-        "area": "Família e desenvolvimento",
-        "hint": "Experiências e trajetórias humanas",
-        "priority": true
+      "word": "VIDAS",
+      "area": "Família e desenvolvimento",
+      "hint": "Experiências e trajetórias humanas",
+      "priority": true
     },
     {
-        "word": "VITAL",
-        "area": "Família e desenvolvimento",
-        "hint": "Aquilo que é essencial à manutenção da vida",
-        "priority": true
+      "word": "VITAL",
+      "area": "Família e desenvolvimento",
+      "hint": "Aquilo que é essencial à manutenção da vida",
+      "priority": true
     },
     {
-        "word": "FREUD",
-        "area": "Avaliação, pesquisa e história da Psicologia",
-        "hint": "Autor histórico central na construção da psicanálise",
-        "priority": true
+      "word": "FALTA",
+      "area": "Psicanálise",
+      "hint": "Conceito relacionado ao desejo e à constituição do sujeito",
+      "priority": true
     },
     {
-        "word": "LACAN",
-        "area": "Avaliação, pesquisa e história da Psicologia",
-        "hint": "Autor associado à tradição psicanalítica",
-        "priority": true
+      "word": "SIGNO",
+      "area": "Psicologia da linguagem",
+      "hint": "Elemento que representa ou remete a um significado",
+      "priority": true
     },
     {
-        "word": "KLEIN",
-        "area": "Avaliação, pesquisa e história da Psicologia",
-        "hint": "Autora de contribuições à psicanálise da infância",
-        "priority": true
+      "word": "TOTEM",
+      "area": "Psicanálise",
+      "hint": "Símbolo coletivo discutido em Totem e tabu",
+      "priority": true
     },
     {
-        "word": "ADLER",
-        "area": "Avaliação, pesquisa e história da Psicologia",
-        "hint": "Autor da escola histórica de Psicologia Individual",
-        "priority": true
+      "word": "GOZOS",
+      "area": "Psicanálise",
+      "hint": "Formas de satisfação discutidas na teoria psicanalítica",
+      "priority": true
     },
     {
-        "word": "LAPSO",
-        "area": "Avaliação, pesquisa e história da Psicologia",
-        "hint": "Falha involuntária de fala ou memória",
-        "priority": true
+      "word": "LAPSO",
+      "area": "Avaliação, pesquisa e história da Psicologia",
+      "hint": "Falha involuntária de fala ou memória",
+      "priority": true
     },
     {
-        "word": "TESES",
-        "area": "Avaliação, pesquisa e história da Psicologia",
-        "hint": "Afirmações defendidas em argumentos ou pesquisas",
-        "priority": true
+      "word": "TESES",
+      "area": "Avaliação, pesquisa e história da Psicologia",
+      "hint": "Afirmações defendidas em argumentos ou pesquisas",
+      "priority": true
     },
     {
-        "word": "MÉDIA",
-        "area": "Avaliação, pesquisa e história da Psicologia",
-        "hint": "Medida estatística de tendência central",
-        "priority": true
+      "word": "MÉDIA",
+      "area": "Avaliação, pesquisa e história da Psicologia",
+      "hint": "Medida estatística de tendência central",
+      "priority": true
     },
     {
-        "word": "TAXAS",
-        "area": "Avaliação, pesquisa e história da Psicologia",
-        "hint": "Proporções de ocorrência em um conjunto",
-        "priority": true
+      "word": "TAXAS",
+      "area": "Avaliação, pesquisa e história da Psicologia",
+      "hint": "Proporções de ocorrência em um conjunto",
+      "priority": true
     },
     {
-        "word": "FATOR",
-        "area": "Avaliação, pesquisa e história da Psicologia",
-        "hint": "Variável relacionada a um fenômeno",
-        "priority": true
+      "word": "FATOR",
+      "area": "Avaliação, pesquisa e história da Psicologia",
+      "hint": "Variável relacionada a um fenômeno",
+      "priority": true
     },
     {
-        "word": "ITENS",
-        "area": "Avaliação, pesquisa e história da Psicologia",
-        "hint": "Perguntas ou enunciados de um instrumento de avaliação",
-        "priority": true
+      "word": "ITENS",
+      "area": "Avaliação, pesquisa e história da Psicologia",
+      "hint": "Perguntas ou enunciados de um instrumento de avaliação",
+      "priority": true
     },
     {
-        "word": "RÉGUA",
-        "area": "Avaliação, pesquisa e história da Psicologia",
-        "hint": "Instrumento de medida; metáfora de escala",
-        "priority": true
+      "word": "RÉGUA",
+      "area": "Avaliação, pesquisa e história da Psicologia",
+      "hint": "Instrumento de medida; metáfora de escala",
+      "priority": true
     },
     {
-        "word": "GRAUS",
-        "area": "Avaliação, pesquisa e história da Psicologia",
-        "hint": "Níveis de intensidade de uma característica",
-        "priority": true
+      "word": "GRAUS",
+      "area": "Avaliação, pesquisa e história da Psicologia",
+      "hint": "Níveis de intensidade de uma característica",
+      "priority": true
     },
     {
-        "word": "NOTAS",
-        "area": "Avaliação, pesquisa e história da Psicologia",
-        "hint": "Registros ou resultados de uma avaliação",
-        "priority": true
+      "word": "NOTAS",
+      "area": "Avaliação, pesquisa e história da Psicologia",
+      "hint": "Registros ou resultados de uma avaliação",
+      "priority": true
     },
     {
-        "word": "PROVA",
-        "area": "Avaliação, pesquisa e história da Psicologia",
-        "hint": "Procedimento para verificar aprendizagem",
-        "priority": true
+      "word": "PROVA",
+      "area": "Avaliação, pesquisa e história da Psicologia",
+      "hint": "Procedimento para verificar aprendizagem",
+      "priority": true
     },
     {
-        "word": "RIGOR",
-        "area": "Avaliação, pesquisa e história da Psicologia",
-        "hint": "Cuidado metodológico numa investigação",
-        "priority": true
+      "word": "RIGOR",
+      "area": "Avaliação, pesquisa e história da Psicologia",
+      "hint": "Cuidado metodológico numa investigação",
+      "priority": true
     },
     {
-        "word": "FÓRUM",
-        "area": "Avaliação, pesquisa e história da Psicologia",
-        "hint": "Espaço de debate ou contexto judicial",
-        "priority": true
+      "word": "FÓRUM",
+      "area": "Avaliação, pesquisa e história da Psicologia",
+      "hint": "Espaço de debate ou contexto judicial",
+      "priority": true
     },
     {
-        "word": "CENAS",
-        "area": "Avaliação, pesquisa e história da Psicologia",
-        "hint": "Situações observadas num relato ou intervenção",
-        "priority": true
+      "word": "CENAS",
+      "area": "Avaliação, pesquisa e história da Psicologia",
+      "hint": "Situações observadas num relato ou intervenção",
+      "priority": true
     },
     {
-        "word": "LEITO",
-        "area": "Avaliação, pesquisa e história da Psicologia",
-        "hint": "Local de atendimento em contexto hospitalar",
-        "priority": true
+      "word": "LEITO",
+      "area": "Avaliação, pesquisa e história da Psicologia",
+      "hint": "Local de atendimento em contexto hospitalar",
+      "priority": true
     },
     {
-        "word": "ACUSA",
-        "area": "Avaliação, pesquisa e história da Psicologia",
-        "hint": "Atribui responsabilidade em contexto de conflito",
-        "priority": true
+      "word": "ACUSA",
+      "area": "Avaliação, pesquisa e história da Psicologia",
+      "hint": "Atribui responsabilidade em contexto de conflito",
+      "priority": true
     },
     {
-        "word": "CERNE",
-        "area": "Avaliação, pesquisa e história da Psicologia",
-        "hint": "Questão central de um problema",
-        "priority": true
+      "word": "CERNE",
+      "area": "Avaliação, pesquisa e história da Psicologia",
+      "hint": "Questão central de um problema",
+      "priority": true
     },
     {
-        "word": "VALIA",
-        "area": "Avaliação, pesquisa e história da Psicologia",
-        "hint": "Valor atribuído a si ou a uma realização",
-        "priority": true
+      "word": "VALIA",
+      "area": "Avaliação, pesquisa e história da Psicologia",
+      "hint": "Valor atribuído a si ou a uma realização",
+      "priority": true
     }
   ],
   "connectionGroups": [
