@@ -36,11 +36,127 @@ const content=[
 ];
 /* Redação concisa reservada às afirmações dos simulados. A revisão usa as explicações completas acima. */
 const examDefinitions=["A primeira tópica distingue consciente, pré-consciente e inconsciente. A segunda descreve id, ego e superego, instâncias que também podem operar inconscientemente.","O id é o polo pulsional, predominantemente inconsciente, orientado pelo prazer e pelo processo primário, sem avaliação moral ou teste da realidade.","O ego se diferencia do id, considera a realidade, medeia exigências, participa do planejamento e das defesas e possui partes conscientes e inconscientes.","O superego se constitui por identificações e internalizações, reúne ideais e proibições, exerce autocrítica, relaciona-se à culpa e pode atuar inconscientemente.","O ego negocia as demandas do id, as cobranças do superego e os limites externos; pode planejar, adiar satisfações e recorrer a defesas.","O ego surge gradualmente por diferenciação do id e se organiza por experiências corporais, relações significativas, identificações e contato com a realidade.","Os três senhores são o id, o superego e a realidade externa. Suas exigências podem ser incompatíveis, exigindo mediação do ego.","O superego pode produzir culpa por desejos, fantasias ou ações contrárias a exigências internalizadas; a culpa não prova uma transgressão real.","O ideal do ego reúne modelos internalizados de como a pessoa acredita que deveria ser; o superego pode compará-la a esses ideais e produzir autocrítica.","Na formulação freudiana, o Édipo envolve desejos, rivalidades, identificações e limites nas relações infantis com figuras cuidadoras.","Segundo Freud, a sexualidade adulta se organiza a partir da sexualidade infantil, por transformações, identificações, escolhas de objeto e reorganização na puberdade.","Na linguagem psicanalítica, o investimento libidinal no cuidado participa da constituição de vínculos, prazer e imagem corporal; não autoriza qualquer abuso.","Na teoria freudiana, a escolha especial de objeto envolve condições particulares e fantasias inconscientes ligadas à história afetiva, sem classificação moral da relação.","Para Freud, o recalcamento mantém representações conflitivas fora da consciência, mas elas podem retornar de modo transformado em sintomas e outras formações psíquicas.","No modelo clássico de Freud, a sexualidade infantil envolve diferentes zonas de prazer e pulsões parciais; a adulta passa por reorganização e maior primazia genital.","Na hipótese histórica de Freud, o falo é referência privilegiada na organização sexual infantil, articulada a fantasias sobre diferenças corporais e à problemática edípica.","Na hipótese clássica de Freud, algumas crianças projetam sobre outros seres a organização genital que conhecem; a formulação não descreve um comportamento universal.","Na relação edípica, a função de terceiro apresenta limites à fantasia de exclusividade entre criança e cuidador, sem depender necessariamente do pai biológico.","A triangulação edípica envolve a percepção de um terceiro vínculo significativo, com desejos, limites, rivalidades e identificações na leitura freudiana.","Uma figura torna-se referência de identificação por ocupar lugar significativo nas relações do cuidador principal, e não apenas por existir fisicamente.","Na teoria de Freud, a elaboração edípica e as identificações participam da constituição do superego pela internalização de ideais, valores e proibições.","A pulsão é, para Freud, uma exigência constante de trabalho psíquico com fonte somática, que busca satisfação por meio de objetos variáveis.","A distinção usual contrapõe o instinto, ligado a padrões biológicos relativamente fixos, à pulsão freudiana, cujos objetos e caminhos de satisfação são mais variáveis.","O primeiro dualismo opõe pulsões sexuais e de autoconservação; o segundo articula pulsões de vida (Eros) e pulsões de morte, reformulando o conflito.","No primeiro dualismo, pulsões sexuais relacionam-se à satisfação libidinal, enquanto as de autoconservação estão ligadas a necessidades de sobrevivência.","Freud reconsiderou o primeiro dualismo ao estudar o investimento libidinal no ego, a compulsão à repetição e fenômenos que excediam a busca do prazer.","A pulsão possui fonte corporal, mas exige representação e trabalho psíquico. Por isso, Freud a descreve como conceito-limite entre somático e psíquico.","Fonte é a origem somática; pressão é a exigência constante; finalidade é a satisfação; objeto é aquilo por meio do qual essa satisfação se realiza."];
+/* Erros conceituais plausíveis e suas correções: exclusivos da revisão.
+   As alternativas dos simulados preservam o campo myth original. */
+const reviewMistakes=[
+  [
+    "A segunda tópica substitui a primeira; depois de Freud propor id, ego e superego, já não faz sentido distinguir consciente, pré-consciente e inconsciente.",
+    "Os dois modelos tratam de aspectos diferentes e podem ser articulados. A segunda tópica não apaga a primeira, e tanto o ego quanto o superego possuem processos inconscientes."
+  ],
+  [
+    "Se um impulso é adiado, deixa de ser uma exigência do id, porque a ação passou a ser decidida pelo ego.",
+    "O adiamento pode resultar da mediação do ego, mas a exigência pulsional do id continua existindo. O id não se confunde com o comportamento impulsivo que chega a ser realizado."
+  ],
+  [
+    "Como o ego considera a realidade, suas decisões e seus mecanismos de defesa são sempre conscientes.",
+    "O ego também possui processos inconscientes. Mecanismos de defesa podem ser mobilizados sem deliberação ou percepção consciente da pessoa."
+  ],
+  [
+    "O superego corresponde apenas às proibições interiorizadas; os ideais de como alguém deveria ser são construídos exclusivamente pelo ego.",
+    "O superego não é só censura. Ele também se relaciona com ideais internalizados, autocrítica e exigências que podem ser inconscientes."
+  ],
+  [
+    "A mediação do ego é bem-sucedida quando ele consegue eliminar definitivamente o conflito entre desejo e proibição.",
+    "Mediar não é suprimir as exigências do id ou do superego. O ego busca saídas possíveis diante da realidade, mas tensões e angústias podem permanecer."
+  ],
+  [
+    "A constituição do ego começa principalmente quando a criança entende regras e passa a raciocinar; as experiências corporais têm pouca participação.",
+    "Na formulação freudiana, o ego se diferencia gradualmente do id em ligação com o corpo, a percepção, as relações e as identificações. Não começa apenas com o pensamento racional."
+  ],
+  [
+    "Como o superego e o mundo externo impõem limites, eles representam um mesmo senhor do ego; os conflitos se resumem a desejo versus proibição.",
+    "Freud distingue três fontes de exigência: id, superego e realidade externa. A norma internalizada pode até contrariar o que é possível ou permitido no mundo externo."
+  ],
+  [
+    "A intensidade da culpa indica a gravidade da transgressão cometida, ainda que a pessoa não consiga recordar o ato.",
+    "Na teoria freudiana, o superego também pode censurar desejos e fantasias. Culpa intensa não comprova que houve uma ação efetiva nem mede objetivamente sua gravidade."
+  ],
+  [
+    "O ideal do ego consiste nas metas que a pessoa escolhe conscientemente; o superego, por sua vez, guarda somente regras impostas na infância.",
+    "O ideal do ego envolve modelos internalizados e identificações, nem sempre conscientes. Sua relação com o superego é mais complexa que a separação entre metas escolhidas e proibições."
+  ],
+  [
+    "Para reconhecer o Édipo, é necessário observar uma rivalidade explícita entre a criança e um cuidador; fantasias e identificações, por si, não fazem parte do fenômeno.",
+    "O complexo de Édipo é uma construção psicanalítica que inclui desejos, rivalidades e identificações inconscientes. Não exige uma cena literal e observável idêntica em todas as famílias."
+  ],
+  [
+    "Freud descreveu prazer infantil, mas a sexualidade propriamente dita só aparece na puberdade, substituindo as vivências anteriores.",
+    "Na teoria freudiana, a sexualidade infantil já existe e tem formas próprias de satisfação. A puberdade reorganiza essa história, em vez de iniciá-la do zero."
+  ],
+  [
+    "O investimento libidinal dos cuidadores é apenas a quantidade de cuidados práticos e carinho consciente oferecidos à criança.",
+    "Investimento libidinal refere-se ao investimento psíquico no vínculo, que também participa da constituição subjetiva e da imagem de si. Não se reduz a tarefas de cuidado nem significa erotização adulta da criança."
+  ],
+  [
+    "Repetir um tipo de parceiro amoroso significa que a pessoa decidiu conscientemente reproduzir suas experiências infantis.",
+    "Na escolha especial de objeto, Freud considera condições e fantasias inconscientes. Uma repetição pode ser significativa sem representar uma decisão consciente nem explicar todas as escolhas."
+  ],
+  [
+    "Se algo recalcado aparece em sonho ou sintoma, o recalcamento não ocorreu de verdade: houve apenas esquecimento.",
+    "O retorno indireto do recalcado é compatível com o próprio mecanismo. Recalcamento não é esquecimento voluntário nem desaparecimento definitivo do conflito."
+  ],
+  [
+    "As pulsões parciais infantis seriam apenas preparações para a sexualidade genital; antes da puberdade, ainda não haveria formas de satisfação sexual com importância própria.",
+    "Freud atribui formas específicas de satisfação à sexualidade infantil. A primazia genital descrita no desenvolvimento posterior não reduz essas experiências a versões incompletas do ato sexual adulto."
+  ],
+  [
+    "O monismo fálico é uma descrição anatômica de Freud sobre como os corpos realmente são, e não uma hipótese sobre interpretações infantis das diferenças.",
+    "Trata-se de uma hipótese histórica da teoria sobre a organização e as teorias sexuais infantis. Ela não estabelece uma verdade anatômica universal nem equivale à organização genital adulta."
+  ],
+  [
+    "As teorias sexuais infantis são sobretudo ideias transmitidas pelos adultos; hipóteses inventadas pela própria criança não entram nessa categoria.",
+    "O conceito inclui precisamente as explicações que a criança constrói a partir de curiosidade, experiências e fantasias, mesmo quando dialogam com informações recebidas de adultos."
+  ],
+  [
+    "A função do terceiro é exercida necessariamente pelo pai biológico presente, pois somente essa figura introduz limites na relação criança-cuidador.",
+    "A função é relacional e simbólica: mostra que a relação não é exclusiva e que há outros vínculos e limites. Não depende automaticamente da presença física de um pai biológico."
+  ],
+  [
+    "A triangulação edípica se estabelece assim que existe uma terceira pessoa na rotina familiar, mesmo que não haja reconhecimento de outro vínculo significativo.",
+    "A triangulação diz respeito à organização das relações, dos desejos e dos limites percebidos pela criança. A simples presença ou contagem de pessoas não basta."
+  ],
+  [
+    "O papel formal de pai ou mãe determina por si a referência de identificação; os vínculos afetivos servem apenas para reforçar esse lugar já dado.",
+    "A referência de identificação depende do lugar ocupado nas relações e do reconhecimento da criança. Parentesco ou denominação familiar não garantem, isoladamente, a função psíquica."
+  ],
+  [
+    "O superego aparece assim que a criança obedece às regras; a elaboração do Édipo apenas aumenta o rigor dessas regras, sem transformá-las em exigências internas.",
+    "Na segunda tópica freudiana, identificações e elaboração edípica participam da constituição do superego. Obediência a uma autoridade presente não equivale à internalização de ideais e proibições."
+  ],
+  [
+    "Por surgir de uma necessidade corporal, a pulsão tem um objeto de satisfação previamente definido pela biologia; só varia a maneira de alcançá-lo.",
+    "Para Freud, a fonte da pulsão é somática, mas o objeto pelo qual se busca satisfação é variável. Confundir pulsão com um roteiro biológico de objeto fixo apaga esse aspecto central."
+  ],
+  [
+    "Como algumas traduções usam 'instinct' para Trieb, pulsão e instinto podem ser considerados equivalentes em qualquer explicação de Freud.",
+    "A tradução é controversa e não elimina as distinções conceituais. Didaticamente, a pulsão freudiana admite variações de objeto e destino que não devem ser apagadas pela ideia de instinto fixo."
+  ],
+  [
+    "Eros é só um nome novo para as pulsões sexuais do primeiro dualismo, enquanto pulsão de morte corresponde às antigas pulsões de autoconservação.",
+    "O segundo dualismo reformula a oposição teórica, não apenas os nomes. Eros envolve ligação e conservação; a pulsão de morte não é uma renomeação da autoconservação."
+  ],
+  [
+    "No primeiro dualismo, somente o prazer genital pertence às pulsões sexuais; o prazer de outras experiências corporais fica sempre com a autoconservação.",
+    "Sexualidade, em Freud, é mais ampla que atividade genital e inclui satisfações parciais. Autoconservação refere-se às exigências ligadas à manutenção da vida, não a todo prazer não genital."
+  ],
+  [
+    "A revisão da teoria pulsional ocorreu apenas porque Freud passou a admitir libido investida no próprio ego; a repetição de experiências penosas não mudou sua explicação.",
+    "O narcisismo complicou o primeiro dualismo, mas a compulsão à repetição e os fenômenos além da busca imediata do prazer também contribuíram para a reformulação."
+  ],
+  [
+    "Como tem fonte no corpo, a pulsão pode ser explicada integralmente pela fisiologia; suas representações psíquicas são só consequências secundárias.",
+    "Freud trata a pulsão como conceito-limite entre somático e psíquico: há fonte corporal, mas também exigência de trabalho e representação no aparelho psíquico."
+  ],
+  [
+    "Quando uma pulsão busca uma pessoa ou objeto, essa pessoa ou objeto é sua finalidade; a satisfação ocorre depois e é apenas uma consequência.",
+    "A finalidade ou meta da pulsão é a satisfação, enquanto o objeto é aquilo por meio do qual ela pode ser alcançada. Fonte é a origem somática; pressão é a força da exigência."
+  ]
+];
 const topics=content.map(([title,definition,scenario,myth],index)=>{
  const q=original.questions[index];
  return {id:'meta-p2-q'+(index+1),n:index+1,title,section:q.section,
-  question:q.question,definition,examDefinition:examDefinitions[index],scenario,myth,affirmation:definition,incorrect:myth,
-  explanation:q.explanation,whyWrong:q.explanation,contrast:q.contrast};
+  question:q.question,definition,examDefinition:examDefinitions[index],scenario,myth,affirmation:definition,incorrect:reviewMistakes[index][0],
+  explanation:q.explanation,whyWrong:reviewMistakes[index][1],contrast:q.contrast};
 });
-window.PSICO_META_P2_PRACTICE={version:'2026-11-23-28q-revisao-detalhada-simulado-conciso-v3',topics};
+window.PSICO_META_P2_PRACTICE={version:'2026-11-23-28q-confusoes-conceituais-v4',topics};
 })();
