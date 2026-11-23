@@ -260,7 +260,17 @@ function renderShelf(){
  updateGrammarProgress();
  requestAnimationFrame(fitCoverTitles);
 }
+// Apenas o identificador público da disciplina; nunca nomes personalizados, páginas ou anotações.
+function reportNotebookRoute(){
+ const predefined=!shelfOpen&&SUBJECT_BOOKS.find(book=>book.id===data.bookId);
+ const subject=predefined?predefined.id.replace(/^materia-(?:20\d{2}-[12]-)?/,'').replace(/^metapsicologia$/,'meta'):null;
+ try{
+  if(window.parent!==window&&window.parent.location.origin===location.origin)
+   window.parent.PSICO_VISIT_PATH?.recordNotebook?.(subject,SEMESTER,window);
+ }catch(_){}
+}
 function syncNotebookUI(){
+ reportNotebookRoute();
  const writtenDate=String(page().date||'');
  const readDate=$('nbPaperDateRead');
  if(readDate){readDate.hidden=!writtenDate;readDate.textContent=writtenDate?new Date(writtenDate+'T12:00:00').toLocaleDateString('pt-BR'):'';}

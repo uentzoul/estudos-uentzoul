@@ -12,6 +12,8 @@ const STORAGE_KEY='psicomoodle_visit_path_v1';
 let key=null,identity=null,authToken=null,queue=Promise.resolve(),ready=false,lastRoute='',ending=false;
 let countryCode=null,countryStarted=false,countryApplied=false;
 let extrasFrame=null,extrasDetail=null;
+let notebookFrame=null,notebookSemester=null,notebookDetail=null;
+const notebookSubjects=new Set(['profissao','processos','direitos','epistemologia','historia','sociocognitivas','desenvolvimento','familia','avaliacao','tcc','social','meta','grupos','inteligencia','basesbiologicas','psicopatologia','observacao','grupos2','psiquismo','escolar','etica']);
 const games=new Set(['psico','contexto','conexo','tetris']);
 try{const cached=sessionStorage.getItem('psicomoodle_origin_country_v1');if(/^[A-Z]{2}$/.test(cached||''))countryCode=cached;}catch(_){}
 const app=()=>window.uentzoulAIAuth;
@@ -29,6 +31,13 @@ const stored=()=>{try{return sessionStorage.getItem(STORAGE_KEY)}catch(_){return
 const save=v=>{try{if(v)sessionStorage.setItem(STORAGE_KEY,v);else sessionStorage.removeItem(STORAGE_KEY)}catch(_){}};
 const current=()=>{
  const route=window.uentzoulCurrentRoute?.()||{page:'home',semester:'2026/2'};
+ const frame=document.getElementById('uentzoulCadernoFrame');
+ if(window.PSICO_NOTEBOOK_ACTIVE?.()&&frame&&!frame.dataset.nbLocked){
+  const semester=frame.dataset.nbSemester||route.semester;
+  if(frame!==notebookFrame||semester!==notebookSemester){notebookFrame=frame;notebookSemester=semester;notebookDetail=null;}
+  return {page:'caderno',semester,detail:notebookDetail};
+ }
+ notebookFrame=null;notebookSemester=null;notebookDetail=null;
  if(document.getElementById('vr-root'))return {page:'vacation',semester:route.semester};
  if(route.page==='extras'){
   const frame=document.getElementById('psicoExtrasFrame');
@@ -48,6 +57,7 @@ function normalize(info={}){
   const area=clean(info.subjectArea,32);
   detail=subject?(subject+(area?':'+area:'')):null;
  }
+ if(page==='caderno'&&notebookSubjects.has(info.detail))detail=info.detail;
  if(page==='extras'){
   const [game,action]=String(info.detail||'').split(':');
   if(games.has(game))detail=game+(action==='played'?':played':'');
@@ -181,6 +191,15 @@ function recordExtra(game,played,source){
  extrasDetail=detail;
  void navigate({...route,detail});
 }
+function recordNotebook(subject,semester,source){
+ if(ending||!window.PSICO_NOTEBOOK_ACTIVE?.())return;
+ const frame=document.getElementById('uentzoulCadernoFrame');
+ if(!frame||frame.dataset.nbLocked||frame.contentWindow!==source||frame.dataset.nbSemester!==semester)return;
+ const route=current();
+ if(route.page!=='caderno')return;
+ notebookDetail=notebookSubjects.has(subject)?subject:null;
+ void navigate({...route,detail:notebookDetail});
+}
 function refocus(){
  if(document.visibilityState!=='visible'||ending)return;
  void sync().then(ok=>{if(ok){void navigate(current());void rpc('heartbeat');}});
@@ -216,7 +235,7 @@ window.addEventListener('pagehide',()=>{
 window.addEventListener('pageshow',event=>{
  if(event.persisted){ending=false;ready=false;identity=null;key=null;void sync().then(ok=>{if(ok)void navigate(current());});}
 });
-window.PSICO_VISIT_PATH={status:()=>({ready:!!ready,anonymous:identity==='anonymous'}),recordExtra};
+window.PSICO_VISIT_PATH={status:()=>({ready:!!ready,anonymous:identity==='anonymous'}),recordExtra,recordNotebook};
 let attempts=0;
 function start(){
  if(client()){loadCountry();void sync().then(ok=>{if(ok)void navigate(current());});}

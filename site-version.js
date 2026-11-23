@@ -293,7 +293,7 @@ setTimeout(check,15000);
   }
   return semesters.includes(value)?value:'2026/2';
  }
- const notebookUrl=()=>('./caderno.html?v=20261120-biblioteca-agenda-v3&semester='+
+ const notebookUrl=()=>('./caderno.html?v=20261123-notebook-log-v1&semester='+
    encodeURIComponent(selectedSemester()));
  function addStyles(){
   if(document.getElementById(STYLE_ID))return;
@@ -368,6 +368,7 @@ setTimeout(check,15000);
   });
   document.querySelectorAll('#nav [data-page].active').forEach(n=>n.classList.remove('active'));
   document.getElementById(NAV_ID)?.classList.add('active');
+  window.dispatchEvent(new CustomEvent('uentzoul:route',{detail:{page:'caderno',semester:selectedSemester()}}));
   window.pmMobileDrawer?.close?.();
   try{window.scrollTo({top:0,behavior:'instant'})}catch(_){}
   requestAnimationFrame(fitNotebookHeight);

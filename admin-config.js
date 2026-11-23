@@ -279,6 +279,10 @@ function visitTitle(step){
   const base=VISIT_SUBJECTS[parts[0]]||'uma disciplina';
   return 'Acessou '+base+(parts[1]&&VISIT_AREAS[parts[1]]?' · '+VISIT_AREAS[parts[1]]:'');
  }
+ if(step.section==='caderno'){
+  const name=VISIT_SUBJECTS[step.detail];
+  return name?'Abriu o caderno de '+name:'Acessou a estante de Cadernos';
+ }
  if(step.section==='extras'){
   const [game,action]=String(step.detail||'').split(':');
   const names={psico:'PSICO',contexto:'CONTEXTO',conexo:'VÍNCULO',tetris:'TetrisZoul'};
