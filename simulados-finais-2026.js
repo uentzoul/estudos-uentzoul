@@ -18,7 +18,7 @@ const evalScope=new Set(['Entrevista de devolução','Linguagem e comunicação 
 const norm=x=>String(x||'').replace(/\s+/g,' ').trim().replace(/[.?!]+$/,'');
 const get=(a,i)=>a[((i%a.length)+a.length)%a.length];
 const context=t=>t.scenario||'Uma pessoa apresenta demanda que exige avaliação atenta às condições de vida e ao contexto.';
-const definition=t=>norm(t.definition);
+const definition=t=>norm(t.examDefinition||t.definition);
 const invalid=t=>norm(t.myth||'Uma única característica seria suficiente para interpretar todos os casos, independentemente do contexto.');
 function curated(db,id){
  let items=id==='social'?[...(window.PSICOMOODLE_NEW_CONTENT?.social||[])]:[...(db.topics[id]||[])];
