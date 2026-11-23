@@ -11,6 +11,7 @@ let lastLogGesture=0,logRenderTimer=null,lastLogRenderKey='';
 let secretLogOpen=false,secretLogClicks=0,lastSecretLogClick=0;
 let botRuns=[],lastBotRuns=0,botRunsError='',botRunsLoading=false;
 let selectedVisitId=null,selectedPresenceId=null,visitSteps=[],visitLoading=false,visitError='',logLimit=200,hasMoreEntries=false;
+let visitRefreshBusy=false;
 let guestOnlineCount=null,lastGuestCount=0,guestCountError='';
 let guestPingBusy=false,lastGuestPing=0;
 const GUEST_SESSION_KEY='pm_guest_online_session_v1';
@@ -220,7 +221,7 @@ async function loadAccess(){
    const isTest=r.actor==='anonymous'&&marked.has(String(r.id));
    return {...r,isTest,name:r.actor==='anonymous'?(isTest?'Meu teste anônimo':'Visitante anônimo'):names.get(r.user_id)||'Usuário cadastrado'};
   });
-  lastLog=Date.now();logError='';updateLogPanel();if(ACTIVITY_TABS.has(logTab))void loadVisitActivity();
+  lastLog=Date.now();logError='';updateLogPanel();if(ACTIVITY_TABS.has(logTab))void loadVisitActivity();void refreshSelectedVisit();
  }catch(e){logError='Não foi possível carregar o histórico de entradas.';updateLogPanel();console.warn('Log indisponível:',e)}
 }
 // Histórico do robô oficial obtido de execuções do GitHub Actions.
@@ -403,6 +404,25 @@ function visitDetail(row){
  finally{if(selectedVisitId===String(id)){visitLoading=false;updateVisitExpansion();
   // Sem scrollIntoView: no iPhone ele pode deslocar também a página inteira.
  }}
+}
+async function refreshSelectedVisit(){
+ if(!isAdmin()||!secretLogOpen||!selectedVisitId||visitLoading||visitRefreshBusy)return;
+ const id=selectedVisitId;
+ const record=accessLog.find(row=>String(row.id)===id);
+ if(!record)return;
+ visitRefreshBusy=true;
+ try{
+  const {data,error}=await client().from('uentzoul_visit_steps')
+   .select('id,kind,section,detail,semester,happened_at')
+   .eq('access_id',record.id).order('happened_at',{ascending:true}).order('id',{ascending:true}).limit(100);
+  if(error)throw error;
+  if(selectedVisitId!==id||visitLoading||!secretLogOpen)return;
+  const next=data||[];
+  if(visitError||JSON.stringify(next)!==JSON.stringify(visitSteps)){
+   visitError='';visitSteps=next;updateLogPanel();
+  }
+ }catch(error){console.warn('Atualização do percurso indisponível:',error?.message||error);}
+ finally{visitRefreshBusy=false;}
 }
 function logMarkup(){
  if(logTab==='bots')return botLogMarkup();
@@ -709,7 +729,7 @@ setInterval(()=>{if(document.visibilityState==='visible'){refresh();heartbeat();
 // Mantém o painel online atualizando enquanto o administrador o consulta.
 setInterval(()=>{
  if(!isAdmin()||!logOpen||!document.getElementById('adminConfigPage')||document.visibilityState!=='visible')return;
- void loadPresence();void loadGuestOnline();
+ void loadPresence();void loadGuestOnline();if(secretLogOpen)void loadAccess();
 },20000);
 window.uentzoulAdminConfig={isAdmin,render,afterRender,refresh,loadPresence,loadReports};
 let tries=0;
