@@ -204,7 +204,7 @@ async function loadVisitActivity(force=false){
   console.warn('Classificação de visitas indisponível:',error?.message||error);
  }finally{visitActivityLoading=false;updateLogPanel()}
 }
-const accessFields='id,user_id,actor,entered_at,last_seen_at,ended_at,device_info,admin_profile_label,admin_extra_entry';
+const accessFields='id,user_id,actor,entered_at,last_seen_at,ended_at,device_info,admin_profile_label,admin_extra_entry,admin_extra_mac';
 function accessRows(){return logTab===EXTRAS_TAB?extrasLog:accessLog;}
 async function loadExtras(){
  if(!isAdmin()||!client()||extrasLoading)return;
@@ -212,12 +212,20 @@ async function loadExtras(){
  try{
   const c=client();const rows=[];const pageSize=500;
   for(let offset=0;;offset+=pageSize){
-   const {data,error}=await c.from('uentzoul_access_log').select(accessFields).eq('admin_extra_entry',true).order('entered_at',{ascending:false}).order('id',{ascending:false}).range(offset,offset+pageSize-1);
+   const {data,error}=await c.from('uentzoul_access_log').select(accessFields).or('admin_extra_entry.eq.true,admin_extra_mac.eq.true').order('entered_at',{ascending:false}).order('id',{ascending:false}).range(offset,offset+pageSize-1);
    if(error)throw error;
    rows.push(...(data||[]));if((data||[]).length<pageSize)break;
   }
   if(!isAdmin())return;
-  extrasLog=rows.filter(r=>r.user_id!==user()?.id).map(r=>({...r,isTest:false,name:r.admin_profile_label||'Gabriela'}));
+  const ids=[...new Set(rows.map(r=>r.user_id).filter(Boolean))];
+  const names=new Map();
+  for(let offset=0;offset<ids.length;offset+=100){
+   const {data,error}=await c.from('uentzoul_profiles').select('user_id,display_name').in('user_id',ids.slice(offset,offset+100));
+   if(error)throw error;
+   for(const p of data||[])names.set(p.user_id,p.display_name);
+  }
+  if(!isAdmin())return;
+  extrasLog=rows.filter(r=>r.user_id!==user()?.id).map(r=>({...r,isTest:false,name:r.actor==='anonymous'?(r.admin_profile_label||(r.admin_extra_mac?'Visitante anônimo · Mac':'Visitante anônimo')):(names.get(r.user_id)||'Usuário cadastrado')}));
   extrasReady=true;
  }catch(error){extrasError='Não foi possível carregar os registros de Extras. Tente atualizar.';console.warn('Extras indisponível:',error?.message||error);}
  finally{extrasLoading=false;if(logTab===EXTRAS_TAB)updateLogPanel();}
