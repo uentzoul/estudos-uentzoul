@@ -2591,6 +2591,18 @@ html[data-theme="dark"]{
  .s1-library-organized .pm-week-row>.doc{animation:none!important;transition:none!important}
 }
 </style>
+<style id="p3-podcast-update-style">
+.p3-podcast-update{display:flex;align-items:center;gap:16px;width:100%;margin:18px 0 20px;padding:18px 20px;text-align:left;border:1px solid #f5c350;border-radius:15px;background:linear-gradient(105deg,#fff2c6,#ffdb81);color:#392407;font:inherit;cursor:pointer;box-sizing:border-box;box-shadow:0 3px 12px rgba(152,101,12,.14)}
+.p3-podcast-update:hover{border-color:#c18413;box-shadow:0 4px 16px rgba(152,101,12,.23)}
+.p3-podcast-update:focus-visible{outline:3px solid #c18413;outline-offset:3px}
+.p3-podcast-update-icon{display:grid;place-items:center;flex:0 0 44px;width:44px;height:44px;border-radius:11px;background:#66430c;color:#fff4d1;font-size:24px}
+.p3-podcast-update-copy{display:flex;flex:1;min-width:0;flex-direction:column;gap:4px}
+.p3-podcast-update-copy small{font-size:10px;font-weight:800;letter-spacing:.09em;color:#79500e}
+.p3-podcast-update-copy strong{font-size:17px;line-height:1.3;color:#392407}
+.p3-podcast-update-copy>span{font-size:13px;line-height:1.45;color:#513711}
+.p3-podcast-update-link{flex-shrink:0;font-size:12px;font-weight:800;color:#513711}
+@media(max-width:600px){.p3-podcast-update{flex-wrap:wrap;gap:11px;padding:14px;margin:14px 0 16px}.p3-podcast-update-icon{flex-basis:38px;width:38px;height:38px;font-size:20px}.p3-podcast-update-copy strong{font-size:16px}.p3-podcast-update-link{margin-left:49px}}
+</style>
 </head>
 <body>
 <section id="staticFallback" class="static-fallback" aria-label="Central de Estudos — modo de leitura compatível com celular">
@@ -3582,7 +3594,12 @@ function renderSubject(k){
    ['podcasts','♫','Podcasts','Episódios da disciplina para escutar'],
    ['topics','☷','Conteúdos para revisar','Conceitos, exemplos e explicações dos assuntos da prova']
   ];
-  return top+'<p class="subject-hub-area-intro">Escolha uma área para consultar os materiais.</p>'+metaTrail+
+  const p3PodcastNotice=k==='avaliacao'&&semester==='2026/2'&&audioEpisodes(k).length?
+   '<button type="button" class="p3-podcast-update" data-action="subjectArea:podcasts">'+
+   '<span class="p3-podcast-update-icon" aria-hidden="true">♫</span>'+
+   '<span class="p3-podcast-update-copy"><small>NOVIDADE · PROVA 3</small><strong>Podcasts atualizados!</strong><span>Os podcasts foram atualizados para os conteúdos da Prova 3. Acesse os seis novos episódios e revise a matéria.</span></span>'+
+   '<span class="p3-podcast-update-link">Ouvir podcasts <span aria-hidden="true">→</span></span></button>':'';
+  return top+p3PodcastNotice+'<p class="subject-hub-area-intro">Escolha uma área para consultar os materiais.</p>'+metaTrail+
    '<nav class="subject-hub-menu" aria-label="Áreas de estudo de '+esc(subj.name)+'">'+
    choices.map(item=>'<button type="button" class="subject-hub-card'+(item[0]==='docs'?' subject-docs-full':'')+'" data-action="subjectArea:'+item[0]+'">'+
     '<span class="subject-hub-card-icon" aria-hidden="true">'+item[1]+'</span>'+
