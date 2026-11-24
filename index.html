@@ -3565,6 +3565,14 @@ function readyExamsFor(subject){
  const first=subject==='social'?6:1;
  return Array.from({length:5},(_,i)=>base.find(e=>Number(e.model)===first+i)).filter(Boolean);
 }
+// Aviso temporário da P3: encerra às 13h de 26/11/2026 no horário de Brasília.
+const P3_PODCAST_NOTICE_END=Date.parse('2026-11-26T13:00:00-03:00');
+function expireP3PodcastNotice(){
+ if(Date.now()>=P3_PODCAST_NOTICE_END)document.querySelectorAll('.p3-podcast-update').forEach(el=>el.remove());
+}
+if(Date.now()<P3_PODCAST_NOTICE_END)setTimeout(expireP3PodcastNotice,P3_PODCAST_NOTICE_END-Date.now());
+document.addEventListener('visibilitychange',expireP3PodcastNotice);
+window.addEventListener('focus',expireP3PodcastNotice);
 function renderSubject(k){
  const subj=getSubject(k),docs=DB.materials.filter(x=>x.subject===k&&x.available&&currentExamKeys.has(x._libraryKey)&&x._libraryUpload?.exam_scope!==false),topics=DB.topics[k]||[],tests=readyExamsFor(k);
  const area=['topics','docs','tests','podcasts','guided','flash','cases'].includes(current.subjectArea)?current.subjectArea:null;
@@ -3594,7 +3602,7 @@ function renderSubject(k){
    ['podcasts','♫','Podcasts','Episódios da disciplina para escutar'],
    ['topics','☷','Conteúdos para revisar','Conceitos, exemplos e explicações dos assuntos da prova']
   ];
-  const p3PodcastNotice=k==='avaliacao'&&semester==='2026/2'&&audioEpisodes(k).length?
+  const p3PodcastNotice=k==='avaliacao'&&semester==='2026/2'&&audioEpisodes(k).length&&Date.now()<P3_PODCAST_NOTICE_END?
    '<button type="button" class="p3-podcast-update" data-action="subjectArea:podcasts">'+
    '<span class="p3-podcast-update-icon" aria-hidden="true">♫</span>'+
    '<span class="p3-podcast-update-copy"><small>NOVIDADE · PROVA 3</small><strong>Podcasts atualizados!</strong><span>Os podcasts foram atualizados para os conteúdos da Prova 3. Acesse os seis novos episódios e revise a matéria.</span></span>'+
