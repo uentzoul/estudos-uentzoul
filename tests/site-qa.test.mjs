@@ -851,7 +851,7 @@ test('Alternativas dos 13 cursos são relevantes, únicas e só revelam a melhor
  }
  Object.assign(active.window.PSICO_CASES,first.PSICO_CASES);
  const cases=Object.values(active.window.PSICO_CASES).flat();
- assert.equal(cases.length,49,'Todos os estudos de caso preservados, incluindo os novos casos P3');
+ assert.equal(cases.length,52,'Todos os estudos de caso preservados, incluindo os novos casos P3');
  const positions=[0,0,0];let stages=0;
  for(const c of cases)for(const [i,stage] of c.stages.entries()){
   stages++;
@@ -865,7 +865,7 @@ test('Alternativas dos 13 cursos são relevantes, únicas e só revelam a melhor
   assert.doesNotMatch(stage.choices.map(o=>o.label).join(' '),
    /afirmar que ela tem um transtorno apenas pelo relato|pedir que ela simplesmente pare de pensar|concluir que o adolescente é responsável pela recuperação/i);
  }
- assert.equal(stages,98,'As duas decisões de cada estudo foram preservadas');
+ assert.equal(stages,104,'As duas decisões de cada estudo foram preservadas');
  assert.ok(positions.every(n=>n>=15),'Não entregar gabarito pela posição fixa: '+positions.join('/'));
  assert.match(read('estudo-ativo.js'),/strongest=st\.choices\.findIndex\(option=>option\.best===true\)/);
  assert.match(read('estudo-ativo.js'),/s\.chosen<0\?'':/,'A resposta só aparece depois da escolha');
