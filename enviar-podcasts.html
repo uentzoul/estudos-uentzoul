@@ -49,7 +49,7 @@ a{color:#175b9c}
 </div>
 <p id="selectedStatus" class="sub small">Escolha os ZIPs ou a pasta para começar.</p>
 <div class="row"><button id="uploadButton" type="button" disabled>Enviar podcasts para o site</button><button type="button" id="checkButton" class="secondary">Verificar arquivos publicados</button></div>
-<div style="margin-top:17px"><progress id="progress" value="0" max="43"></progress><p id="uploadStatus" role="status" aria-live="polite" class="small">Nenhum envio iniciado.</p></div>
+<div style="margin-top:17px"><progress id="progress" value="0" max="44"></progress><p id="uploadStatus" role="status" aria-live="polite" class="small">Nenhum envio iniciado.</p></div>
 <pre id="log">O histórico do envio aparecerá aqui.</pre>
 <p class="small sub">O envio pode demorar dependendo da velocidade da sua internet. Mantenha esta aba aberta até a confirmação.</p>
 </section></main>
@@ -60,7 +60,7 @@ a{color:#175b9c}
 var BASE="https://swseibmqoetnuctxyusj.supabase.co";
 var KEY="sb_publishable_Fa12C_gaam8nv3g4fsWy2w_8nWQZWzq";
 var BUCKET="study-podcasts";
-var EXPECTED=["tcc/01_fundamentos_da_terapia_do_esquema.m4a","tcc/02_os_primeiros_nove_esquemas.m4a","tcc/03_os_outros_nove_esquemas.m4a","tcc/04_estilos_de_enfrentamento_e_modos.m4a","tcc/05_terapia_do_esquema_na_pratica.m4a","tcc/06_do_behaviorismo_a_terceira_onda.m4a","tcc/07_act_e_modelo_hexaflex.m4a","tcc/08_dbt_e_mbct.m4a","tcc/09_cft_e_fap.m4a","tcc/10_processos_clinicos_na_terceira_onda.m4a","grupos/01_do_diva_ao_palco_no_psicodrama.m4a","grupos/02_como_o_psicodrama_reescreve_nossos_roteiros.m4a","grupos/03_carl_rogers_e_os_grupos_de_encontro.m4a","grupos/04_como_funcionam_os_grupos_de_encontro_rogerianos.m4a","grupos/05_psicologia_dos_grupos_do_presencial_ao_virtual.m4a","grupos/06_psicodrama_de_moreno_e_grupos_de_rogers_revisao.m4a","familia/01_divorcio_nao_e_o_fim_da_familia.m4a","familia/02_segredos_familiares_lealdades_invisiveis_e_adocao.m4a","familia/03_a_armadilha_psicologica_da_violencia_domestica.m4a","familia/04_os_sinais_ocultos_da_violencia_infantil.m4a","familia/05_as_raizes_familiares_da_dependencia_quimica.m4a","familia/06_o_roteiro_invisivel_das_herancas_familiares.m4a","familia/07_como_as_dinamicas_familiares_atravessam_geracoes_revisao.m4a","meta/01_o_narcisismo_do_mito_grego_a_freud.m4a","meta/02_como_o_edipo_estrutura_a_mente.m4a","meta/03_o_edipo_alem_do_mito.m4a","meta/04_o_conflito_entre_id_ego_e_superego.m4a","meta/05_do_instinto_a_pulsao_de_morte.m4a","meta/06_as_duas_teorias_freudianas_da_angustia.m4a","meta/07_o_mapa_da_metapsicologia_freudiana_revisao.m4a","avaliacao/01_diferencas_entre_os_documentos_psicologicos.m4a","avaliacao/02_documentos_psicologicos_e_fundamentos_de_psicometria.m4a","avaliacao/03_diferencas_entre_laudo_parecer_e_relatorio.m4a","avaliacao/04_a_entrevista_de_anamnese_no_psicodiagnostico.m4a","avaliacao/05_os_pilares_da_psicometria.m4a","social/01_como_a_sociedade_fabrica_quem_somos.m4a","social/02_ideologia_e_fatalismo_em_martin_baro.m4a","social/03_o_estigma_prisional_alem_dos_muros.m4a","social/04_quando_proteger_as_criancas_virou_vigilancia.m4a","social/05_epistemicidio_e_a_falsa_neutralidade_cientifica.m4a","social/06_martin_baro_e_a_psicologia_da_libertacao.m4a","social/07_identidade_e_representacoes_sociais_revisao.m4a","social/08_revisao_integradora_questoes_objetivas_e_dissertativas.m4a"];
+var EXPECTED=["tcc/01_fundamentos_da_terapia_do_esquema.m4a","tcc/02_os_primeiros_nove_esquemas.m4a","tcc/03_os_outros_nove_esquemas.m4a","tcc/04_estilos_de_enfrentamento_e_modos.m4a","tcc/05_terapia_do_esquema_na_pratica.m4a","tcc/06_do_behaviorismo_a_terceira_onda.m4a","tcc/07_act_e_modelo_hexaflex.m4a","tcc/08_dbt_e_mbct.m4a","tcc/09_cft_e_fap.m4a","tcc/10_processos_clinicos_na_terceira_onda.m4a","grupos/01_do_diva_ao_palco_no_psicodrama.m4a","grupos/02_como_o_psicodrama_reescreve_nossos_roteiros.m4a","grupos/03_carl_rogers_e_os_grupos_de_encontro.m4a","grupos/04_como_funcionam_os_grupos_de_encontro_rogerianos.m4a","grupos/05_psicologia_dos_grupos_do_presencial_ao_virtual.m4a","grupos/06_psicodrama_de_moreno_e_grupos_de_rogers_revisao.m4a","familia/01_divorcio_nao_e_o_fim_da_familia.m4a","familia/02_segredos_familiares_lealdades_invisiveis_e_adocao.m4a","familia/03_a_armadilha_psicologica_da_violencia_domestica.m4a","familia/04_os_sinais_ocultos_da_violencia_infantil.m4a","familia/05_as_raizes_familiares_da_dependencia_quimica.m4a","familia/06_o_roteiro_invisivel_das_herancas_familiares.m4a","familia/07_como_as_dinamicas_familiares_atravessam_geracoes_revisao.m4a","meta/01_o_narcisismo_do_mito_grego_a_freud.m4a","meta/02_como_o_edipo_estrutura_a_mente.m4a","meta/03_o_edipo_alem_do_mito.m4a","meta/04_o_conflito_entre_id_ego_e_superego.m4a","meta/05_do_instinto_a_pulsao_de_morte.m4a","meta/06_as_duas_teorias_freudianas_da_angustia.m4a","meta/07_o_mapa_da_metapsicologia_freudiana_revisao.m4a","avaliacao/p3_01_entrevista_de_devolucao.m4a","avaliacao/p3_02_avaliacao_organizacional.m4a","avaliacao/p3_03_avaliacao_hospitalar.m4a","avaliacao/p3_04_pacientes_trans_protig.m4a","avaliacao/p3_05_avaliacao_forense_pericia.m4a","avaliacao/p3_06_etica_na_avaliacao.m4a","social/01_como_a_sociedade_fabrica_quem_somos.m4a","social/02_ideologia_e_fatalismo_em_martin_baro.m4a","social/03_o_estigma_prisional_alem_dos_muros.m4a","social/04_quando_proteger_as_criancas_virou_vigilancia.m4a","social/05_epistemicidio_e_a_falsa_neutralidade_cientifica.m4a","social/06_martin_baro_e_a_psicologia_da_libertacao.m4a","social/07_identidade_e_representacoes_sociais_revisao.m4a","social/08_revisao_integradora_questoes_objetivas_e_dissertativas.m4a"];
 var allowed=new Set(EXPECTED);var TOTAL=EXPECTED.length;
 var client=null,selected=null,busy=false;
 var el=function(id){return document.getElementById(id)};
@@ -76,7 +76,7 @@ if(r.error){errorCount++;log("Erro consultando "+sub+": "+r.error.message);conti
 for(var obj of r.data||[])found.add(sub+"/"+obj.name);
 }
 var missing=EXPECTED.filter(function(x){return !found.has(x)});
-el("progress").value=Math.min(found.size,TOTAL);
+el("progress").value=TOTAL-missing.length;
 say("Publicados: "+(TOTAL-missing.length)+" de "+TOTAL+"."+(missing.length?" Faltam "+missing.length+" arquivos.":" Todos os "+TOTAL+" podcasts estão no ar."),!!errorCount);
 log(missing.length?"Faltando: "+missing.join(", "):"Verificação concluída: todos os "+TOTAL+" estão presentes.");
 }
@@ -90,7 +90,7 @@ if(!allowed.has(key)){log("Ignorado (não está no catálogo): "+key);return cou
 if(uploaded.has(key)){log("Ignorado repetido: "+key);return count}
 var result=await client.storage.from(BUCKET).upload(key,blob,{upsert:true,contentType:"audio/mp4",cacheControl:"3600"});
 if(result.error){failures.push(key+": "+result.error.message);log("ERRO "+key+" — "+result.error.message)}else{uploaded.add(key);log("OK "+key)}
-el("progress").value=uploaded.size;say("Enviados "+uploaded.size+" de 41. "+failures.length+" falha(s).",failures.length>0);
+el("progress").value=uploaded.size;say("Enviados "+uploaded.size+" arquivo(s). "+failures.length+" falha(s).",failures.length>0);
 return count+1;
 }
 var uploaded,failures;
