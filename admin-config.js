@@ -6,7 +6,7 @@ let admin=false,owner=null,checking=false,topics=[],topicsSignature='',presence=
 let accessLog=[],logOpen=false,logTab='online',lastLog=0,logError='',markingTest=false;
 let visitActivity=new Map(),visitActivityLoading=false,visitActivityError='',lastVisitActivity=0;
 const ACTIVITY_TABS=new Set(['explored','entryOnly','unclassified']);
-const FOREIGN_TAB='foreign';
+const FOREIGN_TAB='foreign',EXTRAS_TAB='extras';
 let lastLogGesture=0,logRenderTimer=null,lastLogRenderKey='';
 let secretLogOpen=false,secretLogClicks=0,lastSecretLogClick=0;
 let botRuns=[],lastBotRuns=0,botRunsError='',botRunsLoading=false;
@@ -207,7 +207,7 @@ async function loadAccess(){
  if(!isAdmin()||!client())return;
  try{
   const [events,profiles,labels]=await Promise.all([
-   client().from('uentzoul_access_log').select('id,user_id,actor,entered_at,last_seen_at,ended_at,device_info,admin_profile_label').order('entered_at',{ascending:false}).limit(logLimit+1),
+   client().from('uentzoul_access_log').select('id,user_id,actor,entered_at,last_seen_at,ended_at,device_info,admin_profile_label,admin_extra_entry').order('entered_at',{ascending:false}).limit(logLimit+1),
    client().from('uentzoul_profiles').select('user_id,display_name').limit(500),
    client().from(TEST_LABELS).select('access_id').limit(1000)
   ]);
@@ -434,35 +434,35 @@ function logMarkup(){
  const grouping=ACTIVITY_TABS.has(logTab);
  if(grouping&&visitActivityError)return '<p class="admin-muted" role="alert">'+esc(visitActivityError)+'</p>';
  if(grouping&&visitActivityLoading&&!lastVisitActivity)return '<p class="admin-muted" role="status">Classificando os percursos registrados…</p>';
- const rows=logTab===FOREIGN_TAB?accessLog.filter(row=>originStatus(row).foreign):
+ const rows=logTab===EXTRAS_TAB?accessLog.filter(row=>row.admin_extra_entry===true):logTab===FOREIGN_TAB?accessLog.filter(row=>originStatus(row).foreign):
   grouping?accessLog.filter(row=>!originStatus(row).foreign).filter(row=>{
   const kind=visitActivity.get(String(row.id));
   return kind===({explored:'explored',entryOnly:'entryOnly',unclassified:'unknown'}[logTab]);
  }):logTab==='online'?presence.filter(loggedOnline):logTab==='last'?presence:
   accessLog.filter(row=>!originStatus(row).foreign);
- const title=logTab===FOREIGN_TAB?'Nenhum acesso de fora do Brasil identificado nos registros carregados. Visitas sem país confirmado ficam na aba Entradas.':
+ const title=logTab===EXTRAS_TAB?'Nenhum acesso correspondente nos registros carregados.':logTab===FOREIGN_TAB?'Nenhum acesso de fora do Brasil identificado nos registros carregados. Visitas sem país confirmado ficam na aba Entradas.':
   logTab==='explored'?'Nenhuma visita com navegação adicional registrada.':
   logTab==='entryOnly'?'Nenhuma visita limitada à entrada registrada.':
   logTab==='unclassified'?'Nenhuma visita antiga sem percurso registrado.':
   logTab==='online'?'Nenhuma conta identificada como ativa nos últimos dois minutos.':
   logTab==='last'?'Nenhum último acesso registrado.':'Ainda não há entradas registradas.';
- const intro=logTab===FOREIGN_TAB?'<p class="admin-log-explain">Acessos com país estimado fora do Brasil. Isso não significa necessariamente robô ou invasão. VPN e proxy podem alterar o país. Cada linha é uma visita, não uma pessoa única.</p>':
+ const intro=logTab===EXTRAS_TAB?'<p class="admin-log-explain">Seleção de acessos já registrados. Cada linha representa uma visita, não uma pessoa única.</p>':logTab===FOREIGN_TAB?'<p class="admin-log-explain">Acessos com país estimado fora do Brasil. Isso não significa necessariamente robô ou invasão. VPN e proxy podem alterar o país. Cada linha é uma visita, não uma pessoa única.</p>':
   grouping?'<p class="admin-log-explain">'+(logTab==='explored'?
   'Visitas que acessaram outras áreas ou navegaram entre semestres. Inclui contas e anônimos.':
   logTab==='entryOnly'?'Visitas com registro, mas sem navegação adicional observada. Rolar a mesma página não é registrado.':
   'Registros antigos ou incompletos sem histórico de percurso. Não é possível dizer se navegaram.')+
   ' Cada linha representa uma visita, não uma pessoa única.'+
   (visitActivityLoading?' Atualizando classificação…':'')+'</p>':'';
- if(!rows.length)return intro+'<p class="admin-muted">'+title+'</p>'+((logTab===FOREIGN_TAB&&hasMoreEntries)?'<button type="button" class="admin-log-more" data-admin-log-more>Carregar mais 200 entradas anteriores</button>':'');
+ if(!rows.length)return intro+'<p class="admin-muted">'+title+'</p>'+(((logTab===FOREIGN_TAB||logTab===EXTRAS_TAB)&&hasMoreEntries)?'<button type="button" class="admin-log-more" data-admin-log-more>Carregar mais 200 entradas anteriores</button>':'');
  return intro+'<div class="admin-log-rows">'+rows.slice(0,logTab==='online'?100:logLimit).map(row=>{
   const active=logTab==='online'?true:logTab==='last'&&loggedOnline(row);
   const name=esc(row.name||'Usuário cadastrado');
-  const when=logTab==='entries'||logTab===FOREIGN_TAB||grouping?row.entered_at:row.last_seen;
+  const when=logTab==='entries'||logTab===FOREIGN_TAB||logTab===EXTRAS_TAB||grouping?row.entered_at:row.last_seen;
   const status=logTab==='online'?'Online agora':logTab==='last'?(active?'Online agora':'Última atividade registrada'):
    row.actor==='anonymous'?(row.isTest?'Identificado manualmente como teste do administrador':row.admin_profile_label?'Perfil de dispositivo correspondente · não exclusivo':'Visita anônima · sem conta'):'Entrou na conta';
-  const match=logTab==='entries'||logTab===FOREIGN_TAB||grouping?row:accessLog.find(entry=>entry.user_id&&entry.user_id===row.user_id);
+  const match=logTab==='entries'||logTab===FOREIGN_TAB||logTab===EXTRAS_TAB||grouping?row:accessLog.find(entry=>entry.user_id&&entry.user_id===row.user_id);
   const selected=match?selectedVisitId===String(match.id):selectedPresenceId===String(row.user_id);
-  const markButton=(logTab==='entries'||logTab===FOREIGN_TAB||grouping)&&row.actor==='anonymous'?
+  const markButton=(logTab==='entries'||logTab===FOREIGN_TAB||logTab===EXTRAS_TAB||grouping)&&row.actor==='anonymous'?
    '<button type="button" class="admin-log-test-toggle" data-admin-test-access="'+esc(row.id)+'" '+(markingTest?'disabled':'')+
    ' aria-label="'+(row.isTest?'Desfazer identificação deste acesso como meu teste':'Identificar este acesso como meu teste')+'">'+
    (row.isTest?'Desfazer marcação':'Marcar como meu teste')+'</button>':'';
@@ -470,13 +470,13 @@ function logMarkup(){
    (!match?' data-admin-open-presence="'+esc(row.user_id||'')+'"':'')+
    ' aria-expanded="'+selected+'"'+(selected?' data-admin-visit-selected':'')+'>'+
    '<span class="admin-log-avatar '+(active?'is-online':'')+'" aria-hidden="true">'+(row.actor==='anonymous'?'?':name.trim().charAt(0).toUpperCase()||'U')+'</span>'+
-   '<span class="admin-log-person"><strong>'+name+'</strong><small>'+esc(status)+'</small>'+((logTab==='entries'||logTab===FOREIGN_TAB||grouping)?'<small class="admin-log-device">'+esc(deviceSummary(row))+'</small><small class="admin-log-origin" style="font-weight:750">'+esc(originStatus(row).label)+'</small>':'')+'</span>'+
+   '<span class="admin-log-person"><strong>'+name+'</strong><small>'+esc(status)+'</small>'+((logTab==='entries'||logTab===FOREIGN_TAB||logTab===EXTRAS_TAB||grouping)?'<small class="admin-log-device">'+esc(deviceSummary(row))+'</small><small class="admin-log-origin" style="font-weight:750">'+esc(originStatus(row).label)+'</small>':'')+'</span>'+
    '<time datetime="'+esc(when||'')+'">'+esc(logDate(when))+'</time>'+
    '<span class="admin-log-expand" aria-hidden="true">'+(selected?'⌃':'⌄')+'</span></button>';
   return '<div class="admin-log-row'+(selected?' is-selected':'')+'">'+button+markButton+'</div>'+
    (selected?(match?visitDetail(match):'<section class="admin-visit-detail"><strong>Histórico desta presença</strong><p class="admin-visit-note">A conta está no painel de presença, mas não há uma entrada individual associada entre os registros carregados. Não é possível reconstruir páginas ou ações a partir de um status online.</p><button type="button" data-admin-close-visit>Fechar ×</button></section>'):'');
  }).join('')+'</div>'+
- ((logTab==='entries'||logTab===FOREIGN_TAB||grouping)&&hasMoreEntries?'<button type="button" class="admin-log-more" data-admin-log-more>Carregar mais 200 entradas anteriores</button>':'');
+ ((logTab==='entries'||logTab===FOREIGN_TAB||logTab===EXTRAS_TAB||grouping)&&hasMoreEntries?'<button type="button" class="admin-log-more" data-admin-log-more>Carregar mais 200 entradas anteriores</button>':'');
 }
 
 // Não reconstrói a lista enquanto alguém está rolando: no iOS, trocar
@@ -536,7 +536,7 @@ function secretLogMarkup(){
   '<strong>Central de Monitoramento</strong></div>'+
   '<p class="admin-log-explain">O status online é uma estimativa de atividade nos últimos dois minutos. Clique em uma entrada para consultar o percurso resumido da visita. O registro não guarda mensagens, respostas ou textos digitados. O país é estimado pela rede e não comprova identidade ou robô. Visitas antigas podem exibir país não identificado.</p>'+
   '<div class="admin-log-toolbar" role="tablist" aria-label="Visualização dos acessos">'+
-  [['online','Online','adminLogOnlineCount'],['last','Último acesso',''],['entries','Entradas',''],['foreign','Fora do Brasil',''],['explored','Navegaram',''],['entryOnly','Só entraram',''],['unclassified','Sem dados',''],['bots','Robôs','']].map(([tab,label,id])=>
+  [['online','Online','adminLogOnlineCount'],['last','Último acesso',''],['entries','Entradas',''],['foreign','Fora do Brasil',''],['explored','Navegaram',''],['entryOnly','Só entraram',''],['unclassified','Sem dados',''],['bots','Robôs',''],[EXTRAS_TAB,'Extras','']].map(([tab,label,id])=>
    '<button type="button" role="tab" data-admin-log-tab="'+tab+'" aria-selected="'+(logTab===tab)+'">'+label+(id?' <span id="'+id+'">'+(onlineTotalCount()===null?'—':onlineTotalCount())+'</span>':'')+'</button>').join('')+
   '<button type="button" class="admin-log-refresh" data-admin-log-refresh title="Atualizar registros" aria-label="Atualizar registros">↻</button></div>'+
   '<div id="adminLogData">'+logMarkup()+'</div>'+
