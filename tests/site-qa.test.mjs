@@ -374,7 +374,7 @@ test('LOG não exibe a própria conta e abre visitas sem reconstruir a lista',()
   closest:()=>row,setAttribute(){},removeAttribute(){},querySelector:()=>arrow};
  const list={scrollTop:275,scrollLeft:0,querySelectorAll:()=>[button]};
  const context={document:{getElementById:()=>({querySelector:()=>list})},
-   accessLog:[{id:123,name:'Visitante anônimo'}],selectedVisitId:'123',selectedPresenceId:null,
+   accessLog:[{id:123,name:'Visitante anônimo'}],accessRows:()=>[{id:123,name:'Visitante anônimo'}],selectedVisitId:'123',selectedPresenceId:null,
    logRenderTimer:null,visitDetail:()=>'<section class="admin-visit-detail">Percurso</section>',
    updateLogPanel(){throw Error('Não deve reconstruir o LOG')},clearTimeout};
  vm.runInNewContext('('+match[0]+')',context)();
@@ -382,6 +382,14 @@ test('LOG não exibe a própria conta e abre visitas sem reconstruir a lista',()
  assert.equal(row.selection,true);
  assert.equal(arrow.textContent,'⌃');
  assert.equal(expanded.removed,true);
+ assert.match(row.html,/Percurso/);
+ // Extras uses a separately paginated collection; it must expand old visits too.
+ context.accessLog=[];
+ context.accessRows=()=>[{id:123,name:'Visitante anônimo · Mac'}];
+ row.selection=null;row.html='';
+ vm.runInNewContext('('+match[0]+')',context)();
+ assert.equal(row.selection,true);
+ assert.equal(list.scrollTop,275);
  assert.match(row.html,/Percurso/);
 });
 
