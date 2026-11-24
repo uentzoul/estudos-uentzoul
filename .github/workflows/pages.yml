@@ -40,6 +40,15 @@ jobs:
           meta = '<meta name="app-build" content="' + build + '">'
           if 'name="app-build"' not in html:
               html = html.replace('<head>', '<head>\n' + meta, 1)
+          import re
+          # Atualizar a URL do painel administrativo a cada publicação.
+          html, admin_scripts = re.subn(
+              r'(src=["\x27](?:\./)?admin-config\.js)(?:\?[^"\x27]*)?(?=["\x27])',
+              lambda match: match.group(1) + '?v=' + build,
+              html
+          )
+          if not admin_scripts:
+              print('Aviso: referência direta ao painel não encontrada no HTML')
           path.write_text(html, encoding='utf-8')
           Path('site-version.txt').write_text(build + '\n', encoding='utf-8')
           print('Publicando versão', build)
