@@ -207,7 +207,7 @@ async function loadAccess(){
  if(!isAdmin()||!client())return;
  try{
   const [events,profiles,labels]=await Promise.all([
-   client().from('uentzoul_access_log').select('id,user_id,actor,entered_at,last_seen_at,ended_at,device_info').order('entered_at',{ascending:false}).limit(logLimit+1),
+   client().from('uentzoul_access_log').select('id,user_id,actor,entered_at,last_seen_at,ended_at,device_info,admin_profile_label').order('entered_at',{ascending:false}).limit(logLimit+1),
    client().from('uentzoul_profiles').select('user_id,display_name').limit(500),
    client().from(TEST_LABELS).select('access_id').limit(1000)
   ]);
@@ -219,7 +219,7 @@ async function loadAccess(){
   hasMoreEntries=(events.data||[]).length>logLimit;
   accessLog=(events.data||[]).filter(r=>r.user_id!==user()?.id).slice(0,logLimit).map(r=>{
    const isTest=r.actor==='anonymous'&&marked.has(String(r.id));
-   return {...r,isTest,name:r.actor==='anonymous'?(isTest?'Meu teste anônimo':'Visitante anônimo'):names.get(r.user_id)||'Usuário cadastrado'};
+   return {...r,isTest,name:r.actor==='anonymous'?(isTest?'Meu teste anônimo':r.admin_profile_label||'Visitante anônimo'):names.get(r.user_id)||'Usuário cadastrado'};
   });
   lastLog=Date.now();logError='';updateLogPanel();if(ACTIVITY_TABS.has(logTab))void loadVisitActivity();void refreshSelectedVisit();
  }catch(e){logError='Não foi possível carregar o histórico de entradas.';updateLogPanel();console.warn('Log indisponível:',e)}
@@ -459,7 +459,7 @@ function logMarkup(){
   const name=esc(row.name||'Usuário cadastrado');
   const when=logTab==='entries'||logTab===FOREIGN_TAB||grouping?row.entered_at:row.last_seen;
   const status=logTab==='online'?'Online agora':logTab==='last'?(active?'Online agora':'Última atividade registrada'):
-   row.actor==='anonymous'?(row.isTest?'Identificado manualmente como teste do administrador':'Visita anônima · sem conta'):'Entrou na conta';
+   row.actor==='anonymous'?(row.isTest?'Identificado manualmente como teste do administrador':row.admin_profile_label?'Perfil de dispositivo correspondente · não exclusivo':'Visita anônima · sem conta'):'Entrou na conta';
   const match=logTab==='entries'||logTab===FOREIGN_TAB||grouping?row:accessLog.find(entry=>entry.user_id&&entry.user_id===row.user_id);
   const selected=match?selectedVisitId===String(match.id):selectedPresenceId===String(row.user_id);
   const markButton=(logTab==='entries'||logTab===FOREIGN_TAB||grouping)&&row.actor==='anonymous'?
