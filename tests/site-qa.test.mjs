@@ -1285,17 +1285,17 @@ test('Avaliação P3 oferece 21 conteúdos revisáveis baseados no roteiro detal
  assert.ok(new Set(topics.map(x=>x.section)).size>=4);
  for(const topic of topics)assert.ok(topic.title&&topic.definition&&topic.scenario&&topic.question&&topic.answer&&topic.source,topic.title);
  assert.match(html,/DB\.topics\[key\]=expanded/);
- assert.match(html,/conteudos-revisao-p3-2026\.js\?v=20261120-moreno-rogers-avaliacao-v1/);
+ assert.match(html,/conteudos-revisao-p3-2026\.js\?v=20261124-grupos-filme-v2/);
 });
 
 test('Grupos contém 30+ conceitos de Moreno e Rogers conectados ao filme e preserva as duas questões P2',()=>{
  const w={};
  vm.runInNewContext(read('conteudos-revisao-p3-2026.js'),{window:w});
  const topics=w.PSICO_DEEP_REVIEWS.get('grupos');
- assert.ok(topics.length>=30);
+ assert.ok(topics.length>=40);
  assert.ok(topics.filter(x=>x.section.startsWith('Moreno')).length>=15);
  assert.ok(topics.filter(x=>x.section.startsWith('Rogers')).length>=12);
- for(const topic of topics)assert.ok(topic.title&&topic.definition&&topic.scenario&&topic.myth&&topic.question&&topic.answer,topic.title);
+ for(const topic of topics)assert.ok(topic.title&&topic.definition&&topic.scenario&&!topic.myth&&topic.question&&topic.answer,topic.title);
  assert.ok(topics.some(x=>x.title.includes('Sociometria')));
  assert.ok(topics.some(x=>x.title.includes('Inversão de papéis')));
  assert.ok(topics.some(x=>x.title.includes('Tele:')));
