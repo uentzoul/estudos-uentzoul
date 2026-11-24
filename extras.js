@@ -532,6 +532,33 @@ function syncPsicoDraft(changedIndex=-1){
  });
  const submit=$("psicoSubmit");if(submit)submit.disabled=st.cells.some(v=>!v);
 }
+
+function psicoLetterStatuses(guesses,answer,solvedAt){
+ const ranks={absent:1,present:2,correct:3},statuses=Object.create(null);
+ for(const guess of guesses.slice(0,solvedAt||guesses.length)){
+  const colors=wordColors(guess,answer);
+  clean(guess).split("").forEach((letter,i)=>{
+   const color=colors[i];
+   if((ranks[color]||0)>(ranks[statuses[letter]]||0))statuses[letter]=color;
+  });
+ }
+ return statuses;
+}
+function renderPsicoKeyboard(answers,st){
+ const maps=answers.map((answer,i)=>psicoLetterStatuses(st.guesses,answer.word,st.solvedAt[i]));
+ const multi=maps.length>1,labels={correct:"posição certa",present:"posição errada",absent:"ausente",unused:"não testada"};
+ const disabled=st.done?" disabled":"";
+ const key=letter=>{
+  const colors=maps.map(map=>map[letter]||"unused");
+  const description=letter+": "+colors.map((status,i)=>(multi?"Palavra "+(i+1)+": ":"")+labels[status]).join("; ");
+  const background=multi?'<span class="psico-key-segments segments-'+maps.length+'" aria-hidden="true">'+colors.map(status=>'<span class="psico-key-segment '+status+'"></span>').join("")+'</span>':"";
+  return '<button type="button" class="psico-key '+(multi?"segmented":colors[0])+'" data-psico-key="'+letter+'" aria-label="'+esc(description)+'"'+disabled+'>'+background+'<span class="psico-key-letter">'+letter+'</span></button>';
+ };
+ const rows=["QWERTYUIOP","ASDFGHJKL","ZXCVBNM"].map((row,i)=>'<div class="psico-keyrow">'+row.split("").map(key).join("")+(i===2?'<button type="button" class="psico-key special" data-psico-key="BACK" aria-label="Apagar letra"'+disabled+'>⌫</button>':"")+'</div>').join("");
+ return '<div class="psico-keyboard" role="group" aria-label="Teclado e letras já testadas">'+rows+
+  '<div class="psico-key-legend"><span><i class="correct"></i>Posição certa</span><span><i class="present"></i>Posição errada</span><span><i class="absent"></i>Ausente</span><span><i class="unused"></i>Não testada</span></div>'+
+  (multi?'<p class="psico-key-note">Cada tecla é dividida na mesma ordem das palavras do tabuleiro.</p>':"")+'</div>';
+}
 function renderPsico(){
  const cfg=PSICO_MODES[psicoMode],answers=getPsicoWords(),st=normalizePsico(),multi=cfg.boards>1;
  const boards=answers.map((answer,boardIndex)=>{
@@ -574,7 +601,7 @@ function renderPsico(){
  $("gameHost").innerHTML='<div class="game-panel"><div class="psico-game-heading"><h2 class="psico-wordmark">PSICO</h2></div>'+
   switcher+'<div class="psico-mode-status"><span class="game-stat">'+
   (st.done?(st.won?"Concluído":"Encerrado"):(st.guesses.length+1)+" / "+cfg.attempts)+'</span></div>'+(multi?'<p class="psico-multi-status" aria-live="polite">'+solvedCount+' de '+cfg.boards+' palavras resolvidas · '+cfg.attempts+' tentativas compartilhadas</p>':"")+
-  boardsHtml+feedbackHtml("psico")+editor+result+'</div>';
+  boardsHtml+renderPsicoKeyboard(answers,st)+feedbackHtml("psico")+editor+result+'</div>';
  requestHeight();
 }
 function inputPsico(key){
@@ -1080,6 +1107,11 @@ document.addEventListener("click",e=>{
  if(active==="psico"){
   const mode=e.target.closest("[data-psico-mode]");
   if(mode){setPsicoMode(mode.dataset.psicoMode);return;}
+  const key=e.target.closest("[data-psico-key]");
+  if(key&&approved&&!key.disabled){
+   if(e.detail>0)key.blur();
+   inputPsico(key.dataset.psicoKey);return;
+  }
   const cell=e.target.closest("[data-psico-cell]");
   if(cell){selectPsicoCell(Number(cell.dataset.psicoCell));return;}
  }

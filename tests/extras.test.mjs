@@ -611,3 +611,18 @@ test('Iframe de conta autenticada abre Extras imediatamente com sessão do site,
  assert.equal(node('extrasApp').hidden,false,'RPC thenable não fecha a tela dos jogos');
  assert.equal(node('extrasGate').hidden,true,'RPC thenable não mostra painel de erro');
 });
+
+test('Teclado PSICO guarda o melhor estado, inclusive em letras repetidas',()=>{
+ const e=engine();e.init('2026-11-20');e.setActive('psico');e.allow();
+ e.psicoState().guesses=['AREIA','BRASA','ALMAS'];e.renderPsico();
+ const markup=e.html();
+ assert.match(markup,/class="psico-key correct" data-psico-key="A"/);
+ assert.match(markup,/class="psico-key absent" data-psico-key="R"/);
+ assert.match(markup,/class="psico-key unused" data-psico-key="Q"/);
+ assert.match(markup,/class="psico-key present" data-psico-key="E"/);
+ e.setPsicoMode("duplo");e.psicoState().guesses=["LAUDO","CASAL"];e.renderPsico();
+ assert.match(e.html(),/data-psico-key="L" aria-label="L: Palavra 1: posição certa; Palavra 2: ausente"/);
+ assert.match(e.html(),/segments-2/);
+ e.setPsicoMode("quadruplo");assert.match(e.html(),/segments-4/);
+ assert.match(e.html(),/data-psico-key="L" aria-label="L: Palavra 1: não testada/);
+});
