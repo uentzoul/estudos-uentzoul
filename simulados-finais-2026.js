@@ -912,7 +912,7 @@ function apply(db){
    }
    const previous=db.exams.filter(e=>e.subject==='social');
    for(const e of previous)if(e.id!==original.id&&e.revision!==SOCIAL_VERSION&&!db.archivedExams.some(a=>a.id===e.id))db.archivedExams.push(e);
-   db.exams=db.exams.filter(e=>e.subject!=='social');
+   db.exams=db.exams.filter(e=>e.subject!=='social'||(!e.final2026&&e.revision!==SOCIAL_VERSION));
    // Mesmo ID, questões, respostas e gabarito da prova realizada; apenas marca a edição ativa.
    db.exams.push({...original,revision:SOCIAL_VERSION});
    for(let level=2;level<=5;level++)db.exams.push(generateVaried(id,level,expanded));
@@ -939,8 +939,8 @@ function socialNotice(){
  btn.innerHTML='<span class="p3-podcast-update-icon" aria-hidden="true">✓</span><span class="p3-podcast-update-copy"><small>NOVIDADE · PROVA 3</small><strong>Simulados atualizados!</strong><span>Novas questões sobre raça, subjetividade e colonialismo digital, com os conteúdos da prova desde a semana 9.</span></span><span class="p3-podcast-update-link">Ver simulados →</span>';
  const target=[...nav.querySelectorAll('button')].find(x=>/simulados?/i.test(x.textContent));if(target){btn.dataset.action=target.dataset.action||'subjectArea:exams';nav.parentNode.insertBefore(btn,nav.previousElementSibling?.classList.contains('subject-hub-area-intro')?nav.previousElementSibling:nav);}
 }
-if(typeof document!=='undefined'){
- const start=()=>{socialNotice();new MutationObserver(socialNotice).observe(document.body,{childList:true,subtree:true});};
+if(typeof document!=='undefined'&&typeof MutationObserver!=='undefined'){
+ const start=()=>{socialNotice();if(document.body)new MutationObserver(socialNotice).observe(document.body,{childList:true,subtree:true});};
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start,{once:true});else start();
 }
 })();

@@ -759,11 +759,14 @@ test('Revisão dos simulados mantém identificadores e exige conhecimento da dis
    }
   }
  }
+ assert.equal(current.filter(e=>e.id==='social-rev-provas-equivalentes-20261113-1').length,1,'Preserva versão realizada');
+ assert.equal(runtime.window.PSICO_FINAL_EXAMS.curated(original,'social').length,36);
+ assert.ok(current.filter(e=>e.subject==='social'&&e.model>1).every(e=>e.id.startsWith('social-rev-social-fontes-completas-20261125-v1-')));
  assert.ok(current.filter(e=>e.subject==='familia').every(e=>e.id.startsWith('familia-rev-provas-equivalentes-20261113-')));
  assert.equal(current.reduce((sum,e)=>sum+e.questions.length,0),385,'Questões da revisão atual');
  for(const e of current.filter(x=>x.subject!=='familia')){
   const brief=e.questions.filter(q=>/^Situação breve:|^Uma situação do filme/i.test(q.prompt||''));
-  assert.equal(brief.length,e.subject==='meta'||e.subject==='grupos'?0:1,'Situações breves: '+e.id);
+  if(e.id!=='social-rev-provas-equivalentes-20261113-1')assert.equal(brief.length,e.subject==='meta'||e.subject==='grupos'?0:1,'Situações breves: '+e.id);
   if(e.subject==='grupos'){
    assert.equal(e.questions.length,2,'Duas questões por simulado de Grupos');
    assert.ok(e.questions.every(q=>q.type==='essay'),'Grupos tem somente dissertativas');
@@ -772,7 +775,9 @@ test('Revisão dos simulados mantém identificadores e exige conhecimento da dis
    assert.ok(e.questions.every(q=>/Escritores da Liberdade/.test(q.prompt)),'Ambas relacionadas ao filme');
   }
   if(e.subject==='social'){
-   assert.equal(e.questions.filter(q=>q.type==='essay').length,1,'Social tem uma dissertativa');
+   const preserved=e.id==='social-rev-provas-equivalentes-20261113-1';
+   assert.equal(e.questions.filter(q=>q.type==='essay').length,preserved?2:1,'Social mantém o formato original do primeiro simulado e uma dissertativa nos novos');
+   if(!preserved)assert.ok(e.questions.some(q=>/racial|subjetiv|digital|branqueamento|tecnologia|vivência|economicismo/i.test(q.concept)),'Novas fontes presentes');
   }
  }
  assert.match(html,/subject==='familia'\?window\.PSICO_FINAL_EXAMS\?\.familyVersion/,'Família mantém revisão anterior');
