@@ -349,6 +349,31 @@ test('Desafio inaugural permanece intacto e novos termos são reais e ligados à
  assert.match(page,/extras-data\.js\?v=20261123-psico-lexicon-v1/);
 });
 
+test('VÍNCULO não reutiliza categorias nem combinações em dias diferentes, inclusive após esgotamento',()=>{
+ const e=engine(),titles=new Set(),combinations=new Set();
+ const dateAt=i=>new Date(Date.parse('2026-11-20T12:00:00Z')+i*86400000).toISOString().slice(0,10);
+ const canonical=v=>String(v).normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim().toUpperCase();
+ let days=0,normas=0,exhausted=false;
+ for(let i=0;i<400;i++){
+  const groups=e.getAdminAnswersFor(dateAt(i),'conexo');
+  if(!groups.length){exhausted=true;continue;}
+  assert.equal(exhausted,false,'calendário não deve reiniciar após esgotar');
+  assert.equal(groups.length,4);
+  assert.equal(new Set(groups.flatMap(g=>Array.from(g.terms,canonical))).size,16);
+  for(const g of groups){
+   const title=canonical(g.title),combo=Array.from(g.terms,canonical).sort().join('|');
+   assert.ok(!titles.has(title),'tema repetido: '+g.title);
+   assert.ok(!combinations.has(combo),'combinação repetida: '+combo);
+   titles.add(title);combinations.add(combo);
+   if(g.terms.some(t=>canonical(t)==='NORMAS'))normas++;
+  }
+  days++;
+ }
+ assert.ok(days>=35);
+ assert.equal(normas,1);
+ assert.equal(exhausted,true);
+});
+
 test('Conexo escolhe quatro grupos distintos e registra solução',()=>{
  const e=engine();e.init();e.setActive('conexo');
  assert.equal(e.groups().length,4);
