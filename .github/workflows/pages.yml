@@ -55,6 +55,20 @@ jobs:
           )
           if not admin_scripts:
               print('Aviso: referência direta ao painel não encontrada no HTML')
+          # Versiona toda a cadeia de iframes do Extras com o SHA publicado.
+          # Uma atualização do jogo nunca reutiliza a URL de um build anterior.
+          extras_asset = re.compile(
+              r'((?:\./)?(?:extras\.html|extras\.js|extras\.css|tetriszoul\.html|tetriszoul-theme\.css))(?:\?v=[A-Za-z0-9_-]+)?(?=["\x27])'
+          )
+          def version_extras(source):
+              return extras_asset.sub(lambda match: match.group(1) + '?v=' + build, source)
+          html = version_extras(html)
+          for name in ('extras.html', 'extras.js', 'tetriszoul.html', 'site-version.js'):
+              asset = Path(name)
+              source = asset.read_text(encoding='utf-8')
+              updated = version_extras(source)
+              if source != updated:
+                  asset.write_text(updated, encoding='utf-8')
           path.write_text(html, encoding='utf-8')
           Path('site-version.txt').write_text(build + '\n', encoding='utf-8')
           print('Publicando versão', build)
