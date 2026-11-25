@@ -114,7 +114,7 @@ h1{font-size:clamp(28px,4.5vw,42px);letter-spacing:-.05em;margin:0}
    <div class="timer" id="timer" aria-live="off">00:00.000</div>
    <div class="board-wrap">
     <div class="board-outline"><canvas id="board" width="300" height="600" aria-label="Tabuleiro de 10 colunas por 20 linhas"></canvas>
-     <div class="overlay" id="overlay"><strong>40 LINHAS</strong><span>Inicia com qualquer comando ou clica em Jogar</span></div>
+     <div class="overlay" id="overlay"><strong>40 LINHAS</strong><span>Inicia com qualquer comando ou clica em New game</span></div>
     </div>
     <div class="board-metadata"><span>Sprint 40L · SRS · 7-bag · D para reiniciar</span><span id="runInfo">0 peças</span></div>
    </div>
@@ -249,6 +249,30 @@ var HALF_KICKS={
  "1>3":[[0,0],[-1,0]],"3>1":[[0,0],[1,0]]
 };
 var grid=[],queue=[],piece=null,hold=null,holdUsed=false,lines=0,pieces=0,startedAt=0,elapsed=0,phase="ready";
+// Jstris level 1 gravity and the default L1/L2/L3 lock delays (ms).
+var GRAVITY_MS=900,LOCK_IDLE_MS=500,LOCK_MOVE_MS=5000,PIECE_MAX_MS=20000;
+var gravityAt=0,pieceBornAt=0,groundSince=null,lockSince=null;
+function resetPieceTiming(now){
+ gravityAt=pieceBornAt=now;groundSince=lockSince=null;
+}
+function syncGround(now,action){
+ if(!piece||phase!=="running")return;
+ if(valid(piece,piece.x,piece.y+1,piece.r)){groundSince=lockSince=null;return;}
+ if(groundSince===null||action==="rotate")groundSince=now;
+ if(lockSince===null||action==="slide"||action==="rotate")lockSince=now;
+}
+function tickGravity(now){
+ if(!piece||phase!=="running")return;
+ if(now-pieceBornAt>=PIECE_MAX_MS){hardDrop();return;}
+ if(now-gravityAt>=GRAVITY_MS){
+  gravityAt=now;
+  if(valid(piece,piece.x,piece.y+1,piece.r)){piece.y++;draw();}
+ }
+ syncGround(now);
+ if(groundSince!==null&&(now-lockSince>=LOCK_IDLE_MS||now-groundSince>=LOCK_MOVE_MS)){
+  playSfx("drop");lockPiece();
+ }
+}
 var settings={das:120,arr:20,softDrop:"fast",skin:"classic",grid:"standard",ghost:true,sound:false,volume:35,showPps:true,dasCancel:true},pressed={},touchTimers={};
 var DEFAULT_BINDINGS={left:"ArrowLeft",right:"ArrowRight",down:"ArrowDown",drop:"Space",ccw:"KeyZ",cw:"ArrowUp",half:"KeyA",hold:"KeyC",restart:"KeyD"};
 var BINDINGS=Object.assign({},DEFAULT_BINDINGS);
@@ -279,16 +303,21 @@ function valid(p,x,y,rotation){
 }
 function spawn(type){
  piece={type:type,x:3,y:2,r:0};
+ resetPieceTiming(performance.now());
  if(!valid(piece,piece.x,piece.y,piece.r)){phase="lost";announce("Fim de jogo");}
 }
 function nextPiece(){fillQueue();spawn(queue.shift());fillQueue();}
 function startClock(){
- if(phase==="ready"){phase="running";startedAt=performance.now();byId("overlay").hidden=true;announce("Partida em andamento");}
+ if(phase==="ready"){phase="running";startedAt=performance.now();resetPieceTiming(startedAt);byId("overlay").hidden=true;announce("Partida em andamento");}
 }
 function move(dx,dy){
  if(!piece||phase==="lost"||phase==="won")return false;
  startClock();
- if(valid(piece,piece.x+dx,piece.y+dy,piece.r)){piece.x+=dx;piece.y+=dy;draw();return true;}
+ if(valid(piece,piece.x+dx,piece.y+dy,piece.r)){
+  piece.x+=dx;piece.y+=dy;
+  var now=performance.now();if(dy>0)gravityAt=now;
+  syncGround(now,dx?"slide":null);draw();return true;
+ }
  return false;
 }
 function rotate(dir){
@@ -299,7 +328,7 @@ function rotate(dir){
  piece.type==="O"?[[0,0]]:((piece.type==="I"?I_KICKS:OTHER_KICKS)[from+">"+to]||[[0,0]]);
  for(var i=0;i<tests.length;i++){
   var nx=piece.x+tests[i][0],ny=piece.y+tests[i][1];
-  if(valid(piece,nx,ny,to)){piece.x=nx;piece.y=ny;piece.r=to;playSfx("rotate");draw();return;}
+  if(valid(piece,nx,ny,to)){piece.x=nx;piece.y=ny;piece.r=to;syncGround(performance.now(),"rotate");playSfx("rotate");draw();return;}
  }
 }
 function holdPiece(){
@@ -339,14 +368,14 @@ function finish(){
  updateUI();draw();saveFinishedRun(Math.round(elapsed),pieces);
 }
 function announce(label){byId("statusPill").textContent=label;}
-function reset(){
+function reset(startImmediately){
  Object.keys(pressed).forEach(function(k){delete pressed[k];});
  Object.keys(touchTimers).forEach(function(k){clearInterval(touchTimers[k]);delete touchTimers[k];});
  grid=freshBoard();queue=[];piece=null;hold=null;holdUsed=false;lines=0;pieces=0;startedAt=0;elapsed=0;phase="ready";
  nextPiece();byId("overlay").hidden=false;
- byId("overlay").innerHTML="<strong>40 LINHAS</strong><span>Inicia com qualquer comando ou clica em Jogar</span>";
+ byId("overlay").innerHTML="<strong>40 LINHAS</strong><span>Inicia com qualquer comando ou clica em New game</span>";
  byId("saveState").textContent="";
- announce("Pronto para jogar");updateUI();draw();
+ announce("Pronto para jogar");if(startImmediately===true)startClock();updateUI();draw();
 }
 function paintCell(c,px,py,size,color,ghost){
  var style=settings.skin,base=style==="mono"?"#b3bdcc":color;
@@ -436,7 +465,7 @@ function softDropRows(maxRows){
  startClock();
  var moved=0;
  while(moved<maxRows&&valid(piece,piece.x,piece.y+1,piece.r)){piece.y++;moved++;}
- if(moved)draw();
+ if(moved){var now=performance.now();gravityAt=now;syncGround(now);draw();}
  return moved;
 }
 function frame(){
@@ -456,6 +485,7 @@ function frame(){
    if(settings.arr===0){while(move(key==="left"?-1:1,0)){};p.last=now;return;}
    if(now-p.last>=settings.arr){move(key==="left"?-1:1,0);p.last=now;}
   });
+  tickGravity(performance.now());
  }
  requestAnimationFrame(frame);
 }
@@ -491,7 +521,7 @@ document.addEventListener("keydown",function(e){
  else if(action==="half")rotate(2);
  else if(action==="drop")hardDrop();
  else if(action==="hold")holdPiece();
- else if(action==="restart")reset();
+ else if(action==="restart")reset(true);
 });
 document.addEventListener("keyup",function(e){
  var action=actionFor(e.code);
@@ -514,7 +544,7 @@ document.querySelectorAll("[data-touch]").forEach(function(btn){
  });
  btn.addEventListener("pointerup",stop);btn.addEventListener("pointercancel",stop);btn.addEventListener("lostpointercapture",stop);
 });
-byId("newGame").addEventListener("click",reset);
+byId("newGame").addEventListener("click",function(){reset(true);});
 byId("fullscreen").addEventListener("click",function(){
  if(document.fullscreenElement){document.exitFullscreen();return;}
  var el=byId("app"),fn=el.requestFullscreen||el.webkitRequestFullscreen;
