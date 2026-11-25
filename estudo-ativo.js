@@ -48,7 +48,7 @@ function cards(id){
  const all=[];
  S(id).topics.forEach((t,index)=>{
   if(!t?.title||!t?.definition)return;
-  const entry=advancedPrompts[id]?.[index]||[];
+  const entry=id==='social'&&t.supplement?[t.question,t.critQuestion,t.critAnswer,t.answer]:(advancedPrompts[id]?.[index]||[]);
   const key=id+':'+n(t.title).toLowerCase();
   const answer=entry[3]||(id==='grupos'?(shortGroups[t.title]||t.definition):t.definition);
   const core=entry[0]||('Como definir '+n(t.title)+' e qual sua relevância na disciplina?');

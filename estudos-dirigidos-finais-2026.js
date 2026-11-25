@@ -5,6 +5,7 @@
 'use strict';
 const TARGETS=['tcc','meta','grupos','social','avaliacao'];
 function makeQuestion(topic,i){
+ if(topic.supplement)return {n:i+1,topic:topic.title,section:'Complemento — '+topic.source.split(',')[0],question:topic.question+'\n\n'+topic.critQuestion,options:[],answer:null,explanation:topic.definition+'\n\n'+topic.critAnswer+'\n\nExemplo: '+topic.scenario,contrast:topic.myth,points:[{title:'Conceito',explanation:topic.answer,example:''},{title:'Distinção',explanation:topic.critAnswer,example:topic.scenario}]};
  const scenario=String(topic.scenario||'Analise como o conceito se aplica a uma situação real, respeitando o contexto.').trim();
  const idea=String(topic.definition||'').trim();
  const myth=String(topic.myth||'').trim();
@@ -32,7 +33,7 @@ function apply(db){
  guides.social=guides.social||[];
  const socialTopics=window.PSICO_FINAL_EXAMS?.curated?.(db,'social')||[];
  const socialNew=socialTopics.filter(t=>t.source);
- const socialQuestions=socialNew.map((t,i)=>({...makeQuestion(t,i),n:SOCIAL_P3_GUIDE.questions.length+i+1,section:'Raça, subjetividade e colonialismo digital',explanation:t.definition+'\n\nAplicação: '+t.scenario+'\n\nFonte: '+t.source,contrast:t.myth}));
+ const socialQuestions=socialNew.map((t,i)=>t.supplement?{...makeQuestion(t,i),n:SOCIAL_P3_GUIDE.questions.length+i+1}:{...makeQuestion(t,i),n:SOCIAL_P3_GUIDE.questions.length+i+1,section:'Raça, subjetividade e colonialismo digital',explanation:t.definition+'\n\nAplicação: '+t.scenario+'\n\nFonte: '+t.source,contrast:t.myth});
  const refreshedSocial={...SOCIAL_P3_GUIDE,subtitle:(SOCIAL_P3_GUIDE.questions.length+socialQuestions.length)+' questões autorais — conteúdos desde a semana 9',source:SOCIAL_P3_GUIDE.source+' Complementado com Raça, ideologia e subjetividade; Subjetividade como expressão das relações sociais; Colonialismo Digital (capítulos 1 e 2).',questions:[...SOCIAL_P3_GUIDE.questions,...socialQuestions]};
  guides.social=guides.social.filter(g=>g.id!==SOCIAL_P3_GUIDE.id);
  guides.social.unshift(refreshedSocial);

@@ -760,7 +760,7 @@ test('Revisão dos simulados mantém identificadores e exige conhecimento da dis
   }
  }
  assert.equal(current.filter(e=>e.id==='social-rev-provas-equivalentes-20261113-1').length,1,'Preserva versão realizada');
- assert.equal(runtime.window.PSICO_FINAL_EXAMS.curated(original,'social').length,36);
+ assert.equal(runtime.window.PSICO_FINAL_EXAMS.curated(original,'social').length,49);
  assert.ok(current.filter(e=>e.subject==='social'&&e.model>1).every(e=>e.id.startsWith('social-rev-social-fontes-completas-20261125-v1-')));
  assert.ok(current.filter(e=>e.subject==='familia').every(e=>e.id.startsWith('familia-rev-provas-equivalentes-20261113-')));
  assert.equal(current.reduce((sum,e)=>sum+e.questions.length,0),385,'Questões da revisão atual');
