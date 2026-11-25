@@ -267,6 +267,9 @@ var client=null,uid=null,approved=false,busySync=false,records=[];
 var gate=document.getElementById("gate"),app=document.getElementById("app");
 var byId=function(id){return document.getElementById(id);};
 var WIDTH=10,HEIGHT=22,VISIBLE=20,SIZE=30,TARGET=40;
+// Array index 2 is visible row 20; index 1 is the single non-solid Jstris buffer.
+// Index 0 is a sentinel for discarded cells, not a second stored buffer.
+var FIRST_VISIBLE=HEIGHT-VISIBLE,BUFFER_ROW=FIRST_VISIBLE-1;
 var COLORS={I:"#4dd5e7",O:"#f8d950",T:"#ad86ee",S:"#58cf83",Z:"#ed6473",J:"#6294f1",L:"#f5a75a"};
 var BASE={
  I:[[0,1],[1,1],[2,1],[3,1]],O:[[1,0],[2,0],[1,1],[2,1]],
@@ -362,13 +365,14 @@ function valid(p,x,y,rotation){
  var blocks=SHAPES[p.type][rotation];
  return blocks.every(function(b){
   var xx=x+b[0],yy=y+b[1];
-  return xx>=0&&xx<WIDTH&&yy<HEIGHT&&(yy<0||!grid[yy][xx]);
+  return xx>=0&&xx<WIDTH&&yy<HEIGHT&&(yy<FIRST_VISIBLE||!grid[yy][xx]);
  });
 }
 function spawn(type){
- piece={type:type,x:3,y:2,r:0};
+ // In spawn orientation the bottom minos occupy visible row 20; the others may be above it.
+ piece={type:type,x:3,y:BUFFER_ROW,r:0};
  resetPieceTiming(performance.now());
- if(!valid(piece,piece.x,piece.y,piece.r)){phase="lost";announce("Fim de jogo");}
+ if(!valid(piece,piece.x,piece.y,piece.r)){endGame();}
 }
 function nextPiece(){fillQueue();spawn(queue.shift());fillQueue();}
 function startClock(){
@@ -418,22 +422,33 @@ function hardDrop(){
  startClock();while(valid(piece,piece.x,piece.y+1,piece.r))piece.y++;playSfx("drop");
  lockPiece();
 }
+function endGame(){
+ if(phase==="running")elapsed=performance.now()-startedAt;
+ phase="lost";goUntil=0;announce("Fim de jogo");
+ Object.keys(pressed).forEach(function(k){delete pressed[k];});
+ var el=byId("overlay");el.className="overlay";el.hidden=false;
+ el.innerHTML="<strong>FIM DE JOGO</strong><span>Novo jogo para reiniciar</span>";
+}
 function lockPiece(){
- var collisionAbove=false;
+ // Only the first hidden row is retained. Higher minos vanish on lock;
+ // placing part of a piece above the visible board is not a loss.
  SHAPES[piece.type][piece.r].forEach(function(b){
-  var x=piece.x+b[0],y=piece.y+b[1];if(y<2)collisionAbove=true;
-  if(y>=0&&y<HEIGHT)grid[y][x]=piece.type;
+  var x=piece.x+b[0],y=piece.y+b[1];
+  if(y>=BUFFER_ROW&&y<HEIGHT)grid[y][x]=piece.type;
  });
  pieces++;
  var cleared=0;
- for(var y=HEIGHT-1;y>=0;y--){
+ for(var y=HEIGHT-1;y>=FIRST_VISIBLE;y--){
   if(grid[y].every(Boolean)){grid.splice(y,1);grid.unshift(Array(WIDTH).fill(null));cleared++;y++;}
  }
+ // A line clear lowers stored buffer minos into the visible board.
+ // Never count the invisible row as a line by itself.
+ grid[0].fill(null);
  lines+=cleared;
  if(cleared)playSfx("clear");
  holdUsed=false;
  if(lines>=TARGET){finish();return;}
- if(collisionAbove){phase="lost";announce("Fim de jogo");draw();return;}
+ // Block-out is decided by the next spawn, after clearing lines.
  nextPiece();updateUI();draw();
 }
 function finish(){
@@ -512,16 +527,16 @@ function draw(){
  if(settings.grid==="standard"||settings.grid==="full"||settings.grid==="partial"){
   for(var y=0;y<=VISIBLE;y++){ctx.beginPath();ctx.moveTo(0,y*SIZE+.5);ctx.lineTo(300,y*SIZE+.5);ctx.stroke();}
  }
- for(var gy=2;gy<HEIGHT;gy++)for(var gx=0;gx<WIDTH;gx++)if(grid[gy][gx])cell(ctx,gx,gy-2,SIZE,COLORS[grid[gy][gx]],false);
- if(piece){
+ for(var gy=FIRST_VISIBLE;gy<HEIGHT;gy++)for(var gx=0;gx<WIDTH;gx++)if(grid[gy][gx])cell(ctx,gx,gy-FIRST_VISIBLE,SIZE,COLORS[grid[gy][gx]],false);
+ if(piece&&phase!=="lost"){
   var ghostY=piece.y;
   while(valid(piece,piece.x,ghostY+1,piece.r))ghostY++;
   if(settings.ghost)SHAPES[piece.type][piece.r].forEach(function(b){
-   var gx=piece.x+b[0],gy=ghostY+b[1]-2;
+   var gx=piece.x+b[0],gy=ghostY+b[1]-FIRST_VISIBLE;
    if(gy>=0)cell(ctx,gx,gy,SIZE,COLORS[piece.type],true);
   });
   SHAPES[piece.type][piece.r].forEach(function(b){
-   var gx=piece.x+b[0],gy=piece.y+b[1]-2;
+   var gx=piece.x+b[0],gy=piece.y+b[1]-FIRST_VISIBLE;
    if(gy>=0)cell(ctx,gx,gy,SIZE,COLORS[piece.type],false);
   });
  }
