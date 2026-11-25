@@ -33,7 +33,10 @@
 .game-actions{display:flex;gap:9px;align-items:center;justify-content:center;margin-top:18px;flex-wrap:wrap}
 .feedback{font-size:12px;font-weight:650;line-height:1.5;text-align:center;min-height:19px;margin:13px 0;color:var(--accent)}
 .feedback.error{color:#be5266}.feedback.ok{color:var(--success)}
-.tetris-frame{width:100%;height:1110px;border:1px solid var(--line);border-radius:12px;background:#101421}
+.tetris-frame{display:block;width:100%;max-width:740px;height:850px;margin:0 auto;border:0;border-radius:8px;background:#000}
+.tetris-game-panel .game-head{margin-bottom:8px}
+.tetris-game-panel .tetris-tools{justify-content:flex-end;margin:0 auto 10px;max-width:740px}
+.tetris-game-panel{padding-bottom:20px}
 .tetris-tools{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin:0 0 13px}
 .tetris-tools a{color:var(--accent);font-size:12px;text-decoration:none;font-weight:700}
 .psico-board{display:grid;gap:6px;margin:18px auto;max-width:355px}
@@ -81,7 +84,7 @@
 .finish-box{padding:16px;text-align:center;border:1px solid #9acfb5;background:#eff9f3;border-radius:12px;max-width:600px;margin:16px auto;color:#2e6f52}
 .finish-box strong{display:block;font-size:18px;margin-bottom:6px}.finish-box p{font-size:12px;line-height:1.6;margin:0}
 @media(max-width:800px){.extras-tabs{grid-template-columns:repeat(2,minmax(0,1fr))}.extras-wrap{padding:14px}.extras-hero{padding:23px}.conexo-tile{min-height:70px}}
-@media(max-width:500px){.extras-wrap{padding:10px 9px 30px}.extras-hero{padding:20px;border-radius:14px}.hero-row{align-items:flex-start;flex-direction:column}.today-pill{align-self:flex-end;flex-direction:row;gap:9px}.extras-tabs{gap:7px}.extras-tabs button{padding:10px;gap:8px;border-radius:10px}.extras-tabs button[aria-selected=true]{padding:9px}.extras-tabs .tab-glyph{height:31px;width:31px;font-size:17px}.extras-tabs strong{font-size:12px}.extras-tabs small{font-size:9px}.game-panel{padding:13px;border-radius:13px}.game-head h2{font-size:22px}.psico-board{max-width:325px}.psico-cell{font-size:22px;border-radius:5px}.psico-key{height:43px;font-size:12px}.conexo-grid{gap:5px}.conexo-tile{min-height:67px;font-size:10px;padding:4px;border-radius:6px}.tetris-frame{height:1350px}.context-form{flex-wrap:wrap}.context-form button{width:100%}}
+@media(max-width:500px){.extras-wrap{padding:10px 9px 30px}.extras-hero{padding:20px;border-radius:14px}.hero-row{align-items:flex-start;flex-direction:column}.today-pill{align-self:flex-end;flex-direction:row;gap:9px}.extras-tabs{gap:7px}.extras-tabs button{padding:10px;gap:8px;border-radius:10px}.extras-tabs button[aria-selected=true]{padding:9px}.extras-tabs .tab-glyph{height:31px;width:31px;font-size:17px}.extras-tabs strong{font-size:12px}.extras-tabs small{font-size:9px}.game-panel{padding:13px;border-radius:13px}.game-head h2{font-size:22px}.psico-board{max-width:325px}.psico-cell{font-size:22px;border-radius:5px}.psico-key{height:43px;font-size:12px}.conexo-grid{gap:5px}.conexo-tile{min-height:67px;font-size:10px;padding:4px;border-radius:6px}.tetris-frame{height:850px}.context-form{flex-wrap:wrap}.context-form button{width:100%}}
 :root[data-theme=dark]{color-scheme:dark;--bg:#111a2a;--paper:#18263b;--ink:#ecf1fc;--muted:#b3c1d3;--line:#35465d;--soft:#223248;--accent:#b2a2fa;--accent-light:#302a4b;--shadow:0 14px 35px #0409132e}
 :root[data-theme=dark] .extras-hero{background:linear-gradient(110deg,#34275a,#54477e)}
 :root[data-theme=dark] .extras-tabs .tab-glyph{background:#2f2b4c}

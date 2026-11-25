@@ -439,8 +439,8 @@ function renderGame(){
  const host=$("gameHost");
  if(!host||!approved)return;
  if(active==="tetris"&&isAdmin){
-  host.innerHTML='<div class="game-panel"><div class="game-head"><div><span class="game-tag">Sprint · 40 Lines</span><h2>TetrisZoul</h2><p>Sprint de 40 linhas.</p></div><span class="game-stat">40 linhas</span></div>'+
-   '<div class="tetris-tools"><span class="section-note">Configurações, skins e recordes permanecem no TetrisZoul.</span><a href="./tetriszoul.html?v=20261125-jstris-pixel-v1" target="_blank" rel="noopener noreferrer">Abrir jogo em tela própria ↗</a></div>'+
+  host.innerHTML='<div class="game-panel tetris-game-panel"><div class="game-head"><div><span class="game-tag">Sprint · 40 Lines</span><h2>TetrisZoul</h2></div><span class="game-stat">40 linhas</span></div>'+
+   '<div class="tetris-tools"><a href="./tetriszoul.html?v=20261125-jstris-pixel-v1" target="_blank" rel="noopener noreferrer">Abrir jogo em tela própria ↗</a></div>'+
    '<iframe class="tetris-frame" id="extrasTetrisFrame" src="./tetriszoul.html?v=20261125-jstris-pixel-v1" title="TetrisZoul — 40 linhas" loading="lazy" allow="fullscreen"></iframe></div>';
  }else if(active==="psico")renderPsico();
  else if(active==="conexo")renderConexo();
@@ -448,6 +448,16 @@ function renderGame(){
  updateAdminAnswers();
  requestHeight();
 }
+// Accept size updates only from the currently mounted, same-origin Tetris iframe.
+window.addEventListener("message",function(event){
+ if(event.origin!==location.origin||event.data?.kind!=="tetriszoul-embed-height")return;
+ const frame=$("extrasTetrisFrame");
+ if(!frame||event.source!==frame.contentWindow)return;
+ const height=Number(event.data.height);
+ if(!Number.isFinite(height)||height<100)return;
+ const size=Math.min(2400,Math.max(320,Math.ceil(height)))+"px";
+ if(frame.style.height!==size){frame.style.height=size;requestHeight();}
+});
 function requestHeight(){
  if(window.parent===window)return;
  requestAnimationFrame(()=>{

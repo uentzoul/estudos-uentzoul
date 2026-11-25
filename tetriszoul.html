@@ -132,6 +132,24 @@ html,body{background:#000;color:#a0a0a0;font-family:Arial,Helvetica,sans-serif}
 #app .record-area .records li{background:#101010;border-color:#262626;color:#aaa}
 #app .skin-option[data-skin="pixel"] i{border:0;border-radius:4px;box-shadow:inset 3px 3px 0 #ffffff52,inset -3px -3px 0 #0006}
 @media(max-width:500px){#app{--cell:clamp(12px,min(calc((100vw - 18px)/20),calc((100svh - 210px)/20)),24px);padding:8px 5px 20px}#app .layout{column-gap:calc(var(--cell)*.5)}#app .top{margin-bottom:5px}#app .remaining{margin-top:calc(var(--cell)*1.1)}#app .actions.jstris-actions{margin-top:10px}#app .actions .btn{padding:2px 3px}#app .touch{grid-template-columns:repeat(3,minmax(0,1fr));width:calc(var(--cell)*14);margin-left:calc(var(--cell)*-2)}#app .touch [data-touch="down"]{grid-column:1/-1!important}}
+
+/* Embedded Sprint layout: same engine and skin, independently sized cockpit. */
+html.tz-embed #app{--cell:clamp(12px,calc((100vw - 32px)/20),30px);max-width:740px;padding:16px 10px 12px}
+html.tz-embed #app .top{display:none}
+html.tz-embed #app .layout{grid-template-columns:calc(var(--cell)*4) calc(var(--cell)*10 + 2px) calc(var(--cell)*5);column-gap:calc(var(--cell)*.5);justify-content:center}
+html.tz-embed #app .layout>.left{padding-top:6px}
+html.tz-embed #app .jstris-hold h2{font-size:12px;color:#888;margin-bottom:2px}
+html.tz-embed #app .next-panel .piece-box{height:calc(var(--cell)*3)}
+html.tz-embed #app .remaining{margin-top:calc(var(--cell)*1.5);color:#888}
+html.tz-embed #app .actions.jstris-actions{margin:14px auto 0;gap:4px;justify-content:center;width:100%;max-width:none}
+html.tz-embed #app .actions .btn{padding:3px 6px;min-height:24px;font-size:clamp(10px,calc(var(--cell)*.47),14px)}
+html.tz-embed #app .actions .btn.return-extra{display:none}
+html.tz-embed #app .run-stats{margin-top:10px;font-size:clamp(11px,calc(var(--cell)*.48),14px)}
+html.tz-embed #app .record-area{max-width:calc(var(--cell)*10);margin:12px auto 0}
+html.tz-embed #app .settings-drawer{margin:12px auto 0}
+html.tz-embed #app #saveState:empty{display:none}
+html.tz-embed #app:fullscreen{padding:20px 10px;max-width:none}
+@media(max-width:500px){html.tz-embed #app{--cell:clamp(11px,calc((100vw - 20px)/20),24px);padding:10px 4px}html.tz-embed #app .actions .btn{padding:2px 3px;font-size:10px}html.tz-embed #app .remaining{font-size:9px}}
 </style>
 </head>
 <body>
@@ -142,7 +160,7 @@ html,body{background:#000;color:#a0a0a0;font-family:Arial,Helvetica,sans-serif}
  <a class="return" href="./index.html#extras">Voltar ao Extras</a>
 </main>
 <main id="app" class="shell" hidden>
- <div class="top"><a class="return" href="./index.html#extras">← Extras</a><small>TetrisZoul · Sprint</small><button class="return" id="fullscreen" type="button" aria-label="Tela cheia" title="Tela cheia">⛶</button></div>
+ <div class="top"><a class="return" href="./index.html#extras">← Extras</a><small>TetrisZoul · Sprint</small></div>
  <div class="headline">
   <div><span class="tag">Sprint · 40 Lines</span><h1>TetrisZoul</h1><p>Limpa 40 linhas o mais rápido possível. Os tempos ficam associados à tua conta.</p></div>
   <div id="statusPill" class="status-pill">Pronto para jogar</div>
@@ -157,7 +175,7 @@ html,body{background:#000;color:#a0a0a0;font-family:Arial,Helvetica,sans-serif}
      <div class="overlay" id="overlay"><strong>40 LINHAS</strong><span>Novo jogo para iniciar</span></div>
     </div>
    </div>
-   <div class="actions jstris-actions"><a class="btn" href="./index.html#extras">Extras</a><button class="btn secondary" id="settingsToggle" type="button" aria-expanded="false" aria-controls="settingsDrawer">Configurações</button><button class="btn primary" id="newGame" type="button">Novo jogo</button></div>
+   <div class="actions jstris-actions"><a class="btn return-extra" href="./index.html#extras">Extras</a><button class="btn secondary" id="settingsToggle" type="button" aria-expanded="false" aria-controls="settingsDrawer">Configurações</button><button class="btn primary" id="newGame" type="button">Novo jogo</button><button class="btn" id="fullscreen" type="button" aria-label="Tela cheia" title="Tela cheia">⛶</button></div>
    <div class="run-stats" aria-label="Estatísticas da partida">
     <div class="stat-row"><span>Tempo de rodada</span><strong id="timer">0.00</strong></div>
     <div class="stat-row" id="ppsRow"><span>PPS</span><strong id="pps">0.00</strong></div>
@@ -787,7 +805,28 @@ function saveFinishedRun(ms,count){
  writeJson(pendingKey(),list);storedList();
  byId("saveState").textContent="Salvando o tempo na tua conta…";void flushPending();
 }
+function installEmbedLayout(){
+ if(window.parent===window)return;
+ try{
+  if(window.parent.location.origin!==location.origin)return;
+  document.documentElement.classList.add("tz-embed");
+  var last=0;
+  function report(){
+   if(app.hidden||document.fullscreenElement)return;
+   var height=Math.ceil(app.getBoundingClientRect().height)+4;
+   if(height>0&&height!==last){
+    last=height;
+    window.parent.postMessage({kind:"tetriszoul-embed-height",height:height},location.origin);
+   }
+  }
+  if(typeof ResizeObserver==="function")new ResizeObserver(report).observe(app);
+  window.addEventListener("resize",report);
+  document.addEventListener("fullscreenchange",report);
+  requestAnimationFrame(report);
+ }catch(_){}
+}
 async function verify(){
+ installEmbedLayout();
  try{
   if(!window.supabase?.createClient)throw Error("O serviço de login não carregou. Verifica a conexão.");
   client=window.supabase.createClient(URL_SB,KEY_SB,{auth:{persistSession:true,autoRefreshToken:true}});
