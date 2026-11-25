@@ -105,7 +105,9 @@ html,body{background:#000;color:#a0a0a0;font-family:Arial,Helvetica,sans-serif}
 #app .overlay{background:#000b;color:#d0d0d0;text-shadow:0 2px #000}
 #app .overlay strong{font-size:clamp(20px,calc(var(--cell)*1.1),30px);letter-spacing:0}
 #app .overlay.countdown{background:#000d}
-#app .overlay.countdown strong{font-size:calc(var(--cell)*3);line-height:1;font-weight:700;color:#eee}
+#app .overlay.countdown strong{font-size:clamp(20px,calc(var(--cell)*1.3),36px);line-height:1.1;font-weight:700;color:#ddd}
+#app .overlay.countdown.go{background:transparent;text-shadow:0 1px 4px #000,0 0 6px #000}
+#app .overlay.countdown.go strong{color:#ddd}
 #app .overlay span{color:#999;font-size:11px}
 #app .next-panel .pieces{display:block}
 #app .next-panel .next-board{display:grid;grid-template-columns:1fr;gap:0}
@@ -290,7 +292,9 @@ var HALF_KICKS={
  "0>2":[[0,0],[0,-1]],"2>0":[[0,0],[0,1]],
  "1>3":[[0,0],[-1,0]],"3>1":[[0,0],[1,0]]
 };
-var grid=[],queue=[],piece=null,hold=null,holdUsed=false,lines=0,pieces=0,startedAt=0,elapsed=0,phase="ready",countdownAt=0,countdownLabel="",keyCount=0;
+var grid=[],queue=[],piece=null,hold=null,holdUsed=false,lines=0,pieces=0,startedAt=0,elapsed=0,phase="ready",countdownAt=0,countdownLabel="",goUntil=0,keyCount=0;
+// Ready-Go timing approximation; the official Jstris guide does not specify the exact duration.
+var READY_MS=1500,GO_MS=400;
 // Jstris level 1 gravity and the default L1/L2/L3 lock delays (ms).
 var GRAVITY_MS=900,LOCK_IDLE_MS=500,LOCK_MOVE_MS=5000,PIECE_MAX_MS=20000;
 var gravityAt=0,pieceBornAt=0,groundSince=null,lockSince=null;
@@ -357,9 +361,12 @@ function beginCountdown(){
 }
 function tickCountdown(now){
  if(phase!=="countdown")return;
- var t=Math.max(0,now-countdownAt),label=t<3000?String(3-Math.floor(t/1000)):"GO";
- if(t>=3300){byId("overlay").className="overlay";startClock();draw();return;}
- if(label!==countdownLabel){countdownLabel=label;var el=byId("overlay");el.className="overlay countdown";el.hidden=false;el.innerHTML="<strong>"+label+"</strong>";}
+ var t=Math.max(0,now-countdownAt),el=byId("overlay");
+ if(t>=READY_MS){
+  startClock();goUntil=performance.now()+GO_MS;
+  el.className="overlay countdown go";el.hidden=false;el.innerHTML="<strong>Vai!</strong>";draw();return;
+ }
+ if(countdownLabel!=="ready"){countdownLabel="ready";el.className="overlay countdown";el.hidden=false;el.innerHTML="<strong>Prepare...</strong>";}
 }
 function move(dx,dy){
  if(!piece||phase==="countdown"||phase==="lost"||phase==="won")return false;
@@ -413,7 +420,7 @@ function lockPiece(){
 }
 function finish(){
  elapsed=performance.now()-startedAt;
- phase="won";announce("40 LINHAS CONCLUÍDAS");
+ phase="won";goUntil=0;byId("overlay").className="overlay";announce("40 LINHAS CONCLUÍDAS");
  byId("overlay").hidden=false;
  byId("overlay").innerHTML="<strong>40 LINHAS!</strong><span>"+format(elapsed)+" · "+pieces+" peças</span>";
  updateUI();draw();saveFinishedRun(Math.round(elapsed),pieces);
@@ -422,7 +429,7 @@ function announce(label){byId("statusPill").textContent=label;}
 function reset(startImmediately){
  Object.keys(pressed).forEach(function(k){delete pressed[k];});
  Object.keys(touchTimers).forEach(function(k){clearInterval(touchTimers[k]);delete touchTimers[k];});
- grid=freshBoard();queue=[];piece=null;hold=null;holdUsed=false;lines=0;pieces=0;keyCount=0;startedAt=0;elapsed=0;phase="ready";countdownLabel="";
+ grid=freshBoard();queue=[];piece=null;hold=null;holdUsed=false;lines=0;pieces=0;keyCount=0;startedAt=0;elapsed=0;phase="ready";countdownLabel="";goUntil=0;
  nextPiece();byId("overlay").hidden=false;byId("overlay").className="overlay";
  byId("overlay").innerHTML="<strong>40 LINHAS</strong><span>Inicia com qualquer comando ou clica em Novo jogo</span>";
  byId("saveState").textContent="";
@@ -537,7 +544,7 @@ function softDropRows(maxRows){
 function frame(){
  if(!approved)return;
  if(phase==="countdown")tickCountdown(performance.now());
- if(phase==="running"){updateUI();var now=performance.now();Object.keys(pressed).forEach(function(key){
+ if(phase==="running"){updateUI();var now=performance.now();if(goUntil&&now>=goUntil){goUntil=0;byId("overlay").hidden=true;byId("overlay").className="overlay";}Object.keys(pressed).forEach(function(key){
    var p=pressed[key];if(!p)return;
    if(key==="down"){
     var interval=SOFT_DROP_MS[settings.softDrop]??SOFT_DROP_MS.fast;
