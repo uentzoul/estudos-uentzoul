@@ -81,6 +81,56 @@ h1{font-size:clamp(28px,4.5vw,42px);letter-spacing:-.05em;margin:0}
 @media(prefers-reduced-motion:reduce){*,*:before,*:after{scroll-behavior:auto!important;animation:none!important}}
 </style>
 <link rel="stylesheet" href="tetriszoul-theme.css?v=20261120-jstris-style-v2">
+
+<style>
+/* Compact black Sprint layout, matching the supplied reference proportions. */
+html,body{background:#000;color:#a0a0a0;font-family:Arial,Helvetica,sans-serif}
+#app{--cell:clamp(12px,min(calc((100vw - 34px)/20),calc((100svh - 180px)/20)),24px);max-width:760px;padding:12px 10px 28px}
+#app:fullscreen{background:#000;overflow:auto;max-width:none}
+#app .top{max-width:calc(var(--cell)*20);margin:0 auto 9px;font-size:11px;color:#777;justify-content:space-between}
+#app .top .return{background:none;border:0;padding:2px;color:#8c8c8c}
+#app .headline{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);margin:0;padding:0}
+#app .layout{display:grid;grid-template-columns:calc(var(--cell)*4) calc(var(--cell)*10 + 2px) calc(var(--cell)*5);gap:0 calc(var(--cell)*.5);width:max-content;max-width:100%;margin:auto;align-items:start}
+#app .layout>.left,#app .layout>.center,#app .layout>.right{display:block;grid-row:1;width:auto;min-width:0;margin:0;padding:0;order:initial}
+#app .layout>.left{grid-column:1}
+#app .layout>.center{grid-column:2}
+#app .layout>.right{grid-column:3}
+#app .layout .panel,#app .layout .piece-box{border:0;background:none;border-radius:0;box-shadow:none;padding:0;min-height:0;height:auto;margin:0}
+#app .jstris-hold h2{font-size:11px;font-weight:400;letter-spacing:0;color:#555;text-transform:none;text-align:center;margin:0 0 2px}
+#app .jstris-hold .piece-box{width:100%;max-width:none}
+#app .jstris-hold canvas{width:100%;height:auto;max-width:none;display:block}
+#app .board-wrap{width:100%;max-width:none;padding:0;background:none;border:0;border-radius:0;box-shadow:none;margin:0}
+#app .board-outline{width:100%;max-width:none;border:1px solid #414141;background:#000;box-shadow:0 0 0 1px #222}
+#app #board{width:100%;height:auto;aspect-ratio:1/2;image-rendering:pixelated}
+#app .overlay{background:#000b;color:#d0d0d0;text-shadow:0 2px #000}
+#app .overlay strong{font-size:clamp(20px,calc(var(--cell)*1.1),30px);letter-spacing:0}
+#app .overlay.countdown{background:#000d}
+#app .overlay.countdown strong{font-size:calc(var(--cell)*3);line-height:1;font-weight:700;color:#eee}
+#app .overlay span{color:#999;font-size:11px}
+#app .next-panel .pieces{display:block}
+#app .next-panel .next-board{display:grid;grid-template-columns:1fr;gap:0}
+#app .next-panel .piece-box{width:100%;height:calc(var(--cell)*3);display:flex;align-items:center;justify-content:center}
+#app .next-panel .piece-box canvas{display:block;width:100%;height:auto;max-width:none;aspect-ratio:5/3;image-rendering:pixelated}
+#app .remaining{text-align:center;margin-top:calc(var(--cell)*1.7);font-size:clamp(9px,calc(var(--cell)*.54),13px);line-height:1.25;color:#555}
+#app #lines{font-size:calc(var(--cell)*1.3);line-height:1.1;font-weight:400;color:#aaa;display:block;font-variant-numeric:tabular-nums}
+#app .remaining span{display:block;white-space:nowrap}
+#app .actions.jstris-actions{display:flex;gap:3px;margin:calc(var(--cell)*.9) auto 0;justify-content:center;flex-wrap:nowrap;width:max-content;max-width:calc(var(--cell)*14)}
+#app .actions .btn{background:#aaa;color:#111;border:2px outset #b5b5b5;border-radius:0;padding:1px 5px;min-height:22px;line-height:1.1;font-size:clamp(10px,calc(var(--cell)*.58),14px);font-weight:400;text-decoration:none;white-space:nowrap}
+#app .actions .btn:active{border-style:inset}
+#app .run-stats{display:grid;gap:2px;margin:12px auto 0;width:max-content;max-width:100%;font-size:clamp(11px,calc(var(--cell)*.59),14px);line-height:1.12;font-variant-numeric:tabular-nums}
+#app .stat-row{display:grid;grid-template-columns:1fr minmax(42px,auto);gap:9px;align-items:baseline;text-align:right;color:#929292}
+#app .stat-row strong{font-size:1.12em;font-weight:700;color:#b2b2b2;text-align:left;letter-spacing:.03em}
+#app .touch{margin:12px 0 0;width:100%;gap:3px}
+#app .touch button{min-height:40px;padding:5px 0;background:#222;color:#ccc;border:1px solid #555;border-radius:3px}
+#app #saveState{margin:6px 0;min-height:0;color:#888}
+#app .record-area{max-width:calc(var(--cell)*15);margin:18px auto 0;color:#888;font-size:12px;border-top:1px solid #252525;padding:10px 0}
+#app .record-area summary{cursor:pointer}
+#app .record-area strong{color:#bbb}
+#app .record-area .records{margin-top:8px}
+#app .record-area .records li{background:#101010;border-color:#262626;color:#aaa}
+#app .skin-option[data-skin="pixel"] i{border:0;border-radius:4px;box-shadow:inset 3px 3px 0 #ffffff52,inset -3px -3px 0 #0006}
+@media(max-width:500px){#app{--cell:clamp(12px,min(calc((100vw - 18px)/20),calc((100svh - 210px)/20)),24px);padding:8px 5px 20px}#app .layout{column-gap:calc(var(--cell)*.5)}#app .top{margin-bottom:5px}#app .remaining{margin-top:calc(var(--cell)*1.1)}#app .actions.jstris-actions{margin-top:10px}#app .actions .btn{padding:2px 3px}#app .touch{grid-template-columns:repeat(3,minmax(0,1fr));width:calc(var(--cell)*14);margin-left:calc(var(--cell)*-2)}#app .touch [data-touch="down"]{grid-column:1/-1!important}}
+</style>
 </head>
 <body>
 <main id="gate" class="gate" role="status">
@@ -90,35 +140,29 @@ h1{font-size:clamp(28px,4.5vw,42px);letter-spacing:-.05em;margin:0}
  <a class="return" href="./index.html#extras">Voltar ao Extras</a>
 </main>
 <main id="app" class="shell" hidden>
- <div class="top"><a class="return" href="./index.html#extras">← Extras</a><small>Jogo independente · 40 linhas</small></div>
+ <div class="top"><a class="return" href="./index.html#extras">← Extras</a><small>TetrisZoul · Sprint</small><button class="return" id="fullscreen" type="button" aria-label="Tela cheia" title="Tela cheia">⛶</button></div>
  <div class="headline">
   <div><span class="tag">Sprint · 40 Lines</span><h1>TetrisZoul</h1><p>Limpa 40 linhas o mais rápido possível. Os tempos ficam associados à tua conta.</p></div>
   <div id="statusPill" class="status-pill">Pronto para jogar</div>
  </div>
  <div class="layout">
-  <section class="panel left" aria-label="Estatísticas">
-   <h2>Meu desempenho</h2>
+  <section class="left" aria-label="Peça guardada">
    <div class="jstris-hold"><h2>Hold</h2><div class="piece-box"><canvas id="hold" width="120" height="76" aria-label="Peça guardada"></canvas></div></div>
-   <div class="metrics">
-    <div class="metric best"><div class="label">Meu recorde</div><strong id="best">—</strong><div class="detail">Melhor tempo em 40 linhas</div></div>
-    <div class="metric"><div class="label">Linhas</div><strong id="lines">0 / 40</strong><div class="detail">Linhas concluídas</div></div>
-    <div class="metric"><div class="label">Peças / PPS</div><strong id="pieces">0</strong><div class="detail" id="pps">0,00 peças/s</div></div>
-   </div>
-   <div class="records">
-    <h2>Meus melhores tempos</h2>
-    <ol id="recordList"><li class="empty">Carregando recordes…</li></ol>
-    <div class="note">Os tempos finalizados são salvos na tua conta. Partidas incompletas não entram no histórico.</div>
-   </div>
   </section>
   <section class="center" aria-label="Área de jogo">
-   <div class="timer" id="timer" aria-live="off">00:00.000</div>
    <div class="board-wrap">
     <div class="board-outline"><canvas id="board" width="300" height="600" aria-label="Tabuleiro de 10 colunas por 20 linhas"></canvas>
-     <div class="overlay" id="overlay"><strong>40 LINHAS</strong><span>Inicia com qualquer comando ou clica em New game</span></div>
+     <div class="overlay" id="overlay"><strong>40 LINHAS</strong><span>Novo jogo para iniciar</span></div>
     </div>
-    <div class="board-metadata"><span>Sprint 40L · SRS · 7-bag · D para reiniciar</span><span id="runInfo">0 peças</span></div>
    </div>
-   <div class="actions jstris-actions"><button class="btn secondary" id="settingsToggle" type="button" aria-expanded="false" aria-controls="settingsDrawer">Settings</button><button class="btn primary" id="newGame" type="button">New game</button><button class="btn" id="fullscreen" type="button">⛶</button></div>
+   <div class="actions jstris-actions"><a class="btn" href="./index.html#extras">Extras</a><button class="btn secondary" id="settingsToggle" type="button" aria-expanded="false" aria-controls="settingsDrawer">Configurações</button><button class="btn primary" id="newGame" type="button">Novo jogo</button></div>
+   <div class="run-stats" aria-label="Estatísticas da partida">
+    <div class="stat-row"><span>Tempo de rodada</span><strong id="timer">0.00</strong></div>
+    <div class="stat-row" id="ppsRow"><span>PPS</span><strong id="pps">0.00</strong></div>
+    <div class="stat-row"><span>KPP</span><strong id="kpp">0.00</strong></div>
+    <div class="stat-row"><span>#</span><strong id="pieces">0</strong></div>
+    <span id="runInfo" hidden>0 peças</span>
+   </div>
    <p id="saveState" role="status"></p>
    <div class="touch" aria-label="Controles por toque">
     <button type="button" data-touch="left" aria-label="Mover esquerda">◀</button>
@@ -130,22 +174,20 @@ h1{font-size:clamp(28px,4.5vw,42px);letter-spacing:-.05em;margin:0}
     <button type="button" data-touch="down" style="grid-column:2/6" aria-label="Descer peça">↓ Descer</button>
    </div>
   </section>
-  <aside class="right">
+  <aside class="right" aria-label="Próximas peças e linhas restantes">
    <section class="panel next-panel">
-    <div class="pieces">
-     
-     <div><h2>Próxima</h2><div class="next-board">
-      <div class="piece-box"><canvas data-next="0" width="120" height="52"></canvas></div>
-      <div class="piece-box"><canvas data-next="1" width="120" height="52"></canvas></div>
-      <div class="piece-box"><canvas data-next="2" width="120" height="52"></canvas></div>
-      <div class="piece-box"><canvas data-next="3" width="120" height="52"></canvas></div>
-      <div class="piece-box"><canvas data-next="4" width="120" height="52"></canvas></div>
-     </div></div>
-    </div>
+    <div class="pieces"><div class="next-board">
+      <div class="piece-box"><canvas data-next="0" width="150" height="90" aria-label="Próxima peça 1"></canvas></div>
+      <div class="piece-box"><canvas data-next="1" width="150" height="90" aria-label="Próxima peça 2"></canvas></div>
+      <div class="piece-box"><canvas data-next="2" width="150" height="90" aria-label="Próxima peça 3"></canvas></div>
+      <div class="piece-box"><canvas data-next="3" width="150" height="90" aria-label="Próxima peça 4"></canvas></div>
+      <div class="piece-box"><canvas data-next="4" width="150" height="90" aria-label="Próxima peça 5"></canvas></div>
+    </div></div>
    </section>
-
+   <div class="remaining"><strong id="lines">40</strong><span>linhas restantes</span><span><b id="restartKeyDisplay">D</b> para reiniciar</span></div>
   </aside>
  </div>
+ <details class="record-area"><summary>Meus recordes · <strong id="best">—</strong></summary><div class="records"><ol id="recordList"><li class="empty">Carregando recordes…</li></ol><div class="note">Os tempos finalizados são salvos na tua conta.</div></div></details>
 
 <section id="settingsDrawer" class="settings-drawer" hidden aria-label="Configurações do TetrisZoul">
  <div class="drawer-head"><h2>Settings</h2><button id="closeSettings" type="button" class="drawer-close" aria-label="Fechar configurações">×</button></div>
@@ -170,7 +212,7 @@ h1{font-size:clamp(28px,4.5vw,42px);letter-spacing:-.05em;margin:0}
     <div class="settings-row"><label for="softDrop">Soft-drop</label><select id="softDrop"><option value="slow">Slow</option><option value="medium">Medium</option><option value="fast">Fast</option><option value="ultra">Ultra</option><option value="instant">Instant</option></select></div>
     <div class="settings-row"><label for="gridStyle">Grid</label><select id="gridStyle"><option value="none">None</option><option value="standard">Standard</option><option value="partial">Partial</option><option value="vertical">Vertical</option><option value="full">Full</option></select></div>
     <div class="setting-toggles"><label><input id="ghostEnabled" type="checkbox" checked> Ghost piece</label><label><input id="dasCancel" type="checkbox" checked> DAS direction cancellation</label></div>
-    <p class="bottom-note">ARR = 0 movimenta até a parede. No Sprint, não existe gravidade automática.</p>
+    <p class="bottom-note">ARR = 0 movimenta até a parede. A gravidade automática desce uma linha a cada 900 ms.</p>
    </section>
    <section data-setting-pane="skin" hidden>
     <h3>Block skin</h3><p class="drawer-hint">Visual inspirado nas skins clássicas de jogos de blocos. Artes desenhadas no próprio TetrisZoul, sem depender dos servidores do Jstris.</p>
@@ -248,7 +290,7 @@ var HALF_KICKS={
  "0>2":[[0,0],[0,-1]],"2>0":[[0,0],[0,1]],
  "1>3":[[0,0],[-1,0]],"3>1":[[0,0],[1,0]]
 };
-var grid=[],queue=[],piece=null,hold=null,holdUsed=false,lines=0,pieces=0,startedAt=0,elapsed=0,phase="ready";
+var grid=[],queue=[],piece=null,hold=null,holdUsed=false,lines=0,pieces=0,startedAt=0,elapsed=0,phase="ready",countdownAt=0,countdownLabel="",keyCount=0;
 // Jstris level 1 gravity and the default L1/L2/L3 lock delays (ms).
 var GRAVITY_MS=900,LOCK_IDLE_MS=500,LOCK_MOVE_MS=5000,PIECE_MAX_MS=20000;
 var gravityAt=0,pieceBornAt=0,groundSince=null,lockSince=null;
@@ -273,7 +315,7 @@ function tickGravity(now){
   playSfx("drop");lockPiece();
  }
 }
-var settings={das:120,arr:20,softDrop:"fast",skin:"classic",grid:"standard",ghost:true,sound:false,volume:35,showPps:true,dasCancel:true},pressed={},touchTimers={};
+var settings={das:120,arr:20,softDrop:"fast",skin:"pixel",grid:"standard",ghost:true,sound:false,volume:35,showPps:true,dasCancel:true},pressed={},touchTimers={};
 var DEFAULT_BINDINGS={left:"ArrowLeft",right:"ArrowRight",down:"ArrowDown",drop:"Space",ccw:"KeyZ",cw:"ArrowUp",half:"KeyA",hold:"KeyC",restart:"KeyD"};
 var BINDINGS=Object.assign({},DEFAULT_BINDINGS);
 var board=byId("board"),ctx=board.getContext("2d");
@@ -308,10 +350,19 @@ function spawn(type){
 }
 function nextPiece(){fillQueue();spawn(queue.shift());fillQueue();}
 function startClock(){
- if(phase==="ready"){phase="running";startedAt=performance.now();resetPieceTiming(startedAt);byId("overlay").hidden=true;announce("Partida em andamento");}
+ if(phase==="ready"||phase==="countdown"){phase="running";startedAt=performance.now();resetPieceTiming(startedAt);byId("overlay").hidden=true;announce("Partida em andamento");}
+}
+function beginCountdown(){
+ phase="countdown";countdownAt=performance.now();countdownLabel="";announce("Preparando partida");tickCountdown(countdownAt);draw();
+}
+function tickCountdown(now){
+ if(phase!=="countdown")return;
+ var t=Math.max(0,now-countdownAt),label=t<3000?String(3-Math.floor(t/1000)):"GO";
+ if(t>=3300){byId("overlay").className="overlay";startClock();draw();return;}
+ if(label!==countdownLabel){countdownLabel=label;var el=byId("overlay");el.className="overlay countdown";el.hidden=false;el.innerHTML="<strong>"+label+"</strong>";}
 }
 function move(dx,dy){
- if(!piece||phase==="lost"||phase==="won")return false;
+ if(!piece||phase==="countdown"||phase==="lost"||phase==="won")return false;
  startClock();
  if(valid(piece,piece.x+dx,piece.y+dy,piece.r)){
   piece.x+=dx;piece.y+=dy;
@@ -321,7 +372,7 @@ function move(dx,dy){
  return false;
 }
 function rotate(dir){
- if(!piece||phase==="lost"||phase==="won")return;
+ if(!piece||phase==="countdown"||phase==="lost"||phase==="won")return;
  startClock();
  var from=piece.r,to=(from+dir+4)%4;
  var tests=dir===2?(HALF_KICKS[from+">"+to]||[[0,0]]):
@@ -332,13 +383,13 @@ function rotate(dir){
  }
 }
 function holdPiece(){
- if(!piece||phase==="lost"||phase==="won"||holdUsed)return;
+ if(!piece||phase==="countdown"||phase==="lost"||phase==="won"||holdUsed)return;
  startClock();var previous=piece.type;
  if(hold){spawn(hold);}else{nextPiece();}
  hold=previous;holdUsed=true;playSfx("hold");draw();
 }
 function hardDrop(){
- if(!piece||phase==="lost"||phase==="won")return;
+ if(!piece||phase==="countdown"||phase==="lost"||phase==="won")return;
  startClock();while(valid(piece,piece.x,piece.y+1,piece.r))piece.y++;playSfx("drop");
  lockPiece();
 }
@@ -371,14 +422,15 @@ function announce(label){byId("statusPill").textContent=label;}
 function reset(startImmediately){
  Object.keys(pressed).forEach(function(k){delete pressed[k];});
  Object.keys(touchTimers).forEach(function(k){clearInterval(touchTimers[k]);delete touchTimers[k];});
- grid=freshBoard();queue=[];piece=null;hold=null;holdUsed=false;lines=0;pieces=0;startedAt=0;elapsed=0;phase="ready";
- nextPiece();byId("overlay").hidden=false;
- byId("overlay").innerHTML="<strong>40 LINHAS</strong><span>Inicia com qualquer comando ou clica em New game</span>";
+ grid=freshBoard();queue=[];piece=null;hold=null;holdUsed=false;lines=0;pieces=0;keyCount=0;startedAt=0;elapsed=0;phase="ready";countdownLabel="";
+ nextPiece();byId("overlay").hidden=false;byId("overlay").className="overlay";
+ byId("overlay").innerHTML="<strong>40 LINHAS</strong><span>Inicia com qualquer comando ou clica em Novo jogo</span>";
  byId("saveState").textContent="";
- announce("Pronto para jogar");if(startImmediately===true)startClock();updateUI();draw();
+ announce("Pronto para jogar");if(startImmediately===true)beginCountdown();updateUI();draw();
 }
 function paintCell(c,px,py,size,color,ghost){
  var style=settings.skin,base=style==="mono"?"#b3bdcc":color;
+ if(style==="pixel"){paintPixel(c,px,py,size,color,ghost);return;}
  if(style==="invisible"&&!ghost)return;
  c.save();
  if(ghost){
@@ -409,12 +461,26 @@ function paintCell(c,px,py,size,color,ghost){
  }
  c.restore();
 }
+// Local pixel-bevel skin, recreated from the screenshot (no external assets).
+var PIXEL_PALETTE={"#4dd5e7":"#00a9e7","#f8d950":"#f5b600","#ad86ee":"#bd2098","#58cf83":"#61c500","#ed6473":"#ec003a","#6294f1":"#143fdc","#f5a75a":"#f76a00"};
+function paintPixel(c,px,py,size,color,ghost){
+ var u=size/24,base=PIXEL_PALETTE[color]||color;
+ c.save();if(ghost)c.globalAlpha=.30;
+ function rect(x,y,w,h,fill){c.fillStyle=fill;c.fillRect(px+x*u,py+y*u,w*u,h*u);}
+ rect(3,1,18,22,base);rect(1,3,22,18,base);
+ rect(2,3,2,17,"#00000030");rect(4,1,16,2,"#ffffff55");
+ rect(2,4,2,12,"#ffffff30");rect(4,4,14,14,"#ffffff0b");
+ rect(19,4,3,15,"#00000026");rect(4,19,16,3,"#00000045");
+ rect(3,2,2,2,"#ffffff88");rect(5,3,13,1,"#ffffff25");
+ rect(20,19,2,2,"#00000055");rect(5,22,14,1,"#00000055");
+ c.restore();
+}
 function cell(c,x,y,size,color,ghost){paintCell(c,x*size,y*size,size,color,ghost);}
 
 function draw(){
  ctx.clearRect(0,0,board.width,board.height);
- ctx.fillStyle="#0a1422";ctx.fillRect(0,0,board.width,board.height);
- ctx.strokeStyle="#273047";ctx.lineWidth=settings.grid==="full"?.9:.5;
+ ctx.fillStyle="#000";ctx.fillRect(0,0,board.width,board.height);
+ ctx.strokeStyle="#282828";ctx.lineWidth=settings.grid==="full"?1.2:.8;
  if(settings.grid!=="none"&&settings.grid!=="partial"){
   for(var x=0;x<=WIDTH;x++){ctx.beginPath();ctx.moveTo(x*SIZE+.5,0);ctx.lineTo(x*SIZE+.5,600);ctx.stroke();}
  }
@@ -442,7 +508,7 @@ function drawPreview(canvas,type){
  if(!type)return;
  var blocks=SHAPES[type][0],xs=blocks.map(function(p){return p[0]}),ys=blocks.map(function(p){return p[1]});
  var minX=Math.min.apply(null,xs),maxX=Math.max.apply(null,xs),minY=Math.min.apply(null,ys),maxY=Math.max.apply(null,ys);
- var d=17,w=(maxX-minX+1)*d,h=(maxY-minY+1)*d;
+ var d=Math.min(SIZE,canvas.width/(maxX-minX+1),canvas.height/(maxY-minY+1)),w=(maxX-minX+1)*d,h=(maxY-minY+1)*d;
  var offsetX=(canvas.width-w)/2,offsetY=(canvas.height-h)/2;
  blocks.forEach(function(b){
   var xx=offsetX+(b[0]-minX)*d,yy=offsetY+(b[1]-minY)*d;
@@ -450,18 +516,18 @@ function drawPreview(canvas,type){
  });
 }
 function updateUI(){
- byId("lines").textContent=Math.min(lines,TARGET)+" / 40";
+ byId("lines").textContent=String(Math.max(0,TARGET-lines));
  byId("pieces").textContent=pieces.toString();
  byId("runInfo").textContent=pieces+" peças";
  var ms=phase==="running"?performance.now()-startedAt:elapsed;
- byId("timer").textContent=format(ms);
- byId("pps").textContent=(ms>0?(pieces/(ms/1000)):0).toFixed(2).replace(".",",")+" peças/s";byId("pps").hidden=!settings.showPps;
+ byId("timer").textContent=(ms/1000).toFixed(2);
+ byId("pps").textContent=(ms>0?(pieces/(ms/1000)):0).toFixed(2);byId("ppsRow").hidden=!settings.showPps;byId("kpp").textContent=(pieces?keyCount/pieces:0).toFixed(2);
 }
 // A queda suave acumula deslocamentos entre frames: não limita a 1 linha por tela.
 // Uma única renderização por lote mantém a resposta rápida mesmo em 60 Hz.
 var SOFT_DROP_MS={slow:80,medium:32,fast:5,ultra:1,instant:0};
 function softDropRows(maxRows){
- if(!piece||phase==="lost"||phase==="won")return 0;
+ if(!piece||phase==="countdown"||phase==="lost"||phase==="won")return 0;
  startClock();
  var moved=0;
  while(moved<maxRows&&valid(piece,piece.x,piece.y+1,piece.r)){piece.y++;moved++;}
@@ -470,6 +536,7 @@ function softDropRows(maxRows){
 }
 function frame(){
  if(!approved)return;
+ if(phase==="countdown")tickCountdown(performance.now());
  if(phase==="running"){updateUI();var now=performance.now();Object.keys(pressed).forEach(function(key){
    var p=pressed[key];if(!p)return;
    if(key==="down"){
@@ -511,6 +578,10 @@ document.addEventListener("keydown",function(e){
  var action=actionFor(e.code);
  if(!action)return;
  e.preventDefault();
+ if(action==="restart"){if(!e.repeat)reset(true);return;}
+ if(phase==="ready"){if(!e.repeat)beginCountdown();return;}
+ if(phase!=="running")return;
+ if(!e.repeat)keyCount++;
  if(action==="left"||action==="right"||action==="down"){
   if(!e.repeat)press(action);
   return;
@@ -535,7 +606,7 @@ document.querySelectorAll("[data-touch]").forEach(function(btn){
  function stop(){var action=btn.dataset.touch;if(touchTimers[action])clearInterval(touchTimers[action]);delete touchTimers[action];release(action);}
  btn.addEventListener("pointerdown",function(e){
   e.preventDefault();if(!approved)return;
-  var action=btn.dataset.touch;btn.setPointerCapture(e.pointerId);
+  var action=btn.dataset.touch;if(phase==="ready"){beginCountdown();return;}if(phase!=="running")return;keyCount++;btn.setPointerCapture(e.pointerId);
   if(action==="left"||action==="right"||action==="down"){press(action);}
   else if(action==="cw")rotate(1);
   else if(action==="ccw")rotate(-1);
@@ -566,9 +637,9 @@ function playSfx(kind){
  }catch(_){}
 }
 var SETTINGS_KEY="tetriszoul-settings-v2";
-var SETTINGS_DEFAULT={das:120,arr:20,softDrop:"fast",skin:"classic",grid:"standard",ghost:true,sound:false,volume:35,showPps:true,dasCancel:true};
+var SETTINGS_DEFAULT={das:120,arr:20,softDrop:"fast",skin:"pixel",grid:"standard",ghost:true,sound:false,volume:35,showPps:true,dasCancel:true};
 function saveCurrentSettings(){
- writeJson(SETTINGS_KEY,{options:settings,keys:BINDINGS});
+ writeJson(SETTINGS_KEY,{options:settings,keys:BINDINGS,pixelDefaultApplied:true});
 }
 function prettyKey(code){
  return ({ArrowLeft:"←",ArrowRight:"→",ArrowDown:"↓",ArrowUp:"↑",Space:"Espaço",ShiftLeft:"Shift esq.",ShiftRight:"Shift dir.",ControlLeft:"Ctrl esq.",ControlRight:"Ctrl dir."})[code]||
@@ -592,7 +663,7 @@ function renderBinds(){
    var old=BINDINGS[item[0]];
    Object.keys(BINDINGS).forEach(function(a){if(a!==item[0]&&BINDINGS[a]===e.code)BINDINGS[a]=old;});
    BINDINGS[item[0]]=e.code;
-   saveCurrentSettings();renderBinds();byId("restartKeyHelp").textContent=prettyKey(BINDINGS.restart);
+   saveCurrentSettings();renderBinds();byId("restartKeyHelp").textContent=prettyKey(BINDINGS.restart);byId("restartKeyDisplay").textContent=prettyKey(BINDINGS.restart);
    byId("settingNotice").textContent="Teclas atualizadas.";
   });
   row.append(label,input);panel.append(row);
@@ -626,9 +697,10 @@ function settingsLoad(){
  settings.arr=clamp(Number(settings.arr)||0,0,200);
  settings.volume=clamp(Number(settings.volume)||0,0,100);
  if(!["slow","medium","fast","ultra","instant"].includes(settings.softDrop))settings.softDrop="fast";
- if(!["classic","glossy","flat","solid","outline","pastel","neon","mono","invisible"].includes(settings.skin))settings.skin="classic";
+ if(!["pixel","classic","glossy","flat","solid","outline","pastel","neon","mono","invisible"].includes(settings.skin))settings.skin="pixel";
+ if(saved?.options&&!saved.pixelDefaultApplied&&settings.skin==="classic")settings.skin="pixel";
  if(!["none","standard","partial","vertical","full"].includes(settings.grid))settings.grid="standard";
- var names=[["classic","Clássica"],["glossy","Brilhante"],["flat","Lisa"],["solid","Sólida"],["outline","Contorno"],["pastel","Pastel"],["neon","Neon"],["mono","Monocromática"],["invisible","Invisível"]];
+ var names=[["pixel","Pixel 3D (padrão)"],["classic","Clássica"],["glossy","Brilhante"],["flat","Lisa"],["solid","Sólida"],["outline","Contorno"],["pastel","Pastel"],["neon","Neon"],["mono","Monocromática"],["invisible","Invisível"]];
  var skinList=byId("skinOptions");skinList.textContent="";
  names.forEach(function(entry){
   var b=document.createElement("button");b.type="button";b.className="skin-option";b.dataset.skin=entry[0];
@@ -657,11 +729,11 @@ function settingsLoad(){
  byId("resetSettings").addEventListener("click",function(){
   Object.assign(settings,SETTINGS_DEFAULT);Object.assign(BINDINGS,DEFAULT_BINDINGS);
   saveCurrentSettings();renderBinds();setVisualSettings();
-  byId("restartKeyHelp").textContent="D";byId("settingNotice").textContent="Configurações redefinidas.";
+  byId("restartKeyHelp").textContent="D";byId("restartKeyDisplay").textContent="D";byId("settingNotice").textContent="Configurações redefinidas.";
  });
  document.querySelectorAll("[data-setting-tab]").forEach(function(b){b.addEventListener("click",function(){showTab(b.dataset.settingTab);});});
- byId("restartKeyHelp").textContent=prettyKey(BINDINGS.restart);
- showTab("controls");setVisualSettings();
+ byId("restartKeyHelp").textContent=prettyKey(BINDINGS.restart);byId("restartKeyDisplay").textContent=prettyKey(BINDINGS.restart);
+ showTab("controls");setVisualSettings();saveCurrentSettings();
 }
 
 function pendingKey(){return "tetriszoul-pending-v1-"+uid;}
