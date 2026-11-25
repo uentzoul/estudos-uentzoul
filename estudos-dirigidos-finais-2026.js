@@ -30,7 +30,14 @@ function apply(db){
  guides.grupos=guides.grupos||[];
  if(!guides.grupos.some(g=>g.id===GRUPOS_P2_GUIDE.id))guides.grupos.unshift(GRUPOS_P2_GUIDE);
  guides.social=guides.social||[];
- if(!guides.social.some(g=>g.id===SOCIAL_P3_GUIDE.id))guides.social.unshift(SOCIAL_P3_GUIDE);
+ const socialTopics=window.PSICO_FINAL_EXAMS?.curated?.(db,'social')||[];
+ const socialNew=socialTopics.filter(t=>t.source);
+ const socialQuestions=socialNew.map((t,i)=>({...makeQuestion(t,i),n:SOCIAL_P3_GUIDE.questions.length+i+1,section:'Raça, subjetividade e colonialismo digital',explanation:t.definition+'\n\nAplicação: '+t.scenario+'\n\nFonte: '+t.source,contrast:t.myth}));
+ const refreshedSocial={...SOCIAL_P3_GUIDE,subtitle:(SOCIAL_P3_GUIDE.questions.length+socialQuestions.length)+' questões autorais — conteúdos desde a semana 9',source:SOCIAL_P3_GUIDE.source+' Complementado com Raça, ideologia e subjetividade; Subjetividade como expressão das relações sociais; Colonialismo Digital (capítulos 1 e 2).',questions:[...SOCIAL_P3_GUIDE.questions,...socialQuestions]};
+ guides.social=guides.social.filter(g=>g.id!==SOCIAL_P3_GUIDE.id);
+ guides.social.unshift(refreshedSocial);
+ const newTextGuide=guides.social.find(g=>g.id==='social-novos-textos-2026');
+ if(newTextGuide&&socialTopics.length){newTextGuide.questions=socialTopics.map(makeQuestion);newTextGuide.subtitle=socialTopics.length+' conceitos comentados e aplicados';newTextGuide.source='Revisão autoral baseada nos textos e slides da disciplina, incluindo os três materiais novos.';}
  guides.avaliacao=guides.avaliacao||[];
  if(!guides.avaliacao.some(g=>g.id===AVALIACAO_P3_GUIDE.id))guides.avaliacao.unshift(AVALIACAO_P3_GUIDE);
  const curated=window.PSICO_FINAL_EXAMS?.curated;
@@ -40,7 +47,7 @@ function apply(db){
   const topics=curated(db,subject);
   if(!topics?.length)continue;
   guides[subject]=guides[subject]||[];
-  if(subject==='meta')guides[subject]=guides[subject].filter(x=>x.id!==id);
+  if(subject==='meta'||subject==='social')guides[subject]=guides[subject].filter(x=>x.id!==id);
   if(guides[subject].some(x=>x.id===id))continue;
   guides[subject].unshift({id,title:'Estudo dirigido — revisão final de 2026/2',
    subtitle:topics.length+' conceitos comentados com exemplos e limites de interpretação',
