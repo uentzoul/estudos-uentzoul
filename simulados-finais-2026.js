@@ -321,22 +321,6 @@ function apply(db){
   const topics=equalTopics(db,id);
   if(id==='familia')for(const x of familyExtra)if(!db.topics.familia.some(t=>t.title===x.title))db.topics.familia.push({...x});
   if(topics.length<3)continue;
-  if(id==='social'){
-   const original=db.exams.find(e=>e.id===SOCIAL_PRESERVED_ID)||db.archivedExams.find(e=>e.id===SOCIAL_PRESERVED_ID)||SOCIAL_PRESERVED();
-   const expanded=[...topics,...SOCIAL_EXTRA];
-   for(let level=1;level<=5;level++){
-    const prior=generateVaried(id,level,topics,SOCIAL_OLD_VERSION);
-    if(!db.archivedExams.some(e=>e.id===prior.id))db.archivedExams.push(db.exams.find(e=>e.id===prior.id)||prior);
-   }
-   const previous=db.exams.filter(e=>e.subject==='social'&&e.final2026);
-   for(const e of previous)if(e.id!==original.id&&!db.archivedExams.some(a=>a.id===e.id))db.archivedExams.push(e);
-   db.exams=db.exams.filter(e=>e.subject!=='social'||!e.final2026);
-   // Mesmo ID, questões, respostas e gabarito da prova realizada; apenas marca a edição ativa.
-   db.exams.push({...original,revision:SOCIAL_VERSION});
-   for(let level=2;level<=5;level++)db.exams.push(generateVaried(id,level,expanded));
-   for(const t of SOCIAL_EXTRA)if(!db.topics.social.some(x=>x.title===t.title))db.topics.social.push(t);
-   continue;
-  }
   for(let level=1;level<=5;level++){
    // Preservar provas antigas sem alterar questões/gabaritos de tentativas anteriores.
    for(const legacy of (id==='meta'?[]:[PREVIOUS_VERSION,LEGACY_CURRENT])){
@@ -919,6 +903,22 @@ function apply(db){
   const topics=equalTopics(db,id);
   if(id==='familia')for(const x of familyExtra)if(!db.topics.familia.some(t=>t.title===x.title))db.topics.familia.push({...x});
   if(topics.length<3)continue;
+  if(id==='social'){
+   const original=db.exams.find(e=>e.id===SOCIAL_PRESERVED_ID)||db.archivedExams.find(e=>e.id===SOCIAL_PRESERVED_ID)||SOCIAL_PRESERVED();
+   const expanded=[...topics,...SOCIAL_EXTRA];
+   for(let level=1;level<=5;level++){
+    const prior=generateVaried(id,level,topics,SOCIAL_OLD_VERSION);
+    if(!db.archivedExams.some(e=>e.id===prior.id))db.archivedExams.push(db.exams.find(e=>e.id===prior.id)||prior);
+   }
+   const previous=db.exams.filter(e=>e.subject==='social'&&e.final2026);
+   for(const e of previous)if(e.id!==original.id&&!db.archivedExams.some(a=>a.id===e.id))db.archivedExams.push(e);
+   db.exams=db.exams.filter(e=>e.subject!=='social'||!e.final2026);
+   // Mesmo ID, questões, respostas e gabarito da prova realizada; apenas marca a edição ativa.
+   db.exams.push({...original,revision:SOCIAL_VERSION});
+   for(let level=2;level<=5;level++)db.exams.push(generateVaried(id,level,expanded));
+   for(const t of SOCIAL_EXTRA)if(!db.topics.social.some(x=>x.title===t.title))db.topics.social.push(t);
+   continue;
+  }
   for(let level=1;level<=5;level++){
    // Preservar provas antigas sem alterar questões/gabaritos de tentativas anteriores.
    for(const legacy of (id==='meta'?[]:[PREVIOUS_VERSION,LEGACY_CURRENT])){
