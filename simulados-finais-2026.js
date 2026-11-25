@@ -753,7 +753,7 @@ function generateVaried(id,model,topics,overrideVersion){
   tf.prompt='Julgue a afirmação sobre '+a.title.toLowerCase()+':\n'+
    (tf.answer?definition(a):invalid(a)).replace(/[.!?]+$/,'')+'.';
   questions.push(tf);
-  questions.push(variedEssay(topics,model,0,a,b,id+'-'+version+'-'+model+'-15'));
+  questions.push(variedEssay(topics,model,0,version===SOCIAL_VERSION?b:a,version===SOCIAL_VERSION?pickPool(topics,model,15):b,id+'-'+version+'-'+model+'-15'));
  }else{
   for(let i=0;i<2;i++){
    const a=pickPool(topics,model,13+i*2),b=pickPool(topics,model,14+i*2);
@@ -910,9 +910,9 @@ function apply(db){
     const prior=generateVaried(id,level,topics,SOCIAL_OLD_VERSION);
     if(!db.archivedExams.some(e=>e.id===prior.id))db.archivedExams.push(db.exams.find(e=>e.id===prior.id)||prior);
    }
-   const previous=db.exams.filter(e=>e.subject==='social'&&e.final2026);
-   for(const e of previous)if(e.id!==original.id&&!db.archivedExams.some(a=>a.id===e.id))db.archivedExams.push(e);
-   db.exams=db.exams.filter(e=>e.subject!=='social'||!e.final2026);
+   const previous=db.exams.filter(e=>e.subject==='social');
+   for(const e of previous)if(e.id!==original.id&&e.revision!==SOCIAL_VERSION&&!db.archivedExams.some(a=>a.id===e.id))db.archivedExams.push(e);
+   db.exams=db.exams.filter(e=>e.subject!=='social');
    // Mesmo ID, questões, respostas e gabarito da prova realizada; apenas marca a edição ativa.
    db.exams.push({...original,revision:SOCIAL_VERSION});
    for(let level=2;level<=5;level++)db.exams.push(generateVaried(id,level,expanded));
