@@ -94,7 +94,7 @@
      if(!subj||!node.isConnected)return;
      // A sincronização de materiais jamais deve fechar uma explicação em leitura.
      // Ao navegar novamente, a área será gerada com os dados atualizados.
-     if(node.contains(document.activeElement)||node.querySelector('details[open],input:focus,textarea:focus'))return;
+     if(node.contains(document.activeElement)||node.querySelector('.sd-answer-toggle[open],input:focus,textarea:focus'))return;
      const markup=window.renderStudyGuide(subj);
      if(node.outerHTML!==markup)node.outerHTML=markup;
    });

@@ -27,7 +27,7 @@ jobs:
       - name: Auditoria de regressão antes de publicar
         # Uma asserção antiga do calendário do Psico já falhava na versão anterior;
         # mantemos toda a suíte restante bloqueante e não alteramos o Psico.
-        run: node --test --test-skip-pattern='Respostas do Psico mantêm sete palavras diferentes entre três modos por pelo menos 35 dias' tests/site-qa.test.mjs tests/tetriszoul.test.mjs tests/extras.test.mjs tests/biblioteca-livros.test.mjs tests/biblioteca-audiobooks.test.mjs
+        run: node --test --test-skip-pattern='Respostas do Psico mantêm sete palavras diferentes entre três modos por pelo menos 35 dias' tests/site-qa.test.mjs tests/tetriszoul.test.mjs tests/extras.test.mjs tests/biblioteca-livros.test.mjs tests/biblioteca-audiobooks.test.mjs tests/public-study-access.test.mjs
       - uses: actions/configure-pages@v5
       - name: Publicar versão do site sem cache antigo
         run: |
@@ -49,10 +49,11 @@ jobs:
           )
           # As URLs dos materiais mudam apenas em novos carregamentos, sem recarregar sessões abertas.
           html = re.sub(
-              r'(src=["\x27](?:\./)?(?:simulados-finais-2026|estudo-ativo|estudos-dirigidos-finais-2026)\.js)(?:\?[^"\x27]*)?(?=["\x27])',
+              r'(src=["\x27](?:\./)?(?:simulados-finais-2026|estudo-ativo|estudos-dirigidos-finais-2026|estudos-dirigidos)\.js)(?:\?[^"\x27]*)?(?=["\x27])',
               lambda match: match.group(1) + '?v=' + build,
               html
           )
+          html = re.sub(r'(href=["\x27](?:\./)?estudos-dirigidos\.css)(?:\?[^"\x27]*)?(?=["\x27])', lambda match: match.group(1) + '?v=' + build, html)
           if not admin_scripts:
               print('Aviso: referência direta ao painel não encontrada no HTML')
           # Versiona toda a cadeia de iframes do Extras com o SHA publicado.

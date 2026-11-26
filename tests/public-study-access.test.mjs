@@ -27,3 +27,8 @@ test('Resposta direta aparece sem rótulo redundante e explicação extra fica r
  assert.match(html,/Texto completo/);
  assert.doesNotMatch(html,/Resposta-modelo/);
 });
+
+test('A abertura padrão do roteiro não impede atualizar dados do professor',()=>{
+ const src=read('estudos-dirigidos.js');
+ assert.ok(src.includes("querySelector('.sd-answer-toggle[open],input:focus,textarea:focus')"));
+});
