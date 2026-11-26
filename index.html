@@ -3158,7 +3158,7 @@ function pmNavRestore(state){
   if(current.page==='subject'&&!DB.subjects[current.subject])current.page='home';
   if(current.page==='test'&&!DB.exams.some(x=>x.id===current.exam))current.page='exams';
   if(current.page==='admin'&&!window.uentzoulAdminConfig?.isAdmin?.())current.page='home';
-  if(current.page==='books'&&!window.uentzoulAIAuth?.user?.())current.page='home';
+
  if(current.page==='audiobooks')current.page='home'; // Não abrir, nem por rota salva.
   if(current.page==='extras'&&(isExtrasPhone()||!window.uentzoulAIAuth?.user?.()))current.page='home';
   if(current.page==='calendar'&&!agendaAvailable())current.page='home';
@@ -3208,7 +3208,7 @@ const go=(page,extra={})=>{
  if(page==='schedule'){calendarView='horarios';page='calendar';}
  if(page==='calendar'&&!agendaAvailable())return;
  if(page==='admin'&&!window.uentzoulAdminConfig?.isAdmin?.())page='home';
- if(page==='books'&&!window.uentzoulAIAuth?.user?.()){window.uentzoulAIAuth?.openLogin?.();return;}
+
  if(page==='audiobooks')return; // Audiobooks em breve para todos os perfis.
  if(page==='extras'&&isExtrasPhone())return;
   if(page==='extras'&&!window.uentzoulAIAuth?.user?.()){
@@ -3284,7 +3284,7 @@ function renderNav(){
  if(adminButton)adminButton.hidden=!adminAccess;
   const bookButton=document.getElementById('navBookLibraryAdmin');
   if(bookButton){bookButton.hidden=false;bookButton.style.removeProperty('display');}
- if(current.page==='books'&&!window.uentzoulAIAuth?.user?.()){window.PSICO_BOOK_LIBRARY?.reset?.();current.page='home';queueMicrotask(()=>render());}
+
  const extraButton=document.getElementById('navExtrasGames');
  if(extraButton){
   const phone=isExtrasPhone();
@@ -5057,7 +5057,7 @@ function render(){
  // Evitar desmontar uma partida em andamento por atualizações do painel principal.
  if(current.page==='extras'&&document.getElementById('psicoExtrasFrame')){renderNav();return;}
  if(current.page==='calendar'&&!agendaAvailable())current.page='home';
- if(current.page==='books'&&!window.uentzoulAIAuth?.user?.())current.page='home';
+
  if(current.page==='audiobooks')current.page='home'; // Não abrir, nem por rota salva.
  // Evita desmontar as páginas do livro durante atualizações de outras áreas.
  if(current.page==='books'&&window.PSICO_BOOK_LIBRARY?.isOpen?.()&&document.getElementById('psbReader')){renderNav();return;}

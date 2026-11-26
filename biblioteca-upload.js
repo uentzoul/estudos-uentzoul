@@ -11,7 +11,7 @@ const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&
 const auth=()=>window.uentzoulAIAuth;
 const userId=()=>auth()?.user?.()?.id||'';
 const hasAccess=()=>Boolean(userId()&&window.uentzoulAdminConfig?.isAdmin?.());
-const canRead=()=>Boolean(userId());
+const canRead=()=>true;
 const client=()=>auth()?.client?.();
 const sizeText=size=>(size/1024/1024).toLocaleString('pt-BR',{maximumFractionDigits:1})+' MB';
 function safeCover(s){

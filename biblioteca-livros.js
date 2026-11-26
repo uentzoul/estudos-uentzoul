@@ -1,4 +1,4 @@
-/* PsicoMoodle — Biblioteca de Livros (leitura para contas autenticadas).
+/* PsicoMoodle — Biblioteca de Livros (leitura de conteúdo publicado para todos).
    Livros existentes: documentos do bucket privado, abertos somente ao clique.
    Nenhum PDF é carregado durante a renderização da estante. */
 (()=>{
@@ -37,7 +37,7 @@ const BOOKS=[
 const allBooks=()=>BOOKS.concat(window.PSICO_BOOK_UPLOAD?.books?.()||[]);
 const normalize=s=>String(s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLocaleLowerCase('pt-BR');
 const esc=s=>String(s??'').replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
-const allowed=()=>Boolean(window.uentzoulAIAuth?.user?.()?.id);
+const allowed=()=>true;
 const isAdmin=()=>Boolean(window.uentzoulAdminConfig?.isAdmin?.()&&window.uentzoulAIAuth?.user?.()?.id);
 const user=()=>window.uentzoulAIAuth?.user?.()?.id||'';
 const client=()=>window.uentzoulAIAuth?.client?.();
@@ -380,7 +380,7 @@ async function loadFile(b){
  const cached=await fileFromCache(b);
  if(cached instanceof Blob&&cached.size>100){cachedForActive=true;return cached;}
  const c=client();
- if(!c||!allowed())throw Error('Entre na tua conta para consultar a Biblioteca.');
+ if(!c)throw Error('O serviço de arquivos está indisponível.');
  const signing=await c.storage.from(BUCKET).createSignedUrl(b.path,180);
  if(signing.error||!signing.data?.signedUrl)throw Error('Não foi possível liberar a leitura deste PDF. Verifique sua sessão.');
  const resp=await fetch(signing.data.signedUrl,{cache:'no-store'});

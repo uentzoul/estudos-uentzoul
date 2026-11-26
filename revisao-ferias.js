@@ -245,7 +245,7 @@ async function openMaterial(index){
  const user=window.uentzoulAIAuth?.user?.();
  const c=client();
  if(!c){fileFeedback('O serviço de arquivos não está disponível no momento.','error');return;}
- if(!user){fileFeedback('Entre na sua conta para abrir o arquivo original. A revisão pode ser consultada sem login.','error');return;}
+
  if(!/^materials\/(?:scheduled\/)?[0-9a-f-]{36}\.(pdf|docx|pptx)$/i.test(file.storage_path)){
   fileFeedback('O caminho do documento não está válido.','error');return;
  }

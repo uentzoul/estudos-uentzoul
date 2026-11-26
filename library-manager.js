@@ -511,7 +511,7 @@ document.addEventListener('click',async e=>{
   const key=open.dataset.libraryFile,record=api()?.record?.(key);
   if(!record?.storage_path){alert('Arquivo ainda não foi anexado.');return;}
   const a=auth(),c=a?.client?.(),u=a?.user?.();
-  if(!u||!c){alert('Entre na conta para consultar os arquivos da Biblioteca.');a?.openLogin?.();return;}
+  if(!c){alert('O serviço de arquivos está indisponível. Tente novamente.');return;}
   // A janela é criada sincronamente para que celulares não bloqueiem a abertura.
   const tab=window.open('','_blank');
   if(tab){try{tab.document.title='Abrindo material…';tab.document.body.textContent='Carregando o material…';}catch(_){}}

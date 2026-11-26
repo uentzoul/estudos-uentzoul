@@ -8,6 +8,7 @@
  // Reutiliza o progresso por conta e semestre já mantido pelo núcleo do site.
  const wasSeen=id=>!!window.uentzoulProfileBridge?.progress?.()?.completed?.[id];
  function seenControl(id){
+   if(!window.uentzoulAIAuth?.user?.())return '';
    const checked=wasSeen(id);
    return '<label class="donecontrol sd-seen-control '+(checked?'is-checked':'')+'" title="Marcação pessoal de estudo">'+
      '<input type="checkbox" data-complete="'+esc(id)+'" aria-label="Marcar estudo dirigido como visto" '+(checked?'checked':'')+'>'+
@@ -100,7 +101,7 @@
  }
  async function refreshSources(force=false){
    const c=client(),user=window.uentzoulAIAuth?.user?.();
-   if(!c||!user||sourcesLoading||(!force&&Date.now()-lastSourcesAt<30000))return;
+   if(!c||sourcesLoading||(!force&&Date.now()-lastSourcesAt<30000))return;
    sourcesLoading=true;lastSourcesAt=Date.now();
    try{
      const [uploads,saved]=await Promise.all([
@@ -147,7 +148,7 @@
    if(!link)return;
    event.preventDefault();
    const c=client(),user=window.uentzoulAIAuth?.user?.();
-   if(!c||!user){alert('Entre na conta para consultar o documento do professor.');window.uentzoulAIAuth?.openLogin?.();return;}
+   if(!c){alert('O serviço de arquivos está indisponível. Tente novamente.');return;}
    const row=officialRows.find(d=>d.resource_key===link.dataset.sdOfficial);
    if(!row?.storage_path){alert('O arquivo não está disponível.');return;}
    const tab=window.open('','_blank');
@@ -229,7 +230,7 @@
  };
  window.renderStudyGuide=function(subject){
    if(!Object.prototype.hasOwnProperty.call(TARGETS,subject))return '<div class="sd-empty">Não há estudo dirigido desta disciplina na seleção atual.</div>';
-   if(!window.uentzoulAIAuth?.user?.())return '<div class="sd-empty" data-sd-subject="'+esc(subject)+'">Entre na sua conta para consultar os estudos dirigidos.</div>';
+
    if(semester()!=='2026/2')return '<div class="sd-empty" data-sd-subject="'+esc(subject)+'">A seleção atual de estudos dirigidos corresponde às avaliações de 2026/2.</div>';
    if(!sourcesReady&&client()){
      void refreshSources();
