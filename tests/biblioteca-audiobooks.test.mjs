@@ -56,14 +56,14 @@ test('Administrador continua vendo todas as obras e tem ferramentas exclusivas',
  assert.match(view,/Seis estudos de psicologia/);
  assert.match(view,/Iniciação à história da filosofia/);
 });
-test('Membros autenticados podem abrir a Biblioteca sem acesso às ferramentas administrativas',()=>{
+test('Visitantes podem abrir a Biblioteca sem acesso às ferramentas administrativas',()=>{
  assert.match(html,/id="navBookLibraryAdmin" data-page="books" aria-label="Biblioteca — livros"/);
  assert.doesNotMatch(html,/navAudiobooksMembers/);
  assert.doesNotMatch(html,/<span class="nav-label">Audiobooks<\/span>/);
  assert.match(html,/if\(page==='audiobooks'\)return/);
  assert.match(html,/if\(current.page==='audiobooks'\)current.page='home'/);
  assert.match(html,/case 'audiobooks':body=/);
- assert.match(html,/if\(page==='books'&&!window\.uentzoulAIAuth\?\.user\?\.\(\)\)/);
+ assert.doesNotMatch(html,/if\(page==='books'&&!window\.uentzoulAIAuth\?\.user\?\.\(\)\)/);
  assert.doesNotMatch(html,/id="navBookLibraryAdmin" data-page="books" hidden/);
  assert.match(code,/if\(busy\|\|!isAdmin\(\)\|\|!selected\)return/);
  assert.match(code,/const bs=isAdmin\(\)\?books\(\):\[\.\.\.new Set\(rows\.filter/);

@@ -10,7 +10,7 @@ const main=read('biblioteca-livros.js');
 const css=read('biblioteca-livros.css');
 const loader=read('site-version.js');
 
-test('A Biblioteca aparece para usuários autenticados sem restaurar Trabalhos',()=>{
+test('A Biblioteca aparece para todos sem restaurar Trabalhos',()=>{
  const nav=html.slice(html.indexOf('<nav class="menu" id="nav">'),html.indexOf('</nav>',html.indexOf('<nav class="menu" id="nav">')));
  const agenda=nav.indexOf('data-page="calendar"');
  const books=nav.indexOf('id="navBookLibraryAdmin"');
@@ -18,8 +18,8 @@ test('A Biblioteca aparece para usuários autenticados sem restaurar Trabalhos',
  assert.ok(agenda>=0&&books>agenda&&exams>books,'Biblioteca entre Agenda e Simulados');
  assert.match(nav,/id="navBookLibraryAdmin" data-page="books" aria-label="Biblioteca — livros"/);
  assert.doesNotMatch(nav,/aria-label="Biblioteca — em breve"|<small class="psb-admin-mini">/);
- assert.match(html,/if\(page==='books'&&!window\.uentzoulAIAuth\?\.user\?\.\(\)\)/);
- assert.match(html,/if\(current\.page==='books'&&!window\.uentzoulAIAuth\?\.user\?\.\(\)\)current\.page='home'/);
+ assert.doesNotMatch(html,/if\(page==='books'&&!window\.uentzoulAIAuth\?\.user\?\.\(\)\)/);
+ assert.doesNotMatch(html,/if\(current\.page==='books'&&!window\.uentzoulAIAuth\?\.user\?\.\(\)\)current\.page='home'/);
  assert.match(html,/case 'books':body=window\.PSICO_BOOK_LIBRARY\?\.render\(\)/);
  assert.doesNotMatch(nav,/Trabalhos|data-page="works"/);
  assert.match(loader,/document\.querySelectorAll\('#nav \[aria-label="Trabalhos — em breve"\]/);
@@ -276,3 +276,12 @@ test('Sumário clicável é criado automaticamente por livro e respeita páginas
  assert.match(main,/biblioteca-sumario\.js\?v=20261120-toc-v4/);
  api.close();
 });
+
+ test('Visitante sem conta abre a Biblioteca sem desbloquear audiobooks ou envio',()=>{
+ const h=harness();h.w.uentzoulAIAuth.user=()=>null;
+ const view=h.w.PSICO_BOOK_LIBRARY.render();
+ assert.match(view,/Biblioteca de livros/);
+ assert.match(view,/psb-category-audio psb-category-coming/);
+ assert.doesNotMatch(view,/data-psb-tab="upload"/);
+ assert.equal(h.stats(),0);
+ });
