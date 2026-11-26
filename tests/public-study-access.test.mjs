@@ -17,3 +17,13 @@ test('Documentos e revisões não exigem sessão; audiobooks permanecem fechados
  assert.match(read('index.html'),/if\(page==='audiobooks'\)return/);
  assert.match(read('index.html'),/if\(!onlineUser\)return '<section class="dm-login-panel"/);
 });
+
+test('Resposta direta aparece sem rótulo redundante e explicação extra fica recolhida',()=>{
+ const w={addEventListener(){},uentzoulAIAuth:{user:()=>null,client:()=>null},PSICO_GUIDES:{avaliacao:[{id:'official-2026-2-avaliacao-p3',status:'original',title:'P3 roteiro',questions:[{n:1,question:'Enunciado de teste',explanation:'Resposta-modelo (não gabarito docente): Texto completo.'}]}]}};
+ vm.runInNewContext(read('estudos-dirigidos.js'),{window:w,document:{addEventListener(){},querySelectorAll:()=>[]},setInterval(){},setTimeout(){},console});
+ const html=w.renderStudyGuide('avaliacao');
+ assert.match(html,/sd-direct-answer"><p>Comece pelos pontos positivos/);
+ assert.match(html,/<details class="sd-more"><summary>Ver explicação completa/);
+ assert.match(html,/Texto completo/);
+ assert.doesNotMatch(html,/Resposta-modelo/);
+});

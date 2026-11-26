@@ -182,19 +182,48 @@
   return '<div class="sd-part"><span class="sd-part-index">'+String(i+1).padStart(2,'0')+'</span><div><strong>'+fmt(p.title)+'</strong><p>'+fmt(p.explanation)+'</p>'+
   (p.example?'<p class="sd-part-example">'+fmt(p.example)+'</p>':'')+'</div></div>';
  }
+ // Respostas curtas revisadas a partir das 21 questões oficiais da P3.
+ const P3_DIRECT=Object.freeze([
+  "Comece pelos pontos positivos e pelas capacidades do paciente. Depois, explique as dificuldades e apresente orientações. Acolha as reações emocionais, use uma linguagem clara e confirme se a pessoa entendeu.",
+  "Os responsáveis devem receber as informações necessárias para apoiar a criança. A criança também deve participar quando adequado, com explicações próprias para sua idade. Confirme o entendimento de ambos e preserve o sigilo.",
+  "Arzeno: primeiro os responsáveis, depois a criança ou o adolescente. Macedo e Carrasco: primeiro o adolescente, depois um encontro com os responsáveis e o adolescente. Para crianças, propõem a devolução junto aos pais.",
+  "É a avaliação de características psicológicas e competências relacionadas ao trabalho. Serve para auxiliar a seleção, o desenvolvimento profissional e outras decisões organizacionais, considerando as exigências da função e o bem-estar dos trabalhadores.",
+  "É uma entrevista que usa exemplos de comportamentos passados para entender como a pessoa pode agir no futuro. No modelo CAR: Contexto é a situação; Ação é o que a pessoa fez; Resultado é o que aconteceu depois. O passado fornece pistas, mas não garante o comportamento futuro.",
+  "O psicólogo observa comunicação, escuta, trabalho em equipe, liderança ou iniciativa, resolução de conflitos, organização, tomada de decisão e adaptação. Deve avaliar comportamentos observáveis, com critérios definidos para a vaga, e combinar os dados com outras fontes.",
+  "O laudo comunica os resultados da avaliação e ajuda a fundamentar decisões. É necessário quando a finalidade ou as normas exigem esse documento. Deve ser claro, baseado em evidências, respeitar o sigilo e incluir apenas as informações necessárias.",
+  "Busca entender como a doença e a hospitalização afetam o paciente emocionalmente, cognitivamente e socialmente, para orientar o cuidado. Considera a história da pessoa, a condição clínica, o tratamento, o ambiente hospitalar, a família e a equipe de saúde.",
+  "É compreender a pessoa pela interação de três dimensões: biológica (corpo e saúde), psicológica (pensamentos, emoções e comportamentos) e social (família, relações e condições de vida). Nenhuma delas explica sozinha o adoecimento.",
+  "É uma avaliação do funcionamento mental da pessoa naquele momento. Investiga aparência, comportamento, consciência, orientação, atenção, memória, linguagem, humor, afeto, pensamento, percepção, atividade psicomotora, julgamento e consciência da própria condição (insight).",
+  "É uma alteração aguda e flutuante da atenção e da consciência, que pode causar confusão, desorientação, problemas de memória e mudanças na percepção. Pode ocorrer por doenças, medicamentos ou outras causas clínicas e exige avaliação da equipe de saúde.",
+  "Devem constar a data, a identificação profissional, o motivo do atendimento, os procedimentos, as observações relevantes, as intervenções, as orientações e o plano de acompanhamento. Registre apenas o necessário para o cuidado e preserve o sigilo.",
+  "Conforme o material de aula, a pessoa entra no PROTIG pelo GERCON e passa por entrevistas com Psicologia, Psiquiatria e Serviço Social, além de exames. A equipe busca entender sua história, demandas e necessidades para definir encaminhamentos e acompanhamento. A identidade de gênero não depende de cirurgia.",
+  "O perito oficial é nomeado pelo juiz, atua de forma imparcial e produz um laudo pericial. O assistente técnico é indicado por uma das partes, analisa a perícia e produz um parecer técnico. Ambos devem respeitar a ética e os dados obtidos.",
+  "O perito oficial avalia questões psicológicas relevantes ao processo, responde aos quesitos e apresenta um laudo que auxilia o juiz. Deve ter conhecimento técnico, investigar os fatos, analisar diferentes hipóteses e manter a imparcialidade. A decisão final é do juiz.",
+  "Falta de preparo técnico, conflito de interesses, vínculos que comprometam a imparcialidade e situações legais de impedimento ou suspeição podem impedir a atuação. O perito precisa ter competência e ser imparcial porque suas conclusões podem influenciar decisões judiciais.",
+  "Deve reconhecer seus limites, explicar que não possui preparo suficiente e não assumir a avaliação sem condições técnicas. Pode encaminhar a demanda a um profissional qualificado ou buscar capacitação e supervisão adequada antes de realizá-la.",
+  "Respeito pelas pessoas: garantir autonomia, participação voluntária e proteção de quem tem autonomia reduzida. Beneficência: maximizar benefícios e minimizar riscos. Justiça: distribuir de forma justa os riscos e benefícios da pesquisa.",
+  "É a decisão informada e voluntária de participar da avaliação após receber explicações sobre seus objetivos, procedimentos, riscos e limites do sigilo. Com crianças e adolescentes, o responsável legal fornece a autorização pertinente e o avaliado recebe explicações adequadas à idade e participa por meio do assentimento, conforme as normas.",
+  "Devem ser protegidos relatos, dados pessoais, resultados, documentos, registros e materiais dos testes. O compartilhamento pode ocorrer com autorização válida, por obrigação legal ou dever profissional pertinente, ou quando necessário ao cuidado e à proteção de direitos. Compartilhe apenas o indispensável.",
+  "Porque um teste mostra apenas uma parte do funcionamento psicológico e pode sofrer influência do contexto, da saúde e do estado emocional. A avaliação deve reunir entrevistas, observações, histórico e instrumentos adequados para chegar a conclusões mais completas e confiáveis."
+]);
+ const cleanAnswer=s=>String(s||'').replace(/^\s*Resposta[- ]modelo(?:\s*\([^)]*\))?\s*:\s*/i,'').trim();
  function renderItem(q,idx,guideId){
   const hasOptions=Array.isArray(q.options)&&q.options.length>0;
-  const opts=hasOptions?'<div class="sd-options" aria-label="Alternativas comentadas">'+q.options.map(o=>
+  const opts=hasOptions?'<div class="sd-options" aria-label="Alternativas">'+q.options.map(o=>
    '<div class="sd-option"><span class="sd-option-letter">'+esc(o.letter)+'</span><div>'+fmt(o.text)+'</div></div>'
   ).join('')+'</div>':'';
-  const answer=hasOptions?(q.answer?'Resposta-modelo: alternativa '+q.answer:'Alternativa correta não confirmada'):'Resposta-modelo e explicação';
-  const details=q.contrast?'<div class="sd-contrast"><strong>'+(hasOptions?'Por que as outras alternativas não servem':'Como organizar a resposta')+'</strong>'+paragraph(q.contrast)+'</div>':'';
+  const explanation=cleanAnswer(q.explanation);
+  const correctOption=hasOptions&&q.answer?q.options.find(o=>String(o.letter).trim().toUpperCase()===String(q.answer).trim().toUpperCase()):null;
+  const direct=String(q.directAnswer||((guideId==='official-2026-2-avaliacao-p3')?P3_DIRECT[q.n-1]:'')||(correctOption?String(correctOption.letter)+') '+String(correctOption.text||''):hasOptions?(q.answer?'Alternativa '+q.answer:'Alternativa correta não confirmada'):explanation)||'').trim();
+  const extra=(explanation&&explanation!==direct?'<div class="sd-extra-explanation">'+paragraph(explanation)+'</div>':'')+
+    (q.contrast?'<div class="sd-contrast">'+paragraph(q.contrast)+'</div>':'')+
+    (q.points?.length?'<div class="sd-breakdown"><div class="sd-parts">'+q.points.map(part).join('')+'</div></div>':'');
+  const details=extra?'<details class="sd-more"><summary>Ver explicação completa</summary>'+extra+'</details>':'';
   return '<article class="sd-question-block" id="sd-question-'+esc(guideId||'roteiro')+'-'+esc(q.n)+'">'+
     '<div class="sd-question-top"><span class="sd-question-number">'+String(q.n).padStart(2,'0')+'</span><div>'+
     '<span class="sd-question-topic">'+fmt(q.topic||'Questão comentada')+'</span><div class="sd-question-text">'+questionText(q.question)+'</div></div></div>'+
     opts+'<details class="sd-answer-toggle"><summary class="sd-answer-summary"><span class="sd-answer-summary-icon" aria-hidden="true">⌄</span><span class="sd-answer-open-label">Ver resposta</span><span class="sd-answer-close-label">Ocultar resposta</span></summary><div class="sd-answer-content">'+
-    '<div class="sd-response"><div class="sd-response-title"><span aria-hidden="true">✓</span><strong>'+esc(answer)+'</strong></div>'+paragraph(q.explanation)+'</div>'+
-    details+(q.points?.length?'<div class="sd-breakdown"><h4>Explicação parte por parte</h4><div class="sd-parts">'+q.points.map(part).join('')+'</div></div>':'')+
+    '<div class="sd-response sd-direct-answer">'+paragraph(direct)+'</div>'+details+
   '</div></details></article>';
  }
 
@@ -205,14 +234,14 @@
     '<header class="sd-header"><div class="sd-header-top"><span class="sd-kicker">'+(generated?'REVISÃO AUTORAL':'ROTEIRO DO PROFESSOR')+' · '+esc(exam)+'</span>'+seenControl('guided:'+subject+':'+exam)+'</div>'+
     '<h2>Estudos dirigidos</h2><p>'+(generated?
     'Não foi encontrado um estudo dirigido oficial desta avaliação. Este roteiro foi preparado como alternativa de revisão.':
-    'Questões do roteiro do professor, com respostas-modelo comentadas para consulta e estudo.')+'</p></header>'+
+    'Questões do professor com respostas e explicações para estudar.')+'</p></header>'+
     '<details class="sd-guide" open><summary class="sd-guide-summary"><span class="sd-guide-icon" aria-hidden="true">▤</span>'+
     '<span class="sd-guide-label"><strong>'+fmt(guide.title)+'</strong><small>'+fmt(guide.subtitle||'')+'</small></span>'+
     '<span class="sd-count">'+items.length+' questões</span><span class="sd-arrow" aria-hidden="true">⌄</span></summary>'+
     '<div class="sd-guide-body"><div class="sd-source"><strong>'+(generated?'Estudo dirigido autoral':'Enunciados do estudo dirigido do professor')+'</strong>'+
     '<p>'+fmt(guide.source||'')+'</p><p>'+(generated?
       'Revisão gerada a partir dos materiais da disciplina. Não representa um roteiro fornecido pelo professor.':
-      'As explicações e respostas-modelo são materiais de estudo; só o gabarito explicitamente fornecido pelo professor é oficial.')+'</p></div>'+
+      'As respostas são de apoio ao estudo, salvo quando houver gabarito oficial.')+'</p></div>'+
     '<div class="sd-q-count">'+items.length+' questões · abra a resposta de cada uma quando quiser</div>'+
     '<div class="sd-items">'+items.map((q,i,all)=>
       (q.section&&(i===0||all[i-1].section!==q.section)?'<div class="sd-topic-divider"><span>'+fmt(q.section)+'</span></div>':'')+
